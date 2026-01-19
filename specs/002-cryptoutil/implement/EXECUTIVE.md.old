@@ -78,7 +78,7 @@ cd deployments/compose
 docker compose up -d
 
 # Health checks (admin server)
-curl -k https://localhost:9090/admin/v1/livez
+curl -k https://localhost:9090/admin/api/v1/livez
 
 # E2E demo (public server)
 curl -k https://localhost:8080/service/api/v1/keys

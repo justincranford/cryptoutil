@@ -358,7 +358,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Key abstraction points identified:
   1. **Dual HTTPS servers**: Public (business) + Admin (health checks) with independent lifecycles
   2. **TLS generation**: Self-signed cert generation pattern (ECDSA P-384, 1-year validity)
-  3. **Admin endpoints**: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown` (standardized)
+  3. **Admin endpoints**: `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown` (standardized)
   4. **Dynamic port allocation**: `port 0` pattern for tests, configured ports for production
   5. **Graceful shutdown**: Context-based shutdown with timeout, mutex-protected state transitions
   6. **Health check semantics**: Liveness (process alive) vs Readiness (dependencies healthy)
@@ -461,7 +461,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 - **CRITICAL ARCHITECTURAL FIX**: Refactored AdminServer for configurable port to support Windows test isolation
 - Created `internal/template/server/admin.go` (358 lines) - Private admin HTTPS server
-  - Health endpoints: `/admin/v1/livez` (liveness), `/admin/v1/readyz` (readiness), `/admin/v1/shutdown` (graceful shutdown)
+  - Health endpoints: `/admin/api/v1/livez` (liveness), `/admin/api/v1/readyz` (readiness), `/admin/api/v1/shutdown` (graceful shutdown)
   - Self-signed TLS certificate generation (ECDSA P-384, 1-year validity, localhost + 127.0.0.1 + ::1 SANs)
   - **BREAKING CHANGE**: `NewAdminServer(ctx context.Context, port uint16)` - added port parameter
   - **Port Architecture**:
@@ -478,7 +478,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
     - `Start_Success` - happy path with port 0, verifies dynamic allocation
     - `Livez_Alive` - liveness probe returns 200 OK
     - `Readyz_Ready` - readiness probe returns 200 OK (after marking ready)
-    - `Shutdown_Endpoint` - POST to /admin/v1/shutdown triggers graceful shutdown
+    - `Shutdown_Endpoint` - POST to /admin/api/v1/shutdown triggers graceful shutdown
     - `Shutdown_NilContext` - error handling for nil context
     - `ConcurrentRequests` - 10 concurrent requests to health endpoints
     - `ActualPort_BeforeStart` - returns 0 before Start() called
@@ -2644,7 +2644,7 @@ go test ./internal/cmd/learn/ -v -shuffle=on
   **rotation_handlers.go** (195 lines):
   - 3 HTTP handlers for admin rotation endpoints
   - Request validation: reason field required (10-500 chars)
-  - Routes: POST /admin/v1/barrier/rotate/{root,intermediate,content}
+  - Routes: POST /admin/api/v1/barrier/rotate/{root,intermediate,content}
   - Response models: RotateRootKeyResponse, RotateIntermediateKeyResponse, RotateContentKeyResponse
   - Returns old/new UUIDs, reason, timestamp for audit
 

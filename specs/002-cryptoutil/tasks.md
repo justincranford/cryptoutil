@@ -166,7 +166,7 @@ Each task includes:
 - **Completion Criteria**:
   - [x] Rotation service with 3 methods: RotateRootKey, RotateIntermediateKey, RotateContentKey
   - [x] Elastic rotation strategy: new keys created, old keys retained for historical decryption
-  - [x] HTTP handlers: POST /admin/v1/rotate/root, /rotate/intermediate, /rotate/content
+  - [x] HTTP handlers: POST /admin/api/v1/rotate/root, /rotate/intermediate, /rotate/content
   - [x] Request validation: tenant_id required, proper error handling
   - [x] Integration tests: 5/5 tests passing (2.300s)
     - TestRotateRootKey_Success
@@ -270,7 +270,7 @@ Multi-layer key hierarchy with elastic rotation:
   - `docs/template/MIGRATION.md` (create)
 - **Completion Criteria**:
   - [ ] jose-ja admin server uses template (bind 127.0.0.1:9090)
-  - [ ] Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+  - [ ] Admin endpoints via template: `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
   - [ ] `cryptoutil jose start` command works
   - [ ] Configuration: YAML + CLI flags + Docker secrets
   - [ ] Docker health checks pass
@@ -297,7 +297,7 @@ Multi-layer key hierarchy with elastic rotation:
   - `deployments/compose/ca/compose.yml` (update)
 - **Completion Criteria**:
   - [ ] CA admin server uses template (bind 127.0.0.1:9090)
-  - [ ] Admin endpoints via template: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+  - [ ] Admin endpoints via template: `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
   - [ ] Readyz: CA chain validation, OCSP responder check
   - [ ] `cryptoutil ca start` command works
   - [ ] Configuration: YAML + CLI flags + Docker secrets

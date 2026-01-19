@@ -525,7 +525,7 @@ CRYPTOUTIL_FEDERATION_JOSE_URL="https://jose:8280"
 
 - **Exponential Backoff**: 1s, 2s, 4s, 8s, 16s (max 5 retries)
 - **Timeout Escalation**: Increase timeout 1.5x per retry (10s → 15s → 22.5s)
-- **Health Check Before Retry**: Poll `/admin/v1/livez` endpoint (fast liveness check) before resuming traffic
+- **Health Check Before Retry**: Poll `/admin/api/v1/livez` endpoint (fast liveness check) before resuming traffic
 
 **Federation Timeout Configuration** (Source: SPECKIT-CLARIFY-QUIZME-05 Q16, 2025-12-24):
 
@@ -662,10 +662,10 @@ federation:
 
 **Admin API Context**:
 
-- `/admin/v1/livez` - Liveness probe (lightweight check: service running, process alive)
-- `/admin/v1/readyz` - Readiness probe (heavyweight check: dependencies healthy, ready for traffic)
-- `/admin/v1/metrics` - Prometheus metrics endpoint
-- `/admin/v1/shutdown` - Graceful shutdown trigger
+- `/admin/api/v1/livez` - Liveness probe (lightweight check: service running, process alive)
+- `/admin/api/v1/readyz` - Readiness probe (heavyweight check: dependencies healthy, ready for traffic)
+- `/admin/api/v1/metrics` - Prometheus metrics endpoint
+- `/admin/api/v1/shutdown` - Graceful shutdown trigger
 
 **Health Check Semantics**:
 
@@ -681,7 +681,7 @@ federation:
 ```yaml
 livenessProbe:
   httpGet:
-    path: /admin/v1/livez
+    path: /admin/api/v1/livez
     port: 9090
     scheme: HTTPS
   failureThreshold: 3  # After 3 failures, pod restarted
@@ -689,7 +689,7 @@ livenessProbe:
 
 readinessProbe:
   httpGet:
-    path: /admin/v1/readyz
+    path: /admin/api/v1/readyz
     port: 9090
     scheme: HTTPS
   failureThreshold: 1  # After 1 failure, pod removed from LB
@@ -706,7 +706,7 @@ readinessProbe:
 
 ```yaml
 healthcheck:
-  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
   interval: 5s
   timeout: 5s
   retries: 3
@@ -1366,7 +1366,7 @@ The CA Server exposes certificate lifecycle operations via REST API with mTLS au
 **Missing**:
 
 - ❌ Browser API (`/browser/api/v1/*`): No Gatling simulation
-- ❌ Admin API (`/admin/v1/*`): No Gatling simulation
+- ❌ Admin API (`/admin/api/v1/*`): No Gatling simulation
 - ❌ Multi-product integration: No cross-service workflow tests
 
 **Required**: Create `BrowserApiSimulation.java` and `AdminApiSimulation.java` to complete load test coverage.
@@ -1645,7 +1645,7 @@ steps:
 - **Alpine containers**: Use `wget --no-check-certificate -q -O /dev/null <url>`
 - **Non-Alpine containers**: Use `curl -k -f -s <url>`
 - **Retry logic**: `start_period: 10s`, `interval: 5s`, `retries: 5`, `timeout: 5s`
-- **Admin endpoints**: All services use `https://127.0.0.1:9090/admin/v1/livez` for Docker health checks
+- **Admin endpoints**: All services use `https://127.0.0.1:9090/admin/api/v1/livez` for Docker health checks
 
 ---
 
@@ -1779,14 +1779,14 @@ Used for internal monitoring and health checks.
 
 | Product | Endpoint | Purpose |
 |---------|----------|---------|
-| JOSE | `/admin/v1/livez` | Liveness probe (lightweight) |
-| JOSE | `/admin/v1/readyz` | Readiness probe (heavyweight) |
-| Identity | `/admin/v1/livez` | Liveness probe (lightweight) |
-| Identity | `/admin/v1/readyz` | Readiness probe (heavyweight) |
-| KMS | `/admin/v1/livez` | Liveness probe (lightweight) |
-| KMS | `/admin/v1/readyz` | Readiness probe (heavyweight) |
-| CA | `/admin/v1/livez` | Liveness probe (lightweight, planned) |
-| CA | `/admin/v1/readyz` | Readiness probe (heavyweight, planned) |
+| JOSE | `/admin/api/v1/livez` | Liveness probe (lightweight) |
+| JOSE | `/admin/api/v1/readyz` | Readiness probe (heavyweight) |
+| Identity | `/admin/api/v1/livez` | Liveness probe (lightweight) |
+| Identity | `/admin/api/v1/readyz` | Readiness probe (heavyweight) |
+| KMS | `/admin/api/v1/livez` | Liveness probe (lightweight) |
+| KMS | `/admin/api/v1/readyz` | Readiness probe (heavyweight) |
+| CA | `/admin/api/v1/livez` | Liveness probe (lightweight, planned) |
+| CA | `/admin/api/v1/readyz` | Readiness probe (heavyweight, planned) |
 
 #### Public Browser-to-Service API
 
@@ -1969,14 +1969,14 @@ HashService
 
 - **Dual HTTPS Servers**: Public API (<configurable_address>:<configurable_port>) + Admin API (127.0.0.1:9090)
 - **Admin Endpoints**: `/livez`, `/readyz`, `/shutdown` on 127.0.0.1:9090
-  - Admin prefix configurable (default: `/admin/v1`)
+  - Admin prefix configurable (default: `/admin/api/v1`)
   - Implementation: gofiber middleware (reference: sm-kms `internal/kms/server/application/application_listener.go`)
 - **Dual API Paths**: `/browser/api/v1/*` (session-based) vs `/service/api/v1/*` (token-based)
 - **Middleware Pipeline**: CORS/CSRF/CSP (browser-only), rate limiting, IP allowlist, authentication
 - **Database Abstraction**: PostgreSQL + SQLite dual support with GORM
 - **OpenTelemetry Integration**: OTLP traces, metrics, logs
-- **Health Check Endpoints**: `/admin/v1/livez` (liveness), `/admin/v1/readyz` (readiness)
-- **Graceful Shutdown**: `/admin/v1/shutdown` endpoint
+- **Health Check Endpoints**: `/admin/api/v1/livez` (liveness), `/admin/api/v1/readyz` (readiness)
+- **Graceful Shutdown**: `/admin/api/v1/shutdown` endpoint
 - **Docker Compose Requirements**:
   - OpenTelemetry Collector Contrib MUST use separate health check job (does NOT expose external health endpoint)
   - Reference: KMS Docker Compose `deployments/compose/compose.yml` (working pattern)
@@ -2537,7 +2537,7 @@ db.Exec("SET search_path TO ?, public", tenantID)
 ### High Priority
 
 1. **Identity Admin API Migration**: Implement dual-server pattern (Public HTTPS + Private HTTPS) matching KMS architecture
-   - Add `/admin/v1/livez`, `/admin/v1/readyz` endpoints
+   - Add `/admin/api/v1/livez`, `/admin/api/v1/readyz` endpoints
    - Update Docker Compose health checks
    - Update all test files and workflows
 

@@ -61,7 +61,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 - Public HTTPS Server: `<configurable_address>:<configurable_port>` (default: 127.0.0.1 in tests, 0.0.0.0 in containers)
 - Private HTTPS Server: 127.0.0.1:9090 (admin endpoints, ALL services use same port)
 - Admin Port Configuration: 127.0.0.1:9090 inside container (NEVER exposed to host), or 127.0.0.1:0 for tests (dynamic allocation)
-- Admin Endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+- Admin Endpoints: `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
 - Note: Admin port is configurable but low priority - focus on public server configurability
 
 **Session State Management**:
@@ -187,7 +187,7 @@ cryptoutil delivers four working products (9 services total) that can be deploye
 - **Evidence**: sm-kms implements public (8080-8082) + admin (9090) servers
 - **Components**:
   - Public HTTPS: `/browser/api/v1/*` and `/service/api/v1/*`
-  - Admin HTTPS: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+  - Admin HTTPS: `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
   - Docker health checks via admin endpoints
 
 #### 1.3 Database Abstraction ✅
@@ -426,7 +426,7 @@ Issues Found:
 **Deliverables**:
 
 - ✅ EncryptBytesWithContext/DecryptBytesWithContext alias methods for barrier service
-- ✅ Manual rotation endpoints: POST /admin/v1/rotate/root, /rotate/intermediate, /rotate/content
+- ✅ Manual rotation endpoints: POST /admin/api/v1/rotate/root, /rotate/intermediate, /rotate/content
 - ✅ Elastic rotation pattern: new keys created, old keys preserved for decryption
 - ✅ Integration tests validating rotation workflow
 - ✅ Documentation in EXECUTIVE.md and DETAILED.md
@@ -576,9 +576,9 @@ Multi-layer key hierarchy with elastic rotation:
    - Create `internal/jose/server/admin/` package
    - Use template for admin server (bind 127.0.0.1:9090)
    - Implement admin endpoints via template
-     - `/admin/v1/livez` - Lightweight check
-     - `/admin/v1/readyz` - Database + JWK validation
-     - `/admin/v1/shutdown` - Graceful termination
+     - `/admin/api/v1/livez` - Lightweight check
+     - `/admin/api/v1/readyz` - Database + JWK validation
+     - `/admin/api/v1/shutdown` - Graceful termination
 
 2. Unified CLI Command
    - `cmd/cryptoutil/jose.go` - Main command
@@ -588,7 +588,7 @@ Multi-layer key hierarchy with elastic rotation:
 
 3. Update Docker Compose
    - `deployments/compose/jose/compose.yml`
-   - Health check: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez`
+   - Health check: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez`
    - start_period: 30s, interval: 5s, retries: 10
 
 4. Template Refinements (if needed)
@@ -630,9 +630,9 @@ Multi-layer key hierarchy with elastic rotation:
    - Create `internal/ca/server/admin/` package
    - Use template for admin server (bind 127.0.0.1:9090)
    - Implement admin endpoints via template
-     - `/admin/v1/livez` - Lightweight check
-     - `/admin/v1/readyz` - CA chain validation, OCSP responder check
-     - `/admin/v1/shutdown` - Graceful termination
+     - `/admin/api/v1/livez` - Lightweight check
+     - `/admin/api/v1/readyz` - CA chain validation, OCSP responder check
+     - `/admin/api/v1/shutdown` - Graceful termination
 
 2. Unified CLI Command
    - `cmd/cryptoutil/ca.go` - Main command
@@ -642,7 +642,7 @@ Multi-layer key hierarchy with elastic rotation:
 
 3. Update Docker Compose
    - `deployments/compose/ca/compose.yml`
-   - Health check: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez`
+   - Health check: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez`
    - start_period: 30s, interval: 5s, retries: 10
 
 4. Template Refinements (if needed)
@@ -683,12 +683,12 @@ Multi-layer key hierarchy with elastic rotation:
 
 1. RP (Relying Party) Admin Server
    - Use template for admin server (bind 127.0.0.1:9090)
-   - `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+   - `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
    - Readyz: OAuth 2.1 provider connectivity check
 
 2. SPA (Single Page Application) Admin Server
    - Use template for admin server (bind 127.0.0.1:9090)
-   - `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`
+   - `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
    - Readyz: Backend API connectivity check
 
 3. Migrate Existing Identity Services (authz, idp, rs) to Template

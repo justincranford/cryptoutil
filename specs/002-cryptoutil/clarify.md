@@ -43,7 +43,7 @@
 - Purpose: Internal admin tasks, health checks, metrics
 - Admin Port: 127.0.0.1:9090 (ALL services, all instances)
 - Security: IP restriction (localhost only), optional mTLS, minimal middleware
-- Endpoints: `/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/healthz`, `/admin/v1/shutdown`
+- Endpoints: `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/healthz`, `/admin/api/v1/shutdown`
 - NOT exposed in Docker port mappings
 
 **Rationale for Shared Admin Port**:
@@ -138,7 +138,7 @@
 
 - **Exponential Backoff**: 1s, 2s, 4s, 8s, 16s (max 5 retries)
 - **Timeout Escalation**: Increase timeout 1.5x per retry (10s → 15s → 22.5s)
-- **Health Check Before Retry**: Poll `/admin/v1/livez` endpoint (fast liveness check) before resuming traffic
+- **Health Check Before Retry**: Poll `/admin/api/v1/livez` endpoint (fast liveness check) before resuming traffic
 
 ---
 
@@ -238,7 +238,7 @@ database:
 
 - Two HTTPS servers (public + admin)
 - Two public API paths (`/browser/api/v1/*` vs `/service/api/v1/*`)
-- Three admin endpoints (`/admin/v1/livez`, `/admin/v1/readyz`, `/admin/v1/shutdown`)
+- Three admin endpoints (`/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`)
 - Database abstraction (PostgreSQL || SQLite dual support, GORM)
 - OpenTelemetry integration (OTLP traces, metrics, logs)
 - Config management (YAML files + CLI flags, Docker secrets support)
@@ -987,13 +987,13 @@ processors:
 
 - **Liveness probe failure**: Restart pod (assumes service is deadlocked/crashed)
 - **Readiness probe failure**: Remove from Service load balancer (stop routing traffic)
-- Both use same health check endpoint (`/admin/v1/livez` and `/admin/v1/readyz`)
+- Both use same health check endpoint (`/admin/api/v1/livez` and `/admin/api/v1/readyz`)
 - Configuration:
 
   ```yaml
   livenessProbe:
     httpGet:
-      path: /admin/v1/livez
+      path: /admin/api/v1/livez
       port: 9090
       scheme: HTTPS
     initialDelaySeconds: 10
@@ -1002,7 +1002,7 @@ processors:
 
   readinessProbe:
     httpGet:
-      path: /admin/v1/readyz
+      path: /admin/api/v1/readyz
       port: 9090
       scheme: HTTPS
     initialDelaySeconds: 5
@@ -1019,7 +1019,7 @@ processors:
 
   ```yaml
   healthcheck:
-    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
     start_period: 10s
     interval: 5s
     timeout: 2s
@@ -1078,7 +1078,7 @@ cryptoutil-postgres-2:
 ```yaml
 cryptoutil-sqlite:
   healthcheck:
-    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
     start_period: 10s
     interval: 5s
     retries: 5
@@ -1888,8 +1888,8 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 - Dual HTTPS servers (public 8888 + admin 9090)
 - PostgreSQL + SQLite support
 - OTLP telemetry integration
-- Health checks (`/admin/v1/livez`, `/admin/v1/readyz`)
-- Graceful shutdown (`/admin/v1/shutdown`)
+- Health checks (`/admin/api/v1/livez`, `/admin/api/v1/readyz`)
+- Graceful shutdown (`/admin/api/v1/shutdown`)
 - Docker Compose deployment
 - Configuration management (YAML + env vars + CLI params)
 
@@ -1968,11 +1968,11 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 
 ### Monitoring and Metrics Architecture
 
-**Q**: Should admin ports expose `/admin/v1/metrics` endpoint for external monitoring tools (Prometheus, Grafana)?
+**Q**: Should admin ports expose `/admin/api/v1/metrics` endpoint for external monitoring tools (Prometheus, Grafana)?
 
 **A** (Source: CLARIFY-QUIZME-01 Q2, 2025-12-22):
 
-**CRITICAL**: `/admin/v1/metrics` endpoint is a **MISTAKE** and MUST be removed from the project entirely.
+**CRITICAL**: `/admin/api/v1/metrics` endpoint is a **MISTAKE** and MUST be removed from the project entirely.
 
 **Correct Architecture**:
 
@@ -1982,7 +1982,7 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 
 **Action Required**:
 
-- Remove all references to `/admin/v1/metrics` from codebase
+- Remove all references to `/admin/api/v1/metrics` from codebase
 - Remove Prometheus scraping configurations
 - Update documentation to clarify push-only telemetry architecture
 
@@ -2319,8 +2319,8 @@ federation:
 **API Version Negotiation**:
 
 ```yaml
-# Service advertises supported versions via /admin/v1/version endpoint
-GET https://jose:8280/admin/v1/version
+# Service advertises supported versions via /admin/api/v1/version endpoint
+GET https://jose:8280/admin/api/v1/version
 Response:
 {
   "current_version": "v2",
