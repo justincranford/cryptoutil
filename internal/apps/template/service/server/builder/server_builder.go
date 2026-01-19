@@ -16,6 +16,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
@@ -273,6 +274,9 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 			return nil, fmt.Errorf("failed to register public routes: %w", err)
 		}
 	}
+
+	// Register tenant registration routes (template infrastructure - registration/join-request APIs).
+	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(publicServerBase.App(), registrationService)
 
 	// Register barrier admin endpoints (key rotation, status).
 	rotationService, err := cryptoutilBarrier.NewRotationService(
