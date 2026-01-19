@@ -330,4 +330,3 @@
 5. **Autonomous Execution**: Continue automatically without asking permission
 6. **SpecKit for Design**: Use SpecKit when requirements unclear or architecture changes needed
 7. **Low Maintenance**: Instructions + prompts only (no agents)
-

@@ -31,7 +31,7 @@
 | **PKI** | pki-ca | 8443-8449 | X.509 certificates, EST, SCEP, OCSP, CRL |
 | **JOSE** | jose-ja | 9443-9449 | JWK/JWS/JWE/JWT operations |
 | **Identity** | identity-authz, identity-idp, identity-rs, identity-rp, identity-spa | 18000-18409 | OAuth 2.1, OIDC 1.0 |
-| **Cipher** (Demo) | cipher-im | 8888-8889 | E2E encrypted messaging (template validation) |
+| **Cipher** | cipher-im | 8888-8889 | E2E encrypted messaging |
 
 **All services**: Public API (product-specific ports) + Admin API (127.0.0.1:9090)
 
@@ -72,7 +72,7 @@
 - `users` table (with tenant_id FK)
 - `pending_users` table (registration requests awaiting approval, unique username per tenant)
 
-**4. Barrier Service** (Optional):
+**4. Barrier Service** (MANDATORY):
 - Unseal key → Root key → Intermediate keys → Content keys
 - HKDF-based deterministic key derivation
 - Encryption-at-rest for sensitive data
@@ -83,14 +83,15 @@
 - Structured logging with trace correlation
 
 **6. Configuration**:
-- YAML files (primary)
 - Docker secrets for sensitive data (`file:///run/secrets/`)
-- CLI flags (overrides)
-- NEVER environment variables for secrets
+- YAML files
+- Environment variables (rarest)
+- CLI flags (rare, e.g. is log-level)
 
 **7. Session Management**:
-- JWE, JWS, or Opaque session tokens (configurable)
-- PostgreSQL/SQLite session storage (NO Redis/Memcached)
+- stateless JWE, stateless JWS, or stateful Opaque session tokens (configurable)
+- PostgreSQL/SQLite storage for stateful Opaque session tokens (NO Redis/Memcached)
+- No storage required for stateless JWE or stateless JWS
 - 30-minute re-authentication for high-sensitivity operations
 
 **8. Hash Service**:
@@ -104,19 +105,21 @@
 - **Lazy Migration**: Old hashes upgraded on next authentication (NO forced bulk re-hash)
 - **Version Format**: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)`
 - **Versions**:
-  - V1 (600,000 iterations, OWASP 2023) - Default
-  - V2 (310,000 iterations, NIST 2021)
-  - V3 (1,000 iterations, legacy migration only)
+  - V5 (OWASP 2023, 600k iterations, 16-byte salt, HMAC-SHA256) - Latest (Default)
+  - V4 (NIST 2021, 310k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only
+  - V3 (OWASP 2019, 100k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only
+  - V2 (NIST 2010, 10k iterations, 16-byte salt, HMAC-SHA1) - Legacy, testing only
+  - V1 (PKCS#5 v2.0 2000, 1k iterations, 8-byte salt, HMAC-SHA1) - Legacy, testing only
 
 ### Public Server APIs (Template Infrastructure)
 
 **Health Endpoints** (PublicServerBase):
-- `GET /service/api/v1/health` - Service-to-service health check (returns JSON status)
-- `GET /browser/api/v1/health` - Browser health check (returns JSON status)
+- `GET /service/api/v1/health` - Service-to-server health check (returns JSON status)
+- `GET /browser/api/v1/health` - Browser-to-server health check (returns JSON status)
 
 **Registration Endpoints** (RegisterRegistrationRoutes):
-- `POST /browser/api/v1/auth/register` - Browser user registration (NO authentication, rate-limited)
-- `POST /service/api/v1/auth/register` - Service registration (NO authentication, rate-limited)
+- `POST /browser/api/v1/register` - Browser user registration (NO authentication, rate-limited)
+- `POST /service/api/v1/register` - Service registration (NO authentication, rate-limited)
 
 **Session Endpoints** (Template infrastructure):
 - `POST /service/api/v1/sessions/issue` - Issue session token (NO middleware, creates session)
@@ -125,8 +128,8 @@
 - `POST /browser/api/v1/sessions/validate` - Browser session validate
 
 **Authentication Endpoints** (Template infrastructure):
-- `POST /browser/api/v1/users/login` - Browser user login (returns session token)
-- `POST /service/api/v1/users/login` - Service login (returns session token)
+- `POST /browser/api/v1/authn` - Browser user login (returns session token)
+- `POST /service/api/v1/authn` - Service login (returns session token)
 
 **Admin Endpoints** (AdminServer, 127.0.0.1:9090 ONLY):
 - `GET /admin/v1/livez` - Liveness probe (lightweight, restart on failure)
@@ -134,10 +137,10 @@
 - `POST /admin/v1/shutdown` - Graceful shutdown trigger
 
 **Join Request Admin Endpoints** (Template infrastructure):
-- `GET /browser/api/v1/admin/join-requests` - List pending join requests
-- `POST /browser/api/v1/admin/join-requests/:id/approve` - Approve join request
-- `POST /browser/api/v1/admin/join-requests/:id/reject` - Reject join request
-- `GET /service/api/v1/admin/join-requests` - Service variant of join requests
+- `GET /browser/api/v1/tenant/join-requests` - List pending join requests
+- `POST /browser/api/v1/tenant/join-requests/:id/approve` - Approve join request
+- `POST /browser/api/v1/tenant/join-requests/:id/reject` - Reject join request
+- `GET /service/api/v1/tenant/join-requests` - Service variant of join requests
 
 **Domain-Specific Routes**: Services register additional routes via `WithPublicRouteRegistration()` callback
 
@@ -153,10 +156,10 @@ builder.WithDomainMigrations(domainMigrationsFS, "migrations")
 // Register domain-specific routes
 builder.WithPublicRouteRegistration(func(base, res) error {
     // Create domain repos
-    messageRepo := cryptoutilCipherRepository.NewMessageRepository(res.DB)
+    domainRepo := cryptoutilDomainRepository.NewDomainRepository(res.DB)
 
     // Create domain server
-    publicServer := cryptoutilCipherServer.NewPublicServer(base, messageRepo, ...)
+    publicServer := cryptoutilDomainServer.NewPublicServer(base, domainRepo, ...)
 
     // Register routes
     publicServer.RegisterRoutes()
@@ -174,7 +177,7 @@ resources, err := builder.Build()
 2. jose-ja, pki-ca, identity-* (sequential, fix template issues as discovered)
 3. **sm-kms LAST** (most complex, template must be mature)
 
-**WHY**: cipher-im is demo service, safe to iterate. Production services migrate after template validated.
+**WHY**: cipher-im is first real service to use template, validates patterns work. Other services migrate after cipher-im proves template stability.
 
 ---
 
@@ -233,7 +236,7 @@ internal/apps/
 **NEW USER - Create New Tenant** (omit tenant_id):
 
 ```http
-POST /browser/api/v1/auth/register
+POST /browser/api/v1/register
 {
     "username": "admin@example.com",
     "password": "securepass"
@@ -375,7 +378,7 @@ func TestMain(m *testing.M) {
 
     // Create config (same method as CLIs)
     cfg := config.NewTestSettings()
-    
+
     // Config triggers PostgreSQL test-container OR in-memory SQLite
     // and does migrations automatically
     testServer, err := NewFromConfig(ctx, cfg)
