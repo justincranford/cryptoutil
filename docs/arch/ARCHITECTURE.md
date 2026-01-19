@@ -1,10 +1,31 @@
 # cryptoutil Architecture - Single Source of Truth
 
 **Version**: 1.0.0
-**Last Updated**: 2026-01-18
+**Last Updated**: 2026-01-19
 **Status**: DRAFT - Requires review and refinement
 
 **Purpose**: This document is the SINGLE SOURCE OF TRUTH for all cryptoutil architecture and design decisions. All implementation must conform to patterns defined here. NO duplication or conflicting information elsewhere.
+
+---
+
+## Core Design Principles
+
+**Quality Over Speed (NO EXCEPTIONS)**:
+- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
+- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step (build, lint, test, coverage, mutation)
+- ✅ **Reliability**: ≥95% coverage production, ≥98% infrastructure/utility, ≥85% mutation production, ≥98% mutation infrastructure
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark tasks complete without objective evidence
+
+**Continuous Execution (NO STOPPING)**:
+- Work continues until ALL tasks complete OR user clicks STOP button
+- NEVER stop to ask permission between tasks ("Should I continue?")
+- NEVER pause for status updates or celebrations ("Here's what we did...")
+- NEVER give up when encountering complexity (find solutions, refactor, investigate)
+- NEVER skip tasks to "save time" or because they seem "less important"
+- Task complete → Commit → IMMEDIATELY start next task (zero pause, zero text to user)
 
 ---
 
@@ -62,20 +83,22 @@
 - PostgreSQL (production) OR SQLite (dev/test) dual support
 - GORM ORM for type-safe queries
 - Embedded migrations (golang-migrate)
-- Template migrations 1001-1005 (sessions, barrier, realms, multi-tenancy, pending_users)
+- Template migrations 1001-1999 (sessions, barrier, realms, multi-tenancy, pending_users)
 - Domain migrations 2001+ (service-specific tables)
 
 **3. Multi-Tenancy Infrastructure**:
 - `tenants` table (tenant metadata)
 - `tenant_realms` table (authn realms per tenant - authentication ONLY, NOT data filtering)
+- `pending_users` table (registration requests awaiting approval, unique username per tenant)
 - `sessions` table (user sessions with tenant_id)
 - `users` table (with tenant_id FK)
-- `pending_users` table (registration requests awaiting approval, unique username per tenant)
+- **Migration 1005**: pending_users table with unique(username, tenant_id) constraint, expiration cleanup
+- **NO WithDefaultTenant()**: Services start "cold", all tenants created via registration flow
 
 **4. Barrier Service** (MANDATORY - Multi-Layer Key Hierarchy):
 - **Unseal Key**: NEVER stored in app, Docker secrets at runtime, HKDF-derived from shared secrets
 - **Root Key**: Encrypted at rest with unseal key, rotated annually
-- **Intermediate Keys**: Encrypted with root key, rotated quarterly  
+- **Intermediate Keys**: Encrypted with root key, rotated quarterly
 - **Content Keys**: Encrypted with intermediate keys, rotated per-operation (messages) or hourly (sessions/data)
 - **HKDF Derivation**: Deterministic key derivation ensures all instances derive same keys from same secrets
 - **Encryption-at-rest**: ALL sensitive data (JWKs, passwords, tokens) encrypted before storage
@@ -101,11 +124,11 @@
 **8. Hash Service** (Version-Based Policy Framework):
 - **4 Hash Registries**:
   - **LowEntropyDeterministic**: `PBKDF2(input||pepper, fixedSalt, HIGH_iter, 256)` - PII lookup (usernames, emails, IPs)
-  - **LowEntropyRandom**: `PBKDF2(password||pepper, randomSalt, OWASP_iter, 256)` - Password hashing  
+  - **LowEntropyRandom**: `PBKDF2(password||pepper, randomSalt, OWASP_iter, 256)` - Password hashing
   - **HighEntropyDeterministic**: `HKDF-Extract+Expand(input||pepper, fixedSalt, info, 256)` - Config blob integrity
   - **HighEntropyRandom**: `HKDF-Extract+Expand(key||pepper, randomSalt, info, 256)` - API key storage
 - **Version Tuple**: Each version = (4 Registries + Unique Pepper) based on NIST/OWASP policy
-- **Pepper Management**: 
+- **Pepper Management**:
   - MANDATORY for ALL inputs (Docker/K8s secret preferred)
   - NEVER in DB/source (mutually exclusive from hashes)
   - Version-specific (different pepper per version)
@@ -115,7 +138,7 @@
 - **Supported Versions**:
   - V5 (OWASP 2023, 600k iterations, 16-byte salt, HMAC-SHA256) - Current (Default)
   - V4 (NIST 2021, 310k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only
-  - V3 (OWASP 2019, 100k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only  
+  - V3 (OWASP 2019, 100k iterations, 16-byte salt, HMAC-SHA256) - Legacy, testing only
   - V2 (NIST 2010, 10k iterations, 16-byte salt, HMAC-SHA1) - Legacy, testing only
   - V1 (PKCS#5 v2.0 2000, 1k iterations, 8-byte salt, HMAC-SHA1) - Legacy, testing only
 
@@ -230,7 +253,7 @@ resources, err := builder.Build()
   - ShutdownContainer (func())
 
 **Merged Migrations Pattern**:
-- Template migrations (1001-1005) + Domain migrations (2001+) combined via `mergedMigrations` fs.FS implementation
+- Template migrations (1001-1999) + Domain migrations (2001+) combined via `mergedMigrations` fs.FS implementation
 - golang-migrate validates ALL versions against single unified filesystem
 - Template migrations:
   - 1001: Sessions tables
@@ -240,7 +263,7 @@ resources, err := builder.Build()
   - 1005: Pending users (registration approval workflow)
 - Domain migrations: 2001+ (service-specific, e.g., cipher-im message tables, jose JWK tables)
 
-**NO Default Tenant**: 
+**NO Default Tenant**:
 - Services start "cold" without any pre-created tenant/realm
 - ALL tenants created via `/browser/api/v1/register` or `/service/api/v1/register` endpoints
 - Tests use TestMain pattern: start server once per package, register test tenant via HTTP
@@ -341,7 +364,11 @@ internal/apps/
 
 ## Multi-Tenancy Architecture
 
-### Registration Flow
+### Core Registration Pattern
+
+**NO Default Tenant**: Services start "cold" without any pre-created tenant/realm. ALL tenants created via registration endpoints.
+
+**Registration Flow**:
 
 **NEW USER - Create New Tenant** (omit tenant_id):
 
@@ -360,12 +387,13 @@ POST /browser/api/v1/register
 - After approval: user moved to `users`, new tenant created automatically, realm created
 - After rejection: user deleted from `pending_users`
 - All API calls return HTTP 403 until approved, HTTP 401 if rejected
-- Pending user expiration configurable in hours (NOT days)
+- Pending user expiration configurable in hours (NOT days), default 72 hours (3 days)
+- NO session_token issued until user approved (removed from registration response)
 
 **EXISTING USER - Join Existing Tenant** (specify tenant_id):
 
 ```http
-POST /browser/api/v1/auth/register
+POST /browser/api/v1/register
 {
     "username": "user@example.com",
     "password": "securepass",
@@ -378,6 +406,22 @@ POST /browser/api/v1/auth/register
 - Tenant admin must approve join request via admin panel
 - After approval: user moved to `users`, granted access to tenant
 - User receives NO session token until approved
+
+**Admin Approval Endpoints**:
+- `GET /browser/api/v1/tenant/join-requests` - List pending join requests
+- `POST /browser/api/v1/tenant/join-requests/:id/approve` - Approve join request
+- `POST /browser/api/v1/tenant/join-requests/:id/reject` - Reject join request
+- `GET /service/api/v1/tenant/join-requests` - Service variant of join requests
+
+**Rate Limiting**:
+- Per IP address only (10 registrations per hour, configurable)
+- In-memory (sync.Map) - simple, single-node, lost on restart
+- Configurable thresholds with low defaults
+
+**Email Validation**:
+- NO email validation on username field (username can be non-email)
+- Email/password authentication is a DIFFERENT realm (not implemented yet)
+- Username field accepts any string (simplified registration flow)
 
 ### Realms (Authentication Only)
 
