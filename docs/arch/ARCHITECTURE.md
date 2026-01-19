@@ -1,7 +1,7 @@
 # cryptoutil Architecture - Single Source of Truth
 
-**Version**: 1.0.0  
-**Last Updated**: 2026-01-18  
+**Version**: 1.0.0
+**Last Updated**: 2026-01-18
 **Status**: DRAFT - Requires review and refinement
 
 **Purpose**: This document is the SINGLE SOURCE OF TRUTH for all cryptoutil architecture and design decisions. All implementation must conform to patterns defined here. NO duplication or conflicting information elsewhere.
@@ -62,16 +62,15 @@
 - PostgreSQL (production) OR SQLite (dev/test) dual support
 - GORM ORM for type-safe queries
 - Embedded migrations (golang-migrate)
-- Template migrations 1001-1004 (sessions, barrier, realms, multi-tenancy)
+- Template migrations 1001-1999 (sessions, barrier, realms, multi-tenancy)
 - Domain migrations 2001+ (service-specific tables)
 
 **3. Multi-Tenancy Infrastructure**:
 - `tenants` table (tenant metadata)
-- `tenant_realms` table (authn realms per tenant)
+- `tenant_realms` table (authn realms per tenant - authentication ONLY, NOT data filtering)
 - `sessions` table (user sessions with tenant_id)
-- `tenant_join_requests` table (join requests for existing tenants)
 - `users` table (with tenant_id FK)
-- `pending_users` table (registration requests awaiting approval)
+- `pending_users` table (registration requests awaiting approval, unique username per tenant)
 
 **4. Barrier Service** (Optional):
 - Unseal key → Root key → Intermediate keys → Content keys
@@ -95,10 +94,52 @@
 - 30-minute re-authentication for high-sensitivity operations
 
 **8. Hash Service**:
-- PBKDF2-HMAC-SHA256 for passwords (FIPS 140-3 compliant)
-- Global pepper (via Docker secret)
-- Version-based hash policies
-- Lazy migration on pepper rotation
+- **4 Hash Registries**:
+  - LowEntropyDeterministic (PBKDF2 with fixed salt) - PII lookup (usernames, emails, IPs)
+  - LowEntropyRandom (PBKDF2 with random salt) - Password hashing
+  - HighEntropyDeterministic (HKDF with fixed info) - Config blob integrity
+  - HighEntropyRandom (HKDF with random salt) - API key storage
+- **PBKDF2 Iteration Count**: 600,000 (OWASP 2023 recommendation, FIPS 140-3 compliant)
+- **Pepper**: Global security policy (Docker secret), version-specific
+- **Lazy Migration**: Old hashes upgraded on next authentication (NO forced bulk re-hash)
+- **Version Format**: `{version}:{algorithm}:{iterations}:base64(salt):base64(hash)`
+- **Versions**:
+  - V1 (600,000 iterations, OWASP 2023) - Default
+  - V2 (310,000 iterations, NIST 2021)
+  - V3 (1,000 iterations, legacy migration only)
+
+### Public Server APIs (Template Infrastructure)
+
+**Health Endpoints** (PublicServerBase):
+- `GET /service/api/v1/health` - Service-to-service health check (returns JSON status)
+- `GET /browser/api/v1/health` - Browser health check (returns JSON status)
+
+**Registration Endpoints** (RegisterRegistrationRoutes):
+- `POST /browser/api/v1/auth/register` - Browser user registration (NO authentication, rate-limited)
+- `POST /service/api/v1/auth/register` - Service registration (NO authentication, rate-limited)
+
+**Session Endpoints** (Template infrastructure):
+- `POST /service/api/v1/sessions/issue` - Issue session token (NO middleware, creates session)
+- `POST /service/api/v1/sessions/validate` - Validate session token (NO middleware, checks validity)
+- `POST /browser/api/v1/sessions/issue` - Browser session issue
+- `POST /browser/api/v1/sessions/validate` - Browser session validate
+
+**Authentication Endpoints** (Template infrastructure):
+- `POST /browser/api/v1/users/login` - Browser user login (returns session token)
+- `POST /service/api/v1/users/login` - Service login (returns session token)
+
+**Admin Endpoints** (AdminServer, 127.0.0.1:9090 ONLY):
+- `GET /admin/v1/livez` - Liveness probe (lightweight, restart on failure)
+- `GET /admin/v1/readyz` - Readiness probe (heavyweight with dependency checks, remove from LB on failure)
+- `POST /admin/v1/shutdown` - Graceful shutdown trigger
+
+**Join Request Admin Endpoints** (Template infrastructure):
+- `GET /browser/api/v1/admin/join-requests` - List pending join requests
+- `POST /browser/api/v1/admin/join-requests/:id/approve` - Approve join request
+- `POST /browser/api/v1/admin/join-requests/:id/reject` - Reject join request
+- `GET /service/api/v1/admin/join-requests` - Service variant of join requests
+
+**Domain-Specific Routes**: Services register additional routes via `WithPublicRouteRegistration()` callback
 
 ### Template Usage Pattern
 
@@ -113,10 +154,10 @@ builder.WithDomainMigrations(domainMigrationsFS, "migrations")
 builder.WithPublicRouteRegistration(func(base, res) error {
     // Create domain repos
     messageRepo := cryptoutilCipherRepository.NewMessageRepository(res.DB)
-    
+
     // Create domain server
     publicServer := cryptoutilCipherServer.NewPublicServer(base, messageRepo, ...)
-    
+
     // Register routes
     publicServer.RegisterRoutes()
     return nil
@@ -189,41 +230,39 @@ internal/apps/
 
 ### Registration Flow
 
-**NEW USER - Create New Tenant**:
+**NEW USER - Create New Tenant** (omit tenant_id):
 
 ```http
-POST /browser/api/v1/register
+POST /browser/api/v1/auth/register
 {
     "username": "admin@example.com",
-    "password": "securepass",
-    "create_tenant": true,
-    "tenant_name": "Acme Corp"
+    "password": "securepass"
 }
 ```
 
 **Response**: HTTP 403 Forbidden (pending approval)
 - User saved in `pending_users` table (NOT `users`)
+- Username MUST be unique per tenant (constraint: UNIQUE(tenant_id, username) across `users` AND `pending_users`)
 - Admin must approve via admin panel
-- After approval: user moved to `users`, tenant/realm created
+- After approval: user moved to `users`, new tenant created automatically, realm created
 - After rejection: user deleted from `pending_users`
 - All API calls return HTTP 403 until approved, HTTP 401 if rejected
+- Pending user expiration configurable in hours (NOT days)
 
-**EXISTING USER - Join Existing Tenant**:
+**EXISTING USER - Join Existing Tenant** (specify tenant_id):
 
 ```http
-POST /browser/api/v1/register  
+POST /browser/api/v1/auth/register
 {
     "username": "user@example.com",
     "password": "securepass",
-    "create_tenant": false,
     "tenant_id": "uuid-of-existing-tenant"
 }
 ```
 
 **Response**: HTTP 403 Forbidden (pending approval)
-- User saved in `pending_users` table
-- Join request saved in `tenant_join_requests` table with status "pending"
-- Tenant admin must approve join request
+- User saved in `pending_users` table with specified tenant_id
+- Tenant admin must approve join request via admin panel
 - After approval: user moved to `users`, granted access to tenant
 - User receives NO session token until approved
 
@@ -239,7 +278,6 @@ POST /browser/api/v1/register
 - OAuth 2.0/OIDC federated
 - LDAP/AD
 - WebAuthn/FIDO2
-- SAML 2.0
 
 **Repository Pattern**: Filter by `tenant_id` ONLY, NOT `realm_id`
 
@@ -258,7 +296,7 @@ db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 **Session formats** (configurable):
 - JWE (encrypted JWT) - stateless, secure
 - JWS (signed JWT) - stateless, tamper-proof
-- Opaque (UUID) - stateful, server-side lookup
+- Opaque (UUIDv7) - stateful, server-side lookup
 
 **Storage**: PostgreSQL or SQLite (NO Redis/Memcached)
 
@@ -283,12 +321,17 @@ db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 **Browser Clients** (`/browser/**` paths):
 1. Session Cookie (JWE/JWS/Opaque)
 2. Basic (Username/Password)
-3. OAuth 2.0 (Google, Microsoft, GitHub, etc.)
-4. SAML 2.0 (Enterprise SSO)
-5. TOTP (Authenticator App)
-6. WebAuthn (Passkeys, Security Keys)
-7. Magic Link (Email/SMS)
-8. OTP (Email/SMS/Voice)
+3. OAuth 2.0 (Google, Microsoft, GitHub, Facebook, Apple, LinkedIn, Twitter/X, Amazon, Okta)
+4. TOTP (Authenticator App - Google Authenticator, Authy)
+5. HOTP (Hardware Token - YubiKey, RSA SecurID)
+6. WebAuthn with Passkeys (Face ID, Touch ID, Windows Hello)
+7. WebAuthn without Passkeys (YubiKey, Titan Key)
+8. Push Notification (Mobile app push-based)
+9. Magic Link (Email/SMS)
+10. Random OTP (Email/SMS/Voice)
+11. Recovery Codes (Backup single-use codes)
+
+**Total**: 13 headless methods + 28 browser methods (MFA combinations supported)
 
 ### Authorization Pattern
 
@@ -304,13 +347,13 @@ db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 
 ## Testing Strategy
 
-### Unit Tests
+### Unit/Integration Tests
 
 **Coverage**: ≥95% production, ≥98% infrastructure/utility
 
 **Pattern**: Table-driven with `t.Parallel()` for orthogonal data
 
-**Test Data**: UUIDv7 for all values (thread-safe, process-safe)
+**Test Data**: UUIDv7 for ALL values (usernames, passwords, tenant IDs, realm IDs, messages) - differentiates all test data
 
 **Dynamic Ports**: ALWAYS port 0 (prevents TIME_WAIT on Windows)
 
@@ -322,39 +365,59 @@ sqlDB.Exec("PRAGMA journal_mode=WAL;")
 sqlDB.Exec("PRAGMA busy_timeout = 30000;")
 ```
 
-### Integration Tests
+**TestMain Pattern** (ALL product-services MUST use):
 
-**TestMain Pattern** (per package):
 ```go
+var testServer *Server
+
 func TestMain(m *testing.M) {
     ctx := context.Background()
+
+    // Create config (same method as CLIs)
+    cfg := config.NewTestSettings()
     
-    // Start PostgreSQL test-container ONCE
-    container, _ := postgres.RunContainer(ctx, ...)
-    defer container.Terminate(ctx)
-    
-    // Connect and migrate
-    testDB, _ := gorm.Open(postgres.Open(connStr))
-    migrate(testDB)
-    
-    // Run all tests (reuse container)
+    // Config triggers PostgreSQL test-container OR in-memory SQLite
+    // and does migrations automatically
+    testServer, err := NewFromConfig(ctx, cfg)
+    if err != nil {
+        panic(err)
+    }
+
+    // Start server
+    go testServer.Start()
+    defer testServer.Shutdown(ctx)
+
+    // Wait for ready
+    testServer.WaitForReady(ctx, 10*time.Second)
+
+    // Register test tenant through API (realistic user flow)
+    registerTestUser(testServer.PublicBaseURL())
+
+    // Run all tests (share same server instance)
     os.Exit(m.Run())
 }
 ```
 
-**Isolation**: Each test creates unique users (UUIDv7 in usernames)
+**CRITICAL**: Same "start server from config" method as CLIs. Config determines PostgreSQL test-container OR in-memory SQLite.
+
+**Isolation**: Each test creates unique data using UUIDv7 (usernames like `user_{uuid}@example.com`)
 
 ### E2E Tests
+
+**Location**: Per product-service e2e/ subdirectory (NOT `test/e2e/` or inline with unit tests)
+- Example: `internal/apps/cipher/im/e2e/` for cipher-im E2E tests
 
 **MUST test BOTH paths**:
 - `/service/**` (headless clients)
 - `/browser/**` (browser clients)
 
-**Pattern**: Docker Compose with test-containers
+**Pattern**: Docker Compose with PostgreSQL 18+ (production-like deployment)
+
+**Database**: Uses PostgreSQL instance created OUTSIDE "create server from config" (external docker compose PostgreSQL 18+, NOT test-container)
 
 **Registration**: Via HTTP endpoints (realistic user flow)
 
-**NO demo tenants**: E2E tests create tenants via `/register` endpoint
+**NO demo tenants**: E2E tests create tenants via `/auth/register` endpoint
 
 ### Mutation Testing
 
@@ -368,37 +431,85 @@ func TestMain(m *testing.M) {
 
 ### Docker Compose
 
-**Structure**:
+**CRITICAL: Docker Secrets Pattern** (see `deployments/kms/compose.yml` for reference implementation)
+
+**NO HARDCODED SECRETS**: NEVER hardcode sensitive data in compose.yml or environment variables
+
+**NO ENVIRONMENT VARIABLES for sensitive data**: NEVER use `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` environment variables
+
+**ALWAYS Docker Secrets** with 440 permissions (r--r-----):
+
 ```yaml
+secrets:
+  postgres_username.secret:
+    file: ./secrets/postgres_username.secret
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
+  postgres_database.secret:
+    file: ./secrets/postgres_database.secret
+  unseal_1of5.secret:
+    file: ./secrets/unseal_1of5.secret
+
 services:
+  postgres:
+    image: postgres:18
+    environment:
+      # Use _FILE suffix to read from Docker secrets
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+    secrets:
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+
   cipher-im:
     image: cryptoutil:local
-    command: ["server", "--config=/app/configs/cipher/cipher-im.yml"]
-    secrets: [database_url, unseal_key, tls_cert, tls_key, hash_pepper]
+    command: ["server", "start", "--config=/app/config/cipher-im.yml"]
+    secrets:
+      - unseal_1of5.secret  # CRITICAL: ALL services use SAME unseal secrets
+      - postgres_url.secret
     ports: ["8888:8888"]
     depends_on:
       postgres: {condition: service_healthy}
       otel-collector: {condition: service_started}
-      
-  postgres:
-    image: postgres:18-alpine
-    environment: {POSTGRES_DB: cryptoutil, POSTGRES_USER: cryptoutil}
-    healthcheck: {test: ["CMD", "pg_isready"], interval: 10s}
-    
+    healthcheck:
+      # Use wget (available in Alpine), NOT curl
+      # Use 127.0.0.1 (NOT localhost - may resolve to ::1 IPv6)
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/v1/livez"]
+      start_period: 60s
+      interval: 5s
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
-    ports: ["4317:4317", "4318:4318"]
-    
+    # NO host port mappings (use container-to-container networking)
+    networks:
+      - telemetry-network
+
   grafana-lgtm:
     image: grafana/otel-lgtm:latest
-    ports: ["3000:3000"]
+    ports: ["3000:3000"]  # Only expose Grafana UI to host
 ```
 
-**Secrets**: ALWAYS `file:///run/secrets/` pattern (NEVER env vars)
+**Secret Files** (440 permissions):
+```bash
+chmod 440 secrets/*.secret
+```
+
+**Application Config** (`file://` pattern):
+```yaml
+database-url: "file:///run/secrets/postgres_url.secret"
+unseal-keys:
+  - "file:///run/secrets/unseal_1of5.secret"
+  - "file:///run/secrets/unseal_2of5.secret"
+hash-pepper: "file:///run/secrets/hash_pepper.secret"
+```
 
 **Health Checks**: Via admin endpoints (livez/readyz)
 
-**Networking**: Container-to-container (use service names, NOT host ports)
+**Networking**: Container-to-container (use service names like `opentelemetry-collector-contrib:4317`, NOT host ports)
 
 ### Kubernetes
 
@@ -410,7 +521,7 @@ livenessProbe:
   httpGet: {path: /admin/v1/livez, port: 9090, scheme: HTTPS}
   initialDelaySeconds: 10
   periodSeconds: 10
-  
+
 readinessProbe:
   httpGet: {path: /admin/v1/readyz, port: 9090, scheme: HTTPS}
   initialDelaySeconds: 15
