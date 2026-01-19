@@ -108,17 +108,6 @@ func TestFederationManager_RegisterProvider(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "valid SAML provider",
-			provider: &FederatedProvider{
-				ID:        "saml-provider",
-				Name:      "SAML Provider",
-				IssuerURL: "https://saml.example.com",
-				Type:      FederationTypeSAML,
-				Enabled:   true,
-			},
-			wantErr: false,
-		},
 	}
 
 	for _, tc := range tests {
@@ -262,7 +251,7 @@ func TestFederationManager_ListProviders(t *testing.T) {
 	err = manager.RegisterProvider(&FederatedProvider{
 		ID:        "provider2",
 		IssuerURL: "https://issuer2.example.com",
-		Type:      FederationTypeSAML,
+		Type:      FederationTypeOIDC,
 	})
 	require.NoError(t, err)
 
@@ -353,24 +342,6 @@ func TestFederationManager_DiscoverOIDC(t *testing.T) {
 		doc, err := manager.DiscoverOIDC(context.Background(), "non-existing")
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not found")
-		require.Nil(t, doc)
-	})
-
-	t.Run("non-OIDC provider", func(t *testing.T) {
-		t.Parallel()
-
-		manager := NewFederationManager(nil)
-
-		err := manager.RegisterProvider(&FederatedProvider{
-			ID:        "saml-provider",
-			IssuerURL: "https://saml.example.com",
-			Type:      FederationTypeSAML,
-		})
-		require.NoError(t, err)
-
-		doc, err := manager.DiscoverOIDC(context.Background(), "saml-provider")
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "not OIDC type")
 		require.Nil(t, doc)
 	})
 }
@@ -644,7 +615,6 @@ func TestFederationProviderTypes(t *testing.T) {
 	t.Parallel()
 
 	require.Equal(t, FederationProviderType("oidc"), FederationTypeOIDC)
-	require.Equal(t, FederationProviderType("saml"), FederationTypeSAML)
 }
 
 func TestTenantIsolationModes(t *testing.T) {

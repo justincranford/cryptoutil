@@ -216,7 +216,7 @@ HTTPS Issuing CA for TLS Client Certs MUST BE shared per per-service instance ty
 - Initial Request Without Session Token
   - Unauthenticated browser-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
     - SFA in Standalone product mode: Basic (Username/password), Basic (Email/Password), Bearer (API Token)
-    - MFA in Federated Identity mode: 28 total authentication methods (see Authentication and Authorization Requirements section for complete list including WebAuthn, TOTP, HOTP, Magic Link, Random OTP, Social Login, SAML 2.0)
+    - MFA in Federated Identity mode: 27 total authentication methods (see Authentication and Authorization Requirements section for complete list including WebAuthn, TOTP, HOTP, Magic Link, Random OTP, Social Login)
   - Unauthenticated headless-based clients MUST be redirected to authentication, supporting a different option depending if a service (e.g. SM-KMS, PKI-CA, JOSE-JA) is deployed standalone vs federated with Identity product:
     - SFA in Standalone product mode: Basic (Clientid,clientsecret), Bearer (API Token)
     - MFA in Federated Identity mode: 10 total authentication methods (see Authentication and Authorization Requirements section for complete list including mTLS, OAuth 2.1 Access/Refresh Tokens)

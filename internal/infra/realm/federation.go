@@ -25,7 +25,7 @@ type FederatedProvider struct {
 	// Name is the human-readable provider name.
 	Name string `yaml:"name" json:"name"`
 
-	// Type is the provider type (oidc, saml).
+	// Type is the provider type (oidc only).
 	Type FederationProviderType `yaml:"type" json:"type"`
 
 	// IssuerURL is the OIDC issuer URL.
@@ -59,9 +59,6 @@ type FederationProviderType string
 const (
 	// FederationTypeOIDC is an OpenID Connect provider.
 	FederationTypeOIDC FederationProviderType = "oidc"
-
-	// FederationTypeSAML is a SAML 2.0 provider.
-	FederationTypeSAML FederationProviderType = "saml"
 )
 
 // TenantMapping maps provider claims to tenant IDs.
@@ -156,8 +153,8 @@ func (m *FederationManager) RegisterProvider(provider *FederatedProvider) error 
 		return errors.New("issuer URL is required")
 	}
 
-	if provider.Type != FederationTypeOIDC && provider.Type != FederationTypeSAML {
-		return fmt.Errorf("unsupported provider type: %s", provider.Type)
+	if provider.Type != FederationTypeOIDC {
+		return fmt.Errorf("unsupported provider type: %s (only OIDC supported)", provider.Type)
 	}
 
 	m.mu.Lock()
