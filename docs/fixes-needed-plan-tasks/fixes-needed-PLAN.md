@@ -1,7 +1,8 @@
 # JOSE-JA Refactoring Plan V4
 
 **Last Updated**: 2026-01-18
-**Supersedes**: JOSE-JA-REFACTORING-PLAN-V3.md (archived to docs/archive/jose-ja/)
+
+**Architecture Reference**: See [docs/arch/ARCHITECTURE.md](../arch/ARCHITECTURE.md) for comprehensive design patterns, principles, and implementation guidelines.
 
 **Critical Fixes from V3**:
 - ✅ Port 9090 for admin endpoints (was incorrectly 8080)

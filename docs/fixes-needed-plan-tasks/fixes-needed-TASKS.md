@@ -4,6 +4,8 @@
 **Based On**: JOSE-JA-REFACTORING-PLAN-V4.md
 **Supersedes**: JOSE-JA-REFACTORING-TASKS-V3.md (archived to docs/archive/jose-ja/)
 
+**Architecture Reference**: See [docs/arch/ARCHITECTURE.md](../arch/ARCHITECTURE.md) for comprehensive design patterns, principles, and implementation guidelines.
+
 **Critical Fixes from V3**:
 - ✅ Port 9090 for admin endpoints
 - ✅ PostgreSQL 18+ requirement
