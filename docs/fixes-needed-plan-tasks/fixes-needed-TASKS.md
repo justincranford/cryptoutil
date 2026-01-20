@@ -161,7 +161,7 @@
 - [x] 0.8.4 Implement PUT /admin/api/v1/join-requests/:id (approve/reject)
 - [x] 0.8.5 **CRITICAL: Consistent paths (/admin/api/v1, NOT /admin/v1)**
 - [x] 0.8.6 **CRITICAL: tenant_id param (absence=create, presence=join)**
-- [ ] 0.8.7 **NEW: In-memory rate limiting per IP (configurable threshold)**
+- [x] 0.8.7 **NEW: In-memory rate limiting per IP (configurable threshold)**
 - [ ] 0.8.8 Write integration tests (≥95% coverage)
 
 **Evidence**: Coverage ≥95%, all endpoints tested

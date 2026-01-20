@@ -3267,6 +3267,70 @@ barrierRepo, _ := NewGormBarrierRepository(db)
 2. Consider incremental fixes (group by linter: errcheck, mnd, nilnil, noctx, wrapcheck, wsl_v5)
 3. Phase 8: Consider unit tests for template realms handlers (HandleRegisterUser, HandleLoginUser)
 
+---
+
+### 2025-12-25: Phase 0 - Rate Limiting Implementation (Task 0.8.7)
+
+**Work Completed**:
+
+Implemented in-memory rate limiting for registration endpoints to prevent abuse.
+
+**Rate Limiter Implementation**:
+
+Created `internal/apps/template/service/server/apis/rate_limiter.go`:
+- Token bucket algorithm: requestsPerMin, burstSize
+- sync.RWMutex-protected map[string]*tokenBucket (IP → bucket)
+- Token refill: elapsed.Seconds() × requestsPerMin/60 tokens per second
+- Cleanup goroutine: Removes buckets inactive >10 minutes every 5 minutes
+- Stop() method for graceful shutdown
+
+**Middleware Integration**:
+
+Updated `registration_routes.go`:
+- RegisterRegistrationRoutes now accepts `requestsPerMin int` parameter
+- Rate limit middleware returns 429 Too Many Requests when exceeded
+- Applied to both /browser/api/v1/auth/register and /service/api/v1/auth/register
+- Default: 10 requests/min per IP, burst 5 (hardcoded in server_builder.go)
+
+**Test Coverage**:
+
+Created `rate_limiter_test.go` with 5 comprehensive tests:
+- TestRateLimiter_Allow_UnderLimit: Verifies burst requests succeed
+- TestRateLimiter_Allow_ExceedsLimit: Verifies 6th request blocked
+- TestRateLimiter_Allow_TokenRefill: Verifies tokens refill after 1 second
+- TestRateLimiter_Allow_PerIPIsolation: Verifies independent IP buckets
+- TestRateLimiter_Cleanup: Verifies stale bucket removal
+
+**Quality Metrics**:
+
+Tests: ✅ 13/13 pass (rate limiter + registration handlers)
+- `go test ./internal/apps/template/service/server/apis/... -v`
+- Duration: 1.135s (includes 1.1s sleep for token refill test)
+
+Build: ✅ Clean (0 errors)
+- `go build ./internal/apps/template/...`
+
+Coverage: ❓ Not yet measured (pending Task 0.8.8 integration tests)
+Mutation: ❓ Not yet measured (pending Phase 0 validation)
+
+**Commits**:
+
+- 9e6893f6 ("feat(template): implement rate limiting for registration endpoints")
+
+**Remaining Phase 0 Work**:
+
+- Task 0.8.8: Integration tests with database (≥95% coverage target)
+- Task 0.10: Phase 0 validation (build, lint, coverage, mutation, E2E)
+
+**Next Steps**:
+
+1. Write integration tests for full registration flow with database
+2. Test rate limiting with real HTTP requests
+3. Run coverage analysis (target ≥95% production, ≥98% infrastructure)
+4. Run mutation testing (target ≥85% production, ≥98% infrastructure)
+5. Execute Phase 0 validation checklist
+
+
 **Estimated Time to Template Cleanup**: ~4-6 hours (50+ violations, mixed complexity)
 
 **Decision Rationale**:
