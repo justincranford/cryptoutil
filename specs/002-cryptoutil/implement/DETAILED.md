@@ -4014,3 +4014,127 @@ ok      cryptoutil/internal/template/service/server/registration    0.123s
 **Next Steps**: Create repository integration tests for ElasticJWKRepository, MaterialJWKRepository, AuditConfigRepository, AuditLogRepository using testcontainers PostgreSQL → SQLite fallback pattern.
 
 **Phase Status**: Phase 4 JOSE-JA Testing → Handler tests complete (20/20 passing, 76.3% coverage), repository tests in progress
+---
+
+### 2026-01-18: JOSE-JA Service Package Coverage Improvement
+
+**Session Goal**: Improve jose-ja service test coverage from 81.7% to 95% target.
+
+**Work Completed**:
+1. **Added 9 New Service Tests** (+1.0% coverage in service package):
+   - JWT Service (4 tests):
+     * `TestJWTService_ValidateJWT_InvalidKeyUse` - validates JWT with encryption key (should fail)
+     * `TestJWTService_CreateEncryptedJWT_WrongEncryptionKeyTenant` - cross-tenant encryption key (should fail)
+     * `TestJWTService_ValidateJWT_MaterialFromDifferentKey` - signature mismatch validation (should fail)
+   - Material Rotation Service (5 tests):
+     * `TestMaterialRotationService_RetireMaterial_NonExistentMaterial` - retire non-existent material (should fail)
+     * `TestMaterialRotationService_RetireMaterial_NonExistentElasticJWK` - retire with non-existent elastic key (should fail)
+     * `TestMaterialRotationService_ListMaterials_NonExistentElasticJWK` - list for non-existent elastic key (should fail)
+     * `TestMaterialRotationService_GetActiveMaterial_NonExistentElasticJWK` - get active for non-existent elastic key (should fail)
+     * `TestMaterialRotationService_GetMaterialByKID_NonExistentElasticJWK` - get by KID for non-existent elastic key (should fail)
+
+2. **Coverage Analysis** (comprehensive per-package review):
+   - **Domain**: 100.0% ✅ (perfect)
+   - **Repository**: 82.8% (similar to service)
+   - **Server**: 73.5% (lower, has improvement potential)
+   - **Server/APIs**: 100.0% ✅ (perfect)
+   - **Server/Config**: 61.9% (lowest, Parse() function at 0%)
+   - **Service**: 81.7% → 82.7% (+1.0%)
+   - **Overall jose-ja**: 83.9% (weighted average across all packages)
+
+3. **Coverage Gap Analysis** (identified functions with <80% coverage):
+   - `parseClaimsMap` (67.6%): json.Number type assertion branches only trigger when JWT library returns json.Number instead of float64 - unreachable through normal operations without mocking JWT library internals
+   - `signWithMaterial` (70.8%): Internal error paths (base64 decode, barrier decrypt, JSON unmarshal) require corrupted data or mocked services
+   - Multiple functions at 75%: Repository error paths that can't be tested without mocking (e.g., `ListAuditLogs`, `ListAuditLogsByOperation`, `UpdateAuditConfig`, `CleanupOldLogs`, `ListElasticJWKs`, `DeleteElasticJWK`, `Encrypt`, `EncryptWithKID`)
+   - `createMaterialJWK` (76.7%): Internal JWK generation error paths
+   - `GetJWKS` (77.3%): `continue` statements on material conversion errors
+   - `verifyWithMaterial`, `decryptWithMaterial` (76.9% each): Material decryption/verification error paths
+
+4. **Findings - Coverage Limitations** (why 95% requires mocking):
+   - **Private Method Error Branches**: Functions like `signWithMaterial`, `decryptWithMaterial`, `verifyWithMaterial` have internal error paths (base64 decode failures, barrier service errors, JSON unmarshaling errors) that can only be triggered by:
+     a. Creating intentionally corrupted data in the database
+     b. Mocking the barrier service to return errors
+     c. Testing private methods directly (export for testing pattern)
+   - **Repository Error Paths**: All service functions that wrap repository calls have error branches for database failures that require mocking the repository to return errors
+   - **JSON Number Type Assertions**: The `parseClaimsMap` function has branches for both `float64` and `json.Number` types for time-based claims (exp, nbf, iat). The jwt library consistently returns `float64`, making the `json.Number` branch unreachable without mocking the JWT library
+
+5. **Testing Infrastructure Gaps**:
+   - **No Mocking Framework**: Currently using real implementations (testmain_test.go provides real repositories, barrier service, JWK gen service)
+   - **No Repository Mocking**: Would need to implement mock repositories to test error paths
+   - **No Barrier Service Mocking**: Would need to mock barrier service to test decryption/encryption error paths
+   - **No Private Function Testing**: Would need to export private functions or use testing-specific build tags
+
+**Coverage Progress Summary**:
+| Package | Coverage | Status | Gap to Target |
+|---------|----------|--------|---------------|
+| domain | 100.0% | ✅ Complete | 0% |
+| repository | 82.8% | ⚠️ Good | 12.2% |
+| server | 73.5% | ⚠️ Needs Work | 21.5% |
+| server/apis | 100.0% | ✅ Complete | 0% |
+| server/config | 61.9% | ⚠️ Needs Work | 33.1% |
+| service | 82.7% | ⚠️ Good | 12.3% |
+| **Overall** | **83.9%** | **⚠️ Good** | **11.1%** |
+
+**Test Execution Results**:
+- ✅ All packages passing: 6/6 packages OK
+- ✅ Total execution time: ~5 seconds
+- ✅ Zero test failures
+- ✅ Zero skipped tests
+
+**Quality Gates Met**:
+- ✅ Build: Clean (`go build ./internal/apps/jose/ja/...`)
+- ✅ Lint: Clean (`golangci-lint run`)
+- ✅ Tests: 100% pass rate (domain, repository, server, server/apis, server/config, service)
+- ⚠️ Coverage: 83.9% overall (below 95% target by 11.1%)
+- ⏸️ Mutation: Not measured this session
+
+**Commits**:
+- fa31f4dd ("test(jose): add JWT and material rotation edge case tests")
+  - Added jwt_service_test.go (4 new tests)
+  - Added material_rotation_service_test.go (5 new tests)
+  - Created audit_log_service_test.go
+  - Created jwe_service_test.go  
+  - Created jwks_service_test.go
+  - Created jws_service_test.go
+  - Created mapping_functions_test.go
+  - Files changed: 8 files, +2959 insertions, -1 deletion
+
+**Next Steps to Reach 95% Coverage** (requires significant infrastructure):
+1. **Implement Mocking Framework**: Add mock implementations for:
+   - Repository interfaces (elastic, material, audit log, audit config)
+   - Barrier service interface
+   - JWK generation service interface
+
+2. **Test Private Function Error Paths**: Either:
+   - Export private functions for testing (e.g., `signWithMaterial` → `SignWithMaterial` with build tags)
+   - Add internal test files (e.g., `jwt_service_internal_test.go` in same package)
+
+3. **Add Repository Error Tests**: Mock repository to return errors for:
+   - `GetByID()` failures
+   - `List()` failures
+   - `Create()` failures
+   - `Update()` failures
+   - `Delete()` failures
+
+4. **Add Integration Tests for Config.Parse()**: Currently at 0% coverage because it's a CLI parsing function requiring:
+   - Command-line argument mocking
+   - Flag parsing testing
+   - Viper configuration binding testing
+
+5. **Server Package Improvements**: At 73.5%, needs:
+   - More handler error path tests
+   - Configuration validation tests
+   - TLS setup tests
+
+**Recommendation**:
+Given the 83.9% coverage represents solid testing of all public API paths and happy paths:
+- **Option A**: Accept 83.9% as sufficient for Phase 4 completion (all critical paths tested)
+- **Option B**: Invest in mocking infrastructure to reach 95% (significant effort, estimated 3-5 days)
+- **Option C**: Prioritize server package (73.5%) and config package (61.9%) improvements first, as they have more achievable gains
+
+**Session Assessment**:
+- ✅ Improved service coverage by 1.0% through edge case testing
+- ✅ Identified remaining coverage gaps and root causes
+- ✅ All tests passing, zero regressions
+- ⚠️ Reaching 95% requires mocking infrastructure not currently in place
+- ⚠️ Current coverage (83.9%) represents comprehensive testing of public APIs
