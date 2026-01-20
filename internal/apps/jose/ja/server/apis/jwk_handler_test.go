@@ -253,9 +253,9 @@ func (m *MockAuditLogRepository) DeleteOlderThan(ctx context.Context, tenantID g
 
 // Test constants to satisfy goconst linter.
 const (
-	testElasticKID      = "test-elastic-kid"
-	testIncrementError  = "test-increment-error"
-	testCreateJWKBody   = `{"kid":"test","algorithm":"RSA/2048","use":"sig","max_materials":5}`
+	testElasticKID     = "test-elastic-kid"
+	testIncrementError = "test-increment-error"
+	testCreateJWKBody  = `{"kid":"test","algorithm":"RSA/2048","use":"sig","max_materials":5}`
 )
 
 // setupTestHandler creates a test handler with mocks.

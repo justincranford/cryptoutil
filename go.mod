@@ -6,6 +6,7 @@ require (
 	github.com/cloudflare/circl v1.6.1
 	github.com/docker/go-connections v0.6.0
 	github.com/getkin/kin-openapi v0.133.0
+	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-webauthn/webauthn v0.15.0
 	github.com/goccy/go-yaml v1.19.1
 	github.com/gofiber/contrib/otelfiber v1.0.10

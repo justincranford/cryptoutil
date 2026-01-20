@@ -23,7 +23,6 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-
 // JoseJAServer represents the jose-ja service application.
 type JoseJAServer struct {
 	app *cryptoutilTemplateServer.Application
