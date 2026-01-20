@@ -146,17 +146,25 @@ func (h *RegistrationHandlers) HandleListJoinRequests(c *fiber.Ctx) error {
 	})
 }
 
-// ApproveJoinRequestRequest is the request body for approval.
-type ApproveJoinRequestRequest struct {
+// ProcessJoinRequestRequest is the request body for processing join requests (approve/reject).
+type ProcessJoinRequestRequest struct {
 	Approved bool `json:"approved"`
 }
 
-// HandleApproveJoinRequest handles POST /browser/api/v1/admin/join-requests/:id/approve.
-func (h *RegistrationHandlers) HandleApproveJoinRequest(c *fiber.Ctx) error {
+// HandleProcessJoinRequest handles PUT /admin/api/v1/join-requests/:id.
+// Processes a join request by approving or rejecting it.
+func (h *RegistrationHandlers) HandleProcessJoinRequest(c *fiber.Ctx) error {
 	requestID, err := googleUuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request ID",
+		})
+	}
+
+	var req ProcessJoinRequestRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
 		})
 	}
 
@@ -167,7 +175,7 @@ func (h *RegistrationHandlers) HandleApproveJoinRequest(c *fiber.Ctx) error {
 		c.Context(),
 		requestID,
 		adminUserID,
-		true, // approved
+		req.Approved,
 	)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -175,36 +183,12 @@ func (h *RegistrationHandlers) HandleApproveJoinRequest(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "Join request approved",
-	})
-}
-
-// HandleRejectJoinRequest handles POST /browser/api/v1/admin/join-requests/:id/reject.
-func (h *RegistrationHandlers) HandleRejectJoinRequest(c *fiber.Ctx) error {
-	requestID, err := googleUuid.Parse(c.Params("id"))
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request ID",
-		})
-	}
-
-	// TODO: Extract admin user ID from authenticated user's context
-	adminUserID := googleUuid.New() // Placeholder
-
-	err = h.registrationService.AuthorizeJoinRequest(
-		c.Context(),
-		requestID,
-		adminUserID,
-		false, // rejected
-	)
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+	message := "Join request rejected"
+	if req.Approved {
+		message = "Join request approved"
 	}
 
 	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"message": "Join request rejected",
+		"message": message,
 	})
 }

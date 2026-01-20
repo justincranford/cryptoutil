@@ -275,10 +275,13 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		}
 	}
 
-	// Register tenant registration routes (template infrastructure - registration/join-request APIs).
+	// Register tenant registration routes on PUBLIC server (unauthenticated user registration).
 	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(publicServerBase.App(), registrationService)
 
-	// Register barrier admin endpoints (key rotation, status).
+	// Register join request management routes on ADMIN server (authenticated admin operations).
+	cryptoutilTemplateAPIs.RegisterJoinRequestManagementRoutes(adminServer.App(), registrationService)
+
+	// Register barrier admin endpoints (key rotation, status) on ADMIN server.
 	rotationService, err := cryptoutilBarrier.NewRotationService(
 		core.Basic.JWKGenService,
 		barrierRepo,

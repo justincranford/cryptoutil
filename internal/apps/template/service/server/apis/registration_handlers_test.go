@@ -86,7 +86,7 @@ func TestHandleListJoinRequests(t *testing.T) {
 	require.NotNil(t, handlers)
 }
 
-func TestHandleApproveJoinRequest_InvalidID(t *testing.T) {
+func TestHandleProcessJoinRequest_InvalidID(t *testing.T) {
 	t.Parallel()
 
 	db := &gorm.DB{}
@@ -97,9 +97,14 @@ func TestHandleApproveJoinRequest_InvalidID(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Post("/admin/join-requests/:id/approve", handlers.HandleApproveJoinRequest)
+	app.Put("/admin/join-requests/:id", handlers.HandleProcessJoinRequest)
 
-	req := httptest.NewRequest("POST", "/admin/join-requests/invalid-uuid/approve", nil)
+	reqBody := ProcessJoinRequestRequest{Approved: true}
+	bodyBytes, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest("PUT", "/admin/join-requests/invalid-uuid", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 
@@ -108,7 +113,7 @@ func TestHandleApproveJoinRequest_InvalidID(t *testing.T) {
 	require.Equal(t, 400, resp.StatusCode)
 }
 
-func TestHandleRejectJoinRequest_InvalidID(t *testing.T) {
+func TestHandleProcessJoinRequest_InvalidJSON(t *testing.T) {
 	t.Parallel()
 
 	db := &gorm.DB{}
@@ -119,9 +124,13 @@ func TestHandleRejectJoinRequest_InvalidID(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Post("/admin/join-requests/:id/reject", handlers.HandleRejectJoinRequest)
+	app.Put("/admin/join-requests/:id", handlers.HandleProcessJoinRequest)
 
-	req := httptest.NewRequest("POST", "/admin/join-requests/invalid-uuid/reject", nil)
+	validID := googleUuid.New().String()
+
+	req := httptest.NewRequest("PUT", "/admin/join-requests/"+validID, bytes.NewReader([]byte("invalid json")))
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 
@@ -168,10 +177,10 @@ func TestHandlersCoverageBooster(t *testing.T) {
 	}
 	require.NotEmpty(t, summary.ID)
 
-	approveReq := ApproveJoinRequestRequest{
+	processReq := ProcessJoinRequestRequest{
 		Approved: true,
 	}
-	require.True(t, approveReq.Approved)
+	require.True(t, processReq.Approved)
 }
 
 func TestRegisterUserRequest_JSON(t *testing.T) {

@@ -4093,7 +4093,7 @@ ok      cryptoutil/internal/template/service/server/registration    0.123s
   - Added jwt_service_test.go (4 new tests)
   - Added material_rotation_service_test.go (5 new tests)
   - Created audit_log_service_test.go
-  - Created jwe_service_test.go  
+  - Created jwe_service_test.go
   - Created jwks_service_test.go
   - Created jws_service_test.go
   - Created mapping_functions_test.go
@@ -4177,7 +4177,7 @@ Given the 83.9% coverage represents solid testing of all public API paths and ha
    - Public Server: /browser/api/v1/admin/join-requests (GET)
    - Public Server: /browser/api/v1/admin/join-requests/:id/approve (POST)
    - Public Server: /browser/api/v1/admin/join-requests/:id/reject (POST)
-   
+
    REQUIRED (CORRECT):
    - Admin Server: /admin/api/v1/join-requests (GET)
    - Admin Server: /admin/api/v1/join-requests/:id (PUT) with {approved: true/false}
