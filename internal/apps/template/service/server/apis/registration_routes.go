@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 )
 
@@ -24,7 +25,7 @@ func RegisterRegistrationRoutes(
 	handlers := NewRegistrationHandlers(registrationService)
 
 	// Create rate limiter (10 requests/min per IP, burst 5).
-	rateLimiter := NewRateLimiter(requestsPerMin, 5)
+	rateLimiter := NewRateLimiter(requestsPerMin, cryptoutilMagic.RateLimitDefaultBurstSize)
 
 	// Rate limit middleware.
 	rateLimitMiddleware := func(c *fiber.Ctx) error {

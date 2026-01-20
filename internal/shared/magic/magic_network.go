@@ -59,6 +59,18 @@ const (
 	FQDNLabelMaxLength = 63
 )
 
+// Rate limiting constants.
+const (
+	// RateLimitDefaultBurstSize - Default burst size for token bucket rate limiter.
+	RateLimitDefaultBurstSize = 5
+	// RateLimitSecondsPerMinute - Seconds per minute (60) for rate limit calculations.
+	RateLimitSecondsPerMinute = 60.0
+	// RateLimitCleanupIntervalMinutes - Cleanup interval in minutes for rate limiter buckets.
+	RateLimitCleanupIntervalMinutes = 5
+	// RateLimitStaleThresholdMinutes - Threshold in minutes for removing stale rate limiter buckets.
+	RateLimitStaleThresholdMinutes = 10
+)
+
 const (
 	// LoopbackCIDRv4 - Localhost IPv4 CIDR.
 	LoopbackCIDRv4 = "127.0.0.0/8"

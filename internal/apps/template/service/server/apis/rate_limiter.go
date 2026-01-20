@@ -1,11 +1,14 @@
 // Copyright (c) 2025 Justin Cranford.
 // Licensed under the MIT License. See LICENSE file in the project root for license information.
 
+// Package apis provides HTTP handlers and routing for template service APIs.
 package apis
 
 import (
 	"sync"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // RateLimiter provides in-memory rate limiting per IP address.
@@ -33,7 +36,7 @@ func NewRateLimiter(requestsPerMin, burstSize int) *RateLimiter {
 		buckets:        make(map[string]*tokenBucket),
 		requestsPerMin: requestsPerMin,
 		burstSize:      burstSize,
-		cleanupTicker:  time.NewTicker(5 * time.Minute), // Cleanup every 5 minutes
+		cleanupTicker:  time.NewTicker(cryptoutilMagic.RateLimitCleanupIntervalMinutes * time.Minute),
 		stopCleanup:    make(chan struct{}),
 	}
 
@@ -62,13 +65,14 @@ func (rl *RateLimiter) Allow(ipAddress string) bool {
 	// Refill tokens based on time elapsed.
 	now := time.Now()
 	elapsed := now.Sub(bucket.lastRefillTime)
-	tokensToAdd := int(elapsed.Seconds() * float64(rl.requestsPerMin) / 60.0)
+	tokensToAdd := int(elapsed.Seconds() * float64(rl.requestsPerMin) / cryptoutilMagic.RateLimitSecondsPerMinute)
 
 	if tokensToAdd > 0 {
 		bucket.tokens += tokensToAdd
 		if bucket.tokens > rl.burstSize {
 			bucket.tokens = rl.burstSize
 		}
+
 		bucket.lastRefillTime = now
 	}
 
@@ -100,7 +104,7 @@ func (rl *RateLimiter) cleanup() {
 	defer rl.mu.Unlock()
 
 	now := time.Now()
-	threshold := 10 * time.Minute
+	threshold := cryptoutilMagic.RateLimitStaleThresholdMinutes * time.Minute
 
 	for ip, bucket := range rl.buckets {
 		if now.Sub(bucket.lastRefillTime) > threshold {
