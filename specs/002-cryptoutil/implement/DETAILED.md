@@ -4138,3 +4138,81 @@ Given the 83.9% coverage represents solid testing of all public API paths and ha
 - ✅ All tests passing, zero regressions
 - ⚠️ Reaching 95% requires mocking infrastructure not currently in place
 - ⚠️ Current coverage (83.9%) represents comprehensive testing of public APIs
+
+---
+
+### 2026-01-18: Phase 0 - Service Template Registration Pattern Validation
+
+**Work Completed**:
+
+1. **Validated Phase 0 Completion Status** (Tasks 0.1-0.4):
+   - ✅ Task 0.1: `ServerBuilder` has NO defaultTenantID, defaultRealmID fields
+   - ✅ Task 0.1: NO `WithDefaultTenant()` method exists
+   - ✅ Task 0.1: NO `ensureDefaultTenant()` calls in Build() method
+   - ✅ Task 0.2: NO `seeding.go` file exists (already deleted)
+   - ✅ Task 0.3: `SessionManagerService` requires explicit tenantID/realmID
+   - ✅ Task 0.3: Uses `IssueBrowserSessionWithTenant(ctx, userID, tenantID, realmID)`
+   - ✅ Task 0.3: Uses `IssueServiceSessionWithTenant(ctx, clientID, tenantID, realmID)`
+   - ✅ Task 0.4: NO TemplateDefaultTenantID or TemplateDefaultRealmID magic constants
+   - ✅ Task 0.5-0.7: Explicitly marked as REMOVED in plan (pending_users table is sufficient)
+
+2. **Identified Remaining Work** (Tasks 0.8-0.10):
+   - ⚠️ Task 0.8: Registration handlers exist but have critical issues:
+     * ❌ Admin routes use wrong path: `/browser/api/v1/admin/join-requests` instead of `/admin/api/v1/join-requests`
+     * ❌ Admin routes registered on PUBLIC server instead of ADMIN server
+     * ❌ Method should be PUT for approve/reject, not POST
+     * ❌ NO rate limiting implementation visible
+     * ❌ NO test coverage exists
+     * ✅ POST /browser/api/v1/auth/register implemented
+     * ✅ POST /service/api/v1/auth/register implemented
+     * ✅ tenant_id param logic exists (create_tenant bool flag)
+
+**Key Findings**:
+
+1. **Default Tenant Pattern Already Removed**: Tasks 0.1-0.4 were already complete. No default tenant pattern exists in ServerBuilder, SessionManagerService, or magic constants.
+
+2. **Registration Routes Architecture Issue**: Admin endpoints are currently on PUBLIC server with wrong paths:
+   ```
+   CURRENT (WRONG):
+   - Public Server: /browser/api/v1/admin/join-requests (GET)
+   - Public Server: /browser/api/v1/admin/join-requests/:id/approve (POST)
+   - Public Server: /browser/api/v1/admin/join-requests/:id/reject (POST)
+   
+   REQUIRED (CORRECT):
+   - Admin Server: /admin/api/v1/join-requests (GET)
+   - Admin Server: /admin/api/v1/join-requests/:id (PUT) with {approved: true/false}
+   ```
+
+3. **Missing Implementation**:
+   - Rate limiting (Task 0.8.7): NO in-memory rate limiting per IP visible
+   - Test coverage (Task 0.8.8): NO tests for registration handlers
+   - Route registration (Task 0.9): Routes partially registered with wrong paths
+
+**Next Steps**:
+
+1. **Fix Registration Routes** (Task 0.8.5):
+   - Move admin join-request routes from PUBLIC server to ADMIN server
+   - Change paths from `/browser/api/v1/admin/...` to `/admin/api/v1/...`
+   - Change method from POST to PUT for approve/reject operations
+   - Keep registration routes on PUBLIC server (unauthenticated access needed)
+
+2. **Add Rate Limiting** (Task 0.8.7):
+   - Implement in-memory rate limiter using sync.Map
+   - Apply to /auth/register endpoints (10 registrations/hour per IP)
+   - Make threshold configurable with low defaults
+
+3. **Write Integration Tests** (Task 0.8.8):
+   - Test registration flow (create tenant + user)
+   - Test join request flow (create, list, approve, reject)
+   - Test rate limiting behavior
+   - Target ≥95% coverage
+
+4. **Phase 0 Validation** (Task 0.10):
+   - Run all quality gates
+   - Verify E2E registration flows work
+   - Verify NO hardcoded passwords
+   - Verify consistent /admin/api/v1 paths
+
+**Evidence**:
+- Commits: 526ba969 ("docs(jose): document service coverage analysis")
+- Files analyzed: server_builder.go, session_manager_service.go, registration_handlers.go, registration_routes.go
