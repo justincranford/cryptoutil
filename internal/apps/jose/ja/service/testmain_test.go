@@ -15,8 +15,8 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilJoseJARepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
