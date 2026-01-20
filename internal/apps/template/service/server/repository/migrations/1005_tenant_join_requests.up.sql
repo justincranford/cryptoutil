@@ -30,4 +30,3 @@ CREATE INDEX IF NOT EXISTS idx_tenant_join_requests_tenant_id ON tenant_join_req
 CREATE INDEX IF NOT EXISTS idx_tenant_join_requests_status ON tenant_join_requests(status);
 CREATE INDEX IF NOT EXISTS idx_tenant_join_requests_requested_at ON tenant_join_requests(requested_at);
 CREATE INDEX IF NOT EXISTS idx_tenant_join_requests_processed_by ON tenant_join_requests(processed_by);
-
