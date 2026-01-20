@@ -6,9 +6,15 @@
 package test
 
 import (
+	"context"
+	"fmt"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	cryptoutilJOSEClient "cryptoutil/api/jose/client"
 )
 
 // TestJOSEWorkflow runs JOSE E2E test.
@@ -36,18 +42,97 @@ func (suite *JOSEWorkflowSuite) TearDownSuite() {
 
 // TestSignVerifyWorkflow tests complete JWT sign/verify cycle.
 func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
-	suite.T().Skip("TODO P4.4: Implement full JOSE JWT sign/verify workflow after JOSE service implementation")
+	t := suite.T()
+	t.Skip("TODO P4: Implement sign/verify handlers (currently return 501 Not Implemented) and ensure Docker Desktop running")
+	
+	ctx := context.Background()
 
-	// TODO: Implement E2E test covering:
 	// 1. Deploy JOSE E2E service from compose
-	// 2. Generate JWK (ES384) via GenerateJWKWithResponse()
+	suite.fixture.Setup()
+	defer suite.fixture.Teardown()
+
+	// 2. Generate JWK (ES384) via GenerateJWKWithResponse
+	algorithm := cryptoutilJOSEClient.JWKGenerateRequestAlgorithm("ES384")
+	use := cryptoutilJOSEClient.JWKGenerateRequestUse("sig")
+	genReq := cryptoutilJOSEClient.JWKGenerateRequest{
+		Algorithm: algorithm,
+		Use:       &use,
+	}
+	genResp, err := suite.fixture.GetJOSEClient().GenerateJWKWithResponse(ctx, genReq)
+	require.NoError(t, err, "Failed to generate JWK")
+	require.NotNil(t, genResp.JSON201, "Generate JWK response should be 201 Created")
+	kid := genResp.JSON201.Kid
+	require.NotEmpty(t, kid, "Generated kid should not be empty")
+
 	// 3. Create JWT claims (sub, name, email, iat, exp, aud, iss)
-	// 4. Sign JWT via SignJWSWithResponse()
-	// 5. Verify JWT signature via VerifyJWSWithResponse()
-	// 6. Test invalid signature rejection (tampered JWS)
-	// 7. Test expired token rejection (exp in past)
-	// 8. Cleanup: Delete JWK via DeleteJWKWithResponse()
-	//
+	// exp set to 1 year from now for valid token test
+	iat := time.Now().Unix()
+	exp := time.Now().Add(365 * 24 * time.Hour).Unix()
+	claims := fmt.Sprintf(
+		`{"sub":"user-123","name":"Test User","email":"test@example.com","iat":%d,"exp":%d,"aud":"test-audience","iss":"jose-e2e-test"}`,
+		iat, exp,
+	)
+
+	// 4. Sign JWT via SignJWSWithResponse
+	signReq := cryptoutilJOSEClient.JWSSignRequest{
+		Kid:     kid,
+		Payload: claims,
+	}
+	signResp, err := suite.fixture.GetJOSEClient().SignJWSWithResponse(ctx, signReq)
+	require.NoError(t, err, "Failed to sign JWS")
+	require.NotNil(t, signResp.JSON200, "Sign JWS response should be 200 OK")
+	jws := signResp.JSON200.JWS
+	require.NotEmpty(t, jws, "Generated JWS should not be empty")
+
+	// 5. Verify JWT signature via VerifyJWSWithResponse
+	verifyReq := cryptoutilJOSEClient.JWSVerifyRequest{JWS: jws}
+	verifyResp, err := suite.fixture.GetJOSEClient().VerifyJWSWithResponse(ctx, verifyReq)
+	require.NoError(t, err, "Failed to verify JWS")
+	require.NotNil(t, verifyResp.JSON200, "Verify JWS response should be 200 OK")
+	require.True(t, verifyResp.JSON200.Valid, "JWS should be valid")
+
+	// 6. Test invalid signature rejection (tamper JWS, expect verification failure)
+	// Tamper with JWS by changing last character
+	tamperedJWS := jws[:len(jws)-1] + "X"
+	tamperedVerifyReq := cryptoutilJOSEClient.JWSVerifyRequest{JWS: tamperedJWS}
+	tamperedVerifyResp, err := suite.fixture.GetJOSEClient().VerifyJWSWithResponse(ctx, tamperedVerifyReq)
+	require.NoError(t, err, "Verify request should not error (HTTP layer)")
+	// Expect either 400 Bad Request or 200 with Valid=false
+	if tamperedVerifyResp.JSON200 != nil {
+		require.False(t, tamperedVerifyResp.JSON200.Valid, "Tampered JWS should be invalid")
+	} else {
+		require.NotNil(t, tamperedVerifyResp.JSON400, "Tampered JWS should return 400 Bad Request")
+	}
+
+	// 7. Test expired token rejection (set exp in past, expect validation error)
+	expiredExp := time.Now().Add(-1 * time.Hour).Unix() // 1 hour ago
+	expiredClaims := fmt.Sprintf(
+		`{"sub":"user-456","name":"Expired User","email":"expired@example.com","iat":%d,"exp":%d,"aud":"test-audience","iss":"jose-e2e-test"}`,
+		iat, expiredExp,
+	)
+	expiredSignReq := cryptoutilJOSEClient.JWSSignRequest{
+		Kid:     kid,
+		Payload: expiredClaims,
+	}
+	expiredSignResp, err := suite.fixture.GetJOSEClient().SignJWSWithResponse(ctx, expiredSignReq)
+	require.NoError(t, err, "Failed to sign expired JWS")
+	require.NotNil(t, expiredSignResp.JSON200, "Sign expired JWS response should be 200 OK")
+	expiredJWS := expiredSignResp.JSON200.JWS
+
+	expiredVerifyReq := cryptoutilJOSEClient.JWSVerifyRequest{JWS: expiredJWS}
+	expiredVerifyResp, err := suite.fixture.GetJOSEClient().VerifyJWSWithResponse(ctx, expiredVerifyReq)
+	require.NoError(t, err, "Verify request should not error (HTTP layer)")
+	// Expect either 400 Bad Request or 200 with Valid=false for expired token
+	if expiredVerifyResp.JSON200 != nil {
+		require.False(t, expiredVerifyResp.JSON200.Valid, "Expired JWS should be invalid")
+	} else {
+		require.NotNil(t, expiredVerifyResp.JSON400, "Expired JWS should return 400 Bad Request")
+	}
+
+	// 8. Cleanup: Delete JWK via DeleteJWKWithResponse
+	deleteResp, err := suite.fixture.GetJOSEClient().DeleteJWKWithResponse(ctx, kid)
+	require.NoError(t, err, "Failed to delete JWK")
+	require.Equal(t, 204, deleteResp.StatusCode(), "Delete JWK response should be 204 No Content")
 	// Example usage:
 	//   ctx := context.Background()
 	//   suite.fixture.Setup()
