@@ -4,6 +4,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -16,20 +17,23 @@ func TestJoseJAServer_Lifecycle(t *testing.T) {
 	require.NotEmpty(t, testAdminBaseURL, "admin base URL should not be empty")
 
 	// Test /admin/api/v1/livez endpoint.
-	livezResp, err := testHTTPClient.Get(fmt.Sprintf("%s/admin/api/v1/livez", testAdminBaseURL))
+	livezReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/admin/api/v1/livez", testAdminBaseURL), nil)
+	require.NoError(t, err, "livez request creation should succeed")
+	livezResp, err := testHTTPClient.Do(livezReq)
 	require.NoError(t, err, "livez request should succeed")
 	require.Equal(t, http.StatusOK, livezResp.StatusCode, "livez should return 200 OK")
 	require.NoError(t, livezResp.Body.Close())
 
 	// Test /admin/api/v1/readyz endpoint.
-	readyzResp, err := testHTTPClient.Get(fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL))
+	readyzReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/admin/api/v1/readyz", testAdminBaseURL), nil)
+	require.NoError(t, err, "readyz request creation should succeed")
+	readyzResp, err := testHTTPClient.Do(readyzReq)
 	require.NoError(t, err, "readyz request should succeed")
 	require.Equal(t, http.StatusOK, readyzResp.StatusCode, "readyz should return 200 OK")
 	require.NoError(t, readyzResp.Body.Close())
 
 	// Verify public endpoints accessible.
 	require.NotEmpty(t, testPublicBaseURL, "public base URL should not be empty")
-
 	// Note: Cannot test actual routes without authentication setup
 	// This integration test validates server lifecycle only
 }

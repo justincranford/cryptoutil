@@ -44,7 +44,7 @@ func (suite *JOSEWorkflowSuite) TearDownSuite() {
 func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	t := suite.T()
 	t.Skip("TODO P4: Implement sign/verify handlers (currently return 501 Not Implemented) and ensure Docker Desktop running")
-	
+
 	ctx := context.Background()
 
 	// 1. Deploy JOSE E2E service from compose

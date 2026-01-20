@@ -95,7 +95,6 @@ func TestLogOutputFormat(t *testing.T) {
 // TestParse_DefaultValues tests Parse returns correct default values.
 func TestParse_DefaultValues(t *testing.T) {
 	// Cannot run in parallel due to global flag state.
-
 	// Note: This test would require resetting pflag state.
 	// Skip for now as Parse modifies global state.
 	t.Skip("TODO P2.4: Add Parse tests with flag state isolation")
@@ -104,7 +103,6 @@ func TestParse_DefaultValues(t *testing.T) {
 // TestParse_OverrideDefaults tests Parse with command line overrides.
 func TestParse_OverrideDefaults(t *testing.T) {
 	// Cannot run in parallel due to global flag state.
-
 	t.Skip("TODO P2.4: Add Parse tests with flag state isolation")
 }
 

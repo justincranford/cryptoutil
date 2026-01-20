@@ -63,15 +63,15 @@ builder.WithPublicRouteRegistration(func(
     materialRepo := repository.NewMaterialJWKRepository(res.DB)
     auditConfigRepo := repository.NewAuditConfigRepository(res.DB)
     auditLogRepo := repository.NewAuditLogRepository(res.DB)
-    
+
     // Create handler
     handler := apis.NewJWKHandler(elasticRepo, materialRepo, auditConfigRepo, auditLogRepo)
-    
+
     // Register routes
     base.Router.Post("/elastic-jwks", handler.HandleCreateElasticJWK())
     base.Router.Get("/elastic-jwks/:kid", handler.HandleGetElasticJWK())
     // ... 7 more routes
-    
+
     return nil
 })
 

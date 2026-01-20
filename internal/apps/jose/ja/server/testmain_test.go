@@ -16,10 +16,10 @@ import (
 )
 
 var (
-	testServer *JoseJAServer
-	testHTTPClient *http.Client
+	testServer        *JoseJAServer
+	testHTTPClient    *http.Client
 	testPublicBaseURL string
-	testAdminBaseURL string
+	testAdminBaseURL  string
 )
 
 func TestMain(m *testing.M) {
@@ -30,6 +30,7 @@ func TestMain(m *testing.M) {
 
 	// Create server.
 	var err error
+
 	testServer, err = NewFromConfig(ctx, cfg)
 	if err != nil {
 		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
@@ -37,6 +38,7 @@ func TestMain(m *testing.M) {
 
 	// Start server in background.
 	errChan := make(chan error, 1)
+
 	go func() {
 		if startErr := testServer.Start(ctx); startErr != nil {
 			errChan <- startErr

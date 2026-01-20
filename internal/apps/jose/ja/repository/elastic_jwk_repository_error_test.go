@@ -184,7 +184,6 @@ func TestElasticJWKRepository_NilContextHandling(t *testing.T) {
 
 	tenantID := googleUuid.New()
 	_, err := repo.Get(nil, tenantID, "test-kid") //nolint:staticcheck // Testing nil context.
-
 	// Either errors or panics - both acceptable error handling.
 	if err != nil {
 		require.Error(t, err)

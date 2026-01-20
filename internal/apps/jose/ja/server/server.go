@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 
-	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/jose/ja/repository"
@@ -24,13 +23,6 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-// JoseJADefaultTenantID is the default tenant ID for jose-ja demo.
-// TODO: Move to magic constants once feature is stable.
-var JoseJADefaultTenantID = googleUuid.MustParse("f47ac10b-58cc-4372-a567-0e02b2c3d479")
-
-// JoseJADefaultRealmID is the default realm ID for jose-ja demo.
-// TODO: Move to magic constants once feature is stable.
-var JoseJADefaultRealmID = googleUuid.MustParse("7c9e6679-7425-40de-944b-e07fc1f90ae7")
 
 // JoseJAServer represents the jose-ja service application.
 type JoseJAServer struct {
@@ -106,13 +98,6 @@ func NewFromConfig(ctx context.Context, cfg *config.JoseJAServerSettings) (*Jose
 	resources, err := builder.Build()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build jose-ja service: %w", err)
-	}
-
-	// Ensure default tenant exists for jose-ja demo.
-	// This is a simplified pattern for educational demos - production services should use
-	// the tenant join request workflow (TenantRegistrationService).
-	if err := ensureDefaultTenant(ctx, resources.DB, resources.RealmRepository); err != nil {
-		return nil, fmt.Errorf("failed to ensure default tenant: %w", err)
 	}
 
 	// Create jose-ja specific repositories for server struct.
@@ -221,49 +206,4 @@ func (s *JoseJAServer) PublicServerActualPort() int {
 // Useful when configured with port 0 for dynamic allocation.
 func (s *JoseJAServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
-}
-
-// ensureDefaultTenant creates the default tenant and realm for jose-ja if they don't exist.
-// This is a simplified pattern for educational demos - production services should use
-// the tenant join request workflow (TenantRegistrationService).
-func ensureDefaultTenant(
-	ctx context.Context,
-	db *gorm.DB,
-	realmRepo cryptoutilTemplateRepository.TenantRealmRepository,
-) error {
-	// Create tenant repository.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(db)
-
-	// Check if default tenant exists.
-	_, err := tenantRepo.GetByID(ctx, JoseJADefaultTenantID)
-	if err == nil {
-		// Tenant already exists, nothing to do.
-		return nil
-	}
-
-	// Create default tenant.
-	tenant := &cryptoutilTemplateRepository.Tenant{
-		ID:   JoseJADefaultTenantID,
-		Name: "jose-ja-default",
-	}
-
-	if err := tenantRepo.Create(ctx, tenant); err != nil {
-		return fmt.Errorf("failed to create default tenant: %w", err)
-	}
-
-	// Create default realm for tenant.
-	realm := &cryptoutilTemplateRepository.TenantRealm{
-		ID:       googleUuid.New(),
-		TenantID: JoseJADefaultTenantID,
-		RealmID:  JoseJADefaultRealmID,
-		Type:     "api_key", // API key authentication for JOSE services.
-		Active:   true,
-		Source:   "db",
-	}
-
-	if err := realmRepo.Create(ctx, realm); err != nil {
-		return fmt.Errorf("failed to create default realm: %w", err)
-	}
-
-	return nil
 }

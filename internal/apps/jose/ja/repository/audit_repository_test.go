@@ -439,6 +439,8 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(3), total)
 
+	_ = entries // silence ineffassign lint
+
 	// Delete entries older than 0 days (entries created just now are already "older" than datetime('now', '-0 days')).
 	// This should delete all entries because they were created slightly before "now".
 	deleted, err = repo.DeleteOlderThan(ctx, *tenantID, 0)

@@ -11,6 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testMaterialKID is a test constant to satisfy goconst linter.
+const testMaterialKID = "test-kid"
+
 // TestMaterialJWKRepository_CreateForeignKeyViolation tests creation with invalid ElasticJWKID.
 func TestMaterialJWKRepository_CreateForeignKeyViolation(t *testing.T) {
 	t.Parallel()
@@ -130,7 +133,7 @@ func TestMaterialJWKRepository_ContextCancellation(t *testing.T) {
 	cancel()
 
 	repo := NewMaterialJWKRepository(testDB)
-	materialKID := "test-kid"
+	materialKID := testMaterialKID
 
 	_, err := repo.GetByMaterialKID(ctx, materialKID)
 
@@ -163,8 +166,8 @@ func TestMaterialJWKRepository_NilContextHandling(t *testing.T) {
 	}()
 
 	materialKID := "test-kid"
-	_, err := repo.GetByMaterialKID(nil, materialKID) //nolint:staticcheck // Testing nil context.
 
+	_, err := repo.GetByMaterialKID(nil, materialKID) //nolint:staticcheck // Testing nil context.
 	if err != nil {
 		require.Error(t, err)
 	}
