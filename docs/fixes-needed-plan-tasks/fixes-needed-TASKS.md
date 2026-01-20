@@ -64,14 +64,14 @@
 ### 0.1 Remove WithDefaultTenant from ServerBuilder
 **File**: `internal/apps/template/service/server/builder/server_builder.go`
 
-- [ ] 0.1.1 Remove `defaultTenantID` field from ServerBuilder struct
-- [ ] 0.1.2 Remove `defaultRealmID` field from ServerBuilder struct
-- [ ] 0.1.3 Remove `WithDefaultTenant(tenantID, realmID)` method
-- [ ] 0.1.4 Remove call to `ensureDefaultTenant()` in `Build()` method
-- [ ] 0.1.5 Remove `ensureDefaultTenant()` helper method
-- [ ] 0.1.6 Remove passing defaultTenantID/defaultRealmID to SessionManagerService
-- [ ] 0.1.7 Run `golangci-lint run --fix`
-- [ ] 0.1.8 Verify `go build ./internal/apps/template/...` succeeds
+- [x] 0.1.1 Remove `defaultTenantID` field from ServerBuilder struct
+- [x] 0.1.2 Remove `defaultRealmID` field from ServerBuilder struct
+- [x] 0.1.3 Remove `WithDefaultTenant(tenantID, realmID)` method
+- [x] 0.1.4 Remove call to `ensureDefaultTenant()` in `Build()` method
+- [x] 0.1.5 Remove `ensureDefaultTenant()` helper method
+- [x] 0.1.6 Remove passing defaultTenantID/defaultRealmID to SessionManagerService
+- [x] 0.1.7 Run `golangci-lint run --fix`
+- [x] 0.1.8 Verify `go build ./internal/apps/template/...` succeeds
 
 **Evidence**: Build succeeds, WithDefaultTenant method removed
 
@@ -80,9 +80,9 @@
 ### 0.2 Remove EnsureDefaultTenant Helper
 **File**: `internal/apps/template/service/server/repository/seeding.go`
 
-- [ ] 0.2.1 Delete entire file `seeding.go`
-- [ ] 0.2.2 Run `golangci-lint run --fix`
-- [ ] 0.2.3 Verify `go build ./internal/apps/template/...` succeeds
+- [x] 0.2.1 Delete entire file `seeding.go`
+- [x] 0.2.2 Run `golangci-lint run --fix`
+- [x] 0.2.3 Verify `go build ./internal/apps/template/...` succeeds
 
 **Evidence**: File deleted, build succeeds
 
@@ -91,15 +91,15 @@
 ### 0.3 Update SessionManagerService
 **File**: `internal/apps/template/service/server/businesslogic/session_manager_service.go`
 
-- [ ] 0.3.1 Remove `defaultTenantID` field
-- [ ] 0.3.2 Remove `defaultRealmID` field
-- [ ] 0.3.3 Remove `IssueBrowserSession(ctx, userID)` method
-- [ ] 0.3.4 Remove `ValidateBrowserSession(ctx, token)` method
-- [ ] 0.3.5 Remove `IssueServiceSession(ctx, clientID)` method
-- [ ] 0.3.6 Remove `ValidateServiceSession(ctx, token)` method
-- [ ] 0.3.7 Update constructor to remove defaultTenantID/defaultRealmID params
-- [ ] 0.3.8 Run `golangci-lint run --fix`
-- [ ] 0.3.9 Verify `go build ./internal/apps/template/...` succeeds
+- [x] 0.3.1 Remove `defaultTenantID` field
+- [x] 0.3.2 Remove `defaultRealmID` field
+- [x] 0.3.3 Remove `IssueBrowserSession(ctx, userID)` method
+- [x] 0.3.4 Remove `ValidateBrowserSession(ctx, token)` method
+- [x] 0.3.5 Remove `IssueServiceSession(ctx, clientID)` method
+- [x] 0.3.6 Remove `ValidateServiceSession(ctx, token)` method
+- [x] 0.3.7 Update constructor to remove defaultTenantID/defaultRealmID params
+- [x] 0.3.8 Run `golangci-lint run --fix`
+- [x] 0.3.9 Verify `go build ./internal/apps/template/...` succeeds
 
 **Evidence**: Single-tenant methods removed
 
@@ -108,11 +108,11 @@
 ### 0.4 Remove Template Magic Constants
 **Files**: `internal/shared/magic/magic_template.go`
 
-- [ ] 0.4.1 Remove `TemplateDefaultTenantID` constant (if exists)
-- [ ] 0.4.2 Remove `TemplateDefaultRealmID` constant (if exists)
-- [ ] 0.4.3 Verify `grep -r "TemplateDefaultTenantID" internal/` returns 0
-- [ ] 0.4.4 Verify `grep -r "TemplateDefaultRealmID" internal/` returns 0
-- [ ] 0.4.5 Run `golangci-lint run --fix`
+- [x] 0.4.1 Remove `TemplateDefaultTenantID` constant (if exists)
+- [x] 0.4.2 Remove `TemplateDefaultRealmID` constant (if exists)
+- [x] 0.4.3 Verify `grep -r "TemplateDefaultTenantID" internal/` returns 0
+- [x] 0.4.4 Verify `grep -r "TemplateDefaultRealmID" internal/` returns 0
+- [x] 0.4.5 Run `golangci-lint run --fix`
 
 **Evidence**: Magic constants removed, grep shows no usage
 
@@ -155,12 +155,12 @@
 - In-memory rate limiting (sync.Map, single-node)
 - Configurable thresholds with low defaults
 
-- [ ] 0.8.1 Implement POST /browser/api/v1/auth/register (user registration)
-- [ ] 0.8.2 Implement POST /service/api/v1/auth/register (client registration)
-- [ ] 0.8.3 Implement GET /admin/api/v1/join-requests (list join requests)
-- [ ] 0.8.4 Implement PUT /admin/api/v1/join-requests/:id (approve/reject)
-- [ ] 0.8.5 **CRITICAL: Consistent paths (/admin/api/v1, NOT /admin/v1)**
-- [ ] 0.8.6 **CRITICAL: tenant_id param (absence=create, presence=join)**
+- [x] 0.8.1 Implement POST /browser/api/v1/auth/register (user registration)
+- [x] 0.8.2 Implement POST /service/api/v1/auth/register (client registration)
+- [x] 0.8.3 Implement GET /admin/api/v1/join-requests (list join requests)
+- [x] 0.8.4 Implement PUT /admin/api/v1/join-requests/:id (approve/reject)
+- [x] 0.8.5 **CRITICAL: Consistent paths (/admin/api/v1, NOT /admin/v1)**
+- [x] 0.8.6 **CRITICAL: tenant_id param (absence=create, presence=join)**
 - [ ] 0.8.7 **NEW: In-memory rate limiting per IP (configurable threshold)**
 - [ ] 0.8.8 Write integration tests (≥95% coverage)
 
@@ -171,11 +171,11 @@
 ### 0.9 Update ServerBuilder Registration
 **File**: `internal/apps/template/service/server/builder/server_builder.go`
 
-- [ ] 0.9.1 Register POST /browser/api/v1/auth/register route
-- [ ] 0.9.2 Register POST /service/api/v1/auth/register route
-- [ ] 0.9.3 Register GET /admin/api/v1/join-requests route
-- [ ] 0.9.4 Register PUT /admin/api/v1/join-requests/:id route
-- [ ] 0.9.5 Verify no WithDefaultTenant() calls remain
+- [x] 0.9.1 Register POST /browser/api/v1/auth/register route
+- [x] 0.9.2 Register POST /service/api/v1/auth/register route
+- [x] 0.9.3 Register GET /admin/api/v1/join-requests route
+- [x] 0.9.4 Register PUT /admin/api/v1/join-requests/:id route
+- [x] 0.9.5 Verify no WithDefaultTenant() calls remain
 
 **Evidence**: Routes registered, E2E tests pass
 
