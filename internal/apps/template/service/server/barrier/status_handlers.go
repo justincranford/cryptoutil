@@ -82,7 +82,7 @@ func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysS
 	return &response, nil
 }
 
-// HandleGetBarrierKeysStatus handles GET /admin/v1/barrier/keys/status requests.
+// HandleGetBarrierKeysStatus handles GET /admin/api/v1/barrier/keys/status requests.
 // Returns the current status of barrier keys (latest root and intermediate keys).
 func HandleGetBarrierKeysStatus(statusService *StatusService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -102,10 +102,10 @@ func HandleGetBarrierKeysStatus(statusService *StatusService) fiber.Handler {
 
 // RegisterStatusRoutes registers the barrier keys status HTTP endpoints.
 // Routes:
-//   - GET /admin/v1/barrier/keys/status: Get current barrier keys status
+//   - GET /admin/api/v1/barrier/keys/status: Get current barrier keys status
 //
 // This function should be called during server initialization to wire up
 // status endpoints to the admin server's fiber.App.
 func RegisterStatusRoutes(app *fiber.App, statusService *StatusService) {
-	app.Get("/admin/v1/barrier/keys/status", HandleGetBarrierKeysStatus(statusService))
+	app.Get("/admin/api/v1/barrier/keys/status", HandleGetBarrierKeysStatus(statusService))
 }

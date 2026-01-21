@@ -29,7 +29,7 @@ func TestHandleGetBarrierKeysStatus_Success(t *testing.T) {
 	RegisterStatusRoutes(app, statusService)
 
 	// Make HTTP request.
-	req := httptest.NewRequest("GET", "/admin/v1/barrier/keys/status", nil)
+	req := httptest.NewRequest("GET", "/admin/api/v1/barrier/keys/status", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
@@ -77,14 +77,14 @@ func TestRegisterStatusRoutes_Integration(t *testing.T) {
 	RegisterStatusRoutes(app, statusService)
 
 	// Verify route is registered (GET request succeeds).
-	req := httptest.NewRequest("GET", "/admin/v1/barrier/keys/status", nil)
+	req := httptest.NewRequest("GET", "/admin/api/v1/barrier/keys/status", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
 
 	// Verify wrong HTTP method returns 405 Method Not Allowed.
-	req = httptest.NewRequest("POST", "/admin/v1/barrier/keys/status", bytes.NewReader([]byte(`{}`)))
+	req = httptest.NewRequest("POST", "/admin/api/v1/barrier/keys/status", bytes.NewReader([]byte(`{}`)))
 	resp, err = app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusMethodNotAllowed, resp.StatusCode)

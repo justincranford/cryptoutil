@@ -120,7 +120,7 @@ func TestRotateRootKey_Success(t *testing.T) {
 	}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/v1/barrier/rotate/root", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/root", bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -175,7 +175,7 @@ func TestRotateIntermediateKey_Success(t *testing.T) {
 	}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/v1/barrier/rotate/intermediate", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/intermediate", bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -227,7 +227,7 @@ func TestRotateContentKey_Success(t *testing.T) {
 	}
 	reqJSON, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/admin/v1/barrier/rotate/content", bytes.NewReader(reqJSON))
+	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/content", bytes.NewReader(reqJSON))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req, -1)
@@ -268,9 +268,9 @@ func TestRotateKey_MissingReason(t *testing.T) {
 
 	// Test all three endpoints
 	endpoints := []string{
-		"/admin/v1/barrier/rotate/root",
-		"/admin/v1/barrier/rotate/intermediate",
-		"/admin/v1/barrier/rotate/content",
+		"/admin/api/v1/barrier/rotate/root",
+		"/admin/api/v1/barrier/rotate/intermediate",
+		"/admin/api/v1/barrier/rotate/content",
 	}
 
 	for _, endpoint := range endpoints {
@@ -301,9 +301,9 @@ func TestRotateKey_ShortReason(t *testing.T) {
 
 	// Test all three endpoints
 	endpoints := []string{
-		"/admin/v1/barrier/rotate/root",
-		"/admin/v1/barrier/rotate/intermediate",
-		"/admin/v1/barrier/rotate/content",
+		"/admin/api/v1/barrier/rotate/root",
+		"/admin/api/v1/barrier/rotate/intermediate",
+		"/admin/api/v1/barrier/rotate/content",
 	}
 
 	for _, endpoint := range endpoints {

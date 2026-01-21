@@ -347,7 +347,7 @@ Trigger graceful shutdown sequence.
 
 ### Barrier Key Rotation
 
-**POST** `/admin/v1/barrier/rotate/root`
+**POST** `/admin/api/v1/barrier/rotate/root`
 
 Manually rotate root encryption key.
 
@@ -382,7 +382,7 @@ Manually rotate root encryption key.
 - New messages encrypted with new key
 - Reason field mandatory (audit trail)
 
-**POST** `/admin/v1/barrier/rotate/intermediate`
+**POST** `/admin/api/v1/barrier/rotate/intermediate`
 
 Manually rotate intermediate encryption key.
 
@@ -405,7 +405,7 @@ Manually rotate intermediate encryption key.
 }
 ```
 
-**POST** `/admin/v1/barrier/rotate/content`
+**POST** `/admin/api/v1/barrier/rotate/content`
 
 Manually rotate content encryption key.
 
@@ -436,7 +436,7 @@ Manually rotate content encryption key.
 
 ### Barrier Key Status
 
-**GET** `/admin/v1/barrier/keys/status`
+**GET** `/admin/api/v1/barrier/keys/status`
 
 Get current barrier encryption keys status.
 

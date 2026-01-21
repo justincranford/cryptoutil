@@ -234,7 +234,7 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	require.True(t, foundNewMessage, "new message (post-rotation) should decrypt with new content key")
 }
 
-// TestE2E_GetBarrierKeysStatus tests GET /admin/v1/barrier/keys/status endpoint.
+// TestE2E_GetBarrierKeysStatus tests GET /admin/api/v1/barrier/keys/status endpoint.
 func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	t.Parallel()
 

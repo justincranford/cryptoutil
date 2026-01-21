@@ -46,7 +46,7 @@ type RotateContentKeyResponse struct {
 	RotatedAt  int64  `json:"rotated_at"` // Unix epoch milliseconds
 }
 
-// HandleRotateRootKey handles POST /admin/v1/barrier/rotate/root requests.
+// HandleRotateRootKey handles POST /admin/api/v1/barrier/rotate/root requests.
 func HandleRotateRootKey(rotationService *RotationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req RotateKeyRequest
@@ -89,7 +89,7 @@ func HandleRotateRootKey(rotationService *RotationService) fiber.Handler {
 	}
 }
 
-// HandleRotateIntermediateKey handles POST /admin/v1/barrier/rotate/intermediate requests.
+// HandleRotateIntermediateKey handles POST /admin/api/v1/barrier/rotate/intermediate requests.
 func HandleRotateIntermediateKey(rotationService *RotationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req RotateKeyRequest
@@ -132,7 +132,7 @@ func HandleRotateIntermediateKey(rotationService *RotationService) fiber.Handler
 	}
 }
 
-// HandleRotateContentKey handles POST /admin/v1/barrier/rotate/content requests.
+// HandleRotateContentKey handles POST /admin/api/v1/barrier/rotate/content requests.
 func HandleRotateContentKey(rotationService *RotationService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req RotateKeyRequest
@@ -176,9 +176,9 @@ func HandleRotateContentKey(rotationService *RotationService) fiber.Handler {
 
 // RegisterRotationRoutes registers rotation endpoints on the admin server.
 // Routes:
-//   - POST /admin/v1/barrier/rotate/root
-//   - POST /admin/v1/barrier/rotate/intermediate
-//   - POST /admin/v1/barrier/rotate/content
+//   - POST /admin/api/v1/barrier/rotate/root
+//   - POST /admin/api/v1/barrier/rotate/intermediate
+//   - POST /admin/api/v1/barrier/rotate/content
 func RegisterRotationRoutes(adminServer *fiber.App, rotationService *RotationService) {
 	if adminServer == nil {
 		panic("adminServer must be non-nil")
@@ -188,7 +188,7 @@ func RegisterRotationRoutes(adminServer *fiber.App, rotationService *RotationSer
 		panic("rotationService must be non-nil")
 	}
 
-	adminV1 := adminServer.Group("/admin/v1/barrier/rotate")
+	adminV1 := adminServer.Group("/admin/api/v1/barrier/rotate")
 
 	adminV1.Post("/root", HandleRotateRootKey(rotationService))
 	adminV1.Post("/intermediate", HandleRotateIntermediateKey(rotationService))
