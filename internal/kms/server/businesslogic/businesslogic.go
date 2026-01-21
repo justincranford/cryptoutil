@@ -138,6 +138,7 @@ func (s *BusinessLogicService) GetElasticKeyByElasticKeyID(ctx context.Context, 
 	return s.oamOrmMapper.toOamElasticKey(ormElasticKey), nil
 }
 
+// GetElasticKeys retrieves ElasticKeys matching the provided query parameters.
 func (s *BusinessLogicService) GetElasticKeys(ctx context.Context, elasticKeyQueryParams *cryptoutilOpenapiModel.ElasticKeysQueryParams) ([]cryptoutilOpenapiModel.ElasticKey, error) {
 	ormElasticKeysQueryParams, err := s.oamOrmMapper.toOrmGetElasticKeysQueryParams(elasticKeyQueryParams)
 	if err != nil {
@@ -163,6 +164,7 @@ func (s *BusinessLogicService) GetElasticKeys(ctx context.Context, elasticKeyQue
 	return s.oamOrmMapper.toOamElasticKeys(ormElasticKeys), nil
 }
 
+// GenerateMaterialKeyInElasticKey generates a new MaterialKey for an existing ElasticKey.
 func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, _ *cryptoutilOpenapiModel.MaterialKeyGenerate) (*cryptoutilOpenapiModel.MaterialKey, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 
@@ -219,6 +221,7 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 	return oamMaterialKey, nil
 }
 
+// GetMaterialKeysForElasticKey retrieves MaterialKeys for a specific ElasticKey.
 func (s *BusinessLogicService) GetMaterialKeysForElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, elasticKeyMaterialKeysQueryParams *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) ([]cryptoutilOpenapiModel.MaterialKey, error) {
 	ormElasticKeyMaterialKeysQueryParams, err := s.oamOrmMapper.toOrmGetMaterialKeysForElasticKeyQueryParams(elasticKeyMaterialKeysQueryParams)
 	if err != nil {
@@ -258,6 +261,7 @@ func (s *BusinessLogicService) GetMaterialKeysForElasticKey(ctx context.Context,
 	return oamMaterialKeys, err
 }
 
+// GetMaterialKeys retrieves MaterialKeys matching the provided query parameters.
 func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeysQueryParams *cryptoutilOpenapiModel.MaterialKeysQueryParams) ([]cryptoutilOpenapiModel.MaterialKey, error) {
 	ormMaterialKeysQueryParams, err := s.oamOrmMapper.toOrmGetMaterialKeysQueryParams(materialKeysQueryParams)
 	if err != nil {
@@ -310,6 +314,7 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeys
 	return oamMaterialKeys, err
 }
 
+// GetMaterialKeyByElasticKeyAndMaterialKeyID retrieves a MaterialKey by ElasticKey ID and MaterialKey ID.
 func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) (*cryptoutilOpenapiModel.MaterialKey, error) {
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
 
@@ -340,6 +345,7 @@ func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx co
 	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObject, nil
 }
 
+// PostGenerateByElasticKeyID generates cryptographic key material using the active MaterialKey.
 func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, generateParams *cryptoutilOpenapiModel.GenerateParams) ([]byte, []byte, []byte, error) {
 	alg, err := cryptoutilJose.ToGenerateAlgorithm((*string)(generateParams.Alg))
 	if err != nil {
@@ -359,6 +365,7 @@ func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, e
 	return encryptedNonPublicJWKBytes, clearNonPublicJWKBytes, clearPublicJWKBytes, nil
 }
 
+// PostEncryptByElasticKeyID encrypts a payload using the active MaterialKey in an ElasticKey.
 func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, encryptParams *cryptoutilOpenapiModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
 	elasticKey, _, decryptedMaterialKeyNonPublicJWEJWK, clearMaterialKeyPublicJWEJWK, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
 	if err != nil {
@@ -391,6 +398,7 @@ func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, el
 	return jweMessageBytes, nil
 }
 
+// PostDecryptByElasticKeyID decrypts a JWE message using the appropriate MaterialKey.
 func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, jweMessageBytes []byte) ([]byte, error) {
 	jweMessage, err := joseJwe.Parse(jweMessageBytes)
 	if err != nil {
@@ -421,6 +429,7 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 	return decryptedJWEMessageBytes, nil
 }
 
+// PostSignByElasticKeyID signs a payload using the active MaterialKey in an ElasticKey.
 func (s *BusinessLogicService) PostSignByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, clearPayloadBytes []byte) ([]byte, error) {
 	elasticKey, _, decryptedMaterialKeyNonPublicJWSJWK, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
 	if err != nil {
@@ -439,6 +448,7 @@ func (s *BusinessLogicService) PostSignByElasticKeyID(ctx context.Context, elast
 	return jwsMessageBytes, nil
 }
 
+// PostVerifyByElasticKeyID verifies a JWS signature using the appropriate MaterialKey.
 func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, jwsMessageBytes []byte) ([]byte, error) {
 	jwsMessage, err := joseJws.Parse(jwsMessageBytes)
 	if err != nil {
@@ -567,6 +577,7 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 	return ormElasticKey, ormMaterialKey, decryptedMaterialKeyNonPublicJWK, clearMaterialKeyPublicJWK, nil
 }
 
+// UpdateElasticKey updates an existing ElasticKey.
 func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, updateRequest *cryptoutilOpenapiModel.ElasticKeyUpdate) (*cryptoutilOpenapiModel.ElasticKey, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 
@@ -600,6 +611,7 @@ func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyI
 	return s.oamOrmMapper.toOamElasticKey(ormElasticKey), nil
 }
 
+// DeleteElasticKey deletes an ElasticKey and its associated MaterialKeys.
 func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID) error {
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		ormElasticKey, err := sqlTransaction.GetElasticKey(elasticKeyID)
@@ -638,6 +650,7 @@ func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyI
 	return nil
 }
 
+// ImportMaterialKey imports a MaterialKey into an existing ElasticKey.
 func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKeyID *googleUuid.UUID, importRequest *cryptoutilOpenapiModel.MaterialKeyImport) (*cryptoutilOpenapiModel.MaterialKey, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 
@@ -697,6 +710,7 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 	return oamMaterialKey, nil
 }
 
+// RevokeMaterialKey revokes a MaterialKey within an ElasticKey.
 func (s *BusinessLogicService) RevokeMaterialKey(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) error {
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		ormMaterialKey, err := sqlTransaction.GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyID)
