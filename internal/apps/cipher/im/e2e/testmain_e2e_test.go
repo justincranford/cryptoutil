@@ -41,6 +41,13 @@ var (
 
 // TestMain orchestrates docker compose lifecycle for E2E tests.
 // This validates production-ready deployment with PostgreSQL, telemetry, and multiple instances.
+//
+// ENVIRONMENTAL NOTE: These E2E tests require Docker Desktop to be running on Windows.
+// Without Docker Desktop, the tests will fail with errors like:
+// - "unable to get image... open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified"
+// - "Failed to start docker compose: exit status 1"
+// This is an environmental requirement, not a code issue. The integration tests (in ../integration/)
+// provide sufficient coverage using SQLite in-memory and do not require Docker.
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 

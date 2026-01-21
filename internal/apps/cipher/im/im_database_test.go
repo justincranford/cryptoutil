@@ -46,6 +46,11 @@ const (
 )
 
 // TestInitDatabase_HappyPaths tests successful database initialization for PostgreSQL and SQLite.
+//
+// ENVIRONMENTAL NOTE: The PostgreSQL_Container subtest requires Docker Desktop to be running.
+// On Windows, testcontainers-go may panic with "rootless Docker is not supported on Windows"
+// if Docker Desktop is not running or is configured in rootless mode. This is an environmental
+// limitation, not a code issue. The SQLite subtest will still pass and provides sufficient coverage.
 func TestInitDatabase_HappyPaths(t *testing.T) {
 	// Use merged filesystem to get all migrations (1001-1999 template + 2001+ cipher-im).
 	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseHappyPaths(
