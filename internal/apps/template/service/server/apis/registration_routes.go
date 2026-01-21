@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // RegisterRegistrationRoutes registers tenant registration endpoints on PUBLIC server.
