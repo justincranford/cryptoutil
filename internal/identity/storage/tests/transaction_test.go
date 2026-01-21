@@ -33,7 +33,7 @@ func TestTransactionRollback(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -116,7 +116,7 @@ func TestTransactionCommit(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -174,7 +174,7 @@ func TestTransactionIsolation(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -228,7 +228,7 @@ func TestConcurrentTransactions(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 

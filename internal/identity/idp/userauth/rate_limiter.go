@@ -76,7 +76,7 @@ func (s *DatabaseRateLimitStore) RecordAttempt(ctx context.Context, key string, 
 }
 
 // CountAttempts returns number of attempts within the time window.
-func (s *DatabaseRateLimitStore) CountAttempts(ctx context.Context, key string, window time.Duration) (int, error) {
+func (s *DatabaseRateLimitStore) CountAttempts(_ context.Context, key string, window time.Duration) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -98,7 +98,7 @@ func (s *DatabaseRateLimitStore) CountAttempts(ctx context.Context, key string, 
 }
 
 // CleanupExpired removes rate limit records older than retention period.
-func (s *DatabaseRateLimitStore) CleanupExpired(ctx context.Context, retention time.Duration) error {
+func (s *DatabaseRateLimitStore) CleanupExpired(_ context.Context, retention time.Duration) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

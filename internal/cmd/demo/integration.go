@@ -622,7 +622,7 @@ func validateIntegrationToken(accessToken string, progress *ProgressDisplay) err
 }
 
 // performAuthenticatedKMSOperation performs an authenticated operation against KMS.
-func performAuthenticatedKMSOperation(ctx context.Context, servers *integrationServers, accessToken string, progress *ProgressDisplay) error {
+func performAuthenticatedKMSOperation(_ context.Context, servers *integrationServers, accessToken string, progress *ProgressDisplay) error {
 	// Use the KMS health endpoint as a simple authenticated operation test.
 	// In a full implementation, this would perform actual KMS operations.
 	_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(servers.kmsSettings)

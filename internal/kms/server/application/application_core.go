@@ -16,6 +16,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 )
 
+// ServerApplicationCore provides core server application components including database, ORM, barrier, and business logic services.
 type ServerApplicationCore struct {
 	ServerApplicationBasic *ServerApplicationBasic
 	SQLRepository          *cryptoutilSQLRepository.SQLRepository
@@ -25,6 +26,7 @@ type ServerApplicationCore struct {
 	Settings               *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
+// StartServerApplicationCore initializes and starts a core server application with all essential services.
 func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ServerApplicationCore, error) {
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
 	if err != nil {
@@ -103,6 +105,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	return serverApplicationCore, nil
 }
 
+// Shutdown returns a shutdown function that gracefully stops all core application services.
 func (c *ServerApplicationCore) Shutdown() func() {
 	return func() {
 		if c.ServerApplicationBasic != nil && c.ServerApplicationBasic.TelemetryService != nil {

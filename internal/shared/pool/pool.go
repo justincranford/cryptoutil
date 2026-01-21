@@ -260,8 +260,8 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 	startTime := time.Now().UTC()
 
 	defer func() {
-		if recover := recover(); recover != nil {
-			pool.cfg.telemetryService.Slogger.Error("worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", recover, "stack", string(debug.Stack()))
+		if panicValue := recover(); panicValue != nil {
+			pool.cfg.telemetryService.Slogger.Error("worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", panicValue, "stack", string(debug.Stack()))
 		}
 
 		if pool.cfg.verbose {
@@ -303,8 +303,8 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 // IMPORTANT: don't call Cancel() in this function, because it waits for all permissions to be released, and this function doesn't release its permission until it returns.
 func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime time.Time) error {
 	defer func() { // always release permission, even if there was an error or panic
-		if recover := recover(); recover != nil {
-			pool.cfg.telemetryService.Slogger.Error("recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", recover, "stack", string(debug.Stack()))
+		if panicValue := recover(); panicValue != nil {
+			pool.cfg.telemetryService.Slogger.Error("recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", panicValue, "stack", string(debug.Stack()))
 		}
 
 		<-pool.permissionChannel // release permission to generate, so other workers can generate, or Cancel() can close the channel

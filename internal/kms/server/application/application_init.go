@@ -29,6 +29,7 @@ const (
 	defaultPEMFileMode = cryptoutilMagic.FilePermOwnerReadWriteOnly
 )
 
+// ServerInit initializes the server by generating TLS certificates and other required configuration.
 func ServerInit(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
 	ctx := context.Background()
 

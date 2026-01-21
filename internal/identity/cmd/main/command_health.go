@@ -2,6 +2,7 @@
 //
 //
 
+// Package cmd provides command-line interface for the identity service.
 package cmd
 
 import (

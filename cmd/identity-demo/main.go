@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides a demonstration of the identity service capabilities.
 package main
 
 import (

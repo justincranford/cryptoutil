@@ -335,7 +335,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			descUpdate:   stringPtr("New Description"),
 			activeUpdate: boolPtr(false),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+				tenantRepo.getByIDFn = func(_ context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
 					return &repository.Tenant{
 						ID:          id,
 						Name:        "Old Name",
@@ -344,7 +344,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						CreatedAt:   time.Now(),
 					}, nil
 				}
-				tenantRepo.updateFn = func(ctx context.Context, tenant *repository.Tenant) error {
+				tenantRepo.updateFn = func(_ context.Context, tenant *repository.Tenant) error {
 					return nil
 				}
 			},
@@ -356,7 +356,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			nameUpdate: stringPtr("Test"),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
-				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+				tenantRepo.getByIDFn = func(_ context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
 					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
 			},
@@ -421,7 +421,7 @@ func TestTenantService_DeleteTenant(t *testing.T) {
 			name:     "happy path",
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.deleteFn = func(ctx context.Context, id googleUuid.UUID) error {
+				tenantRepo.deleteFn = func(_ context.Context, id googleUuid.UUID) error {
 					return nil
 				}
 			},

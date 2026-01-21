@@ -21,7 +21,7 @@ func TestISO8601Time2String(t *testing.T) {
 	require.Equal(t, expected, *result)
 
 	// Sad path
-	var nilTime *time.Time = nil
+	var nilTime *time.Time
 
 	result = ISO8601Time2String(nilTime)
 	require.Nil(t, result)
@@ -47,7 +47,7 @@ func TestISO8601String2Time(t *testing.T) {
 	require.Nil(t, result)
 
 	// Sad path: Nil string
-	var nilString *string = nil
+	var nilString *string
 
 	result, err = ISO8601String2Time(nilString)
 	require.NoError(t, err)

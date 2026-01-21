@@ -60,7 +60,7 @@ func TestSQLiteMigrations(t *testing.T) {
 	}
 
 	// Test basic CRUD operations to ensure migrations are functional
-	testBasicCRUDOperations(t, ctx, repoFactory)
+	testBasicCRUDOperations(ctx, t, repoFactory)
 }
 
 func TestPostgreSQLMigrations(t *testing.T) {
@@ -130,7 +130,7 @@ func isCGOAvailable() bool {
 }
 
 // Helper function to test basic CRUD operations after migration.
-func testBasicCRUDOperations(t *testing.T, _ context.Context, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
+func testBasicCRUDOperations(_ context.Context, t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
 	t.Helper()
 	// This would test basic CRUD operations on each repository
 	// Implementation depends on the specific repository interfaces

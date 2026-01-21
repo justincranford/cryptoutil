@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package im provides an in-memory cipher service implementation.
 package im
 
 import (

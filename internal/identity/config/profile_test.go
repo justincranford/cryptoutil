@@ -81,7 +81,7 @@ func TestLoadProfileFromFile(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, cfg)
 		require.True(t, cfg.Services.AuthZ.Enabled)
-		require.False(t, cfg.Services.IdP.Enabled)
+		require.False(t, cfg.Services.IDP.Enabled)
 		require.Equal(t, "127.0.0.1:8080", cfg.Services.AuthZ.BindAddress)
 	})
 
@@ -130,7 +130,7 @@ func TestProfileConfigValidate(t *testing.T) {
 			cfg: ProfileConfig{
 				Services: ServiceConfigs{
 					AuthZ: ServiceConfig{Enabled: false},
-					IdP:   ServiceConfig{Enabled: false},
+					IDP:   ServiceConfig{Enabled: false},
 					RS:    ServiceConfig{Enabled: false},
 				},
 			},
@@ -170,7 +170,7 @@ func TestProfileConfigValidate(t *testing.T) {
 			name: "valid idp service",
 			cfg: ProfileConfig{
 				Services: ServiceConfigs{
-					IdP: ServiceConfig{
+					IDP: ServiceConfig{
 						Enabled:     true,
 						BindAddress: "127.0.0.1:8081",
 						DatabaseURL: ":memory:",
@@ -184,7 +184,7 @@ func TestProfileConfigValidate(t *testing.T) {
 			name: "idp missing database_url",
 			cfg: ProfileConfig{
 				Services: ServiceConfigs{
-					IdP: ServiceConfig{
+					IDP: ServiceConfig{
 						Enabled:     true,
 						BindAddress: "127.0.0.1:8081",
 						LogLevel:    "info",

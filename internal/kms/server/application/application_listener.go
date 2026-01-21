@@ -53,6 +53,7 @@ type fiberAppID string
 
 var ready atomic.Bool
 
+// ServerApplicationListener provides HTTP listener configuration and lifecycle management for the server.
 type ServerApplicationListener struct {
 	StartFunction     func()
 	ShutdownFunction  func()
@@ -62,6 +63,7 @@ type ServerApplicationListener struct {
 	ActualPrivatePort uint16
 }
 
+// TLSServerConfig holds TLS configuration including certificates and certificate pools.
 type TLSServerConfig struct {
 	Certificate         *tls.Certificate
 	RootCAsPool         *x509.CertPool
@@ -69,6 +71,7 @@ type TLSServerConfig struct {
 	Config              *tls.Config
 }
 
+// SendServerListenerLivenessCheck sends a liveness probe to the server's private admin endpoint.
 func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
 	defer cancel()
@@ -81,6 +84,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServiceTemplateS
 	return result, nil
 }
 
+// SendServerListenerReadinessCheck sends a readiness probe to the server's private admin endpoint.
 func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
 	defer cancel()
@@ -93,6 +97,7 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServiceTemplate
 	return result, nil
 }
 
+// SendServerListenerShutdownRequest sends a shutdown request to the server's private admin endpoint.
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
 	defer cancel()

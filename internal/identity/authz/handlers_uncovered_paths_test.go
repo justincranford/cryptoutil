@@ -189,7 +189,7 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "database_update_error_simulation",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) string {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) string {
 				t.Helper()
 
 				// This test would require injecting a mock repository that simulates database update failure.

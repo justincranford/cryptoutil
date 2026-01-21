@@ -259,7 +259,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
 				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
-				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
+				elasticKey = RequireCreateElasticKeyResponse(context, t, openapiClient, elasticKeyCreate)
 				logObjectAsJSON(t, elasticKey)
 			})
 
@@ -273,7 +273,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
 				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
@@ -286,13 +286,13 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 				str := "Hello World " + strconv.Itoa(i)
 				cleartext = &str
 				encryptRequest := RequireEncryptRequest(t, cleartext)
-				ciphertext = RequireEncryptResponse(t, context, openapiClient, elasticKey.ElasticKeyID, nil, encryptRequest)
+				ciphertext = RequireEncryptResponse(context, t, openapiClient, elasticKey.ElasticKeyID, nil, encryptRequest)
 				logJWE(t, ciphertext)
 			})
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
 				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
@@ -301,7 +301,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 			t.Run(testCaseNamePrefix+"  Decrypt", func(t *testing.T) {
 				decryptRequest := RequireDecryptRequest(t, ciphertext)
-				decryptedtext = RequireDecryptResponse(t, context, openapiClient, elasticKey.ElasticKeyID, decryptRequest)
+				decryptedtext = RequireDecryptResponse(context, t, openapiClient, elasticKey.ElasticKeyID, decryptRequest)
 			})
 
 			for _, generateAlgorithm := range happyPathGenerateAlgorithmTestCases {
@@ -310,7 +310,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 				algorithmSuffix := strings.ReplaceAll(((string)(generateAlgorithm)), "/", "_")
 				t.Run(testCaseNamePrefix+"  Generate Data Key  "+algorithmSuffix, func(t *testing.T) {
 					generateDataKeyParams := &cryptoutilOpenapiModel.GenerateParams{Context: nil, Alg: &generateAlgorithm}
-					generateDataKeyResponse = RequireGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, generateDataKeyParams)
+					generateDataKeyResponse = RequireGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, generateDataKeyParams)
 					logObjectAsJSON(t, generateDataKeyResponse)
 				})
 
@@ -318,7 +318,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 				t.Run(testCaseNamePrefix+"  Decrypt Data Key  "+algorithmSuffix, func(t *testing.T) {
 					decryptDataKeyRequest := RequireDecryptRequest(t, generateDataKeyResponse)
-					decryptedDataKey = RequireDecryptResponse(t, context, openapiClient, elasticKey.ElasticKeyID, decryptDataKeyRequest)
+					decryptedDataKey = RequireDecryptResponse(context, t, openapiClient, elasticKey.ElasticKeyID, decryptDataKeyRequest)
 					t.Log("decrypted data key", *decryptedDataKey)
 				})
 
@@ -362,7 +362,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				uniqueName := nextElasticKeyName()
 				uniqueDesc := nextElasticKeyDesc()
 				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
-				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
+				elasticKey = RequireCreateElasticKeyResponse(context, t, openapiClient, elasticKeyCreate)
 				logObjectAsJSON(t, elasticKey)
 			})
 
@@ -382,7 +382,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
 				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
@@ -395,13 +395,13 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				str := "Hello World " + strconv.Itoa(i)
 				cleartext = &str
 				signRequest := RequireSignRequest(t, cleartext)
-				signedtext = RequireSignResponse(t, context, openapiClient, elasticKey.ElasticKeyID, nil, signRequest)
+				signedtext = RequireSignResponse(context, t, openapiClient, elasticKey.ElasticKeyID, nil, signRequest)
 				logJWS(t, signedtext)
 			})
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(context, t, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
 				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
@@ -410,7 +410,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 
 			t.Run(testCaseNamePrefix+"  Verify", func(t *testing.T) {
 				verifyRequest := RequireVerifyRequest(t, signedtext)
-				verifiedtest = RequireVerifyResponse(t, context, openapiClient, elasticKey.ElasticKeyID, verifyRequest)
+				verifiedtest = RequireVerifyResponse(context, t, openapiClient, elasticKey.ElasticKeyID, verifyRequest)
 			})
 
 			// Verify endpoint returns 204 No Content on success, so verifiedtest will be empty

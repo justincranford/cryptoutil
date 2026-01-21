@@ -148,7 +148,7 @@ Examples:
 				configFile string
 			}{
 				{"authz", profileCfg.Services.AuthZ.Enabled, "bin/authz", "configs/identity/authz.yml"},
-				{"idp", profileCfg.Services.IdP.Enabled, "bin/idp", "configs/identity/idp.yml"},
+				{"idp", profileCfg.Services.IDP.Enabled, "bin/idp", "configs/identity/idp.yml"},
 				{"rs", profileCfg.Services.RS.Enabled, "bin/rs", "configs/identity/rs.yml"},
 			}
 
@@ -178,7 +178,7 @@ Examples:
 					url  string
 				}{
 					{"authz", "https://" + profileCfg.Services.AuthZ.BindAddress + "/health"},
-					{"idp", "https://" + profileCfg.Services.IdP.BindAddress + "/health"},
+					{"idp", "https://" + profileCfg.Services.IDP.BindAddress + "/health"},
 					{"rs", "https://" + profileCfg.Services.RS.BindAddress + "/health"},
 				}
 

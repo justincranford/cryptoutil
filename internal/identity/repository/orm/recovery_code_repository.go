@@ -15,17 +15,18 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
-type recoveryCodeRepository struct {
+// RecoveryCodeRepository implements RecoveryCodeRepository using GORM.
+type RecoveryCodeRepository struct {
 	db *gorm.DB
 }
 
 // NewRecoveryCodeRepository creates a new GORM-based recovery code repository.
-func NewRecoveryCodeRepository(db *gorm.DB) *recoveryCodeRepository {
-	return &recoveryCodeRepository{db: db}
+func NewRecoveryCodeRepository(db *gorm.DB) *RecoveryCodeRepository {
+	return &RecoveryCodeRepository{db: db}
 }
 
 // Create stores a new recovery code.
-func (r *recoveryCodeRepository) Create(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error {
+func (r *RecoveryCodeRepository) Create(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Create(code).Error; err != nil {
 		return fmt.Errorf("failed to create recovery code: %w", err)
 	}
@@ -34,7 +35,7 @@ func (r *recoveryCodeRepository) Create(ctx context.Context, code *cryptoutilIde
 }
 
 // CreateBatch stores multiple recovery codes in a transaction.
-func (r *recoveryCodeRepository) CreateBatch(ctx context.Context, codes []*cryptoutilIdentityDomain.RecoveryCode) error {
+func (r *RecoveryCodeRepository) CreateBatch(ctx context.Context, codes []*cryptoutilIdentityDomain.RecoveryCode) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Create(codes).Error; err != nil {
 		return fmt.Errorf("failed to create recovery codes batch: %w", err)
 	}
@@ -43,7 +44,7 @@ func (r *recoveryCodeRepository) CreateBatch(ctx context.Context, codes []*crypt
 }
 
 // GetByUserID retrieves all recovery codes for a user.
-func (r *recoveryCodeRepository) GetByUserID(ctx context.Context, userID googleUuid.UUID) ([]*cryptoutilIdentityDomain.RecoveryCode, error) {
+func (r *RecoveryCodeRepository) GetByUserID(ctx context.Context, userID googleUuid.UUID) ([]*cryptoutilIdentityDomain.RecoveryCode, error) {
 	var codes []*cryptoutilIdentityDomain.RecoveryCode
 
 	if err := getDB(ctx, r.db).WithContext(ctx).
@@ -56,7 +57,7 @@ func (r *recoveryCodeRepository) GetByUserID(ctx context.Context, userID googleU
 }
 
 // GetByID retrieves a recovery code by ID.
-func (r *recoveryCodeRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.RecoveryCode, error) {
+func (r *RecoveryCodeRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.RecoveryCode, error) {
 	var code cryptoutilIdentityDomain.RecoveryCode
 
 	if err := getDB(ctx, r.db).WithContext(ctx).
@@ -73,7 +74,7 @@ func (r *recoveryCodeRepository) GetByID(ctx context.Context, id googleUuid.UUID
 }
 
 // Update modifies an existing recovery code.
-func (r *recoveryCodeRepository) Update(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error {
+func (r *RecoveryCodeRepository) Update(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(code).Error; err != nil {
 		return fmt.Errorf("failed to update recovery code: %w", err)
 	}
@@ -82,7 +83,7 @@ func (r *recoveryCodeRepository) Update(ctx context.Context, code *cryptoutilIde
 }
 
 // DeleteByUserID removes all recovery codes for a user.
-func (r *recoveryCodeRepository) DeleteByUserID(ctx context.Context, userID googleUuid.UUID) error {
+func (r *RecoveryCodeRepository) DeleteByUserID(ctx context.Context, userID googleUuid.UUID) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).
 		Where("user_id = ?", userID.String()).
 		Delete(&cryptoutilIdentityDomain.RecoveryCode{}).Error; err != nil {
@@ -93,7 +94,7 @@ func (r *recoveryCodeRepository) DeleteByUserID(ctx context.Context, userID goog
 }
 
 // DeleteExpired removes all expired recovery codes.
-func (r *recoveryCodeRepository) DeleteExpired(ctx context.Context) (int64, error) {
+func (r *RecoveryCodeRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	result := getDB(ctx, r.db).WithContext(ctx).
 		Where("expires_at < ?", time.Now().UTC()).
 		Delete(&cryptoutilIdentityDomain.RecoveryCode{})
@@ -106,7 +107,7 @@ func (r *recoveryCodeRepository) DeleteExpired(ctx context.Context) (int64, erro
 }
 
 // CountUnused returns count of unused, unexpired codes for a user.
-func (r *recoveryCodeRepository) CountUnused(ctx context.Context, userID googleUuid.UUID) (int64, error) {
+func (r *RecoveryCodeRepository) CountUnused(ctx context.Context, userID googleUuid.UUID) (int64, error) {
 	var count int64
 
 	if err := getDB(ctx, r.db).WithContext(ctx).

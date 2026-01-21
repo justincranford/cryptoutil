@@ -439,11 +439,12 @@ func (m *mergedMigrations) Open(name string) (fs.File, error) {
 		fullPath = m.templatePath + pathSep + name
 	}
 
-	if f, err := m.templateFS.Open(fullPath); err != nil {
+	f, err := m.templateFS.Open(fullPath)
+	if err != nil {
 		return nil, fmt.Errorf("failed to open migration file %s: %w", name, err)
-	} else {
-		return f, nil
 	}
+
+	return f, nil
 }
 
 func (m *mergedMigrations) ReadDir(name string) ([]fs.DirEntry, error) {

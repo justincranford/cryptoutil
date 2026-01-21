@@ -15,12 +15,14 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
+// ServerApplicationBasic provides basic server application components including telemetry, unseal keys, and JWK generation.
 type ServerApplicationBasic struct {
 	TelemetryService  *cryptoutilTelemetry.TelemetryService
 	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 	JWKGenService     *cryptoutilJose.JWKGenService
 }
 
+// StartServerApplicationBasic initializes and starts a basic server application with essential services.
 func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ServerApplicationBasic, error) {
 	serverApplicationBasic := &ServerApplicationBasic{}
 
@@ -54,6 +56,7 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig
 	return serverApplicationBasic, nil
 }
 
+// Shutdown returns a shutdown function that gracefully stops all basic application services.
 func (c *ServerApplicationBasic) Shutdown() func() {
 	return func() {
 		if c.TelemetryService != nil {

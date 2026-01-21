@@ -17,26 +17,28 @@ const (
 
 // M represents a matrix of byte slices for combination computation.
 type (
-	M            [][]byte
-	value        []byte
-	combination  []value
-	combinations []combination
+	M           [][]byte
+	value       []byte
+	combination []value
+	// Combinations represents a slice of combination results.
+	Combinations []combination
 )
 
-func ComputeCombinations(m M, n int) (combinations, error) {
+// ComputeCombinations computes all combinations of n elements from the matrix m.
+func ComputeCombinations(m M, n int) (Combinations, error) {
 	if m == nil {
 		return nil, fmt.Errorf("m can't be nil")
 	} else if len(m) >= maxUint8Value {
 		return nil, fmt.Errorf("m can't be greater than %d", maxUint8Value)
 	} else if n == 0 {
-		return combinations{}, nil
+		return Combinations{}, nil
 	} else if n < 0 {
 		return nil, fmt.Errorf("n can't be negative")
 	} else if n > len(m) {
 		return nil, fmt.Errorf("n can't be greater than m")
 	}
 
-	var result combinations
+	var result Combinations
 
 	combination := make(combination, n) // Properly initialize the 'combination' slice
 
@@ -63,7 +65,8 @@ func ComputeCombinations(m M, n int) (combinations, error) {
 
 // ENCODE
 
-func (c *combinations) Encode() [][]byte {
+// Encode encodes all combinations to byte slices.
+func (c *Combinations) Encode() [][]byte {
 	encodings := make([][]byte, 0, len(*c))
 	for _, combination := range *c {
 		encodings = append(encodings, combination.Encode())
@@ -136,7 +139,8 @@ func (c combination) ToString() string {
 	return buffer.String()
 }
 
-func (c combinations) ToString() string {
+// ToString converts all combinations to a string representation.
+func (c Combinations) ToString() string {
 	var buffer bytes.Buffer
 
 	buffer.WriteString("[")

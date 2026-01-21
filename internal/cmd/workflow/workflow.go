@@ -2,6 +2,7 @@
 //
 //
 
+// Package workflow provides workflow execution and orchestration utilities.
 package workflow
 
 import (

@@ -10,6 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// BuildElasticKey constructs a new ElasticKey entity with the specified properties.
 func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider cryptoutilOpenapiModel.ElasticKeyProvider, algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm, versioningAllowed, importAllowed, _ bool, status string) (*ElasticKey, error) {
 	elasticKey := ElasticKey{
 		ElasticKeyID:                elasticKeyID,

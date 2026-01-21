@@ -175,11 +175,12 @@ func (u *UsernamePasswordAuthenticator) VerifyAuth(ctx context.Context, challeng
 
 	// If hardware authentication required, verify hardware signature.
 	// Note: Hardware signature would be passed via challenge metadata in a real implementation.
-	if u.requireHardware && u.hsm != nil { //nolint:staticcheck // Stub for future hardware signature verification.
+	if u.requireHardware && u.hsm != nil { //nolint:revive // Stub for future hardware signature verification.
 		// In a real implementation, client would sign challenge ID with hardware key.
 		// Hardware signature verification logic would go here.
 		// For now, hardware authentication is not enforced (stub implementation).
 		// Example: u.hsm.VerifySignature(ctx, user.ID.String(), challengeID.Bytes(), signature)
+		_ = u.hsm // Mark as intentionally unused pending implementation
 	}
 
 	// Delete used challenge.

@@ -128,22 +128,22 @@ func TestToString_combinations(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		c        combinations
+		c        Combinations
 		expected string
 	}{
 		{
 			name:     "Empty combinations",
-			c:        combinations{},
+			c:        Combinations{},
 			expected: "[]",
 		},
 		{
 			name:     "Single combination",
-			c:        combinations{combination{value("A")}},
+			c:        Combinations{combination{value("A")}},
 			expected: `[["A"]]`,
 		},
 		{
 			name:     "Multiple combinations",
-			c:        combinations{combination{value("A")}, combination{value("B"), value("C")}},
+			c:        Combinations{combination{value("A")}, combination{value("B"), value("C")}},
 			expected: `[["A"], ["B", "C"]]`,
 		},
 	}
@@ -249,7 +249,7 @@ func TestEncode_MultipleCombinations(t *testing.T) {
 	c2 := combination{value("B"), value("C")}
 	c3 := combination{value("D"), value("E"), value("F")}
 
-	combos := combinations{c1, c2, c3}
+	combos := Combinations{c1, c2, c3}
 
 	encodings := combos.Encode()
 

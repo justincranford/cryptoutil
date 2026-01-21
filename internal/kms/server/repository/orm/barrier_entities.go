@@ -70,50 +70,62 @@ func (r *BarrierRootKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
 	r.KEKUUID = kekUUIDV7
 }
 
+// GetUUID returns the UUID of the intermediate key.
 func (r *BarrierIntermediateKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
+// SetUUID sets the UUID of the intermediate key.
 func (r *BarrierIntermediateKey) SetUUID(uuidV7 googleUuid.UUID) {
 	r.UUID = uuidV7
 }
 
+// GetEncrypted returns the encrypted value of the intermediate key.
 func (r *BarrierIntermediateKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
+// SetEncrypted sets the encrypted value of the intermediate key.
 func (r *BarrierIntermediateKey) SetEncrypted(encrypted string) {
 	r.Encrypted = encrypted
 }
 
+// GetKEKUUID returns the UUID of the key encryption key.
 func (r *BarrierIntermediateKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
+// SetKEKUUID sets the UUID of the key encryption key.
 func (r *BarrierIntermediateKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
 	r.KEKUUID = kekUUIDV7
 }
 
+// GetUUID returns the UUID of the content key.
 func (r *BarrierContentKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
+// SetUUID sets the UUID of the content key.
 func (r *BarrierContentKey) SetUUID(uuidV7 googleUuid.UUID) {
 	r.UUID = uuidV7
 }
 
+// GetEncrypted returns the encrypted value of the content key.
 func (r *BarrierContentKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
+// SetEncrypted sets the encrypted value of the content key.
 func (r *BarrierContentKey) SetEncrypted(encrypted string) {
 	r.Encrypted = encrypted
 }
 
+// GetKEKUUID returns the UUID of the key encryption key.
 func (r *BarrierContentKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
+// SetKEKUUID sets the UUID of the key encryption key.
 func (r *BarrierContentKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
 	r.KEKUUID = kekUUIDV7
 }

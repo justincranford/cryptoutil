@@ -424,7 +424,7 @@ func identityRs(parameters []string) {
 	fmt.Println("Server stopped successfully")
 }
 
-func identitySpaRp(parameters []string) {
+func identitySpaRp(_ []string) {
 	fmt.Println("Starting SPA Relying Party...")
 	// TODO: Implement SPA Relying Party
 	fmt.Println("SPA Relying Party not yet implemented")

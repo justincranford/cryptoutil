@@ -14,12 +14,12 @@ import (
 // StrictServer implements cryptoutilOpenapiServer.StrictServerInterface.
 type StrictServer struct {
 	businessLogicService *cryptoutilBusinessLogic.BusinessLogicService
-	oasOamMapper         *oamOasMapper
+	oasOamMapper         *OamOasMapper
 }
 
 // NewOpenapiStrictServer creates a new OpenAPI strict server handler.
 func NewOpenapiStrictServer(service *cryptoutilBusinessLogic.BusinessLogicService) *StrictServer {
-	return &StrictServer{businessLogicService: service, oasOamMapper: &oamOasMapper{}}
+	return &StrictServer{businessLogicService: service, oasOamMapper: &OamOasMapper{}}
 }
 
 // PostElastickey creates a new Elastic Key.

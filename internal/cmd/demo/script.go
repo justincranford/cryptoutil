@@ -116,6 +116,7 @@ const (
 	demoCiphertext = "demo-ciphertext"
 )
 
+// Run executes the demo script with all integration steps.
 func (d *DemoScript) Run(ctx context.Context) (*DemoResult, error) {
 	d.progress.Info("Integration Demo Script")
 	d.progress.Info("=======================")

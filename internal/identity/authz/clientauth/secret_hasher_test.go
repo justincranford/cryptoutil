@@ -450,7 +450,7 @@ func (m *mockClientRepository) GetSecretHistory(_ context.Context, _ googleUuid.
 	return nil, nil
 }
 
-func (m *mockClientRepository) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Client, error) {
+func (m *mockClientRepository) List(_ context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Client, error) {
 	if offset >= len(m.clients) {
 		return []*cryptoutilIdentityDomain.Client{}, nil
 	}

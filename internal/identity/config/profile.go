@@ -20,7 +20,7 @@ type ProfileConfig struct {
 // ServiceConfigs holds configurations for all identity services.
 type ServiceConfigs struct {
 	AuthZ ServiceConfig `yaml:"authz"`
-	IdP   ServiceConfig `yaml:"idp"`
+	IDP   ServiceConfig `yaml:"idp"`
 	RS    ServiceConfig `yaml:"rs"`
 }
 
@@ -71,7 +71,7 @@ func LoadProfileFromFile(filePath string) (*ProfileConfig, error) {
 
 // Validate checks if the profile configuration is valid.
 func (c *ProfileConfig) Validate() error {
-	if !c.Services.AuthZ.Enabled && !c.Services.IdP.Enabled && !c.Services.RS.Enabled {
+	if !c.Services.AuthZ.Enabled && !c.Services.IDP.Enabled && !c.Services.RS.Enabled {
 		return fmt.Errorf("at least one service must be enabled")
 	}
 
@@ -81,8 +81,8 @@ func (c *ProfileConfig) Validate() error {
 		}
 	}
 
-	if c.Services.IdP.Enabled {
-		if err := c.Services.IdP.validate("idp"); err != nil {
+	if c.Services.IDP.Enabled {
+		if err := c.Services.IDP.validate("idp"); err != nil {
 			return err
 		}
 	}

@@ -206,7 +206,7 @@ func (suite *E2ETestSuite) testCreateEncryptionKey(client *cryptoutilOpenapiClie
 			&encryptionAlgorithm, &cryptoutilMagic.StringProviderInternal, &cryptoutilMagic.TestElasticKeyImportAllowed, &cryptoutilMagic.TestElasticKeyVersioningAllowed,
 		)
 
-		elasticKey = cryptoutilClient.RequireCreateElasticKeyResponse(suite.T(), suite.fixture.ctx, client, elasticKeyCreate)
+		elasticKey = cryptoutilClient.RequireCreateElasticKeyResponse(suite.fixture.ctx, suite.T(), client, elasticKeyCreate)
 		require.NotNil(suite.T(), elasticKey.ElasticKeyID)
 	})
 
@@ -231,7 +231,7 @@ func (suite *E2ETestSuite) testCreateSigningKey(client *cryptoutilOpenapiClient.
 			&signingAlgorithm, &cryptoutilMagic.StringProviderInternal, &cryptoutilMagic.TestElasticKeyImportAllowed, &cryptoutilMagic.TestElasticKeyVersioningAllowed,
 		)
 
-		elasticKey = cryptoutilClient.RequireCreateElasticKeyResponse(suite.T(), suite.fixture.ctx, client, elasticKeyCreate)
+		elasticKey = cryptoutilClient.RequireCreateElasticKeyResponse(suite.fixture.ctx, suite.T(), client, elasticKeyCreate)
 		require.NotNil(suite.T(), elasticKey.ElasticKeyID)
 	})
 

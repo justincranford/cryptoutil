@@ -107,7 +107,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 		},
 		{
 			name: "access_token_issuance_failed",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
 				t.Helper()
 
 				// NOTE: This error path (tokenSvc.IssueAccessToken failure) is DIFFICULT to test
@@ -132,7 +132,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 		},
 		{
 			name: "refresh_token_issuance_failed",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string, string) {
 				t.Helper()
 
 				// NOTE: Same reasoning as access_token_issuance_failed above.

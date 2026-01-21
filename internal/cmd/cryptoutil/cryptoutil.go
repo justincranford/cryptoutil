@@ -2,6 +2,7 @@
 //
 //
 
+// Package cmd provides command-line interface for cryptoutil operations.
 package cmd
 
 import (

@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package testutil provides test utilities for the template service server.
 package testutil
 
 import (

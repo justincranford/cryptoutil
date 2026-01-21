@@ -32,6 +32,7 @@ const (
 
 // Service-Repository calls
 
+// Error messages for elastic key and material key operations.
 var (
 	ErrFailedToAddElasticKey                                = "failed to add Elastic Key"
 	ErrFailedToGetElasticKeyByElasticKeyID                  = "failed to get Elastic Key by Elastic Key ID"
@@ -48,6 +49,7 @@ var (
 	ErrFailedToUpdateMaterialKey                            = "failed to update Material Key"
 )
 
+// AddElasticKey adds a new elastic key to the database.
 func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
 	if err := cryptoutilRandom.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddElasticKey, err)
@@ -61,6 +63,7 @@ func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
 	return nil
 }
 
+// GetElasticKey retrieves an elastic key by ID from the database.
 func (tx *OrmTransaction) GetElasticKey(elasticKeyID *googleUuid.UUID) (*ElasticKey, error) {
 	if err := cryptoutilRandom.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
@@ -76,6 +79,7 @@ func (tx *OrmTransaction) GetElasticKey(elasticKeyID *googleUuid.UUID) (*Elastic
 	return &elasticKey, nil
 }
 
+// UpdateElasticKey updates an existing elastic key in the database.
 func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
 	if err := cryptoutilRandom.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyByElasticKeyID, err)
@@ -89,6 +93,7 @@ func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
 	return nil
 }
 
+// UpdateElasticKeyStatus updates the status of an elastic key in the database.
 func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus cryptoutilOpenapiModel.ElasticKeyStatus) error {
 	if err := cryptoutilRandom.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
@@ -102,6 +107,7 @@ func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, e
 	return nil
 }
 
+// GetElasticKeys retrieves elastic keys with optional filters from the database.
 func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFilters) ([]ElasticKey, error) {
 	var elasticKeys []ElasticKey
 
@@ -115,6 +121,7 @@ func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFi
 	return elasticKeys, nil
 }
 
+// AddElasticKeyMaterialKey adds a new material key for an elastic key to the database.
 func (tx *OrmTransaction) AddElasticKeyMaterialKey(key *MaterialKey) error {
 	if err := cryptoutilRandom.ValidateUUID(&key.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
@@ -130,6 +137,7 @@ func (tx *OrmTransaction) AddElasticKeyMaterialKey(key *MaterialKey) error {
 	return nil
 }
 
+// GetMaterialKeysForElasticKey retrieves material keys for an elastic key with optional filters.
 func (tx *OrmTransaction) GetMaterialKeysForElasticKey(elasticKeyID *googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyMaterialKeysFilters) ([]MaterialKey, error) {
 	if err := cryptoutilRandom.ValidateUUID(elasticKeyID, &ErrFailedToGetMaterialKeysByElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeysByElasticKeyID, err)

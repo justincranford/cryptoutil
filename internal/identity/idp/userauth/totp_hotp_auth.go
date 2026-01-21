@@ -76,7 +76,7 @@ func (t *TOTPAuthenticator) GenerateTOTP(_ context.Context, secret string) (stri
 }
 
 // ValidateTOTP validates a TOTP code against a secret.
-func (t *TOTPAuthenticator) ValidateTOTP(ctx context.Context, secret, code string) bool {
+func (t *TOTPAuthenticator) ValidateTOTP(_ context.Context, secret, code string) bool {
 	// Allow for clock skew - check current time and ±1 period.
 	const windowSize = 1
 
@@ -259,7 +259,7 @@ func (h *HOTPAuthenticator) Method() string {
 }
 
 // GenerateSecret generates a random HOTP secret (same as TOTP).
-func (h *HOTPAuthenticator) GenerateSecret(ctx context.Context) (string, error) {
+func (h *HOTPAuthenticator) GenerateSecret(_ context.Context) (string, error) {
 	const secretLength = 20
 
 	// Generate random bytes.
@@ -278,7 +278,7 @@ func (h *HOTPAuthenticator) GenerateSecret(ctx context.Context) (string, error) 
 }
 
 // GenerateHOTP generates an HOTP code from a secret and counter.
-func (h *HOTPAuthenticator) GenerateHOTP(ctx context.Context, secret string, counter uint64) (string, error) {
+func (h *HOTPAuthenticator) GenerateHOTP(_ context.Context, secret string, counter uint64) (string, error) {
 	// Decode base32 secret.
 	secret = strings.ToUpper(secret)
 	// Add padding if needed.

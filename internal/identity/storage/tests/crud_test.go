@@ -27,7 +27,7 @@ func TestUserRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -98,7 +98,7 @@ func TestClientRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -157,7 +157,7 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -229,7 +229,7 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -300,7 +300,7 @@ func TestClientProfileRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -346,7 +346,7 @@ func TestAuthFlowRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -392,7 +392,7 @@ func TestAuthProfileRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -438,7 +438,7 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 
 	ctx := context.Background()
 
-	repoFactory := setupTestRepositoryFactory(t, ctx)
+	repoFactory := setupTestRepositoryFactory(ctx, t)
 
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
@@ -488,7 +488,7 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 }
 
 // Helper function to set up test repository factory.
-func setupTestRepositoryFactory(t *testing.T, ctx context.Context) *cryptoutilIdentityRepository.RepositoryFactory {
+func setupTestRepositoryFactory(ctx context.Context, t *testing.T) *cryptoutilIdentityRepository.RepositoryFactory {
 	t.Helper()
 
 	// Use unique file-based in-memory database per test to prevent data pollution between parallel tests.

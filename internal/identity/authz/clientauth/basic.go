@@ -2,6 +2,7 @@
 //
 //
 
+// Package clientauth provides client authentication methods for OAuth2/OIDC.
 package clientauth
 
 import (
