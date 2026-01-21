@@ -138,7 +138,7 @@ func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, recipient
 }
 
 // getMessagesAPI retrieves messages for a user via API call using cipher client.
-func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, userID googleUuid.UUID, token string) []map[string]any {
+func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, _ googleUuid.UUID, token string) []map[string]any {
 	t.Helper()
 
 	messages, err := cipherClient.ReceiveMessagesService(client, baseURL, token)

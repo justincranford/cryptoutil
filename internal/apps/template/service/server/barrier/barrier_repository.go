@@ -2,6 +2,7 @@
 //
 //
 
+// Package barrier provides hierarchical key management for root, intermediate, and content encryption keys.
 package barrier
 
 import (

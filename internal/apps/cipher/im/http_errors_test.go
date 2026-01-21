@@ -35,7 +35,7 @@ func TestIM_HealthSubcommand_SlowResponse(t *testing.T) {
 	actualPort := tcpAddr.Port
 
 	server := &http.Server{
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			// Delay before responding (reduced from 3s to 1s for faster tests).
 			// 1 second is still "slow" for health checks and validates timeout behavior.
 			time.Sleep(1 * time.Second)

@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package lint_text provides text linting utilities for CI/CD pipelines.
 package lint_text
 
 import (

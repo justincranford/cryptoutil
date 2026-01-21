@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package jwks provides JSON Web Key Set (JWKS) endpoint handlers.
 package jwks
 
 import (

@@ -179,7 +179,7 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 
 // imServiceClient implements the client subcommand.
 // CLI wrapper for client operations.
-func imServiceClient(args []string, stdout, stderr io.Writer) int {
+func imServiceClient(args []string, _, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		_, _ = fmt.Fprintln(stderr, IMUsageClient)
 
@@ -194,7 +194,7 @@ func imServiceClient(args []string, stdout, stderr io.Writer) int {
 
 // imServiceInit implements the init subcommand.
 // CLI wrapper for database and configuration initialization.
-func imServiceInit(args []string, stdout, stderr io.Writer) int {
+func imServiceInit(args []string, _, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		_, _ = fmt.Fprintln(stderr, IMUsageInit)
 

@@ -15,6 +15,7 @@ import (
 	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
 
+// Execute runs the cryptoutil command-line interface.
 func Execute() {
 	executable := os.Args[0] // Example executable: ./cryptoutil
 	if len(os.Args) < 2 {

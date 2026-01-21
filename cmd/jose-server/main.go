@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the entry point for the jose-server command.
 package main
 
 import (

@@ -12,7 +12,7 @@ import (
 )
 
 // RequireNewForTest creates a new identity config for testing.
-func RequireNewForTest(testName string) *Config {
+func RequireNewForTest(_ string) *Config {
 	return &Config{
 		AuthZ: &ServerConfig{
 			Name:             "authz",

@@ -37,7 +37,7 @@ func NewOTPService() *OTPService {
 }
 
 // GenerateOTP generates a one-time password for the specified user.
-func (s *OTPService) GenerateOTP(ctx context.Context, user *cryptoutilIdentityDomain.User, method OTPMethod) (string, error) {
+func (s *OTPService) GenerateOTP(_ context.Context, user *cryptoutilIdentityDomain.User, method OTPMethod) (string, error) {
 	// TODO: Generate OTP code (6-digit numeric).
 	// TODO: Store OTP with expiration (5 minutes).
 	// TODO: Send OTP via email/SMS based on method.

@@ -118,7 +118,7 @@ func DefaultRAConfig() *RAConfig {
 			RequestTTL:           sevenDays,
 			AllowSelfApproval:    false,
 			EscalationEnabled:    true,
-			EscalationTimeout:    twentyFourHours,
+			EscalationTimeout:    oneDay,
 			NotificationsEnabled: true,
 		},
 		Validation: ValidationConfig{
@@ -137,8 +137,8 @@ func DefaultRAConfig() *RAConfig {
 
 // Time duration constants.
 const (
-	sevenDays       = 7 * 24 * time.Hour
-	twentyFourHours = 24 * time.Hour
+	sevenDays = 7 * 24 * time.Hour
+	oneDay    = 24 * time.Hour
 )
 
 // Key size constants.

@@ -75,7 +75,7 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			name:     "s256_method",
 			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
 			method:   cryptoutilIdentityMagic.PKCEMethodS256,
-			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
 				testify.NotEmpty(t, challenge, "Code challenge should not be empty")
 				testify.NotEqual(t, verifier, challenge, "Challenge should differ from verifier")
@@ -88,7 +88,7 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			name:     "plain_method",
 			verifier: "test-code-verifier",
 			method:   cryptoutilIdentityMagic.PKCEMethodPlain,
-			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
 				testify.Equal(t, verifier, challenge, "Plain challenge should equal verifier")
 			},
@@ -97,7 +97,7 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			name:     "default_method_s256",
 			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
 			method:   "",
-			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
 
 				hash := sha256.Sum256([]byte(verifier))
@@ -110,7 +110,7 @@ func TestGenerateCodeChallenge(t *testing.T) {
 			verifier:        "test-code-verifier",
 			method:          "invalid-method",
 			wantEmptyResult: true,
-			verifyFn: func(t *testing.T, verifier string, challenge string, method string) {
+			verifyFn: func(t *testing.T, _ string, challenge string, _ string) {
 				t.Helper()
 				testify.Empty(t, challenge, "Invalid method should return empty challenge")
 			},

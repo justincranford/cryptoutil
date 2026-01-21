@@ -186,7 +186,7 @@ func TestListAllFiles(t *testing.T) {
 			setupFiles:         []string{".gitignore"},
 			expectedExtensions: []string{"gitignore"},
 			expectedTotalFiles: 1,
-			validateFunc: func(result map[string][]string, baseDir string) bool {
+			validateFunc: func(result map[string][]string, _ string) bool {
 				return len(result["gitignore"]) == 1
 			},
 			wantErr: false,
