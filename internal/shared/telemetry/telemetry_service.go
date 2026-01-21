@@ -44,7 +44,7 @@ import (
 	oltpSemanticConventions "go.opentelemetry.io/otel/semconv/v1.30.0"
 )
 
-// TelemetryService Composite of OpenTelemetry providers for Logs, Metrics, and Traces.
+// TelemetryService is a composite of OpenTelemetry providers for Logs, Metrics, and Traces.
 type TelemetryService struct {
 	StartTime          time.Time
 	shutdownOnce       sync.Once
@@ -54,24 +54,26 @@ type TelemetryService struct {
 	MetricsProvider    metricApi.MeterProvider
 	TracesProvider     traceApi.TracerProvider
 	TextMapPropagator  *propagationApi.TextMapPropagator
-	logsProviderSdk    *logSdk.LoggerProvider     // Not exported, but still needed to do shutdown
-	metricsProviderSdk *metricSdk.MeterProvider   // Not exported, but still needed to do shutdown
-	tracesProviderSdk  *traceSdk.TracerProvider   // Not exported, but still needed to do shutdown
+	logsProviderSdk    *logSdk.LoggerProvider                          // Not exported, but still needed to do shutdown
+	metricsProviderSdk *metricSdk.MeterProvider                        // Not exported, but still needed to do shutdown
+	tracesProviderSdk  *traceSdk.TracerProvider                        // Not exported, but still needed to do shutdown
 	settings           *cryptoutilConfig.ServiceTemplateServerSettings // Store settings for health checks
 }
 
+// Timeout constants for telemetry operations.
 const (
 	LogsTimeout       = cryptoutilMagic.DefaultLogsTimeout
 	MetricsTimeout    = cryptoutilMagic.DefaultMetricsTimeout
 	TracesTimeout     = cryptoutilMagic.DefaultTracesTimeout
 	ForceFlushTimeout = cryptoutilMagic.DefaultForceFlushTimeout
 
-	// Max batch sizes for memory-conscious batching.
+	// MaxLogsBatchSize is the conservative batch size for log processing.
 	MaxLogsBatchSize    = cryptoutilMagic.DefaultLogsBatchSize    // Conservative for logs
 	MaxMetricsBatchSize = cryptoutilMagic.DefaultMetricsBatchSize // Moderate for metrics
 	MaxTracesBatchSize  = cryptoutilMagic.DefaultTracesBatchSize  // Conservative for traces to prevent memory issues
 )
 
+// NewTelemetryService creates and initializes a TelemetryService with OTLP exporters.
 func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
 
@@ -138,6 +140,7 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Service
 	}, nil
 }
 
+// Shutdown gracefully shuts down all telemetry providers with force flush and timeout handling.
 func (s *TelemetryService) Shutdown() {
 	s.shutdownOnce.Do(func() {
 		if s.VerboseMode {

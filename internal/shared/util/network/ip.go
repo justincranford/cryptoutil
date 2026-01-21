@@ -9,6 +9,7 @@ import (
 	"net"
 )
 
+// ParseIPAddresses parses a slice of IP address strings into net.IP objects.
 func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
 	parsedIPs := make([]net.IP, 0, len(ipAddresses))
 

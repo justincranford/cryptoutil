@@ -19,10 +19,12 @@ import (
 
 type oamOrmMapper struct{} // Mapper between OpenAPI Model models and ORM objects
 
+// NewOamOrmMapper creates a new OpenAPI Model to ORM mapper.
 func NewOamOrmMapper() *oamOrmMapper {
 	return &oamOrmMapper{}
 }
 
+// ErrInvalidUUID is the error message for invalid UUID validation failures.
 var ErrInvalidUUID = "invalid UUIDs"
 
 // Default values for optional ElasticKey fields.

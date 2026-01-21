@@ -7,8 +7,8 @@ package sqlrepository
 import (
 	"context"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 

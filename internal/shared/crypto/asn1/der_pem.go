@@ -18,10 +18,12 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
+// PEMTypes lists all supported PEM type identifiers for DER/PEM encoding.
 var PEMTypes = []string{
 	cryptoutilMagic.StringPEMTypePKCS8PrivateKey, cryptoutilMagic.StringPEMTypePKIXPublicKey, cryptoutilMagic.StringPEMTypeRSAPrivateKey, cryptoutilMagic.StringPEMTypeRSAPublicKey, cryptoutilMagic.StringPEMTypeECPrivateKey, cryptoutilMagic.StringPEMTypeCertificate, cryptoutilMagic.StringPEMTypeCSR, cryptoutilMagic.StringPEMTypeSecretKey,
 }
 
+// PEMEncodes encodes multiple keys (e.g., certificate chains) to PEM format.
 func PEMEncodes(keys any) ([][]byte, error) {
 	switch expression := keys.(type) {
 	case []*x509.Certificate:
@@ -42,6 +44,7 @@ func PEMEncodes(keys any) ([][]byte, error) {
 	}
 }
 
+// DEREncodes encodes multiple keys (e.g., certificate chains) to DER format.
 func DEREncodes(key any) ([][]byte, error) {
 	var derBytesList [][]byte
 
@@ -62,6 +65,7 @@ func DEREncodes(key any) ([][]byte, error) {
 	}
 }
 
+// PEMEncode encodes a single key to PEM format.
 func PEMEncode(key any) ([]byte, error) {
 	derBytes, pemType, err := DEREncode(key)
 	if err != nil {
@@ -73,6 +77,7 @@ func PEMEncode(key any) ([]byte, error) {
 	return pemBytes, nil
 }
 
+// DEREncode encodes a single key to DER format and returns the PEM type identifier.
 func DEREncode(key any) ([]byte, string, error) {
 	switch x509Type := key.(type) {
 	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ecdh.PrivateKey:
@@ -105,6 +110,7 @@ func DEREncode(key any) ([]byte, string, error) {
 	}
 }
 
+// DERDecode decodes DER-encoded bytes using the specified PEM type identifier.
 func DERDecode(bytes []byte, x509Type string) (any, error) {
 	var key any
 
@@ -138,6 +144,7 @@ func DERDecode(bytes []byte, x509Type string) (any, error) {
 	return key, nil
 }
 
+// DERDecodes attempts to decode DER-encoded bytes by trying all known PEM types.
 func DERDecodes(bytes []byte) (any, string, error) {
 	for _, derType := range PEMTypes {
 		key, err := DERDecode(bytes, derType)
@@ -149,6 +156,7 @@ func DERDecodes(bytes []byte) (any, string, error) {
 	return nil, "", fmt.Errorf("decode failed")
 }
 
+// PEMDecode decodes PEM-encoded bytes to the appropriate key type.
 func PEMDecode(bytes []byte) (any, error) {
 	block, rest := pem.Decode(bytes)
 	_ = rest // Intentionally ignore remaining bytes after PEM block
@@ -160,6 +168,7 @@ func PEMDecode(bytes []byte) (any, error) {
 	return DERDecode(block.Bytes, block.Type)
 }
 
+// PEMRead reads and decodes a PEM-encoded file.
 func PEMRead(filename string) (any, error) {
 	pemBytes, err := os.ReadFile(filename) // #nosec G304 -- Legitimate file reading for crypto operations
 	if err != nil {
@@ -169,6 +178,7 @@ func PEMRead(filename string) (any, error) {
 	return PEMDecode(pemBytes)
 }
 
+// DERRead reads and decodes a DER-encoded file.
 func DERRead(filename string) (any, string, error) {
 	derBytes, err := os.ReadFile(filename) // #nosec G304 -- Legitimate file reading for crypto operations
 	if err != nil {
@@ -183,6 +193,7 @@ func DERRead(filename string) (any, string, error) {
 	return key, derType, nil
 }
 
+// PEMWrite encodes and writes a key to a PEM-encoded file.
 func PEMWrite(key any, filename string) error {
 	pemBytes, err := PEMEncode(key)
 	if err != nil {
@@ -204,6 +215,7 @@ func PEMWrite(key any, filename string) error {
 	return nil
 }
 
+// DERWrite encodes and writes a key to a DER-encoded file.
 func DERWrite(key any, filename string) error {
 	derBytes, _, err := DEREncode(key)
 	if err != nil {

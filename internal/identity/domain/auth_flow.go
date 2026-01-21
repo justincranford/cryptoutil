@@ -14,10 +14,14 @@ import (
 // AuthFlowType represents the type of authorization flow.
 type AuthFlowType string
 
+// Authorization flow type constants.
 const (
-	AuthFlowTypeAuthorizationCode AuthFlowType = "authorization_code" // Authorization code flow.
-	AuthFlowTypeClientCredentials AuthFlowType = "client_credentials" // Client credentials flow.
-	AuthFlowTypeRefreshToken      AuthFlowType = "refresh_token"      // Refresh token flow.
+	// AuthFlowTypeAuthorizationCode is the authorization code flow.
+	AuthFlowTypeAuthorizationCode AuthFlowType = "authorization_code"
+	// AuthFlowTypeClientCredentials is the client credentials flow.
+	AuthFlowTypeClientCredentials AuthFlowType = "client_credentials"
+	// AuthFlowTypeRefreshToken is the refresh token flow.
+	AuthFlowTypeRefreshToken AuthFlowType = "refresh_token"
 )
 
 // AuthFlow represents an authorization code flow configuration with PKCE.

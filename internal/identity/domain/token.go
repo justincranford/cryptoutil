@@ -14,19 +14,27 @@ import (
 // TokenType represents the type of token.
 type TokenType string
 
+// Token type constants.
 const (
-	TokenTypeAccess  TokenType = "access"  // Access token.
-	TokenTypeRefresh TokenType = "refresh" // Refresh token.
-	TokenTypeID      TokenType = "id"      // ID token (OIDC).
+	// TokenTypeAccess is an access token.
+	TokenTypeAccess TokenType = "access"
+	// TokenTypeRefresh is a refresh token.
+	TokenTypeRefresh TokenType = "refresh"
+	// TokenTypeID is an ID token (OIDC).
+	TokenTypeID TokenType = "id"
 )
 
 // TokenFormat represents the format of the token.
 type TokenFormat string
 
+// Token format constants.
 const (
-	TokenFormatJWS  TokenFormat = "jws"  // JSON Web Signature (signed).
-	TokenFormatJWE  TokenFormat = "jwe"  // JSON Web Encryption (encrypted).
-	TokenFormatUUID TokenFormat = "uuid" // Opaque UUID token.
+	// TokenFormatJWS is JSON Web Signature (signed).
+	TokenFormatJWS TokenFormat = "jws"
+	// TokenFormatJWE is JSON Web Encryption (encrypted).
+	TokenFormatJWE TokenFormat = "jwe"
+	// TokenFormatUUID is an opaque UUID token.
+	TokenFormatUUID TokenFormat = "uuid"
 )
 
 // Token represents an OAuth 2.1 / OIDC token.

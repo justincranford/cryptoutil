@@ -6,6 +6,7 @@ package sysinfo
 
 var defaultSysInfoProvider = &DefaultSysInfoProvider{}
 
+// DefaultSysInfoProvider is the default implementation of SysInfoProvider.
 type DefaultSysInfoProvider struct{}
 
 func (sp *DefaultSysInfoProvider) RuntimeGoArch() string {

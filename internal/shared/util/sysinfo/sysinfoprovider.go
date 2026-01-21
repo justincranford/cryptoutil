@@ -4,6 +4,7 @@
 
 package sysinfo
 
+// SysInfoProvider defines the interface for retrieving system information.
 type SysInfoProvider interface {
 	RuntimeGoArch() string
 	RuntimeGoOS() string

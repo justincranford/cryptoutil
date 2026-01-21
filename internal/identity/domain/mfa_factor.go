@@ -14,17 +14,28 @@ import (
 // MFAFactorType represents the type of multi-factor authentication factor.
 type MFAFactorType string
 
+// Multi-factor authentication factor type constants.
 const (
-	MFAFactorTypePassword      MFAFactorType = "password"       // Password factor.
-	MFAFactorTypeEmailOTP      MFAFactorType = "email_otp"      // Email OTP factor.
-	MFAFactorTypeSMSOTP        MFAFactorType = "sms_otp"        // SMS OTP factor.
-	MFAFactorTypeTOTP          MFAFactorType = "totp"           // TOTP (Time-based OTP) factor.
-	MFAFactorTypeHOTP          MFAFactorType = "hotp"           // HOTP (HMAC-based OTP) factor.
-	MFAFactorTypePasskey       MFAFactorType = "passkey"        // Passkey (WebAuthn) factor.
-	MFAFactorTypeMagicLink     MFAFactorType = "magic_link"     // Magic link factor.
-	MFAFactorTypeMTLS          MFAFactorType = "mtls"           // mTLS certificate factor.
-	MFAFactorTypeHardwareToken MFAFactorType = "hardware_token" // Hardware security key factor.
-	MFAFactorTypeBiometric     MFAFactorType = "biometric"      // Biometric factor.
+	// MFAFactorTypePassword is a password factor.
+	MFAFactorTypePassword MFAFactorType = "password"
+	// MFAFactorTypeEmailOTP is an email OTP factor.
+	MFAFactorTypeEmailOTP MFAFactorType = "email_otp"
+	// MFAFactorTypeSMSOTP is an SMS OTP factor.
+	MFAFactorTypeSMSOTP MFAFactorType = "sms_otp"
+	// MFAFactorTypeTOTP is a TOTP (Time-based OTP) factor.
+	MFAFactorTypeTOTP MFAFactorType = "totp"
+	// MFAFactorTypeHOTP is an HOTP (HMAC-based OTP) factor.
+	MFAFactorTypeHOTP MFAFactorType = "hotp"
+	// MFAFactorTypePasskey is a passkey (WebAuthn) factor.
+	MFAFactorTypePasskey MFAFactorType = "passkey"
+	// MFAFactorTypeMagicLink is a magic link factor.
+	MFAFactorTypeMagicLink MFAFactorType = "magic_link"
+	// MFAFactorTypeMTLS is an mTLS certificate factor.
+	MFAFactorTypeMTLS MFAFactorType = "mtls"
+	// MFAFactorTypeHardwareToken is a hardware security key factor.
+	MFAFactorTypeHardwareToken MFAFactorType = "hardware_token"
+	// MFAFactorTypeBiometric is a biometric factor.
+	MFAFactorTypeBiometric MFAFactorType = "biometric"
 )
 
 // MFAFactor represents a multi-factor authentication factor configuration.

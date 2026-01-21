@@ -39,6 +39,7 @@ var validTransitions = func() map[cryptoutilOpenapiModel.ElasticKeyStatus]map[cr
 	return convertedTransitions
 }()
 
+// TransitionElasticKeyStatus validates an ElasticKey status state transition.
 func TransitionElasticKeyStatus(current, next cryptoutilOpenapiModel.ElasticKeyStatus) error {
 	allowedTransitions, exists := validTransitions[current]
 	if !exists {

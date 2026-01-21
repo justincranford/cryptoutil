@@ -276,7 +276,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 						ID:          tenantID,
 						Name:        name,
 						Description: description,
-						Active: 1,
+						Active:      1,
 					}, nil
 				}
 				userRepo.createFn = func(ctx context.Context, user *repository.User) error {

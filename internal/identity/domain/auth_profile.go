@@ -14,12 +14,18 @@ import (
 // AuthProfileType represents the type of authentication profile.
 type AuthProfileType string
 
+// Authentication profile type constants.
 const (
-	AuthProfileTypeUsernamePassword AuthProfileType = "username_password" // Username/password authentication.
-	AuthProfileTypeEmailPassword    AuthProfileType = "email_password"    // Email/password authentication.
-	AuthProfileTypeMobilePassword   AuthProfileType = "mobile_password"   // Mobile/password authentication.
-	AuthProfileTypePasskey          AuthProfileType = "passkey"           // Passkey authentication.
-	AuthProfileTypeMTLS             AuthProfileType = "mtls"              // mTLS authentication.
+	// AuthProfileTypeUsernamePassword is username/password authentication.
+	AuthProfileTypeUsernamePassword AuthProfileType = "username_password"
+	// AuthProfileTypeEmailPassword is email/password authentication.
+	AuthProfileTypeEmailPassword AuthProfileType = "email_password"
+	// AuthProfileTypeMobilePassword is mobile/password authentication.
+	AuthProfileTypeMobilePassword AuthProfileType = "mobile_password"
+	// AuthProfileTypePasskey is passkey authentication.
+	AuthProfileTypePasskey AuthProfileType = "passkey"
+	// AuthProfileTypeMTLS is mTLS authentication.
+	AuthProfileTypeMTLS AuthProfileType = "mtls"
 )
 
 // AuthProfile represents a user authentication profile with configurable MFA factors.

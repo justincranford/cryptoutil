@@ -30,6 +30,7 @@ type RealmType string
 
 const (
 	// Federated realm types (external identity providers).
+
 	// RealmTypeUsernamePassword is a database-based username/password realm.
 	RealmTypeUsernamePassword RealmType = "username_password"
 
@@ -43,6 +44,7 @@ const (
 	RealmTypeSAML RealmType = "saml"
 
 	// Non-federated browser realm types (session-based, /browser/** paths).
+
 	// RealmTypeJWESessionCookie uses JSON Web Encryption for stateless encrypted session cookies.
 	RealmTypeJWESessionCookie RealmType = "jwe-session-cookie"
 

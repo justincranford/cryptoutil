@@ -8,10 +8,10 @@ import (
 	"fmt"
 
 	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilCombinations "cryptoutil/internal/shared/util/combinations"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"

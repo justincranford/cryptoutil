@@ -22,12 +22,14 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
+// KeyMaterial holds the cryptographic components for a certificate.
 type KeyMaterial struct {
 	CertificateChain []*x509.Certificate
 	PublicKey        crypto.PublicKey
 	PrivateKey       crypto.PrivateKey
 }
 
+// KeyMaterialEncoded holds the DER and PEM encodings of a KeyMaterial.
 type KeyMaterialEncoded struct {
 	DERCertificateChain [][]byte `json:"der_certificate_chain"`
 	DERPublicKey        []byte   `json:"der_public_key"`
@@ -38,6 +40,7 @@ type KeyMaterialEncoded struct {
 	PEMPrivateKey       []byte   `json:"pem_private_key"`
 }
 
+// Subject represents a certificate subject with associated key material and attributes.
 type Subject struct {
 	SubjectName string
 	IssuerName  string
@@ -54,6 +57,7 @@ type Subject struct {
 	KeyMaterial KeyMaterial
 }
 
+// CreateCASubjects creates a certificate chain from multiple CA key pairs.
 func CreateCASubjects(keyPairs []*cryptoutilKeyGen.KeyPair, caSubjectNamePrefix string, duration time.Duration) ([]*Subject, error) {
 	subjects := make([]*Subject, len(keyPairs))
 
@@ -76,6 +80,7 @@ func CreateCASubjects(keyPairs []*cryptoutilKeyGen.KeyPair, caSubjectNamePrefix 
 	return subjects, nil
 }
 
+// CreateCASubject creates a single CA certificate subject with optional issuer.
 func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *cryptoutilKeyGen.KeyPair, duration time.Duration, maxPathLen int) (*Subject, error) {
 	if issuerSubject == nil && issuerPrivateKey != nil { // pragma: allowlist secret
 		return nil, fmt.Errorf("issuerSubject is nil but issuerPrivateKey is not nil for CA %s", subjectName)
@@ -137,6 +142,7 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 	return &currentSubject, nil
 }
 
+// CreateEndEntitySubject creates an end entity certificate subject with SANs and key usage.
 func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *cryptoutilKeyGen.KeyPair, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*Subject, error) {
 	endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCASubject.SubjectName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, keyUsage, extKeyUsage)
 	if err != nil {
@@ -165,6 +171,7 @@ func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *cryptoutilKeyGen
 	}, nil
 }
 
+// BuildTLSCertificate converts an end entity Subject into a tls.Certificate with root and intermediate pools.
 func BuildTLSCertificate(endEntitySubject *Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
 	if len(endEntitySubject.KeyMaterial.CertificateChain) == 0 {
 		return nil, nil, nil, fmt.Errorf("certificate chain is empty")
@@ -192,6 +199,7 @@ func BuildTLSCertificate(endEntitySubject *Subject) (*tls.Certificate, *x509.Cer
 	return &tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertificateChain[0]}, rootCACertsPool, intermediateCertsPool, nil
 }
 
+// CertificateTemplateCA creates an x509 certificate template for a CA with specified path length.
 func CertificateTemplateCA(issuerName, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
@@ -217,6 +225,7 @@ func CertificateTemplateCA(issuerName, subjectName string, duration time.Duratio
 	}, nil
 }
 
+// CertificateTemplateEndEntity creates an x509 certificate template for an end entity with SANs and key usage.
 func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
@@ -245,6 +254,7 @@ func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.
 	return template, nil
 }
 
+// SignCertificate signs a subject certificate using an issuer certificate and private key.
 func SignCertificate(issuerCertificate *x509.Certificate, issuerPrivateKey crypto.PrivateKey, subjectCertificate *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm) (*x509.Certificate, []byte, []byte, error) {
 	_, ok := issuerPrivateKey.(crypto.Signer)
 	if !ok {
@@ -274,6 +284,7 @@ func SignCertificate(issuerCertificate *x509.Certificate, issuerPrivateKey crypt
 	return certificate, certificateDER, toCertificatePEM(certificateDER), nil
 }
 
+// SerializeSubjects converts Subject structs to JSON-encoded byte slices with optional private key inclusion.
 func SerializeSubjects(subjects []*Subject, includePrivateKey bool) ([][]byte, error) {
 	if subjects == nil {
 		return nil, fmt.Errorf("subjects cannot be nil")
@@ -316,6 +327,7 @@ func SerializeSubjects(subjects []*Subject, includePrivateKey bool) ([][]byte, e
 	return keyMaterialEncodedsBytes, nil
 }
 
+// DeserializeSubjects reconstructs Subject structs from JSON-encoded byte slices.
 func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]*Subject, error) {
 	subjects := make([]*Subject, len(keyMaterialEncodedBytesList))
 

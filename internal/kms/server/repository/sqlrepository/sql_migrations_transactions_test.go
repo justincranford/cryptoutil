@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )

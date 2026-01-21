@@ -7,6 +7,7 @@ package cache
 
 import "sync"
 
+// GetCached retrieves a value using sync.Once for cached execution or direct call for non-cached.
 func GetCached(cached bool, syncOnce *sync.Once, getterFunction func() any) any {
 	var value any
 
@@ -25,6 +26,7 @@ func GetCached(cached bool, syncOnce *sync.Once, getterFunction func() any) any 
 	return value
 }
 
+// GetCachedWithError retrieves a value and error using sync.Once for cached execution or direct call for non-cached.
 func GetCachedWithError(cached bool, syncOnce *sync.Once, getterFunction func() (any, error)) (any, error) {
 	var value any
 

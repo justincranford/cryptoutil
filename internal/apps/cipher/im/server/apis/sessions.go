@@ -18,8 +18,9 @@ func NewSessionHandler(sessionManager *cryptoutilTemplateBusinessLogic.SessionMa
 	return cryptoutilTemplateAPIs.NewSessionHandler(sessionManager)
 }
 
-// Re-export request/response types.
+// Re-exported request/response types for session management operations.
 type (
+	// SessionIssueRequest is the request for creating a new session.
 	SessionIssueRequest     = cryptoutilTemplateAPIs.SessionIssueRequest
 	SessionIssueResponse    = cryptoutilTemplateAPIs.SessionIssueResponse
 	SessionValidateRequest  = cryptoutilTemplateAPIs.SessionValidateRequest

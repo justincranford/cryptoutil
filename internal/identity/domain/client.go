@@ -14,24 +14,37 @@ import (
 // ClientType represents the type of OAuth 2.1 client.
 type ClientType string
 
+// OAuth 2.1 client type constants.
 const (
-	ClientTypeConfidential ClientType = "confidential" // Confidential client (can securely store secrets).
-	ClientTypePublic       ClientType = "public"       // Public client (cannot store secrets).
-	ClientTypeSPA          ClientType = "spa"          // Single Page Application.
+	// ClientTypeConfidential is a confidential client (can securely store secrets).
+	ClientTypeConfidential ClientType = "confidential"
+	// ClientTypePublic is a public client (cannot store secrets).
+	ClientTypePublic ClientType = "public"
+	// ClientTypeSPA is a Single Page Application.
+	ClientTypeSPA ClientType = "spa"
 )
 
 // ClientAuthMethod represents the client authentication method.
 type ClientAuthMethod string
 
+// Client authentication method constants.
 const (
-	ClientAuthMethodSecretBasic       ClientAuthMethod = "client_secret_basic"         // HTTP Basic authentication.
-	ClientAuthMethodSecretPost        ClientAuthMethod = "client_secret_post"          // POST body authentication.
-	ClientAuthMethodSecretJWT         ClientAuthMethod = "client_secret_jwt"           // JWT signed with client secret.
-	ClientAuthMethodPrivateKeyJWT     ClientAuthMethod = "private_key_jwt"             // JWT signed with private key.
-	ClientAuthMethodTLSClientAuth     ClientAuthMethod = "tls_client_auth"             // mTLS with CA-issued certificate.
-	ClientAuthMethodSelfSignedTLSAuth ClientAuthMethod = "self_signed_tls_client_auth" // mTLS with self-signed certificate.
-	ClientAuthMethodBearerToken       ClientAuthMethod = "bearer_token"                // Bearer token authentication.
-	ClientAuthMethodNone              ClientAuthMethod = "none"                        // No authentication (public clients).
+	// ClientAuthMethodSecretBasic is HTTP Basic authentication.
+	ClientAuthMethodSecretBasic ClientAuthMethod = "client_secret_basic"
+	// ClientAuthMethodSecretPost is POST body authentication.
+	ClientAuthMethodSecretPost ClientAuthMethod = "client_secret_post"
+	// ClientAuthMethodSecretJWT is JWT signed with client secret.
+	ClientAuthMethodSecretJWT ClientAuthMethod = "client_secret_jwt"
+	// ClientAuthMethodPrivateKeyJWT is JWT signed with private key.
+	ClientAuthMethodPrivateKeyJWT ClientAuthMethod = "private_key_jwt"
+	// ClientAuthMethodTLSClientAuth is mTLS with CA-issued certificate.
+	ClientAuthMethodTLSClientAuth ClientAuthMethod = "tls_client_auth"
+	// ClientAuthMethodSelfSignedTLSAuth is mTLS with self-signed certificate.
+	ClientAuthMethodSelfSignedTLSAuth ClientAuthMethod = "self_signed_tls_client_auth"
+	// ClientAuthMethodBearerToken is Bearer token authentication.
+	ClientAuthMethodBearerToken ClientAuthMethod = "bearer_token"
+	// ClientAuthMethodNone is no authentication (public clients).
+	ClientAuthMethodNone ClientAuthMethod = "none"
 )
 
 // Client represents an OAuth 2.1 client configuration.

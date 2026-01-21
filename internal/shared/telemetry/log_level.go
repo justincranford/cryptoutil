@@ -35,6 +35,7 @@ const (
 	LevelMax stdoutLogExporter.Level = math.MaxInt
 )
 
+// ParseLogLevel converts a log level string to its corresponding slog Level value.
 func ParseLogLevel(logLevelString string) (stdoutLogExporter.Level, error) {
 	switch strings.ToUpper(logLevelString) {
 	case "ALL": // Log4j ALL, lowest possible value

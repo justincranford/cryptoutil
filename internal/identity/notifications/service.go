@@ -11,17 +11,21 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // NotificationChannel defines the delivery method for notifications.
 type NotificationChannel string
 
+// Notification channel constants for delivery methods.
 const (
+	// ChannelWebhook delivers notifications via HTTP webhook.
 	ChannelWebhook NotificationChannel = "webhook"
-	ChannelEmail   NotificationChannel = "email"
-	ChannelLog     NotificationChannel = "log"
+	// ChannelEmail delivers notifications via email.
+	ChannelEmail NotificationChannel = "email"
+	// ChannelLog delivers notifications to application logs.
+	ChannelLog NotificationChannel = "log"
 )
 
 // NotificationConfig configures the notification service.

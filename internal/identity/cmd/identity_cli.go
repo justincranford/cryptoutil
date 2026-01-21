@@ -21,6 +21,7 @@ import (
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
 )
 
+// ExecuteIdentity is the entry point for the identity CLI, routing to authz, idp, rs, or spa-rp services.
 func ExecuteIdentity(parameters []string) {
 	if len(parameters) < 1 {
 		fmt.Println("Usage: cryptoutil identity <service> [options]")

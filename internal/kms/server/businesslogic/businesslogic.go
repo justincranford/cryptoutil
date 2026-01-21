@@ -35,6 +35,7 @@ type BusinessLogicService struct {
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
+// NewBusinessLogicService creates a new BusinessLogicService with injected dependencies.
 func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
@@ -57,6 +58,7 @@ func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTe
 	}, nil
 }
 
+// AddElasticKey creates a new ElasticKey with an initial MaterialKey.
 func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) (*cryptoutilOpenapiModel.ElasticKey, error) {
 	elasticKeyID := s.jwkGenService.GenerateUUIDv7()
 	ormElasticKey := s.oamOrmMapper.toOrmAddElasticKey(elasticKeyID, openapiElasticKeyCreate)
@@ -115,6 +117,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 	return s.oamOrmMapper.toOamElasticKey(ormElasticKey), nil
 }
 
+// GetElasticKeyByElasticKeyID retrieves an ElasticKey by its ID.
 func (s *BusinessLogicService) GetElasticKeyByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID) (*cryptoutilOpenapiModel.ElasticKey, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 

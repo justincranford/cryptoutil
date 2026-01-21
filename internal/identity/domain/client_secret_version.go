@@ -14,10 +14,14 @@ import (
 // SecretStatus represents the status of a client secret or API key.
 type SecretStatus string
 
+// Secret status constants.
 const (
-	SecretStatusActive  SecretStatus = "active"  // Secret is active and usable.
-	SecretStatusExpired SecretStatus = "expired" // Secret has expired (past grace period).
-	SecretStatusRevoked SecretStatus = "revoked" // Secret has been manually revoked.
+	// SecretStatusActive means the secret is active and usable.
+	SecretStatusActive SecretStatus = "active"
+	// SecretStatusExpired means the secret has expired (past grace period).
+	SecretStatusExpired SecretStatus = "expired"
+	// SecretStatusRevoked means the secret has been manually revoked.
+	SecretStatusRevoked SecretStatus = "revoked"
 )
 
 // ClientSecretVersion represents a versioned client secret with lifecycle metadata.

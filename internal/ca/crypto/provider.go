@@ -20,9 +20,13 @@ import (
 // KeyType represents the type of cryptographic key.
 type KeyType string
 
+// Key type constants for supported algorithms.
 const (
-	KeyTypeRSA   KeyType = "RSA"
+	// KeyTypeRSA represents RSA cryptographic keys.
+	KeyTypeRSA KeyType = "RSA"
+	// KeyTypeECDSA represents ECDSA cryptographic keys.
 	KeyTypeECDSA KeyType = "ECDSA"
+	// KeyTypeEdDSA represents EdDSA cryptographic keys.
 	KeyTypeEdDSA KeyType = "EdDSA"
 )
 

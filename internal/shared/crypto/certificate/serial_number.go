@@ -19,6 +19,7 @@ var (
 	rangeSerialNumber = new(big.Int).Sub(maxSerialNumber, minSerialNumber)                   // Range size: 2^159 - 2^64
 )
 
+// GenerateSerialNumber generates a cryptographically random serial number in the range [2^64, 2^159) per CA/Browser Forum requirements.
 func GenerateSerialNumber() (*big.Int, error) {
 	randomOffsetFromMin, err := rand.Int(rand.Reader, rangeSerialNumber) // Range [0, rangeSerialNumber)
 	if err != nil {
