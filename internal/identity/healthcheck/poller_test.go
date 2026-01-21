@@ -83,7 +83,7 @@ func TestPollerPollNotFound(t *testing.T) {
 func TestPollerPollInvalidJSON(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("invalid json{{{")) //nolint:errcheck // Test HTTP handler - error not critical for test validation
@@ -102,7 +102,7 @@ func TestPollerPollInvalidJSON(t *testing.T) {
 func TestPollerPollContextCanceled(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		time.Sleep(2 * time.Second)
 
 		resp := Response{Status: "healthy"}
@@ -125,7 +125,7 @@ func TestPollerPollEventuallyHealthy(t *testing.T) {
 
 	attempts := 0
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		attempts++
 		if attempts < 3 {
 			// First 2 attempts fail

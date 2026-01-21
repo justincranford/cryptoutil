@@ -1309,7 +1309,7 @@ func (h *Handler) parseCSR(csrPEM string) (*x509.CertificateRequest, error) {
 // buildIssueRequest constructs an issuance request from the enrollment request.
 func (h *Handler) buildIssueRequest(
 	csr *x509.CertificateRequest,
-	profile *ProfileConfig,
+	_ *ProfileConfig,
 	req *cryptoutilCAServer.EnrollmentRequest,
 ) (*cryptoutilCAServiceIssuer.CertificateRequest, error) {
 	// Build subject request from CSR.

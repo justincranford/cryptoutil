@@ -90,28 +90,28 @@ func TestValidateAuthentication(t *testing.T) {
 	}{
 		{
 			name: "successful authentication",
-			authFunc: func(ctx context.Context) error {
+			authFunc: func(_ context.Context) error {
 				return nil
 			},
 			wantErrContains: "",
 		},
 		{
 			name: "device removed error",
-			authFunc: func(ctx context.Context) error {
+			authFunc: func(_ context.Context) error {
 				return ErrDeviceRemoved
 			},
 			wantErrContains: "hardware device removed",
 		},
 		{
 			name: "PIN retry exhausted",
-			authFunc: func(ctx context.Context) error {
+			authFunc: func(_ context.Context) error {
 				return ErrPINRetryExhausted
 			},
 			wantErrContains: "PIN retry limit exhausted",
 		},
 		{
 			name: "authentication timeout",
-			authFunc: func(ctx context.Context) error {
+			authFunc: func(_ context.Context) error {
 				time.Sleep(50 * time.Millisecond)
 
 				return ErrAuthenticationTimeout
@@ -120,21 +120,21 @@ func TestValidateAuthentication(t *testing.T) {
 		},
 		{
 			name: "device unresponsive",
-			authFunc: func(ctx context.Context) error {
+			authFunc: func(_ context.Context) error {
 				return ErrDeviceUnresponsive
 			},
 			wantErrContains: "hardware device unresponsive",
 		},
 		{
 			name: "invalid PIN",
-			authFunc: func(ctx context.Context) error {
+			authFunc: func(_ context.Context) error {
 				return ErrInvalidPIN
 			},
 			wantErrContains: "invalid PIN",
 		},
 		{
 			name: "device locked",
-			authFunc: func(ctx context.Context) error {
+			authFunc: func(_ context.Context) error {
 				return ErrDeviceLocked
 			},
 			wantErrContains: "hardware device locked",

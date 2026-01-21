@@ -124,7 +124,7 @@ func TestParallelTestSafety(t *testing.T) {
 				for i := 0; i < tc.parallelOps; i++ {
 					wg.Add(1)
 
-					go func(index int) {
+					go func(_ int) {
 						defer wg.Done()
 
 						uniqueID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -153,7 +153,7 @@ func TestParallelTestSafety(t *testing.T) {
 				for i := 0; i < tc.parallelOps; i++ {
 					wg.Add(1)
 
-					go func(index int) {
+					go func(_ int) {
 						defer wg.Done()
 
 						uniqueID := googleUuid.Must(googleUuid.NewV7()).String()

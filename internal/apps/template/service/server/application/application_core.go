@@ -223,7 +223,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 }
 
 // openPostgreSQL opens a PostgreSQL database connection with GORM.
-func openPostgreSQL(ctx context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
+func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
 		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilMagic.GormLogModeInfo)

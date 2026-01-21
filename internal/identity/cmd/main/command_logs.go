@@ -28,7 +28,7 @@ Examples:
 
   # Follow logs (tail -f style)
   identity logs --follow`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			service := ""
 			if len(args) > 0 {
 				service = args[0]

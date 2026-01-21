@@ -320,7 +320,7 @@ func NewYAMLPolicyLoader(riskScoringPath, stepUpPoliciesPath, adaptiveAuthPath s
 }
 
 // LoadRiskScoringPolicy loads risk scoring configuration from risk_scoring.yml.
-func (l *YAMLPolicyLoader) LoadRiskScoringPolicy(ctx context.Context) (*RiskScoringPolicy, error) {
+func (l *YAMLPolicyLoader) LoadRiskScoringPolicy(_ context.Context) (*RiskScoringPolicy, error) {
 	// Check cache first.
 	l.mu.RLock()
 

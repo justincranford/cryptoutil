@@ -34,7 +34,7 @@ func (k *Key) TableName() string {
 }
 
 // BeforeCreate sets ID if not already set.
-func (k *Key) BeforeCreate(tx *gorm.DB) error {
+func (k *Key) BeforeCreate(_ *gorm.DB) error {
 	if k.ID == googleUuid.Nil {
 		k.ID = googleUuid.Must(googleUuid.NewV7())
 	}

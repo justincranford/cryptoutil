@@ -100,7 +100,7 @@ func main() {
 }
 
 // internalMain is the testable main function with injected dependencies.
-func internalMain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+func internalMain(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	fs.SetOutput(stderr)
 
@@ -354,7 +354,7 @@ func (s *AdaptiveSimulator) AuthLevelToInt(level string) int {
 func (s *AdaptiveSimulator) MakeDecision(
 	riskLevel string,
 	stepUpNeeded bool,
-	policy *cryptoutilIdentityUserauth.AdaptiveAuthPolicy,
+	_ *cryptoutilIdentityUserauth.AdaptiveAuthPolicy,
 ) string {
 	// Check if risk level requires blocking.
 	if riskLevel == "critical" {

@@ -58,7 +58,7 @@ Examples:
 
   # Start in background (local processes)
   identity start --background`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			ctx := context.Background()
 
 			// services := args  // Not used - would filter servicesToStart if implemented

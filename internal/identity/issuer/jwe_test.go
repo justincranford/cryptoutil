@@ -174,7 +174,7 @@ func TestDecryptToken_InvalidFormat(t *testing.T) {
 // mockJWEKeyGenerator implements KeyGenerator for JWE testing.
 type mockJWEKeyGenerator struct{}
 
-func (m *mockJWEKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
+func (m *mockJWEKeyGenerator) GenerateSigningKey(_ context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
 	return &cryptoutilIdentityIssuer.SigningKey{
 		KeyID:         googleUuid.NewString(),
 		Key:           []byte("mock-signing-key"),
@@ -185,7 +185,7 @@ func (m *mockJWEKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm 
 	}, nil
 }
 
-func (m *mockJWEKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
+func (m *mockJWEKeyGenerator) GenerateEncryptionKey(_ context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
 	return &cryptoutilIdentityIssuer.EncryptionKey{
 		KeyID:        googleUuid.NewString(),
 		Key:          []byte("0123456789abcdef0123456789abcdef"),

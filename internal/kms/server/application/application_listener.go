@@ -644,7 +644,7 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 	}
 }
 
-func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
+func checkDependenciesHealth(_ *ServerApplicationCore) map[string]any {
 	// No external dependencies (APIs, message queues, etc.) are currently used by kms cryptoutil server
 	// Database and telemetry sidecar health are checked separately in their own health endpoints
 	services := map[string]any{}

@@ -167,7 +167,7 @@ func (m *mockEmailOTPRepositoryWithFailingUpdate) Create(ctx context.Context, ot
 	return m.underlying.Create(ctx, otp)
 }
 
-func (m *mockEmailOTPRepositoryWithFailingUpdate) GetByUserID(ctx context.Context, userID googleUuid.UUID) (*cryptoutilIdentityDomain.EmailOTP, error) {
+func (m *mockEmailOTPRepositoryWithFailingUpdate) GetByUserID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.EmailOTP, error) {
 	return m.otp, nil
 }
 
@@ -247,7 +247,7 @@ func newMockRecoveryCodeRepository() *mockRecoveryCodeRepository {
 	}
 }
 
-func (m *mockRecoveryCodeRepository) Create(ctx context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error {
+func (m *mockRecoveryCodeRepository) Create(_ context.Context, code *cryptoutilIdentityDomain.RecoveryCode) error {
 	userID := code.UserID.String()
 	m.codes[userID] = append(m.codes[userID], code)
 

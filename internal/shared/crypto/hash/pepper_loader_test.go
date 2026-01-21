@@ -75,7 +75,7 @@ func TestLoadPepperFromSecret_ErrorCases(t *testing.T) {
 	}{
 		{
 			name: "empty secret path",
-			setupFunc: func(t *testing.T) string {
+			setupFunc: func(_ *testing.T) string {
 				return ""
 			},
 			expectedErrMsg: "secret path is empty",

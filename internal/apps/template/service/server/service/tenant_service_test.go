@@ -164,10 +164,10 @@ func TestTenantService_CreateTenant(t *testing.T) {
 			tenantName:  "Test Tenant",
 			description: "A test tenant",
 			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
-				tenantRepo.createFn = func(_ context.Context, tenant *repository.Tenant) error {
+				tenantRepo.createFn = func(_ context.Context, _ *repository.Tenant) error {
 					return nil
 				}
-				roleRepo.createFn = func(_ context.Context, role *repository.Role) error {
+				roleRepo.createFn = func(_ context.Context, _ *repository.Role) error {
 					return nil
 				}
 			},
@@ -179,7 +179,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 			description: "A duplicate tenant",
 			setupMocks: func(tenantRepo *mockTenantRepository, _ *mockRoleRepository) {
 				summary := "duplicate key violation"
-				tenantRepo.createFn = func(_ context.Context, tenant *repository.Tenant) error {
+				tenantRepo.createFn = func(_ context.Context, _ *repository.Tenant) error {
 					return cryptoutilAppErr.NewHTTP409Conflict(&summary, errors.New("UNIQUE constraint failed"))
 				}
 			},
@@ -191,11 +191,11 @@ func TestTenantService_CreateTenant(t *testing.T) {
 			tenantName:  "Test Tenant",
 			description: "Tenant with role failure",
 			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
-				tenantRepo.createFn = func(_ context.Context, tenant *repository.Tenant) error {
+				tenantRepo.createFn = func(_ context.Context, _ *repository.Tenant) error {
 					return nil
 				}
 				summary := "database error"
-				roleRepo.createFn = func(_ context.Context, role *repository.Role) error {
+				roleRepo.createFn = func(_ context.Context, _ *repository.Role) error {
 					return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, errors.New("database error"))
 				}
 			},
@@ -247,7 +247,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 			name:     "happy path",
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+				tenantRepo.getByIDFn = func(_ context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
 					return &repository.Tenant{ID: id, Name: "Test Tenant", Active: 1}, nil
 				}
 			},
@@ -258,7 +258,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 			tenantID: googleUuid.New(),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
-				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+				tenantRepo.getByIDFn = func(_ context.Context, _ googleUuid.UUID) (*repository.Tenant, error) {
 					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
 			},
@@ -313,7 +313,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			descUpdate:   nil,
 			activeUpdate: nil,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.getByIDFn = func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+				tenantRepo.getByIDFn = func(_ context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
 					return &repository.Tenant{
 						ID:          id,
 						Name:        "Original Name",
@@ -322,7 +322,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						CreatedAt:   time.Now(),
 					}, nil
 				}
-				tenantRepo.updateFn = func(ctx context.Context, tenant *repository.Tenant) error {
+				tenantRepo.updateFn = func(_ context.Context, _ *repository.Tenant) error {
 					return nil
 				}
 			},

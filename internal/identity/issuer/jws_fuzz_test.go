@@ -37,7 +37,7 @@ func FuzzJWSTokenParsing(f *testing.F) {
 
 	ctx := context.Background()
 
-	f.Fuzz(func(t *testing.T, token string) {
+	f.Fuzz(func(_ *testing.T, token string) {
 		// Validate token - should not panic.
 		_, err := issuer.ValidateToken(ctx, token)
 
@@ -68,7 +68,7 @@ func FuzzJWSClaimsMarshaling(f *testing.F) {
 
 	ctx := context.Background()
 
-	f.Fuzz(func(t *testing.T, sub, aud, scope string) {
+	f.Fuzz(func(_ *testing.T, sub, aud, scope string) {
 		claims := map[string]any{
 			cryptoutilIdentityMagic.ClaimSub:   sub,
 			cryptoutilIdentityMagic.ClaimAud:   aud,
@@ -106,7 +106,7 @@ func FuzzJWSIDTokenGeneration(f *testing.F) {
 
 	ctx := context.Background()
 
-	f.Fuzz(func(t *testing.T, sub, aud, name, email string) {
+	f.Fuzz(func(_ *testing.T, sub, aud, name, email string) {
 		claims := map[string]any{
 			cryptoutilIdentityMagic.ClaimSub: sub,
 			cryptoutilIdentityMagic.ClaimAud: aud,
@@ -152,7 +152,7 @@ func FuzzJWSExpirationValidation(f *testing.F) {
 
 	ctx := context.Background()
 
-	f.Fuzz(func(t *testing.T, exp int64) {
+	f.Fuzz(func(_ *testing.T, exp int64) {
 		claims := map[string]any{
 			cryptoutilIdentityMagic.ClaimSub: "test-user",
 			cryptoutilIdentityMagic.ClaimAud: "test-client",

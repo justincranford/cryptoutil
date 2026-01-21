@@ -40,7 +40,7 @@ func NewInMemoryChallengeStore() *InMemoryChallengeStore {
 }
 
 // Store stores an authentication challenge.
-func (s *InMemoryChallengeStore) Store(ctx context.Context, challenge *AuthChallenge, secret string) error {
+func (s *InMemoryChallengeStore) Store(_ context.Context, challenge *AuthChallenge, secret string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (s *InMemoryChallengeStore) Store(ctx context.Context, challenge *AuthChall
 }
 
 // Retrieve retrieves an authentication challenge and its secret.
-func (s *InMemoryChallengeStore) Retrieve(ctx context.Context, challengeID googleUuid.UUID) (*AuthChallenge, string, error) {
+func (s *InMemoryChallengeStore) Retrieve(_ context.Context, challengeID googleUuid.UUID) (*AuthChallenge, string, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

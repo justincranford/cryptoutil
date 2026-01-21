@@ -26,7 +26,7 @@ type RSServer struct {
 }
 
 // NewRSServer creates a new Resource Server HTTP server.
-func NewRSServer(ctx context.Context, config *cryptoutilIdentityConfig.Config, logger *slog.Logger, tokenSvc cryptoutilIdentityRS.TokenService) (*RSServer, error) {
+func NewRSServer(_ context.Context, config *cryptoutilIdentityConfig.Config, logger *slog.Logger, tokenSvc cryptoutilIdentityRS.TokenService) (*RSServer, error) {
 	if config == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	} else if logger == nil {
@@ -62,7 +62,7 @@ func NewRSServer(ctx context.Context, config *cryptoutilIdentityConfig.Config, l
 }
 
 // Start begins listening for HTTP requests.
-func (s *RSServer) Start(ctx context.Context) error {
+func (s *RSServer) Start(_ context.Context) error {
 	listenAddr := fmt.Sprintf("%s:%d", s.config.RS.BindAddress, s.config.RS.Port)
 
 	s.logger.Info("Starting Resource Server",

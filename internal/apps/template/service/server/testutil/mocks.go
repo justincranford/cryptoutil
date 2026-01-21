@@ -47,7 +47,7 @@ func (m *MockPublicServer) Start(ctx context.Context) error {
 }
 
 // Shutdown simulates shutting down the public server.
-func (m *MockPublicServer) Shutdown(ctx context.Context) error {
+func (m *MockPublicServer) Shutdown(_ context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -113,7 +113,7 @@ func (m *MockAdminServer) Start(ctx context.Context) error {
 }
 
 // Shutdown simulates shutting down the admin server.
-func (m *MockAdminServer) Shutdown(ctx context.Context) error {
+func (m *MockAdminServer) Shutdown(_ context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

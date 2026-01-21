@@ -41,7 +41,7 @@ func TestSkipByProbability_HappyPaths(t *testing.T) {
 			randFloat32Mutex.Lock()
 
 			orig := randFloat32
-			randFloat32 = func(t *testing.T) float32 { return tc.randValue }
+			randFloat32 = func(_ *testing.T) float32 { return tc.randValue }
 
 			randFloat32Mutex.Unlock()
 

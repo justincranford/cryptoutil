@@ -452,7 +452,7 @@ func (r *mockRateLimiter) CheckLimit(_ context.Context, userID string) error {
 	return nil
 }
 
-func (r *mockRateLimiter) RecordAttempt(ctx context.Context, userID string, success bool) error {
+func (r *mockRateLimiter) RecordAttempt(_ context.Context, userID string, _ bool) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -472,7 +472,7 @@ func newMockUserRepository() *mockUserRepository {
 	}
 }
 
-func (r *mockUserRepository) Create(ctx context.Context, user *cryptoutilIdentityDomain.User) error {
+func (r *mockUserRepository) Create(_ context.Context, user *cryptoutilIdentityDomain.User) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -481,7 +481,7 @@ func (r *mockUserRepository) Create(ctx context.Context, user *cryptoutilIdentit
 	return nil
 }
 
-func (r *mockUserRepository) GetBySub(ctx context.Context, sub string) (*cryptoutilIdentityDomain.User, error) {
+func (r *mockUserRepository) GetBySub(_ context.Context, sub string) (*cryptoutilIdentityDomain.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -493,31 +493,31 @@ func (r *mockUserRepository) GetBySub(ctx context.Context, sub string) (*cryptou
 	return user, nil
 }
 
-func (r *mockUserRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.User, error) {
+func (r *mockUserRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.User, error) {
 	return nil, fmt.Errorf("GetByID not implemented in mock")
 }
 
-func (r *mockUserRepository) GetByUsername(ctx context.Context, username string) (*cryptoutilIdentityDomain.User, error) {
+func (r *mockUserRepository) GetByUsername(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
 	return nil, fmt.Errorf("GetByUsername not implemented in mock")
 }
 
-func (r *mockUserRepository) GetByEmail(ctx context.Context, email string) (*cryptoutilIdentityDomain.User, error) {
+func (r *mockUserRepository) GetByEmail(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
 	return nil, fmt.Errorf("GetByEmail not implemented in mock")
 }
 
-func (r *mockUserRepository) Update(ctx context.Context, user *cryptoutilIdentityDomain.User) error {
+func (r *mockUserRepository) Update(_ context.Context, _ *cryptoutilIdentityDomain.User) error {
 	return fmt.Errorf("Update not implemented in mock")
 }
 
-func (r *mockUserRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (r *mockUserRepository) Delete(_ context.Context, _ googleUuid.UUID) error {
 	return fmt.Errorf("Delete not implemented in mock")
 }
 
-func (r *mockUserRepository) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.User, error) {
+func (r *mockUserRepository) List(_ context.Context, _, _ int) ([]*cryptoutilIdentityDomain.User, error) {
 	return nil, fmt.Errorf("List not implemented in mock")
 }
 
-func (r *mockUserRepository) Count(ctx context.Context) (int64, error) {
+func (r *mockUserRepository) Count(_ context.Context) (int64, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

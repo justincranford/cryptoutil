@@ -88,17 +88,17 @@ func TestRSContractPublicHealth(t *testing.T) {
 // mockTokenServiceContract is a mock implementation of TokenService for contract testing.
 type mockTokenServiceContract struct{}
 
-func (m *mockTokenServiceContract) ValidateAccessToken(ctx context.Context, token string) (map[string]any, error) {
+func (m *mockTokenServiceContract) ValidateAccessToken(_ context.Context, _ string) (map[string]any, error) {
 	return map[string]any{
 		"sub":   "user123",
 		"scope": "read:resource",
 	}, nil
 }
 
-func (m *mockTokenServiceContract) IsTokenActive(claims map[string]any) bool {
+func (m *mockTokenServiceContract) IsTokenActive(_ map[string]any) bool {
 	return true
 }
 
-func (m *mockTokenServiceContract) IntrospectToken(ctx context.Context, token string) (*cryptoutilIdentityIssuer.TokenMetadata, error) {
+func (m *mockTokenServiceContract) IntrospectToken(_ context.Context, _ string) (*cryptoutilIdentityIssuer.TokenMetadata, error) {
 	return nil, nil
 }

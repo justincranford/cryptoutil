@@ -52,7 +52,7 @@ func (t *TOTPAuthenticator) Method() string {
 }
 
 // GenerateSecret generates a random TOTP secret.
-func (t *TOTPAuthenticator) GenerateSecret(ctx context.Context) (string, error) {
+func (t *TOTPAuthenticator) GenerateSecret(_ context.Context) (string, error) {
 	const secretLength = 20
 
 	// Generate random bytes.
@@ -71,7 +71,7 @@ func (t *TOTPAuthenticator) GenerateSecret(ctx context.Context) (string, error) 
 }
 
 // GenerateTOTP generates a TOTP code from a secret.
-func (t *TOTPAuthenticator) GenerateTOTP(ctx context.Context, secret string) (string, error) {
+func (t *TOTPAuthenticator) GenerateTOTP(_ context.Context, secret string) (string, error) {
 	return t.generateTOTPAtTime(secret, time.Now())
 }
 

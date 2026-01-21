@@ -124,7 +124,7 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 }
 
 // DecryptBytesWithContext decrypts a JWE message with additional authenticated data context.
-func DecryptBytesWithContext(jwks []joseJwk.Key, jweMessageBytes []byte, context []byte) ([]byte, error) {
+func DecryptBytesWithContext(jwks []joseJwk.Key, jweMessageBytes []byte, _ []byte) ([]byte, error) {
 	if jwks == nil {
 		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
 	} else if len(jwks) == 0 {

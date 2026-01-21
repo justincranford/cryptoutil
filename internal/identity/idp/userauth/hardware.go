@@ -41,32 +41,32 @@ func NewStubHSM() *StubHSM {
 }
 
 // GenerateKey stub implementation.
-func (h *StubHSM) GenerateKey(ctx context.Context, keyType string, keySize int) (string, error) {
+func (h *StubHSM) GenerateKey(_ context.Context, _ string, _ int) (string, error) {
 	return "", fmt.Errorf("stub HSM: GenerateKey not implemented - requires real HSM integration")
 }
 
 // SignData stub implementation.
-func (h *StubHSM) SignData(ctx context.Context, keyID string, data []byte) ([]byte, error) {
+func (h *StubHSM) SignData(_ context.Context, _ string, _ []byte) ([]byte, error) {
 	return nil, fmt.Errorf("stub HSM: SignData not implemented - requires real HSM integration")
 }
 
 // VerifySignature stub implementation.
-func (h *StubHSM) VerifySignature(ctx context.Context, keyID string, data, signature []byte) bool {
+func (h *StubHSM) VerifySignature(_ context.Context, _ string, _, _ []byte) bool {
 	return false // Stub always fails verification.
 }
 
 // EncryptData stub implementation.
-func (h *StubHSM) EncryptData(ctx context.Context, keyID string, plaintext []byte) ([]byte, error) {
+func (h *StubHSM) EncryptData(_ context.Context, _ string, _ []byte) ([]byte, error) {
 	return nil, fmt.Errorf("stub HSM: EncryptData not implemented - requires real HSM integration")
 }
 
 // DecryptData stub implementation.
-func (h *StubHSM) DecryptData(ctx context.Context, keyID string, ciphertext []byte) ([]byte, error) {
+func (h *StubHSM) DecryptData(_ context.Context, _ string, _ []byte) ([]byte, error) {
 	return nil, fmt.Errorf("stub HSM: DecryptData not implemented - requires real HSM integration")
 }
 
 // DeleteKey stub implementation.
-func (h *StubHSM) DeleteKey(ctx context.Context, keyID string) error {
+func (h *StubHSM) DeleteKey(_ context.Context, _ string) error {
 	return fmt.Errorf("stub HSM: DeleteKey not implemented - requires real HSM integration")
 }
 

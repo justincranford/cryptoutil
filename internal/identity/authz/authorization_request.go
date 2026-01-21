@@ -140,7 +140,7 @@ func (s *InMemoryAuthorizationRequestStore) GetByCode(_ context.Context, code st
 }
 
 // Update updates an authorization request.
-func (s *InMemoryAuthorizationRequestStore) Update(ctx context.Context, request *AuthorizationRequest) error {
+func (s *InMemoryAuthorizationRequestStore) Update(_ context.Context, request *AuthorizationRequest) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -159,7 +159,7 @@ func (s *InMemoryAuthorizationRequestStore) Update(ctx context.Context, request 
 }
 
 // Delete deletes an authorization request.
-func (s *InMemoryAuthorizationRequestStore) Delete(ctx context.Context, requestID googleUuid.UUID) error {
+func (s *InMemoryAuthorizationRequestStore) Delete(_ context.Context, requestID googleUuid.UUID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

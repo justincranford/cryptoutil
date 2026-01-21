@@ -30,7 +30,7 @@ Examples:
 
   # Show status as JSON
   identity status --json`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			// Create process manager
 			homeDir, err := os.UserHomeDir()
 			if err != nil {

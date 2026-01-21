@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider cryptoutilOpenapiModel.ElasticKeyProvider, algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm, versioningAllowed, importAllowed, exportAllowed bool, status string) (*ElasticKey, error) {
+func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider cryptoutilOpenapiModel.ElasticKeyProvider, algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm, versioningAllowed, importAllowed, _ bool, status string) (*ElasticKey, error) {
 	elasticKey := ElasticKey{
 		ElasticKeyID:                elasticKeyID,
 		ElasticKeyName:              name,

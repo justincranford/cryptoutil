@@ -451,11 +451,11 @@ func TestMagicLinkAuthenticator_InitiateAuthTokenGenerationFailure(t *testing.T)
 // mockFailingOTPGenerator always fails to generate tokens.
 type mockFailingOTPGenerator struct{}
 
-func (m *mockFailingOTPGenerator) GenerateOTP(length int) (string, error) {
+func (m *mockFailingOTPGenerator) GenerateOTP(_ int) (string, error) {
 	return "", fmt.Errorf("random number generator failed")
 }
 
-func (m *mockFailingOTPGenerator) GenerateSecureToken(length int) (string, error) {
+func (m *mockFailingOTPGenerator) GenerateSecureToken(_ int) (string, error) {
 	return "", fmt.Errorf("random number generator failed")
 }
 

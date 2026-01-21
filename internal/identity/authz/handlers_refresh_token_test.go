@@ -38,7 +38,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 	}{
 		{
 			name: "missing_refresh_token",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
 				t.Helper()
 
 				// No token provided.
@@ -48,7 +48,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "missing_client_id",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
 				t.Helper()
 
 				// Token but no client ID.
@@ -58,7 +58,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "refresh_token_not_found",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
 				t.Helper()
 
 				// Token does not exist.

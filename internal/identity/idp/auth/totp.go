@@ -31,7 +31,7 @@ func (p *TOTPProfile) Name() string {
 }
 
 // Authenticate performs TOTP/HOTP authentication.
-func (p *TOTPProfile) Authenticate(ctx context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
+func (p *TOTPProfile) Authenticate(_ context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
 	userID, ok := credentials["user_id"]
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("%w: missing user_id", cryptoutilIdentityAppErr.ErrInvalidCredentials)

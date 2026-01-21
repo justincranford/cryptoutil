@@ -374,7 +374,7 @@ func startIntegrationIdentityServer(ctx context.Context, servers *integrationSer
 }
 
 // startIntegrationKMSServer starts the KMS server for integration demo.
-func startIntegrationKMSServer(ctx context.Context, servers *integrationServers) error {
+func startIntegrationKMSServer(_ context.Context, servers *integrationServers) error {
 	// Parse KMS configuration with dev and demo mode.
 	args := []string{
 		"start",

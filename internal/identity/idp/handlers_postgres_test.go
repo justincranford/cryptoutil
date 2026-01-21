@@ -132,7 +132,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 
 	// Concurrent user creation.
 	for i := 0; i < concurrency; i++ {
-		go func(index int) {
+		go func(_ int) {
 			uniqueID := googleUuid.Must(googleUuid.NewV7()).String()
 
 			user := &cryptoutilIdentityDomain.User{
@@ -149,7 +149,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 
 	// Concurrent client creation.
 	for i := 0; i < concurrency; i++ {
-		go func(index int) {
+		go func(_ int) {
 			client := &cryptoutilIdentityDomain.Client{
 				ClientID:     googleUuid.Must(googleUuid.NewV7()).String(),
 				ClientSecret: "hashedsecret", // pragma: allowlist secret
@@ -183,7 +183,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 	require.NoError(t, err, "failed to create test client for tokens")
 
 	for i := 0; i < concurrency; i++ {
-		go func(index int) {
+		go func(_ int) {
 			clientIDUUID, parseErr := googleUuid.Parse(testClient.ClientID)
 			if parseErr != nil {
 				done <- parseErr
@@ -243,7 +243,7 @@ func testTransactionIsolation(t *testing.T, repoFactory *repository.RepositoryFa
 	done := make(chan error, 2)
 
 	for i := 0; i < 2; i++ {
-		go func(index int) {
+		go func(_ int) {
 			txErr := repoFactory.Transaction(ctx, func(txCtx context.Context) error {
 				userRepo := repoFactory.UserRepository()
 				uniqueIDTx := googleUuid.Must(googleUuid.NewV7()).String()

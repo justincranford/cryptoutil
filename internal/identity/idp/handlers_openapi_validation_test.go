@@ -134,7 +134,7 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 			name:     "discovery_endpoint_schema",
 			endpoint: endpointDiscovery,
 			method:   http.MethodGet,
-			setupFunc: func(t *testing.T, db *gorm.DB) string {
+			setupFunc: func(t *testing.T, _ *gorm.DB) string {
 				t.Helper()
 
 				return "" // No auth required for discovery

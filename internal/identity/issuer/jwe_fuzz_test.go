@@ -68,7 +68,7 @@ func FuzzJWEDecryptionInvalidInputs(f *testing.F) {
 
 	ctx := context.Background()
 
-	f.Fuzz(func(t *testing.T, encryptedToken string) {
+	f.Fuzz(func(_ *testing.T, encryptedToken string) {
 		// Decrypt token - should not panic.
 		_, err := issuer.DecryptToken(ctx, encryptedToken)
 
@@ -95,7 +95,7 @@ func FuzzJWEKeyIDHandling(f *testing.F) {
 
 	ctx := context.Background()
 
-	f.Fuzz(func(t *testing.T, byte1, byte2 uint8, plaintext string) {
+	f.Fuzz(func(_ *testing.T, byte1, byte2 uint8, plaintext string) {
 		// Encrypt token first.
 		encrypted, err := issuer.EncryptToken(ctx, plaintext)
 		if err != nil {

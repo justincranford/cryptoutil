@@ -31,7 +31,7 @@ Exit 0 if all services healthy, exit 1 if any unhealthy.
 Examples:
   # Check health of all services
   identity health`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			timeout, err := time.ParseDuration(timeoutStr)
 			if err != nil {
 				return fmt.Errorf("invalid timeout: %w", err)

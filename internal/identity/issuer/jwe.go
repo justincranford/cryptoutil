@@ -53,7 +53,7 @@ func NewJWEIssuerLegacy(encryptionKey []byte) (*JWEIssuer, error) {
 }
 
 // EncryptToken encrypts a plaintext token (e.g., JWS) using AES-GCM with active encryption key.
-func (i *JWEIssuer) EncryptToken(ctx context.Context, plaintext string) (string, error) {
+func (i *JWEIssuer) EncryptToken(_ context.Context, plaintext string) (string, error) {
 	var encryptionKey []byte
 
 	var keyID string
@@ -123,7 +123,7 @@ func (i *JWEIssuer) EncryptToken(ctx context.Context, plaintext string) (string,
 }
 
 // DecryptToken decrypts a JWE token using AES-GCM with key ID lookup.
-func (i *JWEIssuer) DecryptToken(ctx context.Context, encryptedToken string) (string, error) {
+func (i *JWEIssuer) DecryptToken(_ context.Context, encryptedToken string) (string, error) {
 	// Decode base64.
 	ciphertext, err := base64.RawURLEncoding.DecodeString(encryptedToken)
 	if err != nil {

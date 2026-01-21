@@ -22,7 +22,7 @@ type mockKeyGenerator struct {
 	encryptionKeyCount int
 }
 
-func (m *mockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*SigningKey, error) {
+func (m *mockKeyGenerator) GenerateSigningKey(_ context.Context, algorithm string) (*SigningKey, error) {
 	m.signingKeyCount++
 
 	return &SigningKey{
@@ -35,7 +35,7 @@ func (m *mockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm str
 	}, nil
 }
 
-func (m *mockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*EncryptionKey, error) {
+func (m *mockKeyGenerator) GenerateEncryptionKey(_ context.Context) (*EncryptionKey, error) {
 	m.encryptionKeyCount++
 
 	return &EncryptionKey{

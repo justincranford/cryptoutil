@@ -38,7 +38,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 	}{
 		{
 			name: "missing_client_credentials",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
 				t.Helper()
 
 				// No client creation - test missing credentials.
@@ -48,7 +48,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "invalid_basic_auth_format",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
 				t.Helper()
 
 				// Return invalid base64 auth header.
@@ -58,7 +58,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "client_not_found",
-			setupFunc: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
+			setupFunc: func(t *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) (string, string, string) {
 				t.Helper()
 
 				// Valid basic auth but non-existent client.

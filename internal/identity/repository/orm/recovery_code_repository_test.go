@@ -467,7 +467,7 @@ func TestRecoveryCodeRepository_DeleteExpired(t *testing.T) {
 			},
 			expectedError:        "",
 			expectedRowsAffected: 1,
-			validateResult: func(t *testing.T, repo cryptoutilIdentityRepository.RecoveryCodeRepository) {
+			validateResult: func(t *testing.T, _ cryptoutilIdentityRepository.RecoveryCodeRepository) {
 				t.Helper()
 
 				// Validate expired code deleted by attempting to retrieve it.

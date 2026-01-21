@@ -13,7 +13,7 @@ func FuzzParseESTCSR(f *testing.F) {
 	f.Add([]byte("-----BEGIN CERTIFICATE REQUEST-----\nMIICUTCCATkCAQAwDjEMMAoGA1UEAwwDZm9v\n-----END CERTIFICATE REQUEST-----"))
 	f.Add([]byte{0x30, 0x82, 0x01, 0x51})
 
-	f.Fuzz(func(t *testing.T, data []byte) {
+	f.Fuzz(func(_ *testing.T, data []byte) {
 		h := &Handler{}
 		// Should not panic, just return error for invalid data.
 		_, _ = h.parseESTCSR(data)

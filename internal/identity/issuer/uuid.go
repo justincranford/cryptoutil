@@ -22,7 +22,7 @@ func NewUUIDIssuer() *UUIDIssuer {
 }
 
 // IssueToken issues a new opaque UUID token.
-func (i *UUIDIssuer) IssueToken(ctx context.Context) (string, error) {
+func (i *UUIDIssuer) IssueToken(_ context.Context) (string, error) {
 	token := googleUuid.NewString()
 	if token == "" {
 		return "", cryptoutilIdentityAppErr.WrapError(
@@ -35,7 +35,7 @@ func (i *UUIDIssuer) IssueToken(ctx context.Context) (string, error) {
 }
 
 // ValidateToken validates a UUID token format (basic check).
-func (i *UUIDIssuer) ValidateToken(ctx context.Context, token string) error {
+func (i *UUIDIssuer) ValidateToken(_ context.Context, token string) error {
 	if _, err := googleUuid.Parse(token); err != nil {
 		return cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrInvalidToken,

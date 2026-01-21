@@ -39,7 +39,7 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 }
 
 // NewUnsealKeysServiceFromSettings creates a new UnsealKeysService from application settings.
-func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (UnsealKeysService, error) {
+func NewUnsealKeysServiceFromSettings(_ context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
 		randomBytes, err := cryptoutilRandom.GenerateBytes(cryptoutilMagic.RandomKeySizeBytes)
 		if err != nil {

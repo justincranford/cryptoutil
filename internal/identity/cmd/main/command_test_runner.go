@@ -33,7 +33,7 @@ Examples:
 
   # Run specific packages
   identity test --package ./internal/identity/authz/...`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			// Simple placeholder implementation
 			if suite == "" && pkg == "" {
 				fmt.Println("Test execution not yet implemented")

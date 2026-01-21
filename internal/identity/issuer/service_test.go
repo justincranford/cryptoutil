@@ -694,7 +694,7 @@ func TestValidateAccessToken(t *testing.T) {
 		{
 			name:        "invalid_jws_token",
 			tokenFormat: "jws",
-			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+			setupToken: func(t *testing.T, _ *cryptoutilIdentityIssuer.TokenService) string {
 				t.Helper()
 
 				return "invalid.jws.token"
@@ -704,7 +704,7 @@ func TestValidateAccessToken(t *testing.T) {
 		{
 			name:        "invalid_jwe_token",
 			tokenFormat: "jwe",
-			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+			setupToken: func(t *testing.T, _ *cryptoutilIdentityIssuer.TokenService) string {
 				t.Helper()
 
 				return "invalid_jwe_token"
@@ -714,7 +714,7 @@ func TestValidateAccessToken(t *testing.T) {
 		{
 			name:        "unsupported_format",
 			tokenFormat: "jwt",
-			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+			setupToken: func(t *testing.T, _ *cryptoutilIdentityIssuer.TokenService) string {
 				t.Helper()
 
 				return "any-token"
@@ -776,7 +776,7 @@ func TestValidateIDToken(t *testing.T) {
 		},
 		{
 			name: "invalid_id_token",
-			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+			setupToken: func(t *testing.T, _ *cryptoutilIdentityIssuer.TokenService) string {
 				t.Helper()
 
 				return "invalid.id.token"
@@ -947,7 +947,7 @@ func TestIntrospectToken(t *testing.T) {
 		},
 		{
 			name: "invalid_token",
-			setupToken: func(t *testing.T, service *cryptoutilIdentityIssuer.TokenService) string {
+			setupToken: func(t *testing.T, _ *cryptoutilIdentityIssuer.TokenService) string {
 				t.Helper()
 
 				return "invalid.token.here"

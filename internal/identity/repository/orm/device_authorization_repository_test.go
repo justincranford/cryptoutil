@@ -407,7 +407,7 @@ func TestDeviceAuthorizationRepository_DeleteExpired(t *testing.T) {
 				},
 			},
 			expectedError: nil,
-			validateResult: func(t *testing.T, repo *cryptoutilIdentityORM.DeviceAuthorizationRepository, ids []googleUuid.UUID) {
+			validateResult: func(t *testing.T, repo *cryptoutilIdentityORM.DeviceAuthorizationRepository, _ []googleUuid.UUID) {
 				t.Helper()
 
 				expired, err := repo.GetByDeviceCode(context.Background(), "device-expired-1")
@@ -433,7 +433,7 @@ func TestDeviceAuthorizationRepository_DeleteExpired(t *testing.T) {
 				},
 			},
 			expectedError: nil,
-			validateResult: func(t *testing.T, repo *cryptoutilIdentityORM.DeviceAuthorizationRepository, ids []googleUuid.UUID) {
+			validateResult: func(t *testing.T, repo *cryptoutilIdentityORM.DeviceAuthorizationRepository, _ []googleUuid.UUID) {
 				t.Helper()
 
 				valid, err := repo.GetByDeviceCode(context.Background(), "device-valid-2")

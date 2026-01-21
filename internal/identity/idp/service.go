@@ -49,7 +49,7 @@ func NewService(
 }
 
 // Start starts the identity provider service.
-func (s *Service) Start(ctx context.Context) error {
+func (s *Service) Start(_ context.Context) error {
 	// Initialize authentication profiles
 	s.initializeAuthProfiles()
 

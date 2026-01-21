@@ -159,7 +159,7 @@ func (v *PrivateKeyJWTValidator) validateClaims(ctx context.Context, token joseJ
 }
 
 // ExtractClaims extracts client claims from a validated token.
-func (v *PrivateKeyJWTValidator) ExtractClaims(ctx context.Context, token joseJwt.Token) (*ClientClaims, error) {
+func (v *PrivateKeyJWTValidator) ExtractClaims(_ context.Context, token joseJwt.Token) (*ClientClaims, error) {
 	iss, _ := token.Issuer()
 	sub, _ := token.Subject()
 	aud, _ := token.Audience()
@@ -316,7 +316,7 @@ func (v *ClientSecretJWTValidator) validateClaims(ctx context.Context, token jos
 }
 
 // ExtractClaims extracts client claims from a validated token.
-func (v *ClientSecretJWTValidator) ExtractClaims(ctx context.Context, token joseJwt.Token) (*ClientClaims, error) {
+func (v *ClientSecretJWTValidator) ExtractClaims(_ context.Context, token joseJwt.Token) (*ClientClaims, error) {
 	iss, _ := token.Issuer()
 	sub, _ := token.Subject()
 	aud, _ := token.Audience()

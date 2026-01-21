@@ -45,7 +45,7 @@ func (g *ProductionKeyGenerator) GenerateSigningKey(ctx context.Context, algorit
 }
 
 // GenerateEncryptionKey generates an AES-256 encryption key.
-func (g *ProductionKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*EncryptionKey, error) {
+func (g *ProductionKeyGenerator) GenerateEncryptionKey(_ context.Context) (*EncryptionKey, error) {
 	keyBytes := make([]byte, cryptoutilIdentityMagic.AES256KeySize)
 
 	if _, err := rand.Read(keyBytes); err != nil {
@@ -68,7 +68,7 @@ func (g *ProductionKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*En
 }
 
 // generateRSASigningKey generates an RSA signing key.
-func (g *ProductionKeyGenerator) generateRSASigningKey(ctx context.Context, algorithm string) (*SigningKey, error) {
+func (g *ProductionKeyGenerator) generateRSASigningKey(_ context.Context, algorithm string) (*SigningKey, error) {
 	var keySize int
 
 	switch algorithm {
@@ -107,7 +107,7 @@ func (g *ProductionKeyGenerator) generateRSASigningKey(ctx context.Context, algo
 }
 
 // generateECDSASigningKey generates an ECDSA signing key.
-func (g *ProductionKeyGenerator) generateECDSASigningKey(ctx context.Context, algorithm string) (*SigningKey, error) {
+func (g *ProductionKeyGenerator) generateECDSASigningKey(_ context.Context, algorithm string) (*SigningKey, error) {
 	var curve elliptic.Curve
 
 	switch algorithm {
@@ -146,7 +146,7 @@ func (g *ProductionKeyGenerator) generateECDSASigningKey(ctx context.Context, al
 }
 
 // generateHMACSigningKey generates an HMAC signing key.
-func (g *ProductionKeyGenerator) generateHMACSigningKey(ctx context.Context, algorithm string) (*SigningKey, error) {
+func (g *ProductionKeyGenerator) generateHMACSigningKey(_ context.Context, algorithm string) (*SigningKey, error) {
 	var keySize int
 
 	switch algorithm {

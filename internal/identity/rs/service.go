@@ -42,14 +42,14 @@ func NewService(
 }
 
 // Start starts the resource server service.
-func (s *Service) Start(ctx context.Context) error {
+func (s *Service) Start(_ context.Context) error {
 	s.logger.Info("Resource server starting")
 
 	return nil
 }
 
 // Stop stops the resource server service.
-func (s *Service) Stop(ctx context.Context) error {
+func (s *Service) Stop(_ context.Context) error {
 	s.logger.Info("Resource server stopping")
 
 	return nil

@@ -384,13 +384,13 @@ type mockClientRepository struct {
 	clients []*cryptoutilIdentityDomain.Client
 }
 
-func (m *mockClientRepository) Create(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
+func (m *mockClientRepository) Create(_ context.Context, client *cryptoutilIdentityDomain.Client) error {
 	m.clients = append(m.clients, client)
 
 	return nil
 }
 
-func (m *mockClientRepository) GetByClientID(ctx context.Context, clientID string) (*cryptoutilIdentityDomain.Client, error) {
+func (m *mockClientRepository) GetByClientID(_ context.Context, clientID string) (*cryptoutilIdentityDomain.Client, error) {
 	for _, c := range m.clients {
 		if c.ClientID == clientID {
 			return c, nil
@@ -400,11 +400,11 @@ func (m *mockClientRepository) GetByClientID(ctx context.Context, clientID strin
 	return nil, nil
 }
 
-func (m *mockClientRepository) GetAll(ctx context.Context) ([]*cryptoutilIdentityDomain.Client, error) {
+func (m *mockClientRepository) GetAll(_ context.Context) ([]*cryptoutilIdentityDomain.Client, error) {
 	return m.clients, nil
 }
 
-func (m *mockClientRepository) Update(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
+func (m *mockClientRepository) Update(_ context.Context, client *cryptoutilIdentityDomain.Client) error {
 	for i, c := range m.clients {
 		if c.ID == client.ID {
 			m.clients[i] = client
@@ -416,7 +416,7 @@ func (m *mockClientRepository) Update(ctx context.Context, client *cryptoutilIde
 	return nil
 }
 
-func (m *mockClientRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockClientRepository) Delete(_ context.Context, id googleUuid.UUID) error {
 	for i, c := range m.clients {
 		if c.ID == id {
 			m.clients = append(m.clients[:i], m.clients[i+1:]...)
@@ -428,7 +428,7 @@ func (m *mockClientRepository) Delete(ctx context.Context, id googleUuid.UUID) e
 	return nil
 }
 
-func (m *mockClientRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Client, error) {
+func (m *mockClientRepository) GetByID(_ context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Client, error) {
 	for _, c := range m.clients {
 		if c.ID == id {
 			return c, nil
@@ -438,7 +438,7 @@ func (m *mockClientRepository) GetByID(ctx context.Context, id googleUuid.UUID) 
 	return nil, nil
 }
 
-func (m *mockClientRepository) Count(ctx context.Context) (int64, error) {
+func (m *mockClientRepository) Count(_ context.Context) (int64, error) {
 	return int64(len(m.clients)), nil
 }
 

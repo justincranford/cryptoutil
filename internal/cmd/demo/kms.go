@@ -145,7 +145,7 @@ func parseKMSConfig() (*cryptoutilConfig.ServiceTemplateServerSettings, error) {
 }
 
 // startKMSServer starts the KMS server.
-func startKMSServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilServerApplication.ServerApplicationListener, error) {
+func startKMSServer(_ context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilServerApplication.ServerApplicationListener, error) {
 	server, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start server: %w", err)
@@ -185,7 +185,7 @@ func waitForKMSHealth(ctx context.Context, settings *cryptoutilConfig.ServiceTem
 }
 
 // demonstrateKMSOperations demonstrates KMS cryptographic operations.
-func demonstrateKMSOperations(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings, progress *ProgressDisplay) error {
+func demonstrateKMSOperations(_ context.Context, _ *cryptoutilConfig.ServiceTemplateServerSettings, progress *ProgressDisplay) error {
 	progress.Debug("Demo mode enabled - server seeded demo keys automatically")
 	progress.Debug("Available demo keys: demo-encryption-aes256, demo-signing-rsa2048, demo-signing-ec256, demo-wrapping-aes256kw")
 

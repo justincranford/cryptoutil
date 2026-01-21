@@ -272,13 +272,13 @@ type mockMFAFactorRepo struct {
 	getByAuthProfileErr error
 }
 
-func (m *mockMFAFactorRepo) Create(ctx context.Context, factor *cryptoutilIdentityDomain.MFAFactor) error {
+func (m *mockMFAFactorRepo) Create(_ context.Context, factor *cryptoutilIdentityDomain.MFAFactor) error {
 	m.factors = append(m.factors, factor)
 
 	return nil
 }
 
-func (m *mockMFAFactorRepo) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.MFAFactor, error) {
+func (m *mockMFAFactorRepo) GetByID(_ context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.MFAFactor, error) {
 	for _, f := range m.factors {
 		if f.ID == id {
 			return f, nil

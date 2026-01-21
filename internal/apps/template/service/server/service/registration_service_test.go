@@ -39,23 +39,23 @@ func (m *mockTenantService) CreateTenant(ctx context.Context, name, description 
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) GetTenant(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+func (m *mockTenantService) GetTenant(_ context.Context, _ googleUuid.UUID) (*repository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) GetTenantByName(ctx context.Context, name string) (*repository.Tenant, error) {
+func (m *mockTenantService) GetTenantByName(_ context.Context, _ string) (*repository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) ListTenants(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error) {
+func (m *mockTenantService) ListTenants(_ context.Context, _ bool) ([]*repository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) UpdateTenant(ctx context.Context, id googleUuid.UUID, name, description *string, active *bool) (*repository.Tenant, error) {
+func (m *mockTenantService) UpdateTenant(_ context.Context, _ googleUuid.UUID, _, _ *string, _ *bool) (*repository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) DeleteTenant(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockTenantService) DeleteTenant(_ context.Context, _ googleUuid.UUID) error {
 	return errors.New("not implemented")
 }
 
@@ -72,27 +72,27 @@ func (m *mockUserRepository) Create(ctx context.Context, user *repository.User) 
 	return nil
 }
 
-func (m *mockUserRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*repository.User, error) {
+func (m *mockUserRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) GetByUsername(ctx context.Context, username string) (*repository.User, error) {
+func (m *mockUserRepository) GetByUsername(_ context.Context, _ string) (*repository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) GetByEmail(ctx context.Context, email string) (*repository.User, error) {
+func (m *mockUserRepository) GetByEmail(_ context.Context, _ string) (*repository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*repository.User, error) {
+func (m *mockUserRepository) ListByTenant(_ context.Context, _ googleUuid.UUID, _ bool) ([]*repository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) Update(ctx context.Context, user *repository.User) error {
+func (m *mockUserRepository) Update(_ context.Context, _ *repository.User) error {
 	return errors.New("not implemented")
 }
 
-func (m *mockUserRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockUserRepository) Delete(_ context.Context, _ googleUuid.UUID) error {
 	return errors.New("not implemented")
 }
 
