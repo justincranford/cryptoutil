@@ -15,6 +15,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 )
 
+// StartContainer starts a testcontainer with the given request and returns it with a cleanup function.
 func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
 	telemetryService.Slogger.Debug("starting container")
 
@@ -42,6 +43,7 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.T
 	return startedContainer, terminateContainer, nil
 }
 
+// GetContainerHostAndMappedPort returns the host and mapped port for a container.
 func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, container testcontainers.Container, port string) (string, string, error) {
 	host, err := container.Host(ctx)
 	if err != nil {

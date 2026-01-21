@@ -362,6 +362,7 @@ var (
 	}
 )
 
+// ToJWEEncAndAlg converts an ElasticKeyAlgorithm to JWE encryption and key algorithms.
 func ToJWEEncAndAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	if encAndAlg, ok := elasticKeyAlgorithmToJoseEncAndAlg[*elasticKeyAlgorithm]; ok {
 		return encAndAlg.enc, encAndAlg.alg, nil
@@ -370,6 +371,7 @@ func ToJWEEncAndAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgori
 	return nil, nil, fmt.Errorf("unsupported JWE ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
+// ToJWSAlg converts an ElasticKeyAlgorithm to a JWS signature algorithm.
 func ToJWSAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
 	if alg, ok := elasticKeyAlgorithmToJoseAlg[*elasticKeyAlgorithm]; ok {
 		return alg, nil
@@ -378,18 +380,21 @@ func ToJWSAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (
 	return nil, fmt.Errorf("unsupported JWS ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
+// IsJWE returns true if the algorithm is a JWE encryption algorithm.
 func IsJWE(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) bool {
 	_, ok := elasticKeyAlgorithmToJoseEncAndAlg[*elasticKeyAlgorithm]
 
 	return ok
 }
 
+// IsJWS returns true if the algorithm is a JWS signature algorithm.
 func IsJWS(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) bool {
 	_, ok := elasticKeyAlgorithmToJoseAlg[*elasticKeyAlgorithm]
 
 	return ok
 }
 
+// IsSymmetric returns true if the algorithm uses symmetric keys.
 func IsSymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (bool, error) {
 	isSymmetric, ok := symmetricElasticKeyAlgorithm[*elasticKeyAlgorithm]
 	if ok {
@@ -399,6 +404,7 @@ func IsSymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
+// IsAsymmetric returns true if the algorithm uses asymmetric keys.
 func IsAsymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (bool, error) {
 	isAsymmetric, ok := asymmetricElasticKeyAlgorithm[*elasticKeyAlgorithm]
 	if ok {
@@ -408,6 +414,7 @@ func IsAsymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorith
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
+// ToElasticKeyAlgorithm converts a string to an ElasticKeyAlgorithm.
 func ToElasticKeyAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.ElasticKeyAlgorithm, error) {
 	if alg, exists := elasticKeyAlgorithms[*algorithm]; exists {
 		return &alg, nil
@@ -416,6 +423,7 @@ func ToElasticKeyAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.ElasticKe
 	return nil, fmt.Errorf("invalid elastic Key algorithm: %v", algorithm)
 }
 
+// ToGenerateAlgorithm converts a string to a GenerateAlgorithm.
 func ToGenerateAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.GenerateAlgorithm, error) {
 	if alg, exists := generateAlgorithms[*algorithm]; exists {
 		return &alg, nil

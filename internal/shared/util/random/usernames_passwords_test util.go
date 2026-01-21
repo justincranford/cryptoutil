@@ -25,18 +25,22 @@ const (
 	domainMaxLength   = 255
 )
 
+// GenerateUsername generates a random username of the specified length for testing.
 func GenerateUsername(t *testing.T, length int) *string {
 	return generateValue(t, usernamePrefix, usernameSuffix, length, usernameMinLength, usernameMaxLength)
 }
 
+// GeneratePassword generates a random password of the specified length for testing.
 func GeneratePassword(t *testing.T, length int) *string {
 	return generateValue(t, passwordPrefix, passwordSuffix, length, passwordMinLength, passwordMaxLength)
 }
 
+// GenerateDomain generates a random domain of the specified length for testing.
 func GenerateDomain(t *testing.T, length int) *string {
 	return generateValue(t, domainPrefix, domainSuffix, length, domainMinLength, domainMaxLength)
 }
 
+// GenerateEmailAddress generates a random email address for testing.
 func GenerateEmailAddress(t *testing.T, usernameLength, domainLength int) *string {
 	username := GenerateUsername(t, usernameLength)
 	domain := GenerateDomain(t, domainLength)

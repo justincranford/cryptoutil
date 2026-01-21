@@ -23,6 +23,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// JWKGenService provides pooled JWK key generation for various algorithms.
 type JWKGenService struct {
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	RSA4096KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 512-bytes
@@ -47,6 +48,7 @@ type JWKGenService struct {
 	UUIDv7KeyGenPool      *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
+// NewJWKGenService creates a new JWKGenService with pooled key generation.
 func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, verbose bool) (*JWKGenService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")
@@ -104,6 +106,7 @@ func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 	}, nil
 }
 
+// Shutdown gracefully shuts down the JWKGenService and its key generation pools.
 func (s *JWKGenService) Shutdown() {
 	s.telemetryService.Slogger.Debug("stopping JWKGenService")
 	cryptoutilPool.CancelAllNotNil([]*cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]{
@@ -132,6 +135,7 @@ func (s *JWKGenService) Shutdown() {
 	cryptoutilPool.CancelNotNil(s.UUIDv7KeyGenPool)
 }
 
+// GenerateJWEJWK generates a JWE JWK using the pooled key generation service.
 func (s *JWKGenService) GenerateJWEJWK(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch *alg {
 	case AlgDir:
@@ -182,6 +186,7 @@ func (s *JWKGenService) GenerateJWEJWK(enc *joseJwa.ContentEncryptionAlgorithm, 
 	}
 }
 
+// GenerateJWSJWK generates a JWS JWK using the pooled key generation service.
 func (s *JWKGenService) GenerateJWSJWK(alg joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch alg.String() {
 	case "PS512":
@@ -215,6 +220,7 @@ func (s *JWKGenService) GenerateJWSJWK(alg joseJwa.SignatureAlgorithm) (*googleU
 	}
 }
 
+// GenerateJWK generates a JWK for the specified algorithm using pooled key generation.
 func (s *JWKGenService) GenerateJWK(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch *alg {
 	case cryptoutilOpenapiModel.RSA4096:
@@ -246,6 +252,7 @@ func (s *JWKGenService) GenerateJWK(alg *cryptoutilOpenapiModel.GenerateAlgorith
 	}
 }
 
+// GenerateUUIDv7 generates a UUID v7 using the pooled generation service.
 func (s *JWKGenService) GenerateUUIDv7() *googleUuid.UUID {
 	return s.UUIDv7KeyGenPool.Get()
 }

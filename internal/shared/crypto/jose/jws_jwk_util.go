@@ -24,6 +24,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// ErrInvalidJWSJWKKidUUID indicates the JWS JWK key ID is not a valid UUID.
 var ErrInvalidJWSJWKKidUUID = "invalid JWS JWK kid UUID"
 
 const (
@@ -42,6 +43,7 @@ const (
 	algHS256 = "HS256"
 )
 
+// GenerateJWSJWKForAlg generates a JWS JWK for the specified signature algorithm.
 func GenerateJWSJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
@@ -56,6 +58,7 @@ func GenerateJWSJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, jo
 	return CreateJWSJWKFromKey(&kid, alg, key)
 }
 
+// CreateJWSJWKFromKey creates a JWS JWK from an existing cryptographic key.
 func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	now := time.Now().UTC().Unix()
 
@@ -301,6 +304,7 @@ func validateOrGenerateJWSHMACJWK(key cryptoutilKeyGen.Key, alg joseJwa.Signatur
 	}
 }
 
+// ExtractAlgFromJWSJWK extracts the signature algorithm from a JWS JWK.
 func ExtractAlgFromJWSJWK(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
 	if jwk == nil {
 		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
@@ -320,6 +324,7 @@ func ExtractAlgFromJWSJWK(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, 
 	return nil, fmt.Errorf("JWK %d 'alg' is not a signature algorithm", i)
 }
 
+// IsJWSAlg returns true if the algorithm is a JWS signature algorithm.
 func IsJWSAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
 	if alg == nil {
 		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)

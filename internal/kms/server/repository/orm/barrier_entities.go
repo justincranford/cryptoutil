@@ -1,7 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-//
-//
-
+// Package orm provides database entity definitions and ORM operations for the KMS server.
 package orm
 
 import (
@@ -43,26 +40,32 @@ type BarrierKey interface {
 	SetKEKUUID(googleUuid.UUID)
 }
 
+// GetUUID returns the UUID of the root key.
 func (r *BarrierRootKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
+// SetUUID sets the UUID of the root key.
 func (r *BarrierRootKey) SetUUID(uuidV7 googleUuid.UUID) {
 	r.UUID = uuidV7
 }
 
+// GetEncrypted returns the encrypted key material.
 func (r *BarrierRootKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
+// SetEncrypted sets the encrypted key material.
 func (r *BarrierRootKey) SetEncrypted(encrypted string) {
 	r.Encrypted = encrypted
 }
 
+// GetKEKUUID returns the UUID of the key encryption key.
 func (r *BarrierRootKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
+// SetKEKUUID sets the UUID of the key encryption key.
 func (r *BarrierRootKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
 	r.KEKUUID = kekUUIDV7
 }

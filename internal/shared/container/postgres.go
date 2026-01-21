@@ -22,6 +22,7 @@ import (
 	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 )
 
+// StartPostgres starts a PostgreSQL test container and returns the DSN connection string.
 func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
 	postgresContainerRequest := testcontainers.ContainerRequest{
 		Image:        "postgres:18",

@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
+// ValueGenPool is a high-performance generic pool that pre-generates values using worker goroutines.
 type ValueGenPool[T any] struct {
 	poolStartTime               time.Time               // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
 	generateCounter             uint64                  // needed to enforce maxLifetimeValues   in N workers amd 1 closeChannelsThread thread
@@ -38,6 +39,7 @@ type ValueGenPool[T any] struct {
 	generateDurationHistogram   metric.Float64Histogram // telemetry histogram metric (i.e. cumulative time & count, average, time buckets & percentiles) of wait for generate completed
 }
 
+// ValueGenPoolConfig holds configuration options for creating a ValueGenPool.
 type ValueGenPoolConfig[T any] struct {
 	ctx                 context.Context
 	telemetryService    *cryptoutilTelemetry.TelemetryService // telemetry service for metrics and logging
@@ -134,6 +136,7 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 	return valuePool, nil
 }
 
+// NewValueGenPoolConfig creates a new configuration for a ValueGenPool.
 func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers, poolSize uint32, maxLifetimeValues uint64, maxLifetimeDuration time.Duration, generateFunction func() (T, error), verbose bool) (*ValueGenPoolConfig[T], error) {
 	config := &ValueGenPoolConfig[T]{
 		ctx:                 ctx,
@@ -153,10 +156,12 @@ func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptou
 	return config, nil
 }
 
+// Name returns the name of the pool.
 func (pool *ValueGenPool[T]) Name() string {
 	return pool.cfg.poolName
 }
 
+// Get retrieves a pre-generated value from the pool, blocking until one is available.
 func (pool *ValueGenPool[T]) Get() T {
 	startTime := time.Now().UTC()
 	if pool.cfg.verbose {
@@ -192,6 +197,7 @@ func (pool *ValueGenPool[T]) Get() T {
 	}
 }
 
+// GetMany retrieves multiple pre-generated values from the pool.
 func (pool *ValueGenPool[T]) GetMany(numValues int) []T {
 	if numValues <= 0 {
 		return nil
@@ -226,6 +232,7 @@ func (pool *ValueGenPool[T]) GetMany(numValues int) []T {
 	return values
 }
 
+// Cancel stops all pool workers and releases resources.
 func (pool *ValueGenPool[T]) Cancel() {
 	startTime := time.Now().UTC()
 	didCancelThisTime := false

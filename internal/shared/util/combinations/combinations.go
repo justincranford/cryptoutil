@@ -15,6 +15,7 @@ const (
 	maxUint8Value = 255
 )
 
+// M represents a matrix of byte slices for combination computation.
 type (
 	M            [][]byte
 	value        []byte
@@ -94,8 +95,7 @@ func (c *combination) Encode() []byte {
 	return buffer.Bytes()
 }
 
-// ToString methods
-
+// ToString returns a string representation of the matrix.
 func (m M) ToString() string {
 	var buffer bytes.Buffer
 

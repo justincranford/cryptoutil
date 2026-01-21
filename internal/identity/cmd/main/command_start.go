@@ -24,6 +24,7 @@ const (
 	healthCheckMaxRetries = 10
 )
 
+// NewStartCommand creates a new cobra command for starting identity services.
 func NewStartCommand() *cobra.Command {
 	var (
 		profile    string

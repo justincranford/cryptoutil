@@ -19,6 +19,7 @@ const (
 	numConcurrentInfoOps = 5
 )
 
+// GetAllInfoWithTimeout gathers all system information with the specified timeout.
 func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duration) ([][]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

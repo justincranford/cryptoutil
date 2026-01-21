@@ -21,71 +21,101 @@ type DefaultPoolConfig struct {
 // This file contains all crypto-related magic values used throughout the application.
 
 const (
-	// EdDSA curve names.
-	EdCurveEd448   = "Ed448"
+	// EdCurveEd448 is the Ed448 curve name.
+	EdCurveEd448 = "Ed448"
+	// EdCurveEd25519 is the Ed25519 curve name.
 	EdCurveEd25519 = "Ed25519"
 
-	// Elliptic curve names.
+	// ECCurveP256 is the P-256 elliptic curve name.
 	ECCurveP256 = "P256"
+	// ECCurveP384 is the P-384 elliptic curve name.
 	ECCurveP384 = "P384"
+	// ECCurveP521 is the P-521 elliptic curve name.
 	ECCurveP521 = "P521"
 
-	// SHA2 digest algorithm names.
+	// SHA512 is the SHA-512 digest algorithm name.
 	SHA512 = "SHA512"
+	// SHA384 is the SHA-384 digest algorithm name.
 	SHA384 = "SHA384"
+	// SHA256 is the SHA-256 digest algorithm name.
 	SHA256 = "SHA256"
+	// SHA224 is the SHA-224 digest algorithm name.
 	SHA224 = "SHA224"
 
-	// RSA key sizes in bits.
+	// RSAKeySize2048 is the RSA 2048-bit key size constant.
 	RSAKeySize2048 = 2048
+	// RSAKeySize3072 is the RSA 3072-bit key size constant.
 	RSAKeySize3072 = 3072
+	// RSAKeySize4096 is the RSA 4096-bit key size constant.
 	RSAKeySize4096 = 4096
 
-	// Symmetric key sizes in bits.
+	// SymmetricKeySize128 is the 128-bit symmetric key size constant.
 	SymmetricKeySize128 = 128
+	// SymmetricKeySize192 is the 192-bit symmetric key size constant.
 	SymmetricKeySize192 = 192
+	// SymmetricKeySize256 is the 256-bit symmetric key size constant.
 	SymmetricKeySize256 = 256
+	// SymmetricKeySize384 is the 384-bit symmetric key size constant.
 	SymmetricKeySize384 = 384
+	// SymmetricKeySize512 is the 512-bit symmetric key size constant.
 	SymmetricKeySize512 = 512
 
-	// JWE key sizes in bits.
+	// JWEA128KeySize is the JWE 128-bit key size constant.
 	JWEA128KeySize = SymmetricKeySize128
+	// JWEA192KeySize is the JWE 192-bit key size constant.
 	JWEA192KeySize = SymmetricKeySize192
+	// JWEA256KeySize is the JWE 256-bit key size constant.
 	JWEA256KeySize = SymmetricKeySize256
+	// JWEA384KeySize is the JWE 384-bit key size constant.
 	JWEA384KeySize = SymmetricKeySize384
+	// JWEA512KeySize is the JWE 512-bit key size constant.
 	JWEA512KeySize = SymmetricKeySize512
 
-	// Secret generation byte lengths.
+	// SecretGenerationDefaultByteLength is the default secret generation byte length.
 	SecretGenerationDefaultByteLength = 32
 
-	// AES key sizes in bits.
+	// AESKeySize128 is the AES 128-bit key size constant.
 	AESKeySize128 = SymmetricKeySize128
+	// AESKeySize192 is the AES 192-bit key size constant.
 	AESKeySize192 = SymmetricKeySize192
+	// AESKeySize256 is the AES 256-bit key size constant.
 	AESKeySize256 = SymmetricKeySize256
 
-	// AES HMAC-SHA2 key sizes in bits.
+	// AESHSKeySize256 is the AES HMAC-SHA2 256-bit key size constant.
 	AESHSKeySize256 = SymmetricKeySize256
+	// AESHSKeySize384 is the AES HMAC-SHA2 384-bit key size constant.
 	AESHSKeySize384 = SymmetricKeySize384
+	// AESHSKeySize512 is the AES HMAC-SHA2 512-bit key size constant.
 	AESHSKeySize512 = SymmetricKeySize512
 
-	// HMAC key sizes in bits.
+	// HMACKeySize256 is the HMAC 256-bit key size constant.
 	HMACKeySize256 = SymmetricKeySize256
+	// HMACKeySize384 is the HMAC 384-bit key size constant.
 	HMACKeySize384 = SymmetricKeySize384
+	// HMACKeySize512 is the HMAC 512-bit key size constant.
 	HMACKeySize512 = SymmetricKeySize512
 
-	// Minimum HMAC key size in bits.
+	// MinHMACKeySize is the minimum HMAC key size in bits.
 	MinHMACKeySize = SymmetricKeySize256
 
-	// HKDF test constants.
+	// HKDFSHA224OutputLength is the HKDF-SHA224 output length constant.
 	HKDFSHA224OutputLength = 28
+	// HKDFSHA256OutputLength is the HKDF-SHA256 output length constant.
 	HKDFSHA256OutputLength = 32
+	// HKDFSHA384OutputLength is the HKDF-SHA384 output length constant.
 	HKDFSHA384OutputLength = 48
+	// HKDFSHA512OutputLength is the HKDF-SHA512 output length constant.
 	HKDFSHA512OutputLength = 64
-	HKDFMaxMultiplier      = 255
-	HKDFSHA224MaxLength    = 7140  // 255 * 28
-	HKDFSHA256MaxLength    = 8160  // 255 * 32
-	HKDFSHA384MaxLength    = 12240 // 255 * 48
-	HKDFSHA512MaxLength    = 16320 // 255 * 64
+	// HKDFMaxMultiplier is the HKDF maximum multiplier constant.
+	HKDFMaxMultiplier = 255
+	// HKDFSHA224MaxLength is the HKDF-SHA224 maximum output length.
+	HKDFSHA224MaxLength = 7140 // 255 * 28
+	// HKDFSHA256MaxLength is the HKDF-SHA256 maximum output length.
+	HKDFSHA256MaxLength = 8160 // 255 * 32
+	// HKDFSHA384MaxLength is the HKDF-SHA384 maximum output length.
+	HKDFSHA384MaxLength = 12240 // 255 * 48
+	// HKDFSHA512MaxLength is the HKDF-SHA512 maximum output length.
+	HKDFSHA512MaxLength = 16320 // 255 * 64
 
 	// JWK generation pool sizes (min, max) by algorithm type.
 
@@ -103,34 +133,48 @@ const (
 	// TestPoolMaxSize - Maximum pool size for test configurations.
 	TestPoolMaxSize = 3
 
-	// PBKDF2 configuration - FIPS 140-3 approved password hashing.
-	PBKDF2Prefix           = "pbkdf2-sha256" // Hash format prefix for PBKDF2-HMAC-SHA256 hashes.
-	PBKDF2DerivedKeyLength = 32              // Derived key length in bytes (32 = 256 bits).
-	PBKDF2DefaultHashName  = "pbkdf2-sha256" // Algorithm name for PBKDF2 SHA-256 (default).
-	PBKDF2SHA384HashName   = "pbkdf2-sha384" // Algorithm name for PBKDF2 SHA-384.
-	PBKDF2SHA512HashName   = "pbkdf2-sha512" // Algorithm name for PBKDF2 SHA-512.
-	PBKDF2DefaultAlgorithm = "SHA-256"       // Default PRF algorithm for PBKDF2.
-	PBKDF2DefaultSaltBytes = 32              // Salt length in bytes (32 = 256 bits).
-	PBKDF2DefaultHashBytes = 32              // Derived key length in bytes (32 = 256 bits for SHA-256).
-	PBKDF2SHA384HashBytes  = 48              // Derived key length in bytes (48 = 384 bits for SHA-384).
-	PBKDF2SHA512HashBytes  = 64              // Derived key length in bytes (64 = 512 bits for SHA-512).
-	PBKDF2MinIterations    = 210000          // OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
+	// PBKDF2Prefix is the hash format prefix for PBKDF2-HMAC-SHA256 hashes.
+	PBKDF2Prefix = "pbkdf2-sha256"
+	// PBKDF2DerivedKeyLength is the derived key length in bytes (32 = 256 bits).
+	PBKDF2DerivedKeyLength = 32
+	// PBKDF2DefaultHashName is the algorithm name for PBKDF2 SHA-256 (default).
+	PBKDF2DefaultHashName = "pbkdf2-sha256"
+	// PBKDF2SHA384HashName is the algorithm name for PBKDF2 SHA-384.
+	PBKDF2SHA384HashName = "pbkdf2-sha384"
+	// PBKDF2SHA512HashName is the algorithm name for PBKDF2 SHA-512.
+	PBKDF2SHA512HashName = "pbkdf2-sha512"
+	// PBKDF2DefaultAlgorithm is the default PRF algorithm for PBKDF2.
+	PBKDF2DefaultAlgorithm = "SHA-256"
+	// PBKDF2DefaultSaltBytes is the salt length in bytes (32 = 256 bits).
+	PBKDF2DefaultSaltBytes = 32
+	// PBKDF2DefaultHashBytes is the derived key length in bytes (32 = 256 bits for SHA-256).
+	PBKDF2DefaultHashBytes = 32
+	// PBKDF2SHA384HashBytes is the derived key length in bytes (48 = 384 bits for SHA-384).
+	PBKDF2SHA384HashBytes = 48
+	// PBKDF2SHA512HashBytes is the derived key length in bytes (64 = 512 bits for SHA-512).
+	PBKDF2SHA512HashBytes = 64
+	// PBKDF2MinIterations is the OWASP minimum iterations for PBKDF2-HMAC-SHA256 (2023).
+	PBKDF2MinIterations = 210000
 
-	// PBKDF2 iteration counts - OWASP/NIST historical standards.
-	PBKDF2DefaultIterations = 600000 // Version 1 (2023): OWASP current recommendation.
-	PBKDF2V2Iterations      = 310000 // Version 2 (2021): NIST SP 800-63B Rev. 3 recommendation.
-	PBKDF2V3Iterations      = 1000   // Version 3 (2017): Legacy/migration support (NIST 2017 minimum).
+	// PBKDF2DefaultIterations is the PBKDF2 iteration count for Version 1 (2023).
+	PBKDF2DefaultIterations = 600000
+	// PBKDF2V2Iterations is the Version 2 (2021): NIST SP 800-63B Rev. 3 recommendation.
+	PBKDF2V2Iterations = 310000
+	// PBKDF2V3Iterations is the Version 3 (2017): Legacy/migration support (NIST 2017 minimum).
+	PBKDF2V3Iterations = 1000
 
-	// PBKDF2 hash format constants.
-	PBKDF2VersionedFormatParts = 5 // Number of parts in versioned hash format: {version}$hashname$iter$salt$dk.
+	// PBKDF2VersionedFormatParts is the number of parts in versioned hash format.
+	PBKDF2VersionedFormatParts = 5
 
-	// HKDF hash name constants - for hash format strings.
-	HKDFHashName          = "hkdf-sha256"            // HKDF-SHA256 with random salt (non-deterministic).
-	HKDFFixedLowHashName  = "hkdf-sha256-fixed"      // HKDF-SHA256 with fixed info (deterministic, low-entropy).
-	HKDFFixedHighHashName = "hkdf-sha256-fixed-high" // HKDF-SHA256 with fixed info (deterministic, high-entropy).
+	// HKDFHashName is the HKDF-SHA256 hash name constant.
+	HKDFHashName = "hkdf-sha256"
+	// HKDFFixedLowHashName is the HKDF-SHA256 with fixed info (deterministic, low-entropy).
+	HKDFFixedLowHashName = "hkdf-sha256-fixed"
+	// HKDFFixedHighHashName is the HKDF-SHA256 with fixed info (deterministic, high-entropy).
+	HKDFFixedHighHashName = "hkdf-sha256-fixed-high"
 
-	// HKDF hash format constants.
-	HKDFDelimiter = "$" // Delimiter for HKDF hash format parts.
+	// HKDFDelimiter is the delimiter for HKDF hash format parts.
+	HKDFDelimiter = "$"
 )
 
 // HKDF deterministic hashing constants (fixed info parameters for determinism).
@@ -153,7 +197,9 @@ func PBKDF2HashFunction(algorithm string) func() hash.Hash {
 	}
 }
 
+// Default pool configurations for key generation pools.
 var (
+	// DefaultPoolConfigRSA4096 is the pool configuration for RSA 4096-bit key generation.
 	DefaultPoolConfigRSA4096     = DefaultPoolConfig{NumWorkers: 9, MaxSize: 9}  //nolint:mnd
 	DefaultPoolConfigRSA3072     = DefaultPoolConfig{NumWorkers: 6, MaxSize: 6}  //nolint:mnd
 	DefaultPoolConfigRSA2048     = DefaultPoolConfig{NumWorkers: 3, MaxSize: 3}  //nolint:mnd

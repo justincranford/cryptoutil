@@ -13,6 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// RequireNewForTest creates a new ServiceTemplateServerSettings with test defaults.
 func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 	configFileValue, ok := configFile.Value.([]string)
 	if !ok {

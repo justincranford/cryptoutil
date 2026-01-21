@@ -58,8 +58,8 @@ func TestMain(m *testing.M) {
 
 func TestSQLTransaction_PanicRecovery(t *testing.T) {
 	defer func() {
-		if recover := recover(); recover != nil {
-			require.NotNil(t, recover)
+		if recoverValue := recover(); recoverValue != nil {
+			require.NotNil(t, recoverValue)
 		}
 	}()
 

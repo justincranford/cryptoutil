@@ -11,6 +11,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
+// RequireNewForTest creates a JWKGenService for testing with panic on error.
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) *JWKGenService {
 	jwkGenService, err := NewJWKGenService(ctx, telemetryService, false)
 	cryptoutilAppErr.RequireNoError(err, "failed to initialize jwkGenService")

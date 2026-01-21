@@ -38,6 +38,7 @@ func GeneratePasswordSimple() (string, error) {
 	return "pass_" + id.String(), nil
 }
 
+// GenerateString generates a random hexadecimal string of the specified length.
 func GenerateString(length int) (string, error) {
 	bytesNeeded := (length + 1) / 2
 
@@ -49,6 +50,7 @@ func GenerateString(length int) (string, error) {
 	return hex.EncodeToString(randomBytes)[:length], nil
 }
 
+// GenerateBytes generates a slice of random bytes of the specified length.
 func GenerateBytes(lengthBytes int) ([]byte, error) {
 	bytes := make([]byte, lengthBytes)
 
@@ -60,6 +62,7 @@ func GenerateBytes(lengthBytes int) ([]byte, error) {
 	return bytes, nil
 }
 
+// GenerateMultipleBytes generates multiple slices of random bytes.
 func GenerateMultipleBytes(count, lengthBytes int) ([][]byte, error) {
 	if count < 1 {
 		return nil, fmt.Errorf("count can't be less than 1")
@@ -84,6 +87,7 @@ func GenerateMultipleBytes(count, lengthBytes int) ([][]byte, error) {
 	return nBytes, nil
 }
 
+// ConcatBytes concatenates multiple byte slices into a single slice.
 func ConcatBytes(list [][]byte) []byte {
 	var combined []byte
 	for _, b := range list {
@@ -93,6 +97,7 @@ func ConcatBytes(list [][]byte) []byte {
 	return combined
 }
 
+// StringsToBytes converts multiple strings to byte slices.
 func StringsToBytes(values ...string) [][]byte {
 	result := make([][]byte, 0, len(values))
 	for _, s := range values {
@@ -102,6 +107,7 @@ func StringsToBytes(values ...string) [][]byte {
 	return result
 }
 
+// StringPointersToBytes converts string pointers to byte slices, skipping nil pointers.
 func StringPointersToBytes(values ...*string) [][]byte {
 	var result [][]byte
 
@@ -114,6 +120,7 @@ func StringPointersToBytes(values ...*string) [][]byte {
 	return result
 }
 
+// Uint64ToBytes converts a uint64 value to a big-endian byte slice.
 func Uint64ToBytes(val uint64) []byte {
 	bytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(bytes, val)
@@ -121,6 +128,7 @@ func Uint64ToBytes(val uint64) []byte {
 	return bytes
 }
 
+// Uint32ToBytes converts a uint32 value to a big-endian byte slice.
 func Uint32ToBytes(val uint32) []byte {
 	bytes := make([]byte, 4)
 	binary.BigEndian.PutUint32(bytes, val)
@@ -128,6 +136,7 @@ func Uint32ToBytes(val uint32) []byte {
 	return bytes
 }
 
+// Uint16ToBytes converts a uint16 value to a big-endian byte slice.
 func Uint16ToBytes(val uint16) []byte {
 	bytes := make([]byte, 2)
 	binary.BigEndian.PutUint16(bytes, val)
@@ -159,18 +168,21 @@ func safeIntToUint16(val int16) uint16 {
 	return uint16(val) // #nosec G115
 }
 
+// Int64ToBytes converts an int64 value to a big-endian byte slice.
 func Int64ToBytes(val int64) []byte {
 	// Safe conversion: int64 to uint64 preserves bit pattern for signed/unsigned of same width
 	// This conversion is always safe as both types use the same bit representation
 	return Uint64ToBytes(safeIntToUint64(val))
 }
 
+// Int32ToBytes converts an int32 value to a big-endian byte slice.
 func Int32ToBytes(val int32) []byte {
 	// Safe conversion: int32 to uint32 preserves bit pattern for signed/unsigned of same width
 	// This conversion is always safe as both types use the same bit representation
 	return Uint32ToBytes(safeIntToUint32(val))
 }
 
+// Int16ToBytes converts an int16 value to a big-endian byte slice.
 func Int16ToBytes(val int16) []byte {
 	// Safe conversion: int16 to uint16 preserves bit pattern for signed/unsigned of same width
 	// This conversion is always safe as both types use the same bit representation

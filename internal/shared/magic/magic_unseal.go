@@ -16,9 +16,9 @@ const (
 	DefaultSysInfoAllTimeout = 10 * time.Second //nolint:stylecheck // established API name
 	// DefaultSysInfoCPUTimeout - Default system timeout duration.
 	DefaultSysInfoCPUTimeout = 10 * time.Second //nolint:stylecheck // established API name
-	// DefaultSysInfoMemoryTimeout - Default system memory timeout duration.
+	// DefaultSysInfoMemoryTimeout is the default system memory timeout duration.
 	DefaultSysInfoMemoryTimeout = 5 * time.Second //nolint:stylecheck // established API name
-	// DefaultSysInfoHostIDTimeout - Default system host ID timeout duration.
+	// DefaultSysInfoHostTimeout is the default system host timeout duration.
 	DefaultSysInfoHostTimeout = 5 * time.Second //nolint:stylecheck // established API namev
 
 	// DefaultMaxUnsealFiles - Maximum number of files allowed.

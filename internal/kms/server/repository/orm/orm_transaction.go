@@ -15,12 +15,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// OrmTransaction represents a database transaction with lifecycle management.
 type OrmTransaction struct {
 	ormRepository *OrmRepository
 	guardState    sync.Mutex
 	state         *OrmTransactionState
 }
 
+// OrmTransactionState holds the internal state of an ORM transaction.
 type OrmTransactionState struct {
 	ctx    context.Context
 	txMode TransactionMode
@@ -28,16 +30,21 @@ type OrmTransactionState struct {
 	gormTx *gorm.DB
 }
 
+// TransactionMode specifies the isolation and commit behavior of a transaction.
 type TransactionMode string
 
+// AutoCommit represents a transaction that commits automatically after each statement.
 var (
 	AutoCommit TransactionMode = "AutoCommit"
-	ReadWrite  TransactionMode = "ReadWrite"
-	ReadOnly   TransactionMode = "ReadOnly"
+	// ReadWrite represents a read-write transaction.
+	ReadWrite TransactionMode = "ReadWrite"
+	// ReadOnly represents a read-only transaction.
+	ReadOnly TransactionMode = "ReadOnly"
 )
 
 // OrmRepository
 
+// WithTransaction executes the provided function within a database transaction.
 func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode TransactionMode, function func(ormTransaction *OrmTransaction) error) error {
 	tx := &OrmTransaction{ormRepository: r}
 
@@ -55,9 +62,9 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 			}
 		}
 
-		if recover := recover(); recover != nil {
-			r.telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "mode", tx.Mode(), "panic", recover, "stack", string(debug.Stack()))
-			panic(recover)
+		if txRecover := recover(); txRecover != nil {
+			r.telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "mode", tx.Mode(), "panic", txRecover, "stack", string(debug.Stack()))
+			panic(txRecover)
 		}
 	}()
 
@@ -80,6 +87,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 
 // RepositoryTransaction
 
+// ID returns the unique identifier of the transaction.
 func (tx *OrmTransaction) ID() *googleUuid.UUID {
 	// tx.guardState.Lock()
 	// defer tx.guardState.Unlock()
@@ -90,6 +98,7 @@ func (tx *OrmTransaction) ID() *googleUuid.UUID {
 	return &tx.state.txID
 }
 
+// Context returns the context associated with the transaction.
 func (tx *OrmTransaction) Context() context.Context {
 	// tx.guardState.Lock()
 	// defer tx.guardState.Unlock()
@@ -100,6 +109,7 @@ func (tx *OrmTransaction) Context() context.Context {
 	return tx.state.ctx
 }
 
+// Mode returns the transaction mode (AutoCommit, ReadWrite, or ReadOnly).
 func (tx *OrmTransaction) Mode() *TransactionMode {
 	// tx.guardState.Lock()
 	// defer tx.guardState.Unlock()

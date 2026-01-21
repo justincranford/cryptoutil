@@ -17,10 +17,12 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// EncryptBytes encrypts bytes using the provided JWKs and returns a JWE message.
 func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
 	return EncryptBytesWithContext(jwks, clearBytes, nil)
 }
 
+// EncryptBytesWithContext encrypts bytes with additional authenticated data context.
 func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []byte) (*joseJwe.Message, []byte, error) {
 	if jwks == nil {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -116,10 +118,12 @@ func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []by
 	return jweMessage, jweMessageBytes, nil
 }
 
+// DecryptBytes decrypts a JWE message using the provided JWKs.
 func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	return DecryptBytesWithContext(jwks, jweMessageBytes, nil)
 }
 
+// DecryptBytesWithContext decrypts a JWE message with additional authenticated data context.
 func DecryptBytesWithContext(jwks []joseJwk.Key, jweMessageBytes []byte, context []byte) ([]byte, error) {
 	if jwks == nil {
 		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -183,6 +187,7 @@ func DecryptBytesWithContext(jwks []joseJwk.Key, jweMessageBytes []byte, context
 	return decryptedBytes, nil
 }
 
+// EncryptKey encrypts a content encryption key using key encryption keys.
 func EncryptKey(keks []joseJwk.Key, clearCek joseJwk.Key) (*joseJwe.Message, []byte, error) {
 	clearCekBytes, err := json.Marshal(clearCek)
 	if err != nil {
@@ -192,6 +197,7 @@ func EncryptKey(keks []joseJwk.Key, clearCek joseJwk.Key) (*joseJwe.Message, []b
 	return EncryptBytes(keks, clearCekBytes)
 }
 
+// DecryptKey decrypts a content encryption key using key decryption keys.
 func DecryptKey(kdks []joseJwk.Key, encryptedCdkBytes []byte) (joseJwk.Key, error) {
 	decryptedCdkBytes, err := DecryptBytes(kdks, encryptedCdkBytes)
 	if err != nil {
@@ -206,6 +212,7 @@ func DecryptKey(kdks []joseJwk.Key, encryptedCdkBytes []byte) (joseJwk.Key, erro
 	return decryptedCdk, nil
 }
 
+// JWEHeadersString returns a string representation of JWE message headers.
 func JWEHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	if jweMessage == nil {
 		return "", fmt.Errorf("invalid jweMessage: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -219,6 +226,7 @@ func JWEHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	return string(jweHeadersString), err
 }
 
+// ExtractKidFromJWEMessage extracts the key ID from a JWE message.
 func ExtractKidFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, error) {
 	if jweMessage == nil {
 		return nil, fmt.Errorf("invalid jweMessage: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -239,6 +247,7 @@ func ExtractKidFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, er
 	return &kidUUID, nil
 }
 
+// ExtractKidEncAlgFromJWEMessage extracts the key ID, encryption, and algorithm from a JWE message.
 func ExtractKidEncAlgFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, *joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	kidUUID, err := ExtractKidFromJWEMessage(jweMessage)
 	if err != nil {

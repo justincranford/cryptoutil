@@ -63,7 +63,6 @@ const (
 	// RealmTypeHTTPSClientCert uses mTLS client certificate authentication from browsers.
 	RealmTypeHTTPSClientCert RealmType = "https-client-cert"
 
-	// Non-federated service realm types (token-based, /service/** paths).
 	// RealmTypeJWESessionToken uses JSON Web Encryption for stateless encrypted service tokens.
 	RealmTypeJWESessionToken RealmType = "jwe-session-token"
 

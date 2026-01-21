@@ -14,6 +14,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// GenerateJWEJWKsForTest generates multiple JWE JWKs for testing.
 func GenerateJWEJWKsForTest(t *testing.T, count int, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
 	t.Helper()
 

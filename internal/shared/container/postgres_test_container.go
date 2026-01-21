@@ -12,6 +12,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
+// NewPostgresTestContainer creates and starts a new PostgreSQL test container.
 func NewPostgresTestContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
 	dbName := fmt.Sprintf("test_%s", googleUuid.NewString())
 	username := fmt.Sprintf("user_%s", googleUuid.NewString())

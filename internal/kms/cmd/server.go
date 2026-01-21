@@ -11,6 +11,7 @@ import (
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )
 
+// Server handles the KMS server command and subcommands.
 func Server(parameters []string) {
 	// reuse same Settings for start, ready, live, stop sub-commands, since they need to share private API coordinates
 	settings, err := cryptoutilConfig.Parse(parameters, true)

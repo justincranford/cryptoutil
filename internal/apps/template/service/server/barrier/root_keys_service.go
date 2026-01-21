@@ -20,6 +20,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// RootKeysService manages root encryption keys at the top of the key hierarchy.
 type RootKeysService struct {
 	telemetryService  *cryptoutilTelemetry.TelemetryService
 	jwkGenService     *cryptoutilJose.JWKGenService
@@ -27,6 +28,7 @@ type RootKeysService struct {
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 }
 
+// NewRootKeysService creates a new RootKeysService with the specified dependencies.
 func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository BarrierRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*RootKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
@@ -107,6 +109,7 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, reposit
 	return nil
 }
 
+// EncryptKey encrypts an intermediate key using the latest root key.
 func (i *RootKeysService) EncryptKey(tx BarrierTransaction, clearIntermediateKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
 	encryptedRootKeyLatest, err := tx.GetRootKeyLatest() // encrypted root JWK latest from DB
 	if err != nil {
@@ -128,6 +131,7 @@ func (i *RootKeysService) EncryptKey(tx BarrierTransaction, clearIntermediateKey
 	return encryptedIntermediateKeyBytes, &rootKeyLatestKidUUID, nil
 }
 
+// DecryptKey decrypts an intermediate key using the identified root key.
 func (i *RootKeysService) DecryptKey(sqlTransaction BarrierTransaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
 	encryptedIntermediateKey, err := joseJwe.Parse(encryptedIntermediateKeyBytes)
 	if err != nil {
@@ -164,6 +168,7 @@ func (i *RootKeysService) DecryptKey(sqlTransaction BarrierTransaction, encrypte
 	return decryptedIntermediateKey, nil
 }
 
+// Shutdown gracefully shuts down the RootKeysService.
 func (i *RootKeysService) Shutdown() {
 	i.unsealKeysService = nil
 	i.repository = nil

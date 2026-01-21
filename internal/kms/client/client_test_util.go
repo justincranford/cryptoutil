@@ -24,6 +24,7 @@ import (
 
 var oamOacMapperInstance = NewOamOacMapper()
 
+// WaitUntilReady waits for the server at baseURL to become ready.
 func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPool *x509.CertPool) {
 	giveUpTime := time.Now().UTC().Add(maxTime)
 
@@ -44,12 +45,14 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 	}
 }
 
+// CheckHealthz checks the server health endpoint.
 func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + cryptoutilMagic.PrivateAdminLivezRequestPath
 
 	return httpGet(&url, cryptoutilMagic.TimeoutHTTPHealthRequest, rootCAsPool)
 }
 
+// CheckReadyz checks the server readiness endpoint.
 func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + cryptoutilMagic.PrivateAdminReadyzRequestPath
 
@@ -103,6 +106,7 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	return nil
 }
 
+// RequireClientWithResponses creates and returns an OpenAPI client for testing.
 func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilOpenapiClient.ClientWithResponses {
 	t.Helper()
 
@@ -141,6 +145,7 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 	return openapiClient
 }
 
+// RequireCreateElasticKeyRequest creates an ElasticKeyCreate request for testing.
 func RequireCreateElasticKeyRequest(t *testing.T, name, description, algorithm, provider *string, importAllowed, versioningAllowed *bool) *cryptoutilOpenapiModel.ElasticKeyCreate {
 	t.Helper()
 
@@ -151,6 +156,7 @@ func RequireCreateElasticKeyRequest(t *testing.T, name, description, algorithm, 
 	return elasticKeyCreate
 }
 
+// RequireCreateElasticKeyResponse creates an ElasticKey and returns the response.
 func RequireCreateElasticKeyResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOpenapiModel.ElasticKey {
 	t.Helper()
 
@@ -176,6 +182,7 @@ func RequireMaterialKeyGenerateRequest(t *testing.T) *cryptoutilOpenapiModel.Mat
 	return &keyGenerate
 }
 
+// RequireMaterialKeyGenerateResponse generates a MaterialKey and returns the response.
 func RequireMaterialKeyGenerateResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, keyGenerate *cryptoutilOpenapiModel.MaterialKeyGenerate) *cryptoutilOpenapiModel.MaterialKey {
 	t.Helper()
 
@@ -188,6 +195,7 @@ func RequireMaterialKeyGenerateResponse(t *testing.T, context context.Context, o
 	return key
 }
 
+// RequireGenerateResponse generates cryptographic material and returns the response.
 func RequireGenerateResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, generateParams *cryptoutilOpenapiModel.GenerateParams) *string {
 	t.Helper()
 
@@ -203,12 +211,14 @@ func RequireGenerateResponse(t *testing.T, context context.Context, openapiClien
 	return encrypted
 }
 
+// RequireEncryptRequest creates an EncryptRequest for testing.
 func RequireEncryptRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
 	t.Helper()
 
 	return oamOacMapperInstance.toOamEncryptRequest(cleartext)
 }
 
+// RequireEncryptResponse encrypts data and returns the ciphertext.
 func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, encryptParams *cryptoutilOpenapiModel.EncryptParams, encryptRequest *cryptoutilOpenapiModel.EncryptRequest) *string {
 	t.Helper()
 
@@ -222,12 +232,14 @@ func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient
 	return encrypted
 }
 
+// RequireDecryptRequest creates a DecryptRequest for testing.
 func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
 	t.Helper()
 
 	return oamOacMapperInstance.toOamDecryptRequest(ciphertext)
 }
 
+// RequireDecryptResponse decrypts data and returns the plaintext.
 func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, decryptRequest *cryptoutilOpenapiModel.DecryptRequest) *string {
 	t.Helper()
 
@@ -240,12 +252,14 @@ func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient
 	return decrypted
 }
 
+// RequireSignRequest creates a SignRequest for testing.
 func RequireSignRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.SignRequest {
 	t.Helper()
 
 	return oamOacMapperInstance.toOamSignRequest(cleartext)
 }
 
+// RequireSignResponse signs data and returns the signature.
 func RequireSignResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, signParams *cryptoutilOpenapiModel.SignParams, signRequest *cryptoutilOpenapiModel.SignRequest) *string {
 	t.Helper()
 
@@ -259,12 +273,14 @@ func RequireSignResponse(t *testing.T, context context.Context, openapiClient *c
 	return signed
 }
 
+// RequireVerifyRequest creates a VerifyRequest for testing.
 func RequireVerifyRequest(t *testing.T, signedtext *string) *cryptoutilOpenapiModel.VerifyRequest {
 	t.Helper()
 
 	return oamOacMapperInstance.toOamVerifyRequest(signedtext)
 }
 
+// RequireVerifyResponse verifies a signature and returns the result.
 func RequireVerifyResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyID *cryptoutilOpenapiModel.ElasticKeyID, verifyRequest *cryptoutilOpenapiModel.VerifyRequest) *string {
 	t.Helper()
 
@@ -277,6 +293,7 @@ func RequireVerifyResponse(t *testing.T, context context.Context, openapiClient 
 	return verified
 }
 
+// ValidateCreateElasticKeyVsElasticKey validates an ElasticKey against its create request.
 func ValidateCreateElasticKeyVsElasticKey(elasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate, elasticKey *cryptoutilOpenapiModel.ElasticKey) error {
 	if elasticKeyCreate == nil {
 		return fmt.Errorf("elastic Key create is nil")

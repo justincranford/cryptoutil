@@ -25,7 +25,9 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// JWK algorithm and key type constants and error values.
 var (
+	// ErrInvalidJWKKidUUID indicates the JWK key ID is not a valid UUID.
 	ErrInvalidJWKKidUUID = "invalid JWK kid UUID"
 
 	KtyOCT = joseJwa.OctetSeq() // KeyType
@@ -95,6 +97,7 @@ var (
 	OpsVer    = joseJwk.KeyOperationList{joseJwk.KeyOpVerify}                        // []KeyOperation
 )
 
+// ExtractKidUUID extracts the key ID as a UUID from a JWK.
 func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	if jwk == nil {
 		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -120,6 +123,7 @@ func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	return &kidUUID, nil
 }
 
+// ExtractAlg extracts the algorithm from a JWK.
 func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, error) {
 	if jwk == nil {
 		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -140,6 +144,7 @@ func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, err
 	return generateAlg, nil
 }
 
+// ExtractKty extracts the key type from a JWK.
 func ExtractKty(jwk joseJwk.Key) (*joseJwa.KeyType, error) {
 	if jwk == nil {
 		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -155,6 +160,7 @@ func ExtractKty(jwk joseJwk.Key) (*joseJwa.KeyType, error) {
 	return &kty, nil
 }
 
+// GenerateJWKForAlg generates a JWK for the specified algorithm.
 func GenerateJWKForAlg(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
@@ -169,6 +175,7 @@ func GenerateJWKForAlg(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUu
 	return CreateJWKFromKey(&kid, alg, key)
 }
 
+// CreateJWKFromKey creates a JWK from an existing cryptographic key.
 func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	now := time.Now().UTC().Unix()
 
@@ -484,6 +491,7 @@ func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryp
 	}
 }
 
+// IsPublicJWK returns true if the JWK is a public key.
 func IsPublicJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -499,6 +507,7 @@ func IsPublicJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
+// IsPrivateJWK returns true if the JWK is a private key.
 func IsPrivateJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -514,6 +523,7 @@ func IsPrivateJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
+// IsAsymmetricJWK returns true if the JWK is an asymmetric key.
 func IsAsymmetricJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -529,6 +539,7 @@ func IsAsymmetricJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
+// IsSymmetricJWK returns true if the JWK is a symmetric key.
 func IsSymmetricJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -544,6 +555,7 @@ func IsSymmetricJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
+// IsEncryptJWK returns true if the JWK can be used for encryption.
 func IsEncryptJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -574,6 +586,7 @@ func IsEncryptJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
+// IsDecryptJWK returns true if the JWK can be used for decryption.
 func IsDecryptJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -604,6 +617,7 @@ func IsDecryptJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
+// IsSignJWK returns true if the JWK can be used for signing.
 func IsSignJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -635,6 +649,7 @@ func IsSignJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
+// IsVerifyJWK returns true if the JWK can be used for signature verification.
 func IsVerifyJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)

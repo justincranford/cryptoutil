@@ -17,6 +17,7 @@ import (
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 )
 
+// SignBytes signs bytes using the provided JWKs and returns a JWS message.
 func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte, error) {
 	if jwks == nil {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -91,6 +92,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 	return jwsMessage, jwsMessageBytes, nil
 }
 
+// VerifyBytes verifies a JWS message using the provided JWKs.
 func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 	if jwks == nil {
 		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -148,6 +150,7 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 	return verifiedBytes, nil
 }
 
+// JWSHeadersString returns a string representation of JWS message headers.
 func JWSHeadersString(jwsMessage *joseJws.Message) (string, error) {
 	if jwsMessage == nil {
 		return "", fmt.Errorf("jwsMessage is nil")
@@ -170,6 +173,7 @@ func JWSHeadersString(jwsMessage *joseJws.Message) (string, error) {
 	return jwsSignaturesHeadersString, nil
 }
 
+// ExtractKidAlgFromJWSMessage extracts the key ID and algorithm from a JWS message.
 func ExtractKidAlgFromJWSMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, error) {
 	if len(jwsMessage.Signatures()) == 0 {
 		return nil, nil, fmt.Errorf("JWS message has no signatures")
@@ -201,6 +205,7 @@ func ExtractKidAlgFromJWSMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID,
 	return &kidUUID, &alg, nil
 }
 
+// LogJWSInfo logs information about a JWS message.
 func LogJWSInfo(jwsMessage *joseJws.Message) error {
 	if jwsMessage == nil {
 		return fmt.Errorf("jwsMessage is nil")

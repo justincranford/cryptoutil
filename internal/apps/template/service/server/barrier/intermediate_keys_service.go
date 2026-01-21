@@ -19,6 +19,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// IntermediateKeysService manages intermediate encryption keys in the key hierarchy.
 type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JWKGenService
@@ -26,6 +27,7 @@ type IntermediateKeysService struct {
 	rootKeysService  *RootKeysService
 }
 
+// NewIntermediateKeysService creates a new IntermediateKeysService with the specified dependencies.
 func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository BarrierRepository, rootKeysService *RootKeysService) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
@@ -119,6 +121,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 	return nil
 }
 
+// EncryptKey encrypts a content key using the latest intermediate key.
 func (i *IntermediateKeysService) EncryptKey(sqlTransaction BarrierTransaction, clearContentKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
 	encryptedIntermediateKeyLatest, err := sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK latest from DB
 	if err != nil {
@@ -140,6 +143,7 @@ func (i *IntermediateKeysService) EncryptKey(sqlTransaction BarrierTransaction, 
 	return encryptedContentKeyBytes, &intermediateKeyLatestKidUUID, nil
 }
 
+// DecryptKey decrypts a content key using the identified intermediate key.
 func (i *IntermediateKeysService) DecryptKey(sqlTransaction BarrierTransaction, encryptedContentKeyBytes []byte) (joseJwk.Key, error) {
 	encryptedContentKey, err := joseJwe.Parse(encryptedContentKeyBytes)
 	if err != nil {
@@ -177,6 +181,7 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction BarrierTransaction, 
 	return decryptedContentKey, nil
 }
 
+// Shutdown gracefully shuts down the IntermediateKeysService.
 func (i *IntermediateKeysService) Shutdown() {
 	i.telemetryService = nil
 	i.repository = nil

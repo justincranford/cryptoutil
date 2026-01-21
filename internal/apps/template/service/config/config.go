@@ -229,6 +229,7 @@ var subcommands = map[string]struct{}{
 
 var allServeiceTemplateServerRegisteredSettings []*Setting
 
+// ServiceTemplateServerSettings contains all configuration settings for the service template server.
 type ServiceTemplateServerSettings struct {
 	SubCommand                  string
 	Help                        bool
@@ -1348,6 +1349,7 @@ func resetFlags() {
 	viper.Reset()
 }
 
+// SetEnvAndRegisterSetting sets the environment variable name and registers the setting.
 func SetEnvAndRegisterSetting(_ []*Setting, setting *Setting) *Setting {
 	setting.Env = "CRYPTOUTIL_" + strings.ToUpper(strings.ReplaceAll(setting.Name, "-", "_"))
 
@@ -1356,7 +1358,7 @@ func SetEnvAndRegisterSetting(_ []*Setting, setting *Setting) *Setting {
 	return setting
 }
 
-// Helper functions for safe type assertions in configuration.
+// RegisterAsBoolSetting extracts a bool value from a Setting with type assertion.
 func RegisterAsBoolSetting(s *Setting) bool {
 	if v, ok := s.Value.(bool); ok {
 		return v
@@ -1365,6 +1367,7 @@ func RegisterAsBoolSetting(s *Setting) bool {
 	panic(fmt.Sprintf("setting %s value is not bool", s.Name))
 }
 
+// RegisterAsStringSetting extracts a string value from a Setting with type assertion.
 func RegisterAsStringSetting(s *Setting) string {
 	if v, ok := s.Value.(string); ok {
 		return v
@@ -1373,6 +1376,7 @@ func RegisterAsStringSetting(s *Setting) string {
 	panic(fmt.Sprintf("setting %s value is not string", s.Name))
 }
 
+// RegisterAsUint16Setting extracts a uint16 value from a Setting with type assertion.
 func RegisterAsUint16Setting(s *Setting) uint16 {
 	if v, ok := s.Value.(uint16); ok {
 		return v
@@ -1381,6 +1385,7 @@ func RegisterAsUint16Setting(s *Setting) uint16 {
 	panic(fmt.Sprintf("setting %s value is not uint16", s.Name))
 }
 
+// RegisterAsStringSliceSetting extracts a string slice value from a Setting with type assertion.
 func RegisterAsStringSliceSetting(s *Setting) []string {
 	if v, ok := s.Value.([]string); ok {
 		return v
@@ -1389,6 +1394,7 @@ func RegisterAsStringSliceSetting(s *Setting) []string {
 	panic(fmt.Sprintf("setting %s value is not []string", s.Name))
 }
 
+// RegisterAsStringArraySetting extracts a string array value from a Setting with type assertion.
 func RegisterAsStringArraySetting(s *Setting) []string {
 	if v, ok := s.Value.([]string); ok {
 		return v
@@ -1397,6 +1403,7 @@ func RegisterAsStringArraySetting(s *Setting) []string {
 	panic(fmt.Sprintf("setting %s value is not []string for array", s.Name))
 }
 
+// RegisterAsDurationSetting extracts a time.Duration value from a Setting with type assertion.
 func RegisterAsDurationSetting(s *Setting) time.Duration {
 	if v, ok := s.Value.(time.Duration); ok {
 		return v
@@ -1405,6 +1412,7 @@ func RegisterAsDurationSetting(s *Setting) time.Duration {
 	panic(fmt.Sprintf("setting %s value is not time.Duration", s.Name))
 }
 
+// RegisterAsIntSetting extracts an int value from a Setting with type assertion.
 func RegisterAsIntSetting(s *Setting) int {
 	if v, ok := s.Value.(int); ok {
 		return v

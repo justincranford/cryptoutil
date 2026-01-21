@@ -16,6 +16,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// ContentKeysService encrypts and decrypts content data using content keys.
 type ContentKeysService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	jwkGenService           *cryptoutilJose.JWKGenService
@@ -23,6 +24,7 @@ type ContentKeysService struct {
 	intermediateKeysService *IntermediateKeysService
 }
 
+// NewContentKeysService creates a new ContentKeysService with the specified dependencies.
 func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository BarrierRepository, intermediateKeysService *IntermediateKeysService) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
@@ -37,6 +39,7 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 	return &ContentKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, intermediateKeysService: intermediateKeysService}, nil
 }
 
+// EncryptContent encrypts content data and returns the encrypted bytes and encryption key ID.
 func (s *ContentKeysService) EncryptContent(sqlTransaction BarrierTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
 	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 	if err != nil {
@@ -61,6 +64,7 @@ func (s *ContentKeysService) EncryptContent(sqlTransaction BarrierTransaction, c
 	return encryptedContentJWEMessageBytes, contentKeyKidUUID, nil
 }
 
+// DecryptContent decrypts content data using the content key identified in the JWE message.
 func (s *ContentKeysService) DecryptContent(sqlTransaction BarrierTransaction, encryptedContentJWEMessageBytes []byte) ([]byte, error) {
 	encryptedContentJWEMessage, err := joseJwe.Parse(encryptedContentJWEMessageBytes)
 	if err != nil {
@@ -97,6 +101,7 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction BarrierTransaction, e
 	return decryptedBytes, nil
 }
 
+// Shutdown gracefully shuts down the ContentKeysService.
 func (s *ContentKeysService) Shutdown() {
 	s.telemetryService = nil
 	s.repository = nil

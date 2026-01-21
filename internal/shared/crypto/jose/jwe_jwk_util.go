@@ -26,8 +26,10 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// ErrInvalidJWEJWKKidUUID indicates the JWE JWK key ID is not a valid UUID.
 var ErrInvalidJWEJWKKidUUID = "invalid JWE JWK kid UUID"
 
+// GenerateJWEJWKForEncAndAlg generates a new JWE JWK for the specified encryption and algorithm.
 func GenerateJWEJWKForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
@@ -42,6 +44,7 @@ func GenerateJWEJWKForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *jo
 	return CreateJWEJWKFromKey(&kid, enc, alg, key)
 }
 
+// CreateJWEJWKFromKey creates a JWE JWK from an existing cryptographic key.
 func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	now := time.Now().UTC().Unix()
 
@@ -298,6 +301,7 @@ func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.Content
 	}
 }
 
+// EncToBitsLength returns the key size in bits for a content encryption algorithm.
 func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	switch *enc {
 	case EncA256GCM:
@@ -317,6 +321,7 @@ func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	}
 }
 
+// ExtractAlgEncFromJWEJWK extracts the encryption algorithm and key encryption algorithm from a JWE JWK.
 func ExtractAlgEncFromJWEJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	if jwk == nil {
 		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
@@ -347,6 +352,7 @@ func ExtractAlgEncFromJWEJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryption
 	return &enc, &alg, nil
 }
 
+// IsJWEAlg returns true if the algorithm is a JWE key encryption algorithm.
 func IsJWEAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
 	if alg == nil {
 		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)

@@ -14,6 +14,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// GenerateJWSJWKsForTest generates multiple JWS JWKs for testing.
 func GenerateJWSJWKsForTest(t *testing.T, count int, alg *joseJwa.SignatureAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
 	t.Helper()
 

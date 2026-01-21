@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	// Username validation constraints.
+	// MinUsernameLength is the minimum username length constraint.
 	MinUsernameLength = 3
+	// MaxUsernameLength is the maximum username length constraint.
 	MaxUsernameLength = 64
 )
 

@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	// EmptyString is a constant for an empty string.
 	EmptyString = cryptoutilMagic.EmptyString
 
 	// Timeouts for system info queries to prevent hanging.
@@ -28,14 +29,17 @@ const (
 	hostIDTimeout  = cryptoutilMagic.DefaultSysInfoHostTimeout
 )
 
+// RuntimeGoArch returns the GOARCH runtime architecture.
 func RuntimeGoArch() string {
 	return runtime.GOARCH
 }
 
+// RuntimeGoOS returns the GOOS runtime operating system.
 func RuntimeGoOS() string {
 	return runtime.GOOS
 }
 
+// RuntimeNumCPU returns the number of CPUs available.
 func RuntimeNumCPU() int {
 	return runtime.NumCPU()
 }
@@ -57,6 +61,7 @@ func CPUInfo() (string, string, string, string, error) {
 	return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("no CPU info")
 }
 
+// RAMSize returns the total RAM size in bytes.
 func RAMSize() (uint64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), memoryTimeout)
 	defer cancel()
@@ -69,6 +74,7 @@ func RAMSize() (uint64, error) {
 	return vmStats.Total, nil
 }
 
+// OSHostname returns the OS hostname.
 func OSHostname() (string, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -78,6 +84,7 @@ func OSHostname() (string, error) {
 	return hostname, nil
 }
 
+// HostID returns the unique host identifier.
 func HostID() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), hostIDTimeout)
 	defer cancel()

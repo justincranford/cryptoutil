@@ -12,10 +12,12 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// GenerateUUIDv7Function returns a function that generates a UUID v7.
 func GenerateUUIDv7Function() func() (*googleUuid.UUID, error) {
 	return func() (*googleUuid.UUID, error) { return GenerateUUIDv7() }
 }
 
+// GenerateUUIDv7 generates a new UUID v7.
 func GenerateUUIDv7() (*googleUuid.UUID, error) {
 	uuidV7, err := googleUuid.NewV7()
 	if err != nil {
@@ -25,6 +27,7 @@ func GenerateUUIDv7() (*googleUuid.UUID, error) {
 	return &uuidV7, nil
 }
 
+// ValidateUUID validates that a UUID is not nil, zero, or max.
 func ValidateUUID(uuid *googleUuid.UUID, msg *string) error {
 	if uuid == nil {
 		return fmt.Errorf("%s: %w", *msg, cryptoutilAppErr.ErrUUIDCantBeNil)
@@ -37,6 +40,7 @@ func ValidateUUID(uuid *googleUuid.UUID, msg *string) error {
 	return nil
 }
 
+// ValidateUUIDs validates a slice of UUIDs.
 func ValidateUUIDs(uuids []googleUuid.UUID, msg *string) error {
 	if uuids == nil {
 		return fmt.Errorf("%s: %w", *msg, cryptoutilAppErr.ErrUUIDsCantBeNil)

@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewLogsCommand creates a new cobra command for viewing service logs.
 func NewLogsCommand() *cobra.Command {
 	var follow bool
 

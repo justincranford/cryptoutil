@@ -16,10 +16,15 @@ import (
 // RiskLevel represents the assessed risk level.
 type RiskLevel string
 
+// Risk level constants.
 const (
-	RiskLevelLow      RiskLevel = "low"
-	RiskLevelMedium   RiskLevel = "medium"
-	RiskLevelHigh     RiskLevel = "high"
+	// RiskLevelLow indicates a low risk assessment.
+	RiskLevelLow RiskLevel = "low"
+	// RiskLevelMedium indicates a medium risk assessment.
+	RiskLevelMedium RiskLevel = "medium"
+	// RiskLevelHigh indicates a high risk assessment.
+	RiskLevelHigh RiskLevel = "high"
+	// RiskLevelCritical indicates a critical risk assessment.
 	RiskLevelCritical RiskLevel = "critical"
 )
 
@@ -31,13 +36,20 @@ func (r RiskLevel) String() string {
 // RiskFactorType represents the type of risk factor.
 type RiskFactorType string
 
+// Risk factor type constants.
 const (
-	RiskFactorLocation       RiskFactorType = "location"
-	RiskFactorDevice         RiskFactorType = "device"
-	RiskFactorTime           RiskFactorType = "time"
-	RiskFactorBehavior       RiskFactorType = "behavior"
-	RiskFactorNetwork        RiskFactorType = "network"
-	RiskFactorVelocity       RiskFactorType = "velocity"
+	// RiskFactorLocation indicates a location-based risk factor.
+	RiskFactorLocation RiskFactorType = "location"
+	// RiskFactorDevice indicates a device-based risk factor.
+	RiskFactorDevice RiskFactorType = "device"
+	// RiskFactorTime indicates a time-based risk factor.
+	RiskFactorTime RiskFactorType = "time"
+	// RiskFactorBehavior indicates a behavior-based risk factor.
+	RiskFactorBehavior RiskFactorType = "behavior"
+	// RiskFactorNetwork indicates a network-based risk factor.
+	RiskFactorNetwork RiskFactorType = "network"
+	// RiskFactorVelocity indicates a velocity-based risk factor.
+	RiskFactorVelocity RiskFactorType = "velocity"
 	RiskFactorAuthentication RiskFactorType = "authentication"
 )
 

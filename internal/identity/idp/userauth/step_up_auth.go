@@ -18,12 +18,18 @@ import (
 // AuthenticationLevel represents the strength/level of authentication.
 type AuthenticationLevel int
 
+// Authentication level constants.
 const (
-	AuthLevelNone      AuthenticationLevel = 0 // Not authenticated.
-	AuthLevelBasic     AuthenticationLevel = 1 // Password only.
-	AuthLevelMFA       AuthenticationLevel = 2 // Multi-factor authentication.
-	AuthLevelStepUp    AuthenticationLevel = 3 // Step-up authentication completed.
-	AuthLevelStrongMFA AuthenticationLevel = 4 // Strong MFA (hardware key, biometric).
+	// AuthLevelNone indicates no authentication.
+	AuthLevelNone AuthenticationLevel = 0
+	// AuthLevelBasic indicates password-only authentication.
+	AuthLevelBasic AuthenticationLevel = 1
+	// AuthLevelMFA indicates multi-factor authentication.
+	AuthLevelMFA AuthenticationLevel = 2
+	// AuthLevelStepUp indicates step-up authentication completed.
+	AuthLevelStepUp AuthenticationLevel = 3
+	// AuthLevelStrongMFA indicates strong MFA (hardware key, biometric).
+	AuthLevelStrongMFA AuthenticationLevel = 4
 )
 
 const (

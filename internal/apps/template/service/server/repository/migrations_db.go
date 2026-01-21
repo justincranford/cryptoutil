@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// InitPostgreSQL initializes a PostgreSQL database connection with GORM.
 func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
 	sqlDB, err := sql.Open("pgx", databaseURL)
 	if err != nil {
@@ -54,6 +55,7 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS)
 	return db, nil
 }
 
+// InitSQLite initializes a SQLite database connection with GORM.
 func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
 	// Open SQLite database.
 	sqlDB, err := sql.Open("sqlite", databaseURL)
@@ -99,6 +101,7 @@ func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*g
 	return db, nil
 }
 
+// ApplyMigrations applies database migrations using the embedded migration files.
 func ApplyMigrations(db *sql.DB, dbType DatabaseType, migrationsFS fs.FS) error {
 	runner := NewMigrationRunner(migrationsFS, "migrations")
 

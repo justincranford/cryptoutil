@@ -17,6 +17,7 @@ type StrictServer struct {
 	oasOamMapper         *oamOasMapper
 }
 
+// NewOpenapiStrictServer creates a new OpenAPI strict server handler.
 func NewOpenapiStrictServer(service *cryptoutilBusinessLogic.BusinessLogicService) *StrictServer {
 	return &StrictServer{businessLogicService: service, oasOamMapper: &oamOasMapper{}}
 }

@@ -19,6 +19,7 @@ import (
 // CredentialType represents the type of WebAuthn credential.
 type CredentialType string
 
+// CredentialTypePasskey is the credential type for passkey-based authentication.
 const (
 	CredentialTypePasskey CredentialType = "passkey"
 )

@@ -15,6 +15,7 @@ import (
 	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
+// NewStatusCommand creates a status command for identity services.
 func NewStatusCommand() *cobra.Command {
 	var jsonOutput bool
 

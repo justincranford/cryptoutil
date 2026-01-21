@@ -12,6 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// ElasticKey represents a key envelope that can contain multiple material key versions.
 type ElasticKey struct {
 	ElasticKeyID                googleUuid.UUID                            `gorm:"type:uuid;primaryKey"`
 	ElasticKeyName              string                                     `gorm:"size:63;not null;check:length(elastic_key_name) >= 1;unique"`
@@ -23,6 +24,7 @@ type ElasticKey struct {
 	ElasticKeyStatus            cryptoutilOpenapiModel.ElasticKeyStatus    `gorm:"size:34;not null;check:elastic_key_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
 }
 
+// MaterialKey represents a specific key version within an elastic key.
 type MaterialKey struct {
 	ElasticKeyID                  googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	MaterialKeyID                 googleUuid.UUID `gorm:"type:uuid;primaryKey"`

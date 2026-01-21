@@ -18,9 +18,10 @@ import (
 const (
 	bytesPerUint32 = 4
 	bitsPerByte    = 8
-	SkipMessage    = "Skipped by probability sampling"
-	float32_0      = float32(0.0)
-	float32_1      = float32(1.0)
+	// SkipMessage is the message used when a test is skipped by probability sampling.
+	SkipMessage = "Skipped by probability sampling"
+	float32_0   = float32(0.0)
+	float32_1   = float32(1.0)
 )
 
 var (

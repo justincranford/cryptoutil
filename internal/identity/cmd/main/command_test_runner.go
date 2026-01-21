@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewTestCommand creates a test runner command for identity services.
 func NewTestCommand() *cobra.Command {
 	var (
 		suite string

@@ -18,6 +18,7 @@ const (
 	defaultMaxRetries = 3
 )
 
+// NewHealthCommand creates a health check command for identity services.
 func NewHealthCommand() *cobra.Command {
 	var timeoutStr string
 

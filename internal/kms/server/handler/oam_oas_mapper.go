@@ -16,6 +16,7 @@ import (
 
 type oamOasMapper struct{}
 
+// NewOasOamMapper creates a new mapper between OpenAPI Model and OpenAPI Server types.
 func NewOasOamMapper() *oamOasMapper {
 	return &oamOasMapper{}
 }

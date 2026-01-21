@@ -40,95 +40,104 @@ type CircularDepCache struct {
 // Regex patterns for test enforcement.
 
 const (
-	// UI constants.
+	// SeparatorLength is the UI separator length constant.
 	SeparatorLength = 50
 
 	// MinActionMatchGroups is the minimum number of regex match groups for action parsing.
 	MinActionMatchGroups = 3
 
-	// Cache file permissions (owner read/write only).
+	// CacheFilePermissions is the cache file permissions (owner read/write only).
 	CacheFilePermissions = 0o600
 
 	// CacheDuration is the duration after which cache entries expire.
 	CacheDuration = 5 * time.Minute
 
-	// Directory permissions (owner read/write/execute, group and others execute).
+	// CICDOutputDirPermissions is the directory permissions (owner read/write/execute, group and others execute).
 	CICDOutputDirPermissions = 0o711
 
-	// CICD output directory for all generated files, reports, and cache files.
-	// Centralizes all cicd outputs to declutter repo root, simplify .gitignore patterns,
-	// and simplify VS Code settings.json file exclusions.
+	// CICDOutputDir is the CICD output directory for all generated files, reports, and cache files.
 	CICDOutputDir = ".cicd"
 
-	// CICD output file permissions (owner read/write, group/others read).
+	// CICDOutputFilePermissions is the CICD output file permissions (owner read/write, group/others read).
 	CICDOutputFilePermissions = 0o644
 
-	// Identity project paths.
-	CICDIdentityProjectStatusPath        = "docs/02-identityV2/PROJECT-STATUS.md"
+	// CICDIdentityProjectStatusPath is the identity project status path.
+	CICDIdentityProjectStatusPath = "docs/02-identityV2/PROJECT-STATUS.md"
+	// CICDIdentityRequirementsCoveragePath is the identity requirements coverage path.
 	CICDIdentityRequirementsCoveragePath = "docs/02-identityV2/REQUIREMENTS-COVERAGE.md"
-	CICDIdentityTaskDocsDir              = "docs/02-identityV2/passthru5/"
+	// CICDIdentityTaskDocsDir is the identity task docs directory path.
+	CICDIdentityTaskDocsDir = "docs/02-identityV2/passthru5/"
 
-	// Requirements coverage regex pattern groups.
-	RequirementsTotalPatternGroups        = 4
-	RequirementsPriorityPatternGroups     = 4
+	// RequirementsTotalPatternGroups is the requirements coverage regex pattern groups count.
+	RequirementsTotalPatternGroups = 4
+	// RequirementsPriorityPatternGroups is the requirements priority pattern groups count.
+	RequirementsPriorityPatternGroups = 4
+	// RequirementsTaskCoveragePatternGroups is the requirements task coverage pattern groups count.
 	RequirementsTaskCoveragePatternGroups = 3
-	RequirementsUncoveredPatternGroups    = 2
+	// RequirementsUncoveredPatternGroups is the requirements uncovered pattern groups count.
+	RequirementsUncoveredPatternGroups = 2
 
-	// Test coverage regex pattern groups.
+	// TestCoveragePatternGroups is the test coverage regex pattern groups count.
 	TestCoveragePatternGroups = 2
 
-	// Git short hash length.
+	// GitShortHashLength is the git short hash length.
 	GitShortHashLength = 8
 
-	// Git recent activity days lookback.
+	// GitRecentActivityDays is the git recent activity days lookback.
 	GitRecentActivityDays = 7
 
-	// Date format for PROJECT-STATUS.md timestamps.
+	// DateFormatYYYYMMDD is the date format for PROJECT-STATUS.md timestamps.
 	DateFormatYYYYMMDD = "2006-01-02"
 
-	// Percent multiplier for coverage calculations.
+	// PercentMultiplier is the percent multiplier for coverage calculations.
 	PercentMultiplier = 100.0
 
-	// Production readiness thresholds.
+	// RequirementsProductionReadyThreshold is the production readiness threshold for requirements.
 	RequirementsProductionReadyThreshold = 85.0
+	// TestCoverageProductionReadyThreshold is the production readiness threshold for test coverage.
 	TestCoverageProductionReadyThreshold = 85.0
-	RequirementsConditionalThreshold     = 80.0
-	TestCoverageConditionalThreshold     = 80.0
-	RequirementsTaskMinimumThreshold     = 90.0
+	// RequirementsConditionalThreshold is the conditional threshold for requirements.
+	RequirementsConditionalThreshold = 80.0
+	// TestCoverageConditionalThreshold is the conditional threshold for test coverage.
+	TestCoverageConditionalThreshold = 80.0
+	// RequirementsTaskMinimumThreshold is the minimum threshold for requirements tasks.
+	RequirementsTaskMinimumThreshold = 90.0
 
-	// Dependency cache file name.
+	// DepCacheFileName is the dependency cache file name.
 	DepCacheFileName = ".cicd/dep-cache.json"
 
-	// Circular dependency cache file name.
+	// CircularDepCacheFileName is the circular dependency cache file name.
 	CircularDepCacheFileName = ".cicd/circular-dep-cache.json"
 
-	// ListAllFiles start directory.
+	// ListAllFilesStartDirectory is the ListAllFiles start directory.
 	ListAllFilesStartDirectory = "."
 
-	// Dependency check mode names.
+	// ModeNameDirect is the dependency check mode name for direct dependencies.
 	ModeNameDirect = "direct"
-	ModeNameAll    = "all"
+	// ModeNameAll is the dependency check mode name for all dependencies.
+	ModeNameAll = "all"
 
-	// Time constants for dependency cache testing.
+	// TestCacheValidMinutes is the time constants for dependency cache testing.
 	TestCacheValidMinutes = 30
+	// TestCacheExpiredHours is the time constants for expired cache testing.
 	TestCacheExpiredHours = 2
 
-	// Dependency cache validity duration.
+	// DepCacheValidDuration is the dependency cache validity duration.
 	DepCacheValidDuration = 30 * time.Minute
 
-	// Circular dependency cache validity (longer since go.mod changes less frequently).
+	// CircularDepCacheValidDuration is the circular dependency cache validity duration.
 	CircularDepCacheValidDuration = 60 * time.Minute
 
-	// Time constants for GitHub API cache testing.
+	// TestGitHubAPICacheExpiredHours is the time constants for GitHub API cache testing.
 	TestGitHubAPICacheExpiredHours = 1
 
-	// Time format for logging and timestamps.
+	// TimeFormat is the time format for logging and timestamps.
 	TimeFormat = "2006-01-02T15:04:05.999999999Z07:00"
 
-	// Number of worker threads for concurrent file processing operations.
+	// Utf8EnforceWorkerPoolSize is the number of worker threads for concurrent file processing operations.
 	Utf8EnforceWorkerPoolSize = 6
 
-	// Usage message for the cicd command.
+	// UsageCICD is the usage message for the cicd command.
 	UsageCICD = `Usage: cicd <command> [command...]
 
 	Commands:

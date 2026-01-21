@@ -15,6 +15,7 @@ import (
 	cryptoutilIdentityProcess "cryptoutil/internal/identity/process"
 )
 
+// NewStopCommand creates a stop command for identity services.
 func NewStopCommand() *cobra.Command {
 	var (
 		force      bool

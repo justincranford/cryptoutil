@@ -161,7 +161,7 @@ func (t *MFATelemetry) StartValidationSpan(ctx context.Context, factorType strin
 	)
 }
 
-// StartRequiresM FASpan starts distributed tracing span for RequiresMFA check.
+// StartRequiresMFASpan starts distributed tracing span for RequiresMFA check.
 func (t *MFATelemetry) StartRequiresMFASpan(ctx context.Context, authProfileID googleUuid.UUID) (context.Context, trace.Span) {
 	return t.tracer.Start(ctx, "mfa.requires_mfa",
 		trace.WithAttributes(
