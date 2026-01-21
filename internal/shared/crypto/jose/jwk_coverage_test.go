@@ -257,7 +257,6 @@ func TestCreateJWEJWKFromKey_ECDH_P256(t *testing.T) {
 	require.NotNil(t, decryptJWK)
 	require.NotEmpty(t, encryptBytes)
 	require.NotEmpty(t, decryptBytes)
-
 	// Note: ECDH JWK type checking has go-jose library limitations:
 	// - ECDH keys may not match expected ECDSAPublicKey/ECDSAPrivateKey types
 	// - IsDecryptJWK requires enc header which may not be set on imported keys

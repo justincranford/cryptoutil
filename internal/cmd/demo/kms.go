@@ -11,8 +11,8 @@ import (
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // KMS demo step counts.

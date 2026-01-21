@@ -329,7 +329,6 @@ func TestE2E_SQLiteInstanceIsolation(t *testing.T) {
 	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode, "SQLite instance should be healthy")
-
 	// Note: SQLite uses in-memory database (file::memory:?cache=shared).
 	// Each instance has isolated state (NOT shared with PostgreSQL instances).
 	// This is intentional design for dev/testing with zero external dependencies.
@@ -341,8 +340,8 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		publicURL string
+		name       string
+		publicURL  string
 		useBrowser bool
 	}{
 		{sqliteContainer + "_browser", sqlitePublicURL, true},
@@ -382,11 +381,11 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 
 			resp, err := sharedHTTPClient.Do(req)
 			require.NoError(t, err, "User registration should succeed")
+
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, http.StatusCreated, resp.StatusCode,
 				"Registration with create_tenant=true should return 201 Created")
-
 			// TODO: Parse response JSON to extract tenant_id and verify it's returned.
 			// For now, just verify 201 status indicates success.
 		})
@@ -399,8 +398,8 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		publicURL string
+		name       string
+		publicURL  string
 		useBrowser bool
 	}{
 		{sqliteContainer + "_browser", sqlitePublicURL, true},
@@ -439,6 +438,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 
 			ownerResp, err := sharedHTTPClient.Do(ownerReq)
 			require.NoError(t, err, "Owner registration should succeed")
+
 			defer func() { _ = ownerResp.Body.Close() }()
 
 			require.Equal(t, http.StatusCreated, ownerResp.StatusCode,
@@ -466,6 +466,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 
 			joinerResp, err := sharedHTTPClient.Do(joinerReq)
 			require.NoError(t, err, "Joiner registration should complete")
+
 			defer func() { _ = joinerResp.Body.Close() }()
 
 			// Join request should either:
@@ -484,8 +485,8 @@ func TestE2E_AdminJoinRequestManagement(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		publicURL string
+		name       string
+		publicURL  string
 		useBrowser bool
 	}{
 		{sqliteContainer + "_browser", sqlitePublicURL, true},
@@ -515,13 +516,13 @@ func TestE2E_AdminJoinRequestManagement(t *testing.T) {
 
 			listResp, err := sharedHTTPClient.Do(listReq)
 			require.NoError(t, err, "List join requests should succeed")
+
 			defer func() { _ = listResp.Body.Close() }()
 
 			// List endpoint should return 200 OK (even if no join requests exist).
 			// Or 401 Unauthorized if authentication is required (TODO: implement auth middleware).
 			require.Contains(t, []int{http.StatusOK, http.StatusUnauthorized}, listResp.StatusCode,
 				"List join requests should return 200 OK or 401 Unauthorized (if auth required)")
-
 			// TODO: Test approve/reject endpoints once we can create valid join requests and extract their IDs.
 			// For now, this validates the routes are registered and responding.
 		})

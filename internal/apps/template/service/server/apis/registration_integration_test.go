@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -604,4 +605,71 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 		}
 	}
 	require.True(t, foundOurRequest, "Our join request should be in the list")
+}
+
+// TestIntegration_ProcessJoinRequest_InvalidID tests handling of invalid request IDs.
+func TestIntegration_ProcessJoinRequest_InvalidID(t *testing.T) {
+	t.Parallel()
+
+	reqBody := `{"approved": true}`
+	req := httptest.NewRequest(http.MethodPut, "/admin/api/v1/join-requests/invalid-uuid", strings.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := testJoinRequestMgmtApp.Test(req, -1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var result map[string]interface{}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
+	require.Contains(t, result, "error")
+	require.Equal(t, "Invalid request ID", result["error"])
+}
+
+// TestIntegration_ProcessJoinRequest_InvalidJSON tests handling of malformed JSON in request body.
+func TestIntegration_ProcessJoinRequest_InvalidJSON(t *testing.T) {
+	t.Parallel()
+
+	validID := googleUuid.New().String()
+	req := httptest.NewRequest(http.MethodPut, "/admin/api/v1/join-requests/"+validID, strings.NewReader("{invalid json"))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := testJoinRequestMgmtApp.Test(req, -1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var result map[string]interface{}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
+	require.Contains(t, result, "error")
+	require.Equal(t, "Invalid request body", result["error"])
+}
+
+// TestRegistrationRoutes_MethodNotAllowed tests unsupported HTTP methods return 405.
+func TestRegistrationRoutes_MethodNotAllowed(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{"GET on register endpoint", http.MethodGet, "/browser/api/v1/auth/register"},
+		{"DELETE on register endpoint", http.MethodDelete, "/browser/api/v1/auth/register"},
+		{"PATCH on register endpoint", http.MethodPatch, "/browser/api/v1/auth/register"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+
+			resp, err := testRegistrationApp.Test(req, -1)
+			require.NoError(t, err)
+			defer func() { require.NoError(t, resp.Body.Close()) }()
+
+			require.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+		})
+	}
 }

@@ -82,6 +82,7 @@ func TestScheduledRotation_OneExpiringSecret(t *testing.T) {
 
 	// Verify only 1 client exists before rotation.
 	var clientCount int64
+
 	db.Model(&cryptoutilIdentityDomain.Client{}).Count(&clientCount)
 	require.Equal(t, int64(1), clientCount, "Should have exactly 1 client before rotation")
 

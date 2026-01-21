@@ -276,8 +276,8 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Register tenant registration routes on PUBLIC server (unauthenticated user registration).
-	// Default rate limit: 10 requests/min per IP (TODO: make configurable).
-	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(publicServerBase.App(), registrationService, 10)
+	// Default rate limit configured via magic constant.
+	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(publicServerBase.App(), registrationService, cryptoutilMagic.RateLimitDefaultRequestsPerMin)
 
 	// Register join request management routes on ADMIN server (authenticated admin operations).
 	cryptoutilTemplateAPIs.RegisterJoinRequestManagementRoutes(adminServer.App(), registrationService)

@@ -20,6 +20,7 @@ import (
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the cipher-im public server by embedding PublicServerBase.
@@ -170,8 +171,8 @@ func (s *PublicServer) registerRoutes() error {
 	app.Get("/browser/api/v1/messages/rx", browserSessionMiddleware, s.messageHandler.HandleReceiveMessages())
 	app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
 
-	// Register tenant registration routes (from template).
-	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(app, s.registrationService)
+	// Register tenant registration routes (from template) with default rate limit.
+	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(app, s.registrationService, cryptoutilMagic.RateLimitDefaultRequestsPerMin)
 
 	return nil
 }

@@ -236,7 +236,6 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 	for range 10 {
 		<-done
 	}
-
 	// No assertions needed - just verify no panics/crashes during concurrent logging.
 }
 
@@ -290,7 +289,6 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 
 	err = logger.LogValidationAttempt(ctx, valEvent)
 	require.NoError(t, err)
-
 	// CRITICAL: This test verifies the audit logger doesn't panic with PII data.
 	// Actual PII masking is tested in TestExtractDomain and TestMaskIPAddress.
 	// Production verification: grep logs for full phone/email/IP (should find none).

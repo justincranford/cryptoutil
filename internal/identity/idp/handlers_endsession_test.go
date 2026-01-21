@@ -181,7 +181,6 @@ func TestHandleEndSession_GET(t *testing.T) {
 			// Note: Not using t.Parallel() here because all subtests share the same
 			// in-memory SQLite database. With parallel subtests, each gets a separate
 			// database connection which creates a new empty database in :memory: mode.
-
 			// Build URL with query parameters.
 			reqURL := "/oidc/v1/endsession"
 

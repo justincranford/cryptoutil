@@ -267,6 +267,7 @@ func extractScopes(result map[string]any) []string {
 	// Handle []any (JSON array).
 	if scopeArray, ok := scope.([]any); ok {
 		scopes := make([]string, 0, len(scopeArray))
+
 		for _, s := range scopeArray {
 			if str, ok := s.(string); ok {
 				scopes = append(scopes, str)

@@ -94,6 +94,7 @@ func (j *CleanupJob) cleanup(ctx context.Context) {
 	tokensDeleted, err := j.cleanupExpiredTokens(ctx, now)
 	if err != nil {
 		j.logger.Error("Failed to cleanup expired tokens", "error", err)
+
 		j.metrics.ErrorCount++
 		j.metrics.LastError = fmt.Errorf("token cleanup failed: %w", err)
 
@@ -104,6 +105,7 @@ func (j *CleanupJob) cleanup(ctx context.Context) {
 	sessionsDeleted, err := j.cleanupExpiredSessions(ctx, now)
 	if err != nil {
 		j.logger.Error("Failed to cleanup expired sessions", "error", err)
+
 		j.metrics.ErrorCount++
 		j.metrics.LastError = fmt.Errorf("session cleanup failed: %w", err)
 

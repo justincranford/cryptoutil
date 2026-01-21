@@ -123,7 +123,6 @@ func TestCleanupService_StartStopLifecycle(t *testing.T) {
 
 	// Stop cleanup service gracefully.
 	cleanup.Stop()
-
 	// Verify cleanup service stopped (no panic, no hang).
 }
 

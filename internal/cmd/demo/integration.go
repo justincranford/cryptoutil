@@ -19,13 +19,13 @@ import (
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // Integration demo step counts.

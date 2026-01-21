@@ -249,7 +249,6 @@ func TestCleanupService_ErrorHandling(t *testing.T) {
 
 	// Stop cleanup service (should complete gracefully despite errors).
 	cleanupService.Stop()
-
 	// Test passes if no panic occurs and Stop() completes.
 }
 

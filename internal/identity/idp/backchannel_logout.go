@@ -61,6 +61,7 @@ func (s *BackChannelLogoutService) SendBackChannelLogout(ctx context.Context, se
 				"client_id", client.ClientID,
 				"error", err,
 			)
+
 			errors = append(errors, fmt.Errorf("failed to generate logout token for %s: %w", client.ClientID, err))
 
 			continue
@@ -73,6 +74,7 @@ func (s *BackChannelLogoutService) SendBackChannelLogout(ctx context.Context, se
 				"uri", client.BackChannelLogoutURI,
 				"error", err,
 			)
+
 			errors = append(errors, fmt.Errorf("failed to deliver logout token to %s: %w", client.ClientID, err))
 
 			continue

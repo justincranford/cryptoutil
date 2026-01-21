@@ -161,6 +161,5 @@ func TestInventoryStub(t *testing.T) {
 	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]any{
 		"timestamp": "2025-01-15T12:00:00Z",
 	})
-
 	// No assertions - this is a smoke test for audit logging.
 }

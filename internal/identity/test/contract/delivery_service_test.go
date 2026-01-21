@@ -46,7 +46,6 @@ func (c *DeliveryServiceContractTests) TestDeliverySMSInvalidPhoneNumber(t *test
 
 	err := provider.SendSMS(ctx, "", "Test message")
 	require.Error(t, err, "SendSMS should fail for empty phone number")
-
 	// Note: Invalid format validation is implementation-specific.
 	// Mocks don't validate phone number format, only empty check.
 }
@@ -82,7 +81,6 @@ func (c *DeliveryServiceContractTests) TestDeliveryEmailInvalidRecipient(t *test
 
 	err := provider.SendEmail(ctx, "", "Subject", "Body")
 	require.Error(t, err, "SendEmail should fail for empty recipient")
-
 	// Note: Invalid email format validation is implementation-specific.
 	// Mocks don't validate email format, only empty check.
 }

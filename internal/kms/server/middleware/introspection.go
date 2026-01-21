@@ -202,6 +202,7 @@ func (b *BatchIntrospector) deduplicateTokens(tokens []string) []string {
 	for _, token := range tokens {
 		if !seen[token] {
 			seen[token] = true
+
 			unique = append(unique, token)
 		}
 	}

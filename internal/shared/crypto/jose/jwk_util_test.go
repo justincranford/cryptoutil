@@ -1144,10 +1144,12 @@ func TestCreateJWKFromKey_HMAC_HS256(t *testing.T) {
 	require.Equal(t, kid.String(), keyID)
 
 	var algVal joseJwa.SignatureAlgorithm
+
 	require.NoError(t, nonPublicJWK.Get(joseJwk.AlgorithmKey, &algVal))
 	require.Equal(t, AlgHS256, algVal)
 
 	var useVal string
+
 	require.NoError(t, nonPublicJWK.Get(joseJwk.KeyUsageKey, &useVal))
 	require.Equal(t, string(joseJwk.ForSignature), useVal)
 }
@@ -1170,6 +1172,7 @@ func TestCreateJWKFromKey_HMAC_HS384(t *testing.T) {
 	require.Empty(t, publicBytes)
 
 	var algVal joseJwa.SignatureAlgorithm
+
 	require.NoError(t, nonPublicJWK.Get(joseJwk.AlgorithmKey, &algVal))
 	require.Equal(t, AlgHS384, algVal)
 }
@@ -1192,6 +1195,7 @@ func TestCreateJWKFromKey_HMAC_HS512(t *testing.T) {
 	require.Empty(t, publicBytes)
 
 	var algVal joseJwa.SignatureAlgorithm
+
 	require.NoError(t, nonPublicJWK.Get(joseJwk.AlgorithmKey, &algVal))
 	require.Equal(t, AlgHS512, algVal)
 }
@@ -1267,6 +1271,7 @@ func TestCreateJWKFromKey_RSA(t *testing.T) {
 
 	// Verify key type.
 	var ktyVal joseJwa.KeyType
+
 	require.NoError(t, nonPublicJWK.Get(joseJwk.KeyTypeKey, &ktyVal))
 	require.Equal(t, KtyRSA, ktyVal)
 }
@@ -1290,6 +1295,7 @@ func TestCreateJWKFromKey_ECDSA(t *testing.T) {
 
 	// Verify key type.
 	var ktyVal joseJwa.KeyType
+
 	require.NoError(t, nonPublicJWK.Get(joseJwk.KeyTypeKey, &ktyVal))
 	require.Equal(t, KtyEC, ktyVal)
 }
@@ -1313,6 +1319,7 @@ func TestCreateJWKFromKey_EdDSA(t *testing.T) {
 
 	// Verify key type.
 	var ktyVal joseJwa.KeyType
+
 	require.NoError(t, nonPublicJWK.Get(joseJwk.KeyTypeKey, &ktyVal))
 	require.Equal(t, KtyOKP, ktyVal)
 }

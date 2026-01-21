@@ -55,6 +55,7 @@ func TestEncryptDecryptKey_AES256KW(t *testing.T) {
 
 	// Verify decrypted CEK kid matches original.
 	var decryptedKid string
+
 	require.NoError(t, decryptedCEK.Get(joseJwk.KeyIDKey, &decryptedKid))
 	require.Equal(t, cekKid.String(), decryptedKid)
 }
@@ -103,6 +104,7 @@ func TestEncryptDecryptKey_RSAOAEP(t *testing.T) {
 
 	// Verify kid.
 	var decryptedKid string
+
 	require.NoError(t, decryptedCEK.Get(joseJwk.KeyIDKey, &decryptedKid))
 	require.Equal(t, cekKid.String(), decryptedKid)
 }

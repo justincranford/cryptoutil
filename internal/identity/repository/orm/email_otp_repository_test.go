@@ -393,6 +393,7 @@ func TestEmailOTPRepository_DeleteExpired(t *testing.T) {
 
 			// Verify remaining count.
 			var remaining []cryptoutilIdentityDomain.EmailOTP
+
 			require.NoError(t, db.Find(&remaining).Error)
 			require.Len(t, remaining, tt.remainingCount)
 		})

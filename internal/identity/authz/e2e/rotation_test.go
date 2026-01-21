@@ -135,6 +135,7 @@ func TestMultiClientConcurrentRotation(t *testing.T) {
 
 	// Step 2: Rotate all 5 clients concurrently
 	errChan := make(chan error, clientCount)
+
 	for i := 0; i < clientCount; i++ {
 		clientID := clients[i].ID
 

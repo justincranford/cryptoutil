@@ -77,7 +77,6 @@ func TestDeviceAuthorizationFlow_HappyPath(t *testing.T) {
 	require.Equal(t, cryptoutilIdentityDomain.DeviceAuthStatusAuthorized, deviceAuth.Status, "Device should be authorized")
 	require.True(t, deviceAuth.UserID.Valid, "UserID should be set")
 	require.Equal(t, testUser.ID, deviceAuth.UserID.UUID, "UserID should match test user")
-
 	// Note: Token issuance step skipped in this test because TokenService setup is complex.
 	// Token issuance is tested separately in other unit tests.
 }

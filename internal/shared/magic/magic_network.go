@@ -61,6 +61,8 @@ const (
 
 // Rate limiting constants.
 const (
+	// RateLimitDefaultRequestsPerMin - Default requests per minute for token bucket rate limiter.
+	RateLimitDefaultRequestsPerMin = 10
 	// RateLimitDefaultBurstSize - Default burst size for token bucket rate limiter.
 	RateLimitDefaultBurstSize = 5
 	// RateLimitSecondsPerMinute - Seconds per minute (60) for rate limit calculations.

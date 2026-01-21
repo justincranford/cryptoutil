@@ -177,7 +177,6 @@ func TestJWKGenService_GenerateJWEJWK_UnsupportedAlgorithm(t *testing.T) {
 	_, _, _, _, _, err := testJWKGenService.GenerateJWEJWK(&invalidEnc, &AlgDir)
 	// This should not error because EncA256GCM is supported.
 	require.NoError(t, err)
-
 	// Test unsupported ALG - these algorithms exist in JWA but not in GenerateJWEJWK switch.
 	// Since we can't create invalid enum values, skip this test.
 	// The default case in GenerateJWEJWK covers this path via unit tests.
@@ -226,7 +225,6 @@ func TestJWKGenService_GenerateJWSJWK_AllAlgorithms(t *testing.T) {
 // TestJWKGenService_GenerateJWSJWK_UnsupportedAlgorithm tests error path.
 func TestJWKGenService_GenerateJWSJWK_UnsupportedAlgorithm(t *testing.T) {
 	t.Parallel()
-
 	// Since SignatureAlgorithm is strongly typed enum, we can't create invalid values.
 	// The default case in GenerateJWSJWK is covered by the comprehensive algorithm tests above.
 	// Any algorithm not in the switch statement would be a compile-time error if we tried to use it.

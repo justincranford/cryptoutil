@@ -177,6 +177,7 @@ func TestParameterSetRegistry_ConcurrentAccess(t *testing.T) {
 
 	// Spawn goroutines to access registry concurrently.
 	done := make(chan bool, iterations)
+
 	for i := range iterations {
 		go func(idx int) {
 			defer func() { done <- true }()

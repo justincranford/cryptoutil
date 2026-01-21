@@ -330,7 +330,6 @@ func TestErrorResponse(t *testing.T) {
 
 func TestNewHandlerWithNilStorage(t *testing.T) {
 	t.Parallel()
-
 	// Test that NewHandler fails when storage is nil.
 	// We need to pass a non-nil issuer to get past the first check.
 	// Since we don't have a real issuer in unit tests, this test validates

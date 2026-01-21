@@ -443,6 +443,7 @@ func TestConfigureTLSForMTLS(t *testing.T) {
 
 			// Verify TLS 1.3 minimum.
 			const tlsVersion13 uint16 = 0x0304
+
 			require.Equal(t, tlsVersion13, tlsConfig.MinVersion)
 		})
 	}

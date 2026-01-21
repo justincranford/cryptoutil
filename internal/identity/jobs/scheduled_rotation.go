@@ -11,9 +11,9 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // ScheduledRotationConfig holds configuration for scheduled rotation.

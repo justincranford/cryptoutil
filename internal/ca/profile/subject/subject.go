@@ -357,6 +357,7 @@ func (p *Profile) resolveSANs(req *Request, resolved *ResolvedSubject) error {
 		}
 
 		resolved.IPAddresses = make([]net.IP, 0, len(req.IPAddresses))
+
 		for _, ipStr := range req.IPAddresses {
 			ip := net.ParseIP(ipStr)
 			if ip == nil {
@@ -401,6 +402,7 @@ func (p *Profile) resolveSANs(req *Request, resolved *ResolvedSubject) error {
 		}
 
 		resolved.URIs = make([]*url.URL, 0, len(req.URIs))
+
 		for _, uriStr := range req.URIs {
 			parsedURI, err := url.Parse(uriStr)
 			if err != nil {

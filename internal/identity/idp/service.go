@@ -73,7 +73,6 @@ func (s *Service) initializeAuthProfiles() {
 	// Register username/password authentication.
 	usernamePasswordProfile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(s.repoFactory.UserRepository())
 	s.authProfiles.Register(usernamePasswordProfile)
-
 	// Future authentication profiles to register:
 	// - Email + OTP: cryptoutilIdentityAuth.NewEmailOTPProfile(...)
 	// - TOTP: cryptoutilIdentityAuth.NewTOTPProfile(...)

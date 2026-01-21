@@ -103,7 +103,6 @@ func TestWriteFile(t *testing.T) {
 				}
 
 				require.Equal(t, expectedContent, content, "File content should match")
-
 				// Note: Skip permission verification on Windows as file permissions work differently
 			}
 		})

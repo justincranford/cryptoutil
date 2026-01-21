@@ -150,7 +150,6 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 	if err := authzReqRepo.Update(ctx, authRequest); err != nil {
 		slog.ErrorContext(ctx, "Failed to mark authorization code as used", "error", err, "request_id", authRequest.ID)
-
 		// Continue anyway - token issuance is more important than cleanup.
 	}
 

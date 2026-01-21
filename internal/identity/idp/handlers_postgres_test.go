@@ -84,7 +84,6 @@ func TestPostgreSQLIntegration(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// NOTE: Don't use t.Parallel() in subtests when sharing database connection.
 			// Parallel subtests caused "database is closed" errors due to premature cleanup.
-
 			// Run test function with shared repoFactory.
 			tc.testFunc(t, repoFactory)
 		})

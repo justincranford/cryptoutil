@@ -316,6 +316,7 @@ func TestCreateJWSJWKFromKey_PublicKeyExtraction(t *testing.T) {
 
 	// Verify public key extracted successfully.
 	var kidFromPublic string
+
 	require.NoError(t, publicJWK.Get(joseJwk.KeyIDKey, &kidFromPublic))
 	require.Equal(t, kid.String(), kidFromPublic)
 }

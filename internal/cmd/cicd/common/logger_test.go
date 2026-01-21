@@ -19,7 +19,6 @@ import (
 
 func TestNewLogger(t *testing.T) {
 	// Note: Not using t.Parallel() to avoid stderr capture conflicts
-
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe() //nolint:errcheck // Test infrastructure
@@ -44,7 +43,6 @@ func TestNewLogger(t *testing.T) {
 
 func TestLogger_Log(t *testing.T) {
 	// Note: Not using t.Parallel() to avoid stderr capture conflicts
-
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -72,7 +70,6 @@ func TestLogger_Log(t *testing.T) {
 
 func TestLogger_LogError(t *testing.T) {
 	// Note: Not using t.Parallel() to avoid stderr capture conflicts
-
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -97,7 +94,6 @@ func TestLogger_LogError(t *testing.T) {
 
 func TestLogger_LogWithPrefix(t *testing.T) {
 	// Note: Not using t.Parallel() to avoid stderr capture conflicts
-
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -147,7 +143,6 @@ func TestLogger_Operation(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			// Not using t.Parallel() - see parent comment
-
 			// Capture stderr to prevent test output pollution
 			oldStderr := os.Stderr
 			r, w, _ := os.Pipe()
@@ -170,7 +165,6 @@ func TestLogger_Operation(t *testing.T) {
 
 func TestLogger_MultipleLogs(t *testing.T) {
 	// Note: Not using t.Parallel() to avoid stderr capture conflicts
-
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -207,7 +201,6 @@ func TestLogger_MultipleLogs(t *testing.T) {
 
 func TestLogger_ConcurrentLogging(t *testing.T) {
 	// Note: Not using t.Parallel() to avoid stderr capture conflicts
-
 	// Capture stderr
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()

@@ -100,6 +100,7 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
 	var enrollResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&enrollResp))
 	require.NotEmpty(t, enrollResp["id"])
 	require.Equal(t, "totp", enrollResp["factor_type"])
@@ -141,6 +142,7 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 	var errResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	require.Equal(t, "invalid_request", errResp["error"])
 	require.Contains(t, errResp["error_description"], "invalid user_id format")
@@ -178,6 +180,7 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
 	var errResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	require.Equal(t, "user_not_found", errResp["error"])
 }
@@ -224,6 +227,7 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 	var errResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	require.Equal(t, "invalid_request", errResp["error"])
 	require.Contains(t, errResp["error_description"], "invalid factor_type")
@@ -297,6 +301,7 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	var listResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&listResp))
 
 	factors, ok := listResp["factors"].([]any)
@@ -352,6 +357,7 @@ func TestHandleListMFAFactors_NoFactors(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	var listResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&listResp))
 
 	factors, ok := listResp["factors"].([]any)
@@ -381,6 +387,7 @@ func TestHandleListMFAFactors_InvalidUserID(t *testing.T) {
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
 	var errResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	require.Equal(t, "invalid_request", errResp["error"])
 	require.Contains(t, errResp["error_description"], "invalid user_id format")
@@ -482,6 +489,7 @@ func TestHandleDeleteMFAFactor_FactorNotFound(t *testing.T) {
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
 	var errResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	require.Equal(t, "factor_not_found", errResp["error"])
 }
@@ -555,6 +563,7 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 	require.Equal(t, fiber.StatusForbidden, resp.StatusCode)
 
 	var errResp map[string]any
+
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&errResp))
 	require.Equal(t, "unauthorized", errResp["error"])
 	require.Contains(t, errResp["error_description"], "does not belong to specified user")

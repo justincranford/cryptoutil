@@ -177,7 +177,6 @@ func TestClientAuthentication_MultiSecretValidation(t *testing.T) {
 	require.NoError(t, err2)
 	require.True(t, validNew, "New secret should be valid immediately")
 	require.Equal(t, 2, versionNew)
-
 	// Note: Cannot validate old secret plaintext because Create doesn't return it.
 	// This is expected - production code never exposes plaintext after initial generation.
 	// The multi-secret validation is tested in rotation service tests where we control plaintext.

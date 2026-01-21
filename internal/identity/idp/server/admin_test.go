@@ -206,6 +206,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 		require.Equal(t, http.StatusOK, statusCode)
 
 		var response map[string]any
+
 		require.NoError(t, json.Unmarshal(body, &response))
 		require.Equal(t, "alive", response["status"])
 	})
@@ -265,6 +266,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 		statusCode, body := doAdminGet(t, baseURL+"/admin/v1/readyz")
 
 		var response map[string]any
+
 		require.NoError(t, json.Unmarshal(body, &response))
 
 		// Expect either "not ready" (503) or "ready" (200) depending on timing.
@@ -333,9 +335,9 @@ func TestAdminEndpointShutdown(t *testing.T) {
 		require.Equal(t, http.StatusOK, statusCode)
 
 		var response map[string]any
+
 		require.NoError(t, json.Unmarshal(body, &response))
 		require.Equal(t, "shutdown initiated", response["status"])
-
 		// Server is shutting down asynchronously - don't test livez after shutdown.
 	})
 }
