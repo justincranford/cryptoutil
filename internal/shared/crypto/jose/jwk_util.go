@@ -493,18 +493,22 @@ func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryp
 		}
 
 		return generatedKey, nil
-	} else {
-		aesKey, ok := key.(cryptoutilKeyGen.SecretKey) // pragma: allowlist secret
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
-		} else if aesKey == nil {
-			return nil, fmt.Errorf("invalid nil key bytes")
-		} else if len(aesKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
-			return nil, fmt.Errorf("invalid key length %d; use AES %d", len(aesKey), keyBitsLength)
-		}
-
-		return aesKey, nil
 	}
+
+	aesKey, ok := key.(cryptoutilKeyGen.SecretKey) // pragma: allowlist secret
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
+	}
+
+	if aesKey == nil {
+		return nil, fmt.Errorf("invalid nil key bytes")
+	}
+
+	if len(aesKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
+		return nil, fmt.Errorf("invalid key length %d; use AES %d", len(aesKey), keyBitsLength)
+	}
+
+	return aesKey, nil
 }
 
 // IsPublicJWK returns true if the JWK is a public key.

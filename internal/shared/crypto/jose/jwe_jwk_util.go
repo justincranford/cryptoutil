@@ -282,35 +282,41 @@ func validateOrGenerateJWERSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, ecdhCurve ecdh.Curve, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
-	} else if key == nil {
+	}
+
+	if key == nil {
 		generatedKeyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdhCurve)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate ECDH %s key: %w", *enc, *alg, ecdhCurve, err)
 		}
 
 		return generatedKeyPair, nil
-	} else {
-		keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
-		if !ok {
-			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *cryptoutilKeyGen.Key", *enc, *alg, key)
-		}
-
-		ecdhPrivateKey, ok := keyPair.Private.(*ecdh.PrivateKey)
-		if !ok {
-			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *ecdh.PrivateKey", *enc, *alg, keyPair.Private)
-		} else if ecdhPrivateKey == nil { // pragma: allowlist secret
-			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported nil ECDH private key", *enc, *alg)
-		}
-
-		ecdhPublicKey, ok := keyPair.Public.(*ecdh.PublicKey)
-		if !ok {
-			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *ecdh.PublicKey", *enc, *alg, keyPair.Public)
-		} else if ecdhPublicKey == nil {
-			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported nil ECDH public key", *enc, *alg)
-		}
-
-		return keyPair, nil
 	}
+
+	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	if !ok {
+		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *cryptoutilKeyGen.Key", *enc, *alg, key)
+	}
+
+	ecdhPrivateKey, ok := keyPair.Private.(*ecdh.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *ecdh.PrivateKey", *enc, *alg, keyPair.Private)
+	}
+
+	if ecdhPrivateKey == nil { // pragma: allowlist secret
+		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported nil ECDH private key", *enc, *alg)
+	}
+
+	ecdhPublicKey, ok := keyPair.Public.(*ecdh.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *ecdh.PublicKey", *enc, *alg, keyPair.Public)
+	}
+
+	if ecdhPublicKey == nil {
+		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported nil ECDH public key", *enc, *alg)
+	}
+
+	return keyPair, nil
 }
 
 // EncToBitsLength returns the key size in bits for a content encryption algorithm.

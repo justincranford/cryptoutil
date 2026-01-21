@@ -48,7 +48,7 @@ const (
 // TestInitDatabase_HappyPaths tests successful database initialization for PostgreSQL and SQLite.
 func TestInitDatabase_HappyPaths(t *testing.T) {
 	// Use merged filesystem to get all migrations (1001-1999 template + 2001+ cipher-im).
-	cryptoutilTemplateServerTestutil.HelpTest_InitDatabase_HappyPaths(
+	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseHappyPaths(
 		t,
 		cipherIMRepository.GetMergedMigrationsFS(),
 		expectedTableCount,
@@ -60,5 +60,5 @@ func TestInitDatabase_HappyPaths(t *testing.T) {
 // TestInitDatabase_SadPaths tests error handling for database initialization failures.
 func TestInitDatabase_SadPaths(t *testing.T) {
 	// Use merged filesystem to get all migrations (1001-1006).
-	cryptoutilTemplateServerTestutil.HelpTest_InitDatabase_SadPaths(t, cipherIMRepository.GetMergedMigrationsFS())
+	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseSadPaths(t, cipherIMRepository.GetMergedMigrationsFS())
 }

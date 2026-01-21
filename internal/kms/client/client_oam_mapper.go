@@ -1,7 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
 
+// Package client provides KMS client functionality for cryptoutil.
 package client
 
 import (

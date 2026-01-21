@@ -143,10 +143,10 @@ func InitDatabase(ctx context.Context, databaseURL string, migrationsFS fs.FS) (
 	return db, nil
 }
 
-// HelpTest_InitDatabase_HappyPaths tests successful database initialization for PostgreSQL and SQLite.
+// HelpTestInitDatabaseHappyPaths tests successful database initialization for PostgreSQL and SQLite.
 // It verifies that the database schema is correctly created by counting the number of tables.
 // Expected table count and query must be provided for each database type.
-func HelpTest_InitDatabase_HappyPaths(t *testing.T, migrationsFS fs.FS, expectedTableCount int, countTablesQueryPostgres, countTablesQuerySQLite string) {
+func HelpTestInitDatabaseHappyPaths(t *testing.T, migrationsFS fs.FS, expectedTableCount int, countTablesQueryPostgres, countTablesQuerySQLite string) {
 	tests := []struct {
 		name      string
 		setupFunc func(t *testing.T, ctx context.Context) (*sql.DB, func(), string)
@@ -207,8 +207,8 @@ func HelpTest_InitDatabase_HappyPaths(t *testing.T, migrationsFS fs.FS, expected
 	}
 }
 
-// HelpTest_InitDatabase_SadPaths tests error handling for database initialization failures.
-func HelpTest_InitDatabase_SadPaths(t *testing.T, migrationsFS fs.FS) {
+// HelpTestInitDatabaseSadPaths tests error handling for database initialization failures.
+func HelpTestInitDatabaseSadPaths(t *testing.T, migrationsFS fs.FS) {
 	tests := []struct {
 		name           string
 		setupFunc      func(ctx context.Context) error
