@@ -35,7 +35,7 @@ const (
 
 	// Default URLs for health check endpoints.
 	defaultHealthURL   = "https://127.0.0.1:8888/health"
-	defaultLivezURL    = "https://127.0.0.1:9090/admin/v1/livez"
+	defaultLivezURL    = "https://127.0.0.1:9090/admin/api/v1/livez"
 	defaultReadyzURL   = "https://127.0.0.1:9090/admin/v1/readyz"
 	defaultShutdownURL = "https://127.0.0.1:9090/admin/v1/shutdown"
 

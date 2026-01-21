@@ -86,7 +86,7 @@ Examples:
 
 Description:
   Check service liveness via admin API endpoint.
-  Calls GET /admin/v1/livez endpoint on the admin server.
+  Calls GET /admin/api/v1/livez endpoint on the admin server.
 
 Options:
   --url URL      Admin URL (default: https://127.0.0.1:9090)

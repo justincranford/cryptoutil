@@ -83,7 +83,7 @@ func TestHTTPGet(t *testing.T) {
 
 	// Test admin livez endpoint.
 	t.Run("admin_livez_endpoint", func(t *testing.T) {
-		url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/livez", adminPort)
+		url := fmt.Sprintf("https://127.0.0.1:%d/admin/api/v1/livez", adminPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
@@ -97,7 +97,7 @@ func TestHTTPGet(t *testing.T) {
 
 	// Test admin readyz endpoint.
 	t.Run("admin_readyz_endpoint", func(t *testing.T) {
-		url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/readyz", adminPort)
+		url := fmt.Sprintf("https://127.0.0.1:%d/admin/api/v1/readyz", adminPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		require.NoError(t, err)
 
@@ -153,7 +153,7 @@ func TestHTTPPost(t *testing.T) {
 
 	// Test admin shutdown endpoint (triggers async shutdown).
 	t.Run("admin_shutdown_endpoint", func(t *testing.T) {
-		url := fmt.Sprintf("https://127.0.0.1:%d/admin/v1/shutdown", adminPort)
+		url := fmt.Sprintf("https://127.0.0.1:%d/admin/api/v1/shutdown", adminPort)
 		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 		require.NoError(t, err)
 
