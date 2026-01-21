@@ -46,7 +46,7 @@ type TelemetryRecorder struct {
 }
 
 // NewTelemetryRecorder creates new telemetry recorder for adaptive auth.
-func NewTelemetryRecorder(ctx context.Context) (*TelemetryRecorder, error) {
+func NewTelemetryRecorder(_ context.Context) (*TelemetryRecorder, error) {
 	meter := otel.Meter(meterName)
 
 	// Risk scoring metrics.

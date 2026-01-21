@@ -2,6 +2,7 @@
 //
 //
 
+// Package cmd provides command-line entry points for KMS server operations.
 package cmd
 
 import (

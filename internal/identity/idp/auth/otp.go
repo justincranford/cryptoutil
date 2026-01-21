@@ -48,7 +48,7 @@ func (s *OTPService) GenerateOTP(_ context.Context, user *cryptoutilIdentityDoma
 }
 
 // ValidateOTP validates a one-time password for the specified user.
-func (s *OTPService) ValidateOTP(ctx context.Context, user *cryptoutilIdentityDomain.User, otpCode string, method OTPMethod) error {
+func (s *OTPService) ValidateOTP(_ context.Context, user *cryptoutilIdentityDomain.User, otpCode string, method OTPMethod) error {
 	// TODO: Fetch stored OTP for user.
 	// TODO: Validate OTP code matches.
 	// TODO: Check OTP not expired.

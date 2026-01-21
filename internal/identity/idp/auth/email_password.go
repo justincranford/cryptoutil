@@ -2,6 +2,7 @@
 //
 //
 
+// Package auth provides authentication mechanisms including email-password, MFA, and other auth flows.
 package auth
 
 import (

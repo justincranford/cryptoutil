@@ -99,27 +99,27 @@ func NewStubTPM() *StubTPM {
 }
 
 // SealData stub implementation.
-func (t *StubTPM) SealData(ctx context.Context, data []byte, pcrValues []uint32) ([]byte, error) {
+func (t *StubTPM) SealData(_ context.Context, _ []byte, _ []uint32) ([]byte, error) {
 	return nil, fmt.Errorf("stub TPM: SealData not implemented - requires TPM library integration")
 }
 
 // UnsealData stub implementation.
-func (t *StubTPM) UnsealData(ctx context.Context, sealedBlob []byte) ([]byte, error) {
+func (t *StubTPM) UnsealData(_ context.Context, _ []byte) ([]byte, error) {
 	return nil, fmt.Errorf("stub TPM: UnsealData not implemented - requires TPM library integration")
 }
 
 // GenerateKey stub implementation.
-func (t *StubTPM) GenerateKey(ctx context.Context, keyType string) (string, error) {
+func (t *StubTPM) GenerateKey(_ context.Context, _ string) (string, error) {
 	return "", fmt.Errorf("stub TPM: GenerateKey not implemented - requires TPM library integration")
 }
 
 // Sign stub implementation.
-func (t *StubTPM) Sign(ctx context.Context, keyID string, data []byte) ([]byte, error) {
+func (t *StubTPM) Sign(_ context.Context, _ string, _ []byte) ([]byte, error) {
 	return nil, fmt.Errorf("stub TPM: Sign not implemented - requires TPM library integration")
 }
 
 // Verify stub implementation.
-func (t *StubTPM) Verify(ctx context.Context, keyID string, data, signature []byte) bool {
+func (t *StubTPM) Verify(_ context.Context, _ string, _, _ []byte) bool {
 	return false // Stub always fails verification.
 }
 
@@ -149,21 +149,21 @@ func NewStubSecureElement() *StubSecureElement {
 }
 
 // StoreCredential stub implementation.
-func (s *StubSecureElement) StoreCredential(ctx context.Context, credentialID string, data []byte) error {
+func (s *StubSecureElement) StoreCredential(_ context.Context, _ string, _ []byte) error {
 	return fmt.Errorf("stub secure element: StoreCredential not implemented - requires secure element integration")
 }
 
 // RetrieveCredential stub implementation.
-func (s *StubSecureElement) RetrieveCredential(ctx context.Context, credentialID string) ([]byte, error) {
+func (s *StubSecureElement) RetrieveCredential(_ context.Context, _ string) ([]byte, error) {
 	return nil, fmt.Errorf("stub secure element: RetrieveCredential not implemented - requires secure element integration")
 }
 
 // DeleteCredential stub implementation.
-func (s *StubSecureElement) DeleteCredential(ctx context.Context, credentialID string) error {
+func (s *StubSecureElement) DeleteCredential(_ context.Context, _ string) error {
 	return fmt.Errorf("stub secure element: DeleteCredential not implemented - requires secure element integration")
 }
 
 // GenerateKey stub implementation.
-func (s *StubSecureElement) GenerateKey(ctx context.Context, keyType string) (string, error) {
+func (s *StubSecureElement) GenerateKey(_ context.Context, _ string) (string, error) {
 	return "", fmt.Errorf("stub secure element: GenerateKey not implemented - requires secure element integration")
 }

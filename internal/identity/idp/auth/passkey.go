@@ -33,7 +33,7 @@ func (p *PasskeyProfile) Name() string {
 }
 
 // Authenticate performs WebAuthn passkey authentication.
-func (p *PasskeyProfile) Authenticate(ctx context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
+func (p *PasskeyProfile) Authenticate(_ context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
 	credentialID, ok := credentials["credential_id"]
 	if !ok || credentialID == "" {
 		return nil, fmt.Errorf("%w: missing credential_id", cryptoutilIdentityAppErr.ErrInvalidCredentials)

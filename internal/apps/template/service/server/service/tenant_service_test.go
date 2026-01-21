@@ -344,7 +344,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						CreatedAt:   time.Now(),
 					}, nil
 				}
-				tenantRepo.updateFn = func(_ context.Context, tenant *repository.Tenant) error {
+				tenantRepo.updateFn = func(_ context.Context, _ *repository.Tenant) error {
 					return nil
 				}
 			},
@@ -356,7 +356,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			nameUpdate: stringPtr("Test"),
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
-				tenantRepo.getByIDFn = func(_ context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+				tenantRepo.getByIDFn = func(_ context.Context, _ googleUuid.UUID) (*repository.Tenant, error) {
 					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
 			},
@@ -421,7 +421,7 @@ func TestTenantService_DeleteTenant(t *testing.T) {
 			name:     "happy path",
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.deleteFn = func(_ context.Context, id googleUuid.UUID) error {
+				tenantRepo.deleteFn = func(_ context.Context, _ googleUuid.UUID) error {
 					return nil
 				}
 			},
@@ -432,7 +432,7 @@ func TestTenantService_DeleteTenant(t *testing.T) {
 			tenantID: tenantID,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := "cannot delete tenant: has 1 users and 0 clients"
-				tenantRepo.deleteFn = func(ctx context.Context, id googleUuid.UUID) error {
+				tenantRepo.deleteFn = func(_ context.Context, _ googleUuid.UUID) error {
 					return cryptoutilAppErr.NewHTTP409Conflict(&summary, errors.New("tenant has users"))
 				}
 			},
@@ -497,7 +497,7 @@ func TestTenantService_ListTenants(t *testing.T) {
 			name:       "list all tenants",
 			activeOnly: false,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.listFn = func(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error) {
+				tenantRepo.listFn = func(_ context.Context, _ bool) ([]*repository.Tenant, error) {
 					return []*repository.Tenant{activeTenant, inactiveTenant}, nil
 				}
 			},
@@ -508,7 +508,7 @@ func TestTenantService_ListTenants(t *testing.T) {
 			name:       "list active tenants only",
 			activeOnly: true,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.listFn = func(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error) {
+				tenantRepo.listFn = func(_ context.Context, _ bool) ([]*repository.Tenant, error) {
 					return []*repository.Tenant{activeTenant}, nil
 				}
 			},
@@ -519,7 +519,7 @@ func TestTenantService_ListTenants(t *testing.T) {
 			name:       "repository error",
 			activeOnly: false,
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.listFn = func(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error) {
+				tenantRepo.listFn = func(_ context.Context, _ bool) ([]*repository.Tenant, error) {
 					return nil, errors.New("database error")
 				}
 			},
@@ -562,10 +562,10 @@ func TestTenantService_UpdateTenant_UpdateError(t *testing.T) {
 	}
 
 	tenantRepo := &mockTenantRepository{
-		getByIDFn: func(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+		getByIDFn: func(_ context.Context, _ googleUuid.UUID) (*repository.Tenant, error) {
 			return existingTenant, nil
 		},
-		updateFn: func(ctx context.Context, tenant *repository.Tenant) error {
+		updateFn: func(_ context.Context, _ *repository.Tenant) error {
 			return errors.New("database update error")
 		},
 	}
@@ -595,7 +595,7 @@ func TestTenantService_GetTenantByName(t *testing.T) {
 		{
 			name: "happy path",
 			setupMocks: func(tenantRepo *mockTenantRepository) {
-				tenantRepo.getByNameFn = func(ctx context.Context, name string) (*repository.Tenant, error) {
+				tenantRepo.getByNameFn = func(_ context.Context, _ string) (*repository.Tenant, error) {
 					return tenant, nil
 				}
 			},
@@ -605,7 +605,7 @@ func TestTenantService_GetTenantByName(t *testing.T) {
 			name: "tenant not found",
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
-				tenantRepo.getByNameFn = func(ctx context.Context, name string) (*repository.Tenant, error) {
+				tenantRepo.getByNameFn = func(_ context.Context, _ string) (*repository.Tenant, error) {
 					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
 			},

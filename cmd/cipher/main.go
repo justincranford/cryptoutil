@@ -2,6 +2,7 @@
 //
 //
 
+// Package main is the entry point for the Cipher application.
 package main
 
 import (

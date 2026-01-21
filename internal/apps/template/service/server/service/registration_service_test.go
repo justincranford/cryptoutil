@@ -109,23 +109,23 @@ func (m *mockClientRepository) Create(ctx context.Context, client *repository.Cl
 	return nil
 }
 
-func (m *mockClientRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*repository.Client, error) {
+func (m *mockClientRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRepository) GetByClientID(ctx context.Context, clientID string) (*repository.Client, error) {
+func (m *mockClientRepository) GetByClientID(_ context.Context, _ string) (*repository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRepository) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*repository.Client, error) {
+func (m *mockClientRepository) ListByTenant(_ context.Context, _ googleUuid.UUID, _ bool) ([]*repository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRepository) Update(ctx context.Context, client *repository.Client) error {
+func (m *mockClientRepository) Update(_ context.Context, _ *repository.Client) error {
 	return errors.New("not implemented")
 }
 
-func (m *mockClientRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockClientRepository) Delete(_ context.Context, _ googleUuid.UUID) error {
 	return errors.New("not implemented")
 }
 
@@ -142,23 +142,23 @@ func (m *mockUnverifiedUserRepository) Create(ctx context.Context, user *reposit
 	return nil
 }
 
-func (m *mockUnverifiedUserRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*repository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.UnverifiedUser, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedUserRepository) GetByUsername(ctx context.Context, username string) (*repository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepository) GetByUsername(_ context.Context, _ string) (*repository.UnverifiedUser, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedUserRepository) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepository) ListByTenant(_ context.Context, _ googleUuid.UUID) ([]*repository.UnverifiedUser, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedUserRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockUnverifiedUserRepository) Delete(_ context.Context, _ googleUuid.UUID) error {
 	return errors.New("not implemented")
 }
 
-func (m *mockUnverifiedUserRepository) DeleteExpired(ctx context.Context) (int64, error) {
+func (m *mockUnverifiedUserRepository) DeleteExpired(_ context.Context) (int64, error) {
 	return 0, errors.New("not implemented")
 }
 
@@ -175,15 +175,15 @@ func (m *mockUnverifiedClientRepository) Create(ctx context.Context, client *rep
 	return nil
 }
 
-func (m *mockUnverifiedClientRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*repository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.UnverifiedClient, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedClientRepository) GetByClientID(ctx context.Context, clientID string) (*repository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepository) GetByClientID(_ context.Context, _ string) (*repository.UnverifiedClient, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedClientRepository) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepository) ListByTenant(_ context.Context, _ googleUuid.UUID) ([]*repository.UnverifiedClient, error) {
 	return nil, errors.New("not implemented")
 }
 

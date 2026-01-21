@@ -359,28 +359,32 @@ func validateOrGenerateRSAJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (*cry
 		}
 
 		return generatedKey, nil
-	} else {
-		keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
-		if !ok {
-			return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
-		}
-
-		rsaPrivateKey, ok := keyPair.Private.(*rsa.PrivateKey)
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use *rsa.PrivateKey", keyPair.Private)
-		} else if rsaPrivateKey == nil { // pragma: allowlist secret
-			return nil, fmt.Errorf("invalid nil RSA private key")
-		}
-
-		rsaPublicKey, ok := keyPair.Public.(*rsa.PublicKey)
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use *rsa.PublicKey", keyPair.Public)
-		} else if rsaPublicKey == nil {
-			return nil, fmt.Errorf("invalid nil RSA public key")
-		}
-
-		return keyPair, nil
 	}
+
+	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	if !ok {
+		return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
+	}
+
+	rsaPrivateKey, ok := keyPair.Private.(*rsa.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use *rsa.PrivateKey", keyPair.Private)
+	}
+
+	if rsaPrivateKey == nil { // pragma: allowlist secret
+		return nil, fmt.Errorf("invalid nil RSA private key")
+	}
+
+	rsaPublicKey, ok := keyPair.Public.(*rsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use *rsa.PublicKey", keyPair.Public)
+	}
+
+	if rsaPublicKey == nil {
+		return nil, fmt.Errorf("invalid nil RSA public key")
+	}
+
+	return keyPair, nil
 }
 
 func validateOrGenerateEcdsaJWK(key cryptoutilKeyGen.Key, curve elliptic.Curve) (*cryptoutilKeyGen.KeyPair, error) {
@@ -391,28 +395,32 @@ func validateOrGenerateEcdsaJWK(key cryptoutilKeyGen.Key, curve elliptic.Curve) 
 		}
 
 		return generatedKey, nil
-	} else {
-		keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
-		if !ok {
-			return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
-		}
-
-		rsaPrivateKey, ok := keyPair.Private.(*ecdsa.PrivateKey)
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use *ecdsa.PrivateKey", keyPair.Private)
-		} else if rsaPrivateKey == nil { // pragma: allowlist secret
-			return nil, fmt.Errorf("invalid nil ECDSA private key")
-		}
-
-		rsaPublicKey, ok := keyPair.Public.(*ecdsa.PublicKey)
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use *ecdsa.PublicKey", keyPair.Public)
-		} else if rsaPublicKey == nil {
-			return nil, fmt.Errorf("invalid nil ECDSA public key")
-		}
-
-		return keyPair, nil
 	}
+
+	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	if !ok {
+		return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
+	}
+
+	rsaPrivateKey, ok := keyPair.Private.(*ecdsa.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use *ecdsa.PrivateKey", keyPair.Private)
+	}
+
+	if rsaPrivateKey == nil { // pragma: allowlist secret
+		return nil, fmt.Errorf("invalid nil ECDSA private key")
+	}
+
+	rsaPublicKey, ok := keyPair.Public.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use *ecdsa.PublicKey", keyPair.Public)
+	}
+
+	if rsaPublicKey == nil {
+		return nil, fmt.Errorf("invalid nil ECDSA public key")
+	}
+
+	return keyPair, nil
 }
 
 func validateOrGenerateEddsaJWK(key cryptoutilKeyGen.Key, curve string) (*cryptoutilKeyGen.KeyPair, error) {
@@ -423,28 +431,32 @@ func validateOrGenerateEddsaJWK(key cryptoutilKeyGen.Key, curve string) (*crypto
 		}
 
 		return generatedKey, nil
-	} else {
-		keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
-		if !ok {
-			return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
-		}
-
-		rsaPrivateKey, ok := keyPair.Private.(ed25519.PrivateKey)
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use ed25519.PrivateKey", keyPair.Private)
-		} else if rsaPrivateKey == nil { // pragma: allowlist secret
-			return nil, fmt.Errorf("invalid nil Ed29919 private key")
-		}
-
-		rsaPublicKey, ok := keyPair.Public.(ed25519.PublicKey)
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use ed25519.PublicKey", keyPair.Public)
-		} else if rsaPublicKey == nil {
-			return nil, fmt.Errorf("invalid nil Ed29919 public key")
-		}
-
-		return keyPair, nil
 	}
+
+	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	if !ok {
+		return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
+	}
+
+	rsaPrivateKey, ok := keyPair.Private.(ed25519.PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use ed25519.PrivateKey", keyPair.Private)
+	}
+
+	if rsaPrivateKey == nil { // pragma: allowlist secret
+		return nil, fmt.Errorf("invalid nil Ed29919 private key")
+	}
+
+	rsaPublicKey, ok := keyPair.Public.(ed25519.PublicKey)
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use ed25519.PublicKey", keyPair.Public)
+	}
+
+	if rsaPublicKey == nil {
+		return nil, fmt.Errorf("invalid nil Ed29919 public key")
+	}
+
+	return keyPair, nil
 }
 
 func validateOrGenerateHMACJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) { // pragma: allowlist secret
@@ -455,18 +467,22 @@ func validateOrGenerateHMACJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cry
 		}
 
 		return generatedKey, nil
-	} else {
-		hmacKey, ok := key.(cryptoutilKeyGen.SecretKey) // pragma: allowlist secret
-		if !ok {
-			return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
-		} else if hmacKey == nil {
-			return nil, fmt.Errorf("invalid nil key bytes")
-		} else if len(hmacKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
-			return nil, fmt.Errorf("invalid key length %d; use HMAC %d", len(hmacKey), keyBitsLength)
-		}
-
-		return hmacKey, nil
 	}
+
+	hmacKey, ok := key.(cryptoutilKeyGen.SecretKey) // pragma: allowlist secret
+	if !ok {
+		return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
+	}
+
+	if hmacKey == nil {
+		return nil, fmt.Errorf("invalid nil key bytes")
+	}
+
+	if len(hmacKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
+		return nil, fmt.Errorf("invalid key length %d; use HMAC %d", len(hmacKey), keyBitsLength)
+	}
+
+	return hmacKey, nil
 }
 
 func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) { // pragma: allowlist secret

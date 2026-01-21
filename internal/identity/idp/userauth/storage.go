@@ -71,7 +71,7 @@ func (s *InMemoryChallengeStore) Retrieve(_ context.Context, challengeID googleU
 }
 
 // Update updates an existing authentication challenge (e.g., retry count).
-func (s *InMemoryChallengeStore) Update(ctx context.Context, challenge *AuthChallenge) error {
+func (s *InMemoryChallengeStore) Update(_ context.Context, challenge *AuthChallenge) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -86,7 +86,7 @@ func (s *InMemoryChallengeStore) Update(ctx context.Context, challenge *AuthChal
 }
 
 // Delete deletes an authentication challenge.
-func (s *InMemoryChallengeStore) Delete(ctx context.Context, challengeID googleUuid.UUID) error {
+func (s *InMemoryChallengeStore) Delete(_ context.Context, challengeID googleUuid.UUID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -140,7 +140,7 @@ func NewInMemoryRateLimiter() *InMemoryRateLimiter {
 }
 
 // CheckLimit checks if a rate limit has been exceeded.
-func (r *InMemoryRateLimiter) CheckLimit(ctx context.Context, identifier string) error {
+func (r *InMemoryRateLimiter) CheckLimit(_ context.Context, identifier string) error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -172,7 +172,7 @@ func (r *InMemoryRateLimiter) CheckLimit(ctx context.Context, identifier string)
 }
 
 // RecordAttempt records an authentication attempt.
-func (r *InMemoryRateLimiter) RecordAttempt(ctx context.Context, identifier string, success bool) error {
+func (r *InMemoryRateLimiter) RecordAttempt(_ context.Context, identifier string, success bool) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

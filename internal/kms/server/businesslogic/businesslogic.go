@@ -2,6 +2,7 @@
 //
 //
 
+// Package businesslogic implements the KMS business logic layer for key management operations.
 package businesslogic
 
 import (
@@ -31,7 +32,7 @@ type BusinessLogicService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JWKGenService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
-	oamOrmMapper     *oamOrmMapper
+	oamOrmMapper     *OamOrmMapper
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 

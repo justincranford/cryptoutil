@@ -288,7 +288,7 @@ func (m *mockMFAFactorRepo) GetByID(_ context.Context, id googleUuid.UUID) (*cry
 	return nil, nil
 }
 
-func (m *mockMFAFactorRepo) GetByAuthProfileID(ctx context.Context, authProfileID googleUuid.UUID) ([]*cryptoutilIdentityDomain.MFAFactor, error) {
+func (m *mockMFAFactorRepo) GetByAuthProfileID(_ context.Context, _ googleUuid.UUID) ([]*cryptoutilIdentityDomain.MFAFactor, error) {
 	if m.getByAuthProfileErr != nil {
 		return nil, m.getByAuthProfileErr
 	}
@@ -304,15 +304,15 @@ func (m *mockMFAFactorRepo) Update(ctx context.Context, factor *cryptoutilIdenti
 	return nil
 }
 
-func (m *mockMFAFactorRepo) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockMFAFactorRepo) Delete(_ context.Context, _ googleUuid.UUID) error {
 	return nil
 }
 
-func (m *mockMFAFactorRepo) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.MFAFactor, error) {
+func (m *mockMFAFactorRepo) List(_ context.Context, _, _ int) ([]*cryptoutilIdentityDomain.MFAFactor, error) {
 	return m.factors, nil
 }
 
-func (m *mockMFAFactorRepo) Count(ctx context.Context) (int64, error) {
+func (m *mockMFAFactorRepo) Count(_ context.Context) (int64, error) {
 	return int64(len(m.factors)), nil
 }
 

@@ -174,7 +174,7 @@ func TestRetryWithBackoff(t *testing.T) {
 		{
 			name:       "successful on first attempt",
 			maxRetries: 3,
-			operation: func(ctx context.Context) error {
+			operation: func(_ context.Context) error {
 				return nil
 			},
 			wantErrContains: "",
@@ -182,7 +182,7 @@ func TestRetryWithBackoff(t *testing.T) {
 		{
 			name:       "non-retriable error (PIN exhausted)",
 			maxRetries: 3,
-			operation: func(ctx context.Context) error {
+			operation: func(_ context.Context) error {
 				return ErrPINRetryExhausted
 			},
 			wantErrContains: "PIN retry limit exhausted",
@@ -190,7 +190,7 @@ func TestRetryWithBackoff(t *testing.T) {
 		{
 			name:       "non-retriable error (device locked)",
 			maxRetries: 3,
-			operation: func(ctx context.Context) error {
+			operation: func(_ context.Context) error {
 				return ErrDeviceLocked
 			},
 			wantErrContains: "hardware device locked",
@@ -198,7 +198,7 @@ func TestRetryWithBackoff(t *testing.T) {
 		{
 			name:       "max retries exhausted",
 			maxRetries: 3,
-			operation: func(ctx context.Context) error {
+			operation: func(_ context.Context) error {
 				return ErrDeviceUnresponsive
 			},
 			wantErrContains: "max retries exhausted",
@@ -237,7 +237,7 @@ func TestMonitorDevicePresence(t *testing.T) {
 	}{
 		{
 			name: "device present",
-			checkFunc: func(ctx context.Context) error {
+			checkFunc: func(_ context.Context) error {
 				return nil
 			},
 			contextCancel:   false,
@@ -245,7 +245,7 @@ func TestMonitorDevicePresence(t *testing.T) {
 		},
 		{
 			name: "device removed",
-			checkFunc: func(ctx context.Context) error {
+			checkFunc: func(_ context.Context) error {
 				return ErrDeviceRemoved
 			},
 			contextCancel:   false,
@@ -253,7 +253,7 @@ func TestMonitorDevicePresence(t *testing.T) {
 		},
 		{
 			name: "context cancelled",
-			checkFunc: func(ctx context.Context) error {
+			checkFunc: func(_ context.Context) error {
 				return nil
 			},
 			contextCancel:   true,

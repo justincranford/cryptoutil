@@ -358,7 +358,7 @@ func (l *YAMLPolicyLoader) LoadRiskScoringPolicy(_ context.Context) (*RiskScorin
 }
 
 // LoadStepUpPolicies loads step-up authentication policies from step_up.yml.
-func (l *YAMLPolicyLoader) LoadStepUpPolicies(ctx context.Context) (*StepUpPolicies, error) {
+func (l *YAMLPolicyLoader) LoadStepUpPolicies(_ context.Context) (*StepUpPolicies, error) {
 	// Check cache first.
 	l.mu.RLock()
 
@@ -396,7 +396,7 @@ func (l *YAMLPolicyLoader) LoadStepUpPolicies(ctx context.Context) (*StepUpPolic
 }
 
 // LoadAdaptiveAuthPolicy loads adaptive authentication policy from adaptive_auth.yml.
-func (l *YAMLPolicyLoader) LoadAdaptiveAuthPolicy(ctx context.Context) (*AdaptiveAuthPolicy, error) {
+func (l *YAMLPolicyLoader) LoadAdaptiveAuthPolicy(_ context.Context) (*AdaptiveAuthPolicy, error) {
 	// Check cache first.
 	l.mu.RLock()
 

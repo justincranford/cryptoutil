@@ -155,6 +155,7 @@ func (tx *OrmTransaction) GetMaterialKeysForElasticKey(elasticKeyID *googleUuid.
 	return keys, nil
 }
 
+// GetMaterialKeys retrieves material keys based on the provided filter criteria.
 func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters) ([]MaterialKey, error) {
 	var keys []MaterialKey
 
@@ -168,6 +169,7 @@ func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters
 	return keys, nil
 }
 
+// GetElasticKeyMaterialKeyVersion retrieves a specific version of a material key by elastic key ID and material key ID.
 func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyID *googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilRandom.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
@@ -185,6 +187,7 @@ func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID, material
 	return &key, nil
 }
 
+// GetElasticKeyMaterialKeyLatest retrieves the latest material key for the given elastic key ID.
 func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilRandom.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
@@ -200,6 +203,7 @@ func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid
 	return &key, nil
 }
 
+// UpdateElasticKeyMaterialKeyRevoke updates the revocation date for a material key.
 func (tx *OrmTransaction) UpdateElasticKeyMaterialKeyRevoke(materialKey *MaterialKey) error {
 	if err := cryptoutilRandom.ValidateUUID(&materialKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)

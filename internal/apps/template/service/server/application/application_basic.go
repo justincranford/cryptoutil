@@ -2,6 +2,7 @@
 //
 //
 
+// Package application provides server application lifecycle management components.
 package application
 
 import (

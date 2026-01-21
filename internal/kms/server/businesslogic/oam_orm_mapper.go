@@ -17,11 +17,12 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-type oamOrmMapper struct{} // Mapper between OpenAPI Model models and ORM objects
+// OamOrmMapper provides mapping between OpenAPI Model models and ORM objects.
+type OamOrmMapper struct{}
 
 // NewOamOrmMapper creates a new OpenAPI Model to ORM mapper.
-func NewOamOrmMapper() *oamOrmMapper {
-	return &oamOrmMapper{}
+func NewOamOrmMapper() *OamOrmMapper {
+	return &OamOrmMapper{}
 }
 
 // ErrInvalidUUID is the error message for invalid UUID validation failures.
@@ -37,7 +38,7 @@ var (
 
 // oam => orm
 
-func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
+func (m *OamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
 	// Apply defaults for optional fields
 	provider := defaultElasticKeyProvider
 	if oamElasticKeyCreate.Provider != nil {
@@ -71,7 +72,7 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElas
 	}
 }
 
-func (*oamOrmMapper) toOrmAddMaterialKey(elasticKeyID, materialKeyID *googleUuid.UUID, materialKeyClearPublicJWKBytes, materialKeyEncryptedNonPublicJWKBytes []byte, materialKeyGenerateDate time.Time) *cryptoutilOrmRepository.MaterialKey {
+func (*OamOrmMapper) toOrmAddMaterialKey(elasticKeyID, materialKeyID *googleUuid.UUID, materialKeyClearPublicJWKBytes, materialKeyEncryptedNonPublicJWKBytes []byte, materialKeyGenerateDate time.Time) *cryptoutilOrmRepository.MaterialKey {
 	return &cryptoutilOrmRepository.MaterialKey{
 		ElasticKeyID:                  *elasticKeyID,
 		MaterialKeyID:                 *materialKeyID,
@@ -103,7 +104,7 @@ func toOamElasticKeyStatus(isImportAllowed *bool) *cryptoutilOpenapiModel.Elasti
 
 // orm => oam
 
-func (m *oamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository.ElasticKey) []cryptoutilOpenapiModel.ElasticKey {
+func (m *OamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository.ElasticKey) []cryptoutilOpenapiModel.ElasticKey {
 	oamElasticKeys := make([]cryptoutilOpenapiModel.ElasticKey, len(ormElasticKeys))
 	for i, ormElasticKey := range ormElasticKeys {
 		oamElasticKeys[i] = *m.toOamElasticKey(&ormElasticKey)
@@ -112,7 +113,7 @@ func (m *oamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository
 	return oamElasticKeys
 }
 
-func (m *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilOpenapiModel.ElasticKey {
+func (m *OamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilOpenapiModel.ElasticKey {
 	return &cryptoutilOpenapiModel.ElasticKey{
 		ElasticKeyID:      &ormElasticKey.ElasticKeyID,
 		Name:              &ormElasticKey.ElasticKeyName,
@@ -125,7 +126,7 @@ func (m *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.El
 	}
 }
 
-func (m *oamOrmMapper) toOamMaterialKeys(ormMaterialKeys []cryptoutilOrmRepository.MaterialKey) ([]cryptoutilOpenapiModel.MaterialKey, error) {
+func (m *OamOrmMapper) toOamMaterialKeys(ormMaterialKeys []cryptoutilOrmRepository.MaterialKey) ([]cryptoutilOpenapiModel.MaterialKey, error) {
 	oamMaterialKeys := make([]cryptoutilOpenapiModel.MaterialKey, len(ormMaterialKeys))
 
 	var oamMaterialKey *cryptoutilOpenapiModel.MaterialKey
@@ -143,7 +144,7 @@ func (m *oamOrmMapper) toOamMaterialKeys(ormMaterialKeys []cryptoutilOrmReposito
 	return oamMaterialKeys, nil
 }
 
-func (m *oamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.MaterialKey) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (m *OamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.MaterialKey) (*cryptoutilOpenapiModel.MaterialKey, error) {
 	if ormMaterialKey == nil {
 		return nil, fmt.Errorf("material key cannot be nil")
 	} else if ormMaterialKey.ElasticKeyID == (googleUuid.UUID{}) {
@@ -172,7 +173,7 @@ func (m *oamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.
 
 // Helper methods
 
-func (m *oamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
+func (m *OamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
 	if params == nil {
 		return &cryptoutilOrmRepository.GetElasticKeysFilters{}, nil
 	}
@@ -225,7 +226,7 @@ func (m *oamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiM
 	}, nil
 }
 
-func (m *oamOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
+func (m *OamOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
 	if params == nil {
 		return &cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters{}, nil
 	}
@@ -271,7 +272,7 @@ func (m *oamOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryp
 	}, nil
 }
 
-func (m *oamOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilOpenapiModel.MaterialKeysQueryParams) (*cryptoutilOrmRepository.GetMaterialKeysFilters, error) {
+func (m *OamOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilOpenapiModel.MaterialKeysQueryParams) (*cryptoutilOrmRepository.GetMaterialKeysFilters, error) {
 	if params == nil {
 		return &cryptoutilOrmRepository.GetMaterialKeysFilters{}, nil
 	}
@@ -323,7 +324,7 @@ func (m *oamOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilOpenapi
 	}, nil
 }
 
-func (*oamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID, error) {
+func (*OamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID, error) {
 	if uuids == nil || len(*uuids) == 0 {
 		return nil, nil
 	}
@@ -335,7 +336,7 @@ func (*oamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.
 	return *uuids, nil
 }
 
-func (*oamOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
+func (*OamOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
 	if strings == nil || len(*strings) == 0 {
 		return nil, nil
 	}
@@ -349,7 +350,7 @@ func (*oamOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
 	return *strings, nil
 }
 
-func (*oamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *time.Time, error) {
+func (*OamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *time.Time, error) {
 	var errs []error
 
 	nonNullMinDate := minDate != nil
@@ -378,7 +379,7 @@ func (*oamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *t
 	return minDate, maxDate, nil
 }
 
-func (m *oamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.ElasticKeyAlgorithm) ([]string, error) {
+func (m *OamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.ElasticKeyAlgorithm) ([]string, error) {
 	if algorithms != nil {
 		// Validate algorithm values
 		for _, algorithm := range *algorithms {
@@ -393,7 +394,7 @@ func (m *oamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.Elas
 	}), nil
 }
 
-func (m *oamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptoutilOpenapiModel.ElasticKeySort) ([]string, error) {
+func (m *OamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptoutilOpenapiModel.ElasticKeySort) ([]string, error) {
 	if elasticMaterialKeySorts != nil {
 		// Validate sort values
 		for _, sort := range *elasticMaterialKeySorts {
@@ -408,7 +409,7 @@ func (m *oamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptouti
 	}), nil
 }
 
-func (m *oamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.MaterialKeySort) ([]string, error) {
+func (m *OamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.MaterialKeySort) ([]string, error) {
 	if keySorts != nil {
 		// Validate sort values against allowed enum values
 		allowedSorts := map[string]bool{
@@ -449,7 +450,7 @@ func (m *oamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.
 	}), nil
 }
 
-func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumber) (int, error) {
+func (*OamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumber) (int, error) {
 	if pageNumber == nil {
 		return 0, nil
 	} else if *pageNumber >= 0 {
@@ -459,7 +460,7 @@ func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumb
 	return 0, fmt.Errorf("page number must be zero or higher")
 }
 
-func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
+func (*OamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
 	if pageSize == nil {
 		return cryptoutilMagic.DefaultPageSize, nil
 	} else if *pageSize >= 1 {

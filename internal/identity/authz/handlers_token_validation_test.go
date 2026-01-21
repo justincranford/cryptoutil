@@ -30,7 +30,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test dependencies.
-	repoFactory, tokenSvc := setupAuthzTestDependencies(t, ctx)
+	repoFactory, tokenSvc := setupAuthzTestDependencies(ctx, t)
 
 	// Create authz service.
 	cfg := &cryptoutilIdentityConfig.Config{
@@ -127,7 +127,7 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test dependencies.
-	repoFactory, tokenSvc := setupAuthzTestDependencies(t, ctx)
+	repoFactory, tokenSvc := setupAuthzTestDependencies(ctx, t)
 
 	// Create test client.
 	db := repoFactory.DB()
@@ -180,7 +180,7 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 }
 
 // setupAuthzTestDependencies creates test repository and token service.
-func setupAuthzTestDependencies(t *testing.T, ctx context.Context) (*cryptoutilIdentityRepository.RepositoryFactory, *cryptoutilIdentityIssuer.TokenService) {
+func setupAuthzTestDependencies(ctx context.Context, t *testing.T) (*cryptoutilIdentityRepository.RepositoryFactory, *cryptoutilIdentityIssuer.TokenService) {
 	t.Helper()
 
 	// Create test database.

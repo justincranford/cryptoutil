@@ -382,7 +382,7 @@ type mockUserBehaviorStore struct {
 	baseline *UserBaseline
 }
 
-func (m *mockUserBehaviorStore) GetBaseline(ctx context.Context, userID string) (*UserBaseline, error) {
+func (m *mockUserBehaviorStore) GetBaseline(_ context.Context, _ string) (*UserBaseline, error) {
 	if m.baseline != nil {
 		return m.baseline, nil
 	}
@@ -390,27 +390,27 @@ func (m *mockUserBehaviorStore) GetBaseline(ctx context.Context, userID string) 
 	return &UserBaseline{}, nil
 }
 
-func (m *mockUserBehaviorStore) UpdateBaseline(ctx context.Context, userID string, authContext *AuthContext) error {
+func (m *mockUserBehaviorStore) UpdateBaseline(_ context.Context, _ string, _ *AuthContext) error {
 	return nil
 }
 
-func (m *mockUserBehaviorStore) RecordAuthentication(ctx context.Context, userID string, success bool, authContext *AuthContext) error {
+func (m *mockUserBehaviorStore) RecordAuthentication(_ context.Context, _ string, _ bool, _ *AuthContext) error {
 	return nil
 }
 
 type mockGeoIPService struct{}
 
-func (m *mockGeoIPService) Lookup(ctx context.Context, ipAddress string) (*GeoLocation, error) {
+func (m *mockGeoIPService) Lookup(_ context.Context, _ string) (*GeoLocation, error) {
 	return &GeoLocation{Country: "US"}, nil
 }
 
 type mockDeviceFingerprintDB struct{}
 
-func (m *mockDeviceFingerprintDB) GetFingerprint(ctx context.Context, userAgent string, headers map[string]string) (*DeviceFingerprint, error) {
+func (m *mockDeviceFingerprintDB) GetFingerprint(_ context.Context, _ string, _ map[string]string) (*DeviceFingerprint, error) {
 	return &DeviceFingerprint{ID: "test-device"}, nil
 }
 
-func (m *mockDeviceFingerprintDB) StoreFingerprint(ctx context.Context, fingerprint *DeviceFingerprint) error {
+func (m *mockDeviceFingerprintDB) StoreFingerprint(_ context.Context, _ *DeviceFingerprint) error {
 	return nil
 }
 

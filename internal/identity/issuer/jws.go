@@ -104,7 +104,7 @@ func NewJWSIssuerLegacy(
 }
 
 // IssueAccessToken issues a JWS access token with the specified claims.
-func (i *JWSIssuer) IssueAccessToken(ctx context.Context, claims map[string]any) (string, error) {
+func (i *JWSIssuer) IssueAccessToken(_ context.Context, claims map[string]any) (string, error) {
 	// Create token claims.
 	tokenClaims := make(map[string]any)
 	tokenClaims[cryptoutilIdentityMagic.ClaimIss] = i.issuer
@@ -137,7 +137,7 @@ func (i *JWSIssuer) IssueAccessToken(ctx context.Context, claims map[string]any)
 }
 
 // IssueIDToken issues a JWS ID token with OIDC claims.
-func (i *JWSIssuer) IssueIDToken(ctx context.Context, claims map[string]any) (string, error) {
+func (i *JWSIssuer) IssueIDToken(_ context.Context, claims map[string]any) (string, error) {
 	// Validate required OIDC claims.
 	if _, ok := claims[cryptoutilIdentityMagic.ClaimSub].(string); !ok {
 		return "", cryptoutilIdentityAppErr.WrapError(
@@ -172,7 +172,7 @@ func (i *JWSIssuer) IssueIDToken(ctx context.Context, claims map[string]any) (st
 }
 
 // ValidateToken validates a JWS token and returns its claims.
-func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[string]any, error) {
+func (i *JWSIssuer) ValidateToken(_ context.Context, tokenString string) (map[string]any, error) {
 	// Parse JWT parts (header.claims.signature).
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != cryptoutilIdentityMagic.JWSPartCount {

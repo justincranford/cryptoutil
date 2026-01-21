@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package crypto provides JOSE cryptographic utilities for key generation and validation.
 package crypto
 
 import (

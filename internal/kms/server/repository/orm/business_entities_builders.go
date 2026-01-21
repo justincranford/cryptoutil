@@ -11,7 +11,7 @@ import (
 )
 
 // BuildElasticKey constructs a new ElasticKey entity with the specified properties.
-func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider cryptoutilOpenapiModel.ElasticKeyProvider, algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm, versioningAllowed, importAllowed, _ bool, status string) (*ElasticKey, error) {
+func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider cryptoutilOpenapiModel.ElasticKeyProvider, algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm, versioningAllowed, importAllowed, _ bool, _ string) (*ElasticKey, error) {
 	elasticKey := ElasticKey{
 		ElasticKeyID:                elasticKeyID,
 		ElasticKeyName:              name,
@@ -26,6 +26,7 @@ func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, pro
 	return &elasticKey, nil
 }
 
+// ElasticKeyStatusInitial returns the initial status for an elastic key based on import configuration.
 func ElasticKeyStatusInitial(importAllowed bool) cryptoutilOpenapiModel.ElasticKeyStatus {
 	if importAllowed {
 		return cryptoutilOpenapiModel.PendingImport

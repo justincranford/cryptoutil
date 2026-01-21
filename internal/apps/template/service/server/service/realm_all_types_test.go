@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package service provides template service business logic and handlers.
 package service
 
 import (
