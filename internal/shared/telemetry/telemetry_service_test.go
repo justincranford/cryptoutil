@@ -34,11 +34,11 @@ func TestMain(m *testing.M) {
 	os.Exit(rc)
 }
 
-func TestLogger(t *testing.T) {
+func TestLogger(_ *testing.T) {
 	testTelemetryService.Slogger.Info("Initialized telemetry", "uptime", time.Since(testTelemetryService.StartTime).Seconds())
 }
 
-func TestMetric(t *testing.T) {
+func TestMetric(_ *testing.T) {
 	exampleMetricsScope := testTelemetryService.MetricsProvider.Meter("example-scope")
 
 	exampleMetricCounter, err := exampleMetricsScope.Float64UpDownCounter("example-counter")
@@ -82,7 +82,7 @@ func TestMetric(t *testing.T) {
 	}
 }
 
-func TestTrace(t *testing.T) {
+func TestTrace(_ *testing.T) {
 	exampleTrace := testTelemetryService.TracesProvider.Tracer("example-trace")
 	testTelemetryService.Slogger.Info("exampleTrace", "trace", exampleTrace)
 

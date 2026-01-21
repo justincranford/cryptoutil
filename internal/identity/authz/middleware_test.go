@@ -27,7 +27,7 @@ func TestRegisterMiddleware_RecoverPanic(t *testing.T) {
 	service.RegisterMiddleware(app)
 
 	// Add route that panics.
-	app.Get("/panic", func(c *fiber.Ctx) error {
+	app.Get("/panic", func(_ *fiber.Ctx) error {
 		panic("test panic")
 	})
 

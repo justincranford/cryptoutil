@@ -342,7 +342,7 @@ func TestTenantRepository_Delete(t *testing.T) {
 	}{
 		{
 			name: "happy path - tenant without users or clients",
-			setupFunc: func(tenantID googleUuid.UUID) {
+			setupFunc: func(_ googleUuid.UUID) {
 				// No setup needed
 			},
 			wantError: false,

@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package lint_gotest provides linting utilities for Go test files.
 package lint_gotest
 
 import (

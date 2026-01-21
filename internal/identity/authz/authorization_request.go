@@ -86,7 +86,7 @@ func NewInMemoryAuthorizationRequestStore() *InMemoryAuthorizationRequestStore {
 }
 
 // Store stores an authorization request.
-func (s *InMemoryAuthorizationRequestStore) Store(ctx context.Context, request *AuthorizationRequest) error {
+func (s *InMemoryAuthorizationRequestStore) Store(_ context.Context, request *AuthorizationRequest) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -101,7 +101,7 @@ func (s *InMemoryAuthorizationRequestStore) Store(ctx context.Context, request *
 }
 
 // GetByRequestID retrieves an authorization request by ID.
-func (s *InMemoryAuthorizationRequestStore) GetByRequestID(ctx context.Context, requestID googleUuid.UUID) (*AuthorizationRequest, error) {
+func (s *InMemoryAuthorizationRequestStore) GetByRequestID(_ context.Context, requestID googleUuid.UUID) (*AuthorizationRequest, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -118,7 +118,7 @@ func (s *InMemoryAuthorizationRequestStore) GetByRequestID(ctx context.Context, 
 }
 
 // GetByCode retrieves an authorization request by authorization code.
-func (s *InMemoryAuthorizationRequestStore) GetByCode(ctx context.Context, code string) (*AuthorizationRequest, error) {
+func (s *InMemoryAuthorizationRequestStore) GetByCode(_ context.Context, code string) (*AuthorizationRequest, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 

@@ -125,7 +125,7 @@ func TestCRLCache_GetCRL(t *testing.T) {
 	crlBytes := createTestCRL(t, caCert, caPrivKey, []*big.Int{clientCert.SerialNumber})
 
 	// Create test HTTP server serving CRL.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/pkix-crl")
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
@@ -435,7 +435,7 @@ func TestCombinedRevocationChecker_CheckRevocation(t *testing.T) {
 	crlBytes := createTestCRL(t, caCert, caPrivKey, []*big.Int{})
 
 	// Create test CRL server.
-	crlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	crlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/pkix-crl")
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.

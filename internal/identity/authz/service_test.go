@@ -173,7 +173,7 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 		},
 		{
 			name: "no clients to migrate",
-			setupClients: func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) []*cryptoutilIdentityDomain.Client {
+			setupClients: func(_ *testing.T, _ *cryptoutilIdentityRepository.RepositoryFactory) []*cryptoutilIdentityDomain.Client {
 				return nil
 			},
 			wantErr: false,

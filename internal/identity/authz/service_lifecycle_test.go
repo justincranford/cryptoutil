@@ -22,7 +22,7 @@ import (
 // mockKeyGenerator implements KeyGenerator for testing.
 type mockKeyGenerator struct{}
 
-func (m *mockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
+func (m *mockKeyGenerator) GenerateSigningKey(_ context.Context, algorithm string) (*cryptoutilIdentityIssuer.SigningKey, error) {
 	return &cryptoutilIdentityIssuer.SigningKey{
 		KeyID:         googleUuid.NewString(),
 		Key:           []byte("mock-signing-key"),
@@ -33,7 +33,7 @@ func (m *mockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm str
 	}, nil
 }
 
-func (m *mockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
+func (m *mockKeyGenerator) GenerateEncryptionKey(_ context.Context) (*cryptoutilIdentityIssuer.EncryptionKey, error) {
 	return &cryptoutilIdentityIssuer.EncryptionKey{
 		KeyID:        googleUuid.NewString(),
 		Key:          []byte("0123456789abcdef0123456789abcdef"),

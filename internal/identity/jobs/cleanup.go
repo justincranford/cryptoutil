@@ -2,6 +2,7 @@
 //
 //
 
+// Package jobs provides background job scheduling and execution for the identity service.
 package jobs
 
 import (

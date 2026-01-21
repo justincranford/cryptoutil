@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package security provides certificate security validation and compliance checking.
 package security
 
 import (

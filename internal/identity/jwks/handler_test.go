@@ -124,7 +124,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		{
 			name:   "method not allowed",
 			method: http.MethodPost,
-			setupMock: func(repo *MockKeyRepository) {
+			setupMock: func(_ *MockKeyRepository) {
 				// No mock setup needed - request rejected before repository access.
 			},
 			expectedStatus: http.StatusMethodNotAllowed,

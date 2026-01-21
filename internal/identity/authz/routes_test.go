@@ -164,8 +164,8 @@ func createRoutesTestRepoFactory(t *testing.T) *cryptoutilIdentityRepository.Rep
 
 // createRoutesTestTokenService creates a token service for route testing.
 func createRoutesTestTokenService(
-	config *cryptoutilIdentityConfig.Config,
-	repoFactory *cryptoutilIdentityRepository.RepositoryFactory,
+	_ *cryptoutilIdentityConfig.Config,
+	_ *cryptoutilIdentityRepository.RepositoryFactory,
 ) *cryptoutilIdentityIssuer.TokenService {
 	return nil
 }

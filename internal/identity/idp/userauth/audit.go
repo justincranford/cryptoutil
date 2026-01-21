@@ -2,6 +2,7 @@
 //
 //
 
+// Package userauth provides user authentication and authorization services.
 package userauth
 
 import (
