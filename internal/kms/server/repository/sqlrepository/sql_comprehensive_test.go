@@ -141,7 +141,7 @@ func TestSQLTransaction_ConcurrentOperations(t *testing.T) {
 	errChan := make(chan error, numTransactions)
 
 	for i := 0; i < numTransactions; i++ {
-		go func(id int) {
+		go func(_ int) {
 			err := testSQLRepository.WithTransaction(testCtx, false, func(tx *SQLTransaction) error {
 				require.NotNil(t, tx)
 				require.False(t, tx.IsReadOnly())
@@ -180,14 +180,14 @@ func TestSQLTransaction_PanicHandling(t *testing.T) {
 		{
 			name:     "panic_with_string",
 			panicMsg: "test panic",
-			operation: func(tx *SQLTransaction) {
+			operation: func(_ *SQLTransaction) {
 				panic("test panic")
 			},
 		},
 		{
 			name:     "panic_with_error",
 			panicMsg: "error panic",
-			operation: func(tx *SQLTransaction) {
+			operation: func(_ *SQLTransaction) {
 				panic(errors.New("error panic"))
 			},
 		},

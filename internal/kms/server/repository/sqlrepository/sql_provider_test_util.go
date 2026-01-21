@@ -12,6 +12,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
+// RequireNewForTest creates a new SQLRepository for testing, panicking on error.
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) *SQLRepository {
 	sqlRepository, err := NewSQLRepository(ctx, telemetryService, settings)
 	cryptoutilAppErr.RequireNoError(err, "failed to initialize SQL provider")

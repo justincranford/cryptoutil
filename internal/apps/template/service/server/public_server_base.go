@@ -161,7 +161,7 @@ return err
 }
 
 // Shutdown gracefully shuts down the server.
-func (s *PublicServerBase) Shutdown(ctx context.Context) error {
+func (s *PublicServerBase) Shutdown(_ context.Context) error {
 s.mu.Lock()
 defer s.mu.Unlock()
 

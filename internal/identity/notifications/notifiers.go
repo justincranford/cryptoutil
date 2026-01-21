@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package notifications provides notification services for the identity platform.
 package notifications
 
 import (

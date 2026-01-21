@@ -33,7 +33,7 @@ func (a *ClientSecretJWTAuthenticator) Method() string {
 
 // Authenticate authenticates a client using client_secret_jwt method.
 // The clientID parameter contains the client assertion JWT, and credential is ignored.
-func (a *ClientSecretJWTAuthenticator) Authenticate(ctx context.Context, clientID, credential string) (*cryptoutilIdentityDomain.Client, error) {
+func (a *ClientSecretJWTAuthenticator) Authenticate(ctx context.Context, clientID, _ string) (*cryptoutilIdentityDomain.Client, error) {
 	// clientID parameter actually contains the JWT assertion for this auth method.
 	jwtAssertion := clientID
 

@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the workflow command-line entry point.
 package main
 
 import (

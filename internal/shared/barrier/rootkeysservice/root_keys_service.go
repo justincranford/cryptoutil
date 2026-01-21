@@ -21,6 +21,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// RootKeysService manages root encryption keys in the barrier hierarchy.
 type RootKeysService struct {
 	telemetryService  *cryptoutilTelemetry.TelemetryService
 	jwkGenService     *cryptoutilJose.JWKGenService
@@ -28,6 +29,7 @@ type RootKeysService struct {
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 }
 
+// NewRootKeysService creates a new RootKeysService with the specified dependencies.
 func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*RootKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
@@ -108,6 +110,7 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepo
 	return nil
 }
 
+// EncryptKey encrypts an intermediate key with the latest root key.
 func (i *RootKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearIntermediateKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
 	encryptedRootKeyLatest, err := sqlTransaction.GetRootKeyLatest() // encrypted root JWK latest from DB
 	if err != nil {
@@ -129,6 +132,7 @@ func (i *RootKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 	return encryptedIntermediateKeyBytes, &rootKeyLatestKidUUID, nil
 }
 
+// DecryptKey decrypts an intermediate key encrypted with a root key.
 func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
 	encryptedIntermediateKey, err := joseJwe.Parse(encryptedIntermediateKeyBytes)
 	if err != nil {
@@ -165,6 +169,7 @@ func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 	return decryptedIntermediateKey, nil
 }
 
+// Shutdown releases all resources held by the RootKeysService.
 func (i *RootKeysService) Shutdown() {
 	i.unsealKeysService = nil
 	i.ormRepository = nil

@@ -2,6 +2,7 @@
 //
 //
 
+// Package datetime provides date and time utility functions.
 package datetime
 
 import (

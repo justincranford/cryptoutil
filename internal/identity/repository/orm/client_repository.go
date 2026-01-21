@@ -190,7 +190,7 @@ func (r *ClientRepositoryGORM) Count(ctx context.Context) (int64, error) {
 }
 
 // RotateSecret rotates client secret and archives old secret in history.
-func (r *ClientRepositoryGORM) RotateSecret(ctx context.Context, clientID googleUuid.UUID, newSecretHash string, rotatedBy string, reason string) error {
+func (r *ClientRepositoryGORM) RotateSecret(_ context.Context, clientID googleUuid.UUID, newSecretHash string, rotatedBy string, reason string) error {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		// 1. Fetch current client.
 		var client cryptoutilIdentityDomain.Client

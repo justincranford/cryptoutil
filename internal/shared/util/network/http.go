@@ -83,7 +83,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 
 	client := &http.Client{}
 	if !followRedirects {
-		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		client.CheckRedirect = func(_ *http.Request, _ []*http.Request) error {
 			return http.ErrUseLastResponse // Don't follow redirects
 		}
 	}

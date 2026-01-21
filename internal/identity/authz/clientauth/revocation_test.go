@@ -193,7 +193,7 @@ func TestCRLCache_GetCRL_ServerError(t *testing.T) {
 	t.Parallel()
 
 	// Create test HTTP server returning error.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer server.Close()
@@ -210,7 +210,7 @@ func TestCRLCache_GetCRL_InvalidCRL(t *testing.T) {
 	t.Parallel()
 
 	// Create test HTTP server returning invalid CRL data.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/pkix-crl")
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
@@ -293,7 +293,7 @@ func TestCRLRevocationChecker_CheckRevocation(t *testing.T) {
 	crlBytes := createTestCRL(t, caCert, caPrivKey, []*big.Int{clientCert.SerialNumber})
 
 	// Create test HTTP server serving CRL.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/pkix-crl")
 		w.WriteHeader(http.StatusOK)
 		//nolint:errcheck // Test HTTP handler, error handling not critical.
@@ -363,7 +363,7 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 	caCert, clientCert, caPrivKey := createTestCertificatePair(t, false, true)
 
 	// Create test OCSP responder.
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// Create OCSP response indicating certificate is good.
 		// Real OCSP responses are complex ASN.1 structures.
 		// For this test, we create a minimal valid response.

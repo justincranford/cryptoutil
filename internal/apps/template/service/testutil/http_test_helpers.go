@@ -27,7 +27,7 @@ func NewInsecureTLSClient(timeout time.Duration) *http.Client {
 // NewMockServerOK creates a test server that returns 200 OK responses.
 // Used for testing health check success cases.
 func NewMockServerOK() *httptest.Server {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"healthy"}`))
 	})
@@ -38,7 +38,7 @@ func NewMockServerOK() *httptest.Server {
 // NewMockServerError creates a test server that returns 503 unavailable responses.
 // Used for testing health check error handling.
 func NewMockServerError() *httptest.Server {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = w.Write([]byte("Service Unavailable"))
 	})
@@ -49,7 +49,7 @@ func NewMockServerError() *httptest.Server {
 // NewMockServerSlow creates a test server with configurable delay.
 // Used for testing timeout handling.
 func NewMockServerSlow(delay time.Duration) *httptest.Server {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		time.Sleep(delay)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"delayed"}`))

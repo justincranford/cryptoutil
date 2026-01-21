@@ -303,7 +303,7 @@ func (e *BehavioralRiskEngine) assessTimeRisk(authTime time.Time, baseline *User
 	return cryptoutilIdentityMagic.RiskScoreMedium
 }
 
-func (e *BehavioralRiskEngine) assessBehaviorRisk(behavior *UserBehavior, baseline *UserBaseline) float64 {
+func (e *BehavioralRiskEngine) assessBehaviorRisk(_ *UserBehavior, baseline *UserBaseline) float64 {
 	// Compare behavior patterns with baseline.
 	// This is simplified - real implementation would use ML/statistical analysis.
 	if baseline.BehaviorProfile == nil {

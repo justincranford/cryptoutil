@@ -95,7 +95,7 @@ func TestSQLRepository_WithTransaction_RollbackOnError(t *testing.T) {
 	defer repo.Shutdown()
 
 	// Transaction that returns error (should rollback automatically)
-	err = repo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
+	err = repo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 		return sql.ErrNoRows // Return error to trigger rollback
 	})
 	testify.Error(t, err)

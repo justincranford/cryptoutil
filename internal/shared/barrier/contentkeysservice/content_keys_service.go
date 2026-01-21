@@ -2,6 +2,7 @@
 //
 //
 
+// Package contentkeysservice provides content-level key management for the barrier encryption hierarchy.
 package contentkeysservice
 
 import (
@@ -18,6 +19,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// ContentKeysService manages content encryption keys in the barrier hierarchy.
 type ContentKeysService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	jwkGenService           *cryptoutilJose.JWKGenService
@@ -25,6 +27,7 @@ type ContentKeysService struct {
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 }
 
+// NewContentKeysService creates a new ContentKeysService with the specified dependencies.
 func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
@@ -39,6 +42,7 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 	return &ContentKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, ormRepository: ormRepository, intermediateKeysService: intermediateKeysService}, nil
 }
 
+// EncryptContent encrypts content bytes with a newly generated content key.
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
 	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 	if err != nil {
@@ -63,6 +67,7 @@ func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmReposit
 	return encryptedContentJWEMessageBytes, contentKeyKidUUID, nil
 }
 
+// DecryptContent decrypts encrypted JWE message bytes using the content key hierarchy.
 func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJWEMessageBytes []byte) ([]byte, error) {
 	encryptedContentJWEMessage, err := joseJwe.Parse(encryptedContentJWEMessageBytes)
 	if err != nil {
@@ -99,6 +104,7 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmReposit
 	return decryptedBytes, nil
 }
 
+// Shutdown releases all resources held by the ContentKeysService.
 func (s *ContentKeysService) Shutdown() {
 	s.telemetryService = nil
 	s.ormRepository = nil

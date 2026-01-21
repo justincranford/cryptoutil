@@ -8,10 +8,11 @@ import (
 	"context"
 	"fmt"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
-	_ "modernc.org/sqlite"
+	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver registration
+	_ "modernc.org/sqlite"             // SQLite driver registration (CGO-free)
 )
 
+// LogSchema logs the database schema for the given repository.
 func LogSchema(sqlRepository *SQLRepository) error {
 	switch sqlRepository.dbType {
 	case DBTypeSQLite:

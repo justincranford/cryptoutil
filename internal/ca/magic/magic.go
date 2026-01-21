@@ -5,13 +5,13 @@ package magic
 
 import "time"
 
-// backdateBuffer allows slight backdating to handle clock skew.
+// BackdateBuffer allows slight backdating to handle clock skew.
 const BackdateBuffer = 1 * time.Minute
 
-// hexBase is the base for hex encoding serial numbers.
+// HexBase is the base for hex encoding serial numbers.
 const HexBase = 16
 
-// serialNumberLength is 20 bytes (160 bits) per CA/Browser Forum requirements.
+// SerialNumberLength is 20 bytes (160 bits) per CA/Browser Forum requirements.
 const SerialNumberLength = 20
 
 // DefaultPageLimit is the default number of items per page for pagination.

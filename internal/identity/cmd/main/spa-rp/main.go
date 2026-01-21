@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the SPA relying party demo application.
 package main
 
 import (
@@ -40,7 +41,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.FS(staticFS)))
 	// Handle OAuth callback by serving the main HTML page
-	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/callback", func(w http.ResponseWriter, _ *http.Request) {
 		// Serve the index.html file for OAuth callback processing
 		indexFile, err := staticFS.Open("index.html")
 		if err != nil {

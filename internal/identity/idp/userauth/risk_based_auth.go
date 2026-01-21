@@ -153,7 +153,7 @@ func (r *RiskBasedAuthenticator) InitiateAuth(ctx context.Context, userID string
 }
 
 // VerifyAuth verifies risk-based authentication (implements UserAuthenticator).
-func (r *RiskBasedAuthenticator) VerifyAuth(ctx context.Context, challengeID, response string) (*cryptoutilIdentityDomain.User, error) {
+func (r *RiskBasedAuthenticator) VerifyAuth(ctx context.Context, challengeID, _ string) (*cryptoutilIdentityDomain.User, error) {
 	// Parse challenge ID.
 	id, err := googleUuid.Parse(challengeID)
 	if err != nil {

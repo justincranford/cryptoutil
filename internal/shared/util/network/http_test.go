@@ -55,14 +55,14 @@ func TestMain(m *testing.M) {
 	defer testHTTPServer.Close()
 
 	// Create shared HTTPS server.
-	testHTTPSServer = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testHTTPSServer = httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("HTTPS OK"))
 	}))
 	defer testHTTPSServer.Close()
 
 	// Create shared slow server for timeout tests.
-	testSlowServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testSlowServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		time.Sleep(500 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
 	}))

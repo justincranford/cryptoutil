@@ -35,7 +35,7 @@ func TestWithTransaction_Success(t *testing.T) {
 
 	// Execute transaction successfully.
 	executedCommit := false
-	err := sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error {
 		executedCommit = true
 
 		return nil
@@ -62,7 +62,7 @@ func TestWithTransaction_Rollback(t *testing.T) {
 
 	// Execute transaction with intentional error to trigger rollback.
 	expectedErr := errors.New("intentional test error")
-	err := sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error {
 		return expectedErr
 	})
 
@@ -87,7 +87,7 @@ func TestWithTransaction_Panic(t *testing.T) {
 
 	// Execute transaction with panic to trigger recovery and re-panic.
 	testify.Panics(t, func() {
-		_ = sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error { //nolint:errcheck // Test expects panic
+		_ = sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error { //nolint:errcheck // Test expects panic
 			panic("intentional test panic")
 		})
 	})
@@ -113,7 +113,7 @@ func TestWithTransaction_ContextCancelled(t *testing.T) {
 	cancel() // Cancel immediately.
 
 	// Execute transaction with cancelled context.
-	err := sqlRepo.WithTransaction(cancelledCtx, false, func(tx *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(cancelledCtx, false, func(_ *sqlrepository.SQLTransaction) error {
 		// Transaction should handle cancellation.
 		return nil
 	})
@@ -142,7 +142,7 @@ func TestWithTransaction_CommitError(t *testing.T) {
 	sqlRepo.Shutdown()
 
 	// Attempt transaction after shutdown (will fail).
-	err := sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error {
 		return nil
 	})
 

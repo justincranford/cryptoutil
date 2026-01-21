@@ -28,10 +28,12 @@ var (
 	sqliteMigrationsFS embed.FS // internal/kms/server/repository/sqlrepository/sqlite/*.sql
 )
 
+// ApplyEmbeddedSQLMigrations applies embedded SQL migrations using default migration files.
 func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType) error {
 	return ApplyEmbeddedSQLMigrationsForService(telemetryService, db, dbType, postgresMigrationsFS, sqliteMigrationsFS)
 }
 
+// ApplyEmbeddedSQLMigrationsForService applies embedded SQL migrations using custom migration files.
 func ApplyEmbeddedSQLMigrationsForService(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType, postgresMigrationsFS embed.FS, sqliteMigrationsFS embed.FS) error {
 	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", dbType)
 

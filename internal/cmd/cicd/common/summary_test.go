@@ -30,7 +30,9 @@ func TestPrintExecutionSummary(t *testing.T) {
 
 	PrintExecutionSummary(results, 500*time.Millisecond)
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -64,7 +66,9 @@ func TestPrintExecutionSummary_AllSuccess(t *testing.T) {
 
 	PrintExecutionSummary(results, 150*time.Millisecond)
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -90,7 +94,9 @@ func TestPrintExecutionSummary_AllFailure(t *testing.T) {
 
 	PrintExecutionSummary(results, 150*time.Millisecond)
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -113,7 +119,9 @@ func TestPrintExecutionSummary_Empty(t *testing.T) {
 
 	PrintExecutionSummary(results, 0)
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -135,7 +143,9 @@ func TestPrintCommandSeparator(t *testing.T) {
 
 	PrintCommandSeparator()
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 

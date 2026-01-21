@@ -331,19 +331,19 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		fn        func(tx *cryptoutilSQLRepository.SQLTransaction) error
+		fn        func(_ *cryptoutilSQLRepository.SQLTransaction) error
 		wantError bool
 	}{
 		{
 			name: "Transaction returns custom error",
-			fn: func(tx *cryptoutilSQLRepository.SQLTransaction) error {
+			fn: func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 				return errors.New("custom error")
 			},
 			wantError: true,
 		},
 		{
 			name: "Transaction returns nil",
-			fn: func(tx *cryptoutilSQLRepository.SQLTransaction) error {
+			fn: func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 				return nil
 			},
 			wantError: false,

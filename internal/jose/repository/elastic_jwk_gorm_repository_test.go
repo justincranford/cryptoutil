@@ -122,6 +122,7 @@ func TestElasticJWKGormRepository_Create(t *testing.T) {
 
 	// Verify in database
 	var result domain.ElasticJWK
+
 	err = db.Where("id = ?", elasticJWK.ID).First(&result).Error
 	require.NoError(t, err)
 	require.Equal(t, elasticJWK.TenantID, result.TenantID)

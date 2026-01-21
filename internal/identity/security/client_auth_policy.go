@@ -2,6 +2,7 @@
 //
 //
 
+// Package security provides authentication and authorization security policies.
 package security
 
 import (
@@ -140,7 +141,7 @@ func (m *ClientAuthPolicyManager) RegisterPolicy(profileName string, policy *Cli
 }
 
 // ValidateClientAuthMethod validates if the given auth method is allowed by the policy.
-func (p *ClientAuthPolicy) ValidateClientAuthMethod(ctx context.Context, method cryptoutilIdentityDomain.ClientAuthMethod) error {
+func (p *ClientAuthPolicy) ValidateClientAuthMethod(_ context.Context, method cryptoutilIdentityDomain.ClientAuthMethod) error {
 	for _, allowed := range p.AllowedMethods {
 		if allowed == method {
 			return nil
@@ -151,7 +152,7 @@ func (p *ClientAuthPolicy) ValidateClientAuthMethod(ctx context.Context, method 
 }
 
 // ValidateJWTAlgorithm validates if the given JWT algorithm is allowed by the policy.
-func (p *ClientAuthPolicy) ValidateJWTAlgorithm(ctx context.Context, algorithm string) error {
+func (p *ClientAuthPolicy) ValidateJWTAlgorithm(_ context.Context, algorithm string) error {
 	if !p.RequireJWTSignature {
 		return nil
 	}

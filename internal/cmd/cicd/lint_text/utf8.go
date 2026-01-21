@@ -132,6 +132,7 @@ func checkFileEncoding(filePath string) []string {
 	}
 
 	// Check for UTF-8 BOM (EF BB BF).
+	// #nosec G602 -- bounds explicitly checked: n >= 3 ensures header[0], header[1], header[2] are valid.
 	if n >= 3 && header[0] == 0xEF && header[1] == 0xBB && header[2] == 0xBF {
 		issues = append(issues, "file has UTF-8 BOM marker")
 	}

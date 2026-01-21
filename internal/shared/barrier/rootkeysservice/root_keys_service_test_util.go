@@ -12,6 +12,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
+// RequireNewForTest creates a new RootKeysService for testing and panics on error.
 func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) *RootKeysService {
 	rootKeysService, err := NewRootKeysService(telemetryService, jwkGenService, ormRepository, unsealKeysService)
 	cryptoutilAppErr.RequireNoError(err, "failed to create rootKeysService")

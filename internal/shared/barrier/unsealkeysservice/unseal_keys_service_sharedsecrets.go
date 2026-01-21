@@ -12,30 +12,37 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// UnsealKeysServiceSharedSecrets implements UnsealKeysService using M-of-N shared secrets.
 type UnsealKeysServiceSharedSecrets struct {
 	unsealJWKs []joseJwk.Key
 }
 
+// EncryptKey encrypts a JWK with the unseal keys.
 func (u *UnsealKeysServiceSharedSecrets) EncryptKey(clearJWK joseJwk.Key) ([]byte, error) {
 	return encryptKey(u.unsealJWKs, clearJWK)
 }
 
+// DecryptKey decrypts a JWK encrypted with the unseal keys.
 func (u *UnsealKeysServiceSharedSecrets) DecryptKey(encryptedJWKBytes []byte) (joseJwk.Key, error) {
 	return decryptKey(u.unsealJWKs, encryptedJWKBytes)
 }
 
+// EncryptData encrypts data bytes with the unseal keys.
 func (u *UnsealKeysServiceSharedSecrets) EncryptData(clearData []byte) ([]byte, error) {
 	return encryptData(u.unsealJWKs, clearData)
 }
 
+// DecryptData decrypts data bytes encrypted with the unseal keys.
 func (u *UnsealKeysServiceSharedSecrets) DecryptData(encryptedDataBytes []byte) ([]byte, error) {
 	return decryptData(u.unsealJWKs, encryptedDataBytes)
 }
 
+// Shutdown releases all resources held by the UnsealKeysServiceSharedSecrets.
 func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
 	u.unsealJWKs = nil
 }
 
+// NewUnsealKeysServiceSharedSecrets creates a new UnsealKeysService using M-of-N shared secrets.
 func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) { // pragma: allowlist secret
 	if sharedSecretsM == nil { // pragma: allowlist secret
 		return nil, fmt.Errorf("shared secrets can't be nil") // pragma: allowlist secret

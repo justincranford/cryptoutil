@@ -103,7 +103,7 @@ func CreateDemoClient(
 // BootstrapClients creates all bootstrap clients for the identity server.
 func BootstrapClients(
 	ctx context.Context,
-	config *cryptoutilIdentityConfig.Config,
+	_ *cryptoutilIdentityConfig.Config,
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory,
 ) error {
 	// Create demo client.

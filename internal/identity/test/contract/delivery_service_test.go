@@ -163,20 +163,20 @@ func RunDeliveryServiceContractTests(t *testing.T, providerType string, newProvi
 	t.Run("Nil_Context", tests.TestDeliveryNilContext)
 }
 
-// TestMockSMSProviderContract validates MockSMSProvider against DeliveryService contract.
-func TestMockSMSProviderContract(t *testing.T) {
+// TestSMSProviderContract validates SMSProvider against DeliveryService contract.
+func TestSMSProviderContract(t *testing.T) {
 	t.Parallel()
 
 	RunDeliveryServiceContractTests(t, "sms", func() userauth.DeliveryService {
-		return mocks.NewMockSMSProvider()
+		return mocks.NewSMSProvider()
 	})
 }
 
-// TestMockEmailProviderContract validates MockEmailProvider against DeliveryService contract.
-func TestMockEmailProviderContract(t *testing.T) {
+// TestEmailProviderContract validates EmailProvider against DeliveryService contract.
+func TestEmailProviderContract(t *testing.T) {
 	t.Parallel()
 
 	RunDeliveryServiceContractTests(t, "email", func() userauth.DeliveryService {
-		return mocks.NewMockEmailProvider()
+		return mocks.NewEmailProvider()
 	})
 }

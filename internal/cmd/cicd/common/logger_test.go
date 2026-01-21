@@ -53,7 +53,9 @@ func TestLogger_Log(t *testing.T) {
 	time.Sleep(10 * time.Millisecond) // Ensure some duration
 	logger.Log("test message")
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -79,7 +81,9 @@ func TestLogger_LogError(t *testing.T) {
 	testErr := errors.New("test error message")
 	logger.LogError(testErr)
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -102,7 +106,9 @@ func TestLogger_LogWithPrefix(t *testing.T) {
 	logger := NewLogger("test-prefix")
 	logger.LogWithPrefix("CUSTOM", "custom message")
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -150,7 +156,9 @@ func TestLogger_Operation(t *testing.T) {
 
 			logger := NewLogger(tc.operation)
 
-			w.Close()
+			if err := w.Close(); err != nil {
+				t.Logf("Warning: failed to close write pipe: %v", err)
+			}
 
 			os.Stderr = oldStderr
 
@@ -177,7 +185,9 @@ func TestLogger_MultipleLogs(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 	logger.Log("message 3")
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 
@@ -224,7 +234,9 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 		<-done
 	}
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Logf("Warning: failed to close write pipe: %v", err)
+	}
 
 	os.Stderr = oldStderr
 

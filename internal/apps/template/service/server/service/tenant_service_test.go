@@ -164,10 +164,10 @@ func TestTenantService_CreateTenant(t *testing.T) {
 			tenantName:  "Test Tenant",
 			description: "A test tenant",
 			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
-				tenantRepo.createFn = func(ctx context.Context, tenant *repository.Tenant) error {
+				tenantRepo.createFn = func(_ context.Context, tenant *repository.Tenant) error {
 					return nil
 				}
-				roleRepo.createFn = func(ctx context.Context, role *repository.Role) error {
+				roleRepo.createFn = func(_ context.Context, role *repository.Role) error {
 					return nil
 				}
 			},
@@ -177,9 +177,9 @@ func TestTenantService_CreateTenant(t *testing.T) {
 			name:        "duplicate tenant name",
 			tenantName:  "Duplicate Tenant",
 			description: "A duplicate tenant",
-			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
+			setupMocks: func(tenantRepo *mockTenantRepository, _ *mockRoleRepository) {
 				summary := "duplicate key violation"
-				tenantRepo.createFn = func(ctx context.Context, tenant *repository.Tenant) error {
+				tenantRepo.createFn = func(_ context.Context, tenant *repository.Tenant) error {
 					return cryptoutilAppErr.NewHTTP409Conflict(&summary, errors.New("UNIQUE constraint failed"))
 				}
 			},
@@ -191,11 +191,11 @@ func TestTenantService_CreateTenant(t *testing.T) {
 			tenantName:  "Test Tenant",
 			description: "Tenant with role failure",
 			setupMocks: func(tenantRepo *mockTenantRepository, roleRepo *mockRoleRepository) {
-				tenantRepo.createFn = func(ctx context.Context, tenant *repository.Tenant) error {
+				tenantRepo.createFn = func(_ context.Context, tenant *repository.Tenant) error {
 					return nil
 				}
 				summary := "database error"
-				roleRepo.createFn = func(ctx context.Context, role *repository.Role) error {
+				roleRepo.createFn = func(_ context.Context, role *repository.Role) error {
 					return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, errors.New("database error"))
 				}
 			},

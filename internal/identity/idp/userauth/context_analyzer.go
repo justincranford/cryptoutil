@@ -172,7 +172,7 @@ func (a *DefaultContextAnalyzer) AnalyzeContext(ctx context.Context, request *Au
 }
 
 // DetectAnomalies identifies anomalous patterns in authentication context.
-func (a *DefaultContextAnalyzer) DetectAnomalies(ctx context.Context, authContext *AuthContext, baseline *UserBaseline) ([]Anomaly, error) {
+func (a *DefaultContextAnalyzer) DetectAnomalies(_ context.Context, authContext *AuthContext, baseline *UserBaseline) ([]Anomaly, error) {
 	anomalies := make([]Anomaly, 0)
 
 	// Check for location anomalies.

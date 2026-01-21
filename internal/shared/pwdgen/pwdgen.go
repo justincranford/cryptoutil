@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
+// Package pwdgen provides secure password generation with configurable policies.
 package pwdgen
 
 import (

@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// CipherImServerSettings defines configuration settings for the Cipher-IM server.
 type CipherImServerSettings struct {
 	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
 
@@ -77,6 +78,7 @@ var (
 	})
 )
 
+// Parse parses command-line arguments and returns the Cipher-IM server settings.
 func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	// Parse base template settings first.
 	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)

@@ -2,6 +2,7 @@
 //
 //
 
+// Package orm provides GORM-based repository implementations for identity domain entities.
 package orm
 
 import (

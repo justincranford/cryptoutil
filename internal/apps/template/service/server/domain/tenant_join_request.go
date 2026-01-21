@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford.
 // SPDX-License-Identifier: Apache-2.0.
 
+// Package domain provides domain models and business logic for the service template.
 package domain
 
 import (

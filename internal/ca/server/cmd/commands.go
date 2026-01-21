@@ -44,7 +44,7 @@ Examples:
 
   # Start with custom bind address and port
   ca-server start --bind 0.0.0.0 --port 8091`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 

@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the unified identity command-line entry point.
 package main
 
 import (

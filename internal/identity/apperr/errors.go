@@ -2,6 +2,7 @@
 //
 //
 
+// Package apperr provides application-level error definitions for the identity service.
 package apperr
 
 import (

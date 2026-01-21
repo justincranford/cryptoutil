@@ -113,7 +113,7 @@ func TestHealthCheck_AllConnectionPoolStats(t *testing.T) {
 	// Perform multiple operations to generate pool statistics.
 	// Use readOnly=false because SQLite doesn't support read-only transactions.
 	for i := 0; i < 10; i++ {
-		err := repo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
+		err := repo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 			return nil
 		})
 		testify.NoError(t, err)
@@ -237,7 +237,7 @@ func TestSQLRepository_WithTransaction_MultipleSequential(t *testing.T) {
 
 	// Execute multiple sequential transactions
 	for i := 0; i < 20; i++ {
-		err := repo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
+		err := repo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 			return nil
 		})
 		testify.NoError(t, err)
@@ -270,7 +270,7 @@ func TestSQLRepository_WithTransaction_ContextDeadlineExceeded(t *testing.T) {
 	time.Sleep(10 * time.Millisecond) // Ensure timeout occurs
 
 	// Transaction should fail due to deadline exceeded
-	err = repo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
+	err = repo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 		return nil
 	})
 	// May or may not error depending on timing - just verify no panic

@@ -331,7 +331,7 @@ func TestUnsealKeysServiceSharedSecrets_EncryptDecryptKey(t *testing.T) {
 	for i := 0; i < sharedSecretCount; i++ {
 		sharedSecrets[i] = make([]byte, secretSize)
 		for j := 0; j < secretSize; j++ {
-			sharedSecrets[i][j] = byte(i*10 + j)
+			sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
 		}
 	}
 
@@ -375,7 +375,7 @@ func TestUnsealKeysServiceSharedSecrets_EncryptDecryptData(t *testing.T) {
 	for i := 0; i < sharedSecretCount; i++ {
 		sharedSecrets[i] = make([]byte, secretSize)
 		for j := 0; j < secretSize; j++ {
-			sharedSecrets[i][j] = byte(i*10 + j)
+			sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
 		}
 	}
 
@@ -452,7 +452,7 @@ func TestUnsealKeysServiceSharedSecrets_DifferentChooseN(t *testing.T) {
 			for i := 0; i < tc.secretCount; i++ {
 				sharedSecrets[i] = make([]byte, secretSize)
 				for j := 0; j < secretSize; j++ {
-					sharedSecrets[i][j] = byte(i*10 + j)
+					sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
 				}
 			}
 
@@ -616,7 +616,7 @@ func TestUnsealKeysServiceSharedSecrets_DeterministicKeyDerivation(t *testing.T)
 	for i := 0; i < sharedSecretCount; i++ {
 		sharedSecrets[i] = make([]byte, secretSize)
 		for j := 0; j < secretSize; j++ {
-			sharedSecrets[i][j] = byte(i*10 + j)
+			sharedSecrets[i][j] = byte(i*10 + j) // #nosec G602 -- bounds checked via make() calls.
 		}
 	}
 
@@ -662,7 +662,7 @@ func TestUnsealKeysServiceSharedSecrets_SingleSecret(t *testing.T) {
 		make([]byte, 32),
 	}
 	for j := 0; j < 32; j++ {
-		sharedSecrets[0][j] = byte(j)
+		sharedSecrets[0][j] = byte(j) // #nosec G602 -- bounds checked: slice sized to 32, loop bounded by 32.
 	}
 
 	service, err := NewUnsealKeysServiceSharedSecrets(sharedSecrets, 1)

@@ -176,7 +176,7 @@ func TestMutualTLS(t *testing.T) {
 				}
 
 				if httpsServerResponse != nil {
-					httpsServerResponse.Body.Close() //nolint:errcheck // Retry loop cleanup
+					httpsServerResponse.Body.Close() //nolint:errcheck,gosec // G104: Retry loop cleanup, error ignored intentionally
 				}
 
 				time.Sleep(time.Duration(retry+1) * testHTTPRetryBaseDelay)

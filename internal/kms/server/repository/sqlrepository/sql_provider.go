@@ -21,16 +21,27 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver registration
 )
 
+// SupportedDBType represents a supported database type.
+type SupportedDBType string
+
+// ContainerMode represents the testcontainer mode for database initialization.
+type ContainerMode string
+
 const (
-	DBTypeSQLite   SupportedDBType = "sqlite"
+	// DBTypeSQLite represents SQLite database type.
+	DBTypeSQLite SupportedDBType = "sqlite"
+	// DBTypePostgres represents PostgreSQL database type.
 	DBTypePostgres SupportedDBType = "pgx"
 
-	ContainerModeDisabled  ContainerMode = "disabled"
+	// ContainerModeDisabled disables testcontainer mode.
+	ContainerModeDisabled ContainerMode = "disabled"
+	// ContainerModePreferred prefers testcontainer mode if available.
 	ContainerModePreferred ContainerMode = "preferred"
-	ContainerModeRequired  ContainerMode = "required"
+	// ContainerModeRequired requires testcontainer mode.
+	ContainerModeRequired ContainerMode = "required"
 
 	firstDBPingAttemptWait = cryptoutilMagic.DBPingFirstAttemptWait
 	maxDBPingAttempts      = cryptoutilMagic.DBMaxPingAttempts
@@ -40,6 +51,7 @@ const (
 	sqliteMaxOpenConnections = cryptoutilMagic.SQLiteMaxOpenConnections
 )
 
+// SQLRepository provides database operations using database/sql.
 type SQLRepository struct {
 	telemetryService    *cryptoutilTelemetry.TelemetryService
 	dbType              SupportedDBType // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
@@ -91,13 +103,6 @@ func (s *SQLRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	}, nil
 }
 
-type (
-	SupportedDBType string
-	ContainerMode   string
-)
-
-// extractSchemaFromURL extracts the schema name from PostgreSQL URL search_path parameter.
-// Used for test isolation where each test gets its own schema.
 func extractSchemaFromURL(databaseURL string) string {
 	parsedURL, err := url.Parse(databaseURL)
 	if err != nil {
@@ -130,16 +135,25 @@ var (
 	postgresContainerDBUsername = "postgresUsername" + postgresContainerRandSuffix
 	postgresContainerDBPassword = "postgresPassword" + postgresContainerRandSuffix
 
-	ErrContainerOptionNotExist                      = errors.New("container option not available for sqlite")
-	ErrUnsupportedDBType                            = errors.New("unsupported database type")
-	ErrContainerModeRequiredButContainerNotStarted  = errors.New("container mode required but container didn't start")
+	// ErrContainerOptionNotExist indicates container option is not available for SQLite.
+	ErrContainerOptionNotExist = errors.New("container option not available for sqlite")
+	// ErrUnsupportedDBType indicates an unsupported database type was specified.
+	ErrUnsupportedDBType = errors.New("unsupported database type")
+	// ErrContainerModeRequiredButContainerNotStarted indicates container was required but failed to start.
+	ErrContainerModeRequiredButContainerNotStarted = errors.New("container mode required but container didn't start")
+	// ErrContainerModePreferredButContainerNotStarted indicates container was preferred but failed to start.
 	ErrContainerModePreferredButContainerNotStarted = errors.New("container mode preferred but container didn't start")
-	ErrOpenDatabaseFailed                           = errors.New("failed to open database connection")
-	ErrPingDatabaseFailed                           = errors.New("failed to ping database")
-	ErrFailedDBConnection                           = errors.New("failed to connect to the database")
-	ErrMaxPingAttemptsExceeded                      = errors.New("exceeded maximum DB ping attempts")
+	// ErrOpenDatabaseFailed indicates the database connection could not be opened.
+	ErrOpenDatabaseFailed = errors.New("failed to open database connection")
+	// ErrPingDatabaseFailed indicates the database ping failed.
+	ErrPingDatabaseFailed = errors.New("failed to ping database")
+	// ErrFailedDBConnection indicates a failure to connect to the database.
+	ErrFailedDBConnection = errors.New("failed to connect to the database")
+	// ErrMaxPingAttemptsExceeded indicates the maximum ping attempts were exceeded.
+	ErrMaxPingAttemptsExceeded = errors.New("exceeded maximum DB ping attempts")
 )
 
+// NewSQLRepository creates a new SQLRepository with the given configuration.
 func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*SQLRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
@@ -275,6 +289,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	return sqlRepository, nil
 }
 
+// Shutdown closes the database connection and stops any container.
 func (s *SQLRepository) Shutdown() {
 	s.telemetryService.Slogger.Debug("shutting down SQL Provider")
 	s.shutdownDBContainer() // This call does it's own logging

@@ -41,7 +41,7 @@ func NewTenantRegistrationService(
 // RegisterUserWithTenant registers a user with a tenant (create or join).
 func (s *TenantRegistrationService) RegisterUserWithTenant(
 	ctx context.Context,
-	userID googleUuid.UUID,
+	_ googleUuid.UUID,
 	tenantName string,
 	createTenant bool,
 ) (*cryptoutilTemplateRepository.Tenant, error) {

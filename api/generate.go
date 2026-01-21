@@ -2,6 +2,7 @@
 //
 //
 
+// Package openapi provides generated OpenAPI client and server code for the cryptoutil API.
 package openapi
 
 // TODO Move to golang command pattern directory

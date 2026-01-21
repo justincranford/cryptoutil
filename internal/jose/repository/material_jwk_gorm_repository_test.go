@@ -146,6 +146,7 @@ func TestMaterialJWKGormRepository_Create(t *testing.T) {
 
 	// Verify it was created.
 	var found domain.MaterialJWK
+
 	err = db.First(&found, "id = ?", materialJWK.ID).Error
 	require.NoError(t, err)
 	require.Equal(t, materialJWK.MaterialKID, found.MaterialKID)
@@ -361,6 +362,7 @@ func TestMaterialJWKGormRepository_RotateMaterial(t *testing.T) {
 
 	// Verify old material is now inactive with retired_at set.
 	var oldFound domain.MaterialJWK
+
 	err = db.First(&oldFound, "id = ?", oldMaterial.ID).Error
 	require.NoError(t, err)
 	require.False(t, oldFound.Active)
@@ -368,6 +370,7 @@ func TestMaterialJWKGormRepository_RotateMaterial(t *testing.T) {
 
 	// Verify new material is active.
 	var newFound domain.MaterialJWK
+
 	err = db.First(&newFound, "id = ?", newMaterial.ID).Error
 	require.NoError(t, err)
 	require.True(t, newFound.Active)
@@ -395,6 +398,7 @@ func TestMaterialJWKGormRepository_RotateMaterial_NoExistingActive(t *testing.T)
 
 	// Verify new material is active.
 	var found domain.MaterialJWK
+
 	err = db.First(&found, "id = ?", newMaterial.ID).Error
 	require.NoError(t, err)
 	require.True(t, found.Active)

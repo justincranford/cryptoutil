@@ -401,6 +401,7 @@ func TestAuditLogGormRepository_DeleteOlderThan_Partial(t *testing.T) {
 
 	// Record cutoff time.
 	time.Sleep(10 * time.Millisecond)
+
 	cutoffTime := time.Now()
 
 	// Create new entries after cutoff.

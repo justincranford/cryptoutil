@@ -17,6 +17,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// UnsealKeysService defines the interface for unsealing root keys in the barrier hierarchy.
 type UnsealKeysService interface {
 	EncryptKey(clearRootKey joseJwk.Key) ([]byte, error)
 	DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error)

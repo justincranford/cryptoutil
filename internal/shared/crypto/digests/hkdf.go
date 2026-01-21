@@ -16,7 +16,9 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
+// Error variables for HKDF validation.
 var (
+	// ErrInvalidNilDigestFunction indicates that a nil digest function was provided.
 	ErrInvalidNilDigestFunction         = errors.New("digest function can't be nil; supported options are SHA512, SHA384, SHA256, SHA224")
 	ErrInvalidNilSecret                 = errors.New("secret can't be nil; generate a random value, and protect it")
 	ErrInvalidEmptySecret               = errors.New("secret can't be empty; generate a random value, and protect it")
@@ -25,25 +27,31 @@ var (
 	ErrInvalidOutputBytesLengthTooBig   = errors.New("outputBytesLength too big; maximum is 255 * digest block size")
 )
 
+// Digest name constants for HKDF operations.
 const (
+	// DigestSHA512 is the name constant for SHA-512 digest.
 	DigestSHA512 = cryptoutilMagic.SHA512
 	DigestSHA384 = cryptoutilMagic.SHA384
 	DigestSHA256 = cryptoutilMagic.SHA256
 	DigestSHA224 = cryptoutilMagic.SHA224
 )
 
+// HKDFwithSHA512 performs HKDF key derivation using SHA-512 digest.
 func HKDFwithSHA512(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
 	return HKDF("SHA512", secret, salt, info, outputBytesLength)
 }
 
+// HKDFwithSHA384 performs HKDF key derivation using SHA-384 digest.
 func HKDFwithSHA384(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
 	return HKDF("SHA384", secret, salt, info, outputBytesLength)
 }
 
+// HKDFwithSHA256 performs HKDF key derivation using SHA-256 digest.
 func HKDFwithSHA256(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
 	return HKDF("SHA256", secret, salt, info, outputBytesLength)
 }
 
+// HKDFwithSHA224 performs HKDF key derivation using SHA-224 digest.
 func HKDFwithSHA224(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
 	return HKDF("SHA224", secret, salt, info, outputBytesLength)
 }

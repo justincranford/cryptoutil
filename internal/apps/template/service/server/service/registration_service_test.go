@@ -305,7 +305,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Name:        "Acme Corp",
 				Description: "Test tenant",
 			},
-			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
+			setupMocks: func(tenantSvc *mockTenantService, _ *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
 				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*repository.Tenant, error) {
 					return nil, errors.New("database error")
 				}
@@ -322,7 +322,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Name:        "Acme Corp",
 				Description: "Test tenant",
 			},
-			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
+			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
 				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*repository.Tenant, error) {
 					return &repository.Tenant{ID: tenantID, Name: name}, nil
 				}

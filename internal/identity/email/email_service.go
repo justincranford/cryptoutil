@@ -37,7 +37,7 @@ func NewSMTPEmailService(config SMTPConfig) *SMTPEmailService {
 }
 
 // SendEmail sends an email via SMTP.
-func (s *SMTPEmailService) SendEmail(ctx context.Context, to, subject, body string) error {
+func (s *SMTPEmailService) SendEmail(_ context.Context, to, subject, body string) error {
 	auth := smtp.PlainAuth("", s.config.Username, s.config.Password, s.config.Host)
 
 	message := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s",
@@ -73,7 +73,7 @@ func NewMockEmailService() *MockEmailService {
 }
 
 // SendEmail records the email instead of actually sending it.
-func (m *MockEmailService) SendEmail(ctx context.Context, to, subject, body string) error {
+func (m *MockEmailService) SendEmail(_ context.Context, to, subject, body string) error {
 	m.SentEmails = append(m.SentEmails, SentEmail{
 		To:      to,
 		Subject: subject,

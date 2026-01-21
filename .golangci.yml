@@ -35,7 +35,7 @@ linters:
     - prealloc
     - bodyclose
     - mnd
-    - wsl
+    - wsl_v5
     - nlreturn
     # - goheader  # Temporarily disabled - causing file corruption with v2
     - depguard
@@ -107,6 +107,10 @@ linters:
       # Exclude wrapcheck from template registration handlers (Fiber HTTP response helpers).
       - path: "internal/apps/template/service/server/apis/registration_handlers\\.go$"
         linters: [wrapcheck]
+      # Exclude revive package-comments from doc.go (false positive with block comments).
+      - path: "internal/shared/crypto/digests/doc\\.go$"
+        linters: [revive]
+        text: "package-comments"
 
   settings:
     errcheck:

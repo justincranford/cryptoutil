@@ -14,12 +14,15 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// SQLTransaction represents a database transaction.
 type SQLTransaction struct {
 	sqlRepository *SQLRepository
 	guardState    sync.Mutex
 	state         *SQLTransactionState
 }
 
+// SQLTransactionState represents the internal state of a transaction.
+// SQLTransactionState represents the internal state of a transaction.
 type SQLTransactionState struct {
 	ctx           context.Context
 	readOnly      bool
@@ -27,6 +30,7 @@ type SQLTransactionState struct {
 	sqlTx         *sql.Tx
 }
 
+// WithTransaction executes a function within a database transaction.
 func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SQLTransaction) error) error {
 	if ctx == nil {
 		return fmt.Errorf("context cannot be nil")
@@ -72,9 +76,9 @@ func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, func
 			}
 		}
 
-		if recover := recover(); recover != nil {
-			s.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", recover, "stack", string(debug.Stack()))
-			panic(recover) // re-throw the panic after rollback
+		if r := recover(); r != nil {
+			s.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", r, "stack", string(debug.Stack()))
+			panic(r) // re-throw the panic after rollback
 		}
 	}()
 

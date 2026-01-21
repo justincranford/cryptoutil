@@ -129,7 +129,7 @@ func TestListAllFiles(t *testing.T) {
 			setupFiles:         []string{"file1.txt"},
 			expectedExtensions: []string{"txt"},
 			expectedTotalFiles: 1,
-			validateFunc: func(result map[string][]string, baseDir string) bool {
+			validateFunc: func(result map[string][]string, _ string) bool {
 				txtFiles := result["txt"]
 
 				return len(txtFiles) == 1
@@ -141,7 +141,7 @@ func TestListAllFiles(t *testing.T) {
 			setupFiles:         []string{"file1.txt", "file2.txt", "file3.txt"},
 			expectedExtensions: []string{"txt"},
 			expectedTotalFiles: expectedTxtFilesCount,
-			validateFunc: func(result map[string][]string, baseDir string) bool {
+			validateFunc: func(result map[string][]string, _ string) bool {
 				return len(result["txt"]) == expectedTxtFilesCount
 			},
 			wantErr: false,
@@ -156,7 +156,7 @@ func TestListAllFiles(t *testing.T) {
 			setupDirs:          []string{"subdir1", filepath.Join("subdir1", "subdir2")},
 			expectedExtensions: []string{"txt"},
 			expectedTotalFiles: expectedTxtFilesCount,
-			validateFunc: func(result map[string][]string, baseDir string) bool {
+			validateFunc: func(result map[string][]string, _ string) bool {
 				return len(result["txt"]) == expectedTxtFilesCount
 			},
 			wantErr: false,
@@ -166,7 +166,7 @@ func TestListAllFiles(t *testing.T) {
 			setupFiles:         []string{},
 			expectedExtensions: []string{},
 			expectedTotalFiles: 0,
-			validateFunc: func(result map[string][]string, baseDir string) bool {
+			validateFunc: func(result map[string][]string, _ string) bool {
 				return len(result) == 0
 			},
 			wantErr: false,
@@ -176,7 +176,7 @@ func TestListAllFiles(t *testing.T) {
 			setupFiles:         []string{"file1.txt", "file2.go", "file3.yml"},
 			expectedExtensions: []string{"txt", "go", "yml"},
 			expectedTotalFiles: expectedTxtFilesCount,
-			validateFunc: func(result map[string][]string, baseDir string) bool {
+			validateFunc: func(result map[string][]string, _ string) bool {
 				return len(result["txt"]) == 1 && len(result["go"]) == 1 && len(result["yml"]) == 1
 			},
 			wantErr: false,

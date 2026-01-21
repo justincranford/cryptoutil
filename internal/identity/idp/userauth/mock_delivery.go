@@ -40,7 +40,7 @@ func NewMockDeliveryService() *MockDeliveryService {
 }
 
 // SendSMS sends an SMS message (mock).
-func (m *MockDeliveryService) SendSMS(ctx context.Context, phoneNumber, message string) error {
+func (m *MockDeliveryService) SendSMS(_ context.Context, phoneNumber, message string) error {
 	if m.shouldFail {
 		return fmt.Errorf("mock SMS delivery failure")
 	}
@@ -57,7 +57,7 @@ func (m *MockDeliveryService) SendSMS(ctx context.Context, phoneNumber, message 
 }
 
 // SendEmail sends an email message (mock).
-func (m *MockDeliveryService) SendEmail(ctx context.Context, to, subject, body string) error {
+func (m *MockDeliveryService) SendEmail(_ context.Context, to, subject, body string) error {
 	if m.shouldFail {
 		return fmt.Errorf("mock email delivery failure")
 	}

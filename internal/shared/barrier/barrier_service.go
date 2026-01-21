@@ -2,6 +2,7 @@
 //
 //
 
+// Package barrierservice provides hierarchical encryption-at-rest using a multi-layer key hierarchy.
 package barrierservice
 
 import (
@@ -18,6 +19,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
+// BarrierService provides hierarchical encryption-at-rest using unseal, root, intermediate, and content keys.
 type BarrierService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	jwkGenService           *cryptoutilJose.JWKGenService
@@ -30,6 +32,7 @@ type BarrierService struct {
 	shutdownOnce            sync.Once
 }
 
+// NewBarrierService creates a new BarrierService with the specified dependencies.
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
@@ -75,6 +78,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 	}, nil
 }
 
+// EncryptContent encrypts the provided clear bytes using the content key hierarchy.
 func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
@@ -88,6 +92,7 @@ func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.
 	return encryptedContentJWEMessageBytes, nil
 }
 
+// DecryptContent decrypts the provided encrypted JWE message bytes using the content key hierarchy.
 func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJWEMessageBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
@@ -101,6 +106,7 @@ func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.
 	return decryptedBytes, nil
 }
 
+// Shutdown releases all resources held by the BarrierService.
 func (d *BarrierService) Shutdown() {
 	d.shutdownOnce.Do(func() {
 		d.closed = true

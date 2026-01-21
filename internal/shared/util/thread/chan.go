@@ -2,6 +2,7 @@
 //
 //
 
+// Package thread provides concurrent programming utilities including channel patterns.
 package thread
 
 import (

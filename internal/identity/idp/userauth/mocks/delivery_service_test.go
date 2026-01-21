@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestMockSMSProviderSuccess tests successful SMS sending.
-func TestMockSMSProviderSuccess(t *testing.T) {
+// TestSMSProviderSuccess tests successful SMS sending.
+func TestSMSProviderSuccess(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockSMSProvider()
+	provider := NewSMSProvider()
 	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendSMS(ctx, "+15551234567", "Test message")
@@ -30,11 +30,11 @@ func TestMockSMSProviderSuccess(t *testing.T) {
 	require.Equal(t, 1, provider.GetCallCount())
 }
 
-// TestMockSMSProviderFailure tests SMS provider failure mode.
-func TestMockSMSProviderFailure(t *testing.T) {
+// TestSMSProviderFailure tests SMS provider failure mode.
+func TestSMSProviderFailure(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockSMSProvider()
+	provider := NewSMSProvider()
 	provider.SetShouldFail(true, fmt.Errorf("network timeout"))
 
 	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
@@ -47,11 +47,11 @@ func TestMockSMSProviderFailure(t *testing.T) {
 	require.Len(t, messages, 0, "Failed sends should not record messages")
 }
 
-// TestMockSMSProviderNetworkErrorInjection tests network error at specific calls.
-func TestMockSMSProviderNetworkErrorInjection(t *testing.T) {
+// TestSMSProviderNetworkErrorInjection tests network error at specific calls.
+func TestSMSProviderNetworkErrorInjection(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockSMSProvider()
+	provider := NewSMSProvider()
 	provider.InjectNetworkError(2, fmt.Errorf("connection refused"))
 
 	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
@@ -74,11 +74,11 @@ func TestMockSMSProviderNetworkErrorInjection(t *testing.T) {
 	require.Equal(t, 3, provider.GetCallCount())
 }
 
-// TestMockSMSProviderReset tests provider reset functionality.
-func TestMockSMSProviderReset(t *testing.T) {
+// TestSMSProviderReset tests provider reset functionality.
+func TestSMSProviderReset(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockSMSProvider()
+	provider := NewSMSProvider()
 	provider.SetShouldFail(true, nil)
 	provider.InjectNetworkError(1, fmt.Errorf("test error"))
 
@@ -97,11 +97,11 @@ func TestMockSMSProviderReset(t *testing.T) {
 	require.Equal(t, 1, provider.GetCallCount(), "Reset should clear call count")
 }
 
-// TestMockEmailProviderSuccess tests successful email sending.
-func TestMockEmailProviderSuccess(t *testing.T) {
+// TestEmailProviderSuccess tests successful email sending.
+func TestEmailProviderSuccess(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockEmailProvider()
+	provider := NewEmailProvider()
 	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
 
 	err := provider.SendEmail(ctx, "user@example.com", "Test Subject", "Test body")
@@ -116,11 +116,11 @@ func TestMockEmailProviderSuccess(t *testing.T) {
 	require.Equal(t, 1, provider.GetCallCount())
 }
 
-// TestMockEmailProviderFailure tests email provider failure mode.
-func TestMockEmailProviderFailure(t *testing.T) {
+// TestEmailProviderFailure tests email provider failure mode.
+func TestEmailProviderFailure(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockEmailProvider()
+	provider := NewEmailProvider()
 	provider.SetShouldFail(true, fmt.Errorf("SMTP error"))
 
 	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
@@ -133,11 +133,11 @@ func TestMockEmailProviderFailure(t *testing.T) {
 	require.Len(t, emails, 0, "Failed sends should not record emails")
 }
 
-// TestMockEmailProviderNetworkErrorInjection tests network error injection.
-func TestMockEmailProviderNetworkErrorInjection(t *testing.T) {
+// TestEmailProviderNetworkErrorInjection tests network error injection.
+func TestEmailProviderNetworkErrorInjection(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockEmailProvider()
+	provider := NewEmailProvider()
 	provider.InjectNetworkError(3, fmt.Errorf("DNS resolution failed"))
 
 	ctx := context.WithValue(context.Background(), contextKeyTimestamp, int64(1234567890))
@@ -168,7 +168,7 @@ func TestDeliveryServiceInterfaceCompliance(t *testing.T) {
 	t.Run("SMS_Provider_SendEmail_Not_Supported", func(t *testing.T) {
 		t.Parallel()
 
-		provider := NewMockSMSProvider()
+		provider := NewSMSProvider()
 
 		err := provider.SendEmail(ctx, "user@example.com", "Subject", "Body")
 		require.Error(t, err)
@@ -178,7 +178,7 @@ func TestDeliveryServiceInterfaceCompliance(t *testing.T) {
 	t.Run("Email_Provider_SendSMS_Not_Supported", func(t *testing.T) {
 		t.Parallel()
 
-		provider := NewMockEmailProvider()
+		provider := NewEmailProvider()
 
 		err := provider.SendSMS(ctx, "+15551234567", "Message")
 		require.Error(t, err)
@@ -186,11 +186,11 @@ func TestDeliveryServiceInterfaceCompliance(t *testing.T) {
 	})
 }
 
-// TestMockEmailProviderReset tests email provider reset functionality.
-func TestMockEmailProviderReset(t *testing.T) {
+// TestEmailProviderReset tests email provider reset functionality.
+func TestEmailProviderReset(t *testing.T) {
 	t.Parallel()
 
-	provider := NewMockEmailProvider()
+	provider := NewEmailProvider()
 	provider.SetShouldFail(true, nil)
 	provider.InjectNetworkError(1, fmt.Errorf("test error"))
 

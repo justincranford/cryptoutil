@@ -19,7 +19,11 @@ import (
 )
 
 const (
-	httpClientTimeout = 10 * time.Second
+	httpClientTimeout    = 10 * time.Second
+	pathPrefixService    = "/service"
+	pathPrefixBrowser    = "/browser"
+	apiV1AuthRegister    = "/api/v1/auth/register"
+	apiV1MessagesContent = "/api/v1/messages"
 )
 
 // generateTestPassword creates a cryptographically secure random password for testing.
@@ -362,13 +366,13 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 			password := generateTestPassword(t)
 
 			// Determine API path prefix based on client type.
-			pathPrefix := "/service"
+			pathPrefix := pathPrefixService
 			if tt.useBrowser {
-				pathPrefix = "/browser"
+				pathPrefix = pathPrefixBrowser
 			}
 
 			// Register user with create_tenant=true (automatic tenant creation).
-			registerURL := tt.publicURL + pathPrefix + "/api/v1/auth/register"
+			registerURL := tt.publicURL + pathPrefix + apiV1AuthRegister
 			registerBody := fmt.Sprintf(`{
 				"username": "%s",
 				"password": "%s",
@@ -416,16 +420,16 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 			defer cancel()
 
 			// Determine API path prefix.
-			pathPrefix := "/service"
+			pathPrefix := pathPrefixService
 			if tt.useBrowser {
-				pathPrefix = "/browser"
+				pathPrefix = pathPrefixBrowser
 			}
 
 			// Step 1: Create a tenant (first user).
 			tenantOwner := fmt.Sprintf("owner_%d", time.Now().UnixNano())
 			ownerPassword := generateTestPassword(t)
 
-			ownerRegisterURL := tt.publicURL + pathPrefix + "/api/v1/auth/register"
+			ownerRegisterURL := tt.publicURL + pathPrefix + apiV1AuthRegister
 			ownerRegisterBody := fmt.Sprintf(`{
 				"username": "%s",
 				"password": "%s",

@@ -46,8 +46,8 @@ func TestSQLTransaction_PanicRecovery(t *testing.T) {
 	t.Parallel()
 
 	defer func() {
-		if recover := recover(); recover != nil {
-			require.NotNil(t, recover)
+		if r := recover(); r != nil {
+			require.NotNil(t, r)
 		}
 	}()
 

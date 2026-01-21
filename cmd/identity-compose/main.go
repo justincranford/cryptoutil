@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package main provides the identity-compose command for managing identity service deployments.
 package main
 
 import (

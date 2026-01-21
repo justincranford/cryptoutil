@@ -2,6 +2,7 @@
 //
 //
 
+// Package intermediatekeysservice provides intermediate-level key management for the barrier encryption hierarchy.
 package intermediatekeysservice
 
 import (
@@ -22,6 +23,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// IntermediateKeysService manages intermediate encryption keys in the barrier hierarchy.
 type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JWKGenService
@@ -29,6 +31,7 @@ type IntermediateKeysService struct {
 	rootKeysService  *cryptoutilRootKeysService.RootKeysService
 }
 
+// NewIntermediateKeysService creates a new IntermediateKeysService with the specified dependencies.
 func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
@@ -122,6 +125,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 	return nil
 }
 
+// EncryptKey encrypts a content key with the latest intermediate key.
 func (i *IntermediateKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
 	encryptedIntermediateKeyLatest, err := sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK latest from DB
 	if err != nil {
@@ -143,6 +147,7 @@ func (i *IntermediateKeysService) EncryptKey(sqlTransaction *cryptoutilOrmReposi
 	return encryptedContentKeyBytes, &intermediateKeyLatestKidUUID, nil
 }
 
+// DecryptKey decrypts a content key encrypted with an intermediate key.
 func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentKeyBytes []byte) (joseJwk.Key, error) {
 	encryptedContentKey, err := joseJwe.Parse(encryptedContentKeyBytes)
 	if err != nil {
@@ -180,6 +185,7 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmReposi
 	return decryptedContentKey, nil
 }
 
+// Shutdown releases all resources held by the IntermediateKeysService.
 func (i *IntermediateKeysService) Shutdown() {
 	i.telemetryService = nil
 	i.ormRepository = nil

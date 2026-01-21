@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package healthcheck provides health check polling functionality with exponential backoff.
 package healthcheck
 
 import (

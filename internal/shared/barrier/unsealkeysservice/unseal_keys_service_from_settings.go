@@ -18,22 +18,27 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// UnsealKeysServiceFromSettings implements UnsealKeysService using settings-based configuration.
 type UnsealKeysServiceFromSettings struct {
 	unsealJWKs []joseJwk.Key
 }
 
+// EncryptKey encrypts a root key with the unseal keys.
 func (u *UnsealKeysServiceFromSettings) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
 	return encryptKey(u.unsealJWKs, clearRootKey)
 }
 
+// DecryptKey decrypts a root key encrypted with the unseal keys.
 func (u *UnsealKeysServiceFromSettings) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
 	return decryptKey(u.unsealJWKs, encryptedRootKeyBytes)
 }
 
+// Shutdown releases all resources held by the UnsealKeysServiceFromSettings.
 func (u *UnsealKeysServiceFromSettings) Shutdown() {
 	u.unsealJWKs = nil
 }
 
+// NewUnsealKeysServiceFromSettings creates a new UnsealKeysService from application settings.
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
 		randomBytes, err := cryptoutilRandom.GenerateBytes(cryptoutilMagic.RandomKeySizeBytes)

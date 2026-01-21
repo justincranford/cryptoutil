@@ -2,6 +2,7 @@
 //
 //
 
+// Package sqlrepository provides database operations for the KMS repository.
 package sqlrepository
 
 import (
@@ -14,8 +15,8 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
-	_ "modernc.org/sqlite"
+	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver registration
+	_ "modernc.org/sqlite"             // SQLite driver registration (CGO-free)
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -27,6 +28,7 @@ const (
 	gormLoggerColorful                  = true
 )
 
+// CreateGormDB creates a GORM database instance from an SQLRepository.
 func CreateGormDB(sqlRepository *SQLRepository) (*gorm.DB, error) {
 	var gormDialector gorm.Dialector
 

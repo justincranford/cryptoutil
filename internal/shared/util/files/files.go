@@ -2,6 +2,7 @@
 //
 //
 
+// Package files provides file system utility functions.
 package files
 
 import (
@@ -108,6 +109,7 @@ func ListAllFilesWithOptions(startDirectory string, inclusions []string, exclusi
 	return matches, nil
 }
 
+// ReadFilesBytes reads the contents of multiple files and returns them as byte slices.
 func ReadFilesBytes(filePaths []string) ([][]byte, error) {
 	if len(filePaths) == 0 {
 		return nil, fmt.Errorf("no files specified")
@@ -136,6 +138,7 @@ func ReadFilesBytes(filePaths []string) ([][]byte, error) {
 	return filesContents, nil
 }
 
+// ReadFileBytes reads the contents of a single file and returns it as a byte slice.
 func ReadFileBytes(filePath string) ([]byte, error) {
 	fileData, err := os.ReadFile(filePath) // #nosec G304 -- General purpose file utility function
 	if err != nil {
@@ -145,6 +148,7 @@ func ReadFileBytes(filePath string) ([]byte, error) {
 	return fileData, nil
 }
 
+// ReadFilesBytesLimit reads multiple files with size and count limits.
 func ReadFilesBytesLimit(filePaths []string, maxFiles, maxBytesPerFile int64) ([][]byte, error) {
 	if len(filePaths) == 0 {
 		return nil, fmt.Errorf("no files specified")
@@ -175,6 +179,7 @@ func ReadFilesBytesLimit(filePaths []string, maxFiles, maxBytesPerFile int64) ([
 	return filesContents, nil
 }
 
+// ReadFileBytesLimit reads a single file with a size limit.
 func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 	if maxBytes <= 0 {
 		// If no limit or negative value, read the entire file

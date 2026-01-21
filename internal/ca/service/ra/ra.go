@@ -308,7 +308,7 @@ func (s *RAService) EscalateRequest(ctx context.Context, requestID googleUuid.UU
 }
 
 // CancelRequest cancels a pending request.
-func (s *RAService) CancelRequest(ctx context.Context, requestID googleUuid.UUID, requesterID, reason string) error {
+func (s *RAService) CancelRequest(_ context.Context, requestID googleUuid.UUID, requesterID, reason string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

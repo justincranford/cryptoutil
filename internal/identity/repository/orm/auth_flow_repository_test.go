@@ -236,7 +236,7 @@ func TestAuthFlowRepository_Update(t *testing.T) {
 			modify: func(flow *cryptoutilIdentityDomain.AuthFlow) {
 				flow.Description = "Should not persist"
 			},
-			verify:    func(flow *cryptoutilIdentityDomain.AuthFlow) {},
+			verify:    func(_ *cryptoutilIdentityDomain.AuthFlow) {},
 			wantError: false,
 		},
 	}

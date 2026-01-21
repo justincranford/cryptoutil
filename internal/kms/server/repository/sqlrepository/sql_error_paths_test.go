@@ -139,7 +139,7 @@ func TestSQLRepository_WithTransaction_NilContext(t *testing.T) {
 	defer sqlRepo.Shutdown()
 
 	// Test with nil context.
-	err := sqlRepo.WithTransaction(nil, false, func(tx *sqlrepository.SQLTransaction) error { //nolint:staticcheck // Testing nil context error handling
+	err := sqlRepo.WithTransaction(nil, false, func(_ *sqlrepository.SQLTransaction) error { //nolint:staticcheck // Testing nil context error handling
 		return nil
 	})
 

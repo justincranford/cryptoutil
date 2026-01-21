@@ -287,7 +287,7 @@ func TestParseCredentialType(t *testing.T) {
 
 // TestLogAuditEvent is a basic smoke test for logAuditEvent.
 // NOTE: Cannot use t.Parallel() - test manipulates global os.Stdout.
-func TestLogAuditEvent(t *testing.T) {
+func TestLogAuditEvent(_ *testing.T) {
 	ctx := context.Background()
 
 	// Capture log output.

@@ -43,7 +43,7 @@ func TestPollerPollHealthy(t *testing.T) {
 func TestPollerPollUnhealthy(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		resp := Response{
 			Status: "unhealthy",
 		}
@@ -66,7 +66,7 @@ func TestPollerPollUnhealthy(t *testing.T) {
 func TestPollerPollNotFound(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	}))
 	defer server.Close()

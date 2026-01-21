@@ -27,7 +27,7 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup mock delivery service.
-	mockSMS := cryptoutilIdentityMocks.NewMockSMSProvider()
+	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
 
 	// Setup mock challenge store.
 	challengeStore := newMockChallengeStore()
@@ -96,7 +96,7 @@ func TestSMSOTPInvalidToken(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockSMS := cryptoutilIdentityMocks.NewMockSMSProvider()
+	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -132,7 +132,7 @@ func TestSMSOTPExpiredChallenge(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockSMS := cryptoutilIdentityMocks.NewMockSMSProvider()
+	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -175,7 +175,7 @@ func TestSMSOTPRateLimitEnforcement(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockSMS := cryptoutilIdentityMocks.NewMockSMSProvider()
+	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(3, 1*time.Minute) // Only 3 attempts per minute
 	userRepo := newMockUserRepository()
@@ -211,7 +211,7 @@ func TestEmailMagicLinkCompleteFlow(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockEmail := cryptoutilIdentityMocks.NewMockEmailProvider()
+	mockEmail := cryptoutilIdentityMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -280,7 +280,7 @@ func TestMagicLinkInvalidToken(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockEmail := cryptoutilIdentityMocks.NewMockEmailProvider()
+	mockEmail := cryptoutilIdentityMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -317,7 +317,7 @@ func TestMagicLinkRateLimitEnforcement(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockEmail := cryptoutilIdentityMocks.NewMockEmailProvider()
+	mockEmail := cryptoutilIdentityMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(5, 1*time.Minute) // Only 5 attempts per minute
 	userRepo := newMockUserRepository()
@@ -366,7 +366,7 @@ func newMockChallengeStore() *mockChallengeStore {
 	}
 }
 
-func (s *mockChallengeStore) Store(ctx context.Context, challenge *cryptoutilIdentityUserAuth.AuthChallenge, token string) error {
+func (s *mockChallengeStore) Store(_ context.Context, challenge *cryptoutilIdentityUserAuth.AuthChallenge, token string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -378,7 +378,7 @@ func (s *mockChallengeStore) Store(ctx context.Context, challenge *cryptoutilIde
 	return nil
 }
 
-func (s *mockChallengeStore) Retrieve(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityUserAuth.AuthChallenge, string, error) {
+func (s *mockChallengeStore) Retrieve(_ context.Context, id googleUuid.UUID) (*cryptoutilIdentityUserAuth.AuthChallenge, string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -390,7 +390,7 @@ func (s *mockChallengeStore) Retrieve(ctx context.Context, id googleUuid.UUID) (
 	return entry.challenge, entry.token, nil
 }
 
-func (s *mockChallengeStore) Update(ctx context.Context, challenge *cryptoutilIdentityUserAuth.AuthChallenge) error {
+func (s *mockChallengeStore) Update(_ context.Context, challenge *cryptoutilIdentityUserAuth.AuthChallenge) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -405,7 +405,7 @@ func (s *mockChallengeStore) Update(ctx context.Context, challenge *cryptoutilId
 	return nil
 }
 
-func (s *mockChallengeStore) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (s *mockChallengeStore) Delete(_ context.Context, id googleUuid.UUID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -429,7 +429,7 @@ func newMockRateLimiter(maxAttempts int, window time.Duration) *mockRateLimiter 
 	}
 }
 
-func (r *mockRateLimiter) CheckLimit(ctx context.Context, userID string) error {
+func (r *mockRateLimiter) CheckLimit(_ context.Context, userID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

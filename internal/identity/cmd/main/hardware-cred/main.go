@@ -473,7 +473,7 @@ func runInventory(args []string) {
 
 // initDatabase initializes a database connection.
 // In production, this would read configuration from environment variables or config file.
-func initDatabase(ctx context.Context) (*gorm.DB, error) {
+func initDatabase(_ context.Context) (*gorm.DB, error) {
 	// Stub implementation - requires actual database configuration.
 	return nil, fmt.Errorf("database initialization not implemented - configure database connection")
 }
@@ -496,13 +496,13 @@ func generateMockPublicKey() []byte {
 }
 
 // parseCredentialType converts string to CredentialType enum.
-func parseCredentialType(typeStr string) cryptoutilIdentityORM.CredentialType {
+func parseCredentialType(_ string) cryptoutilIdentityORM.CredentialType {
 	// Currently only passkey type is defined in ORM package.
 	// smart_card and security_key are future enhancements.
 	return cryptoutilIdentityORM.CredentialTypePasskey
 }
 
 // logAuditEvent logs hardware credential lifecycle events for compliance traceability.
-func logAuditEvent(ctx context.Context, eventType, userID, credentialID string, metadata map[string]any) {
+func logAuditEvent(_ context.Context, eventType, userID, credentialID string, metadata map[string]any) {
 	log.Printf("[AUDIT] Event: %s | User: %s | Credential: %s | Metadata: %+v", eventType, userID, credentialID, metadata)
 }

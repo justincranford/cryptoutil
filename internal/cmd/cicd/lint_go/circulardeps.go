@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package lint_go provides Go linting utilities for the CICD pipeline.
 package lint_go
 
 import (

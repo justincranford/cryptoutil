@@ -2,6 +2,7 @@
 //
 //
 
+// Package domain provides domain models for the cipher-im service.
 package domain
 
 import (

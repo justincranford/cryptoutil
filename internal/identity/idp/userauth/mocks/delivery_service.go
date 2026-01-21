@@ -2,6 +2,7 @@
 //
 //
 
+// Package mocks provides mock implementations of delivery services for testing.
 package mocks
 
 import (
@@ -17,8 +18,8 @@ const (
 	contextKeyTimestamp contextKey = "timestamp"
 )
 
-// MockSMSProvider implements DeliveryService for testing SMS delivery.
-type MockSMSProvider struct {
+// SMSProvider implements DeliveryService for testing SMS delivery.
+type SMSProvider struct {
 	mu            sync.RWMutex
 	sentMessages  []SMSMessage
 	shouldFail    bool
@@ -34,16 +35,16 @@ type SMSMessage struct {
 	Timestamp   int64
 }
 
-// NewMockSMSProvider creates a new mock SMS provider.
-func NewMockSMSProvider() *MockSMSProvider {
-	return &MockSMSProvider{
+// NewSMSProvider creates a new mock SMS provider.
+func NewSMSProvider() *SMSProvider {
+	return &SMSProvider{
 		sentMessages:  make([]SMSMessage, 0),
 		networkErrors: make(map[int]error),
 	}
 }
 
 // SendSMS simulates sending an SMS message.
-func (m *MockSMSProvider) SendSMS(ctx context.Context, phoneNumber, message string) error {
+func (m *SMSProvider) SendSMS(ctx context.Context, phoneNumber, message string) error {
 	// Validate inputs.
 	if phoneNumber == "" {
 		return fmt.Errorf("phone number cannot be empty")
@@ -91,12 +92,12 @@ func (m *MockSMSProvider) SendSMS(ctx context.Context, phoneNumber, message stri
 }
 
 // SendEmail is not implemented for SMS provider (DeliveryService interface requirement).
-func (m *MockSMSProvider) SendEmail(_ context.Context, _, _, _ string) error {
+func (m *SMSProvider) SendEmail(_ context.Context, _, _, _ string) error {
 	return fmt.Errorf("SendEmail not supported by SMS provider")
 }
 
 // SetShouldFail configures the provider to fail all send attempts.
-func (m *MockSMSProvider) SetShouldFail(shouldFail bool, err error) {
+func (m *SMSProvider) SetShouldFail(shouldFail bool, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -105,7 +106,7 @@ func (m *MockSMSProvider) SetShouldFail(shouldFail bool, err error) {
 }
 
 // InjectNetworkError configures the provider to fail at a specific call count.
-func (m *MockSMSProvider) InjectNetworkError(callNumber int, err error) {
+func (m *SMSProvider) InjectNetworkError(callNumber int, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -113,7 +114,7 @@ func (m *MockSMSProvider) InjectNetworkError(callNumber int, err error) {
 }
 
 // GetSentMessages returns all sent SMS messages for verification.
-func (m *MockSMSProvider) GetSentMessages() []SMSMessage {
+func (m *SMSProvider) GetSentMessages() []SMSMessage {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -125,7 +126,7 @@ func (m *MockSMSProvider) GetSentMessages() []SMSMessage {
 }
 
 // GetCallCount returns the number of SendSMS calls.
-func (m *MockSMSProvider) GetCallCount() int {
+func (m *SMSProvider) GetCallCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -133,7 +134,7 @@ func (m *MockSMSProvider) GetCallCount() int {
 }
 
 // Reset clears all sent messages and resets call count.
-func (m *MockSMSProvider) Reset() {
+func (m *SMSProvider) Reset() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -144,8 +145,8 @@ func (m *MockSMSProvider) Reset() {
 	m.networkErrors = make(map[int]error)
 }
 
-// MockEmailProvider implements DeliveryService for testing email delivery.
-type MockEmailProvider struct {
+// EmailProvider implements DeliveryService for testing email delivery.
+type EmailProvider struct {
 	mu            sync.RWMutex
 	sentEmails    []EmailMessage
 	shouldFail    bool
@@ -162,16 +163,16 @@ type EmailMessage struct {
 	Timestamp int64
 }
 
-// NewMockEmailProvider creates a new mock email provider.
-func NewMockEmailProvider() *MockEmailProvider {
-	return &MockEmailProvider{
+// NewEmailProvider creates a new mock email provider.
+func NewEmailProvider() *EmailProvider {
+	return &EmailProvider{
 		sentEmails:    make([]EmailMessage, 0),
 		networkErrors: make(map[int]error),
 	}
 }
 
 // SendEmail simulates sending an email message.
-func (m *MockEmailProvider) SendEmail(ctx context.Context, to, subject, body string) error {
+func (m *EmailProvider) SendEmail(ctx context.Context, to, subject, body string) error {
 	// Validate inputs.
 	if to == "" {
 		return fmt.Errorf("recipient cannot be empty")
@@ -224,12 +225,12 @@ func (m *MockEmailProvider) SendEmail(ctx context.Context, to, subject, body str
 }
 
 // SendSMS is not implemented for email provider (DeliveryService interface requirement).
-func (m *MockEmailProvider) SendSMS(_ context.Context, _, _ string) error {
+func (m *EmailProvider) SendSMS(_ context.Context, _, _ string) error {
 	return fmt.Errorf("SendSMS not supported by email provider")
 }
 
 // SetShouldFail configures the provider to fail all send attempts.
-func (m *MockEmailProvider) SetShouldFail(shouldFail bool, err error) {
+func (m *EmailProvider) SetShouldFail(shouldFail bool, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -238,7 +239,7 @@ func (m *MockEmailProvider) SetShouldFail(shouldFail bool, err error) {
 }
 
 // InjectNetworkError configures the provider to fail at a specific call count.
-func (m *MockEmailProvider) InjectNetworkError(callNumber int, err error) {
+func (m *EmailProvider) InjectNetworkError(callNumber int, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -246,7 +247,7 @@ func (m *MockEmailProvider) InjectNetworkError(callNumber int, err error) {
 }
 
 // GetSentEmails returns all sent emails for verification.
-func (m *MockEmailProvider) GetSentEmails() []EmailMessage {
+func (m *EmailProvider) GetSentEmails() []EmailMessage {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -257,7 +258,7 @@ func (m *MockEmailProvider) GetSentEmails() []EmailMessage {
 }
 
 // GetCallCount returns the number of SendEmail calls.
-func (m *MockEmailProvider) GetCallCount() int {
+func (m *EmailProvider) GetCallCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -265,7 +266,7 @@ func (m *MockEmailProvider) GetCallCount() int {
 }
 
 // Reset clears all sent emails and resets call count.
-func (m *MockEmailProvider) Reset() {
+func (m *EmailProvider) Reset() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

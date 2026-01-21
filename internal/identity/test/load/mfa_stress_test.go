@@ -52,7 +52,7 @@ func TestMFAStress100ConcurrentSessions(t *testing.T) {
 		for i := 0; i < parallelSessions; i++ {
 			wg.Add(1)
 
-			go func(sessionIndex int) {
+			go func(_ int) {
 				defer wg.Done()
 
 				atomic.AddInt32(&suite.concurrentSessions, 1)
@@ -225,7 +225,7 @@ func TestMFALongRunningStress(t *testing.T) {
 		for i := 0; i < parallelWorkers; i++ {
 			wg.Add(1)
 
-			go func(workerID int) {
+			go func(_ int) {
 				defer wg.Done()
 
 				sessionCount := 0
@@ -309,7 +309,7 @@ func (s *MFAStressTestSuite) executeMFAChain(ctx context.Context, userID string,
 }
 
 // updateSession simulates concurrent session updates.
-func (s *MFAStressTestSuite) updateSession(ctx context.Context, sessionID string, updateData string) error {
+func (s *MFAStressTestSuite) updateSession(_ context.Context, _ string, _ string) error {
 	// Simulate database update delay.
 	time.Sleep(2 * time.Millisecond)
 
@@ -319,7 +319,7 @@ func (s *MFAStressTestSuite) updateSession(ctx context.Context, sessionID string
 }
 
 // validateWithNonce simulates nonce-based validation with replay detection.
-func (s *MFAStressTestSuite) validateWithNonce(ctx context.Context, nonce string) error {
+func (s *MFAStressTestSuite) validateWithNonce(_ context.Context, nonce string) error {
 	// Simulate validation delay.
 	time.Sleep(3 * time.Millisecond)
 

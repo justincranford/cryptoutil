@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
+// Package testing provides test utilities and helpers for cipher-im server testing.
 package testing
 
 import (
@@ -59,7 +60,7 @@ type TestServerResources struct {
 //	    panic(err)
 //	}
 //	defer resources.Shutdown(context.Background())
-func SetupTestServer(ctx context.Context, useInMemoryDB bool) (*TestServerResources, error) {
+func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) {
 	resources := &TestServerResources{}
 
 	// Setup database DSN - always use normalized in-memory format for tests.

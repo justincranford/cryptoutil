@@ -121,7 +121,7 @@ func (v *CACertificateValidator) ValidateCertificate(clientCert *x509.Certificat
 
 // IsRevoked checks if a certificate has been revoked.
 // Deprecated: Use revocationChecker.CheckRevocation instead.
-func (v *CACertificateValidator) IsRevoked(serialNumber *big.Int) bool {
+func (v *CACertificateValidator) IsRevoked(_ *big.Int) bool {
 	return false
 }
 
@@ -139,7 +139,7 @@ func NewSelfSignedCertificateValidator(pinnedCerts map[string]*x509.Certificate)
 }
 
 // ValidateCertificate validates a self-signed certificate against pinned certificates.
-func (v *SelfSignedCertificateValidator) ValidateCertificate(clientCert *x509.Certificate, rawCerts [][]byte) error {
+func (v *SelfSignedCertificateValidator) ValidateCertificate(clientCert *x509.Certificate, _ [][]byte) error {
 	if clientCert == nil {
 		return cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
@@ -176,7 +176,7 @@ func (v *SelfSignedCertificateValidator) ValidateCertificate(clientCert *x509.Ce
 
 // IsRevoked always returns false for self-signed certificates.
 // Revocation for self-signed certificates is handled by removing the pinned certificate.
-func (v *SelfSignedCertificateValidator) IsRevoked(serialNumber *big.Int) bool {
+func (v *SelfSignedCertificateValidator) IsRevoked(_ *big.Int) bool {
 	return false
 }
 

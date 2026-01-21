@@ -88,7 +88,7 @@ func TestWithTransaction_ReadOnlySQLite(t *testing.T) {
 	defer repo.Shutdown()
 
 	// Attempt read-only transaction on SQLite (should fail - SQLite doesn't support read-only transactions).
-	err := repo.WithTransaction(ctx, true, func(tx *SQLTransaction) error {
+	err := repo.WithTransaction(ctx, true, func(_ *SQLTransaction) error {
 		return nil
 	})
 	require.Error(t, err, "WithTransaction should fail for read-only on SQLite")
@@ -112,7 +112,7 @@ func TestWithTransaction_FunctionError(t *testing.T) {
 	testErr := fmt.Errorf("test transaction function error")
 
 	// Call WithTransaction with function that returns error.
-	err := repo.WithTransaction(ctx, false, func(tx *SQLTransaction) error {
+	err := repo.WithTransaction(ctx, false, func(_ *SQLTransaction) error {
 		return testErr
 	})
 	require.Error(t, err, "WithTransaction should propagate function error")
@@ -143,7 +143,7 @@ func TestWithTransaction_PanicRecovery(t *testing.T) {
 	}()
 
 	// Call WithTransaction with function that panics.
-	_ = repo.WithTransaction(ctx, false, func(tx *SQLTransaction) error { //nolint:errcheck // Panic test - error handling not applicable
+	_ = repo.WithTransaction(ctx, false, func(_ *SQLTransaction) error { //nolint:errcheck // Panic test - error handling not applicable
 		panic("simulated panic in transaction")
 	})
 

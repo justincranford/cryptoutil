@@ -2,6 +2,7 @@
 //
 //
 
+// Package elastickeytest provides testing utilities for elastic key generation pools.
 package elastickeytest
 
 import (
