@@ -2,6 +2,7 @@
 
 //go:build windows
 
+// Package process provides process management utilities for Windows.
 package process
 
 import (

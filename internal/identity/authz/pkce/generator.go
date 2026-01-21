@@ -2,6 +2,7 @@
 //
 //
 
+// Package pkce provides Proof Key for Code Exchange (PKCE) implementation for OAuth 2.0.
 package pkce
 
 import (

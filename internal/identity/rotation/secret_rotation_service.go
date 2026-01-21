@@ -2,6 +2,7 @@
 //
 //
 
+// Package rotation provides secret rotation services for identity components.
 package rotation
 
 import (

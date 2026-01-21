@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package main provides the CA server entry point.
 package main
 
 import (

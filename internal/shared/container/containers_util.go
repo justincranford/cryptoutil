@@ -2,6 +2,7 @@
 //
 //
 
+// Package container provides utilities for managing testcontainers.
 package container
 
 import (

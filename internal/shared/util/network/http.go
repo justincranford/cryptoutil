@@ -2,6 +2,7 @@
 //
 //
 
+// Package network provides HTTP client utilities for network operations.
 package network
 
 import (

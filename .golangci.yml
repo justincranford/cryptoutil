@@ -111,6 +111,10 @@ linters:
       - path: "internal/shared/crypto/digests/doc\\.go$"
         linters: [revive]
         text: "package-comments"
+      # Exclude revive package-comments from hash/doc.go (false positive with block comments).
+      - path: "internal/shared/crypto/hash/doc\\.go$"
+        linters: [revive]
+        text: "package-comments"
 
   settings:
     errcheck:

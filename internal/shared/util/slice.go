@@ -2,6 +2,7 @@
 //
 //
 
+// Package util provides utility functions for common operations.
 package util
 
 func Contains[T comparable](slice []*T, item *T) bool {

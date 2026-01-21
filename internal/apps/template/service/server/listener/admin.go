@@ -2,7 +2,7 @@
 //
 //
 
-// Package server provides a reusable template for dual HTTPS server pattern used across all cryptoutil services.
+// Package listener provides a reusable template for dual HTTPS server pattern used across all cryptoutil services.
 // AdminServer implements the private admin API server with health check endpoints and graceful shutdown.
 package listener
 

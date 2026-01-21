@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
+// Package middleware provides HTTP middleware for session management and authentication.
 package middleware
 
 import (

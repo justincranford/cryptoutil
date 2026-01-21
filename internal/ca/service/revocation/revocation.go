@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package revocation provides certificate revocation services including CRL and OCSP.
 package revocation
 
 import (

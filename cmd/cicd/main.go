@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the CICD utilities entry point.
 package main
 
 import (

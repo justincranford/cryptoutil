@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the resource server entry point.
 package main
 
 import (

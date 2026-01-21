@@ -2,6 +2,7 @@
 //
 //
 
+// Package config provides configuration management for identity services.
 package config
 
 import (

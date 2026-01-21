@@ -2,6 +2,7 @@
 //
 //
 
+// Package repository provides database repository implementations for identity services.
 package repository
 
 import (

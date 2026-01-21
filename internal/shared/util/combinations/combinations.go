@@ -2,6 +2,7 @@
 //
 //
 
+// Package combinations provides utilities for generating combinatorial permutations.
 package combinations
 
 import (

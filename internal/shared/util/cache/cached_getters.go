@@ -2,6 +2,7 @@
 //
 //
 
+// Package cache provides caching utilities for getter functions.
 package cache
 
 import "sync"

@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package tls_generator provides TLS certificate generation and provisioning utilities.
 package tls_generator
 
 // TLSGeneratedSettings holds configuration for TLS certificate provisioning.

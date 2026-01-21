@@ -2,6 +2,7 @@
 //
 //
 
+// Package server provides the resource server implementation for OAuth 2.0.
 package server
 
 import (

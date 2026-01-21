@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides hardware credential lifecycle testing.
 package main
 
 import (

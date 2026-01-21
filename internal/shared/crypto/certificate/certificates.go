@@ -2,6 +2,7 @@
 //
 //
 
+// Package certificate provides X.509 certificate management utilities.
 package certificate
 
 import (

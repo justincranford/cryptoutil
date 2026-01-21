@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package lint_go_mod provides go.mod linting utilities for dependency management.
 package lint_go_mod
 
 import (

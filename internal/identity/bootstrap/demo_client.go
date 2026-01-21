@@ -2,6 +2,7 @@
 //
 //
 
+// Package bootstrap provides client bootstrapping and initialization utilities.
 package bootstrap
 
 import (

@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package compliance provides CA/Browser Forum compliance validation for certificates.
 package compliance
 
 import (

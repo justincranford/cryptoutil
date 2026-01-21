@@ -2,6 +2,7 @@
 //
 //
 
+// Package sysinfo provides system information utilities for runtime environment detection.
 package sysinfo
 
 import (

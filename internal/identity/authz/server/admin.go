@@ -2,6 +2,7 @@
 //
 //
 
+// Package server provides the authorization server implementation for OAuth 2.1.
 package server
 
 import (

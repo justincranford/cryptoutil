@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the authorization server entry point.
 package main
 
 import (

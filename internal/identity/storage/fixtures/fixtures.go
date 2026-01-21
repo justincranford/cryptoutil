@@ -2,6 +2,7 @@
 //
 //
 
+// Package fixtures provides test fixtures for identity storage testing.
 package fixtures
 
 import (

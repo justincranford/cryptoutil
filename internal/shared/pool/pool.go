@@ -2,6 +2,7 @@
 //
 //
 
+// Package pool provides high-performance object pooling for cryptographic operations.
 package pool
 
 import (

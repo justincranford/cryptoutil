@@ -2,6 +2,7 @@
 //
 //
 
+// Package random provides cryptographically secure random number generation utilities.
 package random
 
 import (

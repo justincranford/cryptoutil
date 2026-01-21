@@ -2,6 +2,7 @@
 //
 //
 
+// Package main provides the cryptoutil suite entry point.
 package main
 
 import (

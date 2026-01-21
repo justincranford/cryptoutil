@@ -2,6 +2,7 @@
 //
 //
 
+// Package server provides identity server implementations for authorization and authentication.
 package server
 
 import (

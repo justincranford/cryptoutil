@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package dpop provides Demonstrating Proof-of-Possession (DPoP) implementation for OAuth 2.0.
 package dpop
 
 import (

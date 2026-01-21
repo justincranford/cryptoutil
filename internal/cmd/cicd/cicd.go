@@ -2,6 +2,7 @@
 //
 //
 
+// Package cicd provides CI/CD workflow utilities and automation.
 package cicd
 
 import (

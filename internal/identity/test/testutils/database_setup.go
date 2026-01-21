@@ -2,6 +2,7 @@
 //
 //
 
+// Package testutils provides testing utilities for identity service tests.
 package testutils
 
 import (

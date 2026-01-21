@@ -2,6 +2,7 @@
 //
 //
 
+// Package application provides the KMS server application core.
 package application
 
 import (

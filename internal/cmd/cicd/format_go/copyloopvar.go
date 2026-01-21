@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package format_go provides Go source code formatting utilities for CICD workflows.
 package format_go
 
 import (

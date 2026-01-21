@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
+// Package handler provides HTTP handlers for CA REST API endpoints.
 package handler
 
 import (

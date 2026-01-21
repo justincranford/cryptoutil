@@ -2,6 +2,7 @@
 //
 //
 
+// Package server provides the identity provider server implementation.
 package server
 
 import (

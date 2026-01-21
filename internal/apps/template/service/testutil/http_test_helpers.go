@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+// Package testutil provides test utilities for HTTP server testing.
 package testutil
 
 import (

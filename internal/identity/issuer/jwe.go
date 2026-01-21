@@ -2,6 +2,7 @@
 //
 //
 
+// Package issuer provides token issuance services for OAuth 2.0 and OIDC.
 package issuer
 
 import (
