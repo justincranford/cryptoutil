@@ -7,8 +7,8 @@ package config
 import (
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // RequireNewForTest creates a new identity config for testing.

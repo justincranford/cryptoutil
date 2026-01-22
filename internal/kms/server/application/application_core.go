@@ -8,12 +8,12 @@ import (
 	"context"
 	"fmt"
 
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
 	cryptoutilDemo "cryptoutil/internal/kms/server/demo"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 // ServerApplicationCore provides core server application components including database, ORM, barrier, and business logic services.

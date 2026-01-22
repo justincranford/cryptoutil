@@ -49,7 +49,7 @@ const (
 	// RiskFactorNetwork indicates a network-based risk factor.
 	RiskFactorNetwork RiskFactorType = "network"
 	// RiskFactorVelocity indicates a velocity-based risk factor.
-	RiskFactorVelocity RiskFactorType = "velocity"
+	RiskFactorVelocity       RiskFactorType = "velocity"
 	RiskFactorAuthentication RiskFactorType = "authentication"
 )
 

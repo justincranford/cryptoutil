@@ -8,11 +8,11 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // RequireNewForTest creates a new ORM repository for testing and panics on error.

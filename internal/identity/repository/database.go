@@ -17,7 +17,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // Register pgx driver for database/sql
-	_ "modernc.org/sqlite"            // Register CGO-free SQLite driver
+	_ "modernc.org/sqlite"             // Register CGO-free SQLite driver
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"

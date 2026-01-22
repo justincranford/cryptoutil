@@ -10,9 +10,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )

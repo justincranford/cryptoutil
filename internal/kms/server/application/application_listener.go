@@ -22,11 +22,11 @@ import (
 
 	cryptoutilOpenapiServer "cryptoutil/api/server"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilOpenapiHandler "cryptoutil/internal/kms/server/handler"
+	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
-	cryptoutilOpenapiHandler "cryptoutil/internal/kms/server/handler"
 
 	"go.opentelemetry.io/otel/metric"
 

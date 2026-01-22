@@ -15,8 +15,8 @@ import (
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilPool "cryptoutil/internal/shared/pool"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"

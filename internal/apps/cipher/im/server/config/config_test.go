@@ -117,7 +117,7 @@ func TestNewTestConfig_InheritedTemplateSettings(t *testing.T) {
 
 	// Verify cipher-im port overrides.
 	require.Equal(t, uint16(8888), settings.BindPublicPort)
-	
+
 	// BindPrivatePort uses dynamic allocation (0) in tests to avoid port conflicts.
 	require.Equal(t, uint16(0), settings.BindPrivatePort)
 }
@@ -147,4 +147,3 @@ func TestNewTestConfig_MessageJWEAlgorithm(t *testing.T) {
 	require.NotEmpty(t, settings.MessageJWEAlgorithm)
 	require.Equal(t, cryptoutilSharedMagic.CipherJWEAlgorithm, settings.MessageJWEAlgorithm)
 }
-
