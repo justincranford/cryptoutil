@@ -162,9 +162,21 @@
 - [x] 0.8.5 **CRITICAL: Consistent paths (/admin/api/v1, NOT /admin/v1)**
 - [x] 0.8.6 **CRITICAL: tenant_id param (absence=create, presence=join)**
 - [x] 0.8.7 **NEW: In-memory rate limiting per IP (configurable threshold)**
-- [ ] 0.8.8 Write integration tests (≥95% coverage)
+- [ ] 0.8.8 Write integration tests (≥85% coverage - Phase 1)
 
-**Evidence**: Coverage ≥95%, all endpoints tested
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/template_registration_handlers.out ./internal/apps/template/service/server/apis`
+  2. Analyze coverage report: `go tool cover -func=test-output/template_registration_handlers.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+
+  **Target**: ≥85% coverage (deferred to Phase X for 98%)
+
+**Evidence**: Coverage ≥85%, all endpoints tested
 
 ---
 
@@ -186,8 +198,8 @@
 - [ ] 0.10.1 Build: `go build ./...` (zero errors)
 - [ ] 0.10.2 Linting: `golangci-lint run ./...` (zero warnings)
 - [ ] 0.10.3 Tests: `go test ./internal/apps/template/... -cover` (100% pass)
-- [ ] 0.10.4 Coverage: ≥95% production, ≥98% infrastructure
-- [ ] 0.10.5 Mutation: ≥85% production, ≥98% infrastructure
+- [ ] 0.10.4 Coverage: ≥85% production, ≥85% infrastructure (Phase 1)
+- [ ] 0.10.5 Mutation: DEFERRED to Phase Y (Mutation Testing)
 - [ ] 0.10.6 E2E: Registration flow works (browser + service)
 - [ ] 0.10.7 E2E: Join request flow works (create, list, approve)
 - [ ] 0.10.8 Security: NO hardcoded passwords in tests
@@ -235,7 +247,7 @@
 - [ ] 1.3.1 Build: `go build ./internal/apps/cipher/...` (zero errors)
 - [ ] 1.3.2 Linting: `golangci-lint run ./internal/apps/cipher/...` (zero warnings)
 - [ ] 1.3.3 Tests: `go test ./internal/apps/cipher/... -cover` (100% pass)
-- [ ] 1.3.4 Coverage: ≥95% production, ≥98% infrastructure
+- [ ] 1.3.4 Coverage: ≥85% production, ≥85% infrastructure (Phase 1)
 - [ ] 1.3.5 Grep: 0 WithDefaultTenant usages
 - [ ] 1.3.6 Security: NO hardcoded passwords
 - [ ] 1.3.7 Git: Conventional commit
@@ -279,10 +291,10 @@
 - [ ] 2.2.4 Create 2004_audit_config.{up,down}.sql
 - [ ] 2.2.5 Create 2005_audit_log.{up,down}.sql
 - [ ] 2.2.6 **CRITICAL: Use TEXT for UUIDs, TIMESTAMP for dates**
-- [ ] 2.2.7 Test migrations on PostgreSQL 18+
-- [ ] 2.2.8 Test migrations on SQLite 3.19+
 
-**Evidence**: Migrations apply to both databases
+**Evidence**: Migrations created with correct types
+
+**NOTE**: Migration testing is performed indirectly via TestMain patterns in integration/E2E tests
 
 ---
 
@@ -295,10 +307,23 @@
 - [ ] 2.3.4 Implement AuditConfigRepository
 - [ ] 2.3.5 Implement AuditLogRepository
 - [ ] 2.3.6 **CRITICAL: Filter by tenant_id ONLY (NOT realm_id)**
-- [ ] 2.3.7 Write unit tests (≥98% coverage)
-- [ ] 2.3.8 Run mutation testing (≥98% score)
+- [ ] 2.3.7 Write unit tests (≥85% coverage - Phase 1)
 
-**Evidence**: Coverage ≥98%, mutation ≥98%, NO realm_id filtering
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_repository.out ./internal/apps/jose/ja/repository`
+  2. Analyze coverage report: `go tool cover -func=test-output/jose_repository.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+
+  **Target**: ≥85% coverage (deferred to Phase X for 98%)
+
+- [ ] 2.3.8 Run mutation testing: DEFERRED to Phase Y (Mutation Testing)
+
+**Evidence**: Coverage ≥85%, NO realm_id filtering
 
 ---
 
@@ -307,9 +332,9 @@
 - [ ] 2.4.1 Build: `go build ./internal/apps/jose/...`
 - [ ] 2.4.2 Linting: `golangci-lint run ./internal/apps/jose/...`
 - [ ] 2.4.3 Tests: `go test ./internal/apps/jose/ja/repository/... -cover` (100% pass)
-- [ ] 2.4.4 Coverage: ≥98% (infrastructure)
-- [ ] 2.4.5 Mutation: ≥98% (gremlins)
-- [ ] 2.4.6 Migrations: Apply to PostgreSQL 18+ and SQLite
+- [ ] 2.4.4 Coverage: ≥85% (infrastructure - Phase 1)
+- [ ] 2.4.5 Mutation: DEFERRED to Phase Y (Mutation Testing)
+- [ ] 2.4.6 Migrations: Apply to PostgreSQL 18+ and SQLite (tested via TestMain)
 - [ ] 2.4.7 Repository: NO realm_id filtering in WHERE clauses
 - [ ] 2.4.8 Git: Conventional commit
 
@@ -355,9 +380,21 @@
 - [ ] 3.3.5 Implement JWKS handlers (GetJWKS)
 - [ ] 3.3.6 Implement Audit handlers (GetConfig, SetConfig, ListLogs)
 - [ ] 3.3.7 **CRITICAL: Simplify Generate request (remove key_type, key_size)**
-- [ ] 3.3.8 Write handler tests (≥95% coverage)
+- [ ] 3.3.8 Write handler tests (≥85% coverage - Phase 1)
 
-**Evidence**: Coverage ≥95%, all endpoints tested
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_handlers.out ./internal/apps/jose/ja/server/apis`
+  2. Analyze coverage report: `go tool cover -func=test-output/jose_handlers.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+
+  **Target**: ≥85% coverage (deferred to Phase X for 95%)
+
+**Evidence**: Coverage ≥85%, all endpoints tested
 
 ---
 
@@ -371,10 +408,23 @@
 - [ ] 3.4.5 Implement JWTService
 - [ ] 3.4.6 Implement JWKSService
 - [ ] 3.4.7 Implement AuditLogService
-- [ ] 3.4.8 Write service tests (≥95% coverage)
-- [ ] 3.4.9 Run mutation testing (≥85% score)
+- [ ] 3.4.8 Write service tests (≥85% coverage - Phase 1)
 
-**Evidence**: Coverage ≥95%, mutation ≥85%
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_services.out ./internal/apps/jose/ja/service`
+  2. Analyze coverage report: `go tool cover -func=test-output/jose_services.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+
+  **Target**: ≥85% coverage (deferred to Phase X for 95%)
+
+- [ ] 3.4.9 Run mutation testing: DEFERRED to Phase Y (Mutation Testing)
+
+**Evidence**: Coverage ≥85%
 
 ---
 
@@ -383,8 +433,8 @@
 - [ ] 3.5.1 Build: `go build ./internal/apps/jose/...`
 - [ ] 3.5.2 Linting: `golangci-lint run ./internal/apps/jose/...`
 - [ ] 3.5.3 Tests: `go test ./internal/apps/jose/... -cover` (100% pass)
-- [ ] 3.5.4 Coverage: ≥95% production, ≥98% infrastructure
-- [ ] 3.5.5 Mutation: ≥85% production, ≥98% infrastructure
+- [ ] 3.5.4 Coverage: ≥85% production, ≥85% infrastructure (Phase 1)
+- [ ] 3.5.5 Mutation: DEFERRED to Phase Y (Mutation Testing)
 - [ ] 3.5.6 Paths: No service name in request paths
 - [ ] 3.5.7 Config: Docker secrets > YAML > ENV priority
 - [ ] 3.5.8 Git: Conventional commit
@@ -459,8 +509,8 @@
 - [ ] 9.4.1 Remove all TODOs: `grep -r "TODO" internal/jose/` (0 legitimate TODOs remain)
 - [ ] 9.4.2 Run `golangci-lint run ./...` (zero warnings)
 - [ ] 9.4.3 Run all tests: `go test ./...` (all pass)
-- [ ] 9.4.4 Verify coverage targets met (≥95% production, ≥98% infrastructure)
-- [ ] 9.4.5 Verify mutation scores met (≥85% production, ≥98% infrastructure)
+- [ ] 9.4.4 Verify coverage targets met (≥85% Phase 1 - deferred to Phase X for 95%/98%)
+- [ ] 9.4.5 Verify mutation scores: DEFERRED to Phase Y (Mutation Testing)
 
 **Evidence**: TODOs removed, linting clean, all tests pass, quality gates met
 
@@ -477,9 +527,219 @@
 
 ---
 
-## Final Project Validation
+## Phase X: High Coverage Testing (98%/95% Targets)
 
-- [ ] All 3 phases complete (service-template, cipher-im, jose-ja)
+**Purpose**: Bump all test coverage from 85% (Phase 1) to original 98%/95% targets. This phase focuses on edge cases, error paths, and comprehensive validation.
+
+**Prerequisites**: All Phase 0-9 tasks complete at ≥85% coverage
+
+---
+
+### X.1 Service-Template High Coverage
+
+- [ ] X.1.1 Registration handlers high coverage (85% → 98%)
+  
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/template_registration_handlers_highcov.out ./internal/apps/template/service/server/apis`
+  2. Analyze coverage report: `go tool cover -func=test-output/template_registration_handlers_highcov.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+  
+  **Target**: ≥98% coverage (infrastructure code)
+
+- [ ] X.1.2 Validation: ≥98% production, ≥98% infrastructure
+
+**Evidence**: Coverage ≥98%, all edge cases tested
+
+---
+
+### X.2 Cipher-IM High Coverage
+
+- [ ] X.2.1 Cipher-IM tests high coverage (85% → 95%)
+  
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/cipher_highcov.out ./internal/apps/cipher/...`
+  2. Analyze coverage report: `go tool cover -func=test-output/cipher_highcov.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+  
+  **Target**: ≥95% coverage (production code)
+
+- [ ] X.2.2 Validation: ≥95% production, ≥98% infrastructure
+
+**Evidence**: Coverage ≥95%, comprehensive test suite
+
+---
+
+### X.3 JOSE-JA Repository High Coverage
+
+- [ ] X.3.1 JOSE repositories high coverage (85% → 98%)
+  
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_repository_highcov.out ./internal/apps/jose/ja/repository`
+  2. Analyze coverage report: `go tool cover -func=test-output/jose_repository_highcov.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+  
+  **Target**: ≥98% coverage (infrastructure code)
+
+- [ ] X.3.2 Validation: ≥98% (infrastructure)
+
+**Evidence**: Coverage ≥98%, all repository methods tested
+
+---
+
+### X.4 JOSE-JA Handlers High Coverage
+
+- [ ] X.4.1 JOSE handlers high coverage (85% → 95%)
+  
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_handlers_highcov.out ./internal/apps/jose/ja/server/apis`
+  2. Analyze coverage report: `go tool cover -func=test-output/jose_handlers_highcov.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+  
+  **Target**: ≥95% coverage (production code)
+
+- [ ] X.4.2 Validation: ≥95% (production)
+
+**Evidence**: Coverage ≥95%, all endpoints tested
+
+---
+
+### X.5 JOSE-JA Services High Coverage
+
+- [ ] X.5.1 JOSE services high coverage (85% → 95%)
+  
+  **Before testing**:
+  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_services_highcov.out ./internal/apps/jose/ja/service`
+  2. Analyze coverage report: `go tool cover -func=test-output/jose_services_highcov.out`
+  3. Identify missed lines and branches
+  4. Focus on table-driven tests:
+     - Create new table-driven tests for uncovered scenarios
+     - Refactor existing tests into table-driven format
+     - Enhance existing table-driven tests with additional cases
+  5. Cover the missed lines and branches
+  
+  **Target**: ≥95% coverage (production code)
+
+- [ ] X.5.2 Validation: ≥95% (production)
+
+**Evidence**: Coverage ≥95%, business logic validated
+
+---
+
+### X.6 Phase X Validation
+
+- [ ] X.6.1 Build: `go build ./...` (zero errors)
+- [ ] X.6.2 Linting: `golangci-lint run ./...` (zero warnings)
+- [ ] X.6.3 Tests: `go test ./... -cover` (100% pass)
+- [ ] X.6.4 Coverage: ≥95% production, ≥98% infrastructure (ALL packages)
+- [ ] X.6.5 Git: Conventional commit
+
+**Final Commit**: `test(all): bump coverage to 98%/95% targets`
+
+---
+
+## Phase Y: Mutation Testing
+
+**Purpose**: Validate test suite quality via mutation testing. Ensures tests catch real bugs, not just achieve line coverage.
+
+**Prerequisites**: Phase X complete (≥98%/95% coverage)
+
+**Tools**: gremlins v0.6.0+
+
+---
+
+### Y.1 Service-Template Mutation Testing
+
+- [ ] Y.1.1 Run mutation testing: `gremlins unleash ./internal/apps/template/...`
+- [ ] Y.1.2 Analyze mutation report
+- [ ] Y.1.3 Improve tests to kill surviving mutants
+- [ ] Y.1.4 Target: ≥98% mutation score (infrastructure code)
+- [ ] Y.1.5 Validation: gremlins score ≥98%
+
+**Evidence**: Mutation score ≥98%
+
+---
+
+### Y.2 Cipher-IM Mutation Testing
+
+- [ ] Y.2.1 Run mutation testing: `gremlins unleash ./internal/apps/cipher/...`
+- [ ] Y.2.2 Analyze mutation report
+- [ ] Y.2.3 Improve tests to kill surviving mutants
+- [ ] Y.2.4 Target: ≥85% mutation score (production code)
+- [ ] Y.2.5 Validation: gremlins score ≥85%
+
+**Evidence**: Mutation score ≥85%
+
+---
+
+### Y.3 JOSE-JA Repository Mutation Testing
+
+- [ ] Y.3.1 Run mutation testing: `gremlins unleash ./internal/apps/jose/ja/repository`
+- [ ] Y.3.2 Analyze mutation report
+- [ ] Y.3.3 Improve tests to kill surviving mutants
+- [ ] Y.3.4 Target: ≥98% mutation score (infrastructure code)
+- [ ] Y.3.5 Validation: gremlins score ≥98%
+
+**Evidence**: Mutation score ≥98%
+
+---
+
+### Y.4 JOSE-JA Services Mutation Testing
+
+- [ ] Y.4.1 Run mutation testing: `gremlins unleash ./internal/apps/jose/ja/service`
+- [ ] Y.4.2 Analyze mutation report
+- [ ] Y.4.3 Improve tests to kill surviving mutants
+- [ ] Y.4.4 Target: ≥85% mutation score (production code)
+- [ ] Y.4.5 Validation: gremlins score ≥85%
+
+**Evidence**: Mutation score ≥85%
+
+---
+
+### Y.5 JOSE-JA Handlers Mutation Testing
+
+- [ ] Y.5.1 Run mutation testing: `gremlins unleash ./internal/apps/jose/ja/server/apis`
+- [ ] Y.5.2 Analyze mutation report
+- [ ] Y.5.3 Improve tests to kill surviving mutants
+- [ ] Y.5.4 Target: ≥85% mutation score (production code)
+- [ ] Y.5.5 Validation: gremlins score ≥85%
+
+**Evidence**: Mutation score ≥85%
+
+---
+
+### Y.6 Phase Y Validation
+
+- [ ] Y.6.1 All mutation scores meet targets (≥85% production, ≥98% infrastructure)
+- [ ] Y.6.2 Tests reliably catch bugs (no weak assertions)
+- [ ] Y.6.3 Git: Conventional commit
+
+**Final Commit**: `test(all): achieve mutation testing targets`
+
+---
+
+## Final Project Validation (After Phase Y)
+
+- [ ] All phases complete (0: Service-Template, 1: Cipher-IM, 2-9: JOSE-JA, X: High Coverage, Y: Mutation)
 - [ ] Zero build errors across entire project
 - [ ] Zero linting warnings across entire project
 - [ ] All tests pass (unit, integration, E2E)
@@ -489,7 +749,7 @@
 - [ ] Copilot instructions updated
 - [ ] Git history clean (conventional commits)
 
-**Final Commit**: `git commit -m "docs(jose-ja): complete V4 refactoring"`
+**Final Commit**: `docs(jose-ja): complete V4 refactoring with high coverage and mutation testing`
 
 ---
 
@@ -507,4 +767,6 @@
 | Phase 7: JOSE Path Migration | 2-3 days | Phases 5+6 |
 | Phase 8: JOSE E2E Testing | 3-4 days | Phase 7 |
 | Phase 9: JOSE Documentation | 2-3 days | Phase 8 |
-| **TOTAL** | **30-41 days** | Sequential |
+| **Phase X: High Coverage** | **10-15 days** | **Phase 9** |
+| **Phase Y: Mutation Testing** | **15-20 days** | **Phase X** |
+| **TOTAL** | **55-76 days** | Sequential |
