@@ -90,4 +90,3 @@ func TestNewHTTPServers_UnknownPrivateTLSMode(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown admin TLS mode")
 	assert.Nil(t, h)
 }
-

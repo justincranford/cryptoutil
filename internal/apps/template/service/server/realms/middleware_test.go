@@ -177,7 +177,8 @@ func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	app.Use(JWTMiddleware(testJWTSecret))
 	app.Get("/protected", func(c *fiber.Ctx) error {
 		// Capture the user ID from context.
-		capturedUserID = c.Locals(ContextKeyUserID).(googleUuid.UUID)
+		capturedUserID = c.Locals(ContextKeyUserID).(googleUuid.UUID) //nolint:errcheck // Test assertion
+
 		return c.SendString("success")
 	})
 

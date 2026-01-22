@@ -14,10 +14,10 @@ import (
 
 // mockUserRepository implements UserRepository for testing.
 type mockUserRepository struct {
-	users            map[string]UserModel
-	createErr        error
+	users             map[string]UserModel
+	createErr         error
 	findByUsernameErr error
-	findByIDErr      error
+	findByIDErr       error
 }
 
 func newMockUserRepository() *mockUserRepository {
@@ -30,10 +30,13 @@ func (m *mockUserRepository) Create(_ context.Context, user UserModel) error {
 	if m.createErr != nil {
 		return m.createErr
 	}
+
 	if _, exists := m.users[user.GetUsername()]; exists {
 		return fmt.Errorf("duplicate username")
 	}
+
 	m.users[user.GetUsername()] = user
+
 	return nil
 }
 
@@ -41,10 +44,12 @@ func (m *mockUserRepository) FindByUsername(_ context.Context, username string) 
 	if m.findByUsernameErr != nil {
 		return nil, m.findByUsernameErr
 	}
+
 	user, exists := m.users[username]
 	if !exists {
 		return nil, fmt.Errorf("user not found")
 	}
+
 	return user, nil
 }
 
@@ -52,11 +57,13 @@ func (m *mockUserRepository) FindByID(_ context.Context, id googleUuid.UUID) (Us
 	if m.findByIDErr != nil {
 		return nil, m.findByIDErr
 	}
+
 	for _, user := range m.users {
 		if user.GetID() == id {
 			return user, nil
 		}
 	}
+
 	return nil, fmt.Errorf("user not found")
 }
 

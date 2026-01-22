@@ -290,6 +290,7 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 	pendingResults, err := repo.ListByStatus(ctx, cryptoutilTemplateDomain.JoinRequestStatusPending)
 	require.NoError(t, err)
 	require.Len(t, pendingResults, 2)
+
 	for _, r := range pendingResults {
 		require.Equal(t, cryptoutilTemplateDomain.JoinRequestStatusPending, r.Status)
 	}
@@ -367,6 +368,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
 	}
+
 	approvedRequest := &cryptoutilTemplateDomain.TenantJoinRequest{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		UserID:      &user1.ID,
@@ -392,6 +394,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 	results, err := repo.ListByTenantAndStatus(ctx, tenant1.ID, cryptoutilTemplateDomain.JoinRequestStatusPending)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
+
 	for _, r := range results {
 		require.Equal(t, tenant1.ID, r.TenantID)
 		require.Equal(t, cryptoutilTemplateDomain.JoinRequestStatusPending, r.Status)

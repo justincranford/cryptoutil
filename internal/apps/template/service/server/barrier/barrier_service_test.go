@@ -256,6 +256,26 @@ func TestBarrierService_EncryptDecrypt_EmptyData(t *testing.T) {
 	require.Contains(t, err.Error(), "jwks can't be empty")
 }
 
+// TestBarrierService_EncryptBytesWithContext_AliasSuccess tests the alias method for encryption.
+func TestBarrierService_EncryptBytesWithContext_AliasSuccess(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	plaintext := []byte("test data for encryption alias")
+
+	// Encrypt using alias method.
+	ciphertext, err := testBarrierService.EncryptBytesWithContext(ctx, plaintext)
+	require.NoError(t, err)
+	require.NotNil(t, ciphertext)
+	require.NotEmpty(t, ciphertext)
+	require.NotEqual(t, plaintext, ciphertext, "Ciphertext should differ from plaintext")
+
+	// Decrypt using alias method.
+	decrypted, err := testBarrierService.DecryptBytesWithContext(ctx, ciphertext)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, decrypted, "Decrypted data should match original plaintext")
+}
+
 // TestBarrierService_DecryptInvalidCiphertext tests decryption with invalid ciphertext.
 func TestBarrierService_DecryptInvalidCiphertext(t *testing.T) {
 	t.Parallel()
