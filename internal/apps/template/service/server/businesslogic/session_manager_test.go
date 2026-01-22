@@ -397,6 +397,57 @@ func TestSessionManager_GenerateJWSKey(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported JWS algorithm")
 }
 
+// TestSessionManager_GenerateJWSKey_AllAlgorithms tests JWS key generation for all supported algorithms.
+func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+
+	tests := []struct {
+		name      string
+		algorithm string
+	}{
+		{"RS256", cryptoutilMagic.SessionJWSAlgorithmRS256},
+		{"RS384", cryptoutilMagic.SessionJWSAlgorithmRS384},
+		{"RS512", cryptoutilMagic.SessionJWSAlgorithmRS512},
+		{"ES256", cryptoutilMagic.SessionJWSAlgorithmES256},
+		{"ES384", cryptoutilMagic.SessionJWSAlgorithmES384},
+		{"ES512", cryptoutilMagic.SessionJWSAlgorithmES512},
+		{"EdDSA", cryptoutilMagic.SessionJWSAlgorithmEdDSA},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			privateKey, err := sm.generateJWSKey(tt.algorithm)
+			require.NoError(t, err, "generateJWSKey should succeed for %s", tt.algorithm)
+			require.NotNil(t, privateKey, "privateKey should not be nil for %s", tt.algorithm)
+		})
+	}
+}
+
+// TestSessionManager_GenerateJWEKey_AllAlgorithms tests JWE key generation for all supported algorithms.
+func TestSessionManager_GenerateJWEKey_AllAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+
+	tests := []struct {
+		name      string
+		algorithm string
+	}{
+		{"DirA256GCM", cryptoutilMagic.SessionJWEAlgorithmDirA256GCM},
+		{"A256GCMKWA256GCM", cryptoutilMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			privateKey, err := sm.generateJWEKey(tt.algorithm)
+			require.NoError(t, err, "generateJWEKey should succeed for %s", tt.algorithm)
+			require.NotNil(t, privateKey, "privateKey should not be nil for %s", tt.algorithm)
+		})
+	}
+}
+
 // TestSessionManager_GenerateJWEKey tests JWE key generation.
 func TestSessionManager_GenerateJWEKey(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
