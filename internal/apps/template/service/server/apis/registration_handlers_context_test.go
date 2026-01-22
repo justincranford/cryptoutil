@@ -35,11 +35,13 @@ func TestHandleListJoinRequests_MissingTenantID(t *testing.T) {
 	req := httptest.NewRequest("GET", "/admin/join-requests", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 401, resp.StatusCode)
 
 	var result map[string]string
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Contains(t, result, "error")
@@ -61,17 +63,20 @@ func TestHandleListJoinRequests_InvalidTenantIDType(t *testing.T) {
 	app.Get("/admin/join-requests", func(c *fiber.Ctx) error {
 		// Inject wrong type to trigger error path
 		c.Locals("tenant_id", "not-a-uuid-type")
+
 		return handlers.HandleListJoinRequests(c)
 	})
 
 	req := httptest.NewRequest("GET", "/admin/join-requests", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 500, resp.StatusCode)
 
 	var result map[string]string
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Contains(t, result, "error")
@@ -104,11 +109,13 @@ func TestHandleProcessJoinRequest_MissingUserID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 401, resp.StatusCode)
 
 	var result map[string]string
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Contains(t, result, "error")
@@ -130,6 +137,7 @@ func TestHandleProcessJoinRequest_InvalidUserIDType(t *testing.T) {
 	app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
 		// Inject wrong type to trigger error path
 		c.Locals("user_id", "not-a-uuid-type")
+
 		return handlers.HandleProcessJoinRequest(c)
 	})
 
@@ -142,11 +150,13 @@ func TestHandleProcessJoinRequest_InvalidUserIDType(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 500, resp.StatusCode)
 
 	var result map[string]string
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Contains(t, result, "error")

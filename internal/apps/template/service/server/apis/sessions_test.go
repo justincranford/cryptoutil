@@ -392,6 +392,7 @@ func TestIssueSession_ServiceSessionSuccess(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionIssueResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.NotEmpty(t, result.Token)
@@ -457,6 +458,7 @@ func TestIssueSession_BrowserSessionSuccess(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionIssueResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.NotEmpty(t, result.Token)
@@ -491,6 +493,7 @@ func TestValidateSession_BrowserSuccess(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionValidateResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.True(t, result.Valid)
@@ -525,6 +528,7 @@ func TestValidateSession_BrowserError(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionValidateResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.False(t, result.Valid) // ← Tests line 138-140 (error path)
@@ -558,6 +562,7 @@ func TestValidateSession_ServiceSuccess(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionValidateResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.True(t, result.Valid)
@@ -592,6 +597,7 @@ func TestValidateSession_ServiceError(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionValidateResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.False(t, result.Valid) // ← Tests line 148-149 (error path)
@@ -635,6 +641,7 @@ func TestValidateSession_BrowserNullUserID(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionValidateResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.True(t, result.Valid)
@@ -679,6 +686,7 @@ func TestValidateSession_ServiceNullClientID(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 
 	var result SessionValidateResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.True(t, result.Valid)

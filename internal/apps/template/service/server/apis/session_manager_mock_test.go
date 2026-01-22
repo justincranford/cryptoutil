@@ -25,6 +25,7 @@ func (m *mockSessionManager) IssueBrowserSessionWithTenant(ctx context.Context, 
 	if m.issueBrowserFunc != nil {
 		return m.issueBrowserFunc(ctx, userID, tenantID, realmID)
 	}
+
 	return "mock-browser-token-" + userID, nil
 }
 
@@ -33,6 +34,7 @@ func (m *mockSessionManager) IssueServiceSessionWithTenant(ctx context.Context, 
 	if m.issueServiceFunc != nil {
 		return m.issueServiceFunc(ctx, clientID, tenantID, realmID)
 	}
+
 	return "mock-service-token-" + clientID, nil
 }
 
@@ -41,7 +43,9 @@ func (m *mockSessionManager) ValidateBrowserSession(ctx context.Context, token s
 	if m.validateBrowserFunc != nil {
 		return m.validateBrowserFunc(ctx, token)
 	}
+
 	userID := "mock-user-from-token"
+
 	return &cryptoutilRepository.BrowserSession{
 		UserID: &userID,
 		Session: cryptoutilRepository.Session{
@@ -56,7 +60,9 @@ func (m *mockSessionManager) ValidateServiceSession(ctx context.Context, token s
 	if m.validateServiceFunc != nil {
 		return m.validateServiceFunc(ctx, token)
 	}
+
 	clientID := "mock-client-from-token"
+
 	return &cryptoutilRepository.ServiceSession{
 		ClientID: &clientID,
 		Session: cryptoutilRepository.Session{

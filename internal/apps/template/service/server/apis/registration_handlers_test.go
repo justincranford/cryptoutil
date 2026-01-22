@@ -106,6 +106,7 @@ func TestHandleProcessJoinRequest_InvalidID(t *testing.T) {
 		// Inject session context (simulating middleware)
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("user_id", googleUuid.New())
+
 		return handlers.HandleProcessJoinRequest(c)
 	})
 
@@ -138,6 +139,7 @@ func TestHandleProcessJoinRequest_InvalidJSON(t *testing.T) {
 		// Inject session context (simulating middleware)
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("user_id", googleUuid.New())
+
 		return handlers.HandleProcessJoinRequest(c)
 	})
 
@@ -321,6 +323,7 @@ func TestHandleListJoinRequests_TableDriven(t *testing.T) {
 				// Inject session context (simulating middleware)
 				c.Locals("tenant_id", googleUuid.New())
 				c.Locals("user_id", googleUuid.New())
+
 				return handlers.HandleListJoinRequests(c)
 			})
 
@@ -394,6 +397,7 @@ func TestHandleProcessJoinRequest_TableDriven(t *testing.T) {
 				// Inject session context (simulating middleware)
 				c.Locals("tenant_id", googleUuid.New())
 				c.Locals("user_id", googleUuid.New())
+
 				return handlers.HandleProcessJoinRequest(c)
 			})
 
@@ -531,6 +535,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 		// Inject session context (simulating middleware)
 		c.Locals("tenant_id", testTenantID)
 		c.Locals("user_id", googleUuid.New())
+
 		return handlers.HandleListJoinRequests(c)
 	})
 
@@ -546,6 +551,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 
 	// Decode response body
 	var result map[string][]JoinRequestSummary
+
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 	require.Contains(t, result, "requests")
@@ -555,12 +561,15 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	// Verify optional fields are formatted correctly
 	// Request 1 should have UserID but not ClientID
 	var req1Summary *JoinRequestSummary
+
 	for i := range requests {
 		if requests[i].ID == req1.ID.String() {
 			req1Summary = &requests[i]
+
 			break
 		}
 	}
+
 	require.NotNil(t, req1Summary)
 	require.NotNil(t, req1Summary.UserID)
 	require.Equal(t, testUserID.String(), *req1Summary.UserID)
@@ -570,12 +579,15 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 
 	// Request 2 should have ClientID but not UserID
 	var req2Summary *JoinRequestSummary
+
 	for i := range requests {
 		if requests[i].ID == req2.ID.String() {
 			req2Summary = &requests[i]
+
 			break
 		}
 	}
+
 	require.NotNil(t, req2Summary)
 	require.Nil(t, req2Summary.UserID)
 	require.NotNil(t, req2Summary.ClientID)
@@ -585,12 +597,15 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 
 	// Request 3 should have ProcessedAt and ProcessedBy
 	var req3Summary *JoinRequestSummary
+
 	for i := range requests {
 		if requests[i].ID == req3.ID.String() {
 			req3Summary = &requests[i]
+
 			break
 		}
 	}
+
 	require.NotNil(t, req3Summary)
 	require.NotNil(t, req3Summary.UserID)
 	require.NotNil(t, req3Summary.ProcessedAt)
@@ -612,6 +627,7 @@ func TestHandleProcessJoinRequest_ApproveMessage(t *testing.T) {
 		// Inject session context (simulating middleware)
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("user_id", googleUuid.New())
+
 		return handlers.HandleProcessJoinRequest(c)
 	})
 
@@ -646,6 +662,7 @@ func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 		// Inject session context (simulating middleware)
 		c.Locals("tenant_id", googleUuid.New())
 		c.Locals("user_id", googleUuid.New())
+
 		return handlers.HandleProcessJoinRequest(c)
 	})
 
