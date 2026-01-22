@@ -15,7 +15,27 @@ import (
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 )
+
+// newTestFiberApp creates a Fiber app with proper error handling for apperr.Error types.
+func newTestFiberApp() *fiber.App {
+	return fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			// Check if this is our custom apperr.Error type
+			if appErr, ok := err.(*cryptoutilAppErr.Error); ok {
+				return c.Status(int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode)).JSON(fiber.Map{
+					"error": appErr.Summary,
+				})
+			}
+			// Default 500 for unexpected errors
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		},
+	})
+}
 
 // Note: These tests depend on testGormDB, testBrowserSessionRepo, testServiceSessionRepo,
 // testBarrierService which should be set up in a TestMain for integration tests.
@@ -133,7 +153,7 @@ func TestIssueSession_InvalidRequestBody_Integration(t *testing.T) {
 
 	handler := NewSessionHandler(testSessionManager)
 
-	app := fiber.New()
+	app := newTestFiberApp()
 	app.Post("/sessions/issue", handler.IssueSession)
 
 	// Send invalid JSON
@@ -165,7 +185,7 @@ func TestIssueSession_InvalidTenantID_Integration(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
-	app := fiber.New()
+	app := newTestFiberApp()
 	app.Post("/sessions/issue", handler.IssueSession)
 
 	req := httptest.NewRequest("POST", "/sessions/issue", bytes.NewReader(bodyBytes))
@@ -196,7 +216,7 @@ func TestIssueSession_InvalidRealmID_Integration(t *testing.T) {
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 
-	app := fiber.New()
+	app := newTestFiberApp()
 	app.Post("/sessions/issue", handler.IssueSession)
 
 	req := httptest.NewRequest("POST", "/sessions/issue", bytes.NewReader(bodyBytes))
@@ -390,7 +410,7 @@ func TestValidateSession_InvalidRequestBody_Integration(t *testing.T) {
 
 	handler := NewSessionHandler(testSessionManager)
 
-	app := fiber.New()
+	app := newTestFiberApp()
 	app.Post("/sessions/validate", handler.ValidateSession)
 
 	// Send invalid JSON
