@@ -88,6 +88,7 @@ func TestHandleListJoinRequests(t *testing.T) {
 	require.NotNil(t, handlers)
 }
 
+
 func TestHandleProcessJoinRequest_InvalidID(t *testing.T) {
 	t.Parallel()
 
@@ -99,7 +100,12 @@ func TestHandleProcessJoinRequest_InvalidID(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Put("/admin/join-requests/:id", handlers.HandleProcessJoinRequest)
+	app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
+		// Inject session context (simulating middleware)
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("user_id", googleUuid.New())
+		return handlers.HandleProcessJoinRequest(c)
+	})
 
 	reqBody := ProcessJoinRequestRequest{Approved: true}
 	bodyBytes, _ := json.Marshal(reqBody)
@@ -126,7 +132,12 @@ func TestHandleProcessJoinRequest_InvalidJSON(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Put("/admin/join-requests/:id", handlers.HandleProcessJoinRequest)
+	app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
+		// Inject session context (simulating middleware)
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("user_id", googleUuid.New())
+		return handlers.HandleProcessJoinRequest(c)
+	})
 
 	validID := googleUuid.New().String()
 
@@ -304,7 +315,12 @@ func TestHandleListJoinRequests_TableDriven(t *testing.T) {
 			handlers := NewRegistrationHandlers(registrationService)
 
 			app := fiber.New()
-			app.Get("/admin/join-requests", handlers.HandleListJoinRequests)
+			app.Get("/admin/join-requests", func(c *fiber.Ctx) error {
+				// Inject session context (simulating middleware)
+				c.Locals("tenant_id", googleUuid.New())
+				c.Locals("user_id", googleUuid.New())
+				return handlers.HandleListJoinRequests(c)
+			})
 
 			req := httptest.NewRequest("GET", "/admin/join-requests", nil)
 
@@ -372,7 +388,12 @@ func TestHandleProcessJoinRequest_TableDriven(t *testing.T) {
 			handlers := NewRegistrationHandlers(registrationService)
 
 			app := fiber.New()
-			app.Put("/admin/join-requests/:id", handlers.HandleProcessJoinRequest)
+			app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
+				// Inject session context (simulating middleware)
+				c.Locals("tenant_id", googleUuid.New())
+				c.Locals("user_id", googleUuid.New())
+				return handlers.HandleProcessJoinRequest(c)
+			})
 
 			req := httptest.NewRequest("PUT", "/admin/join-requests/"+tt.requestID, bytes.NewReader([]byte(tt.requestBody)))
 			req.Header.Set("Content-Type", "application/json")
@@ -451,8 +472,16 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
+	// Create test tenant
+	testTenantID := googleUuid.New()
+
 	app := fiber.New()
-	app.Get("/admin/join-requests", handlers.HandleListJoinRequests)
+	app.Get("/admin/join-requests", func(c *fiber.Ctx) error {
+		// Inject session context (simulating middleware)
+		c.Locals("tenant_id", testTenantID)
+		c.Locals("user_id", googleUuid.New())
+		return handlers.HandleListJoinRequests(c)
+	})
 
 	req := httptest.NewRequest("GET", "/admin/join-requests", nil)
 
@@ -475,7 +504,12 @@ func TestHandleProcessJoinRequest_ApproveMessage(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Put("/admin/join-requests/:id", handlers.HandleProcessJoinRequest)
+	app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
+		// Inject session context (simulating middleware)
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("user_id", googleUuid.New())
+		return handlers.HandleProcessJoinRequest(c)
+	})
 
 	// Use a non-existent ID which will hit the service error path.
 	// The point is to exercise the message selection logic.
@@ -504,7 +538,12 @@ func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
-	app.Put("/admin/join-requests/:id", handlers.HandleProcessJoinRequest)
+	app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
+		// Inject session context (simulating middleware)
+		c.Locals("tenant_id", googleUuid.New())
+		c.Locals("user_id", googleUuid.New())
+		return handlers.HandleProcessJoinRequest(c)
+	})
 
 	// Use a non-existent ID which will hit the service error path.
 	reqBody := ProcessJoinRequestRequest{Approved: false}

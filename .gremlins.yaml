@@ -9,7 +9,7 @@ threshold-mcover: 60.0      # Minimum percentage of mutant coverage (focus on qu
 # Performance settings
 workers: 2                  # Conservative worker count for stability
 test-cpu: 1                 # Single CPU per test to avoid resource contention
-timeout-coefficient: 3      # Higher timeout to avoid false timeouts
+timeout-coefficient: 10     # Much higher timeout for Windows (was 3, causing timeouts)
 
 # Mutation operators (enable comprehensive coverage)
 arithmetic-base: true       # Change +, -, *, /, % operators

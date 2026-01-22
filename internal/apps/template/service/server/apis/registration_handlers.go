@@ -97,9 +97,22 @@ type JoinRequestSummary struct {
 
 // HandleListJoinRequests handles GET /browser/api/v1/admin/join-requests.
 func (h *RegistrationHandlers) HandleListJoinRequests(c *fiber.Ctx) error {
-	// TODO: Extract tenant ID from authenticated user's context
+	// Extract tenant ID from authenticated user's context (set by middleware)
+	tenantIDVal := c.Locals("tenant_id")
+	if tenantIDVal == nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Missing tenant_id in session context",
+		})
+	}
+
+	tenantID, ok := tenantIDVal.(googleUuid.UUID)
+	if !ok {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Invalid tenant_id type in context",
+		})
+	}
+
 	// TODO: Verify user has admin role
-	tenantID := googleUuid.New() // Placeholder
 
 	requests, err := h.registrationService.ListJoinRequests(c.Context(), tenantID)
 	if err != nil {
@@ -168,8 +181,20 @@ func (h *RegistrationHandlers) HandleProcessJoinRequest(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Extract admin user ID from authenticated user's context
-	adminUserID := googleUuid.New() // Placeholder
+	// Extract admin user ID from authenticated user's context (set by middleware)
+	userIDVal := c.Locals("user_id")
+	if userIDVal == nil {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Missing user_id in session context",
+		})
+	}
+
+	adminUserID, ok := userIDVal.(googleUuid.UUID)
+	if !ok {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Invalid user_id type in context",
+		})
+	}
 
 	err = h.registrationService.AuthorizeJoinRequest(
 		c.Context(),
