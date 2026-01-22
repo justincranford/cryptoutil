@@ -7,9 +7,11 @@ package apis
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -17,6 +19,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
@@ -474,6 +477,55 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 
 	// Create test tenant
 	testTenantID := googleUuid.New()
+	testUserID := googleUuid.New()
+	testClientID := googleUuid.New()
+
+	// Create test join requests with different scenarios to exercise optional field formatting
+	ctx := context.Background()
+
+	// Request 1: User-initiated request (has UserID, no ClientID)
+	req1 := &cryptoutilTemplateDomain.TenantJoinRequest{
+		ID:          googleUuid.New(),
+		UserID:      &testUserID,
+		ClientID:    nil,
+		TenantID:    testTenantID,
+		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		RequestedAt: time.Now(),
+		ProcessedAt: nil,
+		ProcessedBy: nil,
+	}
+	err := joinRequestRepo.Create(ctx, req1)
+	require.NoError(t, err)
+
+	// Request 2: Client-initiated request (has ClientID, no UserID)
+	req2 := &cryptoutilTemplateDomain.TenantJoinRequest{
+		ID:          googleUuid.New(),
+		UserID:      nil,
+		ClientID:    &testClientID,
+		TenantID:    testTenantID,
+		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		RequestedAt: time.Now(),
+		ProcessedAt: nil,
+		ProcessedBy: nil,
+	}
+	err = joinRequestRepo.Create(ctx, req2)
+	require.NoError(t, err)
+
+	// Request 3: Processed request (has ProcessedAt and ProcessedBy)
+	processedAt := time.Now().Add(-1 * time.Hour)
+	processedBy := googleUuid.New()
+	req3 := &cryptoutilTemplateDomain.TenantJoinRequest{
+		ID:          googleUuid.New(),
+		UserID:      &testUserID,
+		ClientID:    nil,
+		TenantID:    testTenantID,
+		Status:      cryptoutilTemplateDomain.JoinRequestStatusApproved,
+		RequestedAt: time.Now().Add(-2 * time.Hour),
+		ProcessedAt: &processedAt,
+		ProcessedBy: &processedBy,
+	}
+	err = joinRequestRepo.Create(ctx, req3)
+	require.NoError(t, err)
 
 	app := fiber.New()
 	app.Get("/admin/join-requests", func(c *fiber.Ctx) error {
@@ -490,8 +542,61 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
-	// Even with empty results, we should get 200 status.
+	// Should get 200 status with 3 join requests
 	require.Equal(t, 200, resp.StatusCode)
+
+	// Decode response body
+	var result map[string][]JoinRequestSummary
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+	require.Contains(t, result, "requests")
+	requests := result["requests"]
+	require.Len(t, requests, 3)
+
+	// Verify optional fields are formatted correctly
+	// Request 1 should have UserID but not ClientID
+	var req1Summary *JoinRequestSummary
+	for i := range requests {
+		if requests[i].ID == req1.ID.String() {
+			req1Summary = &requests[i]
+			break
+		}
+	}
+	require.NotNil(t, req1Summary)
+	require.NotNil(t, req1Summary.UserID)
+	require.Equal(t, testUserID.String(), *req1Summary.UserID)
+	require.Nil(t, req1Summary.ClientID)
+	require.Nil(t, req1Summary.ProcessedAt)
+	require.Nil(t, req1Summary.ProcessedBy)
+
+	// Request 2 should have ClientID but not UserID
+	var req2Summary *JoinRequestSummary
+	for i := range requests {
+		if requests[i].ID == req2.ID.String() {
+			req2Summary = &requests[i]
+			break
+		}
+	}
+	require.NotNil(t, req2Summary)
+	require.Nil(t, req2Summary.UserID)
+	require.NotNil(t, req2Summary.ClientID)
+	require.Equal(t, testClientID.String(), *req2Summary.ClientID)
+	require.Nil(t, req2Summary.ProcessedAt)
+	require.Nil(t, req2Summary.ProcessedBy)
+
+	// Request 3 should have ProcessedAt and ProcessedBy
+	var req3Summary *JoinRequestSummary
+	for i := range requests {
+		if requests[i].ID == req3.ID.String() {
+			req3Summary = &requests[i]
+			break
+		}
+	}
+	require.NotNil(t, req3Summary)
+	require.NotNil(t, req3Summary.UserID)
+	require.NotNil(t, req3Summary.ProcessedAt)
+	require.NotNil(t, req3Summary.ProcessedBy)
+	require.Equal(t, processedBy.String(), *req3Summary.ProcessedBy)
 }
 
 // TestHandleProcessJoinRequest_ApproveMessage tests the "approved" message path.
