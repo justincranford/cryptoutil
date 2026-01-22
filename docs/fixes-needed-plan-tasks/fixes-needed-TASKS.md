@@ -538,7 +538,7 @@
 ### X.1 Service-Template High Coverage
 
 - [ ] X.1.1 Registration handlers high coverage (85% → 98%)
-  
+
   **Before testing**:
   1. Run tests with code coverage: `go test -coverprofile=test-output/template_registration_handlers_highcov.out ./internal/apps/template/service/server/apis`
   2. Analyze coverage report: `go tool cover -func=test-output/template_registration_handlers_highcov.out`
@@ -548,7 +548,7 @@
      - Refactor existing tests into table-driven format
      - Enhance existing table-driven tests with additional cases
   5. Cover the missed lines and branches
-  
+
   **Target**: ≥98% coverage (infrastructure code)
 
 - [ ] X.1.2 Validation: ≥98% production, ≥98% infrastructure
@@ -560,7 +560,7 @@
 ### X.2 Cipher-IM High Coverage
 
 - [ ] X.2.1 Cipher-IM tests high coverage (85% → 95%)
-  
+
   **Before testing**:
   1. Run tests with code coverage: `go test -coverprofile=test-output/cipher_highcov.out ./internal/apps/cipher/...`
   2. Analyze coverage report: `go tool cover -func=test-output/cipher_highcov.out`
@@ -570,7 +570,7 @@
      - Refactor existing tests into table-driven format
      - Enhance existing table-driven tests with additional cases
   5. Cover the missed lines and branches
-  
+
   **Target**: ≥95% coverage (production code)
 
 - [ ] X.2.2 Validation: ≥95% production, ≥98% infrastructure
@@ -582,7 +582,7 @@
 ### X.3 JOSE-JA Repository High Coverage
 
 - [ ] X.3.1 JOSE repositories high coverage (85% → 98%)
-  
+
   **Before testing**:
   1. Run tests with code coverage: `go test -coverprofile=test-output/jose_repository_highcov.out ./internal/apps/jose/ja/repository`
   2. Analyze coverage report: `go tool cover -func=test-output/jose_repository_highcov.out`
@@ -592,7 +592,7 @@
      - Refactor existing tests into table-driven format
      - Enhance existing table-driven tests with additional cases
   5. Cover the missed lines and branches
-  
+
   **Target**: ≥98% coverage (infrastructure code)
 
 - [ ] X.3.2 Validation: ≥98% (infrastructure)
@@ -604,7 +604,7 @@
 ### X.4 JOSE-JA Handlers High Coverage
 
 - [ ] X.4.1 JOSE handlers high coverage (85% → 95%)
-  
+
   **Before testing**:
   1. Run tests with code coverage: `go test -coverprofile=test-output/jose_handlers_highcov.out ./internal/apps/jose/ja/server/apis`
   2. Analyze coverage report: `go tool cover -func=test-output/jose_handlers_highcov.out`
@@ -614,7 +614,7 @@
      - Refactor existing tests into table-driven format
      - Enhance existing table-driven tests with additional cases
   5. Cover the missed lines and branches
-  
+
   **Target**: ≥95% coverage (production code)
 
 - [ ] X.4.2 Validation: ≥95% (production)
@@ -626,7 +626,7 @@
 ### X.5 JOSE-JA Services High Coverage
 
 - [ ] X.5.1 JOSE services high coverage (85% → 95%)
-  
+
   **Before testing**:
   1. Run tests with code coverage: `go test -coverprofile=test-output/jose_services_highcov.out ./internal/apps/jose/ja/service`
   2. Analyze coverage report: `go tool cover -func=test-output/jose_services_highcov.out`
@@ -636,7 +636,7 @@
      - Refactor existing tests into table-driven format
      - Enhance existing table-driven tests with additional cases
   5. Cover the missed lines and branches
-  
+
   **Target**: ≥95% coverage (production code)
 
 - [ ] X.5.2 Validation: ≥95% (production)

@@ -4978,4 +4978,3 @@ internal/apps/cipher/im/client               0.0%        0         PENDING
 Server package improved from 62.1% to 74.7% (+12.6 points). Created server_test.go (231 lines) and public_server_test.go (48 lines). All accessor methods now 100% coverage. Pragmatically accepted 74.7% vs 95% target following repository precedent (73.8%).
 
 See commit be5062ae for complete test implementation.
-

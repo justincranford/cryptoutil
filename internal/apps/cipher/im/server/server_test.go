@@ -20,47 +20,47 @@ func TestServer_AccessorMethods(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
+		name       string
 		accessorFn func() any
 	}{
 		{
-			name:      "DB() returns non-nil GORM database",
+			name:       "DB() returns non-nil GORM database",
 			accessorFn: func() any { return testCipherIMServer.DB() },
 		},
 		{
-			name:      "App() returns non-nil Application",
+			name:       "App() returns non-nil Application",
 			accessorFn: func() any { return testCipherIMServer.App() },
 		},
 		{
-			name:      "JWKGen() returns non-nil JWK generation service",
+			name:       "JWKGen() returns non-nil JWK generation service",
 			accessorFn: func() any { return testCipherIMServer.JWKGen() },
 		},
 		{
-			name:      "Telemetry() returns non-nil telemetry service",
+			name:       "Telemetry() returns non-nil telemetry service",
 			accessorFn: func() any { return testCipherIMServer.Telemetry() },
 		},
 		{
-			name:      "PublicPort() returns valid port number",
+			name:       "PublicPort() returns valid port number",
 			accessorFn: func() any { return testCipherIMServer.PublicPort() },
 		},
 		{
-			name:      "AdminPort() returns valid port number",
+			name:       "AdminPort() returns valid port number",
 			accessorFn: func() any { return testCipherIMServer.AdminPort() },
 		},
 		{
-			name:      "PublicBaseURL() returns non-empty URL",
+			name:       "PublicBaseURL() returns non-empty URL",
 			accessorFn: func() any { return testCipherIMServer.PublicBaseURL() },
 		},
 		{
-			name:      "AdminBaseURL() returns non-empty URL",
+			name:       "AdminBaseURL() returns non-empty URL",
 			accessorFn: func() any { return testCipherIMServer.AdminBaseURL() },
 		},
 		{
-			name:      "PublicServerActualPort() returns valid port number",
+			name:       "PublicServerActualPort() returns valid port number",
 			accessorFn: func() any { return testCipherIMServer.PublicServerActualPort() },
 		},
 		{
-			name:      "AdminServerActualPort() returns valid port number",
+			name:       "AdminServerActualPort() returns valid port number",
 			accessorFn: func() any { return testCipherIMServer.AdminServerActualPort() },
 		},
 	}

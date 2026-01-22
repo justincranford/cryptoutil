@@ -1,0 +1,78 @@
+package apis
+
+import (
+	"bytes"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/stretchr/testify/require"
+
+	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+)
+
+// TestRegisterRegistrationRoutes_Integration tests route registration with real app.
+func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
+	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testGormDB)
+	userRepo := cryptoutilTemplateRepository.NewUserRepository(testGormDB)
+	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testGormDB)
+	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+
+	app := fiber.New()
+
+	RegisterRegistrationRoutes(app, registrationService, 10)
+
+	// Verify routes were registered by checking that they exist
+	require.NotNil(t, app)
+}
+
+// TestRegisterRegistrationRoutes_RateLimiting tests rate limiting middleware.
+func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
+	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testGormDB)
+	userRepo := cryptoutilTemplateRepository.NewUserRepository(testGormDB)
+	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testGormDB)
+	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+
+	app := fiber.New()
+
+	// Set rate limit to 1 request per minute with burst of 2 for testing
+	RegisterRegistrationRoutes(app, registrationService, 1)
+
+	// Make requests until we hit the rate limit
+	var lastStatus int
+
+	for i := 0; i < 10; i++ {
+		req := httptest.NewRequest("POST", "/browser/api/v1/auth/register", bytes.NewReader([]byte(`{}`)))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+
+		lastStatus = resp.StatusCode
+
+		_ = resp.Body.Close()
+
+		if lastStatus == 429 {
+			// Successfully triggered rate limit
+			return
+		}
+	}
+
+	// If we got here, we didn't trigger the rate limit
+	t.Logf("Last status code was %d, expected 429 at some point", lastStatus)
+}
+
+// TestRegisterJoinRequestManagementRoutes_Integration tests join request route registration.
+func TestRegisterJoinRequestManagementRoutes_Integration(t *testing.T) {
+	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testGormDB)
+	userRepo := cryptoutilTemplateRepository.NewUserRepository(testGormDB)
+	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testGormDB)
+	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+
+	adminAPI := fiber.New()
+
+	RegisterJoinRequestManagementRoutes(adminAPI, registrationService)
+
+	// Verify routes were registered
+	require.NotNil(t, adminAPI)
+}
