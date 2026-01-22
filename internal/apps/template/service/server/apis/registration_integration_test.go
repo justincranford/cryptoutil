@@ -16,6 +16,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -691,12 +692,13 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create tenant using the same tenant ID from auth middleware.
+	// Create or find existing tenant using the same tenant ID from auth middleware.
 	tenant := &cryptoutilTemplateRepository.Tenant{
 		ID:   testTenantID,
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
-	require.NoError(t, testDB.Create(tenant).Error)
+	dbResult := testDB.Where("id = ?", testTenantID).FirstOrCreate(tenant)
+	require.NoError(t, dbResult.Error)
 
 	// Create join request with unique ID.
 	userID := googleUuid.New()
@@ -749,6 +751,82 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 		}
 	}
 	require.True(t, foundOurRequest, "Our join request should be in the list")
+}
+
+// TestIntegration_ListJoinRequests_AllOptionalFields tests list with join request containing all optional fields.
+func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create or find existing tenant using the same tenant ID from auth middleware.
+	tenant := &cryptoutilTemplateRepository.Tenant{
+		ID:   testTenantID,
+		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
+	}
+	dbResult := testDB.Where("id = ?", testTenantID).FirstOrCreate(tenant)
+	require.NoError(t, dbResult.Error)
+
+	// Create join request with ALL optional fields populated.
+	userID := googleUuid.New()
+	clientID := googleUuid.New()
+	processedBy := googleUuid.New()
+	processedAt := time.Now().UTC()
+	
+	joinReq := &cryptoutilTemplateDomain.TenantJoinRequest{
+		ID:          googleUuid.New(),
+		TenantID:    testTenantID,
+		UserID:      &userID,
+		ClientID:    &clientID,  // Optional field 1
+		Status:      "approved",
+		ProcessedAt: &processedAt,  // Optional field 2
+		ProcessedBy: &processedBy,  // Optional field 3
+		RequestedAt: time.Now().UTC().Add(-1 * time.Hour),
+	}
+	require.NoError(t, testDB.WithContext(ctx).Create(joinReq).Error)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/api/v1/join-requests", nil)
+
+	resp, err := testJoinRequestMgmtApp.Test(req, -1)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result map[string]interface{}
+	bodyBytes, _ := io.ReadAll(resp.Body)
+	require.NoError(t, json.Unmarshal(bodyBytes, &result))
+	require.Contains(t, result, "requests")
+
+	requests, ok := result["requests"].([]interface{})
+	require.True(t, ok)
+	require.GreaterOrEqual(t, len(requests), 1)
+
+	// Find our specific request and verify optional fields are included.
+	foundOurRequest := false
+	for _, reqItem := range requests {
+		reqMap, ok := reqItem.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if reqMap["id"] == joinReq.ID.String() {
+			foundOurRequest = true
+			require.Equal(t, "approved", reqMap["status"])
+			
+			// Verify optional fields are present in response.
+			require.Contains(t, reqMap, "client_id", "ClientID should be present")
+			require.Equal(t, clientID.String(), reqMap["client_id"])
+			
+			require.Contains(t, reqMap, "processed_at", "ProcessedAt should be present")
+			require.NotNil(t, reqMap["processed_at"])
+			
+			require.Contains(t, reqMap, "processed_by", "ProcessedBy should be present")
+			require.Equal(t, processedBy.String(), reqMap["processed_by"])
+			
+			break
+		}
+	}
+	require.True(t, foundOurRequest, "Our join request with all optional fields should be in the list")
 }
 
 // TestIntegration_ProcessJoinRequest_InvalidID tests handling of invalid request IDs.
