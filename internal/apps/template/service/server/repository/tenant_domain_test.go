@@ -129,6 +129,38 @@ func TestUser_SetPasswordHash(t *testing.T) {
 	require.Equal(t, "newhash", user.PasswordHash)
 }
 
+// TestUser_GetTenantID tests GetTenantID method.
+func TestUser_GetTenantID(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	user := &repository.User{TenantID: tenantID}
+	require.Equal(t, tenantID, user.GetTenantID())
+}
+
+// TestUser_IsActive tests IsActive method.
+func TestUser_IsActive(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		active   int
+		expected bool
+	}{
+		{"Active user", 1, true},
+		{"Inactive user", 0, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			user := &repository.User{Active: tt.active}
+			require.Equal(t, tt.expected, user.IsActive())
+		})
+	}
+}
+
 // TestUser_SetActive tests SetActive method.
 func TestUser_SetActive(t *testing.T) {
 	t.Parallel()
