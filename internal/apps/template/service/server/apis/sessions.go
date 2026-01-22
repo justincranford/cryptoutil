@@ -11,6 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 )
 
@@ -20,17 +21,29 @@ const (
 	sessionTypeBrowser    = "browser"
 )
 
+// SessionManager defines the interface for session management operations.
+// This interface enables testing by allowing mock implementations.
+type SessionManager interface {
+	IssueBrowserSessionWithTenant(ctx context.Context, userID string, tenantID, realmID googleUuid.UUID) (string, error)
+	IssueServiceSessionWithTenant(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error)
+	ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.BrowserSession, error)
+	ValidateServiceSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.ServiceSession, error)
+}
+
 // SessionHandler handles session management endpoints.
 type SessionHandler struct {
-	sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService
+	sessionManager SessionManager
 }
 
 // NewSessionHandler creates a new SessionHandler instance.
-func NewSessionHandler(sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService) *SessionHandler {
+func NewSessionHandler(sessionManager SessionManager) *SessionHandler {
 	return &SessionHandler{
 		sessionManager: sessionManager,
 	}
 }
+
+// Ensure *SessionManagerService implements SessionManager at compile time.
+var _ SessionManager = (*cryptoutilTemplateBusinessLogic.SessionManagerService)(nil)
 
 // SessionIssueRequest represents the request body for issuing a session.
 type SessionIssueRequest struct {

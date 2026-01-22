@@ -137,13 +137,13 @@ func (rl *RateLimiter) cleanupLoop() {
 func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
     // ✅ Creates dedicated Fiber app (no shared rate limiter)
     app := fiber.New()
-    
+
     // ✅ Custom rate limiter instance
     rateLimiter := NewRateLimiter(3, 3)  // 3 req/min, burst 3
-    
+
     // ✅ IP isolation via X-Forwarded-For header
     req.Header.Set("X-Forwarded-For", "192.168.1.100")
-    
+
     // NO interference with other tests ✅
 }
 ```

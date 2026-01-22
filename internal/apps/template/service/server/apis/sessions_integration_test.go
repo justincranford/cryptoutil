@@ -423,4 +423,3 @@ func TestValidateSession_InvalidRequestBody_Integration(t *testing.T) {
 
 	require.Equal(t, 400, resp.StatusCode)
 }
-

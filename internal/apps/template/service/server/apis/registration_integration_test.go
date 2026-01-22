@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	googleUuid "github.com/google/uuid"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -146,7 +146,7 @@ func TestMain(m *testing.M) {
 	// For full-featured tests, see server_builder.go which sets up all dependencies.
 	// Here we create minimal infrastructure for session testing.
 	ctx := context.Background()
-	
+
 	// Create telemetry service (minimal - no OTLP export).
 	testConfig := cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, testConfig)
@@ -154,32 +154,32 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("failed to create telemetry service: %v", err))
 	}
 	defer telemetryService.Shutdown()
-	
+
 	// Create JWK generation service.
 	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create JWK generation service: %v", err))
 	}
 	defer jwkGenService.Shutdown()
-	
+
 	// Create barrier repository and service for session encryption.
 	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create barrier repository: %v", err))
 	}
-	
+
 	// Generate unseal JWK for testing.
 	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	if err != nil {
 		panic(fmt.Sprintf("failed to generate unseal JWK: %v", err))
 	}
-	
+
 	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	if err != nil {
 		panic(fmt.Sprintf("failed to create unseal service: %v", err))
 	}
 	defer unsealService.Shutdown()
-	
+
 	// Create barrier service.
 	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(
 		ctx,
@@ -191,7 +191,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to create barrier service: %v", err))
 	}
-	
+
 	// Create session manager.
 	testSessionManager, err = cryptoutilTemplateBusinessLogic.NewSessionManagerService(
 		ctx,
@@ -204,7 +204,6 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("failed to create session manager: %v", err))
 	}
-
 
 	// Create Fiber apps for testing.
 	testRegistrationApp = fiber.New()
@@ -772,15 +771,15 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 	clientID := googleUuid.New()
 	processedBy := googleUuid.New()
 	processedAt := time.Now().UTC()
-	
+
 	joinReq := &cryptoutilTemplateDomain.TenantJoinRequest{
 		ID:          googleUuid.New(),
 		TenantID:    testTenantID,
 		UserID:      &userID,
-		ClientID:    &clientID,  // Optional field 1
+		ClientID:    &clientID, // Optional field 1
 		Status:      "approved",
-		ProcessedAt: &processedAt,  // Optional field 2
-		ProcessedBy: &processedBy,  // Optional field 3
+		ProcessedAt: &processedAt, // Optional field 2
+		ProcessedBy: &processedBy, // Optional field 3
 		RequestedAt: time.Now().UTC().Add(-1 * time.Hour),
 	}
 	require.NoError(t, testDB.WithContext(ctx).Create(joinReq).Error)
@@ -812,17 +811,17 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 		if reqMap["id"] == joinReq.ID.String() {
 			foundOurRequest = true
 			require.Equal(t, "approved", reqMap["status"])
-			
+
 			// Verify optional fields are present in response.
 			require.Contains(t, reqMap, "client_id", "ClientID should be present")
 			require.Equal(t, clientID.String(), reqMap["client_id"])
-			
+
 			require.Contains(t, reqMap, "processed_at", "ProcessedAt should be present")
 			require.NotNil(t, reqMap["processed_at"])
-			
+
 			require.Contains(t, reqMap, "processed_by", "ProcessedBy should be present")
 			require.Equal(t, processedBy.String(), reqMap["processed_by"])
-			
+
 			break
 		}
 	}
