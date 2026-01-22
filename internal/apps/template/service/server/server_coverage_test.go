@@ -1,0 +1,144 @@
+//go:build !integration
+
+package server
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"testing"
+
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	_ "modernc.org/sqlite"
+
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+)
+
+// TestPublicServerBase_StartContextCancellation tests Start when context is canceled before server runs.
+// Target: public_server_base.go:151-156 (context cancellation error path)
+func TestPublicServerBase_StartContextCancellation(t *testing.T) {
+	t.Parallel()
+
+	config := &PublicServerConfig{
+		BindAddress: "127.0.0.1",
+		Port:        0,
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+
+	base, err := NewPublicServerBase(config)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately.
+
+	err = base.Start(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "public server stopped")
+}
+
+// TestPublicServerBase_ShutdownTwice tests Shutdown called twice.
+// Target: public_server_base.go:170-172 (double shutdown error path)
+func TestPublicServerBase_ShutdownTwice(t *testing.T) {
+	t.Parallel()
+
+	config := &PublicServerConfig{
+		BindAddress: "127.0.0.1",
+		Port:        0,
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+
+	base, err := NewPublicServerBase(config)
+	require.NoError(t, err)
+
+	// First shutdown should succeed.
+	err = base.Shutdown(context.Background())
+	require.NoError(t, err)
+
+	// Second shutdown should fail.
+	err = base.Shutdown(context.Background())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "public server already shutdown")
+}
+
+// TestNewServiceTemplate_JWKGenInitError tests NewServiceTemplate when JWKGenService fails to initialize.
+// Target: service_template.go:83 (JWKGenService init error)
+//
+// NOTE: Cannot easily trigger JWKGen init error in practice (requires telemetry/pool failure).
+// This test documents the code path exists but is difficult to cover.
+func TestNewServiceTemplate_JWKGenInitError(t *testing.T) {
+	t.Skip("JWKGen init error difficult to trigger - requires telemetry/pool failure")
+}
+
+// TestNewServiceTemplate_OptionError tests NewServiceTemplate when option application fails.
+// Target: service_template.go:99 (option apply error)
+func TestNewServiceTemplate_OptionError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Provide minimal valid config so telemetry initialization passes.
+	config := &cryptoutilConfig.ServiceTemplateServerSettings{
+		OTLPService:  "test-service",
+		LogLevel:     "INFO",
+		OTLPEndpoint: "http://localhost:4318", // Valid OTLP HTTP endpoint.
+	}
+
+	// Create unique in-memory database per test (using modernc.org/sqlite).
+	dbID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	dsn := "file:" + dbID.String() + "?mode=memory&cache=private"
+
+	sqlDB, err := sql.Open("sqlite", dsn)
+	require.NoError(t, err)
+	defer sqlDB.Close()
+
+	// Configure SQLite for concurrent operations.
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
+	require.NoError(t, err)
+
+	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
+	require.NoError(t, err)
+
+	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetConnMaxLifetime(0)
+
+	// Wrap with GORM.
+	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
+	require.NoError(t, err)
+
+	// Create option that always fails.
+	failingOption := func(st *ServiceTemplate) error {
+		return fmt.Errorf("intentional option failure")
+	}
+
+	_, err = NewServiceTemplate(ctx, config, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite, failingOption)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to apply option")
+	require.Contains(t, err.Error(), "intentional option failure")
+}
+
+// TestServiceTemplate_ShutdownNilComponents tests Shutdown with nil components.
+// Target: service_template.go:144-153 (nil check branches)
+func TestServiceTemplate_ShutdownNilComponents(t *testing.T) {
+	t.Parallel()
+
+	// Create ServiceTemplate with all nil components.
+	st := &ServiceTemplate{
+		telemetry: nil,
+		jwkGen:    nil,
+		barrier:   nil,
+	}
+
+	// Shutdown should not panic.
+	st.Shutdown()
+}
+
