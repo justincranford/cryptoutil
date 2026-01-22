@@ -271,7 +271,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Description: "Test tenant",
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
-			tenantSvc.createTenantFn = func(_ context.Context, name, description string) (*repository.Tenant, error) {
+				tenantSvc.createTenantFn = func(_ context.Context, name, description string) (*repository.Tenant, error) {
 					return &repository.Tenant{
 						ID:          tenantID,
 						Name:        name,

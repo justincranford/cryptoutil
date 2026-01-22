@@ -196,7 +196,7 @@ func TestNewFromConfig_WithNilContext(t *testing.T) {
 
 	cfg := config.DefaultTestConfig()
 
-	testServer, err := server.NewFromConfig(nil, cfg)
+	testServer, err := server.NewFromConfig(nil, cfg) //nolint:staticcheck // SA1012: Intentionally testing nil context handling
 	require.Error(t, err, "NewFromConfig should error with nil context")
 	require.Nil(t, testServer, "Server should be nil on error")
 	require.Contains(t, err.Error(), "context cannot be nil", "Error should mention nil context")

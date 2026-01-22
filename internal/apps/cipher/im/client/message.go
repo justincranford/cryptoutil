@@ -49,7 +49,7 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 
 	messageID, ok := respBody["message_id"]
 	if !ok {
-		return "", &ClientError{Message: "response missing message_id field"}
+		return "", &Error{Message: "response missing message_id field"}
 	}
 
 	return messageID, nil
@@ -75,7 +75,7 @@ func ReceiveMessagesService(client *http.Client, baseURL, token string) ([]map[s
 
 	messages, ok := respBody["messages"]
 	if !ok {
-		return nil, &ClientError{Message: "response missing messages field"}
+		return nil, &Error{Message: "response missing messages field"}
 	}
 
 	return messages, nil
@@ -132,7 +132,7 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 
 	messageID, ok := respBody["message_id"]
 	if !ok {
-		return "", &ClientError{Message: "response missing message_id field"}
+		return "", &Error{Message: "response missing message_id field"}
 	}
 
 	return messageID, nil
@@ -158,7 +158,7 @@ func ReceiveMessagesBrowser(client *http.Client, baseURL, token string) ([]map[s
 
 	messages, ok := respBody["messages"]
 	if !ok {
-		return nil, &ClientError{Message: "response missing messages field"}
+		return nil, &Error{Message: "response missing messages field"}
 	}
 
 	return messages, nil
@@ -180,23 +180,23 @@ func DeleteMessageBrowser(client *http.Client, baseURL, messageID, token string)
 	return nil
 }
 
-// ClientError represents an error returned by the cipher service.
-type ClientError struct {
+// Error represents an error returned by the cipher service.
+type Error struct {
 	Code    string `json:"code,omitempty"`
 	Message string `json:"message"`
 	Details any    `json:"details,omitempty"`
 }
 
-func (e *ClientError) Error() string {
+func (e *Error) Error() string {
 	return e.Message
 }
 
 // decodeErrorResponse attempts to decode an error response from the service.
 func decodeErrorResponse(resp *http.Response) error {
-	var errorResp ClientError
+	var errorResp Error
 	if err := json.NewDecoder(resp.Body).Decode(&errorResp); err != nil {
 		// If we can't decode the error, return a generic error
-		return &ClientError{Message: "request failed with status " + resp.Status}
+		return &Error{Message: "request failed with status " + resp.Status}
 	}
 
 	return &errorResp
