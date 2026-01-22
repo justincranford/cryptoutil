@@ -102,7 +102,7 @@ func TestDefaultTestConfig_PortAllocation(t *testing.T) {
 
 func TestParse_HappyPath(t *testing.T) {
 	// Don't use t.Parallel() - Parse modifies global state (pflag).
-	
+
 	// Parse uses template defaults for cipher settings since flags can't be tested directly
 	// due to pflag.Parse() being called twice (once in template, once in cipher).
 	args := []string{
@@ -110,9 +110,9 @@ func TestParse_HappyPath(t *testing.T) {
 		"--bind-public-address", "127.0.0.1",
 		"--bind-public-port", "8080",
 	}
-	
+
 	settings, err := config.Parse(args, false)
-	
+
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)

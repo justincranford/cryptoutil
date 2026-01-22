@@ -91,7 +91,6 @@ func TestHandleListJoinRequests(t *testing.T) {
 	require.NotNil(t, handlers)
 }
 
-
 func TestHandleProcessJoinRequest_InvalidID(t *testing.T) {
 	t.Parallel()
 

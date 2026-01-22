@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	googleUuid "github.com/google/uuid"
+
 	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
