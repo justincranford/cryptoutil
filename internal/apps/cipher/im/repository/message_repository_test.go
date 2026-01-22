@@ -471,4 +471,3 @@ func TestMessageRepository_TransactionContext(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, message2.ID, retrieved.ID)
 }
-
