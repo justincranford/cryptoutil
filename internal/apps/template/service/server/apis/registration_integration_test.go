@@ -46,6 +46,8 @@ var (
 	testSessionManager     *cryptoutilTemplateBusinessLogic.SessionManagerService
 	testRegistrationApp    *fiber.App
 	testJoinRequestMgmtApp *fiber.App
+	testTenantID           googleUuid.UUID
+	testUserID             googleUuid.UUID
 )
 
 func TestMain(m *testing.M) {
@@ -206,6 +208,17 @@ func TestMain(m *testing.M) {
 	// Create Fiber apps for testing.
 	testRegistrationApp = fiber.New()
 	testJoinRequestMgmtApp = fiber.New()
+
+	// Add test authentication middleware that sets tenant_id and user_id.
+	// In production, this would be set by JWT/session validation middleware.
+	testTenantID = googleUuid.New()
+	testUserID = googleUuid.New()
+	authMiddleware := func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", testTenantID)
+		c.Locals("user_id", testUserID)
+		return c.Next()
+	}
+	testJoinRequestMgmtApp.Use(authMiddleware)
 
 	// Register routes.
 	RegisterRegistrationRoutes(testRegistrationApp, testRegistrationSvc, 10)
@@ -645,8 +658,14 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 	// Create service with empty DB
 	svc := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(emptyDB, tenantRepo, userRepo, joinRequestRepo)
 
-	// Create isolated Fiber app
+	// Create isolated Fiber app with auth middleware
 	app := fiber.New()
+	testTenantID := googleUuid.New()
+	authMiddleware := func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", testTenantID)
+		return c.Next()
+	}
+	app.Use(authMiddleware)
 	RegisterJoinRequestManagementRoutes(app, svc)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/api/v1/join-requests", nil)
@@ -667,16 +686,14 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 }
 
 // TestIntegration_ListJoinRequests_WithData tests list with existing requests.
-// TODO: This test requires authentication context to extract tenant ID.
 func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
-	t.Skip("Handler uses placeholder random tenant ID - requires auth context to work properly")
 	t.Parallel()
 
 	ctx := context.Background()
 
-	// Create tenant.
+	// Create tenant using the same tenant ID from auth middleware.
 	tenant := &cryptoutilTemplateRepository.Tenant{
-		ID:   googleUuid.New(),
+		ID:   testTenantID,
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
 	require.NoError(t, testDB.Create(tenant).Error)
@@ -685,7 +702,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 	userID := googleUuid.New()
 	joinReq := &cryptoutilTemplateDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
-		TenantID: tenant.ID,
+		TenantID: testTenantID,
 		UserID:   &userID,
 		Status:   "pending",
 	}
