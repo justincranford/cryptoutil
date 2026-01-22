@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
@@ -26,9 +27,14 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
 	// Use modernc SQLite driver (CGO-free).
 	_ "modernc.org/sqlite"
@@ -37,6 +43,7 @@ import (
 var (
 	testDB                 *gorm.DB
 	testRegistrationSvc    *cryptoutilTemplateBusinessLogic.TenantRegistrationService
+	testSessionManager     *cryptoutilTemplateBusinessLogic.SessionManagerService
 	testRegistrationApp    *fiber.App
 	testJoinRequestMgmtApp *fiber.App
 )
@@ -53,12 +60,68 @@ func TestMain(m *testing.M) {
 
 	testDB = db
 
-	// Run migrations.
+	// Get underlying SQL DB for configuration.
+	sqlDB, err := testDB.DB()
+	if err != nil {
+		panic(fmt.Sprintf("failed to get SQL DB: %v", err))
+	}
+
+	// Configure SQLite for concurrent operations.
+	if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+		panic(fmt.Sprintf("failed to enable WAL: %v", err))
+	}
+
+	if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {
+		panic(fmt.Sprintf("failed to set busy timeout: %v", err))
+	}
+
+	sqlDB.SetMaxOpenConns(5)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(0)
+
+	// Create barrier tables (before GORM migrations).
+	barrierSchema := `
+	CREATE TABLE IF NOT EXISTS barrier_root_keys (
+		uuid TEXT PRIMARY KEY,
+		encrypted TEXT NOT NULL,
+		kek_uuid TEXT,
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS barrier_intermediate_keys (
+		uuid TEXT PRIMARY KEY,
+		encrypted TEXT NOT NULL,
+		kek_uuid TEXT NOT NULL,
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL,
+		FOREIGN KEY (kek_uuid) REFERENCES barrier_root_keys(uuid)
+	);
+
+	CREATE TABLE IF NOT EXISTS barrier_content_keys (
+		uuid TEXT PRIMARY KEY,
+		encrypted TEXT NOT NULL,
+		kek_uuid TEXT NOT NULL,
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL,
+		FOREIGN KEY (kek_uuid) REFERENCES barrier_intermediate_keys(uuid)
+	);
+	`
+
+	if _, err := sqlDB.Exec(barrierSchema); err != nil {
+		panic(fmt.Sprintf("failed to create barrier tables: %v", err))
+	}
+
+	// Run migrations including session tables.
 	if err := testDB.AutoMigrate(
 		&cryptoutilTemplateRepository.Tenant{},
 		&cryptoutilTemplateRepository.TenantRealm{},
 		&cryptoutilTemplateRepository.User{},
 		&cryptoutilTemplateDomain.TenantJoinRequest{},
+		&cryptoutilTemplateRepository.BrowserSession{},
+		&cryptoutilTemplateRepository.ServiceSession{},
+		&cryptoutilTemplateRepository.BrowserSessionJWK{},
+		&cryptoutilTemplateRepository.ServiceSessionJWK{},
 	); err != nil {
 		panic(fmt.Sprintf("failed to migrate: %v", err))
 	}
@@ -75,6 +138,70 @@ func TestMain(m *testing.M) {
 		userRepo,
 		joinRequestRepo,
 	)
+
+	// Create minimal session manager for integration tests.
+	// For full-featured tests, see server_builder.go which sets up all dependencies.
+	// Here we create minimal infrastructure for session testing.
+	ctx := context.Background()
+	
+	// Create telemetry service (minimal - no OTLP export).
+	testConfig := cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, testConfig)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create telemetry service: %v", err))
+	}
+	defer telemetryService.Shutdown()
+	
+	// Create JWK generation service.
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create JWK generation service: %v", err))
+	}
+	defer jwkGenService.Shutdown()
+	
+	// Create barrier repository and service for session encryption.
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create barrier repository: %v", err))
+	}
+	
+	// Generate unseal JWK for testing.
+	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	if err != nil {
+		panic(fmt.Sprintf("failed to generate unseal JWK: %v", err))
+	}
+	
+	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	if err != nil {
+		panic(fmt.Sprintf("failed to create unseal service: %v", err))
+	}
+	defer unsealService.Shutdown()
+	
+	// Create barrier service.
+	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(
+		ctx,
+		telemetryService,
+		jwkGenService,
+		barrierRepo,
+		unsealService,
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create barrier service: %v", err))
+	}
+	
+	// Create session manager.
+	testSessionManager, err = cryptoutilTemplateBusinessLogic.NewSessionManagerService(
+		ctx,
+		testDB,
+		telemetryService,
+		jwkGenService,
+		barrierService,
+		testConfig,
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create session manager: %v", err))
+	}
+
 
 	// Create Fiber apps for testing.
 	testRegistrationApp = fiber.New()
