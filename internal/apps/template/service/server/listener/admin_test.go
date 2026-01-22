@@ -778,3 +778,70 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	// Wait for port to be fully released.
 	time.Sleep(500 * time.Millisecond)
 }
+
+// TestAdminServer_AdminBaseURL tests AdminBaseURL returns correct URL format.
+func TestAdminServer_AdminBaseURL(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
+	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start server in background.
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		_ = server.Start(ctx)
+	}()
+
+	// Wait for server to be ready with retry logic.
+	var port int
+
+	for i := 0; i < 10; i++ {
+		time.Sleep(50 * time.Millisecond)
+
+		port = server.ActualPort()
+		if port > 0 {
+			break
+		}
+	}
+
+	require.Greater(t, port, 0, "Expected dynamic port allocation")
+
+	// Test AdminBaseURL returns correct format.
+	baseURL := server.AdminBaseURL()
+	expectedURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
+	assert.Equal(t, expectedURL, baseURL)
+
+	// Shutdown server.
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	err = server.Shutdown(shutdownCtx)
+	require.NoError(t, err)
+
+	wg.Wait()
+
+	// Wait for port to be fully released.
+	time.Sleep(500 * time.Millisecond)
+}
+
+// TestAdminServer_App tests App returns non-nil fiber.App instance.
+func TestAdminServer_App(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
+	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	// App should return the underlying fiber.App.
+	app := server.App()
+	require.NotNil(t, app, "App() should return non-nil fiber.App")
+}
