@@ -134,6 +134,7 @@ func TestServer_Shutdown(t *testing.T) {
 	defer startCancel()
 
 	startErrCh := make(chan error, 1)
+
 	go func() {
 		startErrCh <- testServer.Start(startCtx)
 	}()

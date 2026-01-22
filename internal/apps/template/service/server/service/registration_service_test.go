@@ -187,11 +187,11 @@ func (m *mockUnverifiedClientRepository) ListByTenant(_ context.Context, _ googl
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedClientRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockUnverifiedClientRepository) Delete(_ context.Context, _ googleUuid.UUID) error {
 	return errors.New("not implemented")
 }
 
-func (m *mockUnverifiedClientRepository) DeleteExpired(ctx context.Context) (int64, error) {
+func (m *mockUnverifiedClientRepository) DeleteExpired(_ context.Context) (int64, error) {
 	return 0, errors.New("not implemented")
 }
 
@@ -208,15 +208,15 @@ func (m *mockUserRoleRepository) Assign(ctx context.Context, userRole *repositor
 	return nil
 }
 
-func (m *mockUserRoleRepository) ListRolesByUser(ctx context.Context, userID googleUuid.UUID) ([]*repository.Role, error) {
+func (m *mockUserRoleRepository) ListRolesByUser(_ context.Context, _ googleUuid.UUID) ([]*repository.Role, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRoleRepository) ListUsersByRole(ctx context.Context, roleID googleUuid.UUID) ([]*repository.User, error) {
+func (m *mockUserRoleRepository) ListUsersByRole(_ context.Context, _ googleUuid.UUID) ([]*repository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRoleRepository) Revoke(ctx context.Context, userID, roleID googleUuid.UUID) error {
+func (m *mockUserRoleRepository) Revoke(_ context.Context, _, _ googleUuid.UUID) error {
 	return errors.New("not implemented")
 }
 
@@ -233,15 +233,15 @@ func (m *mockClientRoleRepository) Assign(ctx context.Context, clientRole *repos
 	return nil
 }
 
-func (m *mockClientRoleRepository) ListRolesByClient(ctx context.Context, clientID googleUuid.UUID) ([]*repository.Role, error) {
+func (m *mockClientRoleRepository) ListRolesByClient(_ context.Context, _ googleUuid.UUID) ([]*repository.Role, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRoleRepository) ListClientsByRole(ctx context.Context, roleID googleUuid.UUID) ([]*repository.Client, error) {
+func (m *mockClientRoleRepository) ListClientsByRole(_ context.Context, _ googleUuid.UUID) ([]*repository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRoleRepository) Revoke(ctx context.Context, clientID, roleID googleUuid.UUID) error {
+func (m *mockClientRoleRepository) Revoke(_ context.Context, _, _ googleUuid.UUID) error {
 	return errors.New("not implemented")
 }
 
@@ -271,7 +271,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Description: "Test tenant",
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
-				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*repository.Tenant, error) {
+			tenantSvc.createTenantFn = func(_ context.Context, name, description string) (*repository.Tenant, error) {
 					return &repository.Tenant{
 						ID:          tenantID,
 						Name:        name,
