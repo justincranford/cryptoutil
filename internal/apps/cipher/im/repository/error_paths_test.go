@@ -81,6 +81,49 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				require.Contains(t, err.Error(), "failed to create user")
 			},
 		},
+		{
+			name: "MessageRecipientJWKRepository.Create with duplicate (recipient_id, message_id)",
+			testFn: func(t *testing.T) {
+				msgRepo := NewMessageRepository(testDB)
+				jwkRepo := NewMessageRecipientJWKRepository(testDB, testBarrierService)
+
+				// Create message first (foreign key requirement).
+				messageID := *testJWKGenService.GenerateUUIDv7()
+				message := &domain.Message{
+					ID:       messageID,
+					SenderID: *testJWKGenService.GenerateUUIDv7(),
+					JWE:      "test-jwe",
+				}
+				require.NoError(t, msgRepo.Create(ctx, message))
+
+				defer func() { _ = msgRepo.Delete(ctx, messageID) }()
+
+				recipientID := *testJWKGenService.GenerateUUIDv7()
+
+				// Create first recipient JWK.
+				jwk1 := &domain.MessageRecipientJWK{
+					ID:           *testJWKGenService.GenerateUUIDv7(),
+					RecipientID:  recipientID,
+					MessageID:    messageID,
+					EncryptedJWK: "test-encrypted-jwk-1",
+				}
+				require.NoError(t, jwkRepo.Create(ctx, jwk1))
+
+				defer func() { _ = jwkRepo.Delete(ctx, jwk1.ID) }()
+
+				// Try to create duplicate with same ID = constraint violation.
+				jwk2 := &domain.MessageRecipientJWK{
+					ID:           jwk1.ID, // Same ID = primary key violation
+					RecipientID:  recipientID,
+					MessageID:    messageID,
+					EncryptedJWK: "test-encrypted-jwk-2",
+				}
+
+				err := jwkRepo.Create(ctx, jwk2)
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "failed to create message recipient JWK")
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -183,6 +226,32 @@ func TestErrorPaths_DeleteOperations(t *testing.T) {
 				err := repo.Delete(ctx, nonExistentID)
 				// Note: GORM doesn't error on delete of non-existent record,
 				// so we check that no panic occurred and operation completes.
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "MessageRecipientJWKRepository.Delete with non-existent JWK",
+			testFn: func(t *testing.T) {
+				repo := NewMessageRecipientJWKRepository(testDB, testBarrierService)
+
+				// Try to delete non-existent JWK.
+				nonExistentID := *testJWKGenService.GenerateUUIDv7()
+
+				err := repo.Delete(ctx, nonExistentID)
+				// GORM doesn't error on delete of non-existent record.
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "MessageRecipientJWKRepository.DeleteByMessageID with non-existent message",
+			testFn: func(t *testing.T) {
+				repo := NewMessageRecipientJWKRepository(testDB, testBarrierService)
+
+				// Try to delete by non-existent message ID.
+				nonExistentMessageID := *testJWKGenService.GenerateUUIDv7()
+
+				err := repo.DeleteByMessageID(ctx, nonExistentMessageID)
+				// GORM doesn't error on delete with 0 rows affected.
 				require.NoError(t, err)
 			},
 		},
