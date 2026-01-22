@@ -200,8 +200,8 @@
 - [x] 0.10.3 Tests: `go test ./internal/apps/template/... -cover` (100% pass) ✅
 - [x] 0.10.4 Coverage: ≥85% production, ≥85% infrastructure (Phase 1) ⚠️ Registration handlers 50% package (registration functions ~83%), deferred comprehensive coverage to Phase X
 - [ ] 0.10.5 Mutation: DEFERRED to Phase Y (Mutation Testing)
-- [ ] 0.10.6 E2E: Registration flow works (browser + service)
-- [ ] 0.10.7 E2E: Join request flow works (create, list, approve)
+- [x] 0.10.6 E2E: Registration flow works (browser + service) ✅ TestIntegration_RegisterUser_CreateTenant passes
+- [x] 0.10.7 E2E: Join request flow works (create, list, approve) ✅ TestIntegration_ProcessJoinRequest_Approve/Reject, TestIntegration_ListJoinRequests_NoRequests pass
 - [x] 0.10.8 Security: NO hardcoded passwords in tests ✅ All passwords are hashed (PasswordHash fields)
 - [x] 0.10.9 Paths: Consistent /admin/api/v1, /service/api/v1, /browser/api/v1 ✅ All paths follow convention
 - [ ] 0.10.10 Git: Conventional commit with evidence

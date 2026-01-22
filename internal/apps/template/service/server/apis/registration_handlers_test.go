@@ -1,6 +1,8 @@
 // Copyright (c) 2025 Justin Cranford.
 // Licensed under the MIT License. See LICENSE file in the project root for license information.
 
+//go:build !integration
+
 package apis
 
 import (
