@@ -90,6 +90,24 @@ const (
 
 // Identity service port and OTLP constants.
 const (
+	// OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
+	OTLPServiceIdentityAuthz = "identity-authz"
+
+	// IdentityAuthzServicePort is the default public port for identity-authz service.
+	IdentityAuthzServicePort = uint16(18000)
+
+	// OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
+	OTLPServiceIdentityIDP = "identity-idp"
+
+	// IdentityIDPServicePort is the default public port for identity-idp service.
+	IdentityIDPServicePort = uint16(18100)
+
+	// OTLPServiceIdentityRS is the OTLP service name for identity-rs.
+	OTLPServiceIdentityRS = "identity-rs"
+
+	// IdentityRSServicePort is the default public port for identity-rs service.
+	IdentityRSServicePort = uint16(18200)
+
 	// OTLPServiceIdentityRP is the OTLP service name for identity-rp.
 	OTLPServiceIdentityRP = "identity-rp"
 
