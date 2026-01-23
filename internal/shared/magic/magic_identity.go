@@ -120,3 +120,53 @@ const (
 	// IdentitySPAServicePort is the default public port for identity-spa service.
 	IdentitySPAServicePort = uint16(18400)
 )
+
+// E2E Test Configuration for identity services.
+const (
+	// IdentityE2EComposeFile is the path to the identity docker compose file (relative from e2e test directory).
+	// Path: internal/apps/identity/e2e → ../../../../deployments/identity/compose.e2e.yml
+	// Levels: e2e→identity(1)→apps(2)→internal(3)→cryptoutil(4), then deployments/identity.
+	IdentityE2EComposeFile = "../../../../deployments/identity/compose.e2e.yml"
+
+	// IdentityE2EAuthzContainer is the identity-authz container name.
+	IdentityE2EAuthzContainer = "identity-authz-e2e"
+
+	// IdentityE2EIDPContainer is the identity-idp container name.
+	IdentityE2EIDPContainer = "identity-idp-e2e"
+
+	// IdentityE2ERSContainer is the identity-rs container name.
+	IdentityE2ERSContainer = "identity-rs-e2e"
+
+	// IdentityE2ERPContainer is the identity-rp container name.
+	IdentityE2ERPContainer = "identity-rp-e2e"
+
+	// IdentityE2ESPAContainer is the identity-spa container name.
+	IdentityE2ESPAContainer = "identity-spa-e2e"
+
+	// IdentityE2EHealthTimeout is the timeout for health checks during E2E tests.
+	// Must account for cascade dependencies: authz (30s) → idp (30s) → rs (30s) → rp (30s) → spa (30s) = 150s worst case.
+	// Increased to 240s to handle slower CI/CD environments and Windows systems.
+	IdentityE2EHealthTimeout = 240 * time.Second
+
+	// IdentityE2EHealthPollInterval is the interval between health check attempts.
+	IdentityE2EHealthPollInterval = 2 * time.Second
+
+	// IdentityE2EAuthzPublicPort is the identity-authz E2E public HTTPS port.
+	IdentityE2EAuthzPublicPort = 18000
+
+	// IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
+	IdentityE2EIDPPublicPort = 18100
+
+	// IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
+	IdentityE2ERSPublicPort = 18200
+
+	// IdentityE2ERPPublicPort is the identity-rp E2E public HTTPS port.
+	IdentityE2ERPPublicPort = 18300
+
+	// IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
+	IdentityE2ESPAPublicPort = 18400
+
+	// IdentityE2EHealthEndpoint is the public health check endpoint.
+	// Uses /health for liveness checks (matches cipher-im pattern).
+	IdentityE2EHealthEndpoint = "/health"
+)
