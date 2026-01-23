@@ -49,6 +49,30 @@ func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 	assert.Nil(t, server)
 }
 
+// TestNewPublicHTTPServer_NilSettings tests that NewPublicHTTPServer rejects nil settings.
+func TestNewPublicHTTPServer_NilSettings(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), nil, tlsCfg)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "settings cannot be nil")
+	assert.Nil(t, server)
+}
+
+// TestNewPublicHTTPServer_NilTLSCfg tests that NewPublicHTTPServer rejects nil TLS configuration.
+func TestNewPublicHTTPServer_NilTLSCfg(t *testing.T) {
+	t.Parallel()
+
+	server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), nil)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "TLS config cannot be nil")
+	assert.Nil(t, server)
+}
+
 // TestPublicHTTPServer_Start_Success tests public server starts and listens on dynamic port.
 func TestPublicHTTPServer_Start_Success(t *testing.T) {
 	t.Parallel()

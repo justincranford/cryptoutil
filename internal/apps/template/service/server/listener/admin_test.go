@@ -48,6 +48,29 @@ func TestNewAdminHTTPServer_NilContext(t *testing.T) {
 	assert.Nil(t, server)
 }
 
+// TestNewAdminHTTPServer_NilSettings tests that NewAdminHTTPServer rejects nil settings.
+func TestNewAdminHTTPServer_NilSettings(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
+	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), nil, tlsCfg)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "settings cannot be nil")
+	assert.Nil(t, server)
+}
+
+// TestNewAdminHTTPServer_NilTLSCfg tests that NewAdminHTTPServer rejects nil TLS configuration.
+func TestNewAdminHTTPServer_NilTLSCfg(t *testing.T) {
+	t.Parallel()
+
+	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), nil)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "TLS configuration cannot be nil")
+	assert.Nil(t, server)
+}
+
 // TestAdminServer_Start_Success tests admin server starts and listens on dynamic port.
 func TestAdminServer_Start_Success(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
