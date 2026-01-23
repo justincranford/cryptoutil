@@ -13,6 +13,7 @@ import (
 	cryptoutilCACmd "cryptoutil/internal/cmd/cryptoutil/ca"
 	cryptoutilIdentityCmd "cryptoutil/internal/cmd/cryptoutil/identity"
 	cryptoutilJoseCmd "cryptoutil/internal/cmd/cryptoutil/jose"
+	cryptoutilRPCmd "cryptoutil/internal/cmd/cryptoutil/rp"
 	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
 
@@ -36,6 +37,8 @@ func Execute() {
 		cryptoutilKmsCmd.Server(parameters)
 	case "identity":
 		cryptoutilIdentityCmd.Execute(parameters)
+	case "identity-rp":
+		cryptoutilRPCmd.Execute(parameters)
 	case "jose":
 		cryptoutilJoseCmd.Execute(parameters)
 	case "ca":
@@ -54,10 +57,11 @@ func Execute() {
 
 func printUsage(executable string) {
 	fmt.Printf("Usage: %s <product> [options]\n", executable)
-	fmt.Println("  kms      - Key Management Service")
-	fmt.Println("  identity - Identity Services (authz, idp, rs)")
-	fmt.Println("  jose     - JOSE Authority")
-	fmt.Println("  ca       - Certificate Authority")
-	fmt.Println("  learn    - Educational and demonstration services")
-	fmt.Println("  help     - Show this help message")
+	fmt.Println("  kms         - Key Management Service")
+	fmt.Println("  identity    - Identity Services (authz, idp, rs)")
+	fmt.Println("  identity-rp - Identity Relying Party (BFF reference implementation)")
+	fmt.Println("  jose        - JOSE Authority")
+	fmt.Println("  ca          - Certificate Authority")
+	fmt.Println("  learn       - Educational and demonstration services")
+	fmt.Println("  help        - Show this help message")
 }

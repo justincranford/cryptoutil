@@ -87,3 +87,18 @@ const (
 	// RealmStorageTypeRedis - Redis storage type for session/token persistence.
 	RealmStorageTypeRedis = "redis"
 )
+
+// Identity service port and OTLP constants.
+const (
+	// OTLPServiceIdentityRP is the OTLP service name for identity-rp.
+	OTLPServiceIdentityRP = "identity-rp"
+
+	// IdentityRPServicePort is the default public port for identity-rp service.
+	IdentityRPServicePort = uint16(18300)
+
+	// OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
+	OTLPServiceIdentitySPA = "identity-spa"
+
+	// IdentitySPAServicePort is the default public port for identity-spa service.
+	IdentitySPAServicePort = uint16(18400)
+)
