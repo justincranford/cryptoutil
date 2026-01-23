@@ -10,10 +10,13 @@ import (
 	"os"
 
 	cryptoutilCipherCmd "cryptoutil/internal/cmd/cipher"
+	cryptoutilAuthzCmd "cryptoutil/internal/cmd/cryptoutil/authz"
 	cryptoutilCACmd "cryptoutil/internal/cmd/cryptoutil/ca"
 	cryptoutilIdentityCmd "cryptoutil/internal/cmd/cryptoutil/identity"
+	cryptoutilIDPCmd "cryptoutil/internal/cmd/cryptoutil/idp"
 	cryptoutilJoseCmd "cryptoutil/internal/cmd/cryptoutil/jose"
 	cryptoutilRPCmd "cryptoutil/internal/cmd/cryptoutil/rp"
+	cryptoutilRSCmd "cryptoutil/internal/cmd/cryptoutil/rs"
 	cryptoutilSPACmd "cryptoutil/internal/cmd/cryptoutil/spa"
 	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
@@ -38,6 +41,12 @@ func Execute() {
 		cryptoutilKmsCmd.Server(parameters)
 	case "identity":
 		cryptoutilIdentityCmd.Execute(parameters)
+	case "identity-authz":
+		cryptoutilAuthzCmd.Execute(parameters)
+	case "identity-idp":
+		cryptoutilIDPCmd.Execute(parameters)
+	case "identity-rs":
+		cryptoutilRSCmd.Execute(parameters)
 	case "identity-rp":
 		cryptoutilRPCmd.Execute(parameters)
 	case "identity-spa":
@@ -60,12 +69,15 @@ func Execute() {
 
 func printUsage(executable string) {
 	fmt.Printf("Usage: %s <product> [options]\n", executable)
-	fmt.Println("  kms         - Key Management Service")
-	fmt.Println("  identity    - Identity Services (authz, idp, rs)")
-	fmt.Println("  identity-rp  - Identity Relying Party (BFF reference implementation)")
-	fmt.Println("  identity-spa - Identity SPA (Single Page Application reference implementation)")
-	fmt.Println("  jose         - JOSE Authority")
-	fmt.Println("  ca          - Certificate Authority")
-	fmt.Println("  learn       - Educational and demonstration services")
-	fmt.Println("  help        - Show this help message")
+	fmt.Println("  kms           - Key Management Service")
+	fmt.Println("  identity      - Identity Services (legacy unified)")
+	fmt.Println("  identity-authz - Identity Authorization Server")
+	fmt.Println("  identity-idp   - Identity Provider")
+	fmt.Println("  identity-rs    - Identity Resource Server")
+	fmt.Println("  identity-rp    - Identity Relying Party (BFF reference implementation)")
+	fmt.Println("  identity-spa   - Identity SPA (Single Page Application reference implementation)")
+	fmt.Println("  jose          - JOSE Authority")
+	fmt.Println("  ca            - Certificate Authority")
+	fmt.Println("  cipher        - Cipher services (educational)")
+	fmt.Println("  help          - Show this help message")
 }
