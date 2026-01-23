@@ -1,42 +1,28 @@
 # AuthZ Server E2E Test Configuration
 
-authz:
-  name: authz-e2e
-  bind_address: 0.0.0.0
-  port: 8080
-  tls_enabled: false
-  read_timeout: 30s
-  write_timeout: 30s
-  idle_timeout: 120s
-  admin_enabled: true
-  admin_bind_address: 0.0.0.0
-  admin_port: 9090
+server:
+  bind-public-address: 0.0.0.0
+  bind-public-port: 18000
+  bind-admin-address: 0.0.0.0
+  bind-admin-port: 9090
 
 database:
-  type: postgres
-  # DSN for E2E testing - points to identity-postgres-e2e service
-  dsn: "postgres://cryptoutil:cryptoutil_test_password@identity-postgres-e2e:5432/cryptoutil_test?sslmode=disable"
-  max_open_conns: 10
-  max_idle_conns: 5
-  conn_max_lifetime: 60m
-  conn_max_idle_time: 10m
-  auto_migrate: true
-
-tokens:
-  access_token_lifetime: 3600s
-  access_token_format: jws
-  id_token_lifetime: 3600s
-  id_token_format: jws
-  refresh_token_lifetime: 86400s
-  refresh_token_format: uuid
-  signing_algorithm: RS256
-  issuer: https://localhost:8090
-  code_lifetime: 600s
+  type: sqlite
+  dsn: ":memory:"
+  auto-migrate: true
 
 telemetry:
   enabled: true
-  otlp_endpoint: "opentelemetry-collector-contrib:4317"
-  service_name: authz-e2e
+  otlp-endpoint: "opentelemetry-collector-contrib:4317"
+  service-name: identity-authz-e2e
+
+# Identity-authz specific settings
+issuer: "https://localhost:18000"
+token-lifetime: 3600
+refresh-token-lifetime: 86400
+authorization-code-ttl: 600
+enable-discovery: true
+enable-dynamic-registration: false
 
 logging:
-  level: DEBUG
+  level: debug

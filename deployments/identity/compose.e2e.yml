@@ -1,0 +1,265 @@
+# Identity E2E Compose Configuration
+#
+# Usage: docker compose -f deployments/identity/compose.e2e.yml up -d
+#
+# This configuration is for E2E testing with all 5 identity services.
+# Uses SQLite backend for simplicity.
+#
+# Service ports:
+# - identity-authz-e2e: 18000 (public), 9090 (admin)
+# - identity-idp-e2e: 18100 (public), 9090 (admin)
+# - identity-rs-e2e: 18200 (public), 9090 (admin)
+# - identity-rp-e2e: 18300 (public), 9090 (admin)
+# - identity-spa-e2e: 18400 (public), 9090 (admin)
+# - grafana-otel-lgtm: 3000 (UI)
+
+name: cryptoutil-identity-e2e
+
+include:
+  - path: ../telemetry/compose.yml
+
+services:
+  # Identity Authorization Server (OAuth 2.1 / OIDC Authorization Server).
+  identity-authz-e2e:
+    build:
+      context: ../..
+      dockerfile: deployments/identity/Dockerfile.authz
+      args:
+        APP_VERSION: e2e
+        VCS_REF: e2e
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: cryptoutil-identity-authz:e2e
+    container_name: identity-authz-e2e
+    hostname: identity-authz-e2e
+    command:
+      - --config=/etc/identity/authz-e2e.yml
+    ports:
+      - "18000:18000"  # Public HTTPS API
+    volumes:
+      - ./config/authz-e2e.yml:/etc/identity/authz-e2e.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=identity-authz-e2e
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=e2e,deployment.environment=e2e
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:18000/health
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_started
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Identity Provider (OIDC 1.0 Login/Consent UI).
+  identity-idp-e2e:
+    build:
+      context: ../..
+      dockerfile: deployments/identity/Dockerfile.idp
+      args:
+        APP_VERSION: e2e
+        VCS_REF: e2e
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: cryptoutil-identity-idp:e2e
+    container_name: identity-idp-e2e
+    hostname: identity-idp-e2e
+    command:
+      - --config=/etc/identity/idp-e2e.yml
+    ports:
+      - "18100:18100"  # Public HTTPS API
+    volumes:
+      - ./config/idp-e2e.yml:/etc/identity/idp-e2e.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=identity-idp-e2e
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=e2e,deployment.environment=e2e
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:18100/health
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      identity-authz-e2e:
+        condition: service_healthy
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Resource Server (Protected API Example).
+  identity-rs-e2e:
+    build:
+      context: ../..
+      dockerfile: deployments/identity/Dockerfile.rs
+      args:
+        APP_VERSION: e2e
+        VCS_REF: e2e
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: cryptoutil-identity-rs:e2e
+    container_name: identity-rs-e2e
+    hostname: identity-rs-e2e
+    command:
+      - --config=/etc/identity/rs-e2e.yml
+    ports:
+      - "18200:18200"  # Public HTTPS API
+    volumes:
+      - ./config/rs-e2e.yml:/etc/identity/rs-e2e.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=identity-rs-e2e
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=e2e,deployment.environment=e2e
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:18200/health
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      identity-authz-e2e:
+        condition: service_healthy
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Relying Party (BFF - Backend for Frontend).
+  identity-rp-e2e:
+    build:
+      context: ../..
+      dockerfile: deployments/identity/Dockerfile.rp
+      args:
+        APP_VERSION: e2e
+        VCS_REF: e2e
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: cryptoutil-identity-rp:e2e
+    container_name: identity-rp-e2e
+    hostname: identity-rp-e2e
+    command:
+      - --config=/etc/identity/rp-e2e.yml
+    ports:
+      - "18300:18300"  # Public HTTPS API
+    volumes:
+      - ./config/rp-e2e.yml:/etc/identity/rp-e2e.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=identity-rp-e2e
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=e2e,deployment.environment=e2e
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:18300/health
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      identity-authz-e2e:
+        condition: service_healthy
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # Single Page Application (Static File Server).
+  identity-spa-e2e:
+    build:
+      context: ../..
+      dockerfile: deployments/identity/Dockerfile.spa
+      args:
+        APP_VERSION: e2e
+        VCS_REF: e2e
+        BUILD_DATE: "2025-01-01T00:00:00Z"
+    image: cryptoutil-identity-spa:e2e
+    container_name: identity-spa-e2e
+    hostname: identity-spa-e2e
+    command:
+      - --config=/etc/identity/spa-e2e.yml
+    ports:
+      - "18400:18400"  # Public HTTPS API
+    volumes:
+      - ./config/spa-e2e.yml:/etc/identity/spa-e2e.yml:ro
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317
+      - OTEL_SERVICE_NAME=identity-spa-e2e
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=e2e,deployment.environment=e2e
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-check-certificate
+        - -q
+        - -O
+        - /dev/null
+        - https://127.0.0.1:18400/health
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      identity-rp-e2e:
+        condition: service_healthy
+    networks:
+      - cryptoutil-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+networks:
+  cryptoutil-network:
+    name: cryptoutil-identity-e2e-network
+    driver: bridge
