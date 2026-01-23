@@ -79,13 +79,13 @@ COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/rs ./cmd/identity/rs
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
 # Validate that the binary is statically linked.
 SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/rs 2>/dev/null; then \
+RUN if ldd /app/cryptoutil 2>/dev/null; then \
         echo "✗ Binary is dynamically linked - failing build"; \
-        ldd /app/rs; \
+        ldd /app/cryptoutil; \
         exit 1; \
     else \
         echo "✓ Binary is statically linked"; \
@@ -148,14 +148,14 @@ LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 
 # Use non-privileged ports.
-EXPOSE 8084
+EXPOSE 18200
 
 # Healthcheck available with Alpine base image.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:8084/healthz || exit 1
+  CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:18200/health || exit 1
 
 # Use tini for proper signal handling and zombie process reaping.
-ENTRYPOINT ["/sbin/tini", "--", "/app/rs"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "identity-rs", "start"]
 
 # Switch to non-root user for security.
 # USER 65532:65532

@@ -75,17 +75,17 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # Copy the remainder of the source.
 COPY . .
 
-# Build the static, trimmed binary. Uses BuildKit cache mounts for faster incremental builds.
+# Build the cryptoutil binary (contains identity-authz as subcommand).
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/authz ./cmd/identity/authz
+    go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
 # Validate that the binary is statically linked.
 SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/authz 2>/dev/null; then \
+RUN if ldd /app/cryptoutil 2>/dev/null; then \
         echo "✗ Binary is dynamically linked - failing build"; \
-        ldd /app/authz; \
+        ldd /app/cryptoutil; \
         exit 1; \
     else \
         echo "✓ Binary is statically linked"; \
@@ -148,14 +148,14 @@ LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 
 # Use non-privileged ports.
-EXPOSE 8082
+EXPOSE 18000
 
 # Healthcheck available with Alpine base image.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:8082/healthz || exit 1
+  CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:18000/health || exit 1
 
 # Use tini for proper signal handling and zombie process reaping.
-ENTRYPOINT ["/sbin/tini", "--", "/app/authz"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "identity-authz", "start"]
 
 # Switch to non-root user for security.
 # USER 65532:65532

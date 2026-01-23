@@ -1,8 +1,8 @@
 #############################################################################################
-# Identity SPA RP Dockerfile
+# Identity RP Server Dockerfile
 # Use BuildKit syntax to enable cache mounts (fast rebuilds)
 # To build with cache mounts set DOCKER_BUILDKIT=1
-# Example: DOCKER_BUILDKIT=1 docker build -t cryptoutil-identity-spa-rp -f deployments/identity/Dockerfile.spa .
+# Example: DOCKER_BUILDKIT=1 docker build -t cryptoutil-identity-rp -f deployments/identity/Dockerfile.rp .
 #
 #############################################################################################
 ARG APP_VERSION=UNSET
@@ -39,7 +39,7 @@ RUN set -e; \
     fi; \
     if [ -n "$errors" ]; then \
         printf "%b" "$errors" >&2; \
-        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t cryptoutil-identity-spa-rp -f deployments/identity/Dockerfile.spa ." >&2; \
+        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t cryptoutil-identity-rp -f deployments/identity/Dockerfile.rp ." >&2; \
         exit 1; \
     fi
 
@@ -98,55 +98,64 @@ RUN mkdir -p /app && chmod 555 /app && chown -R 65532:65532 /app
 RUN mkdir -p /app/run && chmod 775 /app/run && chown -R 65532:65532 /app/run
 
 # Create cache directory for any caching needs with proper ownership.
-RUN mkdir -p /app/cache && chmod 775 /app/cache && chown -R 65532:65532 /app/cache
+RUN mkdir -p /app/run/.cache && chmod 777 /app/run/.cache && chown -R 65532:65532 /app/run/.cache
+
+# Generate build metadata files for runtime inspection.
+RUN git rev-parse HEAD > /app/.vcs-ref && \
+    date -u +"%Y-%m-%dT%H:%M:%SZ" > /app/.build-date
 
 #############################################################################################
-FROM alpine:${ALPINE_VERSION} AS runtime
+FROM alpine:${ALPINE_VERSION} AS runtime-deps
+WORKDIR /root/ssl
+# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates.
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk --no-cache add ca-certificates tzdata tini && \
+    update-ca-certificates
+
+#############################################################################################
+# If shell needed for debugging final image, use alpine instead of scratch.
+FROM alpine:${ALPINE_VERSION} AS final
+
+# Copy apk installed dependencies from runtime-deps.
+COPY --from=runtime-deps /sbin/tini /sbin/tini
+COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Copy builder artifacts.
+COPY --from=builder /app /app
+
+# Copy validation artifacts.
+COPY --from=validation /app/.build-params /app/.build-params
+
+# Set working directory for the application (generated certs are written to working dir).
+WORKDIR /app/run
+
+# Set Go cache environment variables (Empty directory is copied from builder).
+ENV GOMODCACHE=/app/run/.cache
+ENV GOCACHE=/app/run/.cache
+
+# Re-declare build args in this stage so they are available for labels.
 ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 
-# Install CA certificates for HTTPS requests.
-RUN apk add --no-cache ca-certificates && \
-    update-ca-certificates
+# Image metadata labels (set at final stage so they are present in the produced image).
+LABEL org.opencontainers.image.title="cryptoutil-identity-rp"
+LABEL org.opencontainers.image.description="AGPL-3.0 Identity RP (Relying Party) Server"
+LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
+LABEL org.opencontainers.image.authors="Justin Cranford <justincranford@example.com>"
+LABEL org.opencontainers.image.version="${APP_VERSION}"
+LABEL org.opencontainers.image.revision="${VCS_REF}"
+LABEL org.opencontainers.image.created="${BUILD_DATE}"
 
-# Create application user with UID 65532 (non-root).
-RUN addgroup -g 65532 -S appgroup && \
-    adduser -u 65532 -S appuser -G appgroup -h /app -s /sbin/nologin
+# Use non-privileged ports.
+EXPOSE 18300
 
-# Copy build parameters for runtime inspection.
-COPY --from=validation /app/.build-params /app/.build-params
+# Healthcheck available with Alpine base image.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:18300/health || exit 1
 
-# Copy the compiled binary from the builder stage.
-COPY --from=builder /app/cryptoutil /app/cryptoutil
+# Use tini for proper signal handling and zombie process reaping.
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "identity-rp", "start"]
 
-# Ensure binary has execute permissions and correct ownership.
-RUN chmod 555 /app/cryptoutil && \
-    chown 65532:65532 /app/cryptoutil
-
-# Switch to non-root user.
-USER 65532:65532
-
-# Set working directory.
-WORKDIR /app
-
-# Expose ports (18400 for SPA, 9090 for admin/health).
-EXPOSE 18400 9090
-
-# Health check for the SPA service.
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:18400/health || exit 1
-
-# Set default command to run the SPA application.
-CMD ["/app/cryptoutil", "identity-spa", "start"]
-
-#############################################################################################
-# Labels for container metadata.
-#############################################################################################
-LABEL org.opencontainers.image.title="cryptoutil-identity-spa-rp" \
-      org.opencontainers.image.description="SPA Relying Party for cryptoutil Identity services" \
-      org.opencontainers.image.version="${APP_VERSION}" \
-      org.opencontainers.image.created="${BUILD_DATE}" \
-      org.opencontainers.image.source="https://github.com/justincranford/cryptoutil" \
-      org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.licenses="MIT"
+# Switch to non-root user for security.
+# USER 65532:65532
