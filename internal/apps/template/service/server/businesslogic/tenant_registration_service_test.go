@@ -250,6 +250,26 @@ func TestRegisterClientWithTenant(t *testing.T) {
 	require.True(t, found, "join request not found for client")
 }
 
+// TestRegisterClientWithTenant_TenantNotFound tests that RegisterClientWithTenant returns error when tenant doesn't exist.
+func TestRegisterClientWithTenant_TenantNotFound(t *testing.T) {
+	t.Parallel()
+
+	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+
+	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
+
+	ctx := context.Background()
+	clientID := googleUuid.New()
+	nonExistentTenantID := googleUuid.New()
+
+	// Try to register client with non-existent tenant.
+	err := service.RegisterClientWithTenant(ctx, clientID, nonExistentTenantID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "tenant not found")
+}
+
 func TestAuthorizeJoinRequest_Approve(t *testing.T) {
 	t.Parallel()
 
