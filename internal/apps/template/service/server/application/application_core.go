@@ -76,19 +76,19 @@ type ApplicationCoreWithServices struct {
 	Core *ApplicationCore
 
 	// Repositories.
-	BarrierRepository   *cryptoutilBarrier.GormBarrierRepository
-	RealmRepository     cryptoutilTemplateRepository.TenantRealmRepository
-	TenantRepository    cryptoutilTemplateRepository.TenantRepository
-	UserRepository      cryptoutilTemplateRepository.UserRepository
+	BarrierRepository     *cryptoutilBarrier.GormBarrierRepository
+	RealmRepository       cryptoutilTemplateRepository.TenantRealmRepository
+	TenantRepository      cryptoutilTemplateRepository.TenantRepository
+	UserRepository        cryptoutilTemplateRepository.UserRepository
 	JoinRequestRepository cryptoutilTemplateRepository.TenantJoinRequestRepository
 
 	// Services.
-	BarrierService       *cryptoutilBarrier.BarrierService
-	RealmService         cryptoutilTemplateService.RealmService
-	SessionManager       *cryptoutilTemplateBusinessLogic.SessionManagerService
-	RegistrationService  *cryptoutilTemplateBusinessLogic.TenantRegistrationService
-	RotationService      *cryptoutilBarrier.RotationService
-	StatusService        *cryptoutilBarrier.StatusService
+	BarrierService      *cryptoutilBarrier.BarrierService
+	RealmService        cryptoutilTemplateService.RealmService
+	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
+	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
+	RotationService     *cryptoutilBarrier.RotationService
+	StatusService       *cryptoutilBarrier.StatusService
 }
 
 // StartApplicationCoreWithServices initializes core application infrastructure AND all business services.
@@ -101,6 +101,17 @@ func StartApplicationCoreWithServices(ctx context.Context, settings *cryptoutilC
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
 
+	// Initialize services on top of core infrastructure.
+	return InitializeServicesOnCore(ctx, core, settings)
+}
+
+// InitializeServicesOnCore initializes all business logic services on an existing ApplicationCore.
+// CRITICAL: This must be called AFTER migrations have been applied (BarrierService needs barrier_root_keys table).
+func InitializeServicesOnCore(
+	ctx context.Context,
+	core *ApplicationCore,
+	settings *cryptoutilConfig.ServiceTemplateServerSettings,
+) (*ApplicationCoreWithServices, error) {
 	services := &ApplicationCoreWithServices{
 		Core: core,
 	}
@@ -223,7 +234,6 @@ func (a *ApplicationCore) Shutdown() {
 		a.Basic.Shutdown()
 	}
 }
-
 
 // provisionDatabase handles all database provisioning scenarios:
 // 1. Internal managed SQLite instance (file::memory:?cache=shared)

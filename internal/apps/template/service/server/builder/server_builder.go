@@ -147,24 +147,38 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
-	// Phase W: Start application core WITH services (moved from Build() to ApplicationCore).
-	services, err := cryptoutilTemplateApplication.StartApplicationCoreWithServices(b.ctx, b.config)
+	// Phase W.1: Initialize application core WITHOUT services (DB + telemetry only).
+	// CRITICAL: Must run migrations BEFORE initializing services (BarrierService needs barrier_root_keys table).
+	applicationCore, err := cryptoutilTemplateApplication.StartApplicationCore(b.ctx, b.config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start application core with services: %w", err)
+		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
 
-	// Apply migrations (template + domain merged into single migration stream).
-	sqlDB, err := services.Core.DB.DB()
+	// Phase W.2: Apply migrations (template + domain merged into single migration stream).
+	// CRITICAL: Migrations MUST run before service initialization (creates barrier_root_keys, sessions, realms, tenants).
+	sqlDB, err := applicationCore.DB.DB()
 	if err != nil {
-		services.Core.Shutdown()
+		applicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
 	}
 
 	if err := b.applyMigrations(sqlDB); err != nil {
-		services.Core.Shutdown()
+		applicationCore.Shutdown()
 
 		return nil, err
+	}
+
+	// Phase W.3: Initialize services now that migrations have created required tables.
+	services, err := cryptoutilTemplateApplication.InitializeServicesOnCore(
+		b.ctx,
+		applicationCore,
+		b.config,
+	)
+	if err != nil {
+		applicationCore.Shutdown()
+
+		return nil, fmt.Errorf("failed to initialize services on core: %w", err)
 	}
 
 	// Generate public TLS configuration.
