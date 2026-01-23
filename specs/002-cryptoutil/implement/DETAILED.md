@@ -5250,3 +5250,183 @@ ok  cryptoutil/internal/apps/cipher/im/client 0.036s
 3. **Coverage pragmatism**: 85%+ is acceptable when remaining gaps require complex E2E/mocking
 
 **Next Steps**: Review Phase 5 (pki-ca migration) requirements
+
+---
+
+### 2025-06-17: Identity Test Race Condition Fixes
+
+**Objective**: Fix identity admin server test race conditions discovered during full test suite run
+
+**Problem**: Same race condition as jose tests - `TestAdminEndpointReadyz` failing in 3 identity packages:
+- `internal/identity/authz/server`
+- `internal/identity/idp/server`
+- `internal/identity/rs/server`
+
+**Root Causes**:
+1. `time.Sleep(200ms)` followed by `server.ActualPort()` returns 0 before server starts
+2. URL path bug: `/admin/v1/readyz` missing `api/` segment (should be `/admin/api/v1/readyz`)
+
+**Fixes Applied** (same pattern as jose fix in commit eaffc6f1):
+- Added `waitForAdminPort()` helper function (polls for port > 0 with 5s timeout)
+- Replaced 5 `time.Sleep(200ms)` patterns in each file with polling
+- Fixed URL path: `/admin/v1/readyz` → `/admin/api/v1/readyz`
+
+**Files Modified**:
+1. `internal/identity/authz/server/admin_test.go`
+2. `internal/identity/idp/server/admin_test.go`
+3. `internal/identity/rs/server/admin_test.go`
+
+**Verification**: All 3 packages pass `TestAdmin*` tests:
+```
+ok  cryptoutil/internal/identity/authz/server  0.135s
+ok  cryptoutil/internal/identity/idp/server    0.136s
+ok  cryptoutil/internal/identity/rs/server     0.136s
+```
+
+**Commit**: 2a7c7e31 - test(identity): fix race conditions in admin server tests
+
+**Phase 5 (pki-ca Migration) Requirements Review**:
+
+**Current CA Server Architecture** (NOT using template builder):
+- `internal/ca/server/application.go`: Own Application wrapper (145 lines)
+- `internal/ca/server/admin.go`: Separate admin server implementation (333 lines)
+- `internal/ca/server/server.go`: Main CA server with TLS handling (445 lines)
+- Uses `cryptoutilConfig.ServiceTemplateServerSettings` for config but NOT template builder
+
+**Migration Effort Estimate**: 5-7 days (M effort)
+- CA has complex PKI domain logic (crypto, certificate operations, OCSP, CRL)
+- Need to preserve CA-specific functionality while adopting template infrastructure
+- Reference implementations: cipher-im (~243 lines), jose-ja (~209 lines)
+
+**Phase 5 Completion Criteria** (from tasks.md):
+- [ ] CA admin server uses template (bind 127.0.0.1:9090)
+- [ ] Admin endpoints via template: `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
+- [ ] Readyz: CA chain validation, OCSP responder check
+- [ ] `cryptoutil ca start` command works
+- [ ] Configuration: YAML + CLI flags + Docker secrets
+- [ ] Docker health checks pass
+- [ ] Tests pass, coverage ≥95%, mutation ≥85%
+- [ ] Template refined if needed (ADRs documented)
+- [ ] Template now battle-tested with 3 different service patterns (cipher-im, JOSE, CA)
+
+**Duration**: ~30 minutes
+
+**Next Steps**: Continue Phase 5 implementation or address any remaining blockers
+
+---
+
+### 2025-06-17: Phase 5 CA Server Migration - Deep Analysis Complete
+
+**Objective**: Complete architectural analysis of CA server migration to template builder pattern
+
+**CA Server Components Analyzed**:
+
+1. **`internal/ca/server/server.go`** (445 lines):
+   - Server struct with issuer, storage, CRL, OCSP services, fiber app
+   - `NewServer()`: Creates telemetry, crypto provider, in-memory storage, self-signed CA, PKI services
+   - `setupRoutes()`: Health endpoints at root (`/health`, `/livez`, `/readyz`) + CA API at `/api/v1/ca`
+   - `Start()`: Creates listener, generates TLS config **using CA's own issuer**, wraps with TLS
+   - `generateTLSConfig()`: Issues TLS certificate using CA's issuer service (unique to CA)
+   - `createSelfSignedCA()`: ECDSA P-384 self-signed development CA
+
+2. **`internal/ca/server/admin.go`** (333 lines):
+   - Admin server with health endpoints at `/admin/api/v1/livez`, `/admin/api/v1/readyz`, `/admin/api/v1/shutdown`
+   - Own TLS generation (self-signed ECDSA P-256)
+   - Mutex-protected ready/shutdown state
+   - Hardcoded port 9090 (needs to be configurable for tests)
+
+3. **`internal/ca/server/application.go`** (145 lines):
+   - Coordinates public + admin servers
+   - Start/Shutdown/PublicPort/AdminPort methods
+
+4. **`internal/ca/config/config.go`** (271 lines):
+   - PKI-specific config: CADefinition, ProfileConfig, SubjectConfig, KeyConfig, ValidityConfig
+   - Not related to server settings (this is CA domain config)
+
+5. **`internal/cmd/cryptoutil/ca/ca.go`** (245 lines):
+   - Command entry point: start, stop, status, health subcommands
+   - Uses `cryptoutilConfig.Parse()` for template settings
+   - Creates `cryptoutilCAServer.NewApplication()`
+
+**Key Migration Challenges**:
+
+1. **CA generates its own TLS certs**: Uses CA's issuer service to generate TLS certs for public server - template uses TLS generator. Options:
+   - Option A: Use template TLS for admin, CA issuer for public (hybrid)
+   - Option B: Use template TLS for both (simpler, CA operations separate from server TLS)
+   - **Recommendation**: Option B - simpler migration, CA operations separate from server TLS
+
+2. **PKI-specific domain services**: Issuer, CRL, OCSP, storage services need to be preserved. These are domain logic, not infrastructure.
+
+3. **In-memory storage**: CA uses `cryptoutilCAStorage.Store` interface with in-memory implementation. Could add GORM implementation later but not required for Phase 5.
+
+4. **mTLS middleware**: For EST endpoints, CA has mTLS middleware. Need to integrate with template.
+
+5. **No migrations needed**: CA uses in-memory storage, no database migrations required.
+
+**Migration Strategy**:
+
+1. **Create new directory structure**:
+   ```
+   internal/apps/ca/server/
+   ├── config/
+   │   └── config.go         # CAServerSettings (extends template)
+   ├── server.go             # CAServer using builder pattern
+   └── public_server.go      # CA-specific routes registration
+   ```
+
+2. **Create CA config package** (like jose-ja):
+   - `CAServerSettings` embeds `ServiceTemplateServerSettings`
+   - CA-specific settings: none initially (PKI config separate)
+   - Override port to CA port range (8443-8449)
+
+3. **Adapt server to builder pattern**:
+   - Use `cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)`
+   - NO migrations (`.WithDomainMigrations()` not called)
+   - Register CA routes via `.WithPublicRouteRegistration()`
+   - Preserve PKI services (issuer, CRL, OCSP, storage)
+
+4. **Public route registration**:
+   - Create PKI services in registration callback
+   - Register CA API handlers at `/service/api/v1/ca`
+   - Add mTLS middleware for EST endpoints
+
+5. **Preserve CA domain logic**:
+   - Keep `internal/ca/service/*` (issuer, revocation, timestamp)
+   - Keep `internal/ca/storage/*` (certificate storage)
+   - Keep `internal/ca/crypto/*` (crypto provider)
+   - Keep `internal/ca/api/*` (OpenAPI handlers)
+
+**Reference Implementations**:
+- jose-ja: 209 lines, uses builder + domain migrations
+- cipher-im: 243 lines, uses builder + domain migrations
+- CA will be simpler: NO database migrations needed
+
+**Estimated Effort Breakdown**:
+- Day 1-2: Create CA config package, directory structure
+- Day 3-4: Refactor server to builder pattern
+- Day 5: Add tests, verify coverage
+- Day 6-7: Integration testing, documentation
+
+**Files to Create**:
+1. `internal/apps/ca/server/config/config.go`
+2. `internal/apps/ca/server/config/config_test.go`
+3. `internal/apps/ca/server/server.go`
+4. `internal/apps/ca/server/public_server.go`
+5. `internal/apps/ca/server/server_test.go`
+
+**Files to Modify**:
+1. `internal/cmd/cryptoutil/ca/ca.go` (update imports)
+2. `cmd/ca-server/main.go` (update imports)
+
+**Files to Preserve** (domain logic):
+- `internal/ca/service/issuer/*`
+- `internal/ca/service/revocation/*`
+- `internal/ca/storage/*`
+- `internal/ca/crypto/*`
+- `internal/ca/api/*`
+- `internal/ca/config/*` (PKI config, separate from server config)
+
+**Duration**: ~45 minutes (deep analysis)
+
+**Next Steps**: Start implementation - create CA apps directory structure
+

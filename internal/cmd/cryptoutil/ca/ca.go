@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilCAServer "cryptoutil/internal/ca/server"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilCAConfig "cryptoutil/internal/apps/ca/server/config"
+	cryptoutilCAServer "cryptoutil/internal/apps/ca/server"
 )
 
 const (
@@ -72,27 +72,30 @@ func startService(parameters []string) {
 	fmt.Fprintf(os.Stderr, "Starting Certificate Authority service\n")
 	fmt.Fprintf(os.Stderr, "Using config file: %s\n", configFile)
 
-	// Load configuration from YAML file
+	// Load CA-specific configuration from YAML file.
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilCAConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}
 
-	// Create context
+	// Create context.
 	ctx := context.Background()
 
-	// Create CA application
-	app, err := cryptoutilCAServer.NewApplication(ctx, settings)
+	// Create CA server using new template-based implementation.
+	server, err := cryptoutilCAServer.NewFromConfig(ctx, settings)
 	if err != nil {
-		log.Fatalf("Failed to create CA application: %v", err)
+		log.Fatalf("Failed to create CA server: %v", err)
 	}
+
+	// Mark server as ready.
+	server.SetReady(true)
 
 	fmt.Fprintf(os.Stderr, "Starting CA server...\n")
 
-	// Start application (blocks until shutdown)
-	if err := app.Start(ctx); err != nil {
+	// Start server (blocks until shutdown).
+	if err := server.Start(ctx); err != nil {
 		log.Fatalf("CA server error: %v", err)
 	}
 }
