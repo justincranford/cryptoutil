@@ -23,6 +23,7 @@ func (m *mockTenantServiceForRegisterClient) CreateTenant(ctx context.Context, n
 	if m.createTenantErr != nil {
 		return nil, m.createTenantErr
 	}
+
 	return m.tenant, nil
 }
 
@@ -89,6 +90,7 @@ func (m *mockRoleRepoForRegisterClient) GetByName(ctx context.Context, tenantID 
 	if m.getByNameErr != nil {
 		return nil, m.getByNameErr
 	}
+
 	return m.role, nil
 }
 
@@ -159,7 +161,7 @@ func (m *mockUnverifiedClientRepoForRegisterClient) DeleteExpired(ctx context.Co
 }
 
 // TestRegisterClient_ValidationError tests RegisterClient when neither or both parameters provided.
-// Target: registration_service.go:182-184 (validation error)
+// Target: registration_service.go:182-184 (validation error).
 func TestRegisterClient_ValidationError(t *testing.T) {
 	t.Parallel()
 
@@ -181,7 +183,7 @@ func TestRegisterClient_ValidationError(t *testing.T) {
 }
 
 // TestRegisterClient_CreateTenantError tests RegisterClient when CreateTenant fails.
-// Target: registration_service.go:190-192 (CreateTenant error return)
+// Target: registration_service.go:190-192 (CreateTenant error return).
 func TestRegisterClient_CreateTenantError(t *testing.T) {
 	t.Parallel()
 
@@ -204,7 +206,7 @@ func TestRegisterClient_CreateTenantError(t *testing.T) {
 }
 
 // TestRegisterClient_CreateClientError tests RegisterClient when Client creation fails.
-// Target: registration_service.go:202-204 (Client Create error return)
+// Target: registration_service.go:202-204 (Client Create error return).
 func TestRegisterClient_CreateClientError(t *testing.T) {
 	t.Parallel()
 
@@ -235,7 +237,7 @@ func TestRegisterClient_CreateClientError(t *testing.T) {
 }
 
 // TestRegisterClient_GetAdminRoleError tests RegisterClient when GetByName (admin role) fails.
-// Target: registration_service.go:207-209 (GetByName error return)
+// Target: registration_service.go:207-209 (GetByName error return).
 func TestRegisterClient_GetAdminRoleError(t *testing.T) {
 	t.Parallel()
 
@@ -269,7 +271,7 @@ func TestRegisterClient_GetAdminRoleError(t *testing.T) {
 }
 
 // TestRegisterClient_AssignRoleError tests RegisterClient when role assignment fails.
-// Target: registration_service.go:216-218 (Assign error return)
+// Target: registration_service.go:216-218 (Assign error return).
 func TestRegisterClient_AssignRoleError(t *testing.T) {
 	t.Parallel()
 
@@ -311,7 +313,7 @@ func TestRegisterClient_AssignRoleError(t *testing.T) {
 }
 
 // TestRegisterClient_UnverifiedCreateError tests RegisterClient when UnverifiedClient creation fails.
-// Target: registration_service.go:239-241 (UnverifiedClient Create error return)
+// Target: registration_service.go:239-241 (UnverifiedClient Create error return).
 func TestRegisterClient_UnverifiedCreateError(t *testing.T) {
 	t.Parallel()
 

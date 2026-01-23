@@ -60,6 +60,7 @@ func setupJoseTestServer() error {
 			if actualPort > 0 {
 				break
 			}
+
 			time.Sleep(100 * time.Millisecond)
 		}
 

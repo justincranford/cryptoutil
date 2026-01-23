@@ -20,7 +20,7 @@ import (
 )
 
 // TestPublicServerBase_StartContextCancellation tests Start when context is canceled before server runs.
-// Target: public_server_base.go:151-156 (context cancellation error path)
+// Target: public_server_base.go:151-156 (context cancellation error path).
 func TestPublicServerBase_StartContextCancellation(t *testing.T) {
 	t.Parallel()
 
@@ -42,7 +42,7 @@ func TestPublicServerBase_StartContextCancellation(t *testing.T) {
 }
 
 // TestPublicServerBase_ShutdownTwice tests Shutdown called twice.
-// Target: public_server_base.go:170-172 (double shutdown error path)
+// Target: public_server_base.go:170-172 (double shutdown error path).
 func TestPublicServerBase_ShutdownTwice(t *testing.T) {
 	t.Parallel()
 
@@ -75,7 +75,7 @@ func TestNewServiceTemplate_JWKGenInitError(t *testing.T) {
 }
 
 // TestNewServiceTemplate_OptionError tests NewServiceTemplate when option application fails.
-// Target: service_template.go:99 (option apply error)
+// Target: service_template.go:99 (option apply error).
 func TestNewServiceTemplate_OptionError(t *testing.T) {
 	t.Parallel()
 
@@ -96,7 +96,8 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
-	defer sqlDB.Close()
+
+	defer func() { _ = sqlDB.Close() }()
 
 	// Configure SQLite for concurrent operations.
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
@@ -127,7 +128,7 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 }
 
 // TestServiceTemplate_ShutdownNilComponents tests Shutdown with nil components.
-// Target: service_template.go:144-153 (nil check branches)
+// Target: service_template.go:144-153 (nil check branches).
 func TestServiceTemplate_ShutdownNilComponents(t *testing.T) {
 	t.Parallel()
 
@@ -152,14 +153,17 @@ func (m *mockPublicServerForCoverage) Start(ctx context.Context) error {
 	if m.startFunc != nil {
 		return m.startFunc(ctx)
 	}
+
 	<-ctx.Done()
-	return ctx.Err()
+
+	return fmt.Errorf("context cancelled: %w", ctx.Err())
 }
 
 func (m *mockPublicServerForCoverage) Shutdown(ctx context.Context) error {
 	if m.shutdownFunc != nil {
 		return m.shutdownFunc(ctx)
 	}
+
 	return nil
 }
 
@@ -181,14 +185,17 @@ func (m *mockAdminServerForCoverage) Start(ctx context.Context) error {
 	if m.startFunc != nil {
 		return m.startFunc(ctx)
 	}
+
 	<-ctx.Done()
-	return ctx.Err()
+
+	return fmt.Errorf("context cancelled: %w", ctx.Err())
 }
 
 func (m *mockAdminServerForCoverage) Shutdown(ctx context.Context) error {
 	if m.shutdownFunc != nil {
 		return m.shutdownFunc(ctx)
 	}
+
 	return nil
 }
 
@@ -203,7 +210,7 @@ func (m *mockAdminServerForCoverage) AdminBaseURL() string {
 }
 
 // TestApplication_StartContextCancellation tests Application.Start with pre-cancelled context.
-// Target: application.go:145-147 (context cancellation during Start)
+// Target: application.go:145-147 (context cancellation during Start).
 func TestApplication_StartContextCancellation(t *testing.T) {
 	t.Parallel()
 

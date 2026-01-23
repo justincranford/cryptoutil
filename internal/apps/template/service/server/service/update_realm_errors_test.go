@@ -32,6 +32,7 @@ func (m *mockRealmRepoForUpdate) GetByRealmID(ctx context.Context, tenantID, rea
 	if m.getByIDErr != nil {
 		return nil, m.getByIDErr
 	}
+
 	return m.realm, nil
 }
 
@@ -48,7 +49,7 @@ func (m *mockRealmRepoForUpdate) Delete(ctx context.Context, id googleUuid.UUID)
 }
 
 // TestUpdateRealm_GetByRealmIDError tests UpdateRealm when GetByRealmID fails.
-// Target: realm_service.go:547-549 (GetByRealmID error return)
+// Target: realm_service.go:547-549 (GetByRealmID error return).
 func TestUpdateRealm_GetByRealmIDError(t *testing.T) {
 	t.Parallel()
 
@@ -72,7 +73,7 @@ func TestUpdateRealm_GetByRealmIDError(t *testing.T) {
 }
 
 // TestUpdateRealm_WrongTenant tests UpdateRealm when realm belongs to different tenant.
-// Target: realm_service.go:552-554 (tenant mismatch check)
+// Target: realm_service.go:552-554 (tenant mismatch check).
 func TestUpdateRealm_WrongTenant(t *testing.T) {
 	t.Parallel()
 
@@ -99,7 +100,7 @@ func TestUpdateRealm_WrongTenant(t *testing.T) {
 }
 
 // TestUpdateRealm_InvalidConfig tests UpdateRealm when config validation fails.
-// Target: realm_service.go:557-559 (config validation error)
+// Target: realm_service.go:557-559 (config validation error).
 func TestUpdateRealm_InvalidConfig(t *testing.T) {
 	t.Parallel()
 
@@ -130,7 +131,7 @@ func TestUpdateRealm_InvalidConfig(t *testing.T) {
 }
 
 // TestUpdateRealm_UpdateError tests UpdateRealm when Update operation fails.
-// Target: realm_service.go:572-574 (Update error return)
+// Target: realm_service.go:572-574 (Update error return).
 func TestUpdateRealm_UpdateError(t *testing.T) {
 	t.Parallel()
 

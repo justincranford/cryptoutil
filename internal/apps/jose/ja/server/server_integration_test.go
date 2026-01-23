@@ -104,7 +104,6 @@ func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
 	// Test that calling Shutdown on an already-running server is idempotent.
 	// Note: We can't actually shut down testServer as other tests need it.
 	// This test creates a separate server instance to test shutdown coverage.
-
 	ctx := context.Background()
 
 	// Create test configuration with different ports.

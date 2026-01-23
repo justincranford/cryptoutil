@@ -512,6 +512,7 @@ func TestNewBarrierService_NilUnsealService(t *testing.T) {
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 	validSQLDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, validSQLDB.Close())
 	}()
@@ -531,6 +532,7 @@ func TestNewBarrierService_NilUnsealService(t *testing.T) {
 
 	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(validDB)
 	require.NoError(t, err)
+
 	defer repo.Shutdown()
 
 	service, err := cryptoutilTemplateBarrier.NewBarrierService(

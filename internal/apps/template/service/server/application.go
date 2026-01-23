@@ -288,5 +288,6 @@ func (a *Application) PublicServerBase() *PublicServerBase {
 	if base, ok := a.publicServer.(*PublicServerBase); ok {
 		return base
 	}
+
 	return nil
 }

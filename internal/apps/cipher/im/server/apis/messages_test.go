@@ -45,28 +45,34 @@ func TestMain(m *testing.M) {
 	dbID, _ := cryptoutilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
-	var testSQLDB *sql.DB
-	var err error
+	var (
+		testSQLDB *sql.DB
+		err       error
+	)
 
 	testSQLDB, err = sql.Open("sqlite", dsn)
 	if err != nil {
 		panic("TestMain: failed to open SQLite: " + err.Error())
 	}
-	defer testSQLDB.Close()
+
+	defer func() { _ = testSQLDB.Close() }()
 
 	// Configure SQLite.
 	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
 		panic("TestMain: failed to enable WAL: " + err.Error())
 	}
+
 	if _, err := testSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
 		panic("TestMain: failed to set busy timeout: " + err.Error())
 	}
+
 	testSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
 	testSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
 	testSQLDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.
 	var db *gorm.DB
+
 	db, err = gorm.Open(sqlite.Dialector{Conn: testSQLDB}, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
@@ -81,6 +87,7 @@ func TestMain(m *testing.M) {
 
 	// Initialize telemetry.
 	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+
 	testTelemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
@@ -145,6 +152,7 @@ func testAuthMiddleware() fiber.Handler {
 				c.Locals("user_id", userID)
 			}
 		}
+
 		return c.Next()
 	}
 }
@@ -170,11 +178,13 @@ func TestHandleSendMessage_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
 
 	var response SendMessageResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
 
@@ -192,7 +202,8 @@ func TestHandleSendMessage_InvalidJSON(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
@@ -214,7 +225,8 @@ func TestHandleSendMessage_MissingSenderID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
@@ -231,11 +243,13 @@ func TestHandleReceiveMessages_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var response ReceiveMessagesResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
 
@@ -253,7 +267,8 @@ func TestHandleReceiveMessages_MissingUserID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
@@ -281,7 +296,8 @@ func TestHandleDeleteMessage_HappyPath(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusNoContent, resp.StatusCode)
 }
@@ -296,7 +312,8 @@ func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
@@ -311,7 +328,8 @@ func TestHandleDeleteMessage_MissingUserID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	// Handler checks message existence before user ID, returns 404 (better security - don't leak existence).
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -335,7 +353,8 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
@@ -358,7 +377,8 @@ func TestHandleSendMessage_EmptyReceiverIDs(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
@@ -381,7 +401,8 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }
@@ -397,18 +418,20 @@ func TestHandleReceiveMessages_NoMessages(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var response ReceiveMessagesResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
 	require.Empty(t, response.Messages)
 }
 
 // TestHandleDeleteMessage_MissingMessageID tests missing message ID in path.
-func TestHandleDeleteMessage_MissingMessageID(t *testing.T) {
+func TestHandleDeleteMessage_MissingMessageID(_ *testing.T) {
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Delete("/messages/:id", testMessageHandler.HandleDeleteMessage())
@@ -447,7 +470,9 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 
 	sendResp, err := sendApp.Test(sendReq)
 	require.NoError(t, err)
-	defer sendResp.Body.Close()
+
+	defer func() { _ = sendResp.Body.Close() }()
+
 	require.Equal(t, http.StatusCreated, sendResp.StatusCode)
 
 	// Now receive messages as the recipient.
@@ -460,11 +485,13 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 
 	receiveResp, err := receiveApp.Test(receiveReq)
 	require.NoError(t, err)
-	defer receiveResp.Body.Close()
+
+	defer func() { _ = receiveResp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, receiveResp.StatusCode)
 
 	var response ReceiveMessagesResponse
+
 	err = json.NewDecoder(receiveResp.Body).Decode(&response)
 	require.NoError(t, err)
 
@@ -507,12 +534,14 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	// Should return 200 OK (corrupted messages are skipped, not errors).
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var response ReceiveMessagesResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
 
@@ -548,12 +577,14 @@ func TestHandleReceiveMessages_NoJWKForRecipient(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	// Should return 200 OK (messages without JWK are skipped).
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var response ReceiveMessagesResponse
+
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	require.NoError(t, err)
 
@@ -587,7 +618,8 @@ func TestHandleDeleteMessage_ForbiddenNotOwner(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
 }
@@ -604,7 +636,8 @@ func TestHandleDeleteMessage_NotFound(t *testing.T) {
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusNotFound, resp.StatusCode)
 }

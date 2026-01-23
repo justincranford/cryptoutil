@@ -23,6 +23,7 @@ func TestSendMessage_HappyPath(t *testing.T) {
 		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 
 		var reqBody map[string]any
+
 		err := json.NewDecoder(r.Body).Decode(&reqBody)
 		require.NoError(t, err)
 		require.Equal(t, "Hello, World!", reqBody["message"])
@@ -30,8 +31,9 @@ func TestSendMessage_HappyPath(t *testing.T) {
 
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
+
 		respBody := map[string]string{"message_id": messageID.String()}
-		json.NewEncoder(w).Encode(respBody)
+		_ = json.NewEncoder(w).Encode(respBody)
 	}))
 	defer server.Close()
 
@@ -57,7 +59,7 @@ func TestSendMessage_Unauthorized(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
+		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
 	}))
 	defer server.Close()
 
@@ -85,13 +87,14 @@ func TestReceiveMessagesService_HappyPath(t *testing.T) {
 
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+
 		respBody := map[string]any{
 			"messages": []map[string]any{
 				{"id": googleUuid.New().String(), "message": "Hello"},
 				{"id": googleUuid.New().String(), "message": "World"},
 			},
 		}
-		json.NewEncoder(w).Encode(respBody)
+		_ = json.NewEncoder(w).Encode(respBody)
 	}))
 	defer server.Close()
 
@@ -111,7 +114,7 @@ func TestReceiveMessagesService_Unauthorized(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
+		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
 	}))
 	defer server.Close()
 
@@ -157,7 +160,7 @@ func TestDeleteMessageService_NotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Message not found"})
+		_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Message not found"})
 	}))
 	defer server.Close()
 
@@ -183,6 +186,7 @@ func TestSendMessageBrowser_HappyPath(t *testing.T) {
 		require.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 
 		var reqBody map[string]any
+
 		err := json.NewDecoder(r.Body).Decode(&reqBody)
 		require.NoError(t, err)
 		require.Equal(t, "Hello from browser", reqBody["message"])
@@ -190,8 +194,9 @@ func TestSendMessageBrowser_HappyPath(t *testing.T) {
 
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
+
 		respBody := map[string]string{"message_id": messageID.String()}
-		json.NewEncoder(w).Encode(respBody)
+		_ = json.NewEncoder(w).Encode(respBody)
 	}))
 	defer server.Close()
 
@@ -219,6 +224,7 @@ func TestReceiveMessagesBrowser_HappyPath(t *testing.T) {
 
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
+
 		respBody := map[string]any{
 			"messages": []map[string]any{
 				{"id": googleUuid.New().String(), "message": "Browser message 1"},
@@ -226,7 +232,7 @@ func TestReceiveMessagesBrowser_HappyPath(t *testing.T) {
 				{"id": googleUuid.New().String(), "message": "Browser message 3"},
 			},
 		}
-		json.NewEncoder(w).Encode(respBody)
+		_ = json.NewEncoder(w).Encode(respBody)
 	}))
 	defer server.Close()
 
@@ -282,7 +288,7 @@ func TestReceiveMessagesBrowser_Unauthorized(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser token"})
+		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser token"})
 	}))
 	defer server.Close()
 
@@ -303,7 +309,7 @@ func TestReceiveMessagesBrowser_MissingMessagesField(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "messages" field.
-		json.NewEncoder(w).Encode(map[string]any{})
+		_ = json.NewEncoder(w).Encode(map[string]any{})
 	}))
 	defer server.Close()
 
@@ -325,7 +331,7 @@ func TestDeleteMessageBrowser_NotFound(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Browser message not found"})
+		_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Browser message not found"})
 	}))
 	defer server.Close()
 
@@ -346,7 +352,7 @@ func TestSendMessageBrowser_Unauthorized(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser session"})
+		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser session"})
 	}))
 	defer server.Close()
 
@@ -371,7 +377,7 @@ func TestSendMessageBrowser_MissingMessageID(t *testing.T) {
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "message_id" field.
-		json.NewEncoder(w).Encode(map[string]string{})
+		_ = json.NewEncoder(w).Encode(map[string]string{})
 	}))
 	defer server.Close()
 
@@ -396,7 +402,7 @@ func TestSendMessage_MissingMessageID(t *testing.T) {
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "message_id" field.
-		json.NewEncoder(w).Encode(map[string]string{})
+		_ = json.NewEncoder(w).Encode(map[string]string{})
 	}))
 	defer server.Close()
 
@@ -421,7 +427,7 @@ func TestReceiveMessagesService_MissingMessagesField(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "messages" field.
-		json.NewEncoder(w).Encode(map[string]any{})
+		_ = json.NewEncoder(w).Encode(map[string]any{})
 	}))
 	defer server.Close()
 
@@ -442,7 +448,7 @@ func TestDecodeErrorResponse_InvalidJSON(t *testing.T) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "text/plain")
 		// Return invalid JSON to trigger fallback error.
-		w.Write([]byte("Internal Server Error"))
+		_, _ = w.Write([]byte("Internal Server Error"))
 	}))
 	defer server.Close()
 

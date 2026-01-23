@@ -476,7 +476,9 @@ func TestGormBarrierTransaction_Context(t *testing.T) {
 
 	// Create a context with a custom value to verify it's passed through.
 	type contextKey string
+
 	const testKey contextKey = "test-key"
+
 	ctx := context.WithValue(context.Background(), testKey, "test-value")
 
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {

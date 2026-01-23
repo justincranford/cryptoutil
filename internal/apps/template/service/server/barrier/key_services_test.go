@@ -647,10 +647,16 @@ func TestGormBarrierRepository_GetRootKey_NilUUID(t *testing.T) {
 	t.Cleanup(func() { repo.Shutdown() })
 
 	var rootKey *cryptoutilTemplateBarrier.BarrierRootKey
+
 	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
 		var getErr error
+
 		rootKey, getErr = tx.GetRootKey(nil)
-		return getErr
+		if getErr != nil {
+			return fmt.Errorf("GetRootKey error: %w", getErr)
+		}
+
+		return nil
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "uuid must be non-nil")
@@ -669,10 +675,16 @@ func TestGormBarrierRepository_GetIntermediateKey_NilUUID(t *testing.T) {
 	t.Cleanup(func() { repo.Shutdown() })
 
 	var intermediateKey *cryptoutilTemplateBarrier.BarrierIntermediateKey
+
 	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
 		var getErr error
+
 		intermediateKey, getErr = tx.GetIntermediateKey(nil)
-		return getErr
+		if getErr != nil {
+			return fmt.Errorf("GetIntermediateKey error: %w", getErr)
+		}
+
+		return nil
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "uuid must be non-nil")
@@ -691,10 +703,16 @@ func TestGormBarrierRepository_GetContentKey_NilUUID(t *testing.T) {
 	t.Cleanup(func() { repo.Shutdown() })
 
 	var contentKey *cryptoutilTemplateBarrier.BarrierContentKey
+
 	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
 		var getErr error
+
 		contentKey, getErr = tx.GetContentKey(nil)
-		return getErr
+		if getErr != nil {
+			return fmt.Errorf("GetContentKey error: %w", getErr)
+		}
+
+		return nil
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "uuid must be non-nil")
