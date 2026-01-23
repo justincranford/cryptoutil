@@ -588,19 +588,21 @@
 
 ### X.3 JOSE-JA Repository High Coverage
 
-- [ ] X.3.1 JOSE repositories high coverage (85% → 98%)
+- [ ] X.3.1 JOSE repositories high coverage (85% → 98%) **BLOCKED at 82.8%**
 
-  **Before testing**:
-  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_repository_highcov.out ./internal/apps/jose/ja/repository`
-  2. Analyze coverage report: `go tool cover -func=test-output/jose_repository_highcov.out`
-  3. Identify missed lines and branches
-  4. Focus on table-driven tests:
-     - Create new table-driven tests for uncovered scenarios
-     - Refactor existing tests into table-driven format
-     - Enhance existing table-driven tests with additional cases
-  5. Cover the missed lines and branches
-
-  **Target**: ≥98% coverage (infrastructure code)
+  **Current**: 82.8% coverage (15.2 percentage point gap to target)
+  
+  **Blocker**: Remaining gap requires P2.4 GORM mocking infrastructure
+  
+  **Analysis**: Database error paths (`if err := db.Create(); err != nil`) cannot be tested without mocking
+  
+  **Pattern**: Functions at 66.7% coverage = success + not-found covered, database error NOT covered
+  
+  **Evidence**: See DETAILED.md entries 2026-01-23 (coverage analysis) and 2026-01-24 (service analysis)
+  
+  **Work completed**: Created 449 lines of edge case tests → 0% coverage improvement (tested already-covered paths)
+  
+  **Status**: ❌ BLOCKED until P2.4 GORM mocking architecture implemented
 
 - [ ] X.3.2 Validation: ≥98% (infrastructure)
 
@@ -610,21 +612,15 @@
 
 ### X.4 JOSE-JA Handlers High Coverage
 
-- [ ] X.4.1 JOSE handlers high coverage (85% → 95%)
+- [x] X.4.1 JOSE handlers high coverage (85% → 95%) **COMPLETE at 100.0%**
 
-  **Before testing**:
-  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_handlers_highcov.out ./internal/apps/jose/ja/server/apis`
-  2. Analyze coverage report: `go tool cover -func=test-output/jose_handlers_highcov.out`
-  3. Identify missed lines and branches
-  4. Focus on table-driven tests:
-     - Create new table-driven tests for uncovered scenarios
-     - Refactor existing tests into table-driven format
-     - Enhance existing table-driven tests with additional cases
-  5. Cover the missed lines and branches
+  **Achieved**: 100.0% coverage (exceeds ≥95% target by 5.0 percentage points)
+  
+  **Evidence**: test-output/jose_handlers.out
+  
+  **Status**: ✅ COMPLETE (from previous session)
 
-  **Target**: ≥95% coverage (production code)
-
-- [ ] X.4.2 Validation: ≥95% (production)
+- [x] X.4.2 Validation: ≥95% (production) **COMPLETE**
 
 **Evidence**: Coverage ≥95%, all endpoints tested
 
@@ -632,19 +628,23 @@
 
 ### X.5 JOSE-JA Services High Coverage
 
-- [ ] X.5.1 JOSE services high coverage (85% → 95%)
+- [ ] X.5.1 JOSE services high coverage (85% → 95%) **BLOCKED at 82.7%**
 
-  **Before testing**:
-  1. Run tests with code coverage: `go test -coverprofile=test-output/jose_services_highcov.out ./internal/apps/jose/ja/service`
-  2. Analyze coverage report: `go tool cover -func=test-output/jose_services_highcov.out`
-  3. Identify missed lines and branches
-  4. Focus on table-driven tests:
-     - Create new table-driven tests for uncovered scenarios
-     - Refactor existing tests into table-driven format
-     - Enhance existing table-driven tests with additional cases
-  5. Cover the missed lines and branches
-
-  **Target**: ≥95% coverage (production code)
+  **Current**: 82.7% coverage (12.3 percentage point gap to target)
+  
+  **Blocker**: Remaining gap requires P2.4 GORM mocking infrastructure (same as X.3)
+  
+  **Analysis**: Business logic validation ALREADY comprehensively tested
+  - Validation errors: invalid algorithm, expired JWT, invalid key use (ALL TESTED)
+  - Business rules: maxMaterials exceeded, duplicate KIDs (ALL TESTED)
+  - Crypto errors: invalid keys, decryption failures (ALL TESTED)
+  - **Missing**: Database error paths after validation succeeds (`if err := s.repo.Create(); err != nil`)
+  
+  **Pattern**: 31 functions at 67-94% coverage = validation covered, database errors NOT covered
+  
+  **Evidence**: See DETAILED.md entry 2026-01-24 (service error path categorization)
+  
+  **Status**: ❌ BLOCKED until P2.4 GORM mocking architecture implemented
 
 - [ ] X.5.2 Validation: ≥95% (production)
 
