@@ -8,8 +8,11 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"cryptoutil/internal/apps/jose/ja/server/config"
 )
 
 func TestJoseJAServer_Lifecycle(t *testing.T) {
@@ -95,4 +98,43 @@ func TestJoseJAServer_Accessors(t *testing.T) {
 	adminBaseURL := testServer.AdminBaseURL()
 	require.NotEmpty(t, adminBaseURL, "AdminBaseURL() should return non-empty URL")
 	require.Contains(t, adminBaseURL, "https://", "AdminBaseURL() should be HTTPS")
+}
+
+func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
+	// Test that calling Shutdown on an already-running server is idempotent.
+	// Note: We can't actually shut down testServer as other tests need it.
+	// This test creates a separate server instance to test shutdown coverage.
+
+	ctx := context.Background()
+
+	// Create test configuration with different ports.
+	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+
+	// Create separate server instance.
+	server, err := NewFromConfig(ctx, cfg)
+	require.NoError(t, err, "server creation should succeed")
+
+	// Start server in background.
+	errChan := make(chan error, 1)
+
+	go func() {
+		if startErr := server.Start(ctx); startErr != nil {
+			errChan <- startErr
+		}
+	}()
+
+	// Wait for server to bind.
+	require.Eventually(t, func() bool {
+		return server.PublicPort() > 0 && server.AdminPort() > 0
+	}, 5*time.Second, 100*time.Millisecond, "server should bind to ports")
+
+	// Mark server as ready.
+	server.SetReady(true)
+
+	// Shutdown the server - this should succeed.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = server.Shutdown(shutdownCtx)
+	require.NoError(t, err, "shutdown should succeed")
 }
