@@ -53,11 +53,24 @@ func setupJoseTestServer() error {
 			}
 		}()
 
-		// Wait for server to be ready.
-		time.Sleep(cryptoutilMagic.ServerStartupWait)
+		// Wait for server to be ready by polling for a valid port.
+		var actualPort int
+		for i := 0; i < 50; i++ { // Up to 5 seconds (50 * 100ms)
+			actualPort = joseTestServer.PublicPort()
+			if actualPort > 0 {
+				break
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+
+		if actualPort == 0 {
+			joseSetupErr = fmt.Errorf("server failed to start: port is still 0 after timeout")
+
+			return
+		}
 
 		// Get the actual port.
-		joseTestBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, joseTestServer.PublicPort())
+		joseTestBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, actualPort)
 
 		// Create HTTP client.
 		joseTestHTTPClient = &http.Client{
