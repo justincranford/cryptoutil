@@ -514,6 +514,75 @@
 
 ---
 
+## Phase W: Service-Template - Refactor ServerBuilder Bootstrap Logic
+
+**Purpose**: Move internal service and repository bootstrap logic from `server_builder.go` to `ApplicationCore.StartApplicationCore`. The builder pattern should focus on HTTPS listeners and route registration only.
+
+**Prerequisites**: Phase 0 complete
+
+**Rationale**: `server_builder.go` currently contains business logic initialization that belongs in the application core startup sequence. This violates single responsibility principle and makes testing more complex.
+
+---
+
+### W.1 Refactor Bootstrap to ApplicationCore
+
+**Files**: 
+- `internal/apps/template/service/server/builder/server_builder.go`
+- `internal/apps/template/service/server/application/application_core.go`
+
+**Components to Move**:
+```
+sqlDB
+barrierRepo
+barrierService
+realmRepo
+realmService
+sessionManager
+tenantRepo
+userRepo
+joinRequestRepo
+registrationService
+rotationService
+statusService
+```
+
+**Tasks**:
+
+- [ ] W.1.1 Create new method in ApplicationCore: `StartApplicationCore(ctx, config, db)`
+  - Move initialization of all repos (barrier, realm, session, tenant, user, joinRequest)
+  - Move initialization of all services (barrier, realm, session, registration, rotation, status)
+  - Return struct with pointers to initialized services
+  - Include UnsealKeysService in return struct (populate core.Basic.UnsealKeysService)
+
+- [ ] W.1.2 Update ServerBuilder.Build() to call ApplicationCore.StartApplicationCore()
+  - Remove direct initialization of repos/services
+  - Call new StartApplicationCore method
+  - Use returned services for route registration
+
+- [ ] W.1.3 Update ServiceResources struct
+  - Add UnsealKeysService field (currently missing)
+  - Ensure all services exposed via ServiceResources
+
+- [ ] W.1.4 Update all service main.go files
+  - Verify compatibility with new bootstrap pattern
+  - Update any direct service access patterns
+
+- [ ] W.1.5 Update test code
+  - Verify TestMain patterns still work
+  - Update any test setup that accesses services directly
+
+- [ ] W.1.6 Run quality gates
+  - Build: `go build ./internal/apps/template/...`
+  - Linting: `golangci-lint run --fix ./internal/apps/template/...`
+  - Tests: `go test ./internal/apps/template/... -cover`
+  - Coverage: Verify ≥85% maintained
+
+- [ ] W.1.7 Git commit: `git commit -m "refactor(service-template): move bootstrap logic to ApplicationCore"`
+
+**Evidence**: Build succeeds, tests pass, bootstrap logic encapsulated in ApplicationCore
+
+---
+
 ## Phase X: High Coverage Testing (98%/95% Targets)
 
 **Purpose**: Bump all test coverage from 85% (Phase 1) to original 98%/95% targets. This phase focuses on edge cases, error paths, and comprehensive validation.

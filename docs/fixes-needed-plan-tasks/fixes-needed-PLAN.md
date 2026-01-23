@@ -996,6 +996,112 @@ internal/apps/jose/ja/
 
 ---
 
+## Phase W: Service-Template - Refactor ServerBuilder Bootstrap Logic
+
+**Estimated Duration**: 2-3 days
+**Dependencies**: Phase 0 complete
+**Prerequisites**: Service-template registration flow implemented
+
+### Problem Statement
+
+**Current State**: `server_builder.go` contains mixed concerns:
+- HTTPS listener configuration ✅ (correct responsibility)
+- Route registration ✅ (correct responsibility)
+- Internal service initialization ❌ (wrong layer)
+- Repository bootstrap ❌ (wrong layer)
+
+**Desired State**: Clear separation of concerns:
+- **ServerBuilder**: HTTPS servers, routes, middleware only
+- **ApplicationCore**: Business logic bootstrap (repos, services, dependencies)
+
+**Architecture Violation**: Builder pattern currently initializes:
+```go
+sqlDB
+barrierRepo
+barrierService
+realmRepo
+realmService
+sessionManager
+tenantRepo
+userRepo
+joinRequestRepo
+registrationService
+rotationService
+statusService
+```
+
+These belong in ApplicationCore startup, not builder configuration.
+
+---
+
+### W.1 Move Bootstrap Logic to ApplicationCore
+
+**File**: `internal/apps/template/service/server/application/application_core.go`
+
+**New Method**: `StartApplicationCore(ctx context.Context, config *Config, db *gorm.DB) (*CoreServices, error)`
+
+**Returns**:
+```go
+type CoreServices struct {
+    DB                  *gorm.DB
+    BarrierRepo         repository.BarrierRepository
+    BarrierService      service.BarrierService
+    UnsealKeysService   *barrier.UnsealKeysService  // CRITICAL: Missing from current ServiceResources
+    RealmRepo           repository.TenantRealmRepository
+    RealmService        service.RealmService
+    SessionManager      *businesslogic.SessionManagerService
+    TenantRepo          repository.TenantRepository
+    UserRepo            repository.UserRepository
+    JoinRequestRepo     repository.JoinRequestRepository
+    RegistrationService service.RegistrationService
+    RotationService     service.RotationService
+    StatusService       service.StatusService
+}
+```
+
+**Changes**:
+- Move all repo/service initialization from `server_builder.go` to `application_core.go`
+- Encapsulate dependencies (e.g., sessionManager depends on realmService)
+- Return initialized services for route registration
+- Populate `core.Basic.UnsealKeysService` (currently missing)
+
+---
+
+### W.2 Update ServerBuilder
+
+**File**: `internal/apps/template/service/server/builder/server_builder.go`
+
+**Changes**:
+- Remove direct initialization of repos/services
+- Call `ApplicationCore.StartApplicationCore(ctx, config, db)`
+- Use returned `CoreServices` for route registration
+- Focus ONLY on HTTPS listeners and route setup
+
+---
+
+### W.3 Update ServiceResources
+
+**File**: `internal/apps/template/service/server/builder/server_builder.go`
+
+**Changes**:
+- Add `UnsealKeysService` field to `ServiceResources` struct
+- Ensure all core services exposed via ServiceResources
+- Update all main.go files that access ServiceResources
+
+---
+
+### W.4 Quality Gates
+
+**Validation**:
+1. Build: `go build ./internal/apps/template/...`
+2. Linting: `golangci-lint run --fix ./internal/apps/template/...`
+3. Tests: `go test ./internal/apps/template/... -cover`
+4. Coverage: ≥85% maintained
+5. Mutation: Deferred to Phase Y
+6. Commit: `refactor(service-template): move bootstrap logic to ApplicationCore`
+
+---
+
 ## Directory Structure
 
 ```
