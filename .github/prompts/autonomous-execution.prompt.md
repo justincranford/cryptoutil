@@ -11,7 +11,7 @@ CONTEXT
 --------------------------------------------
 
 Project: cryptoutil
-Agent: Codex (Claude Opus 4.5)
+Agent: GitHub Copilot (Claude Sonnet 4.5)
 Mode: Autonomous long-running execution
 Token Budget: Unlimited
 Time Budget: Unlimited (hours/days acceptable)
