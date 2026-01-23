@@ -142,3 +142,97 @@ func TestServiceTemplate_ShutdownNilComponents(t *testing.T) {
 	st.Shutdown()
 }
 
+// mockPublicServerForCoverage is a simple mock implementation of IPublicServer for coverage tests.
+type mockPublicServerForCoverage struct {
+	startFunc    func(ctx context.Context) error
+	shutdownFunc func(ctx context.Context) error
+}
+
+func (m *mockPublicServerForCoverage) Start(ctx context.Context) error {
+	if m.startFunc != nil {
+		return m.startFunc(ctx)
+	}
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+func (m *mockPublicServerForCoverage) Shutdown(ctx context.Context) error {
+	if m.shutdownFunc != nil {
+		return m.shutdownFunc(ctx)
+	}
+	return nil
+}
+
+func (m *mockPublicServerForCoverage) ActualPort() int {
+	return 8080
+}
+
+func (m *mockPublicServerForCoverage) PublicBaseURL() string {
+	return "https://127.0.0.1:8080"
+}
+
+// mockAdminServerForCoverage is a simple mock implementation of IAdminServer for coverage tests.
+type mockAdminServerForCoverage struct {
+	startFunc    func(ctx context.Context) error
+	shutdownFunc func(ctx context.Context) error
+}
+
+func (m *mockAdminServerForCoverage) Start(ctx context.Context) error {
+	if m.startFunc != nil {
+		return m.startFunc(ctx)
+	}
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+func (m *mockAdminServerForCoverage) Shutdown(ctx context.Context) error {
+	if m.shutdownFunc != nil {
+		return m.shutdownFunc(ctx)
+	}
+	return nil
+}
+
+func (m *mockAdminServerForCoverage) ActualPort() int {
+	return 9090
+}
+
+func (m *mockAdminServerForCoverage) SetReady(_ bool) {}
+
+func (m *mockAdminServerForCoverage) AdminBaseURL() string {
+	return "https://127.0.0.1:9090"
+}
+
+// TestApplication_StartContextCancellation tests Application.Start with pre-cancelled context.
+// Target: application.go:145-147 (context cancellation during Start)
+func TestApplication_StartContextCancellation(t *testing.T) {
+	t.Parallel()
+
+	// Create mock servers that block indefinitely (don't respond to context).
+	// This ensures the select statement hits ctx.Done() case instead of errChan.
+	publicServer := &mockPublicServerForCoverage{
+		startFunc: func(_ context.Context) error {
+			// Block forever - never return.
+			select {}
+		},
+	}
+
+	adminServer := &mockAdminServerForCoverage{
+		startFunc: func(_ context.Context) error {
+			// Block forever - never return.
+			select {}
+		},
+	}
+
+	app, err := NewApplication(context.Background(), publicServer, adminServer)
+	require.NoError(t, err)
+
+	// Create pre-cancelled context.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel before calling Start.
+
+	// Start should detect cancelled context via ctx.Done() and return error.
+	err = app.Start(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "application startup cancelled")
+}
+
