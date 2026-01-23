@@ -216,4 +216,3 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *CAServerSett
 func DefaultTestConfig() *CAServerSettings {
 	return NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 }
-
