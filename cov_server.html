@@ -1,0 +1,760 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>server: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">cryptoutil/internal/apps/template/service/server/application.go (100.0%)</option>
+				
+				<option value="file1">cryptoutil/internal/apps/template/service/server/public_server_base.go (91.3%)</option>
+				
+				<option value="file2">cryptoutil/internal/apps/template/service/server/service_template.go (91.7%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+// Package server provides reusable server infrastructure for cryptoutil services.
+//
+// This package extracts the dual HTTPS server pattern from the JOSE and Identity services,
+// providing a clean separation between public (business) and admin (health check) servers.
+//
+// Key Features:
+// - Dual HTTPS servers (public + admin) with independent lifecycles
+// - Dynamic port allocation for testing (port 0)
+// - Configured ports for production deployments
+// - Health check endpoints (/admin/api/v1/livez, /admin/api/v1/readyz)
+// - Graceful shutdown with context-based timeout
+// - Self-signed TLS certificate generation
+// - Mutex-protected state management
+package server
+
+import (
+        "context"
+        "fmt"
+        "sync"
+)
+
+// Application represents a unified service application managing both public and admin servers.
+//
+// The Application follows the dual HTTPS server pattern where:
+// - Public server handles business logic (APIs, UI, external clients)
+// - Admin server handles health checks and graceful shutdown (Kubernetes probes, monitoring)
+//
+// Both servers run concurrently and have independent lifecycles managed by the Application.
+type Application struct {
+        publicServer IPublicServer
+        adminServer  IAdminServer
+        mu           sync.RWMutex
+        shutdown     bool
+}
+
+// IPublicServer interface defines the contract for public HTTPS servers.
+// Implementations must provide:
+// - Start: Begin listening for HTTPS requests (blocks until shutdown or error)
+// - Shutdown: Gracefully shutdown the server with context timeout
+// - ActualPort: Return the actual port after dynamic allocation.
+// - PublicBaseURL: Return the base URL for public API access.
+type IPublicServer interface {
+        Start(ctx context.Context) error
+        Shutdown(ctx context.Context) error
+        ActualPort() int
+        PublicBaseURL() string
+}
+
+// IAdminServer interface defines the contract for admin HTTPS servers.
+// Implementations must provide:
+// - Start: Begin listening on 127.0.0.1:9090 for admin API requests (blocks until shutdown or error)
+// - Shutdown: Gracefully shutdown the admin server with context timeout
+// - ActualPort: Return the actual port (should always be 9090)
+// - SetReady: Mark server as ready to handle readyz health checks (thread-safe).
+// - AdminBaseURL: Return the base URL for admin API access.
+type IAdminServer interface {
+        Start(ctx context.Context) error
+        Shutdown(ctx context.Context) error
+        ActualPort() int
+        SetReady(ready bool)
+        AdminBaseURL() string
+}
+
+// NewApplication creates a new service application with public and admin servers.
+//
+// Parameters:
+// - ctx: Context for initialization (must not be nil)
+// - publicServer: Public server instance implementing IPublicServer interface
+// - adminServer: Admin server instance implementing IAdminServer interface
+//
+// Returns:
+// - *Application: Configured application ready to start
+// - error: Non-nil if parameters invalid or initialization fails.
+func NewApplication(
+        ctx context.Context,
+        publicServer IPublicServer,
+        adminServer IAdminServer,
+) (*Application, error) <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("context cannot be nil")
+        }</span> else<span class="cov8" title="1"> if publicServer == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("publicServer cannot be nil")
+        }</span> else<span class="cov8" title="1"> if adminServer == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("adminServer cannot be nil")
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Application{
+                publicServer: publicServer,
+                adminServer:  adminServer,
+                shutdown:     false,
+        }, nil</span>
+}
+
+// Start starts both public and admin servers concurrently.
+//
+// Servers are started in separate goroutines to allow parallel initialization.
+// This method blocks until:
+// - One server fails to start (returns error, shuts down other server)
+// - Context is cancelled (gracefully shuts down both servers)
+//
+// Error Handling:
+// - If public server fails: Admin server is shutdown, error returned
+// - If admin server fails: Public server is shutdown, error returned
+// - If context cancelled: Both servers shutdown gracefully
+//
+// Parameters:
+// - ctx: Context for controlling server lifecycle (cancellation triggers shutdown)
+//
+// Returns:
+// - error: Non-nil if either server fails to start or context cancelled.
+func (a *Application) Start(ctx context.Context) error <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("context cannot be nil")
+        }</span>
+
+        // Start servers in background.
+        <span class="cov8" title="1">errChan := make(chan error, 2)
+
+        go func() </span><span class="cov8" title="1">{
+                if err := a.publicServer.Start(ctx); err != nil </span><span class="cov8" title="1">{
+                        errChan &lt;- fmt.Errorf("public server failed: %w", err)
+                }</span>
+        }()
+
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                if err := a.adminServer.Start(ctx); err != nil </span><span class="cov8" title="1">{
+                        errChan &lt;- fmt.Errorf("admin server failed: %w", err)
+                }</span>
+        }()
+
+        // Wait for startup errors or context cancellation.
+        <span class="cov8" title="1">select </span>{
+        case err := &lt;-errChan:<span class="cov8" title="1">
+                // One server failed, shutdown the other.
+                _ = a.Shutdown(context.Background())
+
+                return err</span>
+        case &lt;-ctx.Done():<span class="cov8" title="1">
+                // Context cancelled, shutdown gracefully.
+                _ = a.Shutdown(context.Background())
+
+                return fmt.Errorf("application startup cancelled: %w", ctx.Err())</span>
+        }
+}
+
+// Shutdown gracefully shuts down both public and admin servers.
+//
+// Shutdown respects the provided context timeout and attempts to:
+// 1. Mark application as shutdown (prevents new requests)
+// 2. Shutdown public server (drain existing connections)
+// 3. Shutdown admin server (stop health checks)
+//
+// If both servers fail to shutdown, both errors are returned (public error takes precedence).
+//
+// Parameters:
+// - ctx: Context with timeout for graceful shutdown (if nil, uses context.Background())
+//
+// Returns:
+// - error: Non-nil if either server fails to shutdown cleanly.
+func (a *Application) Shutdown(ctx context.Context) error <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov8" title="1">{
+                ctx = context.Background()
+        }</span>
+
+        <span class="cov8" title="1">a.mu.Lock()
+        a.shutdown = true
+        a.mu.Unlock()
+
+        var shutdownErr error
+
+        // Shutdown public server.
+        if a.publicServer != nil </span><span class="cov8" title="1">{
+                if err := a.publicServer.Shutdown(ctx); err != nil </span><span class="cov8" title="1">{
+                        shutdownErr = fmt.Errorf("failed to shutdown public server: %w", err)
+                }</span>
+        }
+
+        // Shutdown admin server.
+        <span class="cov8" title="1">if a.adminServer != nil </span><span class="cov8" title="1">{
+                if err := a.adminServer.Shutdown(ctx); err != nil </span><span class="cov8" title="1">{
+                        if shutdownErr != nil </span><span class="cov8" title="1">{
+                                return fmt.Errorf("multiple shutdown errors: public=%w, admin=%w", shutdownErr, err)
+                        }</span>
+
+                        <span class="cov8" title="1">return fmt.Errorf("failed to shutdown admin server: %w", err)</span>
+                }
+        }
+
+        <span class="cov8" title="1">return shutdownErr</span>
+}
+
+// PublicPort returns the actual port the public server is listening on.
+//
+// Useful for tests using dynamic port allocation (port 0) where the OS assigns
+// an available port. This method returns the actual assigned port after server starts.
+//
+// Returns:
+// - int: Actual port number, or 0 if public server not initialized.
+func (a *Application) PublicPort() int <span class="cov8" title="1">{
+        if a.publicServer == nil </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+
+        <span class="cov8" title="1">return a.publicServer.ActualPort()</span>
+}
+
+// AdminPort returns the actual port the admin server is listening on.
+//
+// The admin server always binds to 127.0.0.1:9090 per security requirements,
+// so this method should always return 9090 (or 0 if not initialized).
+//
+// Returns:
+// - int: Actual port number (should be 9090, or 0 if not initialized).
+func (a *Application) AdminPort() int <span class="cov8" title="1">{
+        if a.adminServer == nil </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+
+        <span class="cov8" title="1">return a.adminServer.ActualPort()</span>
+}
+
+// PublicBaseURL returns the base URL for the public server.
+//
+// Returns the complete base URL (protocol + address + port) for making requests
+// to the public API endpoints. Useful for constructing full URLs in tests and clients.
+//
+// Returns:
+// - string: Base URL (e.g., "https://127.0.0.1:8080"), or empty string if not initialized.
+func (a *Application) PublicBaseURL() string <span class="cov8" title="1">{
+        if a.publicServer == nil </span><span class="cov8" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">return a.publicServer.PublicBaseURL()</span>
+}
+
+// AdminBaseURL returns the base URL for the admin server.
+//
+// Returns the complete base URL (protocol + address + port) for making requests
+// to the admin API endpoints (health checks, shutdown, etc.). Useful for tests and monitoring.
+//
+// Returns:
+// - string: Base URL (e.g., "https://127.0.0.1:9090"), or empty string if not initialized.
+func (a *Application) AdminBaseURL() string <span class="cov8" title="1">{
+        if a.adminServer == nil </span><span class="cov8" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">return a.adminServer.AdminBaseURL()</span>
+}
+
+// IsShutdown returns whether the application is shutting down or shutdown.
+//
+// Thread-safe check for shutdown state, useful for health checks and request handling.
+//
+// Returns:
+// - bool: true if shutdown initiated, false otherwise.
+func (a *Application) IsShutdown() bool <span class="cov8" title="1">{
+        a.mu.RLock()
+        defer a.mu.RUnlock()
+
+        return a.shutdown
+}</span>
+
+// SetReady marks the admin server as ready to accept traffic.
+//
+// Applications should call SetReady(true) after initializing all dependencies
+// (database connections, caches, external services, etc.) but before the server
+// starts accepting requests. This enables the /admin/api/v1/readyz endpoint to return
+// HTTP 200 OK instead of 503 Service Unavailable.
+//
+// Parameters:
+// - ready: true to mark ready, false to mark not ready.
+func (a *Application) SetReady(ready bool) <span class="cov8" title="1">{
+        if a.adminServer != nil </span><span class="cov8" title="1">{
+                a.adminServer.SetReady(ready)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// Copyright (c) 2025 Justin Cranford
+
+package server
+
+import (
+        "context"
+        "crypto/tls"
+        "fmt"
+        "net"
+        "sync"
+        "time"
+
+        "github.com/gofiber/fiber/v2"
+
+        cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+)
+
+// PublicServerBase provides reusable public server infrastructure.
+type PublicServerBase struct {
+        bindAddress string
+        port        int
+        tlsMaterial *cryptoutilConfig.TLSMaterial
+        app         *fiber.App
+        mu          sync.RWMutex
+        shutdown    bool
+        actualPort  int
+        ctx         context.Context
+        cancel      context.CancelFunc
+}
+
+// PublicServerConfig holds configuration for PublicServerBase.
+type PublicServerConfig struct {
+        BindAddress string
+        Port        int
+        TLSMaterial *cryptoutilConfig.TLSMaterial
+}
+
+// NewPublicServerBase creates a new PublicServerBase.
+func NewPublicServerBase(cfg *PublicServerConfig) (*PublicServerBase, error) <span class="cov8" title="1">{
+        if cfg == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("configuration cannot be nil")
+        }</span>
+
+        <span class="cov8" title="1">if cfg.BindAddress == "" </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("bind address cannot be empty")
+        }</span>
+
+        <span class="cov8" title="1">if cfg.TLSMaterial == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("TLS material cannot be nil")
+        }</span>
+
+        <span class="cov8" title="1">s := &amp;PublicServerBase{
+                bindAddress: cfg.BindAddress,
+                port:        cfg.Port,
+                tlsMaterial: cfg.TLSMaterial,
+                app:         fiber.New(fiber.Config{DisableStartupMessage: true}),
+        }
+
+        s.registerHealthEndpoints()
+
+        return s, nil</span>
+}
+
+// registerHealthEndpoints registers standard health check endpoints.
+func (s *PublicServerBase) registerHealthEndpoints() <span class="cov8" title="1">{
+        s.app.Get("/service/api/v1/health", s.handleServiceHealth)
+        s.app.Get("/browser/api/v1/health", s.handleBrowserHealth)
+}</span>
+
+// handleServiceHealth returns health status for service-to-service clients.
+func (s *PublicServerBase) handleServiceHealth(c *fiber.Ctx) error <span class="cov8" title="1">{
+        s.mu.RLock()
+        defer s.mu.RUnlock()
+
+        if s.shutdown </span><span class="cov8" title="1">{
+                //nolint:wrapcheck // Fiber framework error.
+                return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+                        "status": "shutting down",
+                })
+        }</span>
+
+        //nolint:wrapcheck // Fiber framework error.
+        <span class="cov8" title="1">return c.JSON(fiber.Map{
+                "status": "healthy",
+        })</span>
+}
+
+// handleBrowserHealth returns health status for browser clients.
+func (s *PublicServerBase) handleBrowserHealth(c *fiber.Ctx) error <span class="cov8" title="1">{
+        s.mu.RLock()
+        defer s.mu.RUnlock()
+
+        if s.shutdown </span><span class="cov8" title="1">{
+                //nolint:wrapcheck // Fiber framework error.
+                return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+                        "status": "shutting down",
+                })
+        }</span>
+
+        //nolint:wrapcheck // Fiber framework error.
+        <span class="cov8" title="1">return c.JSON(fiber.Map{
+                "status": "healthy",
+        })</span>
+}
+
+// Start starts the HTTPS server.
+func (s *PublicServerBase) Start(ctx context.Context) error <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("context cannot be nil")
+        }</span>
+
+        <span class="cov8" title="1">s.mu.Lock()
+        s.ctx, s.cancel = context.WithCancel(ctx)
+        serverCtx := s.ctx
+        s.mu.Unlock()
+
+        listenConfig := &amp;net.ListenConfig{}
+
+        listener, err := listenConfig.Listen(serverCtx, "tcp", fmt.Sprintf("%s:%d", s.bindAddress, s.port))
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create listener: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">s.mu.Lock()
+
+        tcpAddr, ok := listener.Addr().(*net.TCPAddr)
+        if !ok </span><span class="cov0" title="0">{
+                s.mu.Unlock()
+
+                return fmt.Errorf("listener address is not *net.TCPAddr")
+        }</span>
+
+        <span class="cov8" title="1">s.actualPort = tcpAddr.Port
+        s.mu.Unlock()
+
+        tlsListener := tls.NewListener(listener, s.tlsMaterial.Config)
+
+        errChan := make(chan error, 1)
+
+        go func() </span><span class="cov8" title="1">{
+                if err := s.app.Listener(tlsListener); err != nil </span><span class="cov0" title="0">{
+                        errChan &lt;- fmt.Errorf("public server error: %w", err)
+                }</span> else<span class="cov8" title="1"> {
+                        errChan &lt;- nil
+                }</span>
+        }()
+
+        <span class="cov8" title="1">select </span>{
+        case &lt;-serverCtx.Done():<span class="cov8" title="1">
+                const shutdownTimeout = 5
+
+                shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
+                defer cancel()
+
+                _ = s.Shutdown(shutdownCtx)
+
+                return fmt.Errorf("public server stopped: %w", serverCtx.Err())</span>
+        case err := &lt;-errChan:<span class="cov0" title="0">
+                return err</span>
+        }
+}
+
+// Shutdown gracefully shuts down the server.
+func (s *PublicServerBase) Shutdown(_ context.Context) error <span class="cov8" title="1">{
+        s.mu.Lock()
+        defer s.mu.Unlock()
+
+        if s.shutdown </span><span class="cov8" title="1">{
+                return fmt.Errorf("public server already shutdown")
+        }</span>
+
+        <span class="cov8" title="1">s.shutdown = true
+
+        if s.cancel != nil </span><span class="cov8" title="1">{
+                s.cancel()
+        }</span>
+
+        <span class="cov8" title="1">if s.app != nil </span><span class="cov8" title="1">{
+                if err := s.app.Shutdown(); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to shutdown fiber app: %w", err)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// ActualPort returns the actual port the server is listening on.
+func (s *PublicServerBase) ActualPort() int <span class="cov8" title="1">{
+        s.mu.RLock()
+        defer s.mu.RUnlock()
+
+        return s.actualPort
+}</span>
+
+// PublicBaseURL returns the base URL for public API access.
+func (s *PublicServerBase) PublicBaseURL() string <span class="cov8" title="1">{
+        s.mu.RLock()
+        defer s.mu.RUnlock()
+
+        return fmt.Sprintf("https://127.0.0.1:%d", s.actualPort)
+}</span>
+
+// App returns the underlying Fiber app for route registration.
+func (s *PublicServerBase) App() *fiber.App <span class="cov8" title="1">{
+        return s.app
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+// Package server provides reusable service template infrastructure.
+package server
+
+import (
+        "context"
+        "database/sql"
+        "fmt"
+
+        "gorm.io/gorm"
+
+        cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
+        cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+        cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+        cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+        cryptoutilTemplateServerApplication "cryptoutil/internal/apps/template/service/server/application"
+        cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+)
+
+// ServiceTemplate encapsulates reusable service infrastructure.
+// Provides common initialization for telemetry, crypto, barrier, and dual HTTPS servers.
+type ServiceTemplate struct {
+        config    *cryptoutilConfig.ServiceTemplateServerSettings
+        db        *gorm.DB
+        dbType    cryptoutilTemplateServerRepository.DatabaseType
+        telemetry *cryptoutilTelemetry.TelemetryService
+        jwkGen    *cryptoutilJose.JWKGenService
+        barrier   *cryptoutilBarrierService.BarrierService // Optional (nil for demo services).
+}
+
+// ServiceTemplateOption is a functional option for configuring ServiceTemplate.
+type ServiceTemplateOption func(*ServiceTemplate) error
+
+// WithBarrier configures an optional barrier service for key encryption at rest.
+func WithBarrier(barrier *cryptoutilBarrierService.BarrierService) ServiceTemplateOption <span class="cov8" title="1">{
+        return func(st *ServiceTemplate) error </span><span class="cov8" title="1">{
+                st.barrier = barrier
+
+                return nil
+        }</span>
+}
+
+// NewServiceTemplate creates a new ServiceTemplate with common infrastructure.
+// Initializes telemetry, JWK generation service, and optionally barrier service.
+// Does NOT run migrations or create HTTP servers (caller-specific).
+func NewServiceTemplate(
+        ctx context.Context,
+        config *cryptoutilConfig.ServiceTemplateServerSettings,
+        db *gorm.DB,
+        dbType cryptoutilTemplateServerRepository.DatabaseType,
+        options ...ServiceTemplateOption,
+) (*ServiceTemplate, error) <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("context cannot be nil")
+        }</span> else<span class="cov8" title="1"> if config == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("config cannot be nil")
+        }</span> else<span class="cov8" title="1"> if db == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("database cannot be nil")
+        }</span>
+
+        // Validate database type.
+        <span class="cov8" title="1">switch dbType </span>{
+        case cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL, cryptoutilTemplateServerRepository.DatabaseTypeSQLite:<span class="cov8" title="1"></span>
+                // Valid database type.
+        default:<span class="cov8" title="1">
+                return nil, fmt.Errorf("invalid database type: %s", dbType)</span>
+        }
+
+        // Initialize telemetry service.
+        <span class="cov8" title="1">telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, config)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
+        }</span>
+
+        // Initialize JWK Generation Service for cryptographic operations.
+        // Uses in-memory key pools with telemetry for monitoring.
+        <span class="cov8" title="1">jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize JWK generation service: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">st := &amp;ServiceTemplate{
+                config:    config,
+                db:        db,
+                dbType:    dbType,
+                telemetry: telemetryService,
+                jwkGen:    jwkGenService,
+                barrier:   nil, // Optional, set via WithBarrier option.
+        }
+
+        // Apply functional options.
+        for _, opt := range options </span><span class="cov8" title="1">{
+                if err := opt(st); err != nil </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("failed to apply option: %w", err)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return st, nil</span>
+}
+
+// Config returns the server configuration.
+func (st *ServiceTemplate) Config() *cryptoutilConfig.ServiceTemplateServerSettings <span class="cov8" title="1">{
+        return st.config
+}</span>
+
+// DB returns the GORM database instance.
+func (st *ServiceTemplate) DB() *gorm.DB <span class="cov8" title="1">{
+        return st.db
+}</span>
+
+// SQLDB returns the underlying sql.DB instance.
+func (st *ServiceTemplate) SQLDB() (*sql.DB, error) <span class="cov8" title="1">{
+        //nolint:wrapcheck // Pass-through to GORM, wrapping not needed.
+        return st.db.DB()
+}</span>
+
+// DBType returns the database type.
+func (st *ServiceTemplate) DBType() cryptoutilTemplateServerRepository.DatabaseType <span class="cov8" title="1">{
+        return st.dbType
+}</span>
+
+// Telemetry returns the telemetry service.
+func (st *ServiceTemplate) Telemetry() *cryptoutilTelemetry.TelemetryService <span class="cov8" title="1">{
+        return st.telemetry
+}</span>
+
+// JWKGen returns the JWK generation service.
+func (st *ServiceTemplate) JWKGen() *cryptoutilJose.JWKGenService <span class="cov8" title="1">{
+        return st.jwkGen
+}</span>
+
+// Barrier returns the optional barrier service (may be nil).
+func (st *ServiceTemplate) Barrier() *cryptoutilBarrierService.BarrierService <span class="cov8" title="1">{
+        return st.barrier
+}</span>
+
+// Shutdown gracefully shuts down all service components.
+func (st *ServiceTemplate) Shutdown() <span class="cov8" title="1">{
+        if st.telemetry != nil </span><span class="cov8" title="1">{
+                st.telemetry.Shutdown()
+        }</span>
+
+        <span class="cov8" title="1">if st.jwkGen != nil </span><span class="cov8" title="1">{
+                st.jwkGen.Shutdown()
+        }</span>
+
+        <span class="cov8" title="1">if st.barrier != nil </span><span class="cov0" title="0">{
+                st.barrier.Shutdown()
+        }</span>
+}
+
+// StartApplicationCore is a convenience wrapper for application.StartApplicationCore.
+// Creates ApplicationCore with automatic database provisioning.
+// Returns ApplicationCore with initialized telemetry, JWK gen, unseal, and database.
+func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilTemplateServerApplication.ApplicationCore, error) <span class="cov8" title="1">{
+        //nolint:wrapcheck // Pass-through to application layer.
+        return cryptoutilTemplateServerApplication.StartApplicationCore(ctx, settings)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

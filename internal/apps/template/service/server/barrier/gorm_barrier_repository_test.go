@@ -435,3 +435,60 @@ func TestGormBarrierRepository_ConcurrentTransactions(t *testing.T) {
 		require.NoError(t, err, "Concurrent transactions should succeed")
 	}
 }
+
+// TestGormBarrierRepository_NewWithNilDB tests NewGormBarrierRepository with nil db.
+func TestGormBarrierRepository_NewWithNilDB(t *testing.T) {
+	t.Parallel()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(nil)
+	require.Error(t, err)
+	require.Nil(t, repo)
+	require.Contains(t, err.Error(), "db must be non-nil")
+}
+
+// TestGormBarrierRepository_Shutdown tests Shutdown method.
+func TestGormBarrierRepository_Shutdown(t *testing.T) {
+	t.Parallel()
+
+	// Create isolated database for this test.
+	db, cleanup := createIsolatedDB(t)
+	defer cleanup()
+
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+
+	// Shutdown should not panic and can be called multiple times safely.
+	barrierRepo.Shutdown()
+	barrierRepo.Shutdown() // Should be idempotent.
+}
+
+// TestGormBarrierTransaction_Context tests that Context returns correct context.
+func TestGormBarrierTransaction_Context(t *testing.T) {
+	t.Parallel()
+
+	// Create isolated database for this test.
+	db, cleanup := createIsolatedDB(t)
+	defer cleanup()
+
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { barrierRepo.Shutdown() })
+
+	// Create a context with a custom value to verify it's passed through.
+	type contextKey string
+	const testKey contextKey = "test-key"
+	ctx := context.WithValue(context.Background(), testKey, "test-value")
+
+	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+		// Get the context from transaction.
+		txCtx := tx.Context()
+		require.NotNil(t, txCtx)
+
+		// Verify the context value is preserved.
+		value := txCtx.Value(testKey)
+		require.Equal(t, "test-value", value)
+
+		return nil
+	})
+	require.NoError(t, err)
+}

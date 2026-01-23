@@ -7,9 +7,10 @@ import (
 	"errors"
 	"testing"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // mockTenantServiceForRegisterClient implements TenantService for RegisterClient testing.
@@ -76,8 +77,8 @@ func (m *mockClientRepoForRegisterClient) Delete(ctx context.Context, id googleU
 
 // mockRoleRepoForRegisterClient implements repository.RoleRepository for RegisterClient testing.
 type mockRoleRepoForRegisterClient struct {
-	role          *cryptoutilTemplateRepository.Role
-	getByNameErr  error
+	role         *cryptoutilTemplateRepository.Role
+	getByNameErr error
 }
 
 func (m *mockRoleRepoForRegisterClient) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.Role, error) {

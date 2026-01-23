@@ -98,7 +98,7 @@ cryptoutil/internal/apps/template/service/server/service_template.go:80.2,81.16 
 cryptoutil/internal/apps/template/service/server/service_template.go:81.16,83.3 1 0
 cryptoutil/internal/apps/template/service/server/service_template.go:85.2,95.30 2 1
 cryptoutil/internal/apps/template/service/server/service_template.go:95.30,96.33 1 1
-cryptoutil/internal/apps/template/service/server/service_template.go:96.33,98.4 1 0
+cryptoutil/internal/apps/template/service/server/service_template.go:96.33,98.4 1 1
 cryptoutil/internal/apps/template/service/server/service_template.go:101.2,101.16 1 1
 cryptoutil/internal/apps/template/service/server/service_template.go:105.85,107.2 1 1
 cryptoutil/internal/apps/template/service/server/service_template.go:110.42,112.2 1 1

@@ -7,16 +7,17 @@ import (
 	"errors"
 	"testing"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // mockRealmRepoForUpdate implements repository.TenantRealmRepository for UpdateRealm testing.
 type mockRealmRepoForUpdate struct {
-	realm        *cryptoutilTemplateRepository.TenantRealm
-	getByIDErr   error
-	updateErr    error
+	realm      *cryptoutilTemplateRepository.TenantRealm
+	getByIDErr error
+	updateErr  error
 }
 
 func (m *mockRealmRepoForUpdate) Create(ctx context.Context, realm *cryptoutilTemplateRepository.TenantRealm) error {
