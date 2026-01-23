@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilIDPConfig "cryptoutil/internal/apps/identity/idp/server/config"
 	cryptoutilIDPServer "cryptoutil/internal/apps/identity/idp/server"
+	cryptoutilIDPConfig "cryptoutil/internal/apps/identity/idp/server/config"
 )
 
 const (

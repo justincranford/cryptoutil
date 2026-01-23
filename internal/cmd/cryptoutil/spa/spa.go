@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
 	cryptoutilSPAServer "cryptoutil/internal/apps/identity/spa/server"
+	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
 )
 
 const (

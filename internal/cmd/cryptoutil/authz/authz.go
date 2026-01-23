@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilAuthzConfig "cryptoutil/internal/apps/identity/authz/server/config"
 	cryptoutilAuthzServer "cryptoutil/internal/apps/identity/authz/server"
+	cryptoutilAuthzConfig "cryptoutil/internal/apps/identity/authz/server/config"
 )
 
 const (

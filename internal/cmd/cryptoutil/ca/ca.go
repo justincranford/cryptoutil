@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilCAConfig "cryptoutil/internal/apps/ca/server/config"
 	cryptoutilCAServer "cryptoutil/internal/apps/ca/server"
+	cryptoutilCAConfig "cryptoutil/internal/apps/ca/server/config"
 )
 
 const (

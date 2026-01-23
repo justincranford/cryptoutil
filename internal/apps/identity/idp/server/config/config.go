@@ -20,13 +20,13 @@ type IdentityIDPServerSettings struct {
 	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
 
 	// IdP (Identity Provider) settings.
-	AuthzServerURL string // URL of the OAuth 2.1 authorization server to integrate with.
-	LoginPagePath  string // Path to custom login page template.
+	AuthzServerURL  string // URL of the OAuth 2.1 authorization server to integrate with.
+	LoginPagePath   string // Path to custom login page template.
 	ConsentPagePath string // Path to custom consent page template.
 
 	// MFA enrollment settings.
-	EnableMFAEnrollment bool // Enable MFA enrollment during login.
-	RequireMFA          bool // Require MFA for all logins.
+	EnableMFAEnrollment bool     // Enable MFA enrollment during login.
+	RequireMFA          bool     // Require MFA for all logins.
 	MFAMethods          []string // Supported MFA methods (totp, webauthn, push).
 
 	// Session settings.
@@ -36,13 +36,13 @@ type IdentityIDPServerSettings struct {
 
 // Identity-IDP specific default values.
 const (
-	defaultIDPAuthzServerURL      = "https://localhost:18000" // Default authorization server URL.
-	defaultLoginPagePath          = ""                        // Use built-in login page.
-	defaultConsentPagePath        = ""                        // Use built-in consent page.
-	defaultEnableMFAEnrollment    = false                     // Disable MFA enrollment by default.
-	defaultRequireMFA             = false                     // Don't require MFA by default.
-	defaultLoginSessionTimeout    = 300                       // 5 minute login session timeout.
-	defaultConsentSessionTimeout  = 300                       // 5 minute consent session timeout.
+	defaultIDPAuthzServerURL     = "https://localhost:18000" // Default authorization server URL.
+	defaultLoginPagePath         = ""                        // Use built-in login page.
+	defaultConsentPagePath       = ""                        // Use built-in consent page.
+	defaultEnableMFAEnrollment   = false                     // Disable MFA enrollment by default.
+	defaultRequireMFA            = false                     // Don't require MFA by default.
+	defaultLoginSessionTimeout   = 300                       // 5 minute login session timeout.
+	defaultConsentSessionTimeout = 300                       // 5 minute consent session timeout.
 )
 
 var defaultMFAMethods = []string{"totp"} // Default MFA methods.

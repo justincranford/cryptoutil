@@ -51,11 +51,11 @@ type IdentitySPAServerSettings struct {
 const (
 	defaultStaticFilesPath = "./static"
 	defaultIndexFile       = "index.html"
-	defaultRPOrigin        = ""                      // Optional, can be empty.
-	defaultCacheMaxAge     = 3600                    // 1 hour for production.
-	defaultCacheMaxAgeDev  = 0                       // No caching for development.
-	defaultEnableGzip      = true                    // Enable gzip by default.
-	defaultEnableBrotli    = true                    // Enable brotli by default.
+	defaultRPOrigin        = ""   // Optional, can be empty.
+	defaultCacheMaxAge     = 3600 // 1 hour for production.
+	defaultCacheMaxAgeDev  = 0    // No caching for development.
+	defaultEnableGzip      = true // Enable gzip by default.
+	defaultEnableBrotli    = true // Enable brotli by default.
 	defaultCSPDirectives   = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'"
 )
 

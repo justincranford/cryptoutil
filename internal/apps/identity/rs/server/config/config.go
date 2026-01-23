@@ -25,32 +25,32 @@ type IdentityRSServerSettings struct {
 	IntrospectionURL string // Token introspection endpoint (optional).
 
 	// Access control settings.
-	RequiredScopes      []string // Required OAuth scopes for all endpoints.
-	RequiredAudiences   []string // Required audiences in access tokens.
-	AllowBearerToken    bool     // Allow Bearer token authentication.
-	AllowClientCert     bool     // Allow mTLS client certificate authentication.
+	RequiredScopes    []string // Required OAuth scopes for all endpoints.
+	RequiredAudiences []string // Required audiences in access tokens.
+	AllowBearerToken  bool     // Allow Bearer token authentication.
+	AllowClientCert   bool     // Allow mTLS client certificate authentication.
 
 	// Caching settings.
-	JWKSCacheTTL        int // JWKS cache TTL in seconds.
-	TokenCacheTTL       int // Validated token cache TTL in seconds.
-	EnableTokenCaching  bool // Enable token validation result caching.
+	JWKSCacheTTL       int  // JWKS cache TTL in seconds.
+	TokenCacheTTL      int  // Validated token cache TTL in seconds.
+	EnableTokenCaching bool // Enable token validation result caching.
 }
 
 // Identity-RS specific default values.
 const (
-	defaultRSAuthzServerURL    = "https://localhost:18000" // Default authorization server URL.
-	defaultJWKSEndpoint        = "/.well-known/jwks.json"  // Standard JWKS endpoint path.
-	defaultIntrospectionURL    = ""                        // No introspection by default.
-	defaultAllowBearerToken    = true                      // Allow Bearer tokens by default.
-	defaultAllowClientCert     = false                     // Disable client cert auth by default.
-	defaultJWKSCacheTTL        = 3600                      // 1 hour JWKS cache.
-	defaultTokenCacheTTL       = 300                       // 5 minute token cache.
-	defaultEnableTokenCaching  = true                      // Enable caching by default.
+	defaultRSAuthzServerURL   = "https://localhost:18000" // Default authorization server URL.
+	defaultJWKSEndpoint       = "/.well-known/jwks.json"  // Standard JWKS endpoint path.
+	defaultIntrospectionURL   = ""                        // No introspection by default.
+	defaultAllowBearerToken   = true                      // Allow Bearer tokens by default.
+	defaultAllowClientCert    = false                     // Disable client cert auth by default.
+	defaultJWKSCacheTTL       = 3600                      // 1 hour JWKS cache.
+	defaultTokenCacheTTL      = 300                       // 5 minute token cache.
+	defaultEnableTokenCaching = true                      // Enable caching by default.
 )
 
 var (
-	defaultRequiredScopes    = []string{}                  // No required scopes by default.
-	defaultRequiredAudiences = []string{}                  // No required audiences by default.
+	defaultRequiredScopes    = []string{} // No required scopes by default.
+	defaultRequiredAudiences = []string{} // No required audiences by default.
 )
 
 var allIdentityRSServerRegisteredSettings []*cryptoutilTemplateConfig.Setting //nolint:gochecknoglobals

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilRPConfig "cryptoutil/internal/apps/identity/rp/server/config"
 	cryptoutilRPServer "cryptoutil/internal/apps/identity/rp/server"
+	cryptoutilRPConfig "cryptoutil/internal/apps/identity/rp/server/config"
 )
 
 const (

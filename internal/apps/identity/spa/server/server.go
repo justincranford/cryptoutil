@@ -10,12 +10,12 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
+	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // SPAServer wraps the template Application with SPA-specific functionality.

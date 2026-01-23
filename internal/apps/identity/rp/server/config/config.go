@@ -175,8 +175,8 @@ func logIdentityRPSettings(s *IdentityRPServerSettings) {
 
 // Secret masking constants.
 const (
-	secretMaskMinLength = 8  // Minimum length before showing partial secret.
-	secretMaskPrefixLen = 4  // Number of characters to show at start.
+	secretMaskMinLength = 8 // Minimum length before showing partial secret.
+	secretMaskPrefixLen = 4 // Number of characters to show at start.
 )
 
 // maskSecret masks a secret for logging (shows first 4 chars if long enough).

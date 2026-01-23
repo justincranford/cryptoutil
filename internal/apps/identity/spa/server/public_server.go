@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
+	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
 )
 
 // PublicServer implements SPA-specific public endpoints.

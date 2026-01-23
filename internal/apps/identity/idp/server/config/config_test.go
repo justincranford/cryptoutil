@@ -105,10 +105,10 @@ func TestValidateIdentityIDPSettings_SessionTimeouts(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name                  string
-		loginTimeout          int
-		consentTimeout        int
-		wantError             bool
+		name           string
+		loginTimeout   int
+		consentTimeout int
+		wantError      bool
 	}{
 		{"valid_defaults", defaultLoginSessionTimeout, defaultConsentSessionTimeout, false},
 		{"valid_custom", 600, 600, false},
