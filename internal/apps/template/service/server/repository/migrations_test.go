@@ -99,3 +99,43 @@ func TestMigrationRunner_Apply_NoChanges(t *testing.T) {
 	err = runner.Apply(db, repository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 }
+
+// TestApplyMigrationsFromFS_SQLite tests convenience function with SQLite.
+func TestApplyMigrationsFromFS_SQLite(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+
+	defer func() { _ = db.Close() }()
+
+	err = repository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "sqlite")
+	require.NoError(t, err)
+}
+
+// TestApplyMigrationsFromFS_Sqlite3 tests convenience function with sqlite3 alias.
+func TestApplyMigrationsFromFS_Sqlite3(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+
+	defer func() { _ = db.Close() }()
+
+	err = repository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "sqlite3")
+	require.NoError(t, err)
+}
+
+// TestApplyMigrationsFromFS_UnsupportedType tests unsupported database type.
+func TestApplyMigrationsFromFS_UnsupportedType(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite", ":memory:")
+	require.NoError(t, err)
+
+	defer func() { _ = db.Close() }()
+
+	err = repository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "mysql")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported database type")
+}
