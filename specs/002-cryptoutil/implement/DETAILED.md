@@ -5612,3 +5612,93 @@ Estimated effort: 5-10 days per service (significant investment)
 1. Document acceptance of current coverage levels
 2. Create Phase Y plan for mock infrastructure if desired
 3. Continue with Phase 5 (CA Server Migration)
+
+---
+
+### 2026-01-24: Phase X.5 Service Coverage Analysis - Business Logic vs Database Errors
+
+**Objective**: Analyze service coverage gap (82.7%  95% target) to identify testable improvements
+
+**Analysis Summary**:
+
+After creating comprehensive edge case tests for repository layer (Task X.3), discovered 0% coverage improvement because edge cases tested already-covered code paths. The 15.2% repository gap is entirely database error return paths requiring GORM mocking (P2.4 deferred work).
+
+Applied same analysis to service layer (82.7% coverage, 12.3% gap) to determine if gap is testable business logic or database errors.
+
+**Service Error Path Categories**:
+
+1. **Business Logic Validation** (TESTABLE):
+   - Input validation: Invalid algorithm, invalid use, empty strings, out-of-range values
+   - Business rules: maxMaterials exceeded, duplicate KIDs, state errors
+   - Cryptographic errors: Invalid keys, decryption failures, signature mismatches
+   - Examples:
+     - `if keyType == "" { return fmt.Errorf("invalid algorithm") }`  TESTABLE
+     - `if use != "sig" && use != "enc" { return fmt.Errorf("invalid key use") }`  TESTABLE
+     - `if claims.NotBefore.After(now) { return fmt.Errorf("not yet valid") }`  TESTABLE
+
+2. **Database Error Paths** (NOT TESTABLE without P2.4):
+   - `if err := s.elasticRepo.Create(ctx, jwk); err != nil { return ... }`  Needs mocking
+   - `if err := s.materialRepo.Update(ctx, material); err != nil { return ... }`  Needs mocking
+   - Pattern: Functions at 75-90% coverage = success path + validation covered, database error path NOT covered
+
+**Coverage by Component**:
+
+| Component | Coverage | Target | Gap | Testable Business Logic |
+|-----------|----------|--------|-----|-------------------------|
+| JOSE Repository | 82.8% | 98% | 15.2% |  Pure database ops |
+| JOSE Handlers | 100.0% | 95% | 0% |  COMPLETE |
+| JOSE Services | 82.7% | 95% | 12.3% |  Mixed (some testable) |
+
+**Existing Test Coverage Analysis**:
+
+Searched service test files for validation error tests:
+- elastic_jwk_service_test.go: Tests exist for "invalid algorithm", "invalid key use"
+- jwt_service_test.go: Tests exist for "not configured for signing", "expired", "not yet valid", "not found"
+- All major business logic validations ALREADY tested
+
+**31 Functions Below 95% Coverage**:
+
+`
+audit_log_service.go: 7 functions (75-88%)
+elastic_jwk_service.go: 4 functions (75-87%)
+jwe_service.go: 4 functions (75-93%)
+jws_service.go: 4 functions (70-94%)
+jwt_service.go: 4 functions (67-80%)
+material_rotation_service.go: 5 functions (77-92%)
+`
+
+
+**Key Finding**: Business logic validation errors are ALREADY comprehensively tested. Remaining 12.3% gap follows same pattern as repositories - database error return paths after validation succeeds.
+
+**Conclusion**:
+
+Service coverage gap (12.3%) is dominated by database error paths, similar to repository gap (15.2%). Both require GORM mocking infrastructure (P2.4 deferred work). Adding more business logic tests would have near-zero impact, as evidenced by:
+- Repository edge cases: 449 lines, 11 tests, 0% coverage improvement
+- Service validation tests: Already comprehensive, all major error paths covered
+
+**Evidence**:
+
+- Coverage report: 	est-output/jose_services.out (82.7%)
+- Coverage HTML: 	est-output/jose_services.html (visual gaps)
+- grep searches: Validation errors in service implementations vs test files (all covered)
+- Pattern analysis: 31 functions at 67-94% = validation covered, database errors not covered
+
+**Recommendation**:
+
+1. **Document service coverage limitation** (same as repository limitation)
+2. **Mark X.4 complete** (handlers at 100% )
+3. **Mark X.3 and X.5 with blocker notes** (database mocking required for targets)
+4. **Proceed to Phase Y mutation testing** (test quality on existing coverage)
+5. **Consider P2.4 as separate initiative** (GORM mocking infrastructure)
+
+**Commits This Session**:
+- Previous: `9e2179be test(jose-repository): add comprehensive edge case tests for repository layer`
+- This session: Documentation update (no code changes, analysis only)
+
+**Duration**: ~120 minutes (service analysis, test file searches, error path categorization)
+
+**Next Steps**:
+1. Update fixes-needed-TASKS.md with X.4 complete, X.3/X.5 blocker notes
+2. Proceed to Phase Y mutation testing
+3. Git commit and push all work
+
