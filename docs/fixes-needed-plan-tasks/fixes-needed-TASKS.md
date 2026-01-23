@@ -559,40 +559,37 @@
 
 ---
 
-### X.2 Cipher-IM High Coverage **BLOCKED - Docker Desktop Dependency**
+### X.2 Cipher-IM High Coverage
 
-- [ ] X.2.1 Fix test failure: TestInitDatabase_HappyPaths **BLOCKED - Docker Desktop Dependency**
+- [ ] X.2.1 Fix test failure: TestInitDatabase_HappyPaths
 
   **Current Issue**: 2 tests require Docker Desktop running on Windows
-  
+
   **Failures**:
   1. TestInitDatabase_HappyPaths/PostgreSQL_Container
      - Error: "panic: rootless Docker is not supported on Windows"
      - Tool: testcontainers-go v0.40.0
      - Requires: Docker Desktop running (named pipe `//./pipe/dockerDesktopLinuxEngine`)
-  
+
   2. cipher-im/e2e tests
      - Error: "unable to get image 'cipher-im:local'"
      - Error: "open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified"
      - Cause: Docker compose cannot connect to Docker Desktop
-  
+
   **Core tests status**: ✅ ALL PASSING (client, domain, repository, server/config, integration)
-  
+
   **Impact**: LOW (cipher-im specific, does NOT block other products)
-  
-  **Workaround Options**:
-  - Option A: Start Docker Desktop manually (unblocks these 2 tests)
-  - Option B: Skip Docker-dependent tests (accept limitation for local testing)
-  - Option C: Defer to CI/CD environment (Linux with Docker)
-  
-  **Status**: ❌ BLOCKED (external dependency - Docker Desktop not running)
-  
+
+  **Workaround**: Start Docker Desktop if not running
+  - Windows: `Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"`
+  - Linux: `systemctl --user start docker-desktop`
+  - Wait 30-60 seconds for initialization
+  - Verify with `docker ps`
+
   **Evidence**: See DETAILED.md entry 2026-01-24 (Docker dependency analysis)
 
-- [ ] X.2.2 Cipher-IM tests high coverage (85% → 95%) **BLOCKED pending X.2.1 resolution**
+- [ ] X.2.2 Cipher-IM tests high coverage (85% → 95%)
 
-  **Note**: Cannot proceed with coverage improvement until Docker-dependent tests pass
-  
   **Before testing** (when Docker Desktop available):
   1. Start Docker Desktop
   2. Run tests with code coverage: `go test -coverprofile=test-output/cipher_highcov.out ./internal/apps/cipher/...`
@@ -617,17 +614,17 @@
 - [ ] X.3.1 JOSE repositories high coverage (85% → 98%) **BLOCKED at 82.8%**
 
   **Current**: 82.8% coverage (15.2 percentage point gap to target)
-  
+
   **Blocker**: Remaining gap requires P2.4 GORM mocking infrastructure
-  
+
   **Analysis**: Database error paths (`if err := db.Create(); err != nil`) cannot be tested without mocking
-  
+
   **Pattern**: Functions at 66.7% coverage = success + not-found covered, database error NOT covered
-  
+
   **Evidence**: See DETAILED.md entries 2026-01-23 (coverage analysis) and 2026-01-24 (service analysis)
-  
+
   **Work completed**: Created 449 lines of edge case tests → 0% coverage improvement (tested already-covered paths)
-  
+
   **Status**: ❌ BLOCKED until P2.4 GORM mocking architecture implemented
 
 - [ ] X.3.2 Validation: ≥98% (infrastructure)
@@ -641,9 +638,9 @@
 - [x] X.4.1 JOSE handlers high coverage (85% → 95%) **COMPLETE at 100.0%**
 
   **Achieved**: 100.0% coverage (exceeds ≥95% target by 5.0 percentage points)
-  
+
   **Evidence**: test-output/jose_handlers.out
-  
+
   **Status**: ✅ COMPLETE (from previous session)
 
 - [x] X.4.2 Validation: ≥95% (production) **COMPLETE**
@@ -657,19 +654,19 @@
 - [ ] X.5.1 JOSE services high coverage (85% → 95%) **BLOCKED at 82.7%**
 
   **Current**: 82.7% coverage (12.3 percentage point gap to target)
-  
+
   **Blocker**: Remaining gap requires P2.4 GORM mocking infrastructure (same as X.3)
-  
+
   **Analysis**: Business logic validation ALREADY comprehensively tested
   - Validation errors: invalid algorithm, expired JWT, invalid key use (ALL TESTED)
   - Business rules: maxMaterials exceeded, duplicate KIDs (ALL TESTED)
   - Crypto errors: invalid keys, decryption failures (ALL TESTED)
   - **Missing**: Database error paths after validation succeeds (`if err := s.repo.Create(); err != nil`)
-  
+
   **Pattern**: 31 functions at 67-94% coverage = validation covered, database errors NOT covered
-  
+
   **Evidence**: See DETAILED.md entry 2026-01-24 (service error path categorization)
-  
+
   **Status**: ❌ BLOCKED until P2.4 GORM mocking architecture implemented
 
 - [ ] X.5.2 Validation: ≥95% (production)
