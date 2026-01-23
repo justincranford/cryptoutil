@@ -646,3 +646,83 @@ func parseIP(t *testing.T, ipStr string) (ip net.IP) {
 
 	return ip
 }
+
+// TestGenerateTestCA_HappyPath verifies GenerateTestCA generates valid CA certificate and key.
+func TestGenerateTestCA_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	caCertPEM, caKeyPEM, err := GenerateTestCA()
+	require.NoError(t, err)
+	require.NotEmpty(t, caCertPEM)
+	require.NotEmpty(t, caKeyPEM)
+
+	// Verify CA certificate is valid PEM.
+	certBlock, _ := pem.Decode(caCertPEM)
+	require.NotNil(t, certBlock, "CA cert should be valid PEM")
+	require.Equal(t, "CERTIFICATE", certBlock.Type)
+
+	// Parse and verify certificate properties.
+	cert, err := x509.ParseCertificate(certBlock.Bytes)
+	require.NoError(t, err)
+	require.True(t, cert.IsCA, "certificate should be a CA")
+	require.True(t, cert.BasicConstraintsValid)
+
+	// Verify CA key is valid PEM.
+	keyBlock, _ := pem.Decode(caKeyPEM)
+	require.NotNil(t, keyBlock, "CA key should be valid PEM")
+	require.Equal(t, "PRIVATE KEY", keyBlock.Type)
+
+	// Parse and verify key is ECDSA P-384.
+	key, err := x509.ParsePKCS8PrivateKey(keyBlock.Bytes)
+	require.NoError(t, err)
+
+	ecKey, ok := key.(*ecdsa.PrivateKey)
+	require.True(t, ok, "key should be ECDSA")
+	require.Equal(t, elliptic.P384().Params().Name, ecKey.Curve.Params().Name)
+}
+
+// TestGenerateTestCA_UsableForSigning verifies CA can sign server certificates.
+func TestGenerateTestCA_UsableForSigning(t *testing.T) {
+	t.Parallel()
+
+	// Generate test CA.
+	caCertPEM, caKeyPEM, err := GenerateTestCA()
+	require.NoError(t, err)
+
+	// Use CA to generate a server certificate.
+	tlsSettings, err := GenerateServerCertFromCA(
+		caCertPEM,
+		caKeyPEM,
+		[]string{"localhost"},
+		[]string{"127.0.0.1"},
+		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
+	require.NotEmpty(t, tlsSettings.StaticCertPEM)
+	require.NotEmpty(t, tlsSettings.StaticKeyPEM)
+
+	// Verify server certificate is valid.
+	certBlock, _ := pem.Decode(tlsSettings.StaticCertPEM)
+	require.NotNil(t, certBlock)
+
+	serverCert, err := x509.ParseCertificate(certBlock.Bytes)
+	require.NoError(t, err)
+	require.False(t, serverCert.IsCA, "server cert should not be CA")
+	require.Contains(t, serverCert.DNSNames, "localhost")
+}
+
+// TestGenerateTestCA_UniquePerCall verifies each call generates unique CA.
+func TestGenerateTestCA_UniquePerCall(t *testing.T) {
+	t.Parallel()
+
+	// Generate two CAs.
+	caCert1, caKey1, err := GenerateTestCA()
+	require.NoError(t, err)
+
+	caCert2, caKey2, err := GenerateTestCA()
+	require.NoError(t, err)
+
+	// Verify they are different.
+	require.NotEqual(t, caCert1, caCert2, "CA certificates should be unique")
+	require.NotEqual(t, caKey1, caKey2, "CA keys should be unique")
+}
