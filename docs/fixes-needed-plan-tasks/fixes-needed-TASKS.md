@@ -526,7 +526,7 @@
 
 ### W.1 Refactor Bootstrap to ApplicationCore
 
-**Files**: 
+**Files**:
 - `internal/apps/template/service/server/builder/server_builder.go`
 - `internal/apps/template/service/server/application/application_core.go`
 

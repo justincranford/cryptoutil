@@ -132,11 +132,11 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/v1/livez"]
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 60s
     depends_on:
       opentelemetry-collector-contrib:
         condition: service_started
@@ -174,11 +174,11 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/v1/livez"]
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 60s
     depends_on:
       postgres:
         condition: service_healthy
@@ -220,11 +220,11 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/v1/livez"]
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 60s
     depends_on:
       postgres:
         condition: service_healthy

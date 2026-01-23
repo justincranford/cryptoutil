@@ -117,56 +117,54 @@ func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateSe
 	serverApplicationCore, err := StartServerApplicationCore(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize server application: %w", err)
+	} else if settings.BindPublicProtocol != cryptoutilMagic.ProtocolHTTP && settings.BindPublicProtocol != cryptoutilMagic.ProtocolHTTPS {
+		return nil, fmt.Errorf("invalid public protocol: expected 'http' or 'https', got '%s'", settings.BindPublicProtocol)
+	} else if settings.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTP && settings.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTPS {
+		return nil, fmt.Errorf("invalid private protocol: expected 'http' or 'https', got '%s'", settings.BindPrivateProtocol)
 	}
 
-	var publicTLSServer *TLSServerConfig
+	publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
+	if err != nil {
+		return nil, fmt.Errorf("failed to run new function: %w", err)
+	}
 
-	var privateTLSServer *TLSServerConfig
+	// Public server: TLS 1.3 only, no client certificate required (browser access).
+	publicTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
+		Subject:    publicTLSServerSubject,
+		ClientAuth: tls.NoClientCert,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to build public TLS server config: %w", err)
+	}
 
-	if settings.BindPublicProtocol == cryptoutilMagic.ProtocolHTTPS || settings.BindPrivateProtocol == cryptoutilMagic.ProtocolHTTPS {
-		publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
-		if err != nil {
-			return nil, fmt.Errorf("failed to run new function: %w", err)
-		}
+	publicTLSServer := &TLSServerConfig{
+		Certificate:         publicTLSConfig.Certificate,
+		RootCAsPool:         publicTLSConfig.RootCAsPool,
+		IntermediateCAsPool: publicTLSConfig.IntermediateCAsPool,
+		Config:              publicTLSConfig.TLSConfig,
+	}
 
-		// Public server: TLS 1.3 only, no client certificate required (browser access).
-		publicTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
-			Subject:    publicTLSServerSubject,
-			ClientAuth: tls.NoClientCert,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to build public TLS server config: %w", err)
-		}
+	// Private server: TLS 1.3 only with optional mTLS for internal service-to-service communication.
+	// In production, uses RequireAndVerifyClientCert to enforce mutual authentication on admin/internal APIs.
+	// In dev mode, uses NoClientCert for easier local development and testing.
+	privateClientAuth := tls.RequireAndVerifyClientCert
+	if settings.DevMode {
+		privateClientAuth = tls.NoClientCert
+	}
 
-		publicTLSServer = &TLSServerConfig{
-			Certificate:         publicTLSConfig.Certificate,
-			RootCAsPool:         publicTLSConfig.RootCAsPool,
-			IntermediateCAsPool: publicTLSConfig.IntermediateCAsPool,
-			Config:              publicTLSConfig.TLSConfig,
-		}
+	privateTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
+		Subject:    privateTLSServerSubject,
+		ClientAuth: privateClientAuth,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to build private TLS server config: %w", err)
+	}
 
-		// Private server: TLS 1.3 only with optional mTLS for internal service-to-service communication.
-		// In production, uses RequireAndVerifyClientCert to enforce mutual authentication on admin/internal APIs.
-		// In dev mode, uses NoClientCert for easier local development and testing.
-		privateClientAuth := tls.RequireAndVerifyClientCert
-		if settings.DevMode {
-			privateClientAuth = tls.NoClientCert
-		}
-
-		privateTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
-			Subject:    privateTLSServerSubject,
-			ClientAuth: privateClientAuth,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to build private TLS server config: %w", err)
-		}
-
-		privateTLSServer = &TLSServerConfig{
-			Certificate:         privateTLSConfig.Certificate,
-			RootCAsPool:         privateTLSConfig.RootCAsPool,
-			IntermediateCAsPool: privateTLSConfig.IntermediateCAsPool,
-			Config:              privateTLSConfig.TLSConfig,
-		}
+	privateTLSServer := &TLSServerConfig{
+		Certificate:         privateTLSConfig.Certificate,
+		RootCAsPool:         privateTLSConfig.RootCAsPool,
+		IntermediateCAsPool: privateTLSConfig.IntermediateCAsPool,
+		Config:              privateTLSConfig.TLSConfig,
 	}
 
 	// Common base middlewares shared by both private and public apps

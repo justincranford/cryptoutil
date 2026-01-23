@@ -31,6 +31,20 @@ type ApplicationCore struct {
 	Settings            *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
+// StartApplicationCoreWithServices initializes core application infrastructure AND all business services.
+// This is the proper place for service bootstrap logic (not in ServerBuilder).
+// Phase W: Moved from ServerBuilder.Build() to encapsulate bootstrap logic in application layer.
+func StartApplicationCoreWithServices(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ApplicationCoreWithServices, error) {
+	// Start core infrastructure (telemetry, JWK gen, unseal, database).
+	core, err := StartApplicationCore(ctx, settings)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start application core: %w", err)
+	}
+
+	// Initialize services on top of core infrastructure.
+	return InitializeServicesOnCore(ctx, core, settings)
+}
+
 // StartApplicationCore initializes core application infrastructure including database.
 // Automatically provisions database based on settings.DatabaseURL and settings.DatabaseContainer:
 // - SQLite in-memory: DatabaseURL="file::memory:?cache=shared"
@@ -89,20 +103,6 @@ type ApplicationCoreWithServices struct {
 	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
 	RotationService     *cryptoutilBarrier.RotationService
 	StatusService       *cryptoutilBarrier.StatusService
-}
-
-// StartApplicationCoreWithServices initializes core application infrastructure AND all business services.
-// This is the proper place for service bootstrap logic (not in ServerBuilder).
-// Phase W: Moved from ServerBuilder.Build() to encapsulate bootstrap logic in application layer.
-func StartApplicationCoreWithServices(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ApplicationCoreWithServices, error) {
-	// Start core infrastructure (telemetry, JWK gen, unseal, database).
-	core, err := StartApplicationCore(ctx, settings)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start application core: %w", err)
-	}
-
-	// Initialize services on top of core infrastructure.
-	return InitializeServicesOnCore(ctx, core, settings)
 }
 
 // InitializeServicesOnCore initializes all business logic services on an existing ApplicationCore.
