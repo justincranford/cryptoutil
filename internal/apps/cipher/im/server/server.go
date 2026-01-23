@@ -34,11 +34,13 @@ type CipherIMServer struct {
 	barrierService        *cryptoutilTemplateBarrier.BarrierService
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService          cryptoutilTemplateService.RealmService
+	registrationService   *cryptoutilTemplateBusinessLogic.TenantRegistrationService
 
 	// Repositories.
-	userRepo    *repository.UserRepository
-	messageRepo *repository.MessageRepository
-	realmRepo   cryptoutilTemplateRepository.TenantRealmRepository // Uses service-template repository.
+	userRepo                *repository.UserRepository
+	messageRepo             *repository.MessageRepository
+	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository
+	realmRepo               cryptoutilTemplateRepository.TenantRealmRepository // Uses service-template repository.
 }
 
 // NewFromConfig creates a new cipher-im server from CipherImServerSettings only.
@@ -99,19 +101,22 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	// Create cipher-im specific repositories for server struct.
 	userRepo := repository.NewUserRepository(resources.DB)
 	messageRepo := repository.NewMessageRepository(resources.DB)
+	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(resources.DB, resources.BarrierService)
 
 	// Create cipher-im server wrapper.
 	server := &CipherIMServer{
-		app:                   resources.Application,
-		db:                    resources.DB,
-		telemetryService:      resources.TelemetryService,
-		jwkGenService:         resources.JWKGenService,
-		barrierService:        resources.BarrierService,
-		sessionManagerService: resources.SessionManager,
-		realmService:          resources.RealmService,
-		userRepo:              userRepo,
-		messageRepo:           messageRepo,
-		realmRepo:             resources.RealmRepository,
+		app:                     resources.Application,
+		db:                      resources.DB,
+		telemetryService:        resources.TelemetryService,
+		jwkGenService:           resources.JWKGenService,
+		barrierService:          resources.BarrierService,
+		sessionManagerService:   resources.SessionManager,
+		realmService:            resources.RealmService,
+		registrationService:     resources.RegistrationService,
+		userRepo:                userRepo,
+		messageRepo:             messageRepo,
+		messageRecipientJWKRepo: messageRecipientJWKRepo,
+		realmRepo:               resources.RealmRepository,
 	}
 
 	return server, nil
@@ -193,4 +198,45 @@ func (s *CipherIMServer) PublicServerActualPort() int {
 // Useful when configured with port 0 for dynamic allocation.
 func (s *CipherIMServer) AdminServerActualPort() int {
 	return s.app.AdminPort()
+}
+
+// SessionManager returns the session manager service (for tests).
+func (s *CipherIMServer) SessionManager() *cryptoutilTemplateBusinessLogic.SessionManagerService {
+	return s.sessionManagerService
+}
+
+// RealmService returns the realm service (for tests).
+func (s *CipherIMServer) RealmService() cryptoutilTemplateService.RealmService {
+	return s.realmService
+}
+
+// RegistrationService returns the tenant registration service (for tests).
+func (s *CipherIMServer) RegistrationService() *cryptoutilTemplateBusinessLogic.TenantRegistrationService {
+	return s.registrationService
+}
+
+// BarrierService returns the barrier service (for tests).
+func (s *CipherIMServer) BarrierService() *cryptoutilTemplateBarrier.BarrierService {
+	return s.barrierService
+}
+
+// UserRepo returns the user repository (for tests).
+func (s *CipherIMServer) UserRepo() *repository.UserRepository {
+	return s.userRepo
+}
+
+// MessageRepo returns the message repository (for tests).
+func (s *CipherIMServer) MessageRepo() *repository.MessageRepository {
+	return s.messageRepo
+}
+
+// MessageRecipientJWKRepo returns the message recipient JWK repository (for tests).
+func (s *CipherIMServer) MessageRecipientJWKRepo() *repository.MessageRecipientJWKRepository {
+	return s.messageRecipientJWKRepo
+}
+
+// PublicServerBase returns the public server base for testing NewPublicServer.
+// This extracts the base from the Application's public server.
+func (s *CipherIMServer) PublicServerBase() *cryptoutilTemplateServer.PublicServerBase {
+	return s.app.PublicServerBase()
 }

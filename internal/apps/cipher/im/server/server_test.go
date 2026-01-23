@@ -63,6 +63,38 @@ func TestServer_AccessorMethods(t *testing.T) {
 			name:       "AdminServerActualPort() returns valid port number",
 			accessorFn: func() any { return testCipherIMServer.AdminServerActualPort() },
 		},
+		{
+			name:       "SessionManager() returns non-nil session manager service",
+			accessorFn: func() any { return testCipherIMServer.SessionManager() },
+		},
+		{
+			name:       "RealmService() returns non-nil realm service",
+			accessorFn: func() any { return testCipherIMServer.RealmService() },
+		},
+		{
+			name:       "RegistrationService() returns non-nil registration service",
+			accessorFn: func() any { return testCipherIMServer.RegistrationService() },
+		},
+		{
+			name:       "BarrierService() returns non-nil barrier service",
+			accessorFn: func() any { return testCipherIMServer.BarrierService() },
+		},
+		{
+			name:       "UserRepo() returns non-nil user repository",
+			accessorFn: func() any { return testCipherIMServer.UserRepo() },
+		},
+		{
+			name:       "MessageRepo() returns non-nil message repository",
+			accessorFn: func() any { return testCipherIMServer.MessageRepo() },
+		},
+		{
+			name:       "MessageRecipientJWKRepo() returns non-nil message recipient JWK repository",
+			accessorFn: func() any { return testCipherIMServer.MessageRecipientJWKRepo() },
+		},
+		{
+			name:       "PublicServerBase() returns non-nil public server base",
+			accessorFn: func() any { return testCipherIMServer.PublicServerBase() },
+		},
 	}
 
 	for _, tt := range tests {

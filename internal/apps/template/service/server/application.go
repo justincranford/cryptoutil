@@ -280,3 +280,13 @@ func (a *Application) SetReady(ready bool) {
 		a.adminServer.SetReady(ready)
 	}
 }
+
+// PublicServerBase returns the underlying PublicServerBase if the public server is of that type.
+// This is used for testing to access the base infrastructure.
+// Returns nil if the public server is not a *PublicServerBase (e.g., a mock).
+func (a *Application) PublicServerBase() *PublicServerBase {
+	if base, ok := a.publicServer.(*PublicServerBase); ok {
+		return base
+	}
+	return nil
+}

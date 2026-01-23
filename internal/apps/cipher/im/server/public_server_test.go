@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"cryptoutil/internal/apps/cipher/im/server"
 )
 
 // TestPublicServer_PublicBaseURL tests the PublicBaseURL accessor method.
@@ -22,28 +24,128 @@ func TestPublicServer_PublicBaseURL(t *testing.T) {
 	require.Contains(t, publicURL, "127.0.0.1:", "Public base URL should bind to 127.0.0.1")
 }
 
-// TestNewPublicServer_ErrorHandling tests NewPublicServer validation logic.
-// These tests verify that NewPublicServer rejects nil parameters correctly.
-func TestNewPublicServer_ErrorHandling(t *testing.T) {
+// TestNewPublicServer_NilBase tests that NewPublicServer rejects nil base parameter.
+func TestNewPublicServer_NilBase(t *testing.T) {
 	t.Parallel()
 
-	// This test cannot directly call NewPublicServer because it's called internally
-	// by ServerBuilder during NewFromConfig.
-	// Instead, we test error handling by creating servers with invalid configurations.
-	//
-	// The nil parameter checks in NewPublicServer are tested indirectly through
-	// NewFromConfig error paths when builder fails to provide required services.
-	//
-	// Given that NewPublicServer has 44.1% coverage (12 of 27 lines) and is called
-	// exclusively by the ServerBuilder (not exposed for direct testing), the uncovered
-	// lines are likely the nil parameter checks that are unreachable in normal operation.
-	//
-	// These checks serve as defensive programming against programming errors during
-	// development, not runtime errors from user input.
-	//
-	// NOTE: This test exists to document why NewPublicServer cannot reach 100% coverage
-	// without refactoring the ServerBuilder pattern to expose NewPublicServer publicly
-	// (which would violate encapsulation).
+	_, err := server.NewPublicServer(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "public server base cannot be nil")
+}
 
-	t.Skip("NewPublicServer error handling tested via ServerBuilder integration tests")
+// TestNewPublicServer_NilSessionManager tests that NewPublicServer rejects nil session manager.
+func TestNewPublicServer_NilSessionManager(t *testing.T) {
+	t.Parallel()
+
+	// Get working base from the test server.
+	base := testCipherIMServer.PublicServerBase()
+
+	_, err := server.NewPublicServer(base, nil, nil, nil, nil, nil, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "session manager service cannot be nil")
+}
+
+// TestNewPublicServer_NilRealmService tests that NewPublicServer rejects nil realm service.
+func TestNewPublicServer_NilRealmService(t *testing.T) {
+	t.Parallel()
+
+	base := testCipherIMServer.PublicServerBase()
+	sessionMgr := testCipherIMServer.SessionManager()
+
+	_, err := server.NewPublicServer(base, sessionMgr, nil, nil, nil, nil, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "realm service cannot be nil")
+}
+
+// TestNewPublicServer_NilRegistrationService tests that NewPublicServer rejects nil registration service.
+func TestNewPublicServer_NilRegistrationService(t *testing.T) {
+	t.Parallel()
+
+	base := testCipherIMServer.PublicServerBase()
+	sessionMgr := testCipherIMServer.SessionManager()
+	realmSvc := testCipherIMServer.RealmService()
+
+	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, nil, nil, nil, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "registration service cannot be nil")
+}
+
+// TestNewPublicServer_NilUserRepo tests that NewPublicServer rejects nil user repository.
+func TestNewPublicServer_NilUserRepo(t *testing.T) {
+	t.Parallel()
+
+	base := testCipherIMServer.PublicServerBase()
+	sessionMgr := testCipherIMServer.SessionManager()
+	realmSvc := testCipherIMServer.RealmService()
+	regSvc := testCipherIMServer.RegistrationService()
+
+	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, nil, nil, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "user repository cannot be nil")
+}
+
+// TestNewPublicServer_NilMessageRepo tests that NewPublicServer rejects nil message repository.
+func TestNewPublicServer_NilMessageRepo(t *testing.T) {
+	t.Parallel()
+
+	base := testCipherIMServer.PublicServerBase()
+	sessionMgr := testCipherIMServer.SessionManager()
+	realmSvc := testCipherIMServer.RealmService()
+	regSvc := testCipherIMServer.RegistrationService()
+	userRepo := testCipherIMServer.UserRepo()
+
+	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, nil, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "message repository cannot be nil")
+}
+
+// TestNewPublicServer_NilMessageRecipientJWKRepo tests that NewPublicServer rejects nil JWK repository.
+func TestNewPublicServer_NilMessageRecipientJWKRepo(t *testing.T) {
+	t.Parallel()
+
+	base := testCipherIMServer.PublicServerBase()
+	sessionMgr := testCipherIMServer.SessionManager()
+	realmSvc := testCipherIMServer.RealmService()
+	regSvc := testCipherIMServer.RegistrationService()
+	userRepo := testCipherIMServer.UserRepo()
+	msgRepo := testCipherIMServer.MessageRepo()
+
+	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, nil, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "message recipient JWK repository cannot be nil")
+}
+
+// TestNewPublicServer_NilJWKGenService tests that NewPublicServer rejects nil JWK generation service.
+func TestNewPublicServer_NilJWKGenService(t *testing.T) {
+	t.Parallel()
+
+	base := testCipherIMServer.PublicServerBase()
+	sessionMgr := testCipherIMServer.SessionManager()
+	realmSvc := testCipherIMServer.RealmService()
+	regSvc := testCipherIMServer.RegistrationService()
+	userRepo := testCipherIMServer.UserRepo()
+	msgRepo := testCipherIMServer.MessageRepo()
+	jwkRepo := testCipherIMServer.MessageRecipientJWKRepo()
+
+	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, nil, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "JWK generation service cannot be nil")
+}
+
+// TestNewPublicServer_NilBarrierService tests that NewPublicServer rejects nil barrier service.
+func TestNewPublicServer_NilBarrierService(t *testing.T) {
+	t.Parallel()
+
+	base := testCipherIMServer.PublicServerBase()
+	sessionMgr := testCipherIMServer.SessionManager()
+	realmSvc := testCipherIMServer.RealmService()
+	regSvc := testCipherIMServer.RegistrationService()
+	userRepo := testCipherIMServer.UserRepo()
+	msgRepo := testCipherIMServer.MessageRepo()
+	jwkRepo := testCipherIMServer.MessageRecipientJWKRepo()
+	jwkGenSvc := testCipherIMServer.JWKGen()
+
+	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, jwkGenSvc, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "barrier service cannot be nil")
 }
