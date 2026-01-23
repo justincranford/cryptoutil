@@ -51,3 +51,48 @@ func TestJoseJAServer_PortAllocation(t *testing.T) {
 	require.Contains(t, testPublicBaseURL, fmt.Sprintf(":%d", publicPort), "public base URL should contain allocated port")
 	require.Contains(t, testAdminBaseURL, fmt.Sprintf(":%d", adminPort), "admin base URL should contain allocated port")
 }
+
+func TestJoseJAServer_Accessors(t *testing.T) {
+	// Test all accessor methods for coverage.
+	// These are simple getters but need explicit test coverage.
+
+	// DB accessor.
+	db := testServer.DB()
+	require.NotNil(t, db, "DB() should return non-nil database connection")
+
+	// App accessor.
+	app := testServer.App()
+	require.NotNil(t, app, "App() should return non-nil application wrapper")
+
+	// JWKGen accessor.
+	jwkGen := testServer.JWKGen()
+	require.NotNil(t, jwkGen, "JWKGen() should return non-nil JWK generation service")
+
+	// Telemetry accessor.
+	telemetry := testServer.Telemetry()
+	require.NotNil(t, telemetry, "Telemetry() should return non-nil telemetry service")
+
+	// Barrier accessor.
+	barrier := testServer.Barrier()
+	require.NotNil(t, barrier, "Barrier() should return non-nil barrier service")
+
+	// PublicServerActualPort - duplicate of PublicPort but different method.
+	publicActualPort := testServer.PublicServerActualPort()
+	require.Greater(t, publicActualPort, 0, "PublicServerActualPort() should return allocated port")
+	require.Equal(t, testServer.PublicPort(), publicActualPort, "PublicServerActualPort() should match PublicPort()")
+
+	// AdminServerActualPort - duplicate of AdminPort but different method.
+	adminActualPort := testServer.AdminServerActualPort()
+	require.Greater(t, adminActualPort, 0, "AdminServerActualPort() should return allocated port")
+	require.Equal(t, testServer.AdminPort(), adminActualPort, "AdminServerActualPort() should match AdminPort()")
+
+	// PublicBaseURL accessor.
+	publicBaseURL := testServer.PublicBaseURL()
+	require.NotEmpty(t, publicBaseURL, "PublicBaseURL() should return non-empty URL")
+	require.Contains(t, publicBaseURL, "https://", "PublicBaseURL() should be HTTPS")
+
+	// AdminBaseURL accessor.
+	adminBaseURL := testServer.AdminBaseURL()
+	require.NotEmpty(t, adminBaseURL, "AdminBaseURL() should return non-empty URL")
+	require.Contains(t, adminBaseURL, "https://", "AdminBaseURL() should be HTTPS")
+}
