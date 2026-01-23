@@ -50,8 +50,10 @@ func TestHTTPGet(t *testing.T) {
 		errChan <- srv.Start(ctx)
 	}()
 
-	// Wait for servers to be ready.
-	time.Sleep(500 * time.Millisecond)
+	// Wait for server to be ready using polling pattern.
+	require.Eventually(t, func() bool {
+		return srv.PublicPort() > 0
+	}, 10*time.Second, 100*time.Millisecond, "server should allocate port")
 
 	// Get actual ports.
 	publicPort := srv.PublicPort()
@@ -135,8 +137,10 @@ func TestHTTPPost(t *testing.T) {
 		errChan <- srv.Start(ctx)
 	}()
 
-	// Wait for servers to be ready.
-	time.Sleep(500 * time.Millisecond)
+	// Wait for server to be ready using polling pattern.
+	require.Eventually(t, func() bool {
+		return srv.AdminPort() > 0
+	}, 10*time.Second, 100*time.Millisecond, "server should allocate port")
 
 	// Get actual ports.
 	adminPort := srv.AdminPort()

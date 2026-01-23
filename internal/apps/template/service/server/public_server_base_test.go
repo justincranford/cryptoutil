@@ -412,8 +412,13 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 		errChan <- server.Start(ctx)
 	}()
 
-	// Give server time to start.
-	time.Sleep(100 * time.Millisecond)
+	// Wait for server to be ready using polling pattern.
+	waitCtx, waitCancel := context.WithTimeout(ctx, 10*time.Second)
+	defer waitCancel()
+
+	require.Eventually(t, func() bool {
+		return server.ActualPort() > 0
+	}, 10*time.Second, 100*time.Millisecond, "server should allocate port")
 
 	// Make actual HTTPS request to running server.
 	actualPort := server.ActualPort()
@@ -425,7 +430,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 	healthURL := server.PublicBaseURL() + "/service/api/v1/health"
 
 	// Use http.NewRequestWithContext for proper context handling.
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+	req, err := http.NewRequestWithContext(waitCtx, http.MethodGet, healthURL, nil)
 	require.NoError(t, err)
 
 	resp, err := client.Do(req)

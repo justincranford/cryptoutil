@@ -18,6 +18,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Timeout constants for test operations.
+const (
+	readyTimeout    = 10 * time.Second
+	checkInterval   = 100 * time.Millisecond
+	shutdownTimeout = 5 * time.Second
+)
+
 // testServer is the shared server instance for all tests.
 var testServer *server.RPServer //nolint:gochecknoglobals
 
@@ -53,8 +60,11 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	// Wait for server to be ready.
-	time.Sleep(500 * time.Millisecond)
+	// Wait for server to be ready using polling pattern.
+	if readyErr := waitForReady(ctx, testServer); readyErr != nil {
+		fmt.Fprintf(os.Stderr, "Server not ready: %v\n", readyErr)
+		os.Exit(1)
+	}
 
 	// Capture base URLs.
 	testPublicBaseURL = testServer.PublicBaseURL()
@@ -78,7 +88,7 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	// Shutdown server.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
 	if shutdownErr := testServer.Shutdown(shutdownCtx); shutdownErr != nil {
@@ -86,6 +96,27 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(exitCode)
+}
+
+// waitForReady waits for the server to be ready by polling port allocation.
+func waitForReady(ctx context.Context, srv *server.RPServer) error {
+	deadline := time.Now().Add(readyTimeout)
+
+	for time.Now().Before(deadline) {
+		// Check if public port is allocated.
+		if srv.PublicPort() > 0 {
+			return nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("context cancelled while waiting for server: %w", ctx.Err())
+		default:
+			time.Sleep(checkInterval)
+		}
+	}
+
+	return context.DeadlineExceeded
 }
 
 // requireTestSetup verifies test infrastructure is available.
