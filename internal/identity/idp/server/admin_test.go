@@ -86,11 +86,8 @@ func TestAdminServerLifecycle(t *testing.T) {
 			}
 		}()
 
-		// Wait for server to be ready.
-		time.Sleep(200 * time.Millisecond)
-
-		// Verify server is running.
-		port := server.ActualPort()
+		// Wait for server to start and get port (polling avoids race condition).
+		port := waitForAdminPort(t, server, 5*time.Second)
 		require.NotZero(t, port)
 
 		// Shutdown server.
@@ -166,11 +163,8 @@ func TestAdminServerActualPort(t *testing.T) {
 			_ = server.Start(ctx)
 		}()
 
-		// Wait for server to be ready.
-		time.Sleep(200 * time.Millisecond)
-
-		// Should succeed after Start.
-		port := server.ActualPort()
+		// Wait for server to start and get port (polling avoids race condition).
+		port := waitForAdminPort(t, server, 5*time.Second)
 		require.NotZero(t, port)
 
 		// Cleanup.
@@ -194,10 +188,8 @@ func TestAdminEndpointLivez(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready.
-	time.Sleep(200 * time.Millisecond)
-
-	port := server.ActualPort()
+	// Wait for server to start and get port (polling avoids race condition).
+	port := waitForAdminPort(t, server, 5*time.Second)
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 
@@ -254,16 +246,14 @@ func TestAdminEndpointReadyz(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready.
-	time.Sleep(200 * time.Millisecond)
-
-	port := server.ActualPort()
+	// Wait for server to start and get port (polling avoids race condition).
+	port := waitForAdminPort(t, server, 5*time.Second)
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 
 	t.Run("ReadyzBeforeReady", func(t *testing.T) {
 		// Server starts not ready by default.
-		statusCode, body := doAdminGet(t, baseURL+"/admin/v1/readyz")
+		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/readyz")
 
 		var response map[string]any
 
@@ -322,10 +312,8 @@ func TestAdminEndpointShutdown(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready.
-	time.Sleep(200 * time.Millisecond)
-
-	port := server.ActualPort()
+	// Wait for server to start and get port (polling avoids race condition).
+	port := waitForAdminPort(t, server, 5*time.Second)
 
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
 
@@ -340,6 +328,26 @@ func TestAdminEndpointShutdown(t *testing.T) {
 		require.Equal(t, "shutdown initiated", response["status"])
 		// Server is shutting down asynchronously - don't test livez after shutdown.
 	})
+}
+
+// waitForAdminPort polls for the admin server to start and return a valid port.
+// This avoids race conditions where ActualPort() returns 0 before the server is ready.
+func waitForAdminPort(t *testing.T, server *AdminServer, timeout time.Duration) int {
+	t.Helper()
+
+	deadline := time.Now().Add(timeout)
+
+	for time.Now().Before(deadline) {
+		if port := server.ActualPort(); port > 0 {
+			return port
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	t.Fatalf("admin server did not start within %v", timeout)
+
+	return 0
 }
 
 // doAdminGet performs GET request with TLS verification disabled.
