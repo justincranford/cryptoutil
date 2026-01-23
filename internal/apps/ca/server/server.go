@@ -72,9 +72,9 @@ type CAServer struct {
 // Uses service-template builder for infrastructure initialization.
 func NewFromConfig(ctx context.Context, cfg *config.CAServerSettings) (*CAServer, error) {
 	if ctx == nil {
-		return nil, fmt.Errorf("context cannot be nil")
+		return nil, fmt.Errorf("context is required")
 	} else if cfg == nil {
-		return nil, fmt.Errorf("config cannot be nil")
+		return nil, fmt.Errorf("settings is required")
 	}
 
 	// Initialize CA-specific services before builder (needed for route registration).
