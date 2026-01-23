@@ -559,30 +559,56 @@
 
 ---
 
-### X.2 Cipher-IM High Coverage
+### X.2 Cipher-IM High Coverage **BLOCKED - Docker Desktop Dependency**
 
-- [ ] X.2.1 Fix test failure: TestInitDatabase_HappyPaths
+- [ ] X.2.1 Fix test failure: TestInitDatabase_HappyPaths **BLOCKED - Docker Desktop Dependency**
 
-  **Current Issue**: Test failing in cipher-im package
-  **Action**: Debug and fix failing test
+  **Current Issue**: 2 tests require Docker Desktop running on Windows
+  
+  **Failures**:
+  1. TestInitDatabase_HappyPaths/PostgreSQL_Container
+     - Error: "panic: rootless Docker is not supported on Windows"
+     - Tool: testcontainers-go v0.40.0
+     - Requires: Docker Desktop running (named pipe `//./pipe/dockerDesktopLinuxEngine`)
+  
+  2. cipher-im/e2e tests
+     - Error: "unable to get image 'cipher-im:local'"
+     - Error: "open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified"
+     - Cause: Docker compose cannot connect to Docker Desktop
+  
+  **Core tests status**: ✅ ALL PASSING (client, domain, repository, server/config, integration)
+  
+  **Impact**: LOW (cipher-im specific, does NOT block other products)
+  
+  **Workaround Options**:
+  - Option A: Start Docker Desktop manually (unblocks these 2 tests)
+  - Option B: Skip Docker-dependent tests (accept limitation for local testing)
+  - Option C: Defer to CI/CD environment (Linux with Docker)
+  
+  **Status**: ❌ BLOCKED (external dependency - Docker Desktop not running)
+  
+  **Evidence**: See DETAILED.md entry 2026-01-24 (Docker dependency analysis)
 
-- [ ] X.2.2 Cipher-IM tests high coverage (85% → 95%)
+- [ ] X.2.2 Cipher-IM tests high coverage (85% → 95%) **BLOCKED pending X.2.1 resolution**
 
-  **Before testing**:
-  1. Run tests with code coverage: `go test -coverprofile=test-output/cipher_highcov.out ./internal/apps/cipher/...`
-  2. Analyze coverage report: `go tool cover -func=test-output/cipher_highcov.out`
-  3. Identify missed lines and branches
-  4. Focus on table-driven tests:
+  **Note**: Cannot proceed with coverage improvement until Docker-dependent tests pass
+  
+  **Before testing** (when Docker Desktop available):
+  1. Start Docker Desktop
+  2. Run tests with code coverage: `go test -coverprofile=test-output/cipher_highcov.out ./internal/apps/cipher/...`
+  3. Analyze coverage report: `go tool cover -func=test-output/cipher_highcov.out`
+  4. Identify missed lines and branches
+  5. Focus on table-driven tests:
      - Create new table-driven tests for uncovered scenarios
      - Refactor existing tests into table-driven format
      - Enhance existing table-driven tests with additional cases
-  5. Cover the missed lines and branches
+  6. Cover the missed lines and branches
 
   **Target**: ≥95% coverage (production code)
 
-- [ ] X.2.3 Validation: ≥95% production, ≥98% infrastructure
+- [ ] X.2.3 Validation: ≥95% production, ≥98% infrastructure **BLOCKED pending X.2.2**
 
-**Evidence**: All tests pass, coverage ≥95%, comprehensive test suite
+**Evidence**: Pending Docker Desktop resolution
 
 ---
 
