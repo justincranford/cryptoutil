@@ -347,3 +347,44 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 		StaticKeyPEM:  privateKeyPEM,
 	}, nil
 }
+
+// GenerateTestCA creates a test CA certificate and private key for use in mixed mode tests.
+// Returns CA certificate PEM, CA private key PEM, and any error.
+func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
+	// Generate CA key pair using ECDSA P-384.
+	caKeyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate CA key pair: %w", err)
+	}
+
+	// Create 1-tier CA (just a root CA for simplicity in tests).
+	duration := time.Duration(cryptoutilMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilMagic.HoursPerDay * time.Hour
+
+	caSubjects, err := cryptoutilCertificate.CreateCASubjects([]*cryptoutilKeyGen.KeyPair{caKeyPair}, "Test CA", duration)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create CA subjects: %w", err)
+	}
+
+	// Get the CA certificate.
+	ca := caSubjects[0]
+	caCert := ca.KeyMaterial.CertificateChain[0]
+
+	// Encode CA certificate to PEM.
+	caCertPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  pemTypeCertificate,
+		Bytes: caCert.Raw,
+	})
+
+	// Encode CA private key to PKCS8 PEM.
+	caKeyBytes, err := x509.MarshalPKCS8PrivateKey(caKeyPair.Private)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal CA private key: %w", err)
+	}
+
+	caKeyPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: caKeyBytes,
+	})
+
+	return caCertPEM, caKeyPEM, nil
+}
