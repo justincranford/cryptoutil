@@ -15,8 +15,8 @@ import (
 	_ "modernc.org/sqlite"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestPublicServerBase_StartContextCancellation tests Start when context is canceled before server runs.
@@ -235,4 +235,3 @@ func TestApplication_StartContextCancellation(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "application startup cancelled")
 }
-

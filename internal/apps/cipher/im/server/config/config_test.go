@@ -173,3 +173,10 @@ func TestNewTestConfig_MessageJWEAlgorithm(t *testing.T) {
 	require.NotEmpty(t, settings.MessageJWEAlgorithm)
 	require.Equal(t, cryptoutilSharedMagic.CipherJWEAlgorithm, settings.MessageJWEAlgorithm)
 }
+
+// NOTE: Testing validation error paths in Parse() is not feasible because:
+// 1. pflag uses global state (CommandLine FlagSet) that can only be parsed once
+// 2. viper merges config file values with defaults, so invalid YAML values get overwritten
+// 3. The comment in config.go explains: "defaults are always valid"
+// Validation logic is indirectly tested through integration tests and the TestParse_HappyPath
+// which validates that Parse() succeeds with valid defaults.

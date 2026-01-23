@@ -46,5 +46,3 @@ func TestSessionRequestResponseTypes(t *testing.T) {
 	validateResp.Valid = true
 	require.True(t, validateResp.Valid)
 }
-
-
