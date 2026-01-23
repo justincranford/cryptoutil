@@ -474,3 +474,109 @@ func TestContentKeysService_Shutdown(t *testing.T) {
 	service.Shutdown()
 	service.Shutdown()
 }
+
+// TestNewRotationService_ValidationErrors tests constructor validation paths.
+func TestNewRotationService_ValidationErrors(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create valid dependencies for testing.
+	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	tests := []struct {
+		name               string
+		jwkGenService      *cryptoutilJose.JWKGenService
+		repository         cryptoutilTemplateBarrier.BarrierRepository
+		unsealKeysService  cryptoutilUnsealKeysService.UnsealKeysService
+		expectedErrContain string
+	}{
+		{
+			name:               "nil jwk gen service",
+			jwkGenService:      nil,
+			repository:         repo,
+			unsealKeysService:  unsealSvc,
+			expectedErrContain: "jwkGenService must be non-nil",
+		},
+		{
+			name:               "nil repository",
+			jwkGenService:      jwkGenSvc,
+			repository:         nil,
+			unsealKeysService:  unsealSvc,
+			expectedErrContain: "repository must be non-nil",
+		},
+		{
+			name:               "nil unseal keys service",
+			jwkGenService:      jwkGenSvc,
+			repository:         repo,
+			unsealKeysService:  nil,
+			expectedErrContain: "unsealKeysService must be non-nil",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			service, err := cryptoutilTemplateBarrier.NewRotationService(
+				tt.jwkGenService,
+				tt.repository,
+				tt.unsealKeysService,
+			)
+			require.Error(t, err)
+			require.Nil(t, service)
+			require.Contains(t, err.Error(), tt.expectedErrContain)
+		})
+	}
+}
+
+// TestNewRotationService_Success tests successful construction.
+func TestNewRotationService_Success(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	service, err := cryptoutilTemplateBarrier.NewRotationService(jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	require.NotNil(t, service)
+}
