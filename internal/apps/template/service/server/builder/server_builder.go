@@ -16,12 +16,14 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilTemplateApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -33,6 +35,7 @@ type ServiceResources struct {
 	DB                  *gorm.DB
 	TelemetryService    *cryptoutilTelemetry.TelemetryService
 	JWKGenService       *cryptoutilJose.JWKGenService
+	UnsealKeysService   cryptoutilUnsealKeysService.UnsealKeysService
 	BarrierService      *cryptoutilBarrier.BarrierService
 	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
 	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
@@ -144,76 +147,25 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
-	// Start application core (telemetry, JWK gen, unseal, database).
-	core, err := cryptoutilTemplateServer.StartApplicationCore(b.ctx, b.config)
+	// Phase W: Start application core WITH services (moved from Build() to ApplicationCore).
+	services, err := cryptoutilTemplateApplication.StartApplicationCoreWithServices(b.ctx, b.config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start application core: %w", err)
+		return nil, fmt.Errorf("failed to start application core with services: %w", err)
 	}
 
 	// Apply migrations (template + domain merged into single migration stream).
-	sqlDB, err := core.DB.DB()
+	sqlDB, err := services.Core.DB.DB()
 	if err != nil {
-		core.Shutdown()
+		services.Core.Shutdown()
 
 		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
 	}
 
 	if err := b.applyMigrations(sqlDB); err != nil {
-		core.Shutdown()
+		services.Core.Shutdown()
 
 		return nil, err
 	}
-
-	// Create barrier repository and service.
-	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(core.DB)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create barrier repository: %w", err)
-	}
-
-	barrierService, err := cryptoutilBarrier.NewBarrierService(
-		b.ctx,
-		core.Basic.TelemetryService,
-		core.Basic.JWKGenService,
-		barrierRepo,
-		core.Basic.UnsealKeysService,
-	)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create barrier service: %w", err)
-	}
-
-	// Create realm repository and service.
-	realmRepo := cryptoutilTemplateRepository.NewTenantRealmRepository(core.DB)
-	realmService := cryptoutilTemplateService.NewRealmService(realmRepo)
-
-	// Create session manager service.
-	sessionManager, err := cryptoutilTemplateBusinessLogic.NewSessionManagerService(
-		b.ctx,
-		core.DB,
-		core.Basic.TelemetryService,
-		core.Basic.JWKGenService,
-		barrierService,
-		b.config,
-	)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create session manager service: %w", err)
-	}
-
-	// Create tenant registration service and dependencies.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(core.DB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(core.DB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(core.DB)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
-		core.DB,
-		tenantRepo,
-		userRepo,
-		joinRequestRepo,
-	)
 
 	// Generate public TLS configuration.
 	publicTLSCfg, err := b.generateTLSConfig(
@@ -227,7 +179,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		"public",
 	)
 	if err != nil {
-		core.Shutdown()
+		services.Core.Shutdown()
 
 		return nil, err
 	}
@@ -235,7 +187,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	// Generate TLS material for public server.
 	publicTLSMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(publicTLSCfg)
 	if err != nil {
-		core.Shutdown()
+		services.Core.Shutdown()
 
 		return nil, fmt.Errorf("failed to generate public TLS material: %w", err)
 	}
@@ -247,29 +199,30 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		TLSMaterial: publicTLSMaterial,
 	})
 	if err != nil {
-		core.Shutdown()
+		services.Core.Shutdown()
 
 		return nil, fmt.Errorf("failed to create public server base: %w", err)
 	}
 
 	// Prepare service resources for domain-specific initialization.
 	resources := &ServiceResources{
-		DB:                  core.DB,
-		TelemetryService:    core.Basic.TelemetryService,
-		JWKGenService:       core.Basic.JWKGenService,
-		BarrierService:      barrierService,
-		SessionManager:      sessionManager,
-		RegistrationService: registrationService,
-		RealmService:        realmService,
-		RealmRepository:     realmRepo,
-		ShutdownCore:        core.Shutdown,
-		ShutdownContainer:   core.ShutdownDBContainer,
+		DB:                  services.Core.DB,
+		TelemetryService:    services.Core.Basic.TelemetryService,
+		JWKGenService:       services.Core.Basic.JWKGenService,
+		UnsealKeysService:   services.Core.Basic.UnsealKeysService,
+		BarrierService:      services.BarrierService,
+		SessionManager:      services.SessionManager,
+		RegistrationService: services.RegistrationService,
+		RealmService:        services.RealmService,
+		RealmRepository:     services.RealmRepository,
+		ShutdownCore:        services.Core.Shutdown,
+		ShutdownContainer:   services.Core.ShutdownDBContainer,
 	}
 
 	// Register domain-specific public routes if provided.
 	if b.publicRouteRegister != nil {
 		if err := b.publicRouteRegister(publicServerBase, resources); err != nil {
-			core.Shutdown()
+			services.Core.Shutdown()
 
 			return nil, fmt.Errorf("failed to register public routes: %w", err)
 		}
@@ -277,38 +230,20 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 
 	// Register tenant registration routes on PUBLIC server (unauthenticated user registration).
 	// Default rate limit configured via magic constant.
-	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(publicServerBase.App(), registrationService, cryptoutilMagic.RateLimitDefaultRequestsPerMin)
+	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(publicServerBase.App(), services.RegistrationService, cryptoutilMagic.RateLimitDefaultRequestsPerMin)
 
 	// Register join request management routes on ADMIN server (authenticated admin operations).
-	cryptoutilTemplateAPIs.RegisterJoinRequestManagementRoutes(adminServer.App(), registrationService)
+	cryptoutilTemplateAPIs.RegisterJoinRequestManagementRoutes(adminServer.App(), services.RegistrationService)
 
 	// Register barrier admin endpoints (key rotation, status) on ADMIN server.
-	rotationService, err := cryptoutilBarrier.NewRotationService(
-		core.Basic.JWKGenService,
-		barrierRepo,
-		core.Basic.UnsealKeysService,
-	)
-	if err != nil {
-		core.Shutdown()
+	cryptoutilBarrier.RegisterRotationRoutes(adminServer.App(), services.RotationService)
 
-		return nil, fmt.Errorf("failed to create rotation service: %w", err)
-	}
-
-	cryptoutilBarrier.RegisterRotationRoutes(adminServer.App(), rotationService)
-
-	statusService, err := cryptoutilBarrier.NewStatusService(barrierRepo)
-	if err != nil {
-		core.Shutdown()
-
-		return nil, fmt.Errorf("failed to create status service: %w", err)
-	}
-
-	cryptoutilBarrier.RegisterStatusRoutes(adminServer.App(), statusService)
+	cryptoutilBarrier.RegisterStatusRoutes(adminServer.App(), services.StatusService)
 
 	// Create application wrapper with both servers.
 	app, err := cryptoutilTemplateServer.NewApplication(b.ctx, publicServerBase, adminServer)
 	if err != nil {
-		core.Shutdown()
+		services.Core.Shutdown()
 
 		return nil, fmt.Errorf("failed to create application: %w", err)
 	}
