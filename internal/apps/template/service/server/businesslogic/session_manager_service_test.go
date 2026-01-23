@@ -8,10 +8,116 @@ import (
 	"testing"
 
 	googleUuid "github.com/google/uuid"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 
+	_ "modernc.org/sqlite" // CGO-free SQLite driver
+
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
+
+// setupTelemetryService creates a TelemetryService for testing.
+func setupTelemetryService(t *testing.T) *cryptoutilTelemetry.TelemetryService {
+	t.Helper()
+
+	ctx := context.Background()
+	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		telemetrySvc.Shutdown()
+	})
+
+	return telemetrySvc
+}
+
+// setupJWKGenService creates a JWKGenService for testing.
+func setupJWKGenService(t *testing.T, telemetrySvc *cryptoutilTelemetry.TelemetryService) *cryptoutilJose.JWKGenService {
+	t.Helper()
+
+	ctx := context.Background()
+	jwkGenSvc, err := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		jwkGenSvc.Shutdown()
+	})
+
+	return jwkGenSvc
+}
+
+// setupBarrierService creates a BarrierService for testing.
+func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTelemetry.TelemetryService, jwkGenSvc *cryptoutilJose.JWKGenService) *cryptoutilTemplateBarrier.BarrierService {
+	t.Helper()
+
+	ctx := context.Background()
+
+	// Create barrier tables.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	schema := `
+	CREATE TABLE IF NOT EXISTS barrier_root_keys (
+		uuid TEXT PRIMARY KEY,
+		encrypted TEXT NOT NULL,
+		kek_uuid TEXT,
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
+	CREATE TABLE IF NOT EXISTS barrier_intermediate_keys (
+		uuid TEXT PRIMARY KEY,
+		encrypted TEXT NOT NULL,
+		kek_uuid TEXT NOT NULL,
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
+	CREATE TABLE IF NOT EXISTS barrier_content_keys (
+		uuid TEXT PRIMARY KEY,
+		encrypted TEXT NOT NULL,
+		kek_uuid TEXT NOT NULL,
+		created_at INTEGER NOT NULL,
+		updated_at INTEGER NOT NULL
+	);
+	`
+
+	_, err = sqlDB.ExecContext(ctx, schema)
+	require.NoError(t, err)
+
+	// Create unseal JWK.
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		unsealService.Shutdown()
+	})
+
+	// Create barrier repository.
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		barrierRepo.Shutdown()
+	})
+
+	// Create barrier service.
+	barrierSvc, err := cryptoutilTemplateBarrier.NewBarrierService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealService)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		barrierSvc.Shutdown()
+	})
+
+	return barrierSvc
+}
 
 // TestNewSessionManagerService_NilContext tests that NewSessionManagerService returns an error when context is nil.
 func TestNewSessionManagerService_NilContext(t *testing.T) {
@@ -326,4 +432,52 @@ func TestSessionManagerService_CleanupExpiredSessions_Success(t *testing.T) {
 	err = svc.CleanupExpiredSessions(ctx)
 
 	require.NoError(t, err)
+}
+
+// TestNewSessionManagerService_NilJWKGenService tests that NewSessionManagerService returns an error when jwkGenService is nil.
+func TestNewSessionManagerService_NilJWKGenService(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := setupTestDB(t)
+	telemetrySvc := setupTelemetryService(t)
+
+	svc, err := NewSessionManagerService(ctx, db, telemetrySvc, nil, nil, nil)
+
+	require.Error(t, err)
+	require.Nil(t, svc)
+	require.Contains(t, err.Error(), "JWK generation service cannot be nil")
+}
+
+// TestNewSessionManagerService_NilBarrierService tests that NewSessionManagerService returns an error when barrierService is nil.
+func TestNewSessionManagerService_NilBarrierService(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := setupTestDB(t)
+	telemetrySvc := setupTelemetryService(t)
+	jwkGenSvc := setupJWKGenService(t, telemetrySvc)
+
+	svc, err := NewSessionManagerService(ctx, db, telemetrySvc, jwkGenSvc, nil, nil)
+
+	require.Error(t, err)
+	require.Nil(t, svc)
+	require.Contains(t, err.Error(), "barrier service cannot be nil")
+}
+
+// TestNewSessionManagerService_NilConfig tests that NewSessionManagerService returns an error when config is nil.
+func TestNewSessionManagerService_NilConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := setupTestDB(t)
+	telemetrySvc := setupTelemetryService(t)
+	jwkGenSvc := setupJWKGenService(t, telemetrySvc)
+	barrierSvc := setupBarrierService(t, db, telemetrySvc, jwkGenSvc)
+
+	svc, err := NewSessionManagerService(ctx, db, telemetrySvc, jwkGenSvc, barrierSvc, nil)
+
+	require.Error(t, err)
+	require.Nil(t, svc)
+	require.Contains(t, err.Error(), "config cannot be nil")
 }

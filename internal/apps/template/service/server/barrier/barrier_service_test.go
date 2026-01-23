@@ -429,3 +429,118 @@ func TestBarrierService_ConcurrentEncryption(t *testing.T) {
 		}
 	}
 }
+
+// TestNewBarrierService_ValidationErrors tests constructor validation paths.
+func TestNewBarrierService_ValidationErrors(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name               string
+		ctx                context.Context
+		telemetryService   *cryptoutilTelemetry.TelemetryService
+		jwkGenService      *cryptoutilJose.JWKGenService
+		repository         cryptoutilTemplateBarrier.BarrierRepository
+		unsealKeysService  cryptoutilUnsealKeysService.UnsealKeysService
+		expectedErrContain string
+	}{
+		{
+			name:               "nil context",
+			ctx:                nil,
+			telemetryService:   testTelemetryService,
+			jwkGenService:      testJWKGenService,
+			repository:         nil, // We'll use a mock.
+			unsealKeysService:  nil, // We'll use a mock.
+			expectedErrContain: "ctx must be non-nil",
+		},
+		{
+			name:               "nil telemetry service",
+			ctx:                ctx,
+			telemetryService:   nil,
+			jwkGenService:      testJWKGenService,
+			repository:         nil,
+			unsealKeysService:  nil,
+			expectedErrContain: "telemetryService must be non-nil",
+		},
+		{
+			name:               "nil jwk gen service",
+			ctx:                ctx,
+			telemetryService:   testTelemetryService,
+			jwkGenService:      nil,
+			repository:         nil,
+			unsealKeysService:  nil,
+			expectedErrContain: "jwkGenService must be non-nil",
+		},
+		{
+			name:               "nil repository",
+			ctx:                ctx,
+			telemetryService:   testTelemetryService,
+			jwkGenService:      testJWKGenService,
+			repository:         nil,
+			unsealKeysService:  nil,
+			expectedErrContain: "repository must be non-nil",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			service, err := cryptoutilTemplateBarrier.NewBarrierService(
+				tt.ctx,
+				tt.telemetryService,
+				tt.jwkGenService,
+				tt.repository,
+				tt.unsealKeysService,
+			)
+			require.Error(t, err)
+			require.Nil(t, service)
+			require.Contains(t, err.Error(), tt.expectedErrContain)
+		})
+	}
+}
+
+// TestNewBarrierService_NilUnsealService tests nil unseal service validation.
+func TestNewBarrierService_NilUnsealService(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create a valid repository for this test.
+	dbID, _ := googleUuid.NewV7()
+	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
+	validSQLDB, err := sql.Open("sqlite", dsn)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, validSQLDB.Close())
+	}()
+
+	_, err = validSQLDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
+	require.NoError(t, err)
+	_, err = validSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
+	require.NoError(t, err)
+	validSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	validSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	validSQLDB.SetConnMaxLifetime(0)
+
+	validDB, err := gorm.Open(sqlite.Dialector{Conn: validSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
+	require.NoError(t, err)
+
+	require.NoError(t, createBarrierTables(validSQLDB))
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(validDB)
+	require.NoError(t, err)
+	defer repo.Shutdown()
+
+	service, err := cryptoutilTemplateBarrier.NewBarrierService(
+		ctx,
+		testTelemetryService,
+		testJWKGenService,
+		repo,
+		nil, // nil unseal service
+	)
+	require.Error(t, err)
+	require.Nil(t, service)
+	require.Contains(t, err.Error(), "unsealKeysService must be non-nil")
+}
