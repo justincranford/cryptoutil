@@ -245,12 +245,19 @@ resources, err := builder.Build()
   - TelemetryService (*telemetry.TelemetryService)
   - JWKGenService (*jose.JWKGenService)
   - BarrierService (*barrier.BarrierService)
+  - UnsealKeysService (*barrier.UnsealKeysService) - **ADDED** to expose unseal keys management
   - SessionManager (*business_logic.SessionManagerService)
   - RealmService (service.RealmService)
   - RealmRepository (repository.TenantRealmRepository)
   - Application (*server.Application)
   - ShutdownCore (func())
   - ShutdownContainer (func())
+
+**Planned Refactoring** (Phase W):
+- Move service/repository bootstrap from `server_builder.go` to `ApplicationCore.StartApplicationCore()`
+- ServerBuilder focuses ONLY on HTTPS listeners and route registration
+- ApplicationCore handles all business logic initialization (repos, services, dependencies)
+- Improves separation of concerns and testability
 
 **Merged Migrations Pattern**:
 - Template migrations (1001-1999) + Domain migrations (2001+) combined via `mergedMigrations` fs.FS implementation
