@@ -580,3 +580,123 @@ func TestNewRotationService_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, service)
 }
+
+// TestGormBarrierRepository_AddRootKey_NilKey tests AddRootKey with nil key.
+func TestGormBarrierRepository_AddRootKey_NilKey(t *testing.T) {
+	t.Parallel()
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+		return tx.AddRootKey(nil)
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key must be non-nil")
+}
+
+// TestGormBarrierRepository_AddIntermediateKey_NilKey tests AddIntermediateKey with nil key.
+func TestGormBarrierRepository_AddIntermediateKey_NilKey(t *testing.T) {
+	t.Parallel()
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+		return tx.AddIntermediateKey(nil)
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key must be non-nil")
+}
+
+// TestGormBarrierRepository_AddContentKey_NilKey tests AddContentKey with nil key.
+func TestGormBarrierRepository_AddContentKey_NilKey(t *testing.T) {
+	t.Parallel()
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+		return tx.AddContentKey(nil)
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key must be non-nil")
+}
+
+// TestGormBarrierRepository_GetRootKey_NilUUID tests GetRootKey with nil UUID.
+func TestGormBarrierRepository_GetRootKey_NilUUID(t *testing.T) {
+	t.Parallel()
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	var rootKey *cryptoutilTemplateBarrier.BarrierRootKey
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+		var getErr error
+		rootKey, getErr = tx.GetRootKey(nil)
+		return getErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "uuid must be non-nil")
+	require.Nil(t, rootKey)
+}
+
+// TestGormBarrierRepository_GetIntermediateKey_NilUUID tests GetIntermediateKey with nil UUID.
+func TestGormBarrierRepository_GetIntermediateKey_NilUUID(t *testing.T) {
+	t.Parallel()
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	var intermediateKey *cryptoutilTemplateBarrier.BarrierIntermediateKey
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+		var getErr error
+		intermediateKey, getErr = tx.GetIntermediateKey(nil)
+		return getErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "uuid must be non-nil")
+	require.Nil(t, intermediateKey)
+}
+
+// TestGormBarrierRepository_GetContentKey_NilUUID tests GetContentKey with nil UUID.
+func TestGormBarrierRepository_GetContentKey_NilUUID(t *testing.T) {
+	t.Parallel()
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	var contentKey *cryptoutilTemplateBarrier.BarrierContentKey
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+		var getErr error
+		contentKey, getErr = tx.GetContentKey(nil)
+		return getErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "uuid must be non-nil")
+	require.Nil(t, contentKey)
+}
