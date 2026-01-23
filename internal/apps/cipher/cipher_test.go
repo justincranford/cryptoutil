@@ -215,3 +215,13 @@ func TestLearn_Constants(t *testing.T) {
 		})
 	}
 }
+
+// TestCipher_EntryPoint tests the public Cipher entry point.
+// This test ensures the entry point wrapper function is covered.
+func TestCipher_EntryPoint(t *testing.T) {
+	t.Parallel()
+
+	// Test help flag via public entry point.
+	exitCode := Cipher([]string{"--help"})
+	require.Equal(t, 0, exitCode)
+}
