@@ -59,7 +59,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 
 	serverApplicationCore.OrmRepository = ormRepository
 
-	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, serverApplicationBasic.UnsealKeysService)
+	barrierService, err := cryptoutilBarrierService.NewService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, serverApplicationBasic.UnsealKeysService)
 	if err != nil {
 		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
 		serverApplicationCore.Shutdown()

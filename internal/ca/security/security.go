@@ -93,8 +93,8 @@ type Control struct {
 	Status      string   `json:"status"`
 }
 
-// SecurityConfig defines security hardening configuration.
-type SecurityConfig struct {
+// Config defines security hardening configuration.
+type Config struct {
 	// MinRSAKeySize is the minimum RSA key size in bits.
 	MinRSAKeySize int `yaml:"min_rsa_key_size" json:"min_rsa_key_size"`
 
@@ -138,8 +138,8 @@ type Vulnerability struct {
 	FoundAt     time.Time `json:"found_at"`
 }
 
-// SecurityValidationResult contains results of security validation.
-type SecurityValidationResult struct {
+// ValidationResult contains results of security validation.
+type ValidationResult struct {
 	Valid           bool            `json:"valid"`
 	Errors          []string        `json:"errors"`
 	Warnings        []string        `json:"warnings"`
@@ -147,26 +147,26 @@ type SecurityValidationResult struct {
 	CheckedAt       time.Time       `json:"checked_at"`
 }
 
-// SecurityValidator validates certificates and keys against security policies.
-type SecurityValidator struct {
-	config *SecurityConfig
+// Validator validates certificates and keys against security policies.
+type Validator struct {
+	config *Config
 	mu     sync.RWMutex
 }
 
-// NewSecurityValidator creates a new security validator.
-func NewSecurityValidator(config *SecurityConfig) *SecurityValidator {
+// NewValidator creates a new security validator.
+func NewValidator(config *Config) *Validator {
 	if config == nil {
-		config = DefaultSecurityConfig()
+		config = DefaultConfig()
 	}
 
-	return &SecurityValidator{
+	return &Validator{
 		config: config,
 	}
 }
 
-// DefaultSecurityConfig returns a secure default configuration.
-func DefaultSecurityConfig() *SecurityConfig {
-	return &SecurityConfig{
+// DefaultConfig returns a secure default configuration.
+func DefaultConfig() *Config {
+	return &Config{
 		MinRSAKeySize: defaultMinRSAKeySize,
 		MinECKeySize:  defaultMinECKeySize,
 		AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{
@@ -189,7 +189,7 @@ func DefaultSecurityConfig() *SecurityConfig {
 }
 
 // ValidateCertificate validates a certificate against security policies.
-func (v *SecurityValidator) ValidateCertificate(_ context.Context, cert *x509.Certificate) (*SecurityValidationResult, error) {
+func (v *Validator) ValidateCertificate(_ context.Context, cert *x509.Certificate) (*ValidationResult, error) {
 	if cert == nil {
 		return nil, errors.New("certificate cannot be nil")
 	}
@@ -198,7 +198,7 @@ func (v *SecurityValidator) ValidateCertificate(_ context.Context, cert *x509.Ce
 	config := v.config
 	v.mu.RUnlock()
 
-	result := &SecurityValidationResult{
+	result := &ValidationResult{
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
@@ -233,7 +233,7 @@ func (v *SecurityValidator) ValidateCertificate(_ context.Context, cert *x509.Ce
 }
 
 // validateKeySize validates the certificate's key size.
-func (v *SecurityValidator) validateKeySize(cert *x509.Certificate, result *SecurityValidationResult) error {
+func (v *Validator) validateKeySize(cert *x509.Certificate, result *ValidationResult) error {
 	v.mu.RLock()
 	config := v.config
 	v.mu.RUnlock()
@@ -263,7 +263,7 @@ func (v *SecurityValidator) validateKeySize(cert *x509.Certificate, result *Secu
 }
 
 // validateSignatureAlgorithm validates the certificate's signature algorithm.
-func (v *SecurityValidator) validateSignatureAlgorithm(cert *x509.Certificate, config *SecurityConfig, result *SecurityValidationResult) {
+func (v *Validator) validateSignatureAlgorithm(cert *x509.Certificate, config *Config, result *ValidationResult) {
 	allowed := false
 
 	for _, alg := range config.AllowedSignatureAlgorithms {
@@ -282,7 +282,7 @@ func (v *SecurityValidator) validateSignatureAlgorithm(cert *x509.Certificate, c
 }
 
 // validateValidityPeriod validates the certificate's validity period.
-func (v *SecurityValidator) validateValidityPeriod(cert *x509.Certificate, config *SecurityConfig, result *SecurityValidationResult) {
+func (v *Validator) validateValidityPeriod(cert *x509.Certificate, config *Config, result *ValidationResult) {
 	validityDays := int(cert.NotAfter.Sub(cert.NotBefore).Hours() / hoursPerDay)
 
 	if validityDays > config.MaxCertValidityDays {
@@ -304,7 +304,7 @@ func (v *SecurityValidator) validateValidityPeriod(cert *x509.Certificate, confi
 }
 
 // validateExtensions validates required certificate extensions.
-func (v *SecurityValidator) validateExtensions(cert *x509.Certificate, config *SecurityConfig, result *SecurityValidationResult) {
+func (v *Validator) validateExtensions(cert *x509.Certificate, config *Config, result *ValidationResult) {
 	// Check key usage.
 	if config.RequireKeyUsage && cert.KeyUsage == 0 {
 		result.Warnings = append(result.Warnings, "certificate does not have key usage extension")
@@ -328,7 +328,7 @@ func (v *SecurityValidator) validateExtensions(cert *x509.Certificate, config *S
 }
 
 // checkWeakAlgorithms checks for use of weak cryptographic algorithms.
-func (v *SecurityValidator) checkWeakAlgorithms(cert *x509.Certificate, result *SecurityValidationResult) {
+func (v *Validator) checkWeakAlgorithms(cert *x509.Certificate, result *ValidationResult) {
 	weakAlgorithms := map[x509.SignatureAlgorithm]bool{
 		x509.MD2WithRSA:  true,
 		x509.MD5WithRSA:  true,
@@ -352,14 +352,14 @@ func (v *SecurityValidator) checkWeakAlgorithms(cert *x509.Certificate, result *
 }
 
 // validatePathLength validates path length constraints for CA certificates.
-func (v *SecurityValidator) validatePathLength(cert *x509.Certificate, result *SecurityValidationResult) {
+func (v *Validator) validatePathLength(cert *x509.Certificate, result *ValidationResult) {
 	if cert.MaxPathLen == 0 && !cert.MaxPathLenZero {
 		result.Warnings = append(result.Warnings, "CA certificate has no path length constraint")
 	}
 }
 
 // ValidatePrivateKey validates a private key against security policies.
-func (v *SecurityValidator) ValidatePrivateKey(_ context.Context, key any) (*SecurityValidationResult, error) {
+func (v *Validator) ValidatePrivateKey(_ context.Context, key any) (*ValidationResult, error) {
 	if key == nil {
 		return nil, errors.New("private key cannot be nil")
 	}
@@ -368,7 +368,7 @@ func (v *SecurityValidator) ValidatePrivateKey(_ context.Context, key any) (*Sec
 	config := v.config
 	v.mu.RUnlock()
 
-	result := &SecurityValidationResult{
+	result := &ValidationResult{
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
@@ -400,7 +400,7 @@ func (v *SecurityValidator) ValidatePrivateKey(_ context.Context, key any) (*Sec
 }
 
 // ValidateCSR validates a certificate signing request against security policies.
-func (v *SecurityValidator) ValidateCSR(_ context.Context, csr *x509.CertificateRequest) (*SecurityValidationResult, error) {
+func (v *Validator) ValidateCSR(_ context.Context, csr *x509.CertificateRequest) (*ValidationResult, error) {
 	if csr == nil {
 		return nil, errors.New("CSR cannot be nil")
 	}
@@ -409,7 +409,7 @@ func (v *SecurityValidator) ValidateCSR(_ context.Context, csr *x509.Certificate
 	config := v.config
 	v.mu.RUnlock()
 
-	result := &SecurityValidationResult{
+	result := &ValidationResult{
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
@@ -682,25 +682,25 @@ func CAThreatModel() *ThreatModel {
 	return builder.Build()
 }
 
-// SecurityScanner performs security scans on CA components.
-type SecurityScanner struct {
-	validator *SecurityValidator
+// Scanner performs security scans on CA components.
+type Scanner struct {
+	validator *Validator
 }
 
-// NewSecurityScanner creates a new security scanner.
-func NewSecurityScanner(config *SecurityConfig) *SecurityScanner {
-	return &SecurityScanner{
-		validator: NewSecurityValidator(config),
+// NewScanner creates a new security scanner.
+func NewScanner(config *Config) *Scanner {
+	return &Scanner{
+		validator: NewValidator(config),
 	}
 }
 
 // ScanCertificateChain validates an entire certificate chain.
-func (s *SecurityScanner) ScanCertificateChain(ctx context.Context, chain []*x509.Certificate) (*SecurityValidationResult, error) {
+func (s *Scanner) ScanCertificateChain(ctx context.Context, chain []*x509.Certificate) (*ValidationResult, error) {
 	if len(chain) == 0 {
 		return nil, errors.New("certificate chain cannot be empty")
 	}
 
-	combinedResult := &SecurityValidationResult{
+	combinedResult := &ValidationResult{
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
@@ -736,7 +736,7 @@ func (s *SecurityScanner) ScanCertificateChain(ctx context.Context, chain []*x50
 }
 
 // validateChainLinkage validates that certificates in the chain are properly linked.
-func (s *SecurityScanner) validateChainLinkage(chain []*x509.Certificate, result *SecurityValidationResult) {
+func (s *Scanner) validateChainLinkage(chain []*x509.Certificate, result *ValidationResult) {
 	for i := 0; i < len(chain)-1; i++ {
 		child := chain[i]
 		parent := chain[i+1]
@@ -756,16 +756,16 @@ func (s *SecurityScanner) validateChainLinkage(chain []*x509.Certificate, result
 	}
 }
 
-// SecurityReport generates a comprehensive security report.
-type SecurityReport struct {
+// Report generates a comprehensive security report.
+type Report struct {
 	GeneratedAt time.Time                  `json:"generated_at"`
 	ThreatModel *ThreatModel               `json:"threat_model,omitempty"`
-	Validations []SecurityValidationResult `json:"validations,omitempty"`
-	Summary     SecuritySummary            `json:"summary"`
+	Validations []ValidationResult `json:"validations,omitempty"`
+	Summary     Summary            `json:"summary"`
 }
 
-// SecuritySummary summarizes security findings.
-type SecuritySummary struct {
+// Summary summarizes security findings.
+type Summary struct {
 	TotalThreats         int `json:"total_threats"`
 	MitigatedThreats     int `json:"mitigated_threats"`
 	OpenThreats          int `json:"open_threats"`
@@ -777,9 +777,9 @@ type SecuritySummary struct {
 	InfoCount            int `json:"info_count"`
 }
 
-// GenerateSecurityReport creates a security report from threat model and validations.
-func GenerateSecurityReport(threatModel *ThreatModel, validations []SecurityValidationResult) *SecurityReport {
-	report := &SecurityReport{
+// GenerateReport creates a security report from threat model and validations.
+func GenerateReport(threatModel *ThreatModel, validations []ValidationResult) *Report {
+	report := &Report{
 		GeneratedAt: time.Now(),
 		ThreatModel: threatModel,
 		Validations: validations,

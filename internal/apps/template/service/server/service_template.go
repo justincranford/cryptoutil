@@ -155,7 +155,7 @@ func (st *ServiceTemplate) Shutdown() {
 // StartApplicationCore is a convenience wrapper for application.StartApplicationCore.
 // Creates ApplicationCore with automatic database provisioning.
 // Returns ApplicationCore with initialized telemetry, JWK gen, unseal, and database.
-func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilTemplateServerApplication.ApplicationCore, error) {
+func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilTemplateServerApplication.Core, error) {
 	//nolint:wrapcheck // Pass-through to application layer.
-	return cryptoutilTemplateServerApplication.StartApplicationCore(ctx, settings)
+	return cryptoutilTemplateServerApplication.StartCore(ctx, settings)
 }

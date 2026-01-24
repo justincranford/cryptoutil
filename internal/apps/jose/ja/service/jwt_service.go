@@ -48,14 +48,14 @@ type JWTService interface {
 type jwtServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilBarrier.BarrierService
+	barrierSvc   *cryptoutilBarrier.Service
 }
 
 // NewJWTService creates a new JWTService.
 func NewJWTService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilBarrier.BarrierService,
+	barrierSvc *cryptoutilBarrier.Service,
 ) JWTService {
 	return &jwtServiceImpl{
 		elasticRepo:  elasticRepo,

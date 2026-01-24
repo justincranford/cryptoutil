@@ -24,7 +24,7 @@ type JWKHandler struct {
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository
 	auditLogRepo    cryptoutilAppsJoseJaRepository.AuditLogRepository
 	jwkGenService   *cryptoutilJose.JWKGenService
-	barrierService  *cryptoutilBarrier.BarrierService
+	barrierService  *cryptoutilBarrier.Service
 }
 
 // NewJWKHandler creates a new JWK handler.
@@ -34,7 +34,7 @@ func NewJWKHandler(
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository,
 	auditLogRepo cryptoutilAppsJoseJaRepository.AuditLogRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilBarrier.BarrierService,
+	barrierService *cryptoutilBarrier.Service,
 ) *JWKHandler {
 	return &JWKHandler{
 		elasticJWKRepo:  elasticJWKRepo,

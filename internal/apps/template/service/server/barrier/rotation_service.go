@@ -22,14 +22,14 @@ import (
 // Re-encryption of dependent keys is NOT performed automatically.
 type RotationService struct {
 	jwkGenService     *cryptoutilJose.JWKGenService
-	repository        BarrierRepository
+	repository        Repository
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 }
 
 // NewRotationService creates a new rotation service.
 func NewRotationService(
 	jwkGenService *cryptoutilJose.JWKGenService,
-	repository BarrierRepository,
+	repository Repository,
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
 ) (*RotationService, error) {
 	if jwkGenService == nil {
@@ -64,7 +64,7 @@ type RotateRootKeyResult struct {
 func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*RotateRootKeyResult, error) {
 	var result *RotateRootKeyResult
 
-	err := s.repository.WithTransaction(ctx, func(tx BarrierTransaction) error {
+	err := s.repository.WithTransaction(ctx, func(tx Transaction) error {
 		// Get current root key (will be the old key after rotation)
 		oldRootKey, err := tx.GetRootKeyLatest()
 		if err != nil {
@@ -91,7 +91,7 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 		}
 
 		// Store new root key
-		newRootKey := &BarrierRootKey{
+		newRootKey := &RootKey{
 			UUID:      *rootKeyKidUUID,
 			Encrypted: string(encryptedRootKeyBytes),
 			KEKUUID:   googleUuid.UUID{}, // Root keys have no parent
@@ -130,7 +130,7 @@ type RotateIntermediateKeyResult struct {
 func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason string) (*RotateIntermediateKeyResult, error) {
 	var result *RotateIntermediateKeyResult
 
-	err := s.repository.WithTransaction(ctx, func(tx BarrierTransaction) error {
+	err := s.repository.WithTransaction(ctx, func(tx Transaction) error {
 		// Get current intermediate key (will be the old key after rotation)
 		oldIntermediateKey, err := tx.GetIntermediateKeyLatest()
 		if err != nil {
@@ -173,7 +173,7 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 		}
 
 		// Store new intermediate key
-		newIntermediateKey := &BarrierIntermediateKey{
+		newIntermediateKey := &IntermediateKey{
 			UUID:      *intermediateKeyKidUUID,
 			Encrypted: string(encryptedIntermediateKeyBytes),
 			KEKUUID:   currentRootKey.UUID,
@@ -212,7 +212,7 @@ type RotateContentKeyResult struct {
 func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (*RotateContentKeyResult, error) {
 	var result *RotateContentKeyResult
 
-	err := s.repository.WithTransaction(ctx, func(tx BarrierTransaction) error {
+	err := s.repository.WithTransaction(ctx, func(tx Transaction) error {
 		// Get current intermediate key for encryption
 		currentIntermediateKey, err := tx.GetIntermediateKeyLatest()
 		if err != nil {
@@ -275,7 +275,7 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 		}
 
 		// Store new content key
-		newContentKey := &BarrierContentKey{
+		newContentKey := &ContentKey{
 			UUID:      *contentKeyKidUUID,
 			Encrypted: string(encryptedContentKeyBytes),
 			KEKUUID:   currentIntermediateKey.UUID,

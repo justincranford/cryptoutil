@@ -28,7 +28,7 @@ var (
 	testDB             *gorm.DB
 	testSQLDB          *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection
 	testJWKGenService  *cryptoutilJose.JWKGenService
-	testBarrierService *cryptoutilTemplateBarrier.BarrierService
+	testBarrierService *cryptoutilTemplateBarrier.Service
 )
 
 func TestMain(m *testing.M) {
@@ -109,13 +109,13 @@ func TestMain(m *testing.M) {
 	}
 	defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
-	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
+	testBarrierService, err = cryptoutilTemplateBarrier.NewService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}

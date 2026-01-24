@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBarrierRootKeyOperations tests root key CRUD operations.
-func TestBarrierRootKeyOperations(t *testing.T) {
+// TestRootKeyOperations tests root key CRUD operations.
+func TestRootKeyOperations(t *testing.T) {
 	t.Run("Add and retrieve multiple root keys", func(t *testing.T) {
 		CleanupDatabase(t, testOrmRepository)
 
@@ -18,10 +18,10 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 			// Add 3 root keys.
 			const numKeys = 3
 
-			addedKeys := make([]*BarrierRootKey, numKeys)
+			addedKeys := make([]*RootKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierRootKey{}
+				key := &RootKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-root-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -50,10 +50,10 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 			// Add 5 root keys.
 			const numKeys = 5
 
-			addedKeys := make([]*BarrierRootKey, numKeys)
+			addedKeys := make([]*RootKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierRootKey{}
+				key := &RootKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-root-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -93,7 +93,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
-			key := &BarrierRootKey{}
+			key := &RootKey{}
 			key.SetUUID(googleUuid.New())
 			key.SetEncrypted("encrypted-root-key-data")
 			key.SetKEKUUID(googleUuid.New())
@@ -121,10 +121,10 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 			// Add 3 keys.
 			const numKeys = 3
 
-			addedKeys := make([]*BarrierRootKey, numKeys)
+			addedKeys := make([]*RootKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierRootKey{}
+				key := &RootKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-root-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -153,8 +153,8 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 	})
 }
 
-// TestBarrierIntermediateKeyOperations tests intermediate key CRUD operations.
-func TestBarrierIntermediateKeyOperations(t *testing.T) {
+// TestIntermediateKeyOperations tests intermediate key CRUD operations.
+func TestIntermediateKeyOperations(t *testing.T) {
 	t.Run("Add and retrieve multiple intermediate keys", func(t *testing.T) {
 		CleanupDatabase(t, testOrmRepository)
 
@@ -162,10 +162,10 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 			// Add 4 intermediate keys.
 			const numKeys = 4
 
-			addedKeys := make([]*BarrierIntermediateKey, numKeys)
+			addedKeys := make([]*IntermediateKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierIntermediateKey{}
+				key := &IntermediateKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-intermediate-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -194,10 +194,10 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 			// Add 6 intermediate keys.
 			const numKeys = 6
 
-			addedKeys := make([]*BarrierIntermediateKey, numKeys)
+			addedKeys := make([]*IntermediateKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierIntermediateKey{}
+				key := &IntermediateKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-intermediate-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -237,7 +237,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
-			key := &BarrierIntermediateKey{}
+			key := &IntermediateKey{}
 			key.SetUUID(googleUuid.New())
 			key.SetEncrypted("encrypted-intermediate-key-data")
 			key.SetKEKUUID(googleUuid.New())
@@ -265,10 +265,10 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 			// Add 5 keys.
 			const numKeys = 5
 
-			addedKeys := make([]*BarrierIntermediateKey, numKeys)
+			addedKeys := make([]*IntermediateKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierIntermediateKey{}
+				key := &IntermediateKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-intermediate-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -297,8 +297,8 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 	})
 }
 
-// TestBarrierContentKeyOperations tests content key CRUD operations.
-func TestBarrierContentKeyOperations(t *testing.T) {
+// TestContentKeyOperations tests content key CRUD operations.
+func TestContentKeyOperations(t *testing.T) {
 	t.Run("Add and retrieve multiple content keys", func(t *testing.T) {
 		CleanupDatabase(t, testOrmRepository)
 
@@ -306,10 +306,10 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 			// Add 5 content keys.
 			const numKeys = 5
 
-			addedKeys := make([]*BarrierContentKey, numKeys)
+			addedKeys := make([]*ContentKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierContentKey{}
+				key := &ContentKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-content-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -338,10 +338,10 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 			// Add 7 content keys.
 			const numKeys = 7
 
-			addedKeys := make([]*BarrierContentKey, numKeys)
+			addedKeys := make([]*ContentKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierContentKey{}
+				key := &ContentKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-content-key-data")
 				key.SetKEKUUID(googleUuid.New())
@@ -381,7 +381,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
-			key := &BarrierContentKey{}
+			key := &ContentKey{}
 			key.SetUUID(googleUuid.New())
 			key.SetEncrypted("encrypted-content-key-data")
 			key.SetKEKUUID(googleUuid.New())
@@ -409,10 +409,10 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 			// Add 6 keys.
 			const numKeys = 6
 
-			addedKeys := make([]*BarrierContentKey, numKeys)
+			addedKeys := make([]*ContentKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
-				key := &BarrierContentKey{}
+				key := &ContentKey{}
 				key.SetUUID(googleUuid.New())
 				key.SetEncrypted("encrypted-content-key-data")
 				key.SetKEKUUID(googleUuid.New())

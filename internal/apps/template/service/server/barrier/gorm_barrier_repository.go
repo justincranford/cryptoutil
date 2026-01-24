@@ -20,26 +20,26 @@ var (
 	ErrNoIntermediateKeyFound = errors.New("no intermediate key found")
 )
 
-// GormBarrierRepository implements BarrierRepository using gorm.DB.
+// GormRepository implements Repository using gorm.DB.
 // This adapter allows barrier encryption to work with any service using gorm.DB
 // (cipher-im, future services) without depending on KMS-specific OrmRepository.
-type GormBarrierRepository struct {
+type GormRepository struct {
 	db *gorm.DB
 }
 
-// NewGormBarrierRepository creates a new gorm.DB-based barrier repository.
-func NewGormBarrierRepository(db *gorm.DB) (*GormBarrierRepository, error) {
+// NewGormRepository creates a new gorm.DB-based barrier repository.
+func NewGormRepository(db *gorm.DB) (*GormRepository, error) {
 	if db == nil {
 		return nil, fmt.Errorf("db must be non-nil")
 	}
 
-	return &GormBarrierRepository{db: db}, nil
+	return &GormRepository{db: db}, nil
 }
 
 // WithTransaction executes the provided function within a database transaction.
-func (r *GormBarrierRepository) WithTransaction(ctx context.Context, function func(tx BarrierTransaction) error) error {
+func (r *GormRepository) WithTransaction(ctx context.Context, function func(tx Transaction) error) error {
 	err := r.db.WithContext(ctx).Transaction(func(gormTx *gorm.DB) error {
-		tx := &GormBarrierTransaction{gormDB: gormTx}
+		tx := &GormTransaction{gormDB: gormTx}
 
 		return function(tx)
 	})
@@ -51,23 +51,23 @@ func (r *GormBarrierRepository) WithTransaction(ctx context.Context, function fu
 }
 
 // Shutdown releases any resources held by the repository.
-func (r *GormBarrierRepository) Shutdown() {
+func (r *GormRepository) Shutdown() {
 	// No resources to release for gorm.DB adapter
 }
 
-// GormBarrierTransaction implements BarrierTransaction using gorm.DB transaction.
-type GormBarrierTransaction struct {
+// GormTransaction implements Transaction using gorm.DB transaction.
+type GormTransaction struct {
 	gormDB *gorm.DB
 }
 
 // Context returns the transaction context.
-func (tx *GormBarrierTransaction) Context() context.Context {
+func (tx *GormTransaction) Context() context.Context {
 	return tx.gormDB.Statement.Context
 }
 
 // GetRootKeyLatest retrieves the most recently created root key.
-func (tx *GormBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
-	var key BarrierRootKey
+func (tx *GormTransaction) GetRootKeyLatest() (*RootKey, error) {
+	var key RootKey
 
 	err := tx.gormDB.Order("uuid DESC").First(&key).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -82,12 +82,12 @@ func (tx *GormBarrierTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 }
 
 // GetRootKey retrieves a specific root key by UUID.
-func (tx *GormBarrierTransaction) GetRootKey(uuid *googleUuid.UUID) (*BarrierRootKey, error) {
+func (tx *GormTransaction) GetRootKey(uuid *googleUuid.UUID) (*RootKey, error) {
 	if uuid == nil {
 		return nil, fmt.Errorf("uuid must be non-nil")
 	}
 
-	var key BarrierRootKey
+	var key RootKey
 
 	err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&key).Error
 	if err != nil {
@@ -98,7 +98,7 @@ func (tx *GormBarrierTransaction) GetRootKey(uuid *googleUuid.UUID) (*BarrierRoo
 }
 
 // AddRootKey persists a new root key to storage.
-func (tx *GormBarrierTransaction) AddRootKey(key *BarrierRootKey) error {
+func (tx *GormTransaction) AddRootKey(key *RootKey) error {
 	if key == nil {
 		return fmt.Errorf("key must be non-nil")
 	}
@@ -111,8 +111,8 @@ func (tx *GormBarrierTransaction) AddRootKey(key *BarrierRootKey) error {
 }
 
 // GetIntermediateKeyLatest retrieves the most recently created intermediate key.
-func (tx *GormBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermediateKey, error) {
-	var key BarrierIntermediateKey
+func (tx *GormTransaction) GetIntermediateKeyLatest() (*IntermediateKey, error) {
+	var key IntermediateKey
 
 	err := tx.gormDB.Order("uuid DESC").First(&key).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -127,12 +127,12 @@ func (tx *GormBarrierTransaction) GetIntermediateKeyLatest() (*BarrierIntermedia
 }
 
 // GetIntermediateKey retrieves a specific intermediate key by UUID.
-func (tx *GormBarrierTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*BarrierIntermediateKey, error) {
+func (tx *GormTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*IntermediateKey, error) {
 	if uuid == nil {
 		return nil, fmt.Errorf("uuid must be non-nil")
 	}
 
-	var key BarrierIntermediateKey
+	var key IntermediateKey
 
 	err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&key).Error
 	if err != nil {
@@ -143,7 +143,7 @@ func (tx *GormBarrierTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*Ba
 }
 
 // AddIntermediateKey persists a new intermediate key to storage.
-func (tx *GormBarrierTransaction) AddIntermediateKey(key *BarrierIntermediateKey) error {
+func (tx *GormTransaction) AddIntermediateKey(key *IntermediateKey) error {
 	if key == nil {
 		return fmt.Errorf("key must be non-nil")
 	}
@@ -156,12 +156,12 @@ func (tx *GormBarrierTransaction) AddIntermediateKey(key *BarrierIntermediateKey
 }
 
 // GetContentKey retrieves a specific content key by UUID.
-func (tx *GormBarrierTransaction) GetContentKey(uuid *googleUuid.UUID) (*BarrierContentKey, error) {
+func (tx *GormTransaction) GetContentKey(uuid *googleUuid.UUID) (*ContentKey, error) {
 	if uuid == nil {
 		return nil, fmt.Errorf("uuid must be non-nil")
 	}
 
-	var key BarrierContentKey
+	var key ContentKey
 
 	err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&key).Error
 	if err != nil {
@@ -172,7 +172,7 @@ func (tx *GormBarrierTransaction) GetContentKey(uuid *googleUuid.UUID) (*Barrier
 }
 
 // AddContentKey persists a new content key to storage.
-func (tx *GormBarrierTransaction) AddContentKey(key *BarrierContentKey) error {
+func (tx *GormTransaction) AddContentKey(key *ContentKey) error {
 	if key == nil {
 		return fmt.Errorf("key must be non-nil")
 	}

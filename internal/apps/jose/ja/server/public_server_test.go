@@ -64,7 +64,7 @@ func TestNewPublicServer_NilBase(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilJose.JWKGenService{},
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -87,7 +87,7 @@ func TestNewPublicServer_NilSessionManager(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilJose.JWKGenService{},
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -110,7 +110,7 @@ func TestNewPublicServer_NilRealmService(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilJose.JWKGenService{},
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -133,7 +133,7 @@ func TestNewPublicServer_NilElasticJWKRepo(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilJose.JWKGenService{},
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -156,7 +156,7 @@ func TestNewPublicServer_NilMaterialJWKRepo(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilJose.JWKGenService{},
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -179,7 +179,7 @@ func TestNewPublicServer_NilAuditConfigRepo(t *testing.T) {
 		nil, // audit config repo is nil
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		&cryptoutilJose.JWKGenService{},
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -202,7 +202,7 @@ func TestNewPublicServer_NilAuditLogRepo(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		nil, // audit log repo is nil
 		&cryptoutilJose.JWKGenService{},
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)
@@ -225,7 +225,7 @@ func TestNewPublicServer_NilJWKGenService(t *testing.T) {
 		cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(nil),
 		cryptoutilAppsJoseJaRepository.NewAuditLogRepository(nil),
 		nil, // JWK gen service is nil
-		&cryptoutilBarrier.BarrierService{},
+		&cryptoutilBarrier.Service{},
 	)
 
 	require.Error(t, err)

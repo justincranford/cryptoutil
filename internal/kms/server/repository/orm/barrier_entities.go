@@ -8,26 +8,41 @@ import (
 // UUIDv7 = timestamp (48-bits) + version (4-bits) + rand_a (12-bits) + var (2-bits) + rand_b (62-bits)
 // JWK/JWKs = JWE wrapping of JWK/JWKs, stored as JSON (PostgreSQL JSONB, SQLite JSON)
 
-// BarrierRootKey represents root keys that are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is possible but infrequent.
-type BarrierRootKey struct {
+// RootKey represents root keys that are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is possible but infrequent.
+type RootKey struct {
 	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null"`
 }
 
-// BarrierIntermediateKey represents intermediate keys that are wrapped by root keys. Rotation is encouraged and can be frequent.
-type BarrierIntermediateKey struct {
+// TableName returns the table name for RootKey.
+func (RootKey) TableName() string {
+	return "barrier_root_keys"
+}
+
+// IntermediateKey represents intermediate keys that are wrapped by root keys. Rotation is encouraged and can be frequent.
+type IntermediateKey struct {
 	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
 }
 
-// BarrierContentKey represents leaf keys that are wrapped by intermediate keys. Rotation is encouraged and can be very frequent.
-type BarrierContentKey struct {
+// TableName returns the table name for IntermediateKey.
+func (IntermediateKey) TableName() string {
+	return "barrier_intermediate_keys"
+}
+
+// ContentKey represents leaf keys that are wrapped by intermediate keys. Rotation is encouraged and can be very frequent.
+type ContentKey struct {
 	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
 	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
+}
+
+// TableName returns the table name for ContentKey.
+func (ContentKey) TableName() string {
+	return "barrier_content_keys"
 }
 
 // BarrierKey is an interface for all 3 of the above Keys.
@@ -41,91 +56,91 @@ type BarrierKey interface {
 }
 
 // GetUUID returns the UUID of the root key.
-func (r *BarrierRootKey) GetUUID() googleUuid.UUID {
+func (r *RootKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
 // SetUUID sets the UUID of the root key.
-func (r *BarrierRootKey) SetUUID(uuidV7 googleUuid.UUID) {
+func (r *RootKey) SetUUID(uuidV7 googleUuid.UUID) {
 	r.UUID = uuidV7
 }
 
 // GetEncrypted returns the encrypted key material.
-func (r *BarrierRootKey) GetEncrypted() string {
+func (r *RootKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
 // SetEncrypted sets the encrypted key material.
-func (r *BarrierRootKey) SetEncrypted(encrypted string) {
+func (r *RootKey) SetEncrypted(encrypted string) {
 	r.Encrypted = encrypted
 }
 
 // GetKEKUUID returns the UUID of the key encryption key.
-func (r *BarrierRootKey) GetKEKUUID() googleUuid.UUID {
+func (r *RootKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
 // SetKEKUUID sets the UUID of the key encryption key.
-func (r *BarrierRootKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
+func (r *RootKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
 	r.KEKUUID = kekUUIDV7
 }
 
 // GetUUID returns the UUID of the intermediate key.
-func (r *BarrierIntermediateKey) GetUUID() googleUuid.UUID {
+func (r *IntermediateKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
 // SetUUID sets the UUID of the intermediate key.
-func (r *BarrierIntermediateKey) SetUUID(uuidV7 googleUuid.UUID) {
+func (r *IntermediateKey) SetUUID(uuidV7 googleUuid.UUID) {
 	r.UUID = uuidV7
 }
 
 // GetEncrypted returns the encrypted value of the intermediate key.
-func (r *BarrierIntermediateKey) GetEncrypted() string {
+func (r *IntermediateKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
 // SetEncrypted sets the encrypted value of the intermediate key.
-func (r *BarrierIntermediateKey) SetEncrypted(encrypted string) {
+func (r *IntermediateKey) SetEncrypted(encrypted string) {
 	r.Encrypted = encrypted
 }
 
 // GetKEKUUID returns the UUID of the key encryption key.
-func (r *BarrierIntermediateKey) GetKEKUUID() googleUuid.UUID {
+func (r *IntermediateKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
 // SetKEKUUID sets the UUID of the key encryption key.
-func (r *BarrierIntermediateKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
+func (r *IntermediateKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
 	r.KEKUUID = kekUUIDV7
 }
 
 // GetUUID returns the UUID of the content key.
-func (r *BarrierContentKey) GetUUID() googleUuid.UUID {
+func (r *ContentKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
 // SetUUID sets the UUID of the content key.
-func (r *BarrierContentKey) SetUUID(uuidV7 googleUuid.UUID) {
+func (r *ContentKey) SetUUID(uuidV7 googleUuid.UUID) {
 	r.UUID = uuidV7
 }
 
 // GetEncrypted returns the encrypted value of the content key.
-func (r *BarrierContentKey) GetEncrypted() string {
+func (r *ContentKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
 // SetEncrypted sets the encrypted value of the content key.
-func (r *BarrierContentKey) SetEncrypted(encrypted string) {
+func (r *ContentKey) SetEncrypted(encrypted string) {
 	r.Encrypted = encrypted
 }
 
 // GetKEKUUID returns the UUID of the key encryption key.
-func (r *BarrierContentKey) GetKEKUUID() googleUuid.UUID {
+func (r *ContentKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
 // SetKEKUUID sets the UUID of the key encryption key.
-func (r *BarrierContentKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
+func (r *ContentKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
 	r.KEKUUID = kekUUIDV7
 }

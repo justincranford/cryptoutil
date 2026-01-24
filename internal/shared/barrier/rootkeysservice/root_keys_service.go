@@ -50,7 +50,7 @@ func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, 
 }
 
 func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error {
-	var encryptedRootKeyLatest *cryptoutilOrmRepository.BarrierRootKey
+	var encryptedRootKeyLatest *cryptoutilOrmRepository.RootKey
 
 	var err error
 
@@ -93,7 +93,7 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepo
 
 		log.Printf("DEBUG initializeFirstRootJWK: Encrypted root JWK, len=%d", len(encryptedRootKeyBytes))
 
-		firstEncryptedRootKey := &cryptoutilOrmRepository.BarrierRootKey{UUID: *rootKeyKidUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
+		firstEncryptedRootKey := &cryptoutilOrmRepository.RootKey{UUID: *rootKeyKidUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
 
 		err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 			return sqlTransaction.AddRootKey(firstEncryptedRootKey)

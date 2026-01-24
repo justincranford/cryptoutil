@@ -24,7 +24,7 @@ type SPAServer struct {
 	cfg              *cryptoutilSPAConfig.IdentitySPAServerSettings
 	app              *cryptoutilAppsTemplateServiceServer.Application
 	db               *gorm.DB
-	barrierService   *cryptoutilBarrier.BarrierService
+	barrierService   *cryptoutilBarrier.Service
 	jwkGenService    *cryptoutilJose.JWKGenService
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	shutdownCore     func()
@@ -127,7 +127,7 @@ func (s *SPAServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier encryption service for tests.
-func (s *SPAServer) Barrier() *cryptoutilBarrier.BarrierService {
+func (s *SPAServer) Barrier() *cryptoutilBarrier.Service {
 	return s.barrierService
 }
 

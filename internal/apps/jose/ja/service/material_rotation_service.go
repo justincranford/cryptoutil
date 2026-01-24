@@ -43,7 +43,7 @@ type materialRotationServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	jwkGenSvc    *cryptoutilJose.JWKGenService
-	barrierSvc   *cryptoutilBarrier.BarrierService
+	barrierSvc   *cryptoutilBarrier.Service
 }
 
 // NewMaterialRotationService creates a new MaterialRotationService.
@@ -51,7 +51,7 @@ func NewMaterialRotationService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	jwkGenSvc *cryptoutilJose.JWKGenService,
-	barrierSvc *cryptoutilBarrier.BarrierService,
+	barrierSvc *cryptoutilBarrier.Service,
 ) MaterialRotationService {
 	return &materialRotationServiceImpl{
 		elasticRepo:  elasticRepo,

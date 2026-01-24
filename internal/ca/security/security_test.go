@@ -18,12 +18,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewSecurityValidator(t *testing.T) {
+func TestNewValidator(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name   string
-		config *SecurityConfig
+		config *Config
 	}{
 		{
 			name:   "with nil config uses defaults",
@@ -31,7 +31,7 @@ func TestNewSecurityValidator(t *testing.T) {
 		},
 		{
 			name:   "with custom config",
-			config: &SecurityConfig{MinRSAKeySize: 4096},
+			config: &Config{MinRSAKeySize: 4096},
 		},
 	}
 
@@ -39,16 +39,16 @@ func TestNewSecurityValidator(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			validator := NewSecurityValidator(tc.config)
+			validator := NewValidator(tc.config)
 			require.NotNil(t, validator)
 		})
 	}
 }
 
-func TestDefaultSecurityConfig(t *testing.T) {
+func TestDefaultConfig(t *testing.T) {
 	t.Parallel()
 
-	config := DefaultSecurityConfig()
+	config := DefaultConfig()
 
 	require.Equal(t, 2048, config.MinRSAKeySize)
 	require.Equal(t, 256, config.MinECKeySize)
@@ -62,11 +62,11 @@ func TestDefaultSecurityConfig(t *testing.T) {
 	require.NotEmpty(t, config.AllowedSignatureAlgorithms)
 }
 
-func TestSecurityValidator_ValidateCertificate(t *testing.T) {
+func TestValidator_ValidateCertificate(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewSecurityValidator(nil)
+	validator := NewValidator(nil)
 
 	// Generate test key.
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -129,7 +129,7 @@ func TestSecurityValidator_ValidateCertificate(t *testing.T) {
 	}
 }
 
-func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
+func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -137,7 +137,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 	tests := []struct {
 		name      string
 		keyFunc   func() any
-		config    *SecurityConfig
+		config    *Config
 		wantValid bool
 	}{
 		{
@@ -147,7 +147,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &SecurityConfig{MinRSAKeySize: 2048, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: 398},
+			config:    &Config{MinRSAKeySize: 2048, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: 398},
 			wantValid: true,
 		},
 		{
@@ -157,7 +157,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &SecurityConfig{MinRSAKeySize: 4096, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: 398},
+			config:    &Config{MinRSAKeySize: 4096, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.SHA256WithRSA}, MaxCertValidityDays: 398},
 			wantValid: false,
 		},
 		{
@@ -167,7 +167,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &SecurityConfig{MinECKeySize: 256, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: 398},
+			config:    &Config{MinECKeySize: 256, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: 398},
 			wantValid: true,
 		},
 		{
@@ -177,7 +177,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &SecurityConfig{MinECKeySize: 384, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: 398},
+			config:    &Config{MinECKeySize: 384, AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.ECDSAWithSHA256}, MaxCertValidityDays: 398},
 			wantValid: false,
 		},
 		{
@@ -187,7 +187,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 
 				return key
 			},
-			config:    &SecurityConfig{AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.PureEd25519}, MaxCertValidityDays: 398},
+			config:    &Config{AllowedSignatureAlgorithms: []x509.SignatureAlgorithm{x509.PureEd25519}, MaxCertValidityDays: 398},
 			wantValid: true,
 		},
 	}
@@ -196,7 +196,7 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			validator := NewSecurityValidator(tc.config)
+			validator := NewValidator(tc.config)
 			key := tc.keyFunc()
 
 			cert := createTestCertWithKey(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour))
@@ -208,11 +208,11 @@ func TestSecurityValidator_ValidateCertificate_KeySizes(t *testing.T) {
 	}
 }
 
-func TestSecurityValidator_ValidatePrivateKey(t *testing.T) {
+func TestValidator_ValidatePrivateKey(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewSecurityValidator(nil)
+	validator := NewValidator(nil)
 
 	tests := []struct {
 		name      string
@@ -281,11 +281,11 @@ func TestSecurityValidator_ValidatePrivateKey(t *testing.T) {
 	}
 }
 
-func TestSecurityValidator_ValidateCSR(t *testing.T) {
+func TestValidator_ValidateCSR(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	validator := NewSecurityValidator(nil)
+	validator := NewValidator(nil)
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
@@ -337,13 +337,13 @@ func TestSecurityValidator_ValidateCSR(t *testing.T) {
 	}
 }
 
-func TestSecurityValidator_WeakAlgorithms(t *testing.T) {
+func TestValidator_WeakAlgorithms(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	config := DefaultSecurityConfig()
+	config := DefaultConfig()
 	config.DisallowWeakAlgorithms = true
-	validator := NewSecurityValidator(config)
+	validator := NewValidator(config)
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
@@ -426,11 +426,11 @@ func TestCAThreatModel(t *testing.T) {
 	require.True(t, categories[ThreatElevationPrivilege])
 }
 
-func TestSecurityScanner_ScanCertificateChain(t *testing.T) {
+func TestScanner_ScanCertificateChain(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	scanner := NewSecurityScanner(nil)
+	scanner := NewScanner(nil)
 
 	// Generate root CA.
 	rootKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -493,11 +493,11 @@ func TestSecurityScanner_ScanCertificateChain(t *testing.T) {
 	}
 }
 
-func TestSecurityScanner_InvalidChainLinkage(t *testing.T) {
+func TestScanner_InvalidChainLinkage(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	scanner := NewSecurityScanner(nil)
+	scanner := NewScanner(nil)
 
 	// Generate two unrelated CAs.
 	key1, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -517,12 +517,12 @@ func TestSecurityScanner_InvalidChainLinkage(t *testing.T) {
 	require.NotEmpty(t, result.Errors)
 }
 
-func TestGenerateSecurityReport(t *testing.T) {
+func TestGenerateReport(t *testing.T) {
 	t.Parallel()
 
 	threatModel := CAThreatModel()
 
-	validations := []SecurityValidationResult{
+	validations := []ValidationResult{
 		{
 			Valid:    true,
 			Errors:   []string{},
@@ -542,7 +542,7 @@ func TestGenerateSecurityReport(t *testing.T) {
 		},
 	}
 
-	report := GenerateSecurityReport(threatModel, validations)
+	report := GenerateReport(threatModel, validations)
 
 	require.NotNil(t, report)
 	require.NotZero(t, report.GeneratedAt)
@@ -557,10 +557,10 @@ func TestGenerateSecurityReport(t *testing.T) {
 	require.Equal(t, 1, report.Summary.MediumCount)
 }
 
-func TestGenerateSecurityReport_NilThreatModel(t *testing.T) {
+func TestGenerateReport_NilThreatModel(t *testing.T) {
 	t.Parallel()
 
-	report := GenerateSecurityReport(nil, nil)
+	report := GenerateReport(nil, nil)
 
 	require.NotNil(t, report)
 	require.Nil(t, report.ThreatModel)

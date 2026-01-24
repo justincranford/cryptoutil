@@ -104,12 +104,12 @@ func TestAuditLogger_AddWriter(t *testing.T) {
 	require.Equal(t, buf1.String(), buf2.String())
 }
 
-func TestNewComplianceChecker(t *testing.T) {
+func TestNewChecker(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name      string
-		framework ComplianceFramework
+		framework Framework
 	}{
 		{name: "cabf baseline", framework: FrameworkCABFBaseline},
 		{name: "rfc5280", framework: FrameworkRFC5280},
@@ -121,13 +121,13 @@ func TestNewComplianceChecker(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			checker := NewComplianceChecker(tc.framework)
+			checker := NewChecker(tc.framework)
 			require.NotNil(t, checker)
 		})
 	}
 }
 
-func TestComplianceChecker_CheckCertificate(t *testing.T) {
+func TestChecker_CheckCertificate(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -137,7 +137,7 @@ func TestComplianceChecker_CheckCertificate(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		framework ComplianceFramework
+		framework Framework
 		certFunc  func() *x509.Certificate
 		wantErr   bool
 	}{
@@ -169,7 +169,7 @@ func TestComplianceChecker_CheckCertificate(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			checker := NewComplianceChecker(tc.framework)
+			checker := NewChecker(tc.framework)
 			cert := tc.certFunc()
 
 			requirements, err := checker.CheckCertificate(ctx, cert)
@@ -184,11 +184,11 @@ func TestComplianceChecker_CheckCertificate(t *testing.T) {
 	}
 }
 
-func TestComplianceChecker_CABFRequirements(t *testing.T) {
+func TestChecker_CABFRequirements(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	checker := NewComplianceChecker(FrameworkCABFBaseline)
+	checker := NewChecker(FrameworkCABFBaseline)
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
@@ -251,11 +251,11 @@ func TestComplianceChecker_CABFRequirements(t *testing.T) {
 	}
 }
 
-func TestComplianceChecker_RFC5280Requirements(t *testing.T) {
+func TestChecker_RFC5280Requirements(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	checker := NewComplianceChecker(FrameworkRFC5280)
+	checker := NewChecker(FrameworkRFC5280)
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
@@ -284,11 +284,11 @@ func TestComplianceChecker_RFC5280Requirements(t *testing.T) {
 	require.True(t, hasValidity, "should check validity")
 }
 
-func TestComplianceChecker_CACertificate(t *testing.T) {
+func TestChecker_CACertificate(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	checker := NewComplianceChecker(FrameworkCABFBaseline)
+	checker := NewChecker(FrameworkCABFBaseline)
 
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
@@ -313,10 +313,10 @@ func TestComplianceChecker_CACertificate(t *testing.T) {
 	require.True(t, hasBasicConstraints, "should check basic constraints for CA")
 }
 
-func TestGenerateComplianceReport(t *testing.T) {
+func TestGenerateReport(t *testing.T) {
 	t.Parallel()
 
-	requirements := []ComplianceRequirement{
+	requirements := []Requirement{
 		{ID: "REQ-001", Status: StatusCompliant, Severity: SeverityMedium},
 		{ID: "REQ-002", Status: StatusNonCompliant, Severity: SeverityCritical},
 		{ID: "REQ-003", Status: StatusNonCompliant, Severity: SeverityHigh},
@@ -329,7 +329,7 @@ func TestGenerateComplianceReport(t *testing.T) {
 		EndDate:   time.Now(),
 	}
 
-	report := GenerateComplianceReport(FrameworkCABFBaseline, requirements, period, "test-auditor")
+	report := GenerateReport(FrameworkCABFBaseline, requirements, period, "test-auditor")
 
 	require.NotNil(t, report)
 	require.NotEmpty(t, report.ID)
@@ -447,22 +447,22 @@ func TestEvidenceCollector(t *testing.T) {
 	require.Len(t, configs, 1)
 }
 
-func TestComplianceFramework_Values(t *testing.T) {
+func TestFramework_Values(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, ComplianceFramework("cabf_baseline"), FrameworkCABFBaseline)
-	require.Equal(t, ComplianceFramework("webtrust"), FrameworkWebTrust)
-	require.Equal(t, ComplianceFramework("rfc5280"), FrameworkRFC5280)
-	require.Equal(t, ComplianceFramework("nist_sp_800_57"), FrameworkNIST80057)
+	require.Equal(t, Framework("cabf_baseline"), FrameworkCABFBaseline)
+	require.Equal(t, Framework("webtrust"), FrameworkWebTrust)
+	require.Equal(t, Framework("rfc5280"), FrameworkRFC5280)
+	require.Equal(t, Framework("nist_sp_800_57"), FrameworkNIST80057)
 }
 
-func TestComplianceStatus_Values(t *testing.T) {
+func TestStatus_Values(t *testing.T) {
 	t.Parallel()
 
-	require.Equal(t, ComplianceStatus("compliant"), StatusCompliant)
-	require.Equal(t, ComplianceStatus("non_compliant"), StatusNonCompliant)
-	require.Equal(t, ComplianceStatus("partial"), StatusPartial)
-	require.Equal(t, ComplianceStatus("not_applicable"), StatusNotApplicable)
+	require.Equal(t, Status("compliant"), StatusCompliant)
+	require.Equal(t, Status("non_compliant"), StatusNonCompliant)
+	require.Equal(t, Status("partial"), StatusPartial)
+	require.Equal(t, Status("not_applicable"), StatusNotApplicable)
 }
 
 func TestAuditEventType_Values(t *testing.T) {

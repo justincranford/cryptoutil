@@ -15,25 +15,25 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-// ApplicationBasic encapsulates basic service infrastructure (telemetry, unseal, JWK generation).
-// This is the foundation layer used by ApplicationCore.
-type ApplicationBasic struct {
+// Basic encapsulates basic service infrastructure (telemetry, unseal, JWK generation).
+// This is the foundation layer used by Core.
+type Basic struct {
 	TelemetryService  *cryptoutilTelemetry.TelemetryService
 	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 	JWKGenService     *cryptoutilJose.JWKGenService
 	Settings          *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
-// StartApplicationBasic initializes basic service infrastructure.
+// StartBasic initializes basic service infrastructure.
 // This includes telemetry, unseal keys, and JWK generation services.
-func StartApplicationBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ApplicationBasic, error) {
+func StartBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Basic, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {
 		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
-	app := &ApplicationBasic{Settings: settings}
+	app := &Basic{Settings: settings}
 
 	// Initialize telemetry service.
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
@@ -69,7 +69,7 @@ func StartApplicationBasic(ctx context.Context, settings *cryptoutilConfig.Servi
 }
 
 // Shutdown gracefully shuts down all basic services (LIFO order).
-func (a *ApplicationBasic) Shutdown() {
+func (a *Basic) Shutdown() {
 	if a.TelemetryService != nil {
 		a.TelemetryService.Slogger.Debug("stopping application basic")
 	}

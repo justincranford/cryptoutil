@@ -135,7 +135,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 	plaintext := []byte("hello, world!")
 
 	// start barrier service
-	barrierService1, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, originalUnsealKeysService)
+	barrierService1, err := NewService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, originalUnsealKeysService)
 	require.NoError(t, err)
 
 	defer barrierService1.Shutdown()
@@ -198,7 +198,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 	require.Error(t, err)
 
 	// restart new service with same unseal key repository
-	barrierService2, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, restartedUnsealKeysService)
+	barrierService2, err := NewService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, restartedUnsealKeysService)
 	require.NoError(t, err)
 
 	defer barrierService2.Shutdown()
@@ -274,7 +274,7 @@ func Test_ErrorCase_DecryptWithInvalidJWKs(t *testing.T) {
 	// encrypt content with valid JWKs
 	var encryptedBytes []byte
 
-	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, validUnsealKeysService)
+	barrierService, err := NewService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, validUnsealKeysService)
 	require.NoError(t, err)
 
 	defer barrierService.Shutdown()
@@ -293,7 +293,7 @@ func Test_ErrorCase_DecryptWithInvalidJWKs(t *testing.T) {
 	barrierService.Shutdown()
 
 	// try to decrypt with invalid JWKs - this should fail
-	barrierServiceInvalid, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, invalidUnsealKeysService)
+	barrierServiceInvalid, err := NewService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, invalidUnsealKeysService)
 	require.NoError(t, err)
 
 	defer barrierServiceInvalid.Shutdown()

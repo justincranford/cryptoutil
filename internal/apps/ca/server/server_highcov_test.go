@@ -128,7 +128,7 @@ func TestNewFromConfig_NilContext(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestConfig("127.0.0.1", 0, true)
-	server, err := NewFromConfig(nil, cfg)
+	server, err := NewFromConfig(nil, cfg) //nolint:staticcheck // SA1012 intentionally testing nil context handling
 	require.Error(t, err)
 	require.Nil(t, server)
 	require.Contains(t, err.Error(), "context is required")
@@ -149,7 +149,7 @@ func TestNewFromConfig_NilConfig(t *testing.T) {
 func TestNewFromConfig_BothNil(t *testing.T) {
 	t.Parallel()
 
-	server, err := NewFromConfig(nil, nil)
+	server, err := NewFromConfig(nil, nil) //nolint:staticcheck // SA1012 intentionally testing nil context handling
 	require.Error(t, err)
 	require.Nil(t, server)
 	require.Contains(t, err.Error(), "context is required")

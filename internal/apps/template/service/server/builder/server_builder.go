@@ -36,7 +36,7 @@ type ServiceResources struct {
 	TelemetryService    *cryptoutilTelemetry.TelemetryService
 	JWKGenService       *cryptoutilJose.JWKGenService
 	UnsealKeysService   cryptoutilUnsealKeysService.UnsealKeysService
-	BarrierService      *cryptoutilBarrier.BarrierService
+	BarrierService      *cryptoutilBarrier.Service
 	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
 	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
 	RealmService        cryptoutilTemplateService.RealmService
@@ -149,7 +149,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 
 	// Phase W.1: Initialize application core WITHOUT services (DB + telemetry only).
 	// CRITICAL: Must run migrations BEFORE initializing services (BarrierService needs barrier_root_keys table).
-	applicationCore, err := cryptoutilTemplateApplication.StartApplicationCore(b.ctx, b.config)
+	applicationCore, err := cryptoutilTemplateApplication.StartCore(b.ctx, b.config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}

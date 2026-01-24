@@ -138,7 +138,7 @@ func TestProvisioner_Provision_WithSubjectProfile(t *testing.T) {
 
 	subjectProfile := &cryptoutilCAProfileSubject.Profile{
 		Name: "enterprise-intermediate",
-		Subject: cryptoutilCAProfileSubject.SubjectDN{
+		Subject: cryptoutilCAProfileSubject.DN{
 			Organization:       []string{"Example Corp"},
 			OrganizationalUnit: []string{"PKI Operations"},
 			Country:            []string{"US"},

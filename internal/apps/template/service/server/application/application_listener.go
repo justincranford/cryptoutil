@@ -11,10 +11,10 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 )
 
-// ApplicationListener represents the top-level service application.
-// Orchestrates ApplicationCore (database + infrastructure) and HTTP servers (public + admin).
-type ApplicationListener struct {
-	Core         *ApplicationCore
+// Listener represents the top-level service application.
+// Orchestrates Core (database + infrastructure) and HTTP servers (public + admin).
+type Listener struct {
+	Core         *Core
 	PublicServer IPublicServer
 	AdminServer  IAdminServer
 	Settings     *cryptoutilConfig.ServiceTemplateServerSettings
@@ -37,25 +37,25 @@ type IAdminServer interface {
 	AdminBaseURL() string
 }
 
-// ApplicationListenerConfig holds configuration for creating an ApplicationListener.
-type ApplicationListenerConfig struct {
+// ListenerConfig holds configuration for creating an Listener.
+type ListenerConfig struct {
 	Settings     *cryptoutilConfig.ServiceTemplateServerSettings
 	PublicServer IPublicServer
 	AdminServer  IAdminServer
 }
 
-// StartApplicationListener creates and initializes the top-level service application.
+// StartListener creates and initializes the top-level service application.
 // This function:
-// 1. Starts ApplicationCore (telemetry, JWK gen, unseal, database)
+// 1. Starts Core (telemetry, JWK gen, unseal, database)
 // 2. Accepts pre-configured public and admin servers
-// 3. Returns ApplicationListener ready to start servers.
+// 3. Returns Listener ready to start servers.
 //
 // Caller is responsible for:
 // - Creating public server with business logic handlers
 // - Creating admin server with health check handlers
 // - Calling Start() to begin serving requests
 // - Calling Shutdown() to gracefully stop.
-func StartApplicationListener(ctx context.Context, config *ApplicationListenerConfig) (*ApplicationListener, error) {
+func StartListener(ctx context.Context, config *ListenerConfig) (*Listener, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if config == nil {
@@ -69,12 +69,12 @@ func StartApplicationListener(ctx context.Context, config *ApplicationListenerCo
 	}
 
 	// Start core infrastructure (telemetry, JWK gen, unseal, database).
-	core, err := StartApplicationCore(ctx, config.Settings)
+	core, err := StartCore(ctx, config.Settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
 
-	app := &ApplicationListener{
+	app := &Listener{
 		Core:         core,
 		PublicServer: config.PublicServer,
 		AdminServer:  config.AdminServer,
@@ -86,7 +86,7 @@ func StartApplicationListener(ctx context.Context, config *ApplicationListenerCo
 
 // Start starts both public and admin servers concurrently.
 // Blocks until one server fails or context is cancelled.
-func (a *ApplicationListener) Start(ctx context.Context) error {
+func (a *Listener) Start(ctx context.Context) error {
 	if ctx == nil {
 		return fmt.Errorf("context cannot be nil")
 	}
@@ -125,7 +125,7 @@ func (a *ApplicationListener) Start(ctx context.Context) error {
 }
 
 // Shutdown gracefully shuts down all application components (LIFO order).
-func (a *ApplicationListener) Shutdown(ctx context.Context) error {
+func (a *Listener) Shutdown(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -161,7 +161,7 @@ func (a *ApplicationListener) Shutdown(ctx context.Context) error {
 }
 
 // PublicPort returns the actual port the public server is listening on.
-func (a *ApplicationListener) PublicPort() int {
+func (a *Listener) PublicPort() int {
 	if a.PublicServer == nil {
 		return 0
 	}
@@ -170,7 +170,7 @@ func (a *ApplicationListener) PublicPort() int {
 }
 
 // AdminPort returns the actual port the admin server is listening on.
-func (a *ApplicationListener) AdminPort() int {
+func (a *Listener) AdminPort() int {
 	if a.AdminServer == nil {
 		return 0
 	}

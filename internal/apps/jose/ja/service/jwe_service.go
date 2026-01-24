@@ -34,14 +34,14 @@ type JWEService interface {
 type jweServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilBarrier.BarrierService
+	barrierSvc   *cryptoutilBarrier.Service
 }
 
 // NewJWEService creates a new JWEService.
 func NewJWEService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilBarrier.BarrierService,
+	barrierSvc *cryptoutilBarrier.Service,
 ) JWEService {
 	return &jweServiceImpl{
 		elasticRepo:  elasticRepo,

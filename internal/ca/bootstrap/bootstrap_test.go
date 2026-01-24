@@ -119,7 +119,7 @@ func TestBootstrapper_Bootstrap_WithSubjectProfile(t *testing.T) {
 
 	subjectProfile := &cryptoutilCAProfileSubject.Profile{
 		Name: "enterprise-root",
-		Subject: cryptoutilCAProfileSubject.SubjectDN{
+		Subject: cryptoutilCAProfileSubject.DN{
 			Organization:       []string{"Example Corp"},
 			OrganizationalUnit: []string{"IT Security"},
 			Country:            []string{"US"},

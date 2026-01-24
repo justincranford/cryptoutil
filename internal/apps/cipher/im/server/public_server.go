@@ -54,7 +54,7 @@ func NewPublicServer(
 	messageRepo *cryptoutilAppsCipherImRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilBarrier.BarrierService,
+	barrierService *cryptoutilBarrier.Service,
 ) (*PublicServer, error) {
 	if base == nil {
 		return nil, fmt.Errorf("public server base cannot be nil")

@@ -18,7 +18,7 @@ func TestOrmTransaction_AddRootKey(t *testing.T) {
 		rootKeyID := googleUuid.New()
 		kekID := googleUuid.New()
 
-		rootKey := &BarrierRootKey{
+		rootKey := &RootKey{
 			UUID:      rootKeyID,
 			Encrypted: "encrypted-root-key-data",
 			KEKUUID:   kekID,
@@ -43,7 +43,7 @@ func TestOrmTransaction_GetRootKeys(t *testing.T) {
 		kekID := googleUuid.New()
 
 		rootKeyID1 = googleUuid.New()
-		rootKey1 := &BarrierRootKey{
+		rootKey1 := &RootKey{
 			UUID:      rootKeyID1,
 			Encrypted: "encrypted-root-key-1",
 			KEKUUID:   kekID,
@@ -51,7 +51,7 @@ func TestOrmTransaction_GetRootKeys(t *testing.T) {
 		require.NoError(t, tx.AddRootKey(rootKey1))
 
 		rootKeyID2 = googleUuid.New()
-		rootKey2 := &BarrierRootKey{
+		rootKey2 := &RootKey{
 			UUID:      rootKeyID2,
 			Encrypted: "encrypted-root-key-2",
 			KEKUUID:   kekID,
@@ -84,7 +84,7 @@ func TestOrmTransaction_GetRootKeyLatest(t *testing.T) {
 		kekID := googleUuid.New()
 
 		rootKeyID1 = googleUuid.New()
-		rootKey1 := &BarrierRootKey{
+		rootKey1 := &RootKey{
 			UUID:      rootKeyID1,
 			Encrypted: "encrypted-root-key-1",
 			KEKUUID:   kekID,
@@ -92,7 +92,7 @@ func TestOrmTransaction_GetRootKeyLatest(t *testing.T) {
 		require.NoError(t, tx.AddRootKey(rootKey1))
 
 		rootKeyID2 = googleUuid.New()
-		rootKey2 := &BarrierRootKey{
+		rootKey2 := &RootKey{
 			UUID:      rootKeyID2,
 			Encrypted: "encrypted-root-key-2",
 			KEKUUID:   kekID,
@@ -132,7 +132,7 @@ func TestOrmTransaction_GetRootKey(t *testing.T) {
 		rootKeyID = googleUuid.New()
 		kekID := googleUuid.New()
 
-		rootKey := &BarrierRootKey{
+		rootKey := &RootKey{
 			UUID:      rootKeyID,
 			Encrypted: "encrypted-root-key-specific",
 			KEKUUID:   kekID,
@@ -166,7 +166,7 @@ func TestOrmTransaction_DeleteRootKey(t *testing.T) {
 		rootKeyID = googleUuid.New()
 		kekID := googleUuid.New()
 
-		rootKey := &BarrierRootKey{
+		rootKey := &RootKey{
 			UUID:      rootKeyID,
 			Encrypted: "encrypted-root-key-to-delete",
 			KEKUUID:   kekID,
@@ -208,7 +208,7 @@ func TestOrmTransaction_AddIntermediateKey(t *testing.T) {
 		intermediateKeyID := googleUuid.New()
 		kekID := googleUuid.New()
 
-		intermediateKey := &BarrierIntermediateKey{
+		intermediateKey := &IntermediateKey{
 			UUID:      intermediateKeyID,
 			Encrypted: "encrypted-intermediate-key-data",
 			KEKUUID:   kekID,
@@ -231,7 +231,7 @@ func TestOrmTransaction_GetIntermediateKeys(t *testing.T) {
 		kekID := googleUuid.New()
 
 		intermediateKeyID1 := googleUuid.New()
-		intermediateKey1 := &BarrierIntermediateKey{
+		intermediateKey1 := &IntermediateKey{
 			UUID:      intermediateKeyID1,
 			Encrypted: "encrypted-intermediate-key-1",
 			KEKUUID:   kekID,
@@ -239,7 +239,7 @@ func TestOrmTransaction_GetIntermediateKeys(t *testing.T) {
 		require.NoError(t, tx.AddIntermediateKey(intermediateKey1))
 
 		intermediateKeyID2 := googleUuid.New()
-		intermediateKey2 := &BarrierIntermediateKey{
+		intermediateKey2 := &IntermediateKey{
 			UUID:      intermediateKeyID2,
 			Encrypted: "encrypted-intermediate-key-2",
 			KEKUUID:   kekID,
@@ -272,7 +272,7 @@ func TestOrmTransaction_GetIntermediateKeyLatest(t *testing.T) {
 		kekID := googleUuid.New()
 
 		intermediateKeyID1 = googleUuid.New()
-		intermediateKey1 := &BarrierIntermediateKey{
+		intermediateKey1 := &IntermediateKey{
 			UUID:      intermediateKeyID1,
 			Encrypted: "encrypted-intermediate-key-1",
 			KEKUUID:   kekID,
@@ -280,7 +280,7 @@ func TestOrmTransaction_GetIntermediateKeyLatest(t *testing.T) {
 		require.NoError(t, tx.AddIntermediateKey(intermediateKey1))
 
 		intermediateKeyID2 = googleUuid.New()
-		intermediateKey2 := &BarrierIntermediateKey{
+		intermediateKey2 := &IntermediateKey{
 			UUID:      intermediateKeyID2,
 			Encrypted: "encrypted-intermediate-key-2",
 			KEKUUID:   kekID,
@@ -320,7 +320,7 @@ func TestOrmTransaction_GetIntermediateKey(t *testing.T) {
 		intermediateKeyID = googleUuid.New()
 		kekID := googleUuid.New()
 
-		intermediateKey := &BarrierIntermediateKey{
+		intermediateKey := &IntermediateKey{
 			UUID:      intermediateKeyID,
 			Encrypted: "encrypted-intermediate-key-specific",
 			KEKUUID:   kekID,
@@ -354,7 +354,7 @@ func TestOrmTransaction_DeleteIntermediateKey(t *testing.T) {
 		intermediateKeyID = googleUuid.New()
 		kekID := googleUuid.New()
 
-		intermediateKey := &BarrierIntermediateKey{
+		intermediateKey := &IntermediateKey{
 			UUID:      intermediateKeyID,
 			Encrypted: "encrypted-intermediate-key-to-delete",
 			KEKUUID:   kekID,
@@ -396,7 +396,7 @@ func TestOrmTransaction_AddContentKey(t *testing.T) {
 		contentKeyID := googleUuid.New()
 		kekID := googleUuid.New()
 
-		contentKey := &BarrierContentKey{
+		contentKey := &ContentKey{
 			UUID:      contentKeyID,
 			Encrypted: "encrypted-content-key-data",
 			KEKUUID:   kekID,
@@ -419,7 +419,7 @@ func TestOrmTransaction_GetContentKeys(t *testing.T) {
 		kekID := googleUuid.New()
 
 		contentKeyID1 := googleUuid.New()
-		contentKey1 := &BarrierContentKey{
+		contentKey1 := &ContentKey{
 			UUID:      contentKeyID1,
 			Encrypted: "encrypted-content-key-1",
 			KEKUUID:   kekID,
@@ -427,7 +427,7 @@ func TestOrmTransaction_GetContentKeys(t *testing.T) {
 		require.NoError(t, tx.AddContentKey(contentKey1))
 
 		contentKeyID2 := googleUuid.New()
-		contentKey2 := &BarrierContentKey{
+		contentKey2 := &ContentKey{
 			UUID:      contentKeyID2,
 			Encrypted: "encrypted-content-key-2",
 			KEKUUID:   kekID,
@@ -460,7 +460,7 @@ func TestOrmTransaction_GetContentKeyLatest(t *testing.T) {
 		kekID := googleUuid.New()
 
 		contentKeyID1 = googleUuid.New()
-		contentKey1 := &BarrierContentKey{
+		contentKey1 := &ContentKey{
 			UUID:      contentKeyID1,
 			Encrypted: "encrypted-content-key-1",
 			KEKUUID:   kekID,
@@ -468,7 +468,7 @@ func TestOrmTransaction_GetContentKeyLatest(t *testing.T) {
 		require.NoError(t, tx.AddContentKey(contentKey1))
 
 		contentKeyID2 = googleUuid.New()
-		contentKey2 := &BarrierContentKey{
+		contentKey2 := &ContentKey{
 			UUID:      contentKeyID2,
 			Encrypted: "encrypted-content-key-2",
 			KEKUUID:   kekID,
@@ -508,7 +508,7 @@ func TestOrmTransaction_GetContentKey(t *testing.T) {
 		contentKeyID = googleUuid.New()
 		kekID := googleUuid.New()
 
-		contentKey := &BarrierContentKey{
+		contentKey := &ContentKey{
 			UUID:      contentKeyID,
 			Encrypted: "encrypted-content-key-specific",
 			KEKUUID:   kekID,
@@ -542,7 +542,7 @@ func TestOrmTransaction_DeleteContentKey(t *testing.T) {
 		contentKeyID = googleUuid.New()
 		kekID := googleUuid.New()
 
-		contentKey := &BarrierContentKey{
+		contentKey := &ContentKey{
 			UUID:      contentKeyID,
 			Encrypted: "encrypted-content-key-to-delete",
 			KEKUUID:   kekID,

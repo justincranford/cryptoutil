@@ -16,8 +16,8 @@ import (
 	joseJwt "github.com/lestrrat-go/jwx/v3/jwt"
 )
 
-// DPoPProof represents a parsed and validated DPoP proof JWT (RFC 9449).
-type DPoPProof struct {
+// Proof represents a parsed and validated DPoP proof JWT (RFC 9449).
+type Proof struct {
 	JTI           string    // Unique identifier for the proof
 	HTM           string    // HTTP method (e.g., "POST")
 	HTU           string    // HTTP URI (e.g., "https://server.example.com/token")
@@ -25,7 +25,7 @@ type DPoPProof struct {
 	JWKThumbprint string    // JWK thumbprint (SHA-256)
 }
 
-// ValidateDPoPProof validates a DPoP proof JWT according to RFC 9449.
+// ValidateProof validates a DPoP proof JWT according to RFC 9449.
 //
 // Parameters:
 //   - dpopHeader: DPoP header value from HTTP request
@@ -34,7 +34,7 @@ type DPoPProof struct {
 //   - accessToken: Optional access token for binding validation (empty for token endpoint)
 //
 // Returns validated DPoP proof or error.
-func ValidateDPoPProof(dpopHeader, httpMethod, httpURI, accessToken string) (*DPoPProof, error) {
+func ValidateProof(dpopHeader, httpMethod, httpURI, accessToken string) (*Proof, error) {
 	if dpopHeader == "" {
 		return nil, fmt.Errorf("DPoP header is required")
 	}
@@ -144,7 +144,7 @@ func ValidateDPoPProof(dpopHeader, httpMethod, httpURI, accessToken string) (*DP
 		}
 	}
 
-	return &DPoPProof{
+	return &Proof{
 		JTI:           jti,
 		HTM:           htm,
 		HTU:           htu,

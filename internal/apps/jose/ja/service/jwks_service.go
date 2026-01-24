@@ -33,14 +33,14 @@ type JWKSService interface {
 type jwksServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilBarrier.BarrierService
+	barrierSvc   *cryptoutilBarrier.Service
 }
 
 // NewJWKSService creates a new JWKSService.
 func NewJWKSService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilBarrier.BarrierService,
+	barrierSvc *cryptoutilBarrier.Service,
 ) JWKSService {
 	return &jwksServiceImpl{
 		elasticRepo:  elasticRepo,

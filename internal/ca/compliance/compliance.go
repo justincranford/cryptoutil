@@ -15,26 +15,26 @@ import (
 	"time"
 )
 
-// ComplianceFramework represents a compliance framework or standard.
-type ComplianceFramework string
+// Framework represents a compliance framework or standard.
+type Framework string
 
 // Supported compliance frameworks.
 const (
-	FrameworkCABFBaseline ComplianceFramework = "cabf_baseline"
-	FrameworkWebTrust     ComplianceFramework = "webtrust"
-	FrameworkRFC5280      ComplianceFramework = "rfc5280"
-	FrameworkNIST80057    ComplianceFramework = "nist_sp_800_57"
+	FrameworkCABFBaseline Framework = "cabf_baseline"
+	FrameworkWebTrust     Framework = "webtrust"
+	FrameworkRFC5280      Framework = "rfc5280"
+	FrameworkNIST80057    Framework = "nist_sp_800_57"
 )
 
-// ComplianceStatus represents the status of a compliance check.
-type ComplianceStatus string
+// Status represents the status of a compliance check.
+type Status string
 
 // Compliance status values.
 const (
-	StatusCompliant     ComplianceStatus = "compliant"
-	StatusNonCompliant  ComplianceStatus = "non_compliant"
-	StatusPartial       ComplianceStatus = "partial"
-	StatusNotApplicable ComplianceStatus = "not_applicable"
+	StatusCompliant     Status = "compliant"
+	StatusNonCompliant  Status = "non_compliant"
+	StatusPartial       Status = "partial"
+	StatusNotApplicable Status = "not_applicable"
 )
 
 // Severity levels for compliance findings.
@@ -89,28 +89,28 @@ type AuditEvent struct {
 	CorrelationID string            `json:"correlation_id,omitempty"`
 }
 
-// ComplianceRequirement represents a specific compliance requirement.
-type ComplianceRequirement struct {
+// Requirement represents a specific compliance requirement.
+type Requirement struct {
 	ID          string              `json:"id"`
-	Framework   ComplianceFramework `json:"framework"`
+	Framework   Framework `json:"framework"`
 	Section     string              `json:"section"`
 	Title       string              `json:"title"`
 	Description string              `json:"description"`
 	Severity    Severity            `json:"severity"`
-	Status      ComplianceStatus    `json:"status"`
+	Status      Status    `json:"status"`
 	Evidence    []string            `json:"evidence,omitempty"`
 	Notes       string              `json:"notes,omitempty"`
 }
 
-// ComplianceReport represents a compliance audit report.
-type ComplianceReport struct {
+// Report represents a compliance audit report.
+type Report struct {
 	ID           string                  `json:"id"`
-	Framework    ComplianceFramework     `json:"framework"`
+	Framework    Framework     `json:"framework"`
 	GeneratedAt  time.Time               `json:"generated_at"`
 	GeneratedBy  string                  `json:"generated_by"`
 	Period       AuditPeriod             `json:"period"`
-	Requirements []ComplianceRequirement `json:"requirements"`
-	Summary      ComplianceSummary       `json:"summary"`
+	Requirements []Requirement `json:"requirements"`
+	Summary      Summary       `json:"summary"`
 }
 
 // AuditPeriod represents the time period covered by an audit.
@@ -119,8 +119,8 @@ type AuditPeriod struct {
 	EndDate   time.Time `json:"end_date"`
 }
 
-// ComplianceSummary summarizes compliance findings.
-type ComplianceSummary struct {
+// Summary summarizes compliance findings.
+type Summary struct {
 	TotalRequirements int `json:"total_requirements"`
 	Compliant         int `json:"compliant"`
 	NonCompliant      int `json:"non_compliant"`
@@ -185,25 +185,25 @@ func (l *AuditLogger) AddWriter(w io.Writer) {
 	l.writers = append(l.writers, w)
 }
 
-// ComplianceChecker validates compliance with various frameworks.
-type ComplianceChecker struct {
-	framework ComplianceFramework
+// Checker validates compliance with various frameworks.
+type Checker struct {
+	framework Framework
 }
 
-// NewComplianceChecker creates a new compliance checker.
-func NewComplianceChecker(framework ComplianceFramework) *ComplianceChecker {
-	return &ComplianceChecker{
+// NewChecker creates a new compliance checker.
+func NewChecker(framework Framework) *Checker {
+	return &Checker{
 		framework: framework,
 	}
 }
 
 // CheckCertificate checks a certificate for compliance.
-func (c *ComplianceChecker) CheckCertificate(_ context.Context, cert *x509.Certificate) ([]ComplianceRequirement, error) {
+func (c *Checker) CheckCertificate(_ context.Context, cert *x509.Certificate) ([]Requirement, error) {
 	if cert == nil {
 		return nil, errors.New("certificate cannot be nil")
 	}
 
-	var requirements []ComplianceRequirement
+	var requirements []Requirement
 
 	switch c.framework {
 	case FrameworkCABFBaseline:
@@ -219,8 +219,8 @@ func (c *ComplianceChecker) CheckCertificate(_ context.Context, cert *x509.Certi
 }
 
 // checkCABFBaseline checks CA/Browser Forum Baseline Requirements.
-func (c *ComplianceChecker) checkCABFBaseline(cert *x509.Certificate) []ComplianceRequirement {
-	requirements := make([]ComplianceRequirement, 0)
+func (c *Checker) checkCABFBaseline(cert *x509.Certificate) []Requirement {
+	requirements := make([]Requirement, 0)
 
 	// BR Section 7.1.2.1 - Subject
 	requirements = append(requirements, c.checkSubject(cert))
@@ -244,11 +244,11 @@ func (c *ComplianceChecker) checkCABFBaseline(cert *x509.Certificate) []Complian
 }
 
 // checkRFC5280 checks RFC 5280 compliance.
-func (c *ComplianceChecker) checkRFC5280(cert *x509.Certificate) []ComplianceRequirement {
-	requirements := make([]ComplianceRequirement, 0)
+func (c *Checker) checkRFC5280(cert *x509.Certificate) []Requirement {
+	requirements := make([]Requirement, 0)
 
 	// RFC 5280 Section 4.1.2.2 - Serial Number.
-	requirements = append(requirements, ComplianceRequirement{
+	requirements = append(requirements, Requirement{
 		ID:          "RFC5280-4.1.2.2",
 		Framework:   FrameworkRFC5280,
 		Section:     "4.1.2.2",
@@ -259,7 +259,7 @@ func (c *ComplianceChecker) checkRFC5280(cert *x509.Certificate) []ComplianceReq
 	})
 
 	// RFC 5280 Section 4.1.2.5 - Validity.
-	requirements = append(requirements, ComplianceRequirement{
+	requirements = append(requirements, Requirement{
 		ID:          "RFC5280-4.1.2.5",
 		Framework:   FrameworkRFC5280,
 		Section:     "4.1.2.5",
@@ -270,7 +270,7 @@ func (c *ComplianceChecker) checkRFC5280(cert *x509.Certificate) []ComplianceReq
 	})
 
 	// RFC 5280 Section 4.2 - Certificate Extensions.
-	requirements = append(requirements, ComplianceRequirement{
+	requirements = append(requirements, Requirement{
 		ID:          "RFC5280-4.2",
 		Framework:   FrameworkRFC5280,
 		Section:     "4.2",
@@ -282,7 +282,7 @@ func (c *ComplianceChecker) checkRFC5280(cert *x509.Certificate) []ComplianceReq
 
 	// RFC 5280 Section 4.2.1.9 - Basic Constraints.
 	if cert.IsCA {
-		requirements = append(requirements, ComplianceRequirement{
+		requirements = append(requirements, Requirement{
 			ID:          "RFC5280-4.2.1.9",
 			Framework:   FrameworkRFC5280,
 			Section:     "4.2.1.9",
@@ -296,14 +296,14 @@ func (c *ComplianceChecker) checkRFC5280(cert *x509.Certificate) []ComplianceReq
 	return requirements
 }
 
-func (c *ComplianceChecker) checkSubject(cert *x509.Certificate) ComplianceRequirement {
+func (c *Checker) checkSubject(cert *x509.Certificate) Requirement {
 	status := StatusCompliant
 
 	if cert.Subject.CommonName == "" && len(cert.DNSNames) == 0 {
 		status = StatusNonCompliant
 	}
 
-	return ComplianceRequirement{
+	return Requirement{
 		ID:          "BR-7.1.2.1",
 		Framework:   FrameworkCABFBaseline,
 		Section:     "7.1.2.1",
@@ -314,7 +314,7 @@ func (c *ComplianceChecker) checkSubject(cert *x509.Certificate) ComplianceRequi
 	}
 }
 
-func (c *ComplianceChecker) checkSerialNumber(cert *x509.Certificate) ComplianceRequirement {
+func (c *Checker) checkSerialNumber(cert *x509.Certificate) Requirement {
 	status := StatusCompliant
 
 	// BR requires at least 64 bits of entropy.
@@ -325,7 +325,7 @@ func (c *ComplianceChecker) checkSerialNumber(cert *x509.Certificate) Compliance
 		status = StatusNonCompliant
 	}
 
-	return ComplianceRequirement{
+	return Requirement{
 		ID:          "BR-7.1.2.2",
 		Framework:   FrameworkCABFBaseline,
 		Section:     "7.1.2.2",
@@ -336,7 +336,7 @@ func (c *ComplianceChecker) checkSerialNumber(cert *x509.Certificate) Compliance
 	}
 }
 
-func (c *ComplianceChecker) checkValidityPeriod(cert *x509.Certificate) ComplianceRequirement {
+func (c *Checker) checkValidityPeriod(cert *x509.Certificate) Requirement {
 	status := StatusCompliant
 
 	// BR limits subscriber certificates to 398 days.
@@ -351,7 +351,7 @@ func (c *ComplianceChecker) checkValidityPeriod(cert *x509.Certificate) Complian
 		status = StatusNonCompliant
 	}
 
-	return ComplianceRequirement{
+	return Requirement{
 		ID:          "BR-7.1.2.3",
 		Framework:   FrameworkCABFBaseline,
 		Section:     "7.1.2.3",
@@ -362,8 +362,8 @@ func (c *ComplianceChecker) checkValidityPeriod(cert *x509.Certificate) Complian
 	}
 }
 
-func (c *ComplianceChecker) checkExtensions(cert *x509.Certificate) []ComplianceRequirement {
-	requirements := make([]ComplianceRequirement, 0)
+func (c *Checker) checkExtensions(cert *x509.Certificate) []Requirement {
+	requirements := make([]Requirement, 0)
 
 	// Key Usage.
 	keyUsageStatus := StatusCompliant
@@ -371,7 +371,7 @@ func (c *ComplianceChecker) checkExtensions(cert *x509.Certificate) []Compliance
 		keyUsageStatus = StatusNonCompliant
 	}
 
-	requirements = append(requirements, ComplianceRequirement{
+	requirements = append(requirements, Requirement{
 		ID:          "BR-7.1.2.4-KU",
 		Framework:   FrameworkCABFBaseline,
 		Section:     "7.1.2.4",
@@ -388,7 +388,7 @@ func (c *ComplianceChecker) checkExtensions(cert *x509.Certificate) []Compliance
 			bcStatus = StatusNonCompliant
 		}
 
-		requirements = append(requirements, ComplianceRequirement{
+		requirements = append(requirements, Requirement{
 			ID:          "BR-7.1.2.4-BC",
 			Framework:   FrameworkCABFBaseline,
 			Section:     "7.1.2.4",
@@ -409,7 +409,7 @@ func (c *ComplianceChecker) checkExtensions(cert *x509.Certificate) []Compliance
 		sanStatus = StatusNonCompliant
 	}
 
-	requirements = append(requirements, ComplianceRequirement{
+	requirements = append(requirements, Requirement{
 		ID:          "BR-7.1.2.4-SAN",
 		Framework:   FrameworkCABFBaseline,
 		Section:     "7.1.2.4",
@@ -428,7 +428,7 @@ const (
 	bitsPerByte   = 8
 )
 
-func (c *ComplianceChecker) checkKeySize(cert *x509.Certificate) ComplianceRequirement {
+func (c *Checker) checkKeySize(cert *x509.Certificate) Requirement {
 	status := StatusCompliant
 
 	// Check RSA key size using type assertion.
@@ -443,7 +443,7 @@ func (c *ComplianceChecker) checkKeySize(cert *x509.Certificate) ComplianceRequi
 		}
 	}
 
-	return ComplianceRequirement{
+	return Requirement{
 		ID:          "BR-6.1.5",
 		Framework:   FrameworkCABFBaseline,
 		Section:     "6.1.5",
@@ -454,7 +454,7 @@ func (c *ComplianceChecker) checkKeySize(cert *x509.Certificate) ComplianceRequi
 	}
 }
 
-func (c *ComplianceChecker) checkAlgorithm(cert *x509.Certificate) ComplianceRequirement {
+func (c *Checker) checkAlgorithm(cert *x509.Certificate) Requirement {
 	status := StatusCompliant
 
 	// Check for weak algorithms.
@@ -471,7 +471,7 @@ func (c *ComplianceChecker) checkAlgorithm(cert *x509.Certificate) ComplianceReq
 		status = StatusNonCompliant
 	}
 
-	return ComplianceRequirement{
+	return Requirement{
 		ID:          "BR-7.1.3",
 		Framework:   FrameworkCABFBaseline,
 		Section:     "7.1.3",
@@ -482,7 +482,7 @@ func (c *ComplianceChecker) checkAlgorithm(cert *x509.Certificate) ComplianceReq
 	}
 }
 
-func (c *ComplianceChecker) evaluateSerialNumber5280(cert *x509.Certificate) ComplianceStatus {
+func (c *Checker) evaluateSerialNumber5280(cert *x509.Certificate) Status {
 	if cert.SerialNumber.Sign() > 0 {
 		return StatusCompliant
 	}
@@ -490,7 +490,7 @@ func (c *ComplianceChecker) evaluateSerialNumber5280(cert *x509.Certificate) Com
 	return StatusNonCompliant
 }
 
-func (c *ComplianceChecker) evaluateValidity5280(cert *x509.Certificate) ComplianceStatus {
+func (c *Checker) evaluateValidity5280(cert *x509.Certificate) Status {
 	if cert.NotBefore.Before(cert.NotAfter) {
 		return StatusCompliant
 	}
@@ -498,7 +498,7 @@ func (c *ComplianceChecker) evaluateValidity5280(cert *x509.Certificate) Complia
 	return StatusNonCompliant
 }
 
-func (c *ComplianceChecker) evaluateExtensions5280(cert *x509.Certificate) ComplianceStatus {
+func (c *Checker) evaluateExtensions5280(cert *x509.Certificate) Status {
 	// Check for critical extensions that we don't understand.
 	for _, ext := range cert.Extensions {
 		if ext.Critical {
@@ -512,7 +512,7 @@ func (c *ComplianceChecker) evaluateExtensions5280(cert *x509.Certificate) Compl
 	return StatusCompliant
 }
 
-func (c *ComplianceChecker) evaluateBasicConstraints5280(cert *x509.Certificate) ComplianceStatus {
+func (c *Checker) evaluateBasicConstraints5280(cert *x509.Certificate) Status {
 	if cert.BasicConstraintsValid && cert.IsCA {
 		return StatusCompliant
 	}
@@ -537,14 +537,14 @@ func isKnownExtension(oid string) bool {
 	return knownOIDs[oid]
 }
 
-// GenerateComplianceReport generates a compliance report.
-func GenerateComplianceReport(
-	framework ComplianceFramework,
-	requirements []ComplianceRequirement,
+// GenerateReport generates a compliance report.
+func GenerateReport(
+	framework Framework,
+	requirements []Requirement,
 	period AuditPeriod,
 	generatedBy string,
-) *ComplianceReport {
-	report := &ComplianceReport{
+) *Report {
+	report := &Report{
 		ID:           fmt.Sprintf("CR-%d", time.Now().UnixNano()),
 		Framework:    framework,
 		GeneratedAt:  time.Now(),

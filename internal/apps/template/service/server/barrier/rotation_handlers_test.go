@@ -29,7 +29,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *BarrierService) {
+func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *Service) {
 	ctx := context.Background()
 
 	// Create in-memory database
@@ -56,7 +56,7 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 	require.NoError(t, err)
 
 	// Create barrier tables
-	err = testDB.AutoMigrate(&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierContentKey{})
+	err = testDB.AutoMigrate(&RootKey{}, &IntermediateKey{}, &ContentKey{})
 	require.NoError(t, err)
 
 	// Initialize telemetry
@@ -78,12 +78,12 @@ func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *
 	t.Cleanup(func() { unsealService.Shutdown() })
 
 	// Create barrier repository
-	barrierRepo, err := NewGormBarrierRepository(testDB)
+	barrierRepo, err := NewGormRepository(testDB)
 	require.NoError(t, err)
 	t.Cleanup(func() { barrierRepo.Shutdown() })
 
 	// Create barrier service (initializes root and intermediate keys)
-	barrierService, err := NewBarrierService(ctx, telemetryService, jwkGenService, barrierRepo, unsealService)
+	barrierService, err := NewService(ctx, telemetryService, jwkGenService, barrierRepo, unsealService)
 	require.NoError(t, err)
 	t.Cleanup(func() { barrierService.Shutdown() })
 

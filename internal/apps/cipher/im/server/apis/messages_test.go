@@ -113,13 +113,13 @@ func TestMain(m *testing.M) {
 	}
 	defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
-	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(ctx, testTelemetryService, jwkGenService, barrierRepo, unsealKeysService)
+	barrierService, err := cryptoutilTemplateBarrier.NewService(ctx, testTelemetryService, jwkGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}

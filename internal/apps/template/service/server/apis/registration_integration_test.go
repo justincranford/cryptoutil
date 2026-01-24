@@ -163,7 +163,7 @@ func TestMain(m *testing.M) {
 	defer jwkGenService.Shutdown()
 
 	// Create barrier repository and service for session encryption.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create barrier repository: %v", err))
 	}
@@ -181,7 +181,7 @@ func TestMain(m *testing.M) {
 	defer unsealService.Shutdown()
 
 	// Create barrier service.
-	barrierService, err := cryptoutilTemplateBarrier.NewBarrierService(
+	barrierService, err := cryptoutilTemplateBarrier.NewService(
 		ctx,
 		telemetryService,
 		jwkGenService,

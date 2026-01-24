@@ -25,7 +25,7 @@ type PublicServer struct {
 	auditConfigRepo       cryptoutilAppsJoseJaRepository.AuditConfigRepository
 	auditLogRepo          cryptoutilAppsJoseJaRepository.AuditLogRepository
 	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilBarrier.BarrierService
+	barrierService        *cryptoutilBarrier.Service
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService          cryptoutilTemplateService.RealmService
 
@@ -44,7 +44,7 @@ func NewPublicServer(
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository,
 	auditLogRepo cryptoutilAppsJoseJaRepository.AuditLogRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilBarrier.BarrierService,
+	barrierService *cryptoutilBarrier.Service,
 ) (*PublicServer, error) {
 	if base == nil {
 		return nil, fmt.Errorf("public server base cannot be nil")

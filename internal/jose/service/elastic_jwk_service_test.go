@@ -36,7 +36,7 @@ var (
 	testDB               *gorm.DB
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 	testJWKGenService    *cryptoutilJose.JWKGenService
-	testBarrierService   *cryptoutilTemplateBarrier.BarrierService
+	testBarrierService   *cryptoutilTemplateBarrier.Service
 	testElasticRepo      repository.ElasticJWKRepository
 	testMaterialRepo     repository.MaterialJWKRepository
 	testElasticJWKSvc    *ElasticJWKService
@@ -113,13 +113,13 @@ func TestMain(m *testing.M) {
 	}
 	defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
-	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(testCtx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
+	testBarrierService, err = cryptoutilTemplateBarrier.NewService(testCtx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}

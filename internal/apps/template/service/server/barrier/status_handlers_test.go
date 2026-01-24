@@ -35,7 +35,7 @@ func TestHandleGetBarrierKeysStatus_Success(t *testing.T) {
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
 	// Verify response body.
-	var statusResp BarrierKeysStatusResponse
+	var statusResp KeysStatusResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&statusResp)
 	require.NoError(t, err)

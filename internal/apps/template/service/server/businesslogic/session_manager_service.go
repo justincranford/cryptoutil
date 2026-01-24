@@ -30,7 +30,7 @@ func NewSessionManagerService(
 	db *gorm.DB,
 	telemetryService *cryptoutilTelemetry.TelemetryService,
 	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilTemplateBarrier.BarrierService,
+	barrierService *cryptoutilTemplateBarrier.Service,
 	config *cryptoutilConfig.ServiceTemplateServerSettings,
 ) (*SessionManagerService, error) {
 	if ctx == nil {

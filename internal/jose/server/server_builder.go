@@ -32,7 +32,7 @@ type JoseServer struct {
 	db                 *gorm.DB
 	telemetryService   *cryptoutilTelemetry.TelemetryService
 	jwkGenService      *cryptoutilJose.JWKGenService
-	barrierService     *cryptoutilTemplateBarrier.BarrierService
+	barrierService     *cryptoutilTemplateBarrier.Service
 	sessionManager     *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService       cryptoutilTemplateService.RealmService
 	realmRepo          cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository

@@ -88,7 +88,7 @@ const (
 //	err := manager.CleanupExpiredSessions(ctx)
 type SessionManager struct {
 	db      *gorm.DB
-	barrier *cryptoutilBarrier.BarrierService
+	barrier *cryptoutilBarrier.Service
 	config  *cryptoutilConfig.ServiceTemplateServerSettings
 
 	// Runtime state for browser sessions
@@ -108,7 +108,7 @@ type SessionManager struct {
 //   - config: Service configuration with session settings
 //
 // Returns configured SessionManager (call Initialize before use).
-func NewSessionManager(db *gorm.DB, barrier *cryptoutilBarrier.BarrierService, config *cryptoutilConfig.ServiceTemplateServerSettings) *SessionManager {
+func NewSessionManager(db *gorm.DB, barrier *cryptoutilBarrier.Service, config *cryptoutilConfig.ServiceTemplateServerSettings) *SessionManager {
 	return &SessionManager{
 		db:      db,
 		barrier: barrier,

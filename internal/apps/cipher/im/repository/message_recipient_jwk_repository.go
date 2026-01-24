@@ -19,11 +19,11 @@ import (
 // MessageRecipientJWKRepository handles database operations for MessageRecipientJWK entities.
 type MessageRecipientJWKRepository struct {
 	db             *gorm.DB
-	barrierService *cryptoutilBarrier.BarrierService
+	barrierService *cryptoutilBarrier.Service
 }
 
 // NewMessageRecipientJWKRepository creates a new MessageRecipientJWKRepository.
-func NewMessageRecipientJWKRepository(db *gorm.DB, barrierService *cryptoutilBarrier.BarrierService) *MessageRecipientJWKRepository {
+func NewMessageRecipientJWKRepository(db *gorm.DB, barrierService *cryptoutilBarrier.Service) *MessageRecipientJWKRepository {
 	return &MessageRecipientJWKRepository{
 		db:             db,
 		barrierService: barrierService,

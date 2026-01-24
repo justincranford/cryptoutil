@@ -18,19 +18,19 @@ type KeyStatusResponse struct {
 	UpdatedAt int64  `json:"updated_at"` // Unix epoch milliseconds
 }
 
-// BarrierKeysStatusResponse represents the current status of all barrier key layers.
-type BarrierKeysStatusResponse struct {
+// KeysStatusResponse represents the current status of all barrier key layers.
+type KeysStatusResponse struct {
 	RootKey         *KeyStatusResponse `json:"root_key"`         // Latest root key (nil if none)
 	IntermediateKey *KeyStatusResponse `json:"intermediate_key"` // Latest intermediate key (nil if none)
 }
 
 // StatusService provides barrier key status query operations.
 type StatusService struct {
-	repo BarrierRepository
+	repo Repository
 }
 
 // NewStatusService creates a new StatusService instance.
-func NewStatusService(repo BarrierRepository) (*StatusService, error) {
+func NewStatusService(repo Repository) (*StatusService, error) {
 	if repo == nil {
 		return nil, fmt.Errorf("repository must be non-nil")
 	}
@@ -41,10 +41,10 @@ func NewStatusService(repo BarrierRepository) (*StatusService, error) {
 // GetBarrierKeysStatus retrieves the current status of barrier keys.
 // Returns the latest root and intermediate keys.
 // Content keys are not included (elastic key rotation - no "latest" concept).
-func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*BarrierKeysStatusResponse, error) {
-	var response BarrierKeysStatusResponse
+func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*KeysStatusResponse, error) {
+	var response KeysStatusResponse
 
-	err := s.repo.WithTransaction(ctx, func(tx BarrierTransaction) error {
+	err := s.repo.WithTransaction(ctx, func(tx Transaction) error {
 		// Get latest root key.
 		rootKey, err := tx.GetRootKeyLatest()
 		if err != nil {

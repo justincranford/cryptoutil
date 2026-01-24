@@ -160,7 +160,7 @@ func TestProfile_Resolve_Valid(t *testing.T) {
 			name: "simple-request",
 			profile: &Profile{
 				Name: "test",
-				Subject: SubjectDN{
+				Subject: DN{
 					Organization: []string{"Default Org"},
 				},
 				SubjectAltNames: SANConfig{
@@ -179,7 +179,7 @@ func TestProfile_Resolve_Valid(t *testing.T) {
 			name: "override-defaults",
 			profile: &Profile{
 				Name: "test",
-				Subject: SubjectDN{
+				Subject: DN{
 					Organization: []string{"Default Org"},
 					Country:      []string{"US"},
 				},

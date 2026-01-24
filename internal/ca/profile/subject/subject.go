@@ -25,7 +25,7 @@ type Profile struct {
 	Description string `yaml:"description"`
 
 	// Subject defines the X.509 distinguished name components.
-	Subject SubjectDN `yaml:"subject"`
+	Subject DN `yaml:"subject"`
 
 	// SubjectAltNames defines allowed SAN types and patterns.
 	SubjectAltNames SANConfig `yaml:"subject_alt_names"`
@@ -34,8 +34,8 @@ type Profile struct {
 	Constraints Constraints `yaml:"constraints"`
 }
 
-// SubjectDN represents X.509 Distinguished Name fields.
-type SubjectDN struct {
+// DN represents X.509 Distinguished Name fields.
+type DN struct {
 	// CommonName (CN) - typically the entity name.
 	CommonName string `yaml:"common_name"`
 

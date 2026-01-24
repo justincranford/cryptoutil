@@ -40,7 +40,7 @@ type elasticJWKServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	jwkGenSvc    *cryptoutilJose.JWKGenService
-	barrierSvc   *cryptoutilBarrier.BarrierService
+	barrierSvc   *cryptoutilBarrier.Service
 }
 
 // NewElasticJWKService creates a new ElasticJWKService.
@@ -48,7 +48,7 @@ func NewElasticJWKService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	jwkGenSvc *cryptoutilJose.JWKGenService,
-	barrierSvc *cryptoutilBarrier.BarrierService,
+	barrierSvc *cryptoutilBarrier.Service,
 ) ElasticJWKService {
 	return &elasticJWKServiceImpl{
 		elasticRepo:  elasticRepo,

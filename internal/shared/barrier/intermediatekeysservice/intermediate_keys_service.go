@@ -52,7 +52,7 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 }
 
 func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) error {
-	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
+	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.IntermediateKey
 
 	var err error
 
@@ -100,7 +100,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 
 			log.Printf("DEBUG initializeFirstIntermediateJWK: Encrypted intermediate JWK, len=%d, rootKeyKid=%v", len(encryptedIntermediateKeyBytes), rootKeyKidUUID)
 
-			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.BarrierIntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
+			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.IntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
 
 			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {

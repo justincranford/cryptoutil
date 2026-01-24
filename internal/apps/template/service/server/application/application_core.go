@@ -22,21 +22,21 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
-// ApplicationCore extends ApplicationBasic with database infrastructure.
+// Core extends Basic with database infrastructure.
 // Handles automatic database provisioning (SQLite in-memory, PostgreSQL testcontainer, or external DB).
-type ApplicationCore struct {
-	Basic               *ApplicationBasic
+type Core struct {
+	Basic               *Basic
 	DB                  *gorm.DB
 	ShutdownDBContainer func()
 	Settings            *cryptoutilConfig.ServiceTemplateServerSettings
 }
 
-// StartApplicationCoreWithServices initializes core application infrastructure AND all business services.
+// StartCoreWithServices initializes core application infrastructure AND all business services.
 // This is the proper place for service bootstrap logic (not in ServerBuilder).
 // Phase W: Moved from ServerBuilder.Build() to encapsulate bootstrap logic in application layer.
-func StartApplicationCoreWithServices(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ApplicationCoreWithServices, error) {
+func StartCoreWithServices(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*CoreWithServices, error) {
 	// Start core infrastructure (telemetry, JWK gen, unseal, database).
-	core, err := StartApplicationCore(ctx, settings)
+	core, err := StartCore(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
@@ -45,12 +45,12 @@ func StartApplicationCoreWithServices(ctx context.Context, settings *cryptoutilC
 	return InitializeServicesOnCore(ctx, core, settings)
 }
 
-// StartApplicationCore initializes core application infrastructure including database.
+// StartCore initializes core application infrastructure including database.
 // Automatically provisions database based on settings.DatabaseURL and settings.DatabaseContainer:
 // - SQLite in-memory: DatabaseURL="file::memory:?cache=shared"
 // - PostgreSQL testcontainer: DatabaseURL empty + DatabaseContainer="required"/"preferred"
 // - External DB: DatabaseURL with postgres:// or file:// scheme.
-func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ApplicationCore, error) {
+func StartCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Core, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {
@@ -58,12 +58,12 @@ func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.Servic
 	}
 
 	// Start basic infrastructure.
-	basic, err := StartApplicationBasic(ctx, settings)
+	basic, err := StartBasic(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start basic application: %w", err)
 	}
 
-	core := &ApplicationCore{
+	core := &Core{
 		Basic:               basic,
 		ShutdownDBContainer: func() {}, // No-op by default.
 		Settings:            settings,
@@ -84,20 +84,20 @@ func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.Servic
 	return core, nil
 }
 
-// ApplicationCoreWithServices extends ApplicationCore with initialized business services.
+// CoreWithServices extends Core with initialized business services.
 // This struct encapsulates ALL service bootstrap logic previously scattered in ServerBuilder.
-type ApplicationCoreWithServices struct {
-	Core *ApplicationCore
+type CoreWithServices struct {
+	Core *Core
 
 	// Repositories.
-	BarrierRepository     *cryptoutilBarrier.GormBarrierRepository
+	Repository     *cryptoutilBarrier.GormRepository
 	RealmRepository       cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 	TenantRepository      cryptoutilAppsTemplateServiceServerRepository.TenantRepository
 	UserRepository        cryptoutilAppsTemplateServiceServerRepository.UserRepository
 	JoinRequestRepository cryptoutilAppsTemplateServiceServerRepository.TenantJoinRequestRepository
 
 	// Services.
-	BarrierService      *cryptoutilBarrier.BarrierService
+	BarrierService      *cryptoutilBarrier.Service
 	RealmService        cryptoutilTemplateService.RealmService
 	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
 	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
@@ -105,28 +105,28 @@ type ApplicationCoreWithServices struct {
 	StatusService       *cryptoutilBarrier.StatusService
 }
 
-// InitializeServicesOnCore initializes all business logic services on an existing ApplicationCore.
+// InitializeServicesOnCore initializes all business logic services on an existing Core.
 // CRITICAL: This must be called AFTER migrations have been applied (BarrierService needs barrier_root_keys table).
 func InitializeServicesOnCore(
 	ctx context.Context,
-	core *ApplicationCore,
+	core *Core,
 	settings *cryptoutilConfig.ServiceTemplateServerSettings,
-) (*ApplicationCoreWithServices, error) {
-	services := &ApplicationCoreWithServices{
+) (*CoreWithServices, error) {
+	services := &CoreWithServices{
 		Core: core,
 	}
 
 	// Create barrier repository and service.
-	barrierRepo, err := cryptoutilBarrier.NewGormBarrierRepository(core.DB)
+	barrierRepo, err := cryptoutilBarrier.NewGormRepository(core.DB)
 	if err != nil {
 		core.Shutdown()
 
 		return nil, fmt.Errorf("failed to create barrier repository: %w", err)
 	}
 
-	services.BarrierRepository = barrierRepo
+	services.Repository = barrierRepo
 
-	barrierService, err := cryptoutilBarrier.NewBarrierService(
+	barrierService, err := cryptoutilBarrier.NewService(
 		ctx,
 		core.Basic.TelemetryService,
 		core.Basic.JWKGenService,
@@ -211,7 +211,7 @@ func InitializeServicesOnCore(
 }
 
 // Shutdown gracefully shuts down all core services (LIFO order).
-func (a *ApplicationCore) Shutdown() {
+func (a *Core) Shutdown() {
 	if a.Basic != nil && a.Basic.TelemetryService != nil {
 		a.Basic.TelemetryService.Slogger.Debug("stopping application core")
 	}
@@ -239,7 +239,7 @@ func (a *ApplicationCore) Shutdown() {
 // 1. Internal managed SQLite instance (file::memory:?cache=shared)
 // 2. Internal managed PostgreSQL testcontainer (DatabaseContainer=required/preferred)
 // 3. External DB connection (postgres:// or file:// scheme).
-func provisionDatabase(ctx context.Context, basic *ApplicationBasic, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*gorm.DB, func(), error) {
+func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*gorm.DB, func(), error) {
 	databaseURL := settings.DatabaseURL
 	containerMode := settings.DatabaseContainer
 

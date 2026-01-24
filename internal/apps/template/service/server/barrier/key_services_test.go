@@ -101,7 +101,7 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -115,7 +115,7 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 		name               string
 		telemetryService   *cryptoutilTelemetry.TelemetryService
 		jwkGenService      *cryptoutilJose.JWKGenService
-		repository         cryptoutilTemplateBarrier.BarrierRepository
+		repository         cryptoutilTemplateBarrier.Repository
 		unsealKeysService  cryptoutilUnsealKeysService.UnsealKeysService
 		expectedErrContain string
 	}{
@@ -188,7 +188,7 @@ func TestNewIntermediateKeysService_ValidationErrors(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -207,7 +207,7 @@ func TestNewIntermediateKeysService_ValidationErrors(t *testing.T) {
 		name               string
 		telemetryService   *cryptoutilTelemetry.TelemetryService
 		jwkGenService      *cryptoutilJose.JWKGenService
-		repository         cryptoutilTemplateBarrier.BarrierRepository
+		repository         cryptoutilTemplateBarrier.Repository
 		rootKeysService    *cryptoutilTemplateBarrier.RootKeysService
 		expectedErrContain string
 	}{
@@ -280,7 +280,7 @@ func TestNewContentKeysService_ValidationErrors(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -303,7 +303,7 @@ func TestNewContentKeysService_ValidationErrors(t *testing.T) {
 		name                    string
 		telemetryService        *cryptoutilTelemetry.TelemetryService
 		jwkGenService           *cryptoutilJose.JWKGenService
-		repository              cryptoutilTemplateBarrier.BarrierRepository
+		repository              cryptoutilTemplateBarrier.Repository
 		intermediateKeysService *cryptoutilTemplateBarrier.IntermediateKeysService
 		expectedErrContain      string
 	}{
@@ -375,7 +375,7 @@ func TestRootKeysService_Shutdown(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -410,7 +410,7 @@ func TestIntermediateKeysService_Shutdown(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -449,7 +449,7 @@ func TestContentKeysService_Shutdown(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -493,7 +493,7 @@ func TestNewRotationService_ValidationErrors(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -506,7 +506,7 @@ func TestNewRotationService_ValidationErrors(t *testing.T) {
 	tests := []struct {
 		name               string
 		jwkGenService      *cryptoutilJose.JWKGenService
-		repository         cryptoutilTemplateBarrier.BarrierRepository
+		repository         cryptoutilTemplateBarrier.Repository
 		unsealKeysService  cryptoutilUnsealKeysService.UnsealKeysService
 		expectedErrContain string
 	}{
@@ -566,7 +566,7 @@ func TestNewRotationService_Success(t *testing.T) {
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
@@ -581,74 +581,74 @@ func TestNewRotationService_Success(t *testing.T) {
 	require.NotNil(t, service)
 }
 
-// TestGormBarrierRepository_AddRootKey_NilKey tests AddRootKey with nil key.
-func TestGormBarrierRepository_AddRootKey_NilKey(t *testing.T) {
+// TestGormRepository_AddRootKey_NilKey tests AddRootKey with nil key.
+func TestGormRepository_AddRootKey_NilKey(t *testing.T) {
 	t.Parallel()
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
-	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.Transaction) error {
 		return tx.AddRootKey(nil)
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "key must be non-nil")
 }
 
-// TestGormBarrierRepository_AddIntermediateKey_NilKey tests AddIntermediateKey with nil key.
-func TestGormBarrierRepository_AddIntermediateKey_NilKey(t *testing.T) {
+// TestGormRepository_AddIntermediateKey_NilKey tests AddIntermediateKey with nil key.
+func TestGormRepository_AddIntermediateKey_NilKey(t *testing.T) {
 	t.Parallel()
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
-	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.Transaction) error {
 		return tx.AddIntermediateKey(nil)
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "key must be non-nil")
 }
 
-// TestGormBarrierRepository_AddContentKey_NilKey tests AddContentKey with nil key.
-func TestGormBarrierRepository_AddContentKey_NilKey(t *testing.T) {
+// TestGormRepository_AddContentKey_NilKey tests AddContentKey with nil key.
+func TestGormRepository_AddContentKey_NilKey(t *testing.T) {
 	t.Parallel()
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
-	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.Transaction) error {
 		return tx.AddContentKey(nil)
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "key must be non-nil")
 }
 
-// TestGormBarrierRepository_GetRootKey_NilUUID tests GetRootKey with nil UUID.
-func TestGormBarrierRepository_GetRootKey_NilUUID(t *testing.T) {
+// TestGormRepository_GetRootKey_NilUUID tests GetRootKey with nil UUID.
+func TestGormRepository_GetRootKey_NilUUID(t *testing.T) {
 	t.Parallel()
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
-	var rootKey *cryptoutilTemplateBarrier.BarrierRootKey
+	var rootKey *cryptoutilTemplateBarrier.RootKey
 
-	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.Transaction) error {
 		var getErr error
 
 		rootKey, getErr = tx.GetRootKey(nil)
@@ -663,20 +663,20 @@ func TestGormBarrierRepository_GetRootKey_NilUUID(t *testing.T) {
 	require.Nil(t, rootKey)
 }
 
-// TestGormBarrierRepository_GetIntermediateKey_NilUUID tests GetIntermediateKey with nil UUID.
-func TestGormBarrierRepository_GetIntermediateKey_NilUUID(t *testing.T) {
+// TestGormRepository_GetIntermediateKey_NilUUID tests GetIntermediateKey with nil UUID.
+func TestGormRepository_GetIntermediateKey_NilUUID(t *testing.T) {
 	t.Parallel()
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
-	var intermediateKey *cryptoutilTemplateBarrier.BarrierIntermediateKey
+	var intermediateKey *cryptoutilTemplateBarrier.IntermediateKey
 
-	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.Transaction) error {
 		var getErr error
 
 		intermediateKey, getErr = tx.GetIntermediateKey(nil)
@@ -691,20 +691,20 @@ func TestGormBarrierRepository_GetIntermediateKey_NilUUID(t *testing.T) {
 	require.Nil(t, intermediateKey)
 }
 
-// TestGormBarrierRepository_GetContentKey_NilUUID tests GetContentKey with nil UUID.
-func TestGormBarrierRepository_GetContentKey_NilUUID(t *testing.T) {
+// TestGormRepository_GetContentKey_NilUUID tests GetContentKey with nil UUID.
+func TestGormRepository_GetContentKey_NilUUID(t *testing.T) {
 	t.Parallel()
 
 	db, cleanup := createKeyServiceTestDB(t)
 	defer cleanup()
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 	t.Cleanup(func() { repo.Shutdown() })
 
-	var contentKey *cryptoutilTemplateBarrier.BarrierContentKey
+	var contentKey *cryptoutilTemplateBarrier.ContentKey
 
-	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.BarrierTransaction) error {
+	err = repo.WithTransaction(context.Background(), func(tx cryptoutilTemplateBarrier.Transaction) error {
 		var getErr error
 
 		contentKey, getErr = tx.GetContentKey(nil)

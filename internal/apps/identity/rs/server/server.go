@@ -32,7 +32,7 @@ type RSServer struct {
 	// Template services.
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.BarrierService
+	barrierService        *cryptoutilTemplateBarrier.Service
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService          cryptoutilTemplateService.RealmService
 
@@ -151,7 +151,7 @@ func (s *RSServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *RSServer) Barrier() *cryptoutilTemplateBarrier.BarrierService {
+func (s *RSServer) Barrier() *cryptoutilTemplateBarrier.Service {
 	return s.barrierService
 }
 

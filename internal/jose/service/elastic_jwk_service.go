@@ -26,7 +26,7 @@ type ElasticJWKService struct {
 	elasticRepo  repository.ElasticJWKRepository
 	materialRepo repository.MaterialJWKRepository
 	jwkGenSvc    *cryptoutilJose.JWKGenService
-	barrierSvc   *cryptoutilBarrier.BarrierService
+	barrierSvc   *cryptoutilBarrier.Service
 	auditLogSvc  *AuditLogService // Optional: nil to disable audit logging.
 }
 
@@ -35,7 +35,7 @@ func NewElasticJWKService(
 	elasticRepo repository.ElasticJWKRepository,
 	materialRepo repository.MaterialJWKRepository,
 	jwkGenSvc *cryptoutilJose.JWKGenService,
-	barrierSvc *cryptoutilBarrier.BarrierService,
+	barrierSvc *cryptoutilBarrier.Service,
 ) *ElasticJWKService {
 	return &ElasticJWKService{
 		elasticRepo:  elasticRepo,

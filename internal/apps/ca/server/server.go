@@ -49,7 +49,7 @@ type CAServer struct {
 	// Template services.
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.BarrierService
+	barrierService        *cryptoutilTemplateBarrier.Service
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService          cryptoutilTemplateService.RealmService
 
@@ -246,7 +246,7 @@ func (s *CAServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *CAServer) Barrier() *cryptoutilTemplateBarrier.BarrierService {
+func (s *CAServer) Barrier() *cryptoutilTemplateBarrier.Service {
 	return s.barrierService
 }
 

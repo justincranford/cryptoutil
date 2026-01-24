@@ -22,7 +22,7 @@ type MessageHandler struct {
 	messageRepo             *cryptoutilAppsCipherImRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository
 	jwkGenService           *cryptoutilJose.JWKGenService
-	barrierService          *cryptoutilBarrier.BarrierService
+	barrierService          *cryptoutilBarrier.Service
 }
 
 // NewMessageHandler creates a new MessageHandler with injected dependencies.
@@ -30,7 +30,7 @@ func NewMessageHandler(
 	messageRepo *cryptoutilAppsCipherImRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilBarrier.BarrierService,
+	barrierService *cryptoutilBarrier.Service,
 ) *MessageHandler {
 	return &MessageHandler{
 		messageRepo:             messageRepo,

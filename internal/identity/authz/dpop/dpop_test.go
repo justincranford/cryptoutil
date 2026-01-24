@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidateDPoPProof(t *testing.T) {
+func TestValidateProof(t *testing.T) {
 	t.Parallel()
 
 	// Generate test key (ES256).
@@ -46,7 +46,7 @@ func TestValidateDPoPProof(t *testing.T) {
 		{
 			name: "valid DPoP proof",
 			dpopBuilder: func() string {
-				return buildValidDPoPProof(t, privateKey, publicKey, "POST", "https://server.example.com/token", "")
+				return buildValidProof(t, privateKey, publicKey, "POST", "https://server.example.com/token", "")
 			},
 			httpMethod:  "POST",
 			httpURI:     "https://server.example.com/token",
@@ -58,7 +58,7 @@ func TestValidateDPoPProof(t *testing.T) {
 			dpopBuilder: func() string {
 				accessToken := "test-access-token"
 
-				return buildValidDPoPProof(t, privateKey, publicKey, "GET", "https://server.example.com/resource", accessToken)
+				return buildValidProof(t, privateKey, publicKey, "GET", "https://server.example.com/resource", accessToken)
 			},
 			httpMethod:  "GET",
 			httpURI:     "https://server.example.com/resource",
@@ -78,7 +78,7 @@ func TestValidateDPoPProof(t *testing.T) {
 		{
 			name: "htm mismatch",
 			dpopBuilder: func() string {
-				return buildValidDPoPProof(t, privateKey, publicKey, "GET", "https://server.example.com/token", "")
+				return buildValidProof(t, privateKey, publicKey, "GET", "https://server.example.com/token", "")
 			},
 			httpMethod:    "POST",
 			httpURI:       "https://server.example.com/token",
@@ -88,7 +88,7 @@ func TestValidateDPoPProof(t *testing.T) {
 		{
 			name: "htu mismatch",
 			dpopBuilder: func() string {
-				return buildValidDPoPProof(t, privateKey, publicKey, "POST", "https://other.example.com/token", "")
+				return buildValidProof(t, privateKey, publicKey, "POST", "https://other.example.com/token", "")
 			},
 			httpMethod:    "POST",
 			httpURI:       "https://server.example.com/token",
@@ -98,7 +98,7 @@ func TestValidateDPoPProof(t *testing.T) {
 		{
 			name: "ath claim mismatch",
 			dpopBuilder: func() string {
-				return buildValidDPoPProof(t, privateKey, publicKey, "GET", "https://server.example.com/resource", "wrong-token")
+				return buildValidProof(t, privateKey, publicKey, "GET", "https://server.example.com/resource", "wrong-token")
 			},
 			httpMethod:    "GET",
 			httpURI:       "https://server.example.com/resource",
@@ -113,7 +113,7 @@ func TestValidateDPoPProof(t *testing.T) {
 			t.Parallel()
 
 			dpopHeader := testCase.dpopBuilder()
-			proof, err := ValidateDPoPProof(dpopHeader, testCase.httpMethod, testCase.httpURI, testCase.accessToken)
+			proof, err := ValidateProof(dpopHeader, testCase.httpMethod, testCase.httpURI, testCase.accessToken)
 
 			if testCase.expectError {
 				require.Error(t, err)
@@ -221,7 +221,7 @@ func TestIsDPoPBound(t *testing.T) {
 
 // Helper functions for building test DPoP proofs and access tokens.
 
-func buildValidDPoPProof(t *testing.T, privateKey, publicKey joseJwk.Key, httpMethod, httpURI, accessToken string) string {
+func buildValidProof(t *testing.T, privateKey, publicKey joseJwk.Key, httpMethod, httpURI, accessToken string) string {
 	t.Helper()
 
 	token := joseJwt.New()

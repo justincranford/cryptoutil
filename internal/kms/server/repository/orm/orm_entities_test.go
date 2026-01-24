@@ -13,9 +13,9 @@ import (
 
 const testEncryptedData = "encrypted-data"
 
-// TestBarrierRootKey_GettersSetters tests all getter and setter methods.
-func TestBarrierRootKey_GettersSetters(t *testing.T) {
-	entity := &BarrierRootKey{}
+// TestRootKey_GettersSetters tests all getter and setter methods.
+func TestRootKey_GettersSetters(t *testing.T) {
+	entity := &RootKey{}
 
 	// Test UUID.
 	testUUID := googleUuid.New()
@@ -32,9 +32,9 @@ func TestBarrierRootKey_GettersSetters(t *testing.T) {
 	require.Equal(t, testKEKUUID, entity.GetKEKUUID())
 }
 
-// TestBarrierIntermediateKey_GettersSetters tests all getter and setter methods.
-func TestBarrierIntermediateKey_GettersSetters(t *testing.T) {
-	entity := &BarrierIntermediateKey{}
+// TestIntermediateKey_GettersSetters tests all getter and setter methods.
+func TestIntermediateKey_GettersSetters(t *testing.T) {
+	entity := &IntermediateKey{}
 
 	// Test UUID.
 	testUUID := googleUuid.New()
@@ -51,9 +51,9 @@ func TestBarrierIntermediateKey_GettersSetters(t *testing.T) {
 	require.Equal(t, testKEKUUID, entity.GetKEKUUID())
 }
 
-// TestBarrierContentKey_GettersSetters tests all getter and setter methods.
-func TestBarrierContentKey_GettersSetters(t *testing.T) {
-	entity := &BarrierContentKey{}
+// TestContentKey_GettersSetters tests all getter and setter methods.
+func TestContentKey_GettersSetters(t *testing.T) {
+	entity := &ContentKey{}
 
 	// Test UUID.
 	testUUID := googleUuid.New()

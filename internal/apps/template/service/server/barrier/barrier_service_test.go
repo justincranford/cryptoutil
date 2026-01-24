@@ -29,7 +29,7 @@ import (
 var (
 	testDB               *gorm.DB
 	testSQLDB            *sql.DB // Keep reference to prevent GC - in-memory SQLite requires open connection
-	testBarrierService   *cryptoutilTemplateBarrier.BarrierService
+	testService   *cryptoutilTemplateBarrier.Service
 	testJWKGenService    *cryptoutilJose.JWKGenService
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 )
@@ -101,14 +101,14 @@ func TestMain(m *testing.M) {
 	defer unsealService.Shutdown()
 
 	// Create barrier repository.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(testDB)
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
 	// Create barrier service.
-	testBarrierService, err = cryptoutilTemplateBarrier.NewBarrierService(
+	testService, err = cryptoutilTemplateBarrier.NewService(
 		ctx,
 		testTelemetryService,
 		testJWKGenService,
@@ -119,7 +119,7 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}
 
-	defer testBarrierService.Shutdown()
+	defer testService.Shutdown()
 	defer func() {
 		if closeErr := testSQLDB.Close(); closeErr != nil {
 			panic("TestMain: failed to close test SQL DB: " + closeErr.Error())
@@ -173,28 +173,28 @@ func createBarrierTables(db *sql.DB) error {
 	return nil
 }
 
-// TestBarrierService_EncryptDecrypt_Success tests successful encryption and decryption.
-func TestBarrierService_EncryptDecrypt_Success(t *testing.T) {
+// TestService_EncryptDecrypt_Success tests successful encryption and decryption.
+func TestService_EncryptDecrypt_Success(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 	plaintext := []byte("test data for encryption")
 
 	// Encrypt.
-	ciphertext, err := testBarrierService.EncryptContentWithContext(ctx, plaintext)
+	ciphertext, err := testService.EncryptContentWithContext(ctx, plaintext)
 	require.NoError(t, err)
 	require.NotNil(t, ciphertext)
 	require.NotEmpty(t, ciphertext)
 	require.NotEqual(t, plaintext, ciphertext, "Ciphertext should differ from plaintext")
 
 	// Decrypt.
-	decrypted, err := testBarrierService.DecryptContentWithContext(ctx, ciphertext)
+	decrypted, err := testService.DecryptContentWithContext(ctx, ciphertext)
 	require.NoError(t, err)
 	require.Equal(t, plaintext, decrypted, "Decrypted data should match original plaintext")
 }
 
-// TestBarrierService_EncryptDecrypt_MultipleRounds tests multiple encryption/decryption cycles.
-func TestBarrierService_EncryptDecrypt_MultipleRounds(t *testing.T) {
+// TestService_EncryptDecrypt_MultipleRounds tests multiple encryption/decryption cycles.
+func TestService_EncryptDecrypt_MultipleRounds(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -230,54 +230,54 @@ func TestBarrierService_EncryptDecrypt_MultipleRounds(t *testing.T) {
 			t.Parallel()
 
 			// Encrypt.
-			ciphertext, err := testBarrierService.EncryptContentWithContext(ctx, tt.plaintext)
+			ciphertext, err := testService.EncryptContentWithContext(ctx, tt.plaintext)
 			require.NoError(t, err)
 			require.NotNil(t, ciphertext)
 			require.NotEqual(t, tt.plaintext, ciphertext)
 
 			// Decrypt.
-			decrypted, err := testBarrierService.DecryptContentWithContext(ctx, ciphertext)
+			decrypted, err := testService.DecryptContentWithContext(ctx, ciphertext)
 			require.NoError(t, err)
 			require.Equal(t, tt.plaintext, decrypted)
 		})
 	}
 }
 
-// TestBarrierService_EncryptDecrypt_EmptyData tests that empty data returns an error.
-func TestBarrierService_EncryptDecrypt_EmptyData(t *testing.T) {
+// TestService_EncryptDecrypt_EmptyData tests that empty data returns an error.
+func TestService_EncryptDecrypt_EmptyData(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 	plaintext := []byte("")
 
 	// Encrypt empty data should fail with validation error.
-	_, err := testBarrierService.EncryptContentWithContext(ctx, plaintext)
+	_, err := testService.EncryptContentWithContext(ctx, plaintext)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "jwks can't be empty")
 }
 
-// TestBarrierService_EncryptBytesWithContext_AliasSuccess tests the alias method for encryption.
-func TestBarrierService_EncryptBytesWithContext_AliasSuccess(t *testing.T) {
+// TestService_EncryptBytesWithContext_AliasSuccess tests the alias method for encryption.
+func TestService_EncryptBytesWithContext_AliasSuccess(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 	plaintext := []byte("test data for encryption alias")
 
 	// Encrypt using alias method.
-	ciphertext, err := testBarrierService.EncryptBytesWithContext(ctx, plaintext)
+	ciphertext, err := testService.EncryptBytesWithContext(ctx, plaintext)
 	require.NoError(t, err)
 	require.NotNil(t, ciphertext)
 	require.NotEmpty(t, ciphertext)
 	require.NotEqual(t, plaintext, ciphertext, "Ciphertext should differ from plaintext")
 
 	// Decrypt using alias method.
-	decrypted, err := testBarrierService.DecryptBytesWithContext(ctx, ciphertext)
+	decrypted, err := testService.DecryptBytesWithContext(ctx, ciphertext)
 	require.NoError(t, err)
 	require.Equal(t, plaintext, decrypted, "Decrypted data should match original plaintext")
 }
 
-// TestBarrierService_DecryptInvalidCiphertext tests decryption with invalid ciphertext.
-func TestBarrierService_DecryptInvalidCiphertext(t *testing.T) {
+// TestService_DecryptInvalidCiphertext tests decryption with invalid ciphertext.
+func TestService_DecryptInvalidCiphertext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -304,14 +304,14 @@ func TestBarrierService_DecryptInvalidCiphertext(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := testBarrierService.DecryptContentWithContext(ctx, tt.ciphertext)
+			_, err := testService.DecryptContentWithContext(ctx, tt.ciphertext)
 			require.Error(t, err, "Decryption should fail for invalid ciphertext")
 		})
 	}
 }
 
-// TestBarrierService_Shutdown tests service shutdown behavior.
-func TestBarrierService_Shutdown(t *testing.T) {
+// TestService_Shutdown tests service shutdown behavior.
+func TestService_Shutdown(t *testing.T) {
 	// NOTE: Cannot run parallel - creates isolated database but takes exclusive test time.
 	ctx := context.Background()
 
@@ -356,11 +356,11 @@ func TestBarrierService_Shutdown(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { unsealService.Shutdown() })
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(shutdownDB)
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(shutdownDB)
 	require.NoError(t, err)
 	t.Cleanup(func() { barrierRepo.Shutdown() })
 
-	service, err := cryptoutilTemplateBarrier.NewBarrierService(
+	service, err := cryptoutilTemplateBarrier.NewService(
 		ctx,
 		telemetrySvc,
 		jwkGenSvc,
@@ -392,8 +392,8 @@ func TestBarrierService_Shutdown(t *testing.T) {
 	service.Shutdown()
 }
 
-// TestBarrierService_ConcurrentEncryption tests concurrent encryption operations.
-func TestBarrierService_ConcurrentEncryption(t *testing.T) {
+// TestService_ConcurrentEncryption tests concurrent encryption operations.
+func TestService_ConcurrentEncryption(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -408,7 +408,7 @@ func TestBarrierService_ConcurrentEncryption(t *testing.T) {
 		go func(id int) {
 			plaintext := []byte("concurrent test data " + string(rune(id)))
 
-			ciphertext, err := testBarrierService.EncryptContentWithContext(ctx, plaintext)
+			ciphertext, err := testService.EncryptContentWithContext(ctx, plaintext)
 			if err != nil {
 				errors <- err
 
@@ -430,8 +430,8 @@ func TestBarrierService_ConcurrentEncryption(t *testing.T) {
 	}
 }
 
-// TestNewBarrierService_ValidationErrors tests constructor validation paths.
-func TestNewBarrierService_ValidationErrors(t *testing.T) {
+// TestNewService_ValidationErrors tests constructor validation paths.
+func TestNewService_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -441,7 +441,7 @@ func TestNewBarrierService_ValidationErrors(t *testing.T) {
 		ctx                context.Context
 		telemetryService   *cryptoutilTelemetry.TelemetryService
 		jwkGenService      *cryptoutilJose.JWKGenService
-		repository         cryptoutilTemplateBarrier.BarrierRepository
+		repository         cryptoutilTemplateBarrier.Repository
 		unsealKeysService  cryptoutilUnsealKeysService.UnsealKeysService
 		expectedErrContain string
 	}{
@@ -487,7 +487,7 @@ func TestNewBarrierService_ValidationErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			service, err := cryptoutilTemplateBarrier.NewBarrierService(
+			service, err := cryptoutilTemplateBarrier.NewService(
 				tt.ctx,
 				tt.telemetryService,
 				tt.jwkGenService,
@@ -501,8 +501,8 @@ func TestNewBarrierService_ValidationErrors(t *testing.T) {
 	}
 }
 
-// TestNewBarrierService_NilUnsealService tests nil unseal service validation.
-func TestNewBarrierService_NilUnsealService(t *testing.T) {
+// TestNewService_NilUnsealService tests nil unseal service validation.
+func TestNewService_NilUnsealService(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -530,12 +530,12 @@ func TestNewBarrierService_NilUnsealService(t *testing.T) {
 
 	require.NoError(t, createBarrierTables(validSQLDB))
 
-	repo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(validDB)
+	repo, err := cryptoutilTemplateBarrier.NewGormRepository(validDB)
 	require.NoError(t, err)
 
 	defer repo.Shutdown()
 
-	service, err := cryptoutilTemplateBarrier.NewBarrierService(
+	service, err := cryptoutilTemplateBarrier.NewService(
 		ctx,
 		testTelemetryService,
 		testJWKGenService,

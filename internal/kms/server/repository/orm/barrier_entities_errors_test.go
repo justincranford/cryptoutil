@@ -160,7 +160,7 @@ func TestOrmTransaction_AddRootKey_DuplicateUUID(t *testing.T) {
 
 	// Create first root key.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		rootKey := &BarrierRootKey{
+		rootKey := &RootKey{
 			UUID:      rootKeyID,
 			Encrypted: "encrypted-root-key-1",
 			KEKUUID:   kekID,
@@ -172,7 +172,7 @@ func TestOrmTransaction_AddRootKey_DuplicateUUID(t *testing.T) {
 
 	// Try to create duplicate root key with same UUID.
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		duplicateKey := &BarrierRootKey{
+		duplicateKey := &RootKey{
 			UUID:      rootKeyID, // Same UUID - violates PRIMARY KEY constraint.
 			Encrypted: "encrypted-root-key-duplicate",
 			KEKUUID:   kekID,
@@ -195,7 +195,7 @@ func TestOrmTransaction_AddIntermediateKey_DuplicateUUID(t *testing.T) {
 
 	// Create first intermediate key.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		intermediateKey := &BarrierIntermediateKey{
+		intermediateKey := &IntermediateKey{
 			UUID:      intermediateKeyID,
 			Encrypted: "encrypted-intermediate-key-1",
 			KEKUUID:   kekID,
@@ -207,7 +207,7 @@ func TestOrmTransaction_AddIntermediateKey_DuplicateUUID(t *testing.T) {
 
 	// Try to create duplicate intermediate key with same UUID.
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		duplicateKey := &BarrierIntermediateKey{
+		duplicateKey := &IntermediateKey{
 			UUID:      intermediateKeyID, // Same UUID - violates PRIMARY KEY constraint.
 			Encrypted: "encrypted-intermediate-key-duplicate",
 			KEKUUID:   kekID,
@@ -230,7 +230,7 @@ func TestOrmTransaction_AddContentKey_DuplicateUUID(t *testing.T) {
 
 	// Create first content key.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		contentKey := &BarrierContentKey{
+		contentKey := &ContentKey{
 			UUID:      contentKeyID,
 			Encrypted: "encrypted-content-key-1",
 			KEKUUID:   kekID,
@@ -242,7 +242,7 @@ func TestOrmTransaction_AddContentKey_DuplicateUUID(t *testing.T) {
 
 	// Try to create duplicate content key with same UUID.
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		duplicateKey := &BarrierContentKey{
+		duplicateKey := &ContentKey{
 			UUID:      contentKeyID, // Same UUID - violates PRIMARY KEY constraint.
 			Encrypted: "encrypted-content-key-duplicate",
 			KEKUUID:   kekID,

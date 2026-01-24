@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"log"
 
-	// BarrierRepository interface used instead of OrmRepository.
+	// Repository interface used instead of OrmRepository.
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -24,12 +24,12 @@ import (
 type RootKeysService struct {
 	telemetryService  *cryptoutilTelemetry.TelemetryService
 	jwkGenService     *cryptoutilJose.JWKGenService
-	repository        BarrierRepository
+	repository        Repository
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 }
 
 // NewRootKeysService creates a new RootKeysService with the specified dependencies.
-func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository BarrierRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*RootKeysService, error) {
+func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository Repository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*RootKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -48,12 +48,12 @@ func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	return &RootKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, unsealKeysService: unsealKeysService}, nil
 }
 
-func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, repository BarrierRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error {
-	var encryptedRootKeyLatest *BarrierRootKey
+func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, repository Repository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error {
+	var encryptedRootKeyLatest *RootKey
 
 	var err error
 
-	err = repository.WithTransaction(context.Background(), func(tx BarrierTransaction) error {
+	err = repository.WithTransaction(context.Background(), func(tx Transaction) error {
 		encryptedRootKeyLatest, err = tx.GetRootKeyLatest() // encrypted root JWK from DB
 		// NOTE: "no root key found" is EXPECTED on first run - don't treat as fatal error
 		if err != nil && !errors.Is(err, ErrNoRootKeyFound) {
@@ -92,9 +92,9 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, reposit
 
 		log.Printf("DEBUG initializeFirstRootJWK: Encrypted root JWK, len=%d", len(encryptedRootKeyBytes))
 
-		firstEncryptedRootKey := &BarrierRootKey{UUID: *rootKeyKidUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
+		firstEncryptedRootKey := &RootKey{UUID: *rootKeyKidUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
 
-		err = repository.WithTransaction(context.Background(), func(tx BarrierTransaction) error {
+		err = repository.WithTransaction(context.Background(), func(tx Transaction) error {
 			return tx.AddRootKey(firstEncryptedRootKey)
 		})
 		if err != nil {
@@ -110,7 +110,7 @@ func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, reposit
 }
 
 // EncryptKey encrypts an intermediate key using the latest root key.
-func (i *RootKeysService) EncryptKey(tx BarrierTransaction, clearIntermediateKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
+func (i *RootKeysService) EncryptKey(tx Transaction, clearIntermediateKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
 	encryptedRootKeyLatest, err := tx.GetRootKeyLatest() // encrypted root JWK latest from DB
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
@@ -132,7 +132,7 @@ func (i *RootKeysService) EncryptKey(tx BarrierTransaction, clearIntermediateKey
 }
 
 // DecryptKey decrypts an intermediate key using the identified root key.
-func (i *RootKeysService) DecryptKey(sqlTransaction BarrierTransaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
+func (i *RootKeysService) DecryptKey(sqlTransaction Transaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
 	encryptedIntermediateKey, err := joseJwe.Parse(encryptedIntermediateKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted intermediate key message: %w", err)

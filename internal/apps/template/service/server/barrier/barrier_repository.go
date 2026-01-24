@@ -11,21 +11,21 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-// BarrierRepository defines the interface for barrier key storage operations.
-// This abstraction allows BarrierService to work with different database implementations
+// Repository defines the interface for barrier key storage operations.
+// This abstraction allows Service to work with different database implementations
 // (KMS OrmRepository, cipher-im gorm.DB, etc.) without coupling to specific repository types.
-type BarrierRepository interface {
+type Repository interface {
 	// WithTransaction executes the provided function within a database transaction.
 	// The transaction will be automatically committed on success or rolled back on error.
-	WithTransaction(ctx context.Context, function func(tx BarrierTransaction) error) error
+	WithTransaction(ctx context.Context, function func(tx Transaction) error) error
 
 	// Shutdown releases any resources held by the repository.
 	Shutdown()
 }
 
-// BarrierTransaction defines the interface for transactional barrier key operations.
+// Transaction defines the interface for transactional barrier key operations.
 // Implementations must provide ACID guarantees for barrier key lifecycle operations.
-type BarrierTransaction interface {
+type Transaction interface {
 	// Context returns the transaction context.
 	Context() context.Context
 
@@ -33,41 +33,41 @@ type BarrierTransaction interface {
 
 	// GetRootKeyLatest retrieves the most recently created root key.
 	// Returns (nil, nil) if no root keys exist.
-	GetRootKeyLatest() (*BarrierRootKey, error)
+	GetRootKeyLatest() (*RootKey, error)
 
 	// GetRootKey retrieves a specific root key by UUID.
 	// Returns error if key not found.
-	GetRootKey(uuid *googleUuid.UUID) (*BarrierRootKey, error)
+	GetRootKey(uuid *googleUuid.UUID) (*RootKey, error)
 
 	// AddRootKey persists a new root key to storage.
-	AddRootKey(key *BarrierRootKey) error
+	AddRootKey(key *RootKey) error
 
 	// Intermediate Key Operations
 
 	// GetIntermediateKeyLatest retrieves the most recently created intermediate key.
 	// Returns (nil, nil) if no intermediate keys exist.
-	GetIntermediateKeyLatest() (*BarrierIntermediateKey, error)
+	GetIntermediateKeyLatest() (*IntermediateKey, error)
 
 	// GetIntermediateKey retrieves a specific intermediate key by UUID.
 	// Returns error if key not found.
-	GetIntermediateKey(uuid *googleUuid.UUID) (*BarrierIntermediateKey, error)
+	GetIntermediateKey(uuid *googleUuid.UUID) (*IntermediateKey, error)
 
 	// AddIntermediateKey persists a new intermediate key to storage.
-	AddIntermediateKey(key *BarrierIntermediateKey) error
+	AddIntermediateKey(key *IntermediateKey) error
 
 	// Content Key Operations
 
 	// GetContentKey retrieves a specific content key by UUID.
 	// Returns error if key not found.
-	GetContentKey(uuid *googleUuid.UUID) (*BarrierContentKey, error)
+	GetContentKey(uuid *googleUuid.UUID) (*ContentKey, error)
 
 	// AddContentKey persists a new content key to storage.
-	AddContentKey(key *BarrierContentKey) error
+	AddContentKey(key *ContentKey) error
 }
 
-// BarrierRootKey represents a root-level encryption key in the barrier hierarchy.
+// RootKey represents a root-level encryption key in the barrier hierarchy.
 // Root keys are encrypted by the unseal key (HSM/KMS/Shamir).
-type BarrierRootKey struct {
+type RootKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted root key
 	KEKUUID   googleUuid.UUID `gorm:"type:text"`                              // KEK UUID (nil for root keys)
@@ -77,13 +77,13 @@ type BarrierRootKey struct {
 }
 
 // TableName specifies the database table name for barrier root keys.
-func (BarrierRootKey) TableName() string {
+func (RootKey) TableName() string {
 	return "barrier_root_keys"
 }
 
-// BarrierIntermediateKey represents an intermediate-level encryption key in the barrier hierarchy.
+// IntermediateKey represents an intermediate-level encryption key in the barrier hierarchy.
 // Intermediate keys are encrypted by root keys.
-type BarrierIntermediateKey struct {
+type IntermediateKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted intermediate key
 	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent root key UUID
@@ -93,13 +93,13 @@ type BarrierIntermediateKey struct {
 }
 
 // TableName specifies the database table name for barrier intermediate keys.
-func (BarrierIntermediateKey) TableName() string {
+func (IntermediateKey) TableName() string {
 	return "barrier_intermediate_keys"
 }
 
-// BarrierContentKey represents a content-level encryption key in the barrier hierarchy.
+// ContentKey represents a content-level encryption key in the barrier hierarchy.
 // Content keys are encrypted by intermediate keys and used for actual data encryption.
-type BarrierContentKey struct {
+type ContentKey struct {
 	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted content key
 	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent intermediate key UUID
@@ -109,6 +109,6 @@ type BarrierContentKey struct {
 }
 
 // TableName specifies the database table name for barrier content keys.
-func (BarrierContentKey) TableName() string {
+func (ContentKey) TableName() string {
 	return "barrier_content_keys"
 }

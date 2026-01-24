@@ -23,12 +23,12 @@ import (
 type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JWKGenService
-	repository       BarrierRepository
+	repository       Repository
 	rootKeysService  *RootKeysService
 }
 
 // NewIntermediateKeysService creates a new IntermediateKeysService with the specified dependencies.
-func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository BarrierRepository, rootKeysService *RootKeysService) (*IntermediateKeysService, error) {
+func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository Repository, rootKeysService *RootKeysService) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -47,12 +47,12 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 	return &IntermediateKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, rootKeysService: rootKeysService}, nil
 }
 
-func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService, repository BarrierRepository, rootKeysService *RootKeysService) error {
-	var encryptedIntermediateKeyLatest *BarrierIntermediateKey
+func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService, repository Repository, rootKeysService *RootKeysService) error {
+	var encryptedIntermediateKeyLatest *IntermediateKey
 
 	var err error
 
-	err = repository.WithTransaction(context.Background(), func(sqlTransaction BarrierTransaction) error {
+	err = repository.WithTransaction(context.Background(), func(sqlTransaction Transaction) error {
 		encryptedIntermediateKeyLatest, err = sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK from DB
 		// NOTE: "no intermediate key found" is EXPECTED on first run - don't treat as fatal error
 		if err != nil && !errors.Is(err, ErrNoIntermediateKeyFound) {
@@ -86,7 +86,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 
 		var rootKeyKidUUID *googleUuid.UUID
 
-		err = repository.WithTransaction(context.Background(), func(sqlTransaction BarrierTransaction) error {
+		err = repository.WithTransaction(context.Background(), func(sqlTransaction Transaction) error {
 			encryptedIntermediateKeyBytes, rootKeyKidUUID, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
 			if err != nil {
 				log.Printf("DEBUG initializeFirstIntermediateJWK: EncryptKey failed: %v", err)
@@ -96,7 +96,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 
 			log.Printf("DEBUG initializeFirstIntermediateJWK: Encrypted intermediate JWK, len=%d, rootKeyKid=%v", len(encryptedIntermediateKeyBytes), rootKeyKidUUID)
 
-			firstEncryptedIntermediateKey := &BarrierIntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
+			firstEncryptedIntermediateKey := &IntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
 
 			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {
@@ -122,7 +122,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 }
 
 // EncryptKey encrypts a content key using the latest intermediate key.
-func (i *IntermediateKeysService) EncryptKey(sqlTransaction BarrierTransaction, clearContentKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
+func (i *IntermediateKeysService) EncryptKey(sqlTransaction Transaction, clearContentKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
 	encryptedIntermediateKeyLatest, err := sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK latest from DB
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
@@ -144,7 +144,7 @@ func (i *IntermediateKeysService) EncryptKey(sqlTransaction BarrierTransaction, 
 }
 
 // DecryptKey decrypts a content key using the identified intermediate key.
-func (i *IntermediateKeysService) DecryptKey(sqlTransaction BarrierTransaction, encryptedContentKeyBytes []byte) (joseJwk.Key, error) {
+func (i *IntermediateKeysService) DecryptKey(sqlTransaction Transaction, encryptedContentKeyBytes []byte) (joseJwk.Key, error) {
 	encryptedContentKey, err := joseJwe.Parse(encryptedContentKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted content key message: %w", err)

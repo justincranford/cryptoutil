@@ -14,12 +14,12 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-// BarrierService provides multi-layer encryption using unseal → root → intermediate → content key hierarchy.
-// This version uses BarrierRepository interface to work with any database (KMS OrmRepository, gorm.DB, etc.)
-type BarrierService struct {
+// Service provides multi-layer encryption using unseal → root → intermediate → content key hierarchy.
+// This version uses Repository interface to work with any database (KMS OrmRepository, gorm.DB, etc.)
+type Service struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	jwkGenService           *cryptoutilJose.JWKGenService
-	repository              BarrierRepository
+	repository              Repository
 	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *RootKeysService
 	intermediateKeysService *IntermediateKeysService
@@ -28,17 +28,17 @@ type BarrierService struct {
 	shutdownOnce            sync.Once
 }
 
-// NewBarrierService creates a new barrier service using the provided repository.
+// NewService creates a new barrier service using the provided repository.
 // The repository can be:
-// - OrmBarrierRepository (wraps KMS OrmRepository for backward compatibility)
-// - GormBarrierRepository (wraps gorm.DB for cipher-im and future services).
-func NewBarrierService(
+// - OrmRepository (wraps KMS OrmRepository for backward compatibility)
+// - GormRepository (wraps gorm.DB for cipher-im and future services).
+func NewService(
 	ctx context.Context,
 	telemetryService *cryptoutilTelemetry.TelemetryService,
 	jwkGenService *cryptoutilJose.JWKGenService,
-	repository BarrierRepository,
+	repository Repository,
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
-) (*BarrierService, error) {
+) (*Service, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	}
@@ -79,7 +79,7 @@ func NewBarrierService(
 		return nil, fmt.Errorf("failed to create content keys service: %w", err)
 	}
 
-	return &BarrierService{
+	return &Service{
 		telemetryService:        telemetryService,
 		jwkGenService:           jwkGenService,
 		repository:              repository,
@@ -92,14 +92,14 @@ func NewBarrierService(
 }
 
 // EncryptContentWithContext encrypts data using the content key (which is encrypted by intermediate key, which is encrypted by root key, which is encrypted by unseal key).
-func (d *BarrierService) EncryptContentWithContext(ctx context.Context, clearBytes []byte) ([]byte, error) {
+func (d *Service) EncryptContentWithContext(ctx context.Context, clearBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
 
 	var encryptedBytes []byte
 
-	err := d.repository.WithTransaction(ctx, func(tx BarrierTransaction) error {
+	err := d.repository.WithTransaction(ctx, func(tx Transaction) error {
 		var err error
 
 		encryptedBytes, _, err = d.contentKeysService.EncryptContent(tx, clearBytes)
@@ -114,14 +114,14 @@ func (d *BarrierService) EncryptContentWithContext(ctx context.Context, clearByt
 }
 
 // DecryptContentWithContext decrypts data using the content key hierarchy.
-func (d *BarrierService) DecryptContentWithContext(ctx context.Context, encryptedContentJWEMessageBytes []byte) ([]byte, error) {
+func (d *Service) DecryptContentWithContext(ctx context.Context, encryptedContentJWEMessageBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
 
 	var decryptedBytes []byte
 
-	err := d.repository.WithTransaction(ctx, func(tx BarrierTransaction) error {
+	err := d.repository.WithTransaction(ctx, func(tx Transaction) error {
 		var err error
 
 		decryptedBytes, err = d.contentKeysService.DecryptContent(tx, encryptedContentJWEMessageBytes)
@@ -136,17 +136,17 @@ func (d *BarrierService) DecryptContentWithContext(ctx context.Context, encrypte
 }
 
 // EncryptBytesWithContext is an alias for EncryptContentWithContext for API consistency.
-func (d *BarrierService) EncryptBytesWithContext(ctx context.Context, clearBytes []byte) ([]byte, error) {
+func (d *Service) EncryptBytesWithContext(ctx context.Context, clearBytes []byte) ([]byte, error) {
 	return d.EncryptContentWithContext(ctx, clearBytes)
 }
 
 // DecryptBytesWithContext is an alias for DecryptContentWithContext for API consistency.
-func (d *BarrierService) DecryptBytesWithContext(ctx context.Context, encryptedBytes []byte) ([]byte, error) {
+func (d *Service) DecryptBytesWithContext(ctx context.Context, encryptedBytes []byte) ([]byte, error) {
 	return d.DecryptContentWithContext(ctx, encryptedBytes)
 }
 
 // Shutdown releases all resources held by the barrier service.
-func (d *BarrierService) Shutdown() {
+func (d *Service) Shutdown() {
 	d.shutdownOnce.Do(func() {
 		d.closed = true
 		if d.contentKeysService != nil {

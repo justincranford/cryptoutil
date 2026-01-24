@@ -269,7 +269,7 @@ func setupTestHandler() (*JWKHandler, *MockElasticJWKRepository, *MockMaterialJW
 	jwkGenService := &cryptoutilJose.JWKGenService{}
 
 	// Create minimal BarrierService for testing.
-	barrierService := &cryptoutilBarrier.BarrierService{}
+	barrierService := &cryptoutilBarrier.Service{}
 
 	handler := NewJWKHandler(
 		elasticRepo,
@@ -304,7 +304,7 @@ func TestNewJWKHandler(t *testing.T) {
 	auditConfigRepo := new(MockAuditConfigRepository)
 	auditLogRepo := new(MockAuditLogRepository)
 	jwkGenService := &cryptoutilJose.JWKGenService{}
-	barrierService := &cryptoutilBarrier.BarrierService{}
+	barrierService := &cryptoutilBarrier.Service{}
 
 	handler := NewJWKHandler(
 		elasticRepo,

@@ -271,7 +271,7 @@ func TestIssuer_Issue_WithProfile(t *testing.T) {
 
 	subjectProfile := &cryptoutilCAProfileSubject.Profile{
 		Name: "tls-server",
-		Subject: cryptoutilCAProfileSubject.SubjectDN{
+		Subject: cryptoutilCAProfileSubject.DN{
 			Organization:       []string{"Example Corp"},
 			OrganizationalUnit: []string{"Web Services"},
 			Country:            []string{"US"},

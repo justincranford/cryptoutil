@@ -31,7 +31,7 @@ type JoseJAServer struct {
 	// Services.
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.BarrierService
+	barrierService        *cryptoutilTemplateBarrier.Service
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService          cryptoutilTemplateService.RealmService
 
@@ -164,7 +164,7 @@ func (s *JoseJAServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *JoseJAServer) Barrier() *cryptoutilTemplateBarrier.BarrierService {
+func (s *JoseJAServer) Barrier() *cryptoutilTemplateBarrier.Service {
 	return s.barrierService
 }
 

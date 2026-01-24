@@ -41,6 +41,7 @@ linters:
     - dupl
     - gocyclo
     - godox
+    - prealloc
 
   exclusions:
     paths:
@@ -130,7 +131,10 @@ linters:
       threshold: 100
     misspell:
       locale: US
-    revive: {}
+    revive:
+      rules:
+        - name: exported
+          disabled: true
     godot:
       scope: declarations
       capital: false

@@ -32,7 +32,7 @@ type AuthzServer struct {
 	// Template services.
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.BarrierService
+	barrierService        *cryptoutilTemplateBarrier.Service
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService          cryptoutilTemplateService.RealmService
 
@@ -151,7 +151,7 @@ func (s *AuthzServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *AuthzServer) Barrier() *cryptoutilTemplateBarrier.BarrierService {
+func (s *AuthzServer) Barrier() *cryptoutilTemplateBarrier.Service {
 	return s.barrierService
 }
 

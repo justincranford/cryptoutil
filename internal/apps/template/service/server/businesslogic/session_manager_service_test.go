@@ -53,7 +53,7 @@ func setupJWKGenService(t *testing.T, telemetrySvc *cryptoutilTelemetry.Telemetr
 }
 
 // setupBarrierService creates a BarrierService for testing.
-func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTelemetry.TelemetryService, jwkGenSvc *cryptoutilJose.JWKGenService) *cryptoutilTemplateBarrier.BarrierService {
+func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTelemetry.TelemetryService, jwkGenSvc *cryptoutilJose.JWKGenService) *cryptoutilTemplateBarrier.Service {
 	t.Helper()
 
 	ctx := context.Background()
@@ -101,7 +101,7 @@ func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTele
 	})
 
 	// Create barrier repository.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormBarrierRepository(db)
+	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -109,7 +109,7 @@ func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTele
 	})
 
 	// Create barrier service.
-	barrierSvc, err := cryptoutilTemplateBarrier.NewBarrierService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealService)
+	barrierSvc, err := cryptoutilTemplateBarrier.NewService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealService)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {

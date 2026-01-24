@@ -31,7 +31,7 @@ type CipherIMServer struct {
 	// Services.
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.BarrierService
+	barrierService        *cryptoutilTemplateBarrier.Service
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService          cryptoutilTemplateService.RealmService
 	registrationService   *cryptoutilTemplateBusinessLogic.TenantRegistrationService
@@ -216,7 +216,7 @@ func (s *CipherIMServer) RegistrationService() *cryptoutilTemplateBusinessLogic.
 }
 
 // BarrierService returns the barrier service (for tests).
-func (s *CipherIMServer) BarrierService() *cryptoutilTemplateBarrier.BarrierService {
+func (s *CipherIMServer) BarrierService() *cryptoutilTemplateBarrier.Service {
 	return s.barrierService
 }
 

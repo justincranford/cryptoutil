@@ -59,7 +59,7 @@ func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmReposit
 		return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK: %w", err)
 	}
 
-	err = sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: *contentKeyKidUUID, Encrypted: string(encryptedContentKeyJWEMessageBytes), KEKUUID: *intermediateKeyKidUUID})
+	err = sqlTransaction.AddContentKey(&cryptoutilOrmRepository.ContentKey{UUID: *contentKeyKidUUID, Encrypted: string(encryptedContentKeyJWEMessageBytes), KEKUUID: *intermediateKeyKidUUID})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to add content key to DB: %w", err)
 	}
