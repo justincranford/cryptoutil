@@ -22,11 +22,11 @@ type mockUnverifiedClientRepoForApproval struct {
 }
 
 // UnverifiedClientRepository methods.
-func (m *mockUnverifiedClientRepoForApproval) Create(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient) error {
+func (m *mockUnverifiedClientRepoForApproval) Create(_ context.Context, client *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient) error {
 	return nil
 }
 
-func (m *mockUnverifiedClientRepoForApproval) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoForApproval) GetByID(_ context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	if m.getByIDErr != nil {
 		return nil, m.getByIDErr
 	}
@@ -34,15 +34,15 @@ func (m *mockUnverifiedClientRepoForApproval) GetByID(ctx context.Context, id go
 	return m.unverifiedClient, nil
 }
 
-func (m *mockUnverifiedClientRepoForApproval) GetByClientID(ctx context.Context, clientID string) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoForApproval) GetByClientID(_ context.Context, clientID string) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, nil
 }
 
-func (m *mockUnverifiedClientRepoForApproval) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoForApproval) ListByTenant(_ context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, nil
 }
 
-func (m *mockUnverifiedClientRepoForApproval) Delete(ctx context.Context, id googleUuid.UUID) error {
+func (m *mockUnverifiedClientRepoForApproval) Delete(_ context.Context, id googleUuid.UUID) error {
 	return m.deleteErr
 }
 

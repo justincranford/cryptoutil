@@ -417,8 +417,6 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 
 	const numEntries = 20
 
-	var createdIDs []googleUuid.UUID
-
 	// Create many audit log entries.
 	for i := 0; i < numEntries; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
@@ -433,8 +431,6 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 
 		err := repo.Create(ctx, entry)
 		require.NoError(t, err)
-
-		createdIDs = append(createdIDs, *id)
 	}
 
 	// Cleanup.

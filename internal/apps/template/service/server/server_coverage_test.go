@@ -117,7 +117,7 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create option that always fails.
-	failingOption := func(st *ServiceTemplate) error {
+	failingOption := func(_ *ServiceTemplate) error {
 		return fmt.Errorf("intentional option failure")
 	}
 
