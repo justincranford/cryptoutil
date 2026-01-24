@@ -52,276 +52,343 @@
   "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
   "files.exclude": {
     // Git internal files
-    "**/.git": false,
-    "**/.git/COMMIT_EDITMSG": true,
-    "**/.git/description": true,
-    "**/.git/info": true,
-    "**/.git/index": true,
-    "**/.git/refs": true,
-    "**/.git/packed-refs": true,
-    "**/.git/logs": true,
-    "**/.git/lost-found": true,
-    "**/.git/objects": true,
-    "**/.git/FETCH_HEAD": true,
-    "**/.git/ORIG_HEAD": true,
-    "**/.git/HEAD": true,
+    "**/.git": false, // Git repository directory
+    "**/.git/COMMIT_EDITMSG": true, // Git commit edit message
+    "**/.git/description": true, // Git repository description
+    "**/.git/info": true, // Git info directory
+    "**/.git/index": true, // Git index file
+    "**/.git/refs": true, // Git references directory
+    "**/.git/packed-refs": true, // Git packed references
+    "**/.git/logs": true, // Git logs directory
+    "**/.git/lost-found": true, // Git lost and found
+    "**/.git/objects": true, // Git objects directory
+    "**/.git/FETCH_HEAD": true, // Git fetch head
+    "**/.git/ORIG_HEAD": true, // Git original head
+    "**/.git/HEAD": true, // Git head file
 
     // System/OS files
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
+    "**/.DS_Store": true, // macOS directory metadata
+    "**/Thumbs.db": true, // Windows thumbnail cache
 
     // Temporary files
-    "**/*.tmp": true,
-    "**/*.swp": true,
-    "**/*.swo": true,
+    "**/*.tmp": true, // Temporary files
+    "**/*.swp": true, // Vim swap files
+    "**/*.swo": true, // Vim swap files
 
     // Build artifacts
-    "**/bin": true,
-    "**/*.exe": true,
-    "**/*.exe~": true,
-    "**/*.dll": true,
-    "**/*.so": true,
-    "**/*.dylib": true,
+    "**/bin": true, // Binary directory
+    "**/*.exe": true, // Executable files
+    "**/*.exe~": true, // Executable backup files
+    "**/*.dll": true, // Dynamic link libraries
+    "**/*.so": true, // Shared object files
+    "**/*.dylib": true, // macOS dynamic libraries
 
     // Java/Maven/Gradle build artifacts
-    "**/out": true,
+    "**/out": true, // Java output directory
 
     // Maven/Gradle caches
-    "**/.mvn": true,
-    "**/.gradle": true,
+    "**/.mvn": true, // Maven wrapper cache
+    "**/.gradle": true, // Gradle cache
 
     // Go workspace files
-    "**/go.work": true,
-    "**/go.work.sum": true,
+    "**/go.work": true, // Go workspace file
+    "**/go.work.sum": true, // Go workspace sum
 
     // Dependencies
-    "**/vendor": true,
-    "**/node_modules": true,
+    "**/vendor": true, // Go vendor directory
+    "**/node_modules": true, // Node.js dependencies
 
     // Cache files and cicd outputs
-    "**/.cspellcache": true,
-    "**/.cicd": true,
+    "**/.cspellcache": true, // CSpell cache
+    "**/.cicd": true, // CI/CD cache
 
     // Environment files
-    "**/.env": true,
+    "**/.env": true, // Environment variables file
 
     // Test artifacts - CRITICAL for OOM prevention
-    "**/test-output/**": true,
-    "**/*.test": true,
-    "**/coverage": true,
-    "**/coverage_*": true,
-    "**/coverage*.out": true,
-    "**/coverage*.txt": true,
-    "**/coverage.xml": true,
-    "**/coverage.html": true,
-    "**/coverage.json": true,
-    "**/coverage.lcov": true,
-    "**/orm_coverage": true,
-    "**/*_coverage": true,
-    "**/*_functions.txt": true,
-    "**/test-results": true,
+    "**/test-output/**": true, // Test output directory
+    "**/*.test": true, // Go test files
+    "**/coverage": true, // Coverage directory
+    "**/coverage_*": true, // Coverage files with prefix
+    "**/coverage*.out": true, // Coverage output files
+    "**/coverage*.txt": true, // Coverage text files
+    "**/coverage.xml": true, // Coverage XML
+    "**/coverage.html": true, // Coverage HTML
+    "**/coverage.json": true, // Coverage JSON
+    "**/coverage.lcov": true, // Coverage LCOV
+    "**/orm_coverage": true, // ORM coverage
+    "**/*_coverage": true, // Coverage files with suffix
+    "**/*_functions.txt": true, // Function list files
+    "**/test-results": true, // Test results directory
 
     // Go build cache - CRITICAL for OOM prevention
-    "**/*.test.exe": true,
-    "**/*.cover.go": true,
-    "**/covervars.go": true,
+    "**/*.test.exe": true, // Go test executables
+    "**/*.cover.go": true, // Go coverage files
+    "**/covervars.go": true, // Coverage variables
 
     // Python artifacts
-    "**/__pycache__": true,
-    "**/*.pyc": true,
-    "**/*.pyo": true,
-    "**/*.pyd": true,
-    "**/.Python": true,
-    "**/pip-log.txt": true,
-    "**/pip-delete-this-directory.txt": true,
-    "**/.venv": true,
-    "**/venv": true,
-    "**/env": true,
-    "**/ENV": true,
-    "**/.tox": true,
-    "**/.coverage": true,
-    "**/.coverage.*": true,
-    "**/*.cover": true,
-    "**/.hypothesis": true,
-    "**/.pytest_cache": true,
-    "**/.mypy_cache": true,
-    "**/.nox": true,
-    "**/htmlcov": true,
-    "**/.python-version": true,
-    "**/Pipfile.lock": true,
-    "**/poetry.lock": true,
-    "**/__pypackages__": true,
-    "**/.ruff_cache": true,
-    "**/.dmypy.json": true,
-    "**/pyrightconfig.json": true,
-    "**/.pdm.toml": true,
-    "**/.pdm-python": true
+    "**/__pycache__": true, // Python cache directory
+    "**/*.pyc": true, // Python compiled files
+    "**/*.pyo": true, // Python optimized files
+    "**/*.pyd": true, // Python DLL files
+    "**/.Python": true, // Python environment marker
+    "**/pip-log.txt": true, // Pip log file
+    "**/pip-delete-this-directory.txt": true, // Pip deletion marker
+    "**/.venv": true, // Python virtual environment
+    "**/venv": true, // Python virtual environment
+    "**/env": true, // Python environment
+    "**/ENV": true, // Python environment
+    "**/.tox": true, // Tox testing environments
+    "**/.coverage": true, // Python coverage
+    "**/.coverage.*": true, // Python coverage files
+    "**/*.cover": true, // Python coverage files
+    "**/.hypothesis": true, // Hypothesis testing cache
+    "**/.pytest_cache": true, // Pytest cache
+    "**/.mypy_cache": true, // MyPy cache
+    "**/.nox": true, // Nox sessions
+    "**/htmlcov": true, // HTML coverage reports
+    "**/.python-version": true, // Python version file
+    "**/Pipfile.lock": true, // Pipenv lock file
+    "**/poetry.lock": true, // Poetry lock file
+    "**/__pypackages__": true, // PEP 582 packages
+    "**/.ruff_cache": true, // Ruff linter cache
+    "**/.dmypy.json": true, // MyPy daemon config
+    "**/pyrightconfig.json": true, // Pyright config
+    "**/.pdm.toml": true, // PDM config
+    "**/.pdm-python": true, // PDM Python
+    "**/*.manifest": true, // Manifest files
+    "**/nosetests.xml": true, // Nose test results
+    "**/test_*.db*": true, // Test databases
+    "**/.Python/**": true, // Python environment files
+    "**/develop-eggs/**": true, // Development eggs
+    "**/eggs/**": true, // Egg directories
+    "**/.eggs/**": true, // Egg directories
+    "**/*.egg*": true, // Egg files
+    "**/parts/**": true, // Buildout parts
+    "**/sdist/**": true, // Source distributions
+    "**/var/**": true, // Variable data
+    "**/wheels/**": true, // Wheel files
+    "**/.installed.cfg": true, // Installed config
+    "**/testdata/**": true // Test data directory
   },
   "search.exclude": {
     // Git internal files
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-    "**/.git/logs/**": true,
-    "**/.git/lost-found/**": true,
+    "**/.git/objects/**": true, // Git objects directory
+    "**/.git/subtree-cache/**": true, // Git subtree cache
+    "**/.git/logs/**": true, // Git logs directory
+    "**/.git/lost-found/**": true, // Git lost and found
 
     // Dependencies
-    "**/node_modules": true,
-    "**/vendor": true,
+    "**/node_modules": true, // Node.js dependencies
+    "**/vendor": true, // Go vendor directory
 
     // Java/Maven/Gradle build artifacts
-    "**/out": true,
+    "**/out": true, // Java output directory
 
     // Maven/Gradle caches
-    "**/.mvn": true,
-    "**/.gradle": true,
+    "**/.mvn": true, // Maven wrapper cache
+    "**/.gradle": true, // Gradle cache
 
     // Cache files
-    "**/.cspellcache": true,
-    "**/go.work.sum": true,
+    "**/.cspellcache": true, // CSpell cache
+    "**/go.work.sum": true, // Go workspace sum
 
     // Build artifacts
-    "**/bin": true,
-    "**/*.exe": true,
+    "**/bin": true, // Binary directory
+    "**/*.exe": true, // Executable files
 
     // Environment files
-    "**/.env": true,
+    "**/.env": true, // Environment variables file
 
     // Test artifacts - CRITICAL for OOM prevention
-    "**/test-output/**": true,
-    "**/*.test": true,
-    "**/coverage": true,
-    "**/coverage_*": true,
-    "**/coverage*.out": true,
-    "**/coverage*.txt": true,
-    "**/coverage.xml": true,
-    "**/coverage.html": true,
-    "**/coverage.json": true,
-    "**/coverage.lcov": true,
-    "**/orm_coverage": true,
-    "**/*_coverage": true,
-    "**/*_functions.txt": true,
-    "**/test-results": true,
+    "**/test-output/**": true, // Test output directory
+    "**/*.test": true, // Go test files
+    "**/coverage": true, // Coverage directory
+    "**/coverage_*": true, // Coverage files with prefix
+    "**/coverage*.out": true, // Coverage output files
+    "**/coverage*.txt": true, // Coverage text files
+    "**/coverage.xml": true, // Coverage XML
+    "**/coverage.html": true, // Coverage HTML
+    "**/coverage.json": true, // Coverage JSON
+    "**/coverage.lcov": true, // Coverage LCOV
+    "**/orm_coverage": true, // ORM coverage
+    "**/*_coverage": true, // Coverage files with suffix
+    "**/*_functions.txt": true, // Function list files
+    "**/test-results": true, // Test results directory
 
     // Go build cache - CRITICAL for OOM prevention
-    "**/go-build*/**": true,
-    "**/*.test.exe": true,
-    "**/*.cover.go": true,
-    "**/covervars.go": true,
-    "**/_cover_.out": true,
-    "**/gocoverdir/**": true,
+    "**/go-build*/**": true, // Go build cache directory
+    "**/*.test.exe": true, // Go test executables
+    "**/*.cover.go": true, // Go coverage files
+    "**/covervars.go": true, // Coverage variables
+    "**/_cover_.out": true, // Coverage output file
+    "**/gocoverdir/**": true, // Go coverage directory
 
     // Python artifacts
-    "**/__pycache__": true,
-    "**/*.pyc": true,
-    "**/*.pyo": true,
-    "**/*.pyd": true,
-    "**/.Python": true,
-    "**/pip-log.txt": true,
-    "**/pip-delete-this-directory.txt": true,
-    "**/.venv": true,
-    "**/venv": true,
-    "**/env": true,
-    "**/ENV": true,
-    "**/.tox": true,
-    "**/.coverage": true,
-    "**/.coverage.*": true,
-    "**/*.cover": true,
-    "**/.hypothesis": true,
-    "**/.pytest_cache": true,
-    "**/.mypy_cache": true,
-    "**/.nox": true,
-    "**/htmlcov": true,
-    "**/.python-version": true,
-    "**/Pipfile.lock": true,
-    "**/poetry.lock": true,
-    "**/__pypackages__": true,
-    "**/.ruff_cache": true,
-    "**/.dmypy.json": true,
-    "**/pyrightconfig.json": true,
-    "**/.pdm.toml": true,
-    "**/.pdm-python": true
+    "**/__pycache__": true, // Python cache directory
+    "**/*.pyc": true, // Python compiled files
+    "**/*.pyo": true, // Python optimized files
+    "**/*.pyd": true, // Python DLL files
+    "**/.Python": true, // Python environment marker
+    "**/pip-log.txt": true, // Pip log file
+    "**/pip-delete-this-directory.txt": true, // Pip deletion marker
+    "**/.venv": true, // Python virtual environment
+    "**/venv": true, // Python virtual environment
+    "**/env": true, // Python environment
+    "**/ENV": true, // Python environment
+    "**/.tox": true, // Tox testing environments
+    "**/.coverage": true, // Python coverage
+    "**/.coverage.*": true, // Python coverage files
+    "**/*.cover": true, // Python coverage files
+    "**/.hypothesis": true, // Hypothesis testing cache
+    "**/.pytest_cache": true, // Pytest cache
+    "**/.mypy_cache": true, // MyPy cache
+    "**/.nox": true, // Nox sessions
+    "**/htmlcov": true, // HTML coverage reports
+    "**/.python-version": true, // Python version file
+    "**/Pipfile.lock": true, // Pipenv lock file
+    "**/poetry.lock": true, // Poetry lock file
+    "**/__pypackages__": true, // PEP 582 packages
+    "**/.ruff_cache": true, // Ruff linter cache
+    "**/.dmypy.json": true, // MyPy daemon config
+    "**/pyrightconfig.json": true, // Pyright config
+    "**/.pdm.toml": true, // PDM config
+    "**/.pdm-python": true, // PDM Python
+    "**/.worktree/**": true, // Git worktree directory
+    "**/worktree/**": true, // Git worktree directory
+    "**/nosetests.xml": true, // Nose test results
+    "**/test_*.db*": true, // Test databases
+    "**/output/**": true, // Output directory
+    "**/target/**": true, // Maven target directory
+    "**/.mvn/wrapper/**": true, // Maven wrapper
+    "**/mvnw*": true, // Maven wrapper scripts
+    "**/*.class": true, // Java class files
+    "**/.Python/**": true, // Python environment files
+    "**/develop-eggs/**": true, // Development eggs
+    "**/eggs/**": true, // Egg directories
+    "**/.eggs/**": true, // Egg directories
+    "**/*.egg*": true, // Egg files
+    "**/parts/**": true, // Buildout parts
+    "**/sdist/**": true, // Source distributions
+    "**/var/**": true, // Variable data
+    "**/wheels/**": true, // Wheel files
+    "**/.installed.cfg": true, // Installed config
+    "**/*.jar": true, // Java archives
+    "**/*.war": true, // Web archives
+    "**/*.ear": true, // Enterprise archives
+    "**/testdata/**": true // Test data directory
   },
   "files.watcherExclude": {
     // Git internal files
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-    "**/.git/logs/**": true,
-    "**/.git/lost-found/**": true,
+    "**/.git/objects/**": true, // Git objects directory
+    "**/.git/subtree-cache/**": true, // Git subtree cache
+    "**/.git/logs/**": true, // Git logs directory
+    "**/.git/lost-found/**": true, // Git lost and found
 
     // Dependencies
-    "**/node_modules/**": true,
-    "**/vendor/**": true,
+    "**/node_modules/**": true, // Node.js dependencies directory
+    "**/vendor/**": true, // Go vendor directory
 
     // Java/Maven/Gradle build artifacts
-    "**/out": true,
+    "**/out": true, // Java output directory
 
     // Maven/Gradle caches
-    "**/.mvn/**": true,
-    "**/.gradle/**": true,
+    "**/.mvn/**": true, // Maven wrapper cache directory
+    "**/.gradle/**": true, // Gradle cache directory
 
     // Build artifacts
-    "**/bin/**": true,
+    "**/bin/**": true, // Binary directory
 
     // Cache files
-    "**/.cspellcache": true,
-    "**/go.work.sum": true,
+    "**/.cspellcache": true, // CSpell cache
+    "**/go.work.sum": true, // Go workspace sum
 
     // Environment files
-    "**/.env": true,
+    "**/.env": true, // Environment variables file
 
     // Test artifacts - CRITICAL for OOM prevention
-    "**/test-output/**": true,
-    "**/test-results/**": true,
-    "**/coverage": true,
-    "**/coverage_*": true,
-    "**/coverage*.out": true,
-    "**/coverage*.txt": true,
-    "**/coverage.html": true,
-    "**/coverage.json": true,
-    "**/coverage.lcov": true,
-    "**/orm_coverage": true,
-    "**/*_coverage": true,
-    "**/*_functions.txt": true,
+    "**/test-output/**": true, // Test output directory
+    "**/test-results/**": true, // Test results directory
+    "**/coverage": true, // Coverage directory
+    "**/coverage_*": true, // Coverage files with prefix
+    "**/coverage*.out": true, // Coverage output files
+    "**/coverage*.txt": true, // Coverage text files
+    "**/coverage.html": true, // Coverage HTML
+    "**/coverage.json": true, // Coverage JSON
+    "**/coverage.lcov": true, // Coverage LCOV
+    "**/orm_coverage": true, // ORM coverage
+    "**/*_coverage": true, // Coverage files with suffix
+    "**/*_functions.txt": true, // Function list files
 
     // Go build cache - CRITICAL for OOM prevention
-    "**/go-build*/**": true,
-    "**/*.test.exe": true,
-    "**/*.cover.go": true,
-    "**/covervars.go": true,
-    "**/_cover_.out": true,
-    "**/gocoverdir/**": true,
+    "**/go-build*/**": true, // Go build cache directory
+    "**/*.test.exe": true, // Go test executables
+    "**/*.cover.go": true, // Go coverage files
+    "**/covervars.go": true, // Coverage variables
+    "**/_cover_.out": true, // Coverage output file
+    "**/gocoverdir/**": true, // Go coverage directory
 
     // Python artifacts
-    "**/__pycache__/**": true,
-    "**/*.pyc": true,
-    "**/*.pyo": true,
-    "**/*.pyd": true,
-    "**/.Python": true,
-    "**/pip-log.txt": true,
-    "**/pip-delete-this-directory.txt": true,
-    "**/.venv/**": true,
-    "**/venv/**": true,
-    "**/env/**": true,
-    "**/ENV/**": true,
-    "**/.tox/**": true,
-    "**/.coverage": true,
-    "**/.coverage.*": true,
-    "**/coverage.xml": true,
-    "**/*.cover": true,
-    "**/.hypothesis/**": true,
-    "**/.pytest_cache/**": true,
-    "**/.mypy_cache/**": true,
-    "**/.nox/**": true,
-    "**/htmlcov/**": true,
-    "**/.python-version": true,
-    "**/Pipfile.lock": true,
-    "**/poetry.lock": true,
-    "**/__pypackages__/**": true,
-    "**/.ruff_cache/**": true,
-    "**/.dmypy.json": true,
-    "**/pyrightconfig.json": true,
-    "**/.pdm.toml": true,
-    "**/.pdm-python": true
+    "**/__pycache__/**": true, // Python cache directory
+    "**/*.pyc": true, // Python compiled files
+    "**/*.pyo": true, // Python optimized files
+    "**/*.pyd": true, // Python DLL files
+    "**/.Python": true, // Python environment marker
+    "**/pip-log.txt": true, // Pip log file
+    "**/pip-delete-this-directory.txt": true, // Pip deletion marker
+    "**/.venv/**": true, // Python virtual environment directory
+    "**/venv/**": true, // Python virtual environment directory
+    "**/env/**": true, // Python environment directory
+    "**/ENV/**": true, // Python environment directory
+    "**/.tox/**": true, // Tox testing environments directory
+    "**/.coverage": true, // Python coverage
+    "**/.coverage.*": true, // Python coverage files
+    "**/coverage.xml": true, // Coverage XML
+    "**/*.cover": true, // Python coverage files
+    "**/.hypothesis/**": true, // Hypothesis testing cache directory
+    "**/.pytest_cache/**": true, // Pytest cache directory
+    "**/.mypy_cache/**": true, // MyPy cache directory
+    "**/.nox/**": true, // Nox sessions directory
+    "**/htmlcov/**": true, // HTML coverage reports directory
+    "**/.python-version": true, // Python version file
+    "**/Pipfile.lock": true, // Pipenv lock file
+    "**/poetry.lock": true, // Poetry lock file
+    "**/__pypackages__/**": true, // PEP 582 packages directory
+    "**/.ruff_cache/**": true, // Ruff linter cache directory
+    "**/.dmypy.json": true, // MyPy daemon config
+    "**/pyrightconfig.json": true, // Pyright config
+    "**/.pdm.toml": true, // PDM config
+    "**/.pdm-python": true, // PDM Python
+    "**/.worktree/**": true, // Git worktree directory
+    "**/worktree/**": true, // Git worktree directory
+    "**/build/**": true, // Build directory
+    "**/lib/**": true, // Library directory
+    "**/lib64/**": true, // 64-bit library directory
+    "**/dist/**": true, // Distribution directory
+    "**/downloads/**": true, // Downloads directory
+    "**/*.manifest": true, // Manifest files
+    "**/*.spec": true, // Spec files
+    "**/nosetests.xml": true, // Nose test results
+    "**/test_*.db*": true, // Test databases
+    "**/output/**": true, // Output directory
+    "**/target/**": true, // Maven target directory
+    "**/.mvn/wrapper/**": true, // Maven wrapper directory
+    "**/mvnw*": true, // Maven wrapper scripts
+    "**/*.class": true, // Java class files
+    "**/.Python/**": true, // Python environment files
+    "**/develop-eggs/**": true, // Development eggs directory
+    "**/eggs/**": true, // Egg directories
+    "**/.eggs/**": true, // Egg directories
+    "**/*.egg*": true, // Egg files
+    "**/parts/**": true, // Buildout parts directory
+    "**/sdist/**": true, // Source distributions directory
+    "**/var/**": true, // Variable data directory
+    "**/wheels/**": true, // Wheel files directory
+    "**/.installed.cfg": true, // Installed config
+    "**/*.jar": true, // Java archives
+    "**/*.war": true, // Web archives
+    "**/*.ear": true, // Enterprise archives
+    "**/testdata/**": true // Test data directory
   },
 
   // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
