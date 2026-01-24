@@ -56,8 +56,8 @@ coverage.lcov
 *.cover
 *_coverage
 *.test
-\$coverage*
-\$out*
+$coverage*
+$out*
 .hypothesis/
 .pytest_cache/
 orm_coverage
