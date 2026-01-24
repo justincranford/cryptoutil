@@ -561,7 +561,7 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:8092/admin/api/v1/livez"]
+      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:8092/admin/api/v1/livez"]
 
       start_period: 30s
 
@@ -681,7 +681,7 @@ services:
 
     ports:
 
-      - "8090:8080"  # OAuth 2.1 authorization endpoints
+      - "18000:18000"  # OAuth 2.1 authorization endpoints (config uses 18000)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
@@ -696,7 +696,7 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 10s
 
@@ -758,7 +758,7 @@ services:
 
     ports:
 
-      - "8091:8081"  # OIDC identity provider endpoints
+      - "18100:18100"  # OIDC identity provider endpoints (config uses 18100)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
@@ -777,7 +777,7 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 10s
 
