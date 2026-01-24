@@ -64,7 +64,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:9090/admin/v1/livez
+        - https://127.0.0.1:9090/admin/api/v1/livez
       interval: 10s
       timeout: 5s
       retries: 5

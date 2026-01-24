@@ -247,6 +247,7 @@ jobs:
         cat > ./configs/test/config.yml <<EOF
         log-level: "DEBUG"
         verbose: true
+        dev-mode: true
         rate-limit: 1000
         bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
         bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"

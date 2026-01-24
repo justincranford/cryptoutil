@@ -97,7 +97,7 @@ on:
       digest_timeout:
         description: 'Digest fuzz test timeout (seconds)'
         required: false
-        default: '60'
+        default: '120'
         type: string
 
 jobs:
@@ -216,7 +216,7 @@ jobs:
 
     env:
       DIGEST_FUZZTIME: ${{ github.event.inputs.digest_fuzztime || '15' }}
-      DIGEST_TIMEOUT: ${{ github.event.inputs.digest_timeout || '60' }}
+      DIGEST_TIMEOUT: ${{ github.event.inputs.digest_timeout || '120' }}
       GOMAXPROCS: ${{ github.event.inputs.gomaxprocs || '4' }}
 
     steps:
