@@ -6,14 +6,41 @@
 .gitignore
 .worktree
 
+# CI/CD and development tools
+.github/
+.specify/
+.pre-commit-config.yaml
+.gitleaks.toml
+.gremlins.yaml
+.nuclei-ignore
+.zap/
+.editorconfig
+.markdownlint.json
+.gofumpt.toml
+
 # Editor/IDE files
 .vscode/
 .idea/
+**/.vscode/
+**/.idea/
 
 # Build artifacts
 bin/
 dist/
 **/*.out
+
+# Python environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+venv/
+.venv/
+env/
+.env/
+ENV/
+pyproject.toml
 
 # OS/Temp files (Project Root Directory)
 ./*.swp
@@ -41,11 +68,17 @@ dist/
 # Test and coverage artifacts
 **/*_test.go
 **/*_test_util.go
+**/*_bench_test.go
+**/*_fuzz_test.go
+**/*_property_test.go
+**/*_integration_test.go
 **/coverage.*
 /cov
 /cov_*
 /v8
 /cipher_im_server_baseline
+**/testdata/
+test-output/
 
 # Report Directories
 **/dast-reports/
@@ -53,3 +86,12 @@ dist/
 **/load-reports/
 **/e2e-reports/
 **/test-results/
+
+# Deployment and specification files (not needed in Docker image)
+deployments/
+specs/
+test/
+
+# Go workspace files
+go.work
+go.work.sum
