@@ -99,13 +99,79 @@ Carefully read the issue and think hard about a plan to solve it before coding. 
 - To test hypotheses, you can also add test statements or functions
 - Revisit your assumptions if unexpected behavior occurs.
 
-## 8. Test Frequently
+## 8. Post-Completion Analysis - MANDATORY
+
+**ALWAYS create session tracking documentation after completing all work:**
+
+**Session Tracking Creation** (6 steps):
+1. **Create v# Directory**: `docs/fixes-needed-plan-tasks-v#/` (increment # from last version)
+2. **Document All Issues**: Create `issues.md` with all problems found (use issue template from workflow-fixing.prompt.md)
+3. **Analyze Patterns**: Create `categories.md` with pattern analysis across issue categories
+4. **Create Extraction Checklist**: If temporary maintenance docs exist, create `lessons-extraction-checklist.md` with systematic 6-step extraction workflow
+5. **Write Comprehensive Plan**: Create `plan.md` with executive summary, metrics, and session overview
+6. **Create Actionable Tasks**: Create `tasks.md` with comprehensive implementation checklist (P0/P1/P2/P3 priorities, acceptance criteria, verification commands)
+
+**Analysis Template** (for plan.md):
+```markdown
+## Executive Summary
+
+- **Session Date**: YYYY-MM-DD
+- **Session Focus**: [Brief description of main work]
+- **Issues Addressed**: [Count and high-level categories]
+- **Key Outcomes**: [Major accomplishments and improvements]
+
+## Issues Addressed
+
+[Reference issues.md for details]
+
+### Issue #1: Brief Title
+- **Category**: [Type]
+- **Severity**: [P#]
+- **Status**: [Completed]
+- **Summary**: One-line description
+
+## Key Insights
+
+- **Pattern Discovery**: [Recurring issues or anti-patterns found]
+- **Root Causes**: [Underlying causes across multiple issues]
+- **Prevention Strategies**: [How to avoid similar issues in future]
+
+## Success Criteria
+
+- [ ] All identified issues resolved with evidence
+- [ ] All tracking documents created and complete
+- [ ] All lessons extracted to permanent documentation
+- [ ] All commits follow conventional format
+- [ ] All quality gates passed (build, lint, test, coverage, mutation)
+
+## Next Actions
+
+- **Immediate**: [Tasks to complete this session]
+- **Future**: [Follow-up work or improvements]
+
+## Metrics
+
+- **Issues Found**: #
+- **Issues Resolved**: #
+- **Files Modified**: #
+- **Lines Changed**: +X / -Y
+- **Coverage Change**: Before → After
+- **Session Duration**: ~X hours
+```
+
+**Quality Verification** (before ending session):
+- [ ] **All Tasks Complete with Evidence**: Every task in tasks.md checked off with objective evidence (tests pass, coverage ≥targets, commits clean)
+- [ ] **All Tracking Docs Updated**: issues.md statuses → Completed, categories.md patterns documented, plan.md metrics accurate
+- [ ] **No Skipped Items Without Justification**: Every incomplete task has documented blocker and scheduled follow-up
+- [ ] **Lessons Captured for Future Sessions**: All unique insights added to permanent documentation (copilot instructions, READMEs, etc.)
+
+## 9. Test Frequently
 Run tests after each change to verify correctness.
 
-## 9. Iterate Until Complete
+## 10. Iterate Until Complete
 Iterate until the root cause is fixed and all tests pass.
 
-## 10. Reflect and Validate
+## 11. Reflect and Validate
 After tests pass, think about the original intent, write additional tests to ensure correctness, and remember there are hidden tests that must also pass before the solution is truly complete.
 
 ---
