@@ -1,3 +1,5 @@
+# golangci-lint configuration
+# ALWAYS use latest v2 syntax from https://golangci-lint.run/usage/configuration/
 # $schema: https://json.schemastore.org/golangci-lint.json
 version: "2"
 

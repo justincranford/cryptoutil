@@ -279,7 +279,7 @@ Possible issues:
 **Missing Tests**:
 - Valid combinations:
   - Container + explicit SQLite URL + 0.0.0.0 binding
-  - Container + PostgreSQL URL + 0.0.0.0 binding  
+  - Container + PostgreSQL URL + 0.0.0.0 binding
   - Dev mode + 127.0.0.1 + (any database)
   - Production + configurable binding + (any database)
 - Invalid combinations:
@@ -477,4 +477,3 @@ Possible issues:
 - DAST workflow should pass consistently
 - Load testing workflow should pass consistently
 - No config-related failures in CI/CD
-

@@ -98,6 +98,23 @@ This session addresses critical documentation issues and establishes systematic 
 
 ---
 
+### Issue #4: golangci-lint v2 Syntax Enforcement (NEW)
+
+**Problem**: Repeated v1→v2 migrations needed due to accidental v2→v1 reversions.
+
+**Root Cause**: No enforcement mechanism to prevent v1 syntax usage in configs.
+
+**Required Actions**:
+1. Review ALL .golangci.yml files - convert any v1 syntax to v2
+2. Add comment to EVERY config file: "ALWAYS use latest v2 syntax from https://golangci-lint.run/usage/configuration/"
+3. Add formatter to cicd tool: Replace `time.Now()` (without .UTC()) with `time.Now().UTC()`
+4. Simplify verbose instruction sections (docker healthcheck, testing time.Now(), TestMain pattern)
+5. Remove docs/agent-prompt-best-practices.md - verify prompt files implement best practices instead
+
+**Status**: Completed
+
+---
+
 ## Session Tracking Infrastructure
 
 ### Created Files
@@ -215,13 +232,13 @@ All planned work for this session has been completed:
 6. ✅ All 3 prompts enhanced (commit 186f81b5: 176 insertions)
 7. ✅ All tracking docs updated (issues.md, tasks.md, plan.md to reflect completion)
 
-**Session Status**: 100% Complete (12/12 tasks, all issues resolved)
+**Session Status**: Complete (all 4 issues resolved)
 
 ---
 
 ## Metrics
 
-**Issues Identified**: 3 (all resolved)  
+**Issues Identified**: 4 (all resolved)
 **Files Modified**: 10 total
 - Copilot instructions/docs: 5 (04-02.docker, 03-02.testing, 03-07.linting, DEV-SETUP, agent-prompt-best-practices NEW)
 - Deleted: 2 (maintenance-session-2026-01-23.md, workflow-fixing-prompt-fixes.md)
