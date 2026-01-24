@@ -10,5 +10,8 @@ cors-origins:
 otlp-service: kms-sqlite
 otlp-hostname: kms-sqlite
 
-# Development mode - enables in-memory SQLite
-dev: true
+# SQLite in-memory database for containerized testing.
+# Using explicit sqlite:// URL instead of dev: true allows containerized environments
+# to use bind-public-address: 0.0.0.0 (required for container networking).
+# The dev: true flag triggers validation that rejects 0.0.0.0 (intended for Windows dev).
+database-url: "sqlite://file::memory:?cache=shared"

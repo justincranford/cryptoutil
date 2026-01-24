@@ -29,6 +29,22 @@ func TestMapDBTypeAndURL(t *testing.T) {
 			wantError:   false,
 		},
 		{
+			name:        "sqlite URL in-memory with shared cache",
+			devMode:     false,
+			databaseURL: "sqlite://file::memory:?cache=shared",
+			wantDBType:  DBTypeSQLite,
+			wantURL:     "file::memory:?cache=shared",
+			wantError:   false,
+		},
+		{
+			name:        "sqlite URL file-based database",
+			devMode:     false,
+			databaseURL: "sqlite:///tmp/test.db",
+			wantDBType:  DBTypeSQLite,
+			wantURL:     "/tmp/test.db",
+			wantError:   false,
+		},
+		{
 			name:        "postgres URL parsed correctly",
 			devMode:     false,
 			databaseURL: "postgres://user:pass@localhost/db",
