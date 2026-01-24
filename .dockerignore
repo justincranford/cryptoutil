@@ -5,6 +5,7 @@
 # .git  # Temporarily allow .git for metadata generation
 .gitignore
 .worktree
+worktree/
 
 # CI/CD and development tools
 .github/
@@ -21,13 +22,13 @@
 # Editor/IDE files
 .vscode/
 .idea/
-**/.vscode/
-**/.idea/
+.vscode/
+.idea/
 
 # Build artifacts
 bin/
 dist/
-**/*.out
+*.out
 
 # Python environment
 __pycache__/
@@ -54,38 +55,38 @@ pyproject.toml
 ./docs/
 ./scripts/
 # OS/Temp files (Subdirectories)
-**/*.swp
-**/*.log
-**/*.tmp
-**/*.bak
-**/.DS_Store
-**/Thumbs.db
-**/coverage/
-**/test/
-**/docs/
-**/scripts/
+*.swp
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+coverage/
+test/
+docs/
+scripts/
 
 # Test and coverage artifacts
-**/*_test.go
-**/*_test_util.go
-**/*_bench_test.go
-**/*_fuzz_test.go
-**/*_property_test.go
-**/*_integration_test.go
-**/coverage.*
+*_test.go
+*_test_util.go
+*_bench_test.go
+*_fuzz_test.go
+*_property_test.go
+*_integration_test.go
+coverage.*
 /cov
 /cov_*
 /v8
 /cipher_im_server_baseline
-**/testdata/
+testdata/
 test-output/
 
 # Report Directories
-**/dast-reports/
-**/workflow-reports/
-**/load-reports/
-**/e2e-reports/
-**/test-results/
+dast-reports/
+workflow-reports/
+load-reports/
+e2e-reports/
+test-results/
 
 # Deployment and specification files (not needed in Docker image)
 deployments/

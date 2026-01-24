@@ -1,67 +1,70 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
+# Git worktrees
+.worktree/
+worktree/
+
 # Binaries for programs and plugins
-**/bin/
-**/build/
-**/lib/
-**/lib64/
-**/dist/
-**/downloads/
-**/*.exe
-**/*.exe~
-**/*.dll
-**/*.so
-**/*.dylib
+bin/
+build/
+lib/
+lib64/
+dist/
+downloads/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 cryptoutil$
 local-scripts/
 
 # Distribution / packaging
-**/.Python
-**/develop-eggs/
-**/eggs/
-**/.eggs/
-**/*.egg
-**/*.egg-info/
-**/parts/
-**/sdist/
-**/var/
-**/wheels/
-**/.installed.cfg
+.Python
+develop-eggs/
+eggs/
+.eggs/
+*.egg
+*.egg-info/
+parts/
+sdist/
+var/
+wheels/
+.installed.cfg
 
 # PyInstaller
-**/*.manifest
-**/*.spec
-**/__pycache__/
-**/*.py[cod]
-**/*$py.class
+*.manifest
+*.spec
+__pycache__/
+*.py[cod]
+*$py.class
 
 # Unit test / coverage reports
-**/htmlcov/
-**/.tox/
-**/.nox/
-**/.cache
-**/nosetests.xml
-**/.coverage
-**/.coverage.*
-**/coverage
-**/coverage_*
-**/coverage*.out
-**/coverage*.txt
-**/coverage.xml
-**/coverage.html
-**/coverage.json
-**/coverage.lcov
-**/*.cover
-**/*.test
-**/.hypothesis/
-**/.pytest_cache/
-**/orm_coverage
-**/*_coverage
-**/*_functions.txt
-**/test_*.db
-**/test_*.db-shm
-**/test_*.db-wal
+htmlcov/
+.tox/
+.nox/
+.cache
+nosetests.xml
+.coverage
+.coverage.*
+coverage
+coverage_*
+coverage*.out
+coverage*.txt
+coverage.xml
+coverage.html
+coverage.json
+coverage.lcov
+*.cover
+*_coverage
+*.test
+\$coverage*
+\$out*
+.hypothesis/
+.pytest_cache/
+orm_coverage
+*_functions.txt
+test_*.db
+test_*.db-shm
+test_*.db-wal
 
 # Coverage files in root directory
 /cov
@@ -73,36 +76,36 @@ local-scripts/
 /$outPath
 
 # Output of test or workflow reports
-**/dast-reports/
-**/e2e-reports/
-**/load-reports/
-**/test-results/
-**/test-results/
-**/workflow-reports/
+dast-reports/
+e2e-reports/
+load-reports/
+test-results/
+test-results/
+workflow-reports/
 test-output/
 
 # Virtual environments
-**/venv/
-**/.venv
-**/env/
-**/.env
-**/ENV/
-**/output/
+venv/
+.venv
+env/
+.env
+ENV/
+output/
 
 # IDEs
-**/*.swp
-**/*.swo
-**/*~
+*.swp
+*.swo
+*~
 
 # OS
-**/.DS_Store
-**/Thumbs.db
+.DS_Store
+Thumbs.db
 
 # Logs
-**/*.log
+*.log
 
 # Spell checker cache
-**/.cspellcache
+.cspellcache
 
 # CI/CD cache
 .cicd/
@@ -112,10 +115,10 @@ go.work
 go.work.sum
 
 # ASN.1/DER/PEM encoded files
-**/*.pem
-**/*.der
-**/*.crt
-**/*.key
-**/*.csr
-**/*.pfx
-**/*.p12
+*.pem
+*.der
+*.crt
+*.key
+*.csr
+*.pfx
+*.p12
