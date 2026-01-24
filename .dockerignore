@@ -43,6 +43,20 @@ env/
 ENV/
 pyproject.toml
 
+# Java/Maven
+target/
+.mvn/wrapper/
+mvnw
+mvnw.cmd
+*.class
+*.jar
+*.war
+*.ear
+.settings/
+.project
+.classpath
+*.iml
+
 # OS/Temp files (Project Root Directory)
 ./*.swp
 ./*.log

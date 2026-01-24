@@ -92,6 +92,20 @@ env/
 ENV/
 output/
 
+# Java/Maven
+target/
+.mvn/wrapper/
+mvnw
+mvnw.cmd
+*.class
+*.jar
+*.war
+*.ear
+.settings/
+.project
+.classpath
+*.iml
+
 # IDEs
 *.swp
 *.swo
