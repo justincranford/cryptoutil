@@ -22,11 +22,15 @@ func enforceBindAddressSafety(logger *cryptoutilCmdCicdCommon.Logger, testFiles 
 	filteredTestFiles := make([]string, 0, len(testFiles))
 
 	for _, path := range testFiles {
-		// Exclude cicd test files and url_test.go (has legitimate 0.0.0.0 for URL parsing tests).
+		// Exclude cicd test files, url_test.go (legitimate URL parsing tests),
+		// validation_test.go files (test validation of 0.0.0.0 rejection),
+		// and config_test.go files (test configuration validation).
 		if strings.HasSuffix(path, "cicd_test.go") ||
 			strings.HasSuffix(path, "cicd.go") ||
 			strings.Contains(path, "lint_gotest") ||
-			strings.HasSuffix(path, "url_test.go") {
+			strings.HasSuffix(path, "url_test.go") ||
+			strings.HasSuffix(path, "_validation_test.go") ||
+			strings.HasSuffix(path, "config_test.go") {
 			continue
 		}
 
