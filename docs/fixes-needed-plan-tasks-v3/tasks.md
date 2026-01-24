@@ -1156,10 +1156,10 @@ Standard location: `docs/fixes-needed-plan-tasks-v#/` (version incremented per s
 1. **issues.md** (created FIRST, updated throughout session):
    ```markdown
    ## Issue #1: [Title]
-   
+
    **Date**: YYYY-MM-DD
    **Status**: [Identified | In Progress | Resolved]
-   
+
    Problem: ...
    Root Cause: ...
    Fix: ...
@@ -1169,7 +1169,7 @@ Standard location: `docs/fixes-needed-plan-tasks-v#/` (version incremented per s
 2. **categories.md** (updated when patterns emerge):
    ```markdown
    ## Category: [Name]
-   
+
    **Frequency**: N occurrences
    **Pattern**: ...
    **Root Causes**: ...
@@ -1449,9 +1449,9 @@ grep -n "time.Now()" internal/cmd/cicd/format_go/enforce_time_utc.go
 ```markdown
 ## SQLite DateTime UTC Comparison - CRITICAL
 
-**Problem**: SQLite stores DATETIME in UTC, Go's `time.Now()` respects local timezone  
-**Symptom**: Tests fail in non-UTC timezones (PST/EST) but pass in CI  
-**Root Cause**: `time.Now()` returns local time, SQLite normalizes to UTC  
+**Problem**: SQLite stores DATETIME in UTC, Go's `time.Now()` respects local timezone
+**Symptom**: Tests fail in non-UTC timezones (PST/EST) but pass in CI
+**Root Cause**: `time.Now()` returns local time, SQLite normalizes to UTC
 **Fix**: ALWAYS use `time.Now().UTC()` when comparing with SQLite timestamps
 
 ```go

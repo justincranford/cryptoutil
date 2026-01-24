@@ -450,20 +450,20 @@ act --version
    **gopls** is the official Go language server that powers VS Code's Go extension, providing intelligent code completion, navigation, and refactoring.
 
    **Installation:**
-   
+
    ```bash
    # Install gopls (Go language server)
    go install golang.org/x/tools/gopls@latest
-   
+
    # Verify installation
    gopls version
    # Expected output: gopls v0.X.X (or latest version)
    ```
 
    **VS Code Configuration:**
-   
+
    The project's `.vscode/settings.json` is pre-configured with optimal gopls settings:
-   
+
    ```json
    {
      "go.useLanguageServer": true,
@@ -477,33 +477,33 @@ act --version
      }
    }
    ```
-   
+
    **Key Features Enabled:**
    - **Auto-import**: Automatically adds/removes imports on save
    - **Inlay Hints**: Shows type information inline for better readability
    - **gofumpt Integration**: Stricter formatting than standard gofmt
    - **Intelligent Refactoring**: F2 rename symbol with cross-file awareness
-   
+
    **Troubleshooting:**
-   
+
    1. **gopls not found**: Ensure `$(go env GOPATH)/bin` is in your PATH
       ```bash
       # Windows (PowerShell)
       $env:PATH += ";$(go env GOPATH)\bin"
-      
+
       # Linux/macOS (Bash)
       export PATH=$PATH:$(go env GOPATH)/bin
       ```
-   
+
    2. **Slow performance**: Clear gopls cache and restart
       ```bash
       # Clear gopls cache
       rm -rf $(go env GOPATH)/pkg/mod/cache/gopls
-      
+
       # Restart VS Code
       # Or reload window: Ctrl+Shift+P → "Developer: Reload Window"
       ```
-   
+
    3. **Import errors**: Run `go mod tidy` and restart gopls
       ```bash
       go mod tidy
