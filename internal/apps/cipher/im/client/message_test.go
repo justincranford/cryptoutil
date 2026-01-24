@@ -56,7 +56,7 @@ func TestSendMessage_HappyPath(t *testing.T) {
 func TestSendMessage_Unauthorized(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
@@ -111,7 +111,7 @@ func TestReceiveMessagesService_HappyPath(t *testing.T) {
 func TestReceiveMessagesService_Unauthorized(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid token"})
@@ -157,7 +157,7 @@ func TestDeleteMessageService_NotFound(t *testing.T) {
 
 	messageID := googleUuid.New()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Message not found"})
@@ -285,7 +285,7 @@ func TestErrorError_ReturnsMessage(t *testing.T) {
 func TestReceiveMessagesBrowser_Unauthorized(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser token"})
@@ -305,7 +305,7 @@ func TestReceiveMessagesBrowser_Unauthorized(t *testing.T) {
 func TestReceiveMessagesBrowser_MissingMessagesField(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "messages" field.
@@ -328,7 +328,7 @@ func TestDeleteMessageBrowser_NotFound(t *testing.T) {
 
 	messageID := googleUuid.New()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Error{Code: "NOT_FOUND", Message: "Browser message not found"})
@@ -349,7 +349,7 @@ func TestDeleteMessageBrowser_NotFound(t *testing.T) {
 func TestSendMessageBrowser_Unauthorized(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Error{Code: "UNAUTHORIZED", Message: "Invalid browser session"})
@@ -373,7 +373,7 @@ func TestSendMessageBrowser_Unauthorized(t *testing.T) {
 func TestSendMessageBrowser_MissingMessageID(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "message_id" field.
@@ -398,7 +398,7 @@ func TestSendMessageBrowser_MissingMessageID(t *testing.T) {
 func TestSendMessage_MissingMessageID(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "message_id" field.
@@ -423,7 +423,7 @@ func TestSendMessage_MissingMessageID(t *testing.T) {
 func TestReceiveMessagesService_MissingMessagesField(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		// Return empty object without "messages" field.

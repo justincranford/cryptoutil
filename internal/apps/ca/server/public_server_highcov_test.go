@@ -45,7 +45,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 
 	// Test OCSP endpoint with empty request (should return 400 or 501).
 	url := server.PublicBaseURL() + "/service/api/v1/ocsp"
-	req, err := http.NewRequest("POST", url, bytes.NewReader([]byte{}))
+	req, err := http.NewRequestWithContext(context.Background(), "POST", url, bytes.NewReader([]byte{}))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/ocsp-request")
 
@@ -98,7 +98,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	// Test OCSP endpoint with invalid data.
 	url := server.PublicBaseURL() + "/service/api/v1/ocsp"
 	invalidData := []byte("invalid OCSP request data")
-	req, err := http.NewRequest("POST", url, bytes.NewReader(invalidData))
+	req, err := http.NewRequestWithContext(context.Background(), "POST", url, bytes.NewReader(invalidData))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/ocsp-request")
 
@@ -149,7 +149,9 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 
 	// Test CRL endpoint (should succeed or return error).
 	url := server.PublicBaseURL() + "/service/api/v1/crl"
-	resp, err := client.Get(url)
+	req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+	require.NoError(t, err)
+	resp, err := client.Do(req)
 	require.NoError(t, err)
 
 	defer func() {
@@ -214,7 +216,9 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	for _, endpoint := range endpoints {
 		t.Run(endpoint, func(t *testing.T) {
 			url := server.PublicBaseURL() + endpoint
-			resp, err := client.Get(url)
+			req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+			require.NoError(t, err)
+			resp, err := client.Do(req)
 			require.NoError(t, err)
 
 			defer func() {
