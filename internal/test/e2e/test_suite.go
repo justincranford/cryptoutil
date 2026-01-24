@@ -249,7 +249,7 @@ func (suite *E2ETestSuite) testGenerateMaterialKey(client *cryptoutilOpenapiClie
 		// Note: This is a limitation of the current design - we can't dynamically update the success message
 		// For now, we'll use a generic message
 		keyGenerate := cryptoutilClient.RequireMaterialKeyGenerateRequest(suite.T())
-		materialKey := cryptoutilClient.RequireMaterialKeyGenerateResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, keyGenerate)
+		materialKey := cryptoutilClient.RequireMaterialKeyGenerateResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, keyGenerate)
 		require.NotNil(suite.T(), materialKey.MaterialKeyID)
 	})
 }
@@ -261,12 +261,12 @@ func (suite *E2ETestSuite) testEncryptDecryptCycle(client *cryptoutilOpenapiClie
 	suite.withTestStepRecovery("Encrypt/decrypt cycle failed: %v", func() string { return "Encrypt/decrypt cycle completed successfully" }, func() {
 		// Encrypt
 		encryptRequest := cryptoutilClient.RequireEncryptRequest(suite.T(), &cryptoutilMagic.TestCleartext)
-		encryptedText := cryptoutilClient.RequireEncryptResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, nil, encryptRequest)
+		encryptedText := cryptoutilClient.RequireEncryptResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, nil, encryptRequest)
 		require.NotEmpty(suite.T(), *encryptedText)
 
 		// Decrypt
 		decryptRequest := cryptoutilClient.RequireDecryptRequest(suite.T(), encryptedText)
-		decryptedText := cryptoutilClient.RequireDecryptResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, decryptRequest)
+		decryptedText := cryptoutilClient.RequireDecryptResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, decryptRequest)
 		require.Equal(suite.T(), cryptoutilMagic.TestCleartext, *decryptedText)
 	})
 }
@@ -278,12 +278,12 @@ func (suite *E2ETestSuite) testSignVerifyCycle(client *cryptoutilOpenapiClient.C
 	suite.withTestStepRecovery("Sign/verify cycle failed: %v", func() string { return "Sign/verify cycle completed successfully" }, func() {
 		// Sign
 		signRequest := cryptoutilClient.RequireSignRequest(suite.T(), &cryptoutilMagic.TestCleartext)
-		signedText := cryptoutilClient.RequireSignResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, nil, signRequest)
+		signedText := cryptoutilClient.RequireSignResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, nil, signRequest)
 		require.NotEmpty(suite.T(), *signedText)
 
 		// Verify
 		verifyRequest := cryptoutilClient.RequireVerifyRequest(suite.T(), signedText)
-		verifyResponse := cryptoutilClient.RequireVerifyResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, verifyRequest)
+		verifyResponse := cryptoutilClient.RequireVerifyResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, verifyRequest)
 		// For successful verification, API returns 204 No Content with empty body
 		require.Equal(suite.T(), "", *verifyResponse)
 	})
