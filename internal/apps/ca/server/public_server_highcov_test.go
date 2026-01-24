@@ -230,4 +230,3 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 }
 
 // TestCAServer_HealthEndpoints_NotReady tests health endpoints when server not ready.
-
