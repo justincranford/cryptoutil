@@ -244,22 +244,24 @@ jobs:
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Create unseal secret and config files
         echo "dast-simple-unseal-secret-value-1" > ./configs/test/dast-simple-unseal-secret-value-1.secret
-        cat > ./configs/test/config.yml <<EOF
-log-level: "DEBUG"
-verbose: true
-dev-mode: true
-rate-limit: 1000
-bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
-bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
-bind-public-port: ${APP_BIND_PUBLIC_PORT}
-bind-private-protocol: "${APP_BIND_PRIVATE_PROTOCOL}"
-bind-private-address: "${APP_BIND_PRIVATE_ADDRESS}"
-bind-private-port: ${APP_BIND_PRIVATE_PORT}
-database-url: "postgres://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}?sslmode=disable"
-unseal-mode: "1-of-1"
-unseal-files:
-  - ./configs/test/dast-simple-unseal-secret-value-1.secret
-EOF
+        cat > ./configs/test/config.yml << 'CONFIGEOF'
+        log-level: "DEBUG"
+        verbose: true
+        dev-mode: true
+        rate-limit: 1000
+        bind-public-protocol: "https"
+        bind-public-address: "127.0.0.1"
+        bind-public-port: 8080
+        bind-private-protocol: "https"
+        bind-private-address: "127.0.0.1"
+        bind-private-port: 9090
+        database-url: "postgres://cryptoutil_test:cryptoutil_test_password@127.0.0.1:5432/cryptoutil?sslmode=disable"
+        unseal-mode: "1-of-1"
+        unseal-files:
+          - ./configs/test/dast-simple-unseal-secret-value-1.secret
+        CONFIGEOF
+        # Remove leading spaces from the config file (heredoc preserves indentation)
+        sed -i 's/^        //' ./configs/test/config.yml
 
         # Start application in background, capture PID for cleanup; use nohup to avoid termination on shell exit
         mkdir -p workflow-reports/dast
