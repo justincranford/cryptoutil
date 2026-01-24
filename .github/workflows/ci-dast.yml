@@ -255,7 +255,7 @@ jobs:
         bind-private-protocol: "https"
         bind-private-address: "127.0.0.1"
         bind-private-port: 9090
-        database-url: "postgres://cryptoutil_test:cryptoutil_test_password@127.0.0.1:5432/cryptoutil?sslmode=disable"
+        database-url: "postgres://cryptoutil:cryptoutil_test_password@127.0.0.1:5432/cryptoutil_test?sslmode=disable"
         unseal-mode: "1-of-1"
         unseal-files:
           - ./configs/test/dast-simple-unseal-secret-value-1.secret

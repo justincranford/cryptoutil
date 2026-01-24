@@ -1,23 +1,45 @@
 # IdP Server E2E Test Configuration
 
-server:
-  bind-public-address: 0.0.0.0
-  bind-public-port: 18100
-  bind-admin-address: 0.0.0.0
-  bind-admin-port: 9090
+idp:
+  name: idp-e2e
+  bind_address: 0.0.0.0
+  port: 18100
+  tls_enabled: false
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 0.0.0.0
+  admin_port: 9090
 
 database:
   type: sqlite
   dsn: ":memory:"
-  auto-migrate: true
+  max_open_conns: 5
+  max_idle_conns: 2
+  conn_max_lifetime: 60m
+  conn_max_idle_time: 10m
+  auto_migrate: true
 
-telemetry:
+tokens:
+  access_token_lifetime: 3600s
+  access_token_format: jws
+  id_token_lifetime: 3600s
+  id_token_format: jws
+  refresh_token_lifetime: 86400s
+  refresh_token_format: uuid
+  issuer: https://localhost:18100
+  signing_algorithm: RS256
+  code_lifetime: 600s
+
+observability:
   enabled: true
-  otlp-endpoint: "opentelemetry-collector-contrib:4317"
-  service-name: identity-idp-e2e
+  otlp_endpoint: "opentelemetry-collector-contrib:4317"
+  service_name: identity-idp-e2e
 
-# Identity-idp specific settings
-authz-url: "http://identity-authz-e2e:18000"
+# Federation with authz server
+federation:
+  authz_url: "http://identity-authz-e2e:18000"
 
 logging:
   level: debug
