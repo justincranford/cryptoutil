@@ -5,11 +5,11 @@ package client
 
 import (
 	"fmt"
-	"net/http"
+	http "net/http"
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -23,7 +23,7 @@ func NewOamOacMapper() *OamOacMapper {
 }
 
 func (m *OamOacMapper) toOamElasticKeyCreate(name, description, algorithm, provider *string, importAllowed, versioningAllowed *bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
-	elasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(algorithm)
+	elasticKeyAlgorithm, err := cryptoutilSharedCryptoJose.ToElasticKeyAlgorithm(algorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map Elastic Key: %w", err)
 	}

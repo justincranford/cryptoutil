@@ -15,12 +15,12 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // setupTestDB creates an in-memory SQLite database for testing.
 func setupTestDB(t *testing.T) *gorm.DB {
-	dsn := cryptoutilMagic.SQLiteInMemoryDSN
+	dsn := cryptoutilSharedMagic.SQLiteInMemoryDSN
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)

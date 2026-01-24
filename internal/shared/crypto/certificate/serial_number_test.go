@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -67,14 +67,14 @@ func TestRandomizedNotBeforeNotAfterCA_HappyPath(t *testing.T) {
 	require.True(t, actualDuration <= requestedDuration+maxSubtract)
 
 	// Verify does not exceed max CA cert duration.
-	require.True(t, actualDuration <= cryptoutilMagic.TLSDefaultMaxCACertDuration)
+	require.True(t, actualDuration <= cryptoutilSharedMagic.TLSDefaultMaxCACertDuration)
 }
 
 func TestRandomizedNotBeforeNotAfterCA_ExceedsMaxDuration(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
-	requestedDuration := cryptoutilMagic.TLSDefaultMaxCACertDuration + time.Hour // Exceeds max.
+	requestedDuration := cryptoutilSharedMagic.TLSDefaultMaxCACertDuration + time.Hour // Exceeds max.
 	minSubtract := 5 * time.Minute
 	maxSubtract := 10 * time.Minute
 
@@ -103,14 +103,14 @@ func TestRandomizedNotBeforeNotAfterEndEntity_HappyPath(t *testing.T) {
 	require.True(t, actualDuration <= requestedDuration+maxSubtract)
 
 	// Verify does not exceed max subscriber cert duration.
-	require.True(t, actualDuration <= cryptoutilMagic.TLSDefaultSubscriberCertDuration)
+	require.True(t, actualDuration <= cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration)
 }
 
 func TestRandomizedNotBeforeNotAfterEndEntity_ExceedsMaxDuration(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
-	requestedDuration := cryptoutilMagic.TLSDefaultSubscriberCertDuration + time.Hour // Exceeds max.
+	requestedDuration := cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration + time.Hour // Exceeds max.
 	minSubtract := 5 * time.Minute
 	maxSubtract := 10 * time.Minute
 

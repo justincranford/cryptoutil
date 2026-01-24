@@ -10,14 +10,14 @@ import (
 	"crypto/x509"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"strings"
 	"testing"
 	"time"
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -47,16 +47,16 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 
 // CheckHealthz checks the server health endpoint.
 func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
-	url := *baseURL + cryptoutilMagic.PrivateAdminLivezRequestPath
+	url := *baseURL + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
 
-	return httpGet(&url, cryptoutilMagic.TimeoutHTTPHealthRequest, rootCAsPool)
+	return httpGet(&url, cryptoutilSharedMagic.TimeoutHTTPHealthRequest, rootCAsPool)
 }
 
 // CheckReadyz checks the server readiness endpoint.
 func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
-	url := *baseURL + cryptoutilMagic.PrivateAdminReadyzRequestPath
+	url := *baseURL + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath
 
-	return httpGet(&url, cryptoutilMagic.TimeoutHTTPHealthRequest, rootCAsPool)
+	return httpGet(&url, cryptoutilSharedMagic.TimeoutHTTPHealthRequest, rootCAsPool)
 }
 
 func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) error {

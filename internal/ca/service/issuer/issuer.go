@@ -6,11 +6,11 @@ package issuer
 
 import (
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
+	sha256 "crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -184,7 +184,7 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 	template.SignatureAlgorithm = sigAlg
 
 	// Sign the certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, template, i.caConfig.Certificate, req.PublicKey, i.caConfig.PrivateKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, i.caConfig.Certificate, req.PublicKey, i.caConfig.PrivateKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
@@ -365,7 +365,7 @@ func (i *Issuer) getExtKeyUsage() []x509.ExtKeyUsage {
 func generateSerialNumber() (*big.Int, error) {
 	// Generate 20 bytes (160 bits) of randomness per CA/Browser Forum requirements.
 	serialBytes := make([]byte, cryptoutilCAMagic.SerialNumberLength)
-	if _, err := rand.Read(serialBytes); err != nil {
+	if _, err := crand.Read(serialBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 

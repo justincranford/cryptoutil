@@ -30,10 +30,10 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 )
 
@@ -47,7 +47,7 @@ import (
 // - Shutdown: Direct shutdown for cleanup.
 type ApplicationListener struct {
 	app               *cryptoutilAppsTemplateServiceServer.Application
-	config            *cryptoutilConfig.ServiceTemplateServerSettings
+	config            *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	shutdownFunc      func()
 	actualPublicPort  uint16
 	actualPrivatePort uint16
@@ -117,7 +117,7 @@ type PublicServerFactory func(
 // - Optional barrier service configuration.
 type ApplicationConfig struct {
 	// ServiceTemplateServerSettings contains common settings (bind addresses, TLS, OTLP, etc.).
-	ServiceTemplateServerSettings *cryptoutilConfig.ServiceTemplateServerSettings
+	ServiceTemplateServerSettings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// Database connection (managed externally, e.g., test-container or production pool).
 	DB *gorm.DB
@@ -246,8 +246,8 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 // Returns:
 // - []byte: Response body (usually "OK" or JSON status)
 // - error: Non-nil if request fails or times out.
-func SendLivenessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
+func SendLivenessCheck(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
 	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
@@ -268,8 +268,8 @@ func SendLivenessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings)
 // Returns:
 // - []byte: Response body with dependency status details
 // - error: Non-nil if request fails or dependencies unhealthy.
-func SendReadinessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
+func SendReadinessCheck(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
 	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
@@ -292,8 +292,8 @@ func SendReadinessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings
 //
 // Returns:
 // - error: Non-nil if shutdown request fails to send (service may already be down).
-func SendShutdownRequest(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
+func SendShutdownRequest(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) error {
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
 	_, _, _, err := cryptoutilSharedUtilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
@@ -319,7 +319,7 @@ func (l *ApplicationListener) Shutdown() {
 	}
 
 	if l.app != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.DefaultShutdownTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultShutdownTimeout)
 		defer cancel()
 
 		_ = l.app.Shutdown(ctx) // Best-effort shutdown, ignore errors during cleanup.
@@ -344,6 +344,6 @@ func (l *ApplicationListener) ActualPrivatePort() uint16 {
 
 // Config returns the server settings used to configure this listener.
 // Useful for health checks and client connections.
-func (l *ApplicationListener) Config() *cryptoutilConfig.ServiceTemplateServerSettings {
+func (l *ApplicationListener) Config() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
 	return l.config
 }

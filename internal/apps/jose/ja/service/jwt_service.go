@@ -7,13 +7,13 @@ package service
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"time"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 
 	jose "github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
@@ -48,14 +48,14 @@ type JWTService interface {
 type jwtServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilBarrier.Service
+	barrierSvc   *cryptoutilAppsTemplateServiceServerBarrier.Service
 }
 
 // NewJWTService creates a new JWTService.
 func NewJWTService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilBarrier.Service,
+	barrierSvc *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) JWTService {
 	return &jwtServiceImpl{
 		elasticRepo:  elasticRepo,
@@ -77,7 +77,7 @@ func (s *jwtServiceImpl) CreateJWT(ctx context.Context, tenantID, elasticJWKID g
 	}
 
 	// Validate key use for signing.
-	if elasticJWK.Use != joseJADomain.KeyUseSig {
+	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseSig {
 		return "", fmt.Errorf("key is not configured for signing (use=%s)", elasticJWK.Use)
 	}
 
@@ -157,7 +157,7 @@ func (s *jwtServiceImpl) ValidateJWT(ctx context.Context, tenantID, elasticJWKID
 	kid := parsedJWT.Headers[0].KeyID
 
 	// Get material by KID.
-	var material *joseJADomain.MaterialJWK
+	var material *cryptoutilAppsJoseJaDomain.MaterialJWK
 
 	if kid != "" {
 		material, err = s.materialRepo.GetByMaterialKID(ctx, kid)
@@ -237,7 +237,7 @@ func (s *jwtServiceImpl) CreateEncryptedJWT(ctx context.Context, tenantID, signi
 	}
 
 	// Validate key use for encryption.
-	if encryptionKey.Use != joseJADomain.KeyUseEnc {
+	if encryptionKey.Use != cryptoutilAppsJoseJaDomain.KeyUseEnc {
 		return "", fmt.Errorf("key is not configured for encryption (use=%s)", encryptionKey.Use)
 	}
 

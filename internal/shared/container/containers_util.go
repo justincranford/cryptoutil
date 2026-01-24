@@ -9,14 +9,14 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 )
 
 // StartContainer starts a testcontainer with the given request and returns it with a cleanup function.
-func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
+func StartContainer(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
 	telemetryService.Slogger.Debug("starting container")
 
 	startedContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -44,7 +44,7 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.T
 }
 
 // GetContainerHostAndMappedPort returns the host and mapped port for a container.
-func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, container testcontainers.Container, port string) (string, string, error) {
+func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, container testcontainers.Container, port string) (string, string, error) {
 	host, err := container.Host(ctx)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get container host", "error", err)

@@ -5,23 +5,23 @@
 package certificate
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 	"math/big"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	minSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilMagic.MinSerialNumberBits) // 2^64
-	maxSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilMagic.MaxSerialNumberBits) // 2^159
-	rangeSerialNumber = new(big.Int).Sub(maxSerialNumber, minSerialNumber)                   // Range size: 2^159 - 2^64
+	minSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.MinSerialNumberBits) // 2^64
+	maxSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.MaxSerialNumberBits) // 2^159
+	rangeSerialNumber = new(big.Int).Sub(maxSerialNumber, minSerialNumber)                         // Range size: 2^159 - 2^64
 )
 
 // GenerateSerialNumber generates a cryptographically random serial number in the range [2^64, 2^159) per CA/Browser Forum requirements.
 func GenerateSerialNumber() (*big.Int, error) {
-	randomOffsetFromMin, err := rand.Int(rand.Reader, rangeSerialNumber) // Range [0, rangeSerialNumber)
+	randomOffsetFromMin, err := crand.Int(crand.Reader, rangeSerialNumber) // Range [0, rangeSerialNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random serial number offset: %w", err)
 	}
@@ -30,14 +30,14 @@ func GenerateSerialNumber() (*big.Int, error) {
 }
 
 func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
-	if requestedDuration > cryptoutilMagic.TLSDefaultMaxCACertDuration {
+	if requestedDuration > cryptoutilSharedMagic.TLSDefaultMaxCACertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxCACertDuration")
 	}
 
 	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
-	} else if notAfter.Sub(notBefore) > cryptoutilMagic.TLSDefaultMaxCACertDuration {
+	} else if notAfter.Sub(notBefore) > cryptoutilSharedMagic.TLSDefaultMaxCACertDuration {
 		return notBefore, notAfter, fmt.Errorf("actual duration exceeds maxCACertDuration")
 	}
 
@@ -45,14 +45,14 @@ func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, 
 }
 
 func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
-	if requestedDuration > cryptoutilMagic.TLSDefaultSubscriberCertDuration {
+	if requestedDuration > cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxSubscriberCertDuration")
 	}
 
 	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
-	} else if notAfter.Sub(notBefore) > cryptoutilMagic.TLSDefaultSubscriberCertDuration {
+	} else if notAfter.Sub(notBefore) > cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration {
 		return notBefore, notAfter, fmt.Errorf("actual duration exceeds maxSubscriberCertDuration")
 	}
 
@@ -72,7 +72,7 @@ func generateNotBeforeNotAfter(requestedStart time.Time, requestedDuration, minS
 		return time.Time{}, time.Time{}, fmt.Errorf("maxRangeOffset must be positive, got (%v)", maxRangeOffset)
 	}
 
-	rangeOffset, err := rand.Int(rand.Reader, big.NewInt(maxRangeOffset)) // [0, maxRangeOffset)
+	rangeOffset, err := crand.Int(crand.Reader, big.NewInt(maxRangeOffset)) // [0, maxRangeOffset)
 	if err != nil {
 		return time.Time{}, time.Time{}, fmt.Errorf("failed to generate random range offset: %w", err)
 	}

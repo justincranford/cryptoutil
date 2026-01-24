@@ -8,11 +8,11 @@ package ra
 import (
 	"context"
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -643,7 +643,7 @@ func mustNewUUID() googleUuid.UUID {
 // GenerateTestCSR creates a test CSR for development/testing purposes.
 func GenerateTestCSR(subject pkix.Name, dnsNames []string) ([]byte, crypto.PrivateKey, error) {
 	// Generate a test key using P-256 curve.
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate key: %w", err)
 	}
@@ -653,7 +653,7 @@ func GenerateTestCSR(subject pkix.Name, dnsNames []string) ([]byte, crypto.Priva
 		DNSNames: dnsNames,
 	}
 
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, template, key)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create CSR: %w", err)
 	}

@@ -11,7 +11,7 @@ import (
 
 	cryptoutilCAMagic "cryptoutil/internal/ca/magic"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // MTLSConfig configures mTLS authentication middleware.

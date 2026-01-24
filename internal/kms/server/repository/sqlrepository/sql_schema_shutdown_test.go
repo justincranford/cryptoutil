@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestLogSchema_PostgreSQL tests LogSchema with PostgreSQL backend (logPostgresSchema coverage).
@@ -21,9 +21,9 @@ func TestLogSchema_PostgreSQL(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_schema_postgres")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_schema_postgres")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Create PostgreSQL repository.
@@ -40,9 +40,9 @@ func TestLogSchema_SQLite(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_schema_sqlite")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_schema_sqlite")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Create SQLite repository.
@@ -59,9 +59,9 @@ func TestShutdown_SQLite(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_shutdown_sqlite")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_shutdown_sqlite")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Create SQLite repository.
@@ -85,9 +85,9 @@ func TestShutdown_PostgreSQL(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_shutdown_postgres")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_shutdown_postgres")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Create PostgreSQL repository.

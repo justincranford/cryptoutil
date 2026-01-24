@@ -4,7 +4,7 @@
 
 package apperr
 
-import "net/http"
+import http "net/http"
 
 // HTTPStatusCode represents an HTTP status code.
 type HTTPStatusCode int

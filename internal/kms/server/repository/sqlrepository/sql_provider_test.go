@@ -10,8 +10,8 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
@@ -19,9 +19,9 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("sql_provider_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_provider_test")
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 	testSQLRepository    *SQLRepository
 )
 
@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		testSQLRepository = RequireNewForTest(testCtx, testTelemetryService, testSettings)

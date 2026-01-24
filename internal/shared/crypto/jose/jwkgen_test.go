@@ -10,8 +10,8 @@ import (
 	"errors"
 	"testing"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -29,9 +29,9 @@ func TestGenerateRSAJWK(t *testing.T) {
 		rsaBits int
 		prob    float32
 	}{
-		{"RSA2048", cryptoutilMagic.RSAKeySize2048, cryptoutilMagic.TestProbAlways},
-		{"RSA3072", cryptoutilMagic.RSAKeySize3072, cryptoutilMagic.TestProbTenth},
-		{"RSA4096", cryptoutilMagic.RSAKeySize4096, cryptoutilMagic.TestProbTenth},
+		{"RSA2048", cryptoutilSharedMagic.RSAKeySize2048, cryptoutilSharedMagic.TestProbAlways},
+		{"RSA3072", cryptoutilSharedMagic.RSAKeySize3072, cryptoutilSharedMagic.TestProbTenth},
+		{"RSA4096", cryptoutilSharedMagic.RSAKeySize4096, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -64,9 +64,9 @@ func TestGenerateECDSAJWK(t *testing.T) {
 		curve elliptic.Curve
 		prob  float32
 	}{
-		{"P256", elliptic.P256(), cryptoutilMagic.TestProbAlways},
-		{"P384", elliptic.P384(), cryptoutilMagic.TestProbTenth},
-		{"P521", elliptic.P521(), cryptoutilMagic.TestProbTenth},
+		{"P256", elliptic.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{"P384", elliptic.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{"P521", elliptic.P521(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -99,9 +99,9 @@ func TestGenerateECDHJWK(t *testing.T) {
 		curve ecdh.Curve
 		prob  float32
 	}{
-		{"P256", ecdh.P256(), cryptoutilMagic.TestProbAlways},
-		{"P384", ecdh.P384(), cryptoutilMagic.TestProbTenth},
-		{"P521", ecdh.P521(), cryptoutilMagic.TestProbTenth},
+		{"P256", ecdh.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{"P384", ecdh.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{"P521", ecdh.P521(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -151,9 +151,9 @@ func TestGenerateAESJWK(t *testing.T) {
 		aesBits int
 		prob    float32
 	}{
-		{"AES128", cryptoutilMagic.AESKeySize128, cryptoutilMagic.TestProbAlways},
-		{"AES192", cryptoutilMagic.AESKeySize192, cryptoutilMagic.TestProbTenth},
-		{"AES256", cryptoutilMagic.AESKeySize256, cryptoutilMagic.TestProbTenth},
+		{"AES128", cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedMagic.TestProbAlways},
+		{"AES192", cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedMagic.TestProbTenth},
+		{"AES256", cryptoutilSharedMagic.AESKeySize256, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -186,9 +186,9 @@ func TestGenerateAESHSJWK(t *testing.T) {
 		aesHsBits int
 		prob      float32
 	}{
-		{"AES128HS256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbAlways},
-		{"AES192HS384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbTenth},
-		{"AES256HS512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbTenth},
+		{"AES128HS256", cryptoutilSharedMagic.HMACKeySize256, cryptoutilSharedMagic.TestProbAlways},
+		{"AES192HS384", cryptoutilSharedMagic.HMACKeySize384, cryptoutilSharedMagic.TestProbTenth},
+		{"AES256HS512", cryptoutilSharedMagic.HMACKeySize512, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -221,9 +221,9 @@ func TestGenerateHMACJWK(t *testing.T) {
 		hmacBits int
 		prob     float32
 	}{
-		{"HMAC256", cryptoutilMagic.HMACKeySize256, cryptoutilMagic.TestProbAlways},
-		{"HMAC384", cryptoutilMagic.HMACKeySize384, cryptoutilMagic.TestProbTenth},
-		{"HMAC512", cryptoutilMagic.HMACKeySize512, cryptoutilMagic.TestProbTenth},
+		{"HMAC256", cryptoutilSharedMagic.HMACKeySize256, cryptoutilSharedMagic.TestProbAlways},
+		{"HMAC384", cryptoutilSharedMagic.HMACKeySize384, cryptoutilSharedMagic.TestProbTenth},
+		{"HMAC512", cryptoutilSharedMagic.HMACKeySize512, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -260,7 +260,7 @@ func TestBuildJWK(t *testing.T) {
 			name: "RSA",
 			kty:  KtyRSA,
 			generateKey: func() (any, error) {
-				keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(cryptoutilMagic.RSAKeySize2048)
+				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.RSAKeySize2048)
 				if err != nil {
 					return nil, err //nolint:wrapcheck // Test helper
 				}
@@ -272,7 +272,7 @@ func TestBuildJWK(t *testing.T) {
 			name: "EC",
 			kty:  KtyEC,
 			generateKey: func() (any, error) {
-				keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 				if err != nil {
 					return nil, err //nolint:wrapcheck // Test helper //nolint:wrapcheck // Test helper
 				}
@@ -284,7 +284,7 @@ func TestBuildJWK(t *testing.T) {
 			name: "OKP",
 			kty:  KtyOKP,
 			generateKey: func() (any, error) {
-				keyPair, err := cryptoutilKeyGen.GenerateEDDSAKeyPair(cryptoutilKeyGen.EdCurveEd25519)
+				keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedCryptoKeygen.EdCurveEd25519)
 				if err != nil {
 					return nil, err //nolint:wrapcheck // Test helper
 				}
@@ -296,7 +296,7 @@ func TestBuildJWK(t *testing.T) {
 			name: "OCT",
 			kty:  KtyOCT,
 			generateKey: func() (any, error) {
-				key, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize256)
+				key, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.HMACKeySize256)
 				if err != nil {
 					return nil, err //nolint:wrapcheck // Test helper
 				}
@@ -357,7 +357,7 @@ func TestBuildJWK(t *testing.T) {
 		// Create a valid key but test error handling path.
 		// Since we cannot directly fail Set() on a valid JWK, this test
 		// verifies the success path for KeyType setting as additional coverage.
-		keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(cryptoutilMagic.RSAKeySize2048)
+		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.RSAKeySize2048)
 		require.NoError(t, err)
 
 		jwk, err := BuildJWK(KtyRSA, keyPair.Private, nil)

@@ -8,7 +8,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"gorm.io/gorm"
@@ -20,14 +20,14 @@ import (
 
 // Database error code constants (SQLite numeric codes and Postgres SQLSTATE strings).
 const (
-	sqliteErrUniqueConstraint = cryptoutilMagic.SQLiteErrUniqueConstraint
-	sqliteErrForeignKey       = cryptoutilMagic.SQLiteErrForeignKey
-	sqliteErrCheckConstraint  = cryptoutilMagic.SQLiteErrCheckConstraint
+	sqliteErrUniqueConstraint = cryptoutilSharedMagic.SQLiteErrUniqueConstraint
+	sqliteErrForeignKey       = cryptoutilSharedMagic.SQLiteErrForeignKey
+	sqliteErrCheckConstraint  = cryptoutilSharedMagic.SQLiteErrCheckConstraint
 
-	pgCodeUniqueViolation      = cryptoutilMagic.PGCodeUniqueViolation
-	pgCodeForeignKeyViolation  = cryptoutilMagic.PGCodeForeignKeyViolation
-	pgCodeCheckViolation       = cryptoutilMagic.PGCodeCheckViolation
-	pgCodeStringDataTruncation = cryptoutilMagic.PGCodeStringDataTruncation
+	pgCodeUniqueViolation      = cryptoutilSharedMagic.PGCodeUniqueViolation
+	pgCodeForeignKeyViolation  = cryptoutilSharedMagic.PGCodeForeignKeyViolation
+	pgCodeCheckViolation       = cryptoutilSharedMagic.PGCodeCheckViolation
+	pgCodeStringDataTruncation = cryptoutilSharedMagic.PGCodeStringDataTruncation
 )
 
 // Service-Repository calls

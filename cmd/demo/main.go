@@ -7,9 +7,9 @@
 package main
 
 import (
-	cryptoutilDemoCli "cryptoutil/internal/cmd/demo"
+	cryptoutilCmdDemo "cryptoutil/internal/cmd/demo"
 )
 
 func main() {
-	cryptoutilDemoCli.Execute()
+	cryptoutilCmdDemo.Execute()
 }

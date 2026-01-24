@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // enforceUTF8 enforces UTF-8 encoding without BOM for all text files.
@@ -67,7 +67,7 @@ func checkFilesEncoding(finalFiles []string) []string {
 	fileChan := make(chan string, len(finalFiles))
 	resultChan := make(chan []string, len(finalFiles))
 
-	for range cryptoutilMagic.Utf8EnforceWorkerPoolSize {
+	for range cryptoutilSharedMagic.Utf8EnforceWorkerPoolSize {
 		wg.Add(1)
 
 		go func() {

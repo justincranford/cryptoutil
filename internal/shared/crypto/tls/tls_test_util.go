@@ -6,9 +6,9 @@ package tls
 
 import (
 	"crypto/tls"
-	"net/http"
+	http "net/http"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NewClientForTest creates an HTTP client configured for testing with insecure TLS.
@@ -21,6 +21,6 @@ func NewClientForTest() *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout,
+		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout,
 	}
 }

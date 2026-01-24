@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
+	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity/spa/server/config"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 
 func TestMain(m *testing.M) {
 	// Create test configuration.
-	cfg := cryptoutilSPAConfig.DefaultTestConfig()
+	cfg := cryptoutilAppsIdentitySpaServerConfig.DefaultTestConfig()
 
 	// Create server.
 	ctx := context.Background()

@@ -12,11 +12,11 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -25,10 +25,10 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("orm_transaction_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("orm_transaction_test")
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testJWKGenService    *cryptoutilJose.JWKGenService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
+	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	testSQLRepository    *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository    *OrmRepository
 	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
@@ -39,10 +39,10 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testJWKGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		testJWKGenService = cryptoutilSharedCryptoJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJWKGenService.Shutdown()
 
 		testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)

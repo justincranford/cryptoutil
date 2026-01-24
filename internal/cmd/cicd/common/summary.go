@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CommandResult tracks the execution result of a single command.
@@ -23,9 +23,9 @@ type CommandResult struct {
 // PrintExecutionSummary outputs a formatted summary of command execution results.
 // It displays individual command statuses, counts, and total execution time.
 func PrintExecutionSummary(results []CommandResult, totalDuration time.Duration) {
-	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilMagic.SeparatorLength))
+	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
 	fmt.Fprintln(os.Stderr, "EXECUTION SUMMARY")
-	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilMagic.SeparatorLength))
+	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
 
 	successCount := 0
 	failureCount := 0
@@ -45,18 +45,18 @@ func PrintExecutionSummary(results []CommandResult, totalDuration time.Duration)
 			result.Duration.Seconds())
 	}
 
-	fmt.Fprintln(os.Stderr, strings.Repeat("-", cryptoutilMagic.SeparatorLength))
+	fmt.Fprintln(os.Stderr, strings.Repeat("-", cryptoutilSharedMagic.SeparatorLength))
 	fmt.Fprintf(os.Stderr, "Total: %d commands  |  Passed: %d  |  Failed: %d  |  Time: %.2fs\n",
 		len(results),
 		successCount,
 		failureCount,
 		totalDuration.Seconds())
-	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilMagic.SeparatorLength))
+	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength))
 }
 
 // PrintCommandSeparator outputs a visual separator between commands.
 func PrintCommandSeparator() {
-	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilMagic.SeparatorLength)+"\n")
+	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilSharedMagic.SeparatorLength)+"\n")
 }
 
 // SummaryStats calculates summary statistics from command results.

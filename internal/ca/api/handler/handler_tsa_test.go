@@ -4,14 +4,14 @@ package handler
 
 import (
 	"bytes"
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"encoding/asn1"
 	"math/big"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 

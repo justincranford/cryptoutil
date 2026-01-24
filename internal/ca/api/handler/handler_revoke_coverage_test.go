@@ -5,16 +5,16 @@ package handler
 import (
 	"bytes"
 	"context"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
@@ -105,17 +105,17 @@ func TestRevokeCertificate_AllReasons(t *testing.T) {
 
 	reasons := []struct {
 		name   string
-		reason cryptoutilCAServer.RevocationReason
+		reason cryptoutilApiCaServer.RevocationReason
 	}{
-		{"key_compromise", cryptoutilCAServer.KeyCompromise},
-		{"ca_compromise", cryptoutilCAServer.CACompromise},
-		{"affiliation_changed", cryptoutilCAServer.AffiliationChanged},
-		{"superseded", cryptoutilCAServer.Superseded},
-		{"cessation_of_operation", cryptoutilCAServer.CessationOfOperation},
-		{"certificate_hold", cryptoutilCAServer.CertificateHold},
-		{"remove_from_crl", cryptoutilCAServer.RemoveFromCRL},
-		{"privilege_withdrawn", cryptoutilCAServer.PrivilegeWithdrawn},
-		{"aa_compromise", cryptoutilCAServer.AaCompromise},
+		{"key_compromise", cryptoutilApiCaServer.KeyCompromise},
+		{"ca_compromise", cryptoutilApiCaServer.CACompromise},
+		{"affiliation_changed", cryptoutilApiCaServer.AffiliationChanged},
+		{"superseded", cryptoutilApiCaServer.Superseded},
+		{"cessation_of_operation", cryptoutilApiCaServer.CessationOfOperation},
+		{"certificate_hold", cryptoutilApiCaServer.CertificateHold},
+		{"remove_from_crl", cryptoutilApiCaServer.RemoveFromCRL},
+		{"privilege_withdrawn", cryptoutilApiCaServer.PrivilegeWithdrawn},
+		{"aa_compromise", cryptoutilApiCaServer.AaCompromise},
 	}
 
 	for _, tc := range reasons {

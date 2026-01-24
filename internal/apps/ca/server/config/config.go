@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // CAServerSettings contains pki-ca specific configuration.
 type CAServerSettings struct {
-	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// CA-specific settings.
 	CAConfigPath    string // Path to CA definition YAML.
@@ -38,46 +38,46 @@ const (
 	defaultEnableTimestamp = false
 )
 
-var allCAServerRegisteredSettings []*cryptoutilTemplateConfig.Setting //nolint:gochecknoglobals
+var allCAServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
 
 // CA-specific Setting objects for parameter attributes.
 var (
-	caConfigPathSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	caConfigPathSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "ca-config",
 		Shorthand:   "",
 		Value:       defaultCAConfigPath,
 		Usage:       "path to CA definition YAML file",
 		Description: "CA Config Path",
 	})
-	profilesPathSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	profilesPathSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "profiles-path",
 		Shorthand:   "",
 		Value:       defaultProfilesPath,
 		Usage:       "path to certificate profiles directory",
 		Description: "Profiles Path",
 	})
-	enableESTSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableESTSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-est",
 		Shorthand:   "",
 		Value:       defaultEnableEST,
 		Usage:       "enable EST (Enrollment over Secure Transport) endpoints",
 		Description: "Enable EST",
 	})
-	enableOCSPSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableOCSPSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-ocsp",
 		Shorthand:   "",
 		Value:       defaultEnableOCSP,
 		Usage:       "enable OCSP responder",
 		Description: "Enable OCSP",
 	})
-	enableCRLSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableCRLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-crl",
 		Shorthand:   "",
 		Value:       defaultEnableCRL,
 		Usage:       "enable CRL distribution point",
 		Description: "Enable CRL",
 	})
-	enableTimestampSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableTimestampSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-timestamp",
 		Shorthand:   "",
 		Value:       defaultEnableTimestamp,
@@ -89,18 +89,18 @@ var (
 // Parse parses command line arguments and returns pki-ca settings.
 func Parse(args []string, exitIfHelp bool) (*CAServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register pki-ca specific flags.
-	pflag.StringP(caConfigPathSetting.Name, caConfigPathSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(caConfigPathSetting), caConfigPathSetting.Description)
-	pflag.StringP(profilesPathSetting.Name, profilesPathSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(profilesPathSetting), profilesPathSetting.Description)
-	pflag.BoolP(enableESTSetting.Name, enableESTSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableESTSetting), enableESTSetting.Description)
-	pflag.BoolP(enableOCSPSetting.Name, enableOCSPSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableOCSPSetting), enableOCSPSetting.Description)
-	pflag.BoolP(enableCRLSetting.Name, enableCRLSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableCRLSetting), enableCRLSetting.Description)
-	pflag.BoolP(enableTimestampSetting.Name, enableTimestampSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableTimestampSetting), enableTimestampSetting.Description)
+	pflag.StringP(caConfigPathSetting.Name, caConfigPathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(caConfigPathSetting), caConfigPathSetting.Description)
+	pflag.StringP(profilesPathSetting.Name, profilesPathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(profilesPathSetting), profilesPathSetting.Description)
+	pflag.BoolP(enableESTSetting.Name, enableESTSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableESTSetting), enableESTSetting.Description)
+	pflag.BoolP(enableOCSPSetting.Name, enableOCSPSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableOCSPSetting), enableOCSPSetting.Description)
+	pflag.BoolP(enableCRLSetting.Name, enableCRLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableCRLSetting), enableCRLSetting.Description)
+	pflag.BoolP(enableTimestampSetting.Name, enableTimestampSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableTimestampSetting), enableTimestampSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()
@@ -194,7 +194,7 @@ func logCASettings(s *CAServerSettings) {
 // Returns directly populated CAServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *CAServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilTemplateConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with pki-ca specific values.
 	baseConfig.BindPublicPort = bindPort

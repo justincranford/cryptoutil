@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,19 +18,19 @@ import (
 // CRITICAL: Methods filter by tenant_id ONLY - realms are authn-only, NOT data scope.
 type ElasticJWKRepository interface {
 	// Create stores a new Elastic JWK.
-	Create(ctx context.Context, elasticJWK *cryptoutilJoseJADomain.ElasticJWK) error
+	Create(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK) error
 
 	// Get retrieves an Elastic JWK by KID within a tenant.
-	Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilJoseJADomain.ElasticJWK, error)
+	Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error)
 
 	// GetByID retrieves an Elastic JWK by its UUID.
-	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilJoseJADomain.ElasticJWK, error)
+	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error)
 
 	// List retrieves all Elastic JWKs for a tenant with pagination.
-	List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.ElasticJWK, int64, error)
+	List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.ElasticJWK, int64, error)
 
 	// Update updates an existing Elastic JWK.
-	Update(ctx context.Context, elasticJWK *cryptoutilJoseJADomain.ElasticJWK) error
+	Update(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK) error
 
 	// Delete removes an Elastic JWK by ID.
 	Delete(ctx context.Context, id googleUuid.UUID) error
@@ -53,7 +53,7 @@ func NewElasticJWKRepository(db *gorm.DB) ElasticJWKRepository {
 }
 
 // Create stores a new Elastic JWK.
-func (r *gormElasticJWKRepository) Create(ctx context.Context, elasticJWK *cryptoutilJoseJADomain.ElasticJWK) error {
+func (r *gormElasticJWKRepository) Create(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK) error {
 	if err := r.db.WithContext(ctx).Create(elasticJWK).Error; err != nil {
 		return fmt.Errorf("failed to create elastic JWK: %w", err)
 	}
@@ -63,8 +63,8 @@ func (r *gormElasticJWKRepository) Create(ctx context.Context, elasticJWK *crypt
 
 // Get retrieves an Elastic JWK by KID within a tenant.
 // CRITICAL: Filters by tenant_id ONLY - realms are authn-only, NOT data scope.
-func (r *gormElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilJoseJADomain.ElasticJWK, error) {
-	var elasticJWK cryptoutilJoseJADomain.ElasticJWK
+func (r *gormElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error) {
+	var elasticJWK cryptoutilAppsJoseJaDomain.ElasticJWK
 	if err := r.db.WithContext(ctx).
 		Where("tenant_id = ? AND kid = ?", tenantID.String(), kid).
 		First(&elasticJWK).Error; err != nil {
@@ -75,8 +75,8 @@ func (r *gormElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.
 }
 
 // GetByID retrieves an Elastic JWK by its UUID.
-func (r *gormElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilJoseJADomain.ElasticJWK, error) {
-	var elasticJWK cryptoutilJoseJADomain.ElasticJWK
+func (r *gormElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error) {
+	var elasticJWK cryptoutilAppsJoseJaDomain.ElasticJWK
 	if err := r.db.WithContext(ctx).
 		Where("id = ?", id.String()).
 		First(&elasticJWK).Error; err != nil {
@@ -88,16 +88,16 @@ func (r *gormElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UU
 
 // List retrieves all Elastic JWKs for a tenant with pagination.
 // CRITICAL: Filters by tenant_id ONLY - realms are authn-only, NOT data scope.
-func (r *gormElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.ElasticJWK, int64, error) {
+func (r *gormElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.ElasticJWK, int64, error) {
 	var (
-		elasticJWKs []*cryptoutilJoseJADomain.ElasticJWK
+		elasticJWKs []*cryptoutilAppsJoseJaDomain.ElasticJWK
 		total       int64
 	)
 
 	// Count total.
 
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.ElasticJWK{}).
+		Model(&cryptoutilAppsJoseJaDomain.ElasticJWK{}).
 		Where("tenant_id = ?", tenantID.String()).
 		Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count elastic JWKs: %w", err)
@@ -117,7 +117,7 @@ func (r *gormElasticJWKRepository) List(ctx context.Context, tenantID googleUuid
 }
 
 // Update updates an existing Elastic JWK.
-func (r *gormElasticJWKRepository) Update(ctx context.Context, elasticJWK *cryptoutilJoseJADomain.ElasticJWK) error {
+func (r *gormElasticJWKRepository) Update(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK) error {
 	if err := r.db.WithContext(ctx).Save(elasticJWK).Error; err != nil {
 		return fmt.Errorf("failed to update elastic JWK: %w", err)
 	}
@@ -129,7 +129,7 @@ func (r *gormElasticJWKRepository) Update(ctx context.Context, elasticJWK *crypt
 func (r *gormElasticJWKRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
 	if err := r.db.WithContext(ctx).
 		Where("id = ?", id.String()).
-		Delete(&cryptoutilJoseJADomain.ElasticJWK{}).Error; err != nil {
+		Delete(&cryptoutilAppsJoseJaDomain.ElasticJWK{}).Error; err != nil {
 		return fmt.Errorf("failed to delete elastic JWK: %w", err)
 	}
 
@@ -139,7 +139,7 @@ func (r *gormElasticJWKRepository) Delete(ctx context.Context, id googleUuid.UUI
 // IncrementMaterialCount atomically increments the material count.
 func (r *gormElasticJWKRepository) IncrementMaterialCount(ctx context.Context, id googleUuid.UUID) error {
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.ElasticJWK{}).
+		Model(&cryptoutilAppsJoseJaDomain.ElasticJWK{}).
 		Where("id = ?", id.String()).
 		UpdateColumn("current_material_count", gorm.Expr("current_material_count + 1")).Error; err != nil {
 		return fmt.Errorf("failed to increment material count: %w", err)
@@ -151,7 +151,7 @@ func (r *gormElasticJWKRepository) IncrementMaterialCount(ctx context.Context, i
 // DecrementMaterialCount atomically decrements the material count.
 func (r *gormElasticJWKRepository) DecrementMaterialCount(ctx context.Context, id googleUuid.UUID) error {
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.ElasticJWK{}).
+		Model(&cryptoutilAppsJoseJaDomain.ElasticJWK{}).
 		Where("id = ? AND current_material_count > 0", id.String()).
 		UpdateColumn("current_material_count", gorm.Expr("current_material_count - 1")).Error; err != nil {
 		return fmt.Errorf("failed to decrement material count: %w", err)

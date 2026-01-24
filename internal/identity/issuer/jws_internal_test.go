@@ -5,10 +5,10 @@
 package issuer
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"encoding/base64"
 	"math/big"
 	"testing"
@@ -37,7 +37,7 @@ func TestSignJWT(t *testing.T) {
 			name:      "RS256_success",
 			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
 			keyGen: func() any {
-				key, err := rsa.GenerateKey(rand.Reader, 2048)
+				key, err := rsa.GenerateKey(crand.Reader, 2048)
 				require.NoError(t, err)
 
 				return key
@@ -48,7 +48,7 @@ func TestSignJWT(t *testing.T) {
 			name:      "ES256_success",
 			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
 			keyGen: func() any {
-				key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
 
 				return key
@@ -114,7 +114,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 			name:      "RS256_valid_signature",
 			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
 			setupKeys: func(_ *testing.T) (any, any) {
-				key, err := rsa.GenerateKey(rand.Reader, 2048)
+				key, err := rsa.GenerateKey(crand.Reader, 2048)
 				require.NoError(t, err)
 
 				return key, &key.PublicKey
@@ -125,7 +125,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 			name:      "ES256_valid_signature",
 			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
 			setupKeys: func(_ *testing.T) (any, any) {
-				key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
 
 				return key, &key.PublicKey
@@ -136,7 +136,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 			name:      "RS256_wrong_public_key_type",
 			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
 			setupKeys: func(_ *testing.T) (any, any) {
-				key, err := rsa.GenerateKey(rand.Reader, 2048)
+				key, err := rsa.GenerateKey(crand.Reader, 2048)
 				require.NoError(t, err)
 
 				return key, invalidKeyString
@@ -148,7 +148,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 			name:      "ES256_wrong_public_key_type",
 			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
 			setupKeys: func(_ *testing.T) (any, any) {
-				key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
 
 				return key, invalidKeyString
@@ -160,7 +160,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 			name:      "ES256_invalid_signature_length",
 			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
 			setupKeys: func(_ *testing.T) (any, any) {
-				key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
 
 				return key, &key.PublicKey
@@ -230,7 +230,7 @@ func TestConvertToJWK(t *testing.T) {
 				KeyID:     "test-rsa-kid",
 				Algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
 				Key: func() any {
-					key, err := rsa.GenerateKey(rand.Reader, 2048)
+					key, err := rsa.GenerateKey(crand.Reader, 2048)
 					require.NoError(t, err)
 
 					return key
@@ -249,7 +249,7 @@ func TestConvertToJWK(t *testing.T) {
 				KeyID:     "test-rsa-pub-kid",
 				Algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
 				Key: func() any {
-					key, err := rsa.GenerateKey(rand.Reader, 2048)
+					key, err := rsa.GenerateKey(crand.Reader, 2048)
 					require.NoError(t, err)
 
 					return &key.PublicKey
@@ -268,7 +268,7 @@ func TestConvertToJWK(t *testing.T) {
 				KeyID:     "test-ec-kid",
 				Algorithm: cryptoutilIdentityMagic.AlgorithmES256,
 				Key: func() any {
-					key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+					key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 					require.NoError(t, err)
 
 					return key
@@ -288,7 +288,7 @@ func TestConvertToJWK(t *testing.T) {
 				KeyID:     "test-ec-pub-kid",
 				Algorithm: cryptoutilIdentityMagic.AlgorithmES256,
 				Key: func() any {
-					key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+					key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 					require.NoError(t, err)
 
 					return &key.PublicKey

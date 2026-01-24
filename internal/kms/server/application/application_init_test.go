@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -36,11 +36,11 @@ func TestServerInit_HappyPath(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		settings *cryptoutilConfig.ServiceTemplateServerSettings
+		settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	}{
 		{
 			name:     "ValidConfig_InMemoryDB_UnsealModeSysInfo",
-			settings: cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true),
+			settings: cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true),
 		},
 	}
 
@@ -50,7 +50,7 @@ func TestServerInit_HappyPath(t *testing.T) {
 
 			// Create subdirectory for this specific test case
 			testCaseDir := filepath.Join(tempDir, tt.name)
-			err := os.MkdirAll(testCaseDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
+			err := os.MkdirAll(testCaseDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 			require.NoError(t, err)
 
 			// Change to test case directory
@@ -86,13 +86,13 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		settings    *cryptoutilConfig.ServiceTemplateServerSettings
+		settings    *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 		expectedErr string
 	}{
 		{
 			name: "InvalidPublicIPAddress",
-			settings: func() *cryptoutilConfig.ServiceTemplateServerSettings {
-				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			settings: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
+				s := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 				s.TLSPublicIPAddresses = []string{"invalid-ip"}
 
 				return s
@@ -101,8 +101,8 @@ func TestServerInit_InvalidIPAddresses(t *testing.T) {
 		},
 		{
 			name: "InvalidPrivateIPAddress",
-			settings: func() *cryptoutilConfig.ServiceTemplateServerSettings {
-				s := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			settings: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
+				s := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 				s.TLSPrivateIPAddresses = []string{"999.999.999.999"}
 
 				return s

@@ -7,10 +7,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
@@ -43,7 +43,7 @@ func NewSessionHandler(sessionManager SessionManager) *SessionHandler {
 }
 
 // Ensure *SessionManagerService implements SessionManager at compile time.
-var _ SessionManager = (*cryptoutilTemplateBusinessLogic.SessionManagerService)(nil)
+var _ SessionManager = (*cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService)(nil)
 
 // SessionIssueRequest represents the request body for issuing a session.
 type SessionIssueRequest struct {

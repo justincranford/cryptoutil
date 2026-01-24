@@ -12,7 +12,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // SecretHasher provides FIPS 140-3 approved hashing for client secrets.
@@ -71,7 +71,7 @@ func MigrateClientSecrets(ctx context.Context, clientRepo cryptoutilIdentityRepo
 // isPBKDF2Hash checks if a string is a PBKDF2-HMAC-SHA256 hash.
 func isPBKDF2Hash(secret string) bool {
 	// PBKDF2 hashes have format: $pbkdf2-sha256$iterations$salt$hash.
-	return len(secret) > len("$"+cryptoutilMagic.PBKDF2DefaultHashName+"$") && secret[:len("$"+cryptoutilMagic.PBKDF2DefaultHashName+"$")] == "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"
+	return len(secret) > len("$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$") && secret[:len("$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$")] == "$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$"
 }
 
 // SecretBasedAuthenticator provides client authentication with FIPS 140-3 approved PBKDF2-HMAC-SHA256 hashing.

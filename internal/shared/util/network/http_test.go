@@ -4,7 +4,7 @@ package network
 
 import (
 	"context"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"os"
 	"testing"

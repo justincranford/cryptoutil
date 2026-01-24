@@ -16,13 +16,13 @@ package service
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 
 	googleUuid "github.com/google/uuid"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RealmType represents the type of authentication realm.
@@ -259,16 +259,16 @@ func (c *OpaqueSessionCookieConfig) GetType() RealmType {
 
 // Validate validates the configuration.
 func (c *OpaqueSessionCookieConfig) Validate() error {
-	if c.TokenLengthBytes < cryptoutilMagic.RealmMinTokenLengthBytes {
-		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilMagic.RealmMinTokenLengthBytes)
+	if c.TokenLengthBytes < cryptoutilSharedMagic.RealmMinTokenLengthBytes {
+		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	}
 
 	if c.SessionExpiryMinutes < 1 {
 		return fmt.Errorf("session_expiry_minutes must be at least 1")
 	}
 
-	if c.StorageType != cryptoutilMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilMagic.RealmStorageTypeRedis {
-		return fmt.Errorf("storage_type must be '%s' or '%s'", cryptoutilMagic.RealmStorageTypeDatabase, cryptoutilMagic.RealmStorageTypeRedis)
+	if c.StorageType != cryptoutilSharedMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilSharedMagic.RealmStorageTypeRedis {
+		return fmt.Errorf("storage_type must be '%s' or '%s'", cryptoutilSharedMagic.RealmStorageTypeDatabase, cryptoutilSharedMagic.RealmStorageTypeRedis)
 	}
 
 	return nil
@@ -317,8 +317,8 @@ func (c *BearerAPITokenConfig) Validate() error {
 		return fmt.Errorf("token_expiry_days must be at least 1")
 	}
 
-	if c.TokenLengthBytes < cryptoutilMagic.RealmMinBearerTokenLengthBytes {
-		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilMagic.RealmMinBearerTokenLengthBytes)
+	if c.TokenLengthBytes < cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes {
+		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilSharedMagic.RealmMinBearerTokenLengthBytes)
 	}
 
 	return nil
@@ -401,16 +401,16 @@ func (c *OpaqueSessionTokenConfig) GetType() RealmType {
 
 // Validate validates the configuration.
 func (c *OpaqueSessionTokenConfig) Validate() error {
-	if c.TokenLengthBytes < cryptoutilMagic.RealmMinTokenLengthBytes {
-		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilMagic.RealmMinTokenLengthBytes)
+	if c.TokenLengthBytes < cryptoutilSharedMagic.RealmMinTokenLengthBytes {
+		return fmt.Errorf("token_length_bytes must be at least %d", cryptoutilSharedMagic.RealmMinTokenLengthBytes)
 	}
 
 	if c.TokenExpiryMinutes < 1 {
 		return fmt.Errorf("token_expiry_minutes must be at least 1")
 	}
 
-	if c.StorageType != cryptoutilMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilMagic.RealmStorageTypeRedis {
-		return fmt.Errorf("storage_type must be '%s' or '%s'", cryptoutilMagic.RealmStorageTypeDatabase, cryptoutilMagic.RealmStorageTypeRedis)
+	if c.StorageType != cryptoutilSharedMagic.RealmStorageTypeDatabase && c.StorageType != cryptoutilSharedMagic.RealmStorageTypeRedis {
+		return fmt.Errorf("storage_type must be '%s' or '%s'", cryptoutilSharedMagic.RealmStorageTypeDatabase, cryptoutilSharedMagic.RealmStorageTypeRedis)
 	}
 
 	return nil
@@ -442,16 +442,16 @@ func (c *BasicClientIDSecretConfig) Validate() error {
 // RealmService defines operations for managing tenant realms.
 type RealmService interface {
 	// CreateRealm creates a new realm for a tenant.
-	CreateRealm(ctx context.Context, tenantID googleUuid.UUID, realmType string, config RealmConfig) (*repository.TenantRealm, error)
+	CreateRealm(ctx context.Context, tenantID googleUuid.UUID, realmType string, config RealmConfig) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error)
 
 	// GetRealm retrieves a realm by ID.
-	GetRealm(ctx context.Context, tenantID, realmID googleUuid.UUID) (*repository.TenantRealm, error)
+	GetRealm(ctx context.Context, tenantID, realmID googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error)
 
 	// ListRealms lists all realms for a tenant.
-	ListRealms(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*repository.TenantRealm, error)
+	ListRealms(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error)
 
 	// UpdateRealm updates realm configuration.
-	UpdateRealm(ctx context.Context, tenantID, realmID googleUuid.UUID, config RealmConfig, active *bool) (*repository.TenantRealm, error)
+	UpdateRealm(ctx context.Context, tenantID, realmID googleUuid.UUID, config RealmConfig, active *bool) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error)
 
 	// DeleteRealm deactivates a realm (soft delete).
 	DeleteRealm(ctx context.Context, tenantID, realmID googleUuid.UUID) error
@@ -462,18 +462,18 @@ type RealmService interface {
 
 // RealmServiceImpl implements RealmService.
 type RealmServiceImpl struct {
-	realmRepo repository.TenantRealmRepository
+	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 }
 
 // NewRealmService creates a new RealmService instance.
-func NewRealmService(realmRepo repository.TenantRealmRepository) RealmService {
+func NewRealmService(realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository) RealmService {
 	return &RealmServiceImpl{
 		realmRepo: realmRepo,
 	}
 }
 
 // CreateRealm creates a new realm for a tenant.
-func (s *RealmServiceImpl) CreateRealm(ctx context.Context, tenantID googleUuid.UUID, realmType string, config RealmConfig) (*repository.TenantRealm, error) {
+func (s *RealmServiceImpl) CreateRealm(ctx context.Context, tenantID googleUuid.UUID, realmType string, config RealmConfig) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	// Validate the realm type.
 	if err := s.validateRealmType(realmType); err != nil {
 		return nil, err
@@ -498,7 +498,7 @@ func (s *RealmServiceImpl) CreateRealm(ctx context.Context, tenantID googleUuid.
 		configJSON = string(configBytes)
 	}
 
-	realm := &repository.TenantRealm{
+	realm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 		ID:       googleUuid.New(),
 		TenantID: tenantID,
 		RealmID:  googleUuid.New(),
@@ -516,7 +516,7 @@ func (s *RealmServiceImpl) CreateRealm(ctx context.Context, tenantID googleUuid.
 }
 
 // GetRealm retrieves a realm by ID.
-func (s *RealmServiceImpl) GetRealm(ctx context.Context, tenantID, realmID googleUuid.UUID) (*repository.TenantRealm, error) {
+func (s *RealmServiceImpl) GetRealm(ctx context.Context, tenantID, realmID googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	realm, err := s.realmRepo.GetByRealmID(ctx, tenantID, realmID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get realm: %w", err)
@@ -531,7 +531,7 @@ func (s *RealmServiceImpl) GetRealm(ctx context.Context, tenantID, realmID googl
 }
 
 // ListRealms lists all realms for a tenant.
-func (s *RealmServiceImpl) ListRealms(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*repository.TenantRealm, error) {
+func (s *RealmServiceImpl) ListRealms(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	realms, err := s.realmRepo.ListByTenant(ctx, tenantID, activeOnly)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list realms: %w", err)
@@ -541,7 +541,7 @@ func (s *RealmServiceImpl) ListRealms(ctx context.Context, tenantID googleUuid.U
 }
 
 // UpdateRealm updates realm configuration.
-func (s *RealmServiceImpl) UpdateRealm(ctx context.Context, tenantID, realmID googleUuid.UUID, config RealmConfig, active *bool) (*repository.TenantRealm, error) {
+func (s *RealmServiceImpl) UpdateRealm(ctx context.Context, tenantID, realmID googleUuid.UUID, config RealmConfig, active *bool) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	// Get existing realm.
 	realm, err := s.realmRepo.GetByRealmID(ctx, tenantID, realmID)
 	if err != nil {

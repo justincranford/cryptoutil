@@ -6,9 +6,9 @@ package userauth
 
 import (
 	"context"
-	"crypto/hmac"
+	hmac "crypto/hmac"
 	crand "crypto/rand"
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"encoding/base32"
 	"encoding/binary"
 	"fmt"

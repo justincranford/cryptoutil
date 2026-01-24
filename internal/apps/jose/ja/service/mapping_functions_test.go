@@ -9,7 +9,7 @@ import (
 	jose "github.com/go-jose/go-jose/v4"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestMapToJWEAlgorithms_AllBranches tests all branches in mapToJWEAlgorithms.
@@ -25,56 +25,56 @@ func TestMapToJWEAlgorithms_AllBranches(t *testing.T) {
 		// RSA variants.
 		{
 			name:           "RSA/2048",
-			algorithm:      cryptoutilMagic.JoseKeyTypeRSA2048,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeRSA2048,
 			expectedKeyAlg: jose.RSA_OAEP_256,
 			expectedEnc:    jose.A256GCM,
 		},
 		{
 			name:           "RSA/3072",
-			algorithm:      cryptoutilMagic.JoseKeyTypeRSA3072,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeRSA3072,
 			expectedKeyAlg: jose.RSA_OAEP_256,
 			expectedEnc:    jose.A256GCM,
 		},
 		{
 			name:           "RSA/4096",
-			algorithm:      cryptoutilMagic.JoseKeyTypeRSA4096,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeRSA4096,
 			expectedKeyAlg: jose.RSA_OAEP_256,
 			expectedEnc:    jose.A256GCM,
 		},
 		{
 			name:           "RSA-OAEP",
-			algorithm:      cryptoutilMagic.JoseAlgRSAOAEP,
+			algorithm:      cryptoutilSharedMagic.JoseAlgRSAOAEP,
 			expectedKeyAlg: jose.RSA_OAEP_256,
 			expectedEnc:    jose.A256GCM,
 		},
 		{
 			name:           "RSA-OAEP-256",
-			algorithm:      cryptoutilMagic.JoseAlgRSAOAEP256,
+			algorithm:      cryptoutilSharedMagic.JoseAlgRSAOAEP256,
 			expectedKeyAlg: jose.RSA_OAEP_256,
 			expectedEnc:    jose.A256GCM,
 		},
 		// EC variants.
 		{
 			name:           "EC/P256",
-			algorithm:      cryptoutilMagic.JoseKeyTypeECP256,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeECP256,
 			expectedKeyAlg: jose.ECDH_ES_A256KW,
 			expectedEnc:    jose.A256GCM,
 		},
 		{
 			name:           "EC/P384",
-			algorithm:      cryptoutilMagic.JoseKeyTypeECP384,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeECP384,
 			expectedKeyAlg: jose.ECDH_ES_A256KW,
 			expectedEnc:    jose.A256GCM,
 		},
 		{
 			name:           "EC/P521",
-			algorithm:      cryptoutilMagic.JoseKeyTypeECP521,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeECP521,
 			expectedKeyAlg: jose.ECDH_ES_A256KW,
 			expectedEnc:    jose.A256GCM,
 		},
 		{
 			name:           "ECDH-ES",
-			algorithm:      cryptoutilMagic.JoseAlgECDHES,
+			algorithm:      cryptoutilSharedMagic.JoseAlgECDHES,
 			expectedKeyAlg: jose.ECDH_ES_A256KW,
 			expectedEnc:    jose.A256GCM,
 		},
@@ -119,25 +119,25 @@ func TestMapToJWEAlgorithms_AllBranches(t *testing.T) {
 		// Direct encryption variants.
 		{
 			name:           "dir (A128GCM)",
-			algorithm:      cryptoutilMagic.JoseAlgDir,
+			algorithm:      cryptoutilSharedMagic.JoseAlgDir,
 			expectedKeyAlg: jose.DIRECT,
 			expectedEnc:    jose.A128GCM,
 		},
 		{
 			name:           "oct/128",
-			algorithm:      cryptoutilMagic.JoseKeyTypeOct128,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeOct128,
 			expectedKeyAlg: jose.DIRECT,
 			expectedEnc:    jose.A128GCM,
 		},
 		{
 			name:           "oct/192",
-			algorithm:      cryptoutilMagic.JoseKeyTypeOct192,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeOct192,
 			expectedKeyAlg: jose.DIRECT,
 			expectedEnc:    jose.A192GCM,
 		},
 		{
 			name:           "oct/256",
-			algorithm:      cryptoutilMagic.JoseKeyTypeOct256,
+			algorithm:      cryptoutilSharedMagic.JoseKeyTypeOct256,
 			expectedKeyAlg: jose.DIRECT,
 			expectedEnc:    jose.A256GCM,
 		},
@@ -329,38 +329,38 @@ func TestMapToGenerateAlgorithmForRotation_AllBranches(t *testing.T) {
 		expectNil bool
 	}{
 		// RSA signing.
-		{name: "RS256", algorithm: cryptoutilMagic.JoseAlgRS256, expectNil: false},
-		{name: "RS384", algorithm: cryptoutilMagic.JoseAlgRS384, expectNil: false},
-		{name: "RS512", algorithm: cryptoutilMagic.JoseAlgRS512, expectNil: false},
-		{name: "RSA/2048", algorithm: cryptoutilMagic.JoseKeyTypeRSA2048, expectNil: false},
+		{name: "RS256", algorithm: cryptoutilSharedMagic.JoseAlgRS256, expectNil: false},
+		{name: "RS384", algorithm: cryptoutilSharedMagic.JoseAlgRS384, expectNil: false},
+		{name: "RS512", algorithm: cryptoutilSharedMagic.JoseAlgRS512, expectNil: false},
+		{name: "RSA/2048", algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA2048, expectNil: false},
 		// RSA-PSS signing.
-		{name: "PS256", algorithm: cryptoutilMagic.JoseAlgPS256, expectNil: false},
-		{name: "PS384", algorithm: cryptoutilMagic.JoseAlgPS384, expectNil: false},
-		{name: "PS512", algorithm: cryptoutilMagic.JoseAlgPS512, expectNil: false},
-		{name: "RSA/3072", algorithm: cryptoutilMagic.JoseKeyTypeRSA3072, expectNil: false},
+		{name: "PS256", algorithm: cryptoutilSharedMagic.JoseAlgPS256, expectNil: false},
+		{name: "PS384", algorithm: cryptoutilSharedMagic.JoseAlgPS384, expectNil: false},
+		{name: "PS512", algorithm: cryptoutilSharedMagic.JoseAlgPS512, expectNil: false},
+		{name: "RSA/3072", algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA3072, expectNil: false},
 		// RSA/4096.
-		{name: "RSA/4096", algorithm: cryptoutilMagic.JoseKeyTypeRSA4096, expectNil: false},
+		{name: "RSA/4096", algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA4096, expectNil: false},
 		// ECDSA signing.
-		{name: "ES256", algorithm: cryptoutilMagic.JoseAlgES256, expectNil: false},
-		{name: "EC/P256", algorithm: cryptoutilMagic.JoseKeyTypeECP256, expectNil: false},
-		{name: "ES384", algorithm: cryptoutilMagic.JoseAlgES384, expectNil: false},
-		{name: "EC/P384", algorithm: cryptoutilMagic.JoseKeyTypeECP384, expectNil: false},
-		{name: "ES512", algorithm: cryptoutilMagic.JoseAlgES512, expectNil: false},
-		{name: "EC/P521", algorithm: cryptoutilMagic.JoseKeyTypeECP521, expectNil: false},
+		{name: "ES256", algorithm: cryptoutilSharedMagic.JoseAlgES256, expectNil: false},
+		{name: "EC/P256", algorithm: cryptoutilSharedMagic.JoseKeyTypeECP256, expectNil: false},
+		{name: "ES384", algorithm: cryptoutilSharedMagic.JoseAlgES384, expectNil: false},
+		{name: "EC/P384", algorithm: cryptoutilSharedMagic.JoseKeyTypeECP384, expectNil: false},
+		{name: "ES512", algorithm: cryptoutilSharedMagic.JoseAlgES512, expectNil: false},
+		{name: "EC/P521", algorithm: cryptoutilSharedMagic.JoseKeyTypeECP521, expectNil: false},
 		// EdDSA.
-		{name: "EdDSA", algorithm: cryptoutilMagic.JoseAlgEdDSA, expectNil: false},
-		{name: "OKP/Ed25519", algorithm: cryptoutilMagic.JoseKeyTypeOKPEd25519, expectNil: false},
+		{name: "EdDSA", algorithm: cryptoutilSharedMagic.JoseAlgEdDSA, expectNil: false},
+		{name: "OKP/Ed25519", algorithm: cryptoutilSharedMagic.JoseKeyTypeOKPEd25519, expectNil: false},
 		// Symmetric keys.
-		{name: "oct/128", algorithm: cryptoutilMagic.JoseKeyTypeOct128, expectNil: false},
-		{name: "A128GCM", algorithm: cryptoutilMagic.JoseEncA128GCM, expectNil: false},
-		{name: "oct/192", algorithm: cryptoutilMagic.JoseKeyTypeOct192, expectNil: false},
-		{name: "A192GCM", algorithm: cryptoutilMagic.JoseEncA192GCM, expectNil: false},
-		{name: "oct/256", algorithm: cryptoutilMagic.JoseKeyTypeOct256, expectNil: false},
-		{name: "A256GCM", algorithm: cryptoutilMagic.JoseEncA256GCM, expectNil: false},
-		{name: "oct/384", algorithm: cryptoutilMagic.JoseKeyTypeOct384, expectNil: false},
-		{name: "A128CBC-HS256", algorithm: cryptoutilMagic.JoseEncA128CBCHS256, expectNil: false},
-		{name: "oct/512", algorithm: cryptoutilMagic.JoseKeyTypeOct512, expectNil: false},
-		{name: "A256CBC-HS512", algorithm: cryptoutilMagic.JoseEncA256CBCHS512, expectNil: false},
+		{name: "oct/128", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct128, expectNil: false},
+		{name: "A128GCM", algorithm: cryptoutilSharedMagic.JoseEncA128GCM, expectNil: false},
+		{name: "oct/192", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct192, expectNil: false},
+		{name: "A192GCM", algorithm: cryptoutilSharedMagic.JoseEncA192GCM, expectNil: false},
+		{name: "oct/256", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct256, expectNil: false},
+		{name: "A256GCM", algorithm: cryptoutilSharedMagic.JoseEncA256GCM, expectNil: false},
+		{name: "oct/384", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct384, expectNil: false},
+		{name: "A128CBC-HS256", algorithm: cryptoutilSharedMagic.JoseEncA128CBCHS256, expectNil: false},
+		{name: "oct/512", algorithm: cryptoutilSharedMagic.JoseKeyTypeOct512, expectNil: false},
+		{name: "A256CBC-HS512", algorithm: cryptoutilSharedMagic.JoseEncA256CBCHS512, expectNil: false},
 		// Invalid/unknown.
 		{name: "invalid", algorithm: "INVALID", expectNil: true},
 		{name: "empty", algorithm: "", expectNil: true},

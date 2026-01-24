@@ -13,8 +13,8 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 
@@ -29,15 +29,15 @@ const (
 
 // BusinessLogicService implements methods in StrictServerInterface.
 type BusinessLogicService struct {
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JWKGenService
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	oamOrmMapper     *OamOrmMapper
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
 // NewBusinessLogicService creates a new BusinessLogicService with injected dependencies.
-func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
+func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
@@ -348,12 +348,12 @@ func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx co
 
 // PostGenerateByElasticKeyID generates cryptographic key material using the active MaterialKey.
 func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, generateParams *cryptoutilOpenapiModel.GenerateParams) ([]byte, []byte, []byte, error) {
-	alg, err := cryptoutilJose.ToGenerateAlgorithm((*string)(generateParams.Alg))
+	alg, err := cryptoutilSharedCryptoJose.ToGenerateAlgorithm((*string)(generateParams.Alg))
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to map generate algorithm: %w", err)
 	}
 
-	_, _, _, clearNonPublicJWKBytes, clearPublicJWKBytes, err := cryptoutilJose.GenerateJWKForAlg(alg)
+	_, _, _, clearNonPublicJWKBytes, clearPublicJWKBytes, err := cryptoutilSharedCryptoJose.GenerateJWKForAlg(alg)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to generate key from algorithm: %w", err)
 	}
@@ -387,9 +387,9 @@ func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, el
 	}
 
 	if clearMaterialKeyPublicJWEJWK != nil {
-		_, jweMessageBytes, err = cryptoutilJose.EncryptBytesWithContext([]joseJwk.Key{clearMaterialKeyPublicJWEJWK}, clearPayloadBytes, contextBytes) // asymmetric
+		_, jweMessageBytes, err = cryptoutilSharedCryptoJose.EncryptBytesWithContext([]joseJwk.Key{clearMaterialKeyPublicJWEJWK}, clearPayloadBytes, contextBytes) // asymmetric
 	} else {
-		_, jweMessageBytes, err = cryptoutilJose.EncryptBytesWithContext([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, clearPayloadBytes, contextBytes) // symmetric
+		_, jweMessageBytes, err = cryptoutilSharedCryptoJose.EncryptBytesWithContext([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, clearPayloadBytes, contextBytes) // symmetric
 	}
 
 	if err != nil {
@@ -406,7 +406,7 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 		return nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
 	}
 
-	materialKeyID, err := cryptoutilJose.ExtractKidFromJWEMessage(jweMessage)
+	materialKeyID, err := cryptoutilSharedCryptoJose.ExtractKidFromJWEMessage(jweMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWE message header kid: %w", err)
 	}
@@ -418,11 +418,11 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
-	} else if !cryptoutilJose.IsJWE(&elasticKey.ElasticKeyAlgorithm) {
+	} else if !cryptoutilSharedCryptoJose.IsJWE(&elasticKey.ElasticKeyAlgorithm) {
 		return nil, fmt.Errorf("decrypt not supported by KeyMaterial with ElasticKeyAlgorithm %v", elasticKey.ElasticKeyAlgorithm)
 	}
 
-	decryptedJWEMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, jweMessageBytes)
+	decryptedJWEMessageBytes, err := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, jweMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt bytes with MaterialKey for ElasticKeyID : %w", err)
 	}
@@ -441,7 +441,7 @@ func (s *BusinessLogicService) PostSignByElasticKeyID(ctx context.Context, elast
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
 
-	_, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWSJWK}, clearPayloadBytes)
+	_, jwsMessageBytes, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWSJWK}, clearPayloadBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign bytes with latest MaterialKey for ElasticKeyID: %w", err)
 	}
@@ -456,7 +456,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 		return nil, fmt.Errorf("failed to parse JWS message bytes: %w", err)
 	}
 
-	kidUUID, _, err := cryptoutilJose.ExtractKidAlgFromJWSMessage(jwsMessage)
+	kidUUID, _, err := cryptoutilSharedCryptoJose.ExtractKidAlgFromJWSMessage(jwsMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWS message headers kid and alg: %w", err)
 	}
@@ -468,15 +468,15 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
-	} else if !cryptoutilJose.IsJWS(&elasticKey.ElasticKeyAlgorithm) {
+	} else if !cryptoutilSharedCryptoJose.IsJWS(&elasticKey.ElasticKeyAlgorithm) {
 		return nil, fmt.Errorf("verify not supported by KeyMaterial with ElasticKeyAlgorithm %v", elasticKey.ElasticKeyAlgorithm)
 	}
 
 	var verifiedJWSMessageBytes []byte
 	if clearMaterialKeyPublicJWEJWK != nil {
-		verifiedJWSMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{clearMaterialKeyPublicJWEJWK}, jwsMessageBytes) // asymmetric
+		verifiedJWSMessageBytes, err = cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{clearMaterialKeyPublicJWEJWK}, jwsMessageBytes) // asymmetric
 	} else {
-		verifiedJWSMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, jwsMessageBytes) // symmetric
+		verifiedJWSMessageBytes, err = cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, jwsMessageBytes) // symmetric
 	}
 
 	if err != nil {
@@ -498,8 +498,8 @@ func (s *BusinessLogicService) generateJWK(elasticKeyAlgorithm *cryptoutilOpenap
 
 	var materialKeyPublicJWKBytes []byte
 
-	if cryptoutilJose.IsJWE(elasticKeyAlgorithm) {
-		enc, alg, err := cryptoutilJose.ToJWEEncAndAlg(elasticKeyAlgorithm)
+	if cryptoutilSharedCryptoJose.IsJWE(elasticKeyAlgorithm) {
+		enc, alg, err := cryptoutilSharedCryptoJose.ToJWEEncAndAlg(elasticKeyAlgorithm)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to map ElasticKeyAlgorithm: %w", err)
 		}
@@ -508,8 +508,8 @@ func (s *BusinessLogicService) generateJWK(elasticKeyAlgorithm *cryptoutilOpenap
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to generate MaterialKey JWE JWK: %w", err)
 		}
-	} else if cryptoutilJose.IsJWS(elasticKeyAlgorithm) {
-		alg, err := cryptoutilJose.ToJWSAlg(elasticKeyAlgorithm)
+	} else if cryptoutilSharedCryptoJose.IsJWS(elasticKeyAlgorithm) {
+		alg, err := cryptoutilSharedCryptoJose.ToJWSAlg(elasticKeyAlgorithm)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to map JWS ElasticKey Algorithm: %w", err)
 		}

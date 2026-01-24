@@ -10,11 +10,11 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // SessionManagerService provides session management functionality.
@@ -28,10 +28,10 @@ type SessionManagerService struct {
 func NewSessionManagerService(
 	ctx context.Context,
 	db *gorm.DB,
-	telemetryService *cryptoutilTelemetry.TelemetryService,
-	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilTemplateBarrier.Service,
-	config *cryptoutilConfig.ServiceTemplateServerSettings,
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService,
+	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
+	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
+	config *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
 ) (*SessionManagerService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")

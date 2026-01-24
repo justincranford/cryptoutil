@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
-	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 )
 
 const (
@@ -53,7 +53,7 @@ const (
 // limitation, not a code issue. The SQLite subtest will still pass and provides sufficient coverage.
 func TestInitDatabase_HappyPaths(t *testing.T) {
 	// Use merged filesystem to get all migrations (1001-1999 template + 2001+ cipher-im).
-	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseHappyPaths(
+	cryptoutilAppsTemplateServiceServerTestutil.HelpTestInitDatabaseHappyPaths(
 		t,
 		cryptoutilAppsCipherImRepository.GetMergedMigrationsFS(),
 		expectedTableCount,
@@ -65,5 +65,5 @@ func TestInitDatabase_HappyPaths(t *testing.T) {
 // TestInitDatabase_SadPaths tests error handling for database initialization failures.
 func TestInitDatabase_SadPaths(t *testing.T) {
 	// Use merged filesystem to get all migrations (1001-1006).
-	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseSadPaths(t, cryptoutilAppsCipherImRepository.GetMergedMigrationsFS())
+	cryptoutilAppsTemplateServiceServerTestutil.HelpTestInitDatabaseSadPaths(t, cryptoutilAppsCipherImRepository.GetMergedMigrationsFS())
 }

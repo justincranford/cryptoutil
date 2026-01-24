@@ -4,14 +4,14 @@ package crypto
 
 import (
 	crand "crypto/rand"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 )
 
 // TestEncryptDecryptKey_AES256KW tests key wrapping with AES256KW.
@@ -27,7 +27,7 @@ func TestEncryptDecryptKey_AES256KW(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create KEK JWK.
-	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &kekEnc, &kekAlg, cryptoutilKeyGen.SecretKey(kekBytes))
+	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &kekEnc, &kekAlg, cryptoutilSharedCryptoKeygen.SecretKey(kekBytes))
 	require.NoError(t, err)
 	require.NotNil(t, kekJWK)
 
@@ -38,7 +38,7 @@ func TestEncryptDecryptKey_AES256KW(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create CEK JWK (will be wrapped).
-	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &kekEnc, &AlgDir, cryptoutilKeyGen.SecretKey(cekBytes))
+	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &kekEnc, &AlgDir, cryptoutilSharedCryptoKeygen.SecretKey(cekBytes))
 	require.NoError(t, err)
 	require.NotNil(t, cekJWK)
 
@@ -71,7 +71,7 @@ func TestEncryptDecryptKey_RSAOAEP(t *testing.T) {
 	kekKid := googleUuid.New()
 	kekAlg := AlgRSAOAEP
 	kekEnc := EncA256GCM
-	rsaKeyPair := &cryptoutilKeyGen.KeyPair{
+	rsaKeyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: rsaPrivateKey,
 		Public:  &rsaPrivateKey.PublicKey,
 	}
@@ -88,7 +88,7 @@ func TestEncryptDecryptKey_RSAOAEP(t *testing.T) {
 	_, err = crand.Read(cekBytes)
 	require.NoError(t, err)
 
-	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &kekEnc, &AlgDir, cryptoutilKeyGen.SecretKey(cekBytes))
+	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &kekEnc, &AlgDir, cryptoutilSharedCryptoKeygen.SecretKey(cekBytes))
 	require.NoError(t, err)
 
 	// Encrypt CEK with RSA KEK (use public JWK for encryption).
@@ -119,7 +119,7 @@ func TestEncryptKey_MarshalError(t *testing.T) {
 	_, err := crand.Read(kekBytes)
 	require.NoError(t, err)
 
-	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &EncA256GCM, &AlgA256KW, cryptoutilKeyGen.SecretKey(kekBytes))
+	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &EncA256GCM, &AlgA256KW, cryptoutilSharedCryptoKeygen.SecretKey(kekBytes))
 	require.NoError(t, err)
 
 	// Try to encrypt nil CEK (EncryptKey marshals it first, so nil will cause marshal to succeed with "null").
@@ -139,7 +139,7 @@ func TestDecryptKey_InvalidEncryptedBytes(t *testing.T) {
 	_, err := crand.Read(kdkBytes)
 	require.NoError(t, err)
 
-	_, kdkJWK, _, _, _, err := CreateJWEJWKFromKey(&kdkKid, &EncA256GCM, &AlgA256KW, cryptoutilKeyGen.SecretKey(kdkBytes))
+	_, kdkJWK, _, _, _, err := CreateJWEJWKFromKey(&kdkKid, &EncA256GCM, &AlgA256KW, cryptoutilSharedCryptoKeygen.SecretKey(kdkBytes))
 	require.NoError(t, err)
 
 	// Try to decrypt invalid bytes.
@@ -158,7 +158,7 @@ func TestDecryptKey_CorruptedEncryptedBytes(t *testing.T) {
 	_, err := crand.Read(kekBytes)
 	require.NoError(t, err)
 
-	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &EncA256GCM, &AlgA256KW, cryptoutilKeyGen.SecretKey(kekBytes))
+	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &EncA256GCM, &AlgA256KW, cryptoutilSharedCryptoKeygen.SecretKey(kekBytes))
 	require.NoError(t, err)
 
 	cekKid := googleUuid.New()
@@ -166,7 +166,7 @@ func TestDecryptKey_CorruptedEncryptedBytes(t *testing.T) {
 	_, err = crand.Read(cekBytes)
 	require.NoError(t, err)
 
-	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &EncA256GCM, &AlgDir, cryptoutilKeyGen.SecretKey(cekBytes))
+	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &EncA256GCM, &AlgDir, cryptoutilSharedCryptoKeygen.SecretKey(cekBytes))
 	require.NoError(t, err)
 
 	// Encrypt CEK.
@@ -190,7 +190,7 @@ func TestDecryptKey_InvalidJWKFormat(t *testing.T) {
 	_, err := crand.Read(kekBytes)
 	require.NoError(t, err)
 
-	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &EncA256GCM, &AlgA256KW, cryptoutilKeyGen.SecretKey(kekBytes))
+	_, kekJWK, _, _, _, err := CreateJWEJWKFromKey(&kekKid, &EncA256GCM, &AlgA256KW, cryptoutilSharedCryptoKeygen.SecretKey(kekBytes))
 	require.NoError(t, err)
 
 	// Encrypt plaintext that's NOT a valid JWK (just random bytes).
@@ -213,7 +213,7 @@ func TestEncryptKey_NilKEKs(t *testing.T) {
 	_, err := crand.Read(cekBytes)
 	require.NoError(t, err)
 
-	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &EncA256GCM, &AlgDir, cryptoutilKeyGen.SecretKey(cekBytes))
+	_, cekJWK, _, _, _, err := CreateJWEJWKFromKey(&cekKid, &EncA256GCM, &AlgDir, cryptoutilSharedCryptoKeygen.SecretKey(cekBytes))
 	require.NoError(t, err)
 
 	// Try to encrypt with nil KEKs.

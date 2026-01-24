@@ -13,8 +13,8 @@ import (
 
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -25,14 +25,14 @@ import (
 
 // IntermediateKeysService manages intermediate encryption keys in the barrier hierarchy.
 type IntermediateKeysService struct {
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JWKGenService
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	rootKeysService  *cryptoutilRootKeysService.RootKeysService
 }
 
 // NewIntermediateKeysService creates a new IntermediateKeysService with the specified dependencies.
-func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) (*IntermediateKeysService, error) {
+func NewIntermediateKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -51,7 +51,7 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 	return &IntermediateKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, ormRepository: ormRepository, rootKeysService: rootKeysService}, nil
 }
 
-func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) error {
+func initializeFirstIntermediateJWK(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.IntermediateKey
 
 	var err error
@@ -77,7 +77,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 	if encryptedIntermediateKeyLatest == nil {
 		log.Printf("DEBUG initializeFirstIntermediateJWK: Creating first intermediate JWK")
 
-		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 		if err != nil {
 			log.Printf("DEBUG initializeFirstIntermediateJWK: GenerateJWEJWK failed: %v", err)
 
@@ -139,7 +139,7 @@ func (i *IntermediateKeysService) EncryptKey(sqlTransaction *cryptoutilOrmReposi
 		return nil, nil, fmt.Errorf("failed to decrypt intermediate JWK latest: %w", err)
 	}
 
-	_, encryptedContentKeyBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{decryptedIntermediateKeyLatest}, clearContentKey)
+	_, encryptedContentKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey([]joseJwk.Key{decryptedIntermediateKeyLatest}, clearContentKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK: %w", err)
 	}
@@ -177,7 +177,7 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmReposi
 		return nil, fmt.Errorf("failed to decrypt intermediate key: %w", err)
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	decryptedContentKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{decryptedIntermediateKey}, encryptedContentKeyBytes)
+	decryptedContentKey, err := cryptoutilSharedCryptoJose.DecryptKey([]joseJwk.Key{decryptedIntermediateKey}, encryptedContentKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt content key: %w", err)
 	}

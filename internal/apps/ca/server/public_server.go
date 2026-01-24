@@ -5,10 +5,10 @@ package server
 import (
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
-	"cryptoutil/internal/apps/ca/server/config"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilCAHandler "cryptoutil/internal/ca/api/handler"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
@@ -21,7 +21,7 @@ type PublicServer struct {
 	handler     *cryptoutilCAHandler.Handler
 	crlService  *cryptoutilCAServiceRevocation.CRLService
 	ocspService *cryptoutilCAServiceRevocation.OCSPService
-	config      *config.CAServerSettings
+	config      *cryptoutilAppsCaServerConfig.CAServerSettings
 }
 
 // NewPublicServer creates a new pki-ca public server using builder-provided infrastructure.
@@ -31,7 +31,7 @@ func NewPublicServer(
 	handler *cryptoutilCAHandler.Handler,
 	crlService *cryptoutilCAServiceRevocation.CRLService,
 	ocspService *cryptoutilCAServiceRevocation.OCSPService,
-	cfg *config.CAServerSettings,
+	cfg *cryptoutilAppsCaServerConfig.CAServerSettings,
 ) *PublicServer {
 	return &PublicServer{
 		base:        base,
@@ -55,12 +55,12 @@ func (s *PublicServer) registerRoutes() error {
 
 	// Register CA API handlers using oapi-codegen generated code.
 	// Routes registered at /service/api/v1/ca/* path prefix.
-	cryptoutilCAServer.RegisterHandlersWithOptions(app, s.handler, cryptoutilCAServer.FiberServerOptions{
+	cryptoutilApiCaServer.RegisterHandlersWithOptions(app, s.handler, cryptoutilApiCaServer.FiberServerOptions{
 		BaseURL: "/service/api/v1/ca",
 	})
 
 	// Register browser paths with same handlers.
-	cryptoutilCAServer.RegisterHandlersWithOptions(app, s.handler, cryptoutilCAServer.FiberServerOptions{
+	cryptoutilApiCaServer.RegisterHandlersWithOptions(app, s.handler, cryptoutilApiCaServer.FiberServerOptions{
 		BaseURL: "/browser/api/v1/ca",
 	})
 

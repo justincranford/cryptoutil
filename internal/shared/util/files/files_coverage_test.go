@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/shared/util/files"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 // TestListAllFilesWithOptions_ErrorPath tests error path in filepath.Walk callback.
@@ -21,7 +21,7 @@ func TestListAllFilesWithOptions_ErrorPath(t *testing.T) {
 
 	// Create a file to trigger walk
 	testFile := filepath.Join(tempDir, "test.txt")
-	err := files.WriteFile(testFile, "content", 0o600)
+	err := cryptoutilSharedUtilFiles.WriteFile(testFile, "content", 0o600)
 	require.NoError(t, err)
 
 	// Create subdirectory
@@ -31,14 +31,14 @@ func TestListAllFilesWithOptions_ErrorPath(t *testing.T) {
 
 	// Create file in subdirectory
 	subFile := filepath.Join(subDir, "subfile.txt")
-	err = files.WriteFile(subFile, "subcontent", 0o600)
+	err = cryptoutilSharedUtilFiles.WriteFile(subFile, "subcontent", 0o600)
 	require.NoError(t, err)
 
 	// Test with directory exclusion using prefix match
 	inclusions := []string{"txt"}
 	exclusions := []string{filepath.ToSlash(subDir)}
 
-	result, err := files.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
+	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 	require.NoError(t, err)
 
 	// Should only have root file, not subdirectory file
@@ -55,14 +55,14 @@ func TestListAllFilesWithOptions_NoExtension(t *testing.T) {
 
 	// Create file without extension
 	noExtFile := filepath.Join(tempDir, "Makefile")
-	err := files.WriteFile(noExtFile, "content", 0o600)
+	err := cryptoutilSharedUtilFiles.WriteFile(noExtFile, "content", 0o600)
 	require.NoError(t, err)
 
 	// Try to find it without matching extension
 	inclusions := []string{"txt"}
 	exclusions := []string{}
 
-	result, err := files.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
+	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 	require.NoError(t, err)
 
 	// Should not find Makefile since "txt" not matched
@@ -70,7 +70,7 @@ func TestListAllFilesWithOptions_NoExtension(t *testing.T) {
 
 	// Now try with Makefile in inclusions (no dot prefix)
 	inclusions = []string{"Makefile"}
-	result, err = files.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
+	result, err = cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 	require.NoError(t, err)
 
 	// Still won't match because file has no extension and isn't a dotfile
@@ -85,7 +85,7 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 	t.Run("Non-existent file", func(t *testing.T) {
 		t.Parallel()
 
-		content, err := files.ReadFileBytesLimit("/nonexistent/file.txt", 100)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit("/nonexistent/file.txt", 100)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to open file")
 		require.Nil(t, content)
@@ -101,7 +101,7 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 		require.NoError(t, err)
 
 		// Zero limit should read entire file via ReadFileBytes
-		content, err := files.ReadFileBytesLimit(testFile, 0)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 0)
 		require.NoError(t, err)
 		require.Equal(t, testContent, content)
 	})
@@ -116,7 +116,7 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 		require.NoError(t, err)
 
 		// Negative limit should read entire file via ReadFileBytes
-		content, err := files.ReadFileBytesLimit(testFile, -1)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, -1)
 		require.NoError(t, err)
 		require.Equal(t, testContent, content)
 	})
@@ -131,7 +131,7 @@ func TestReadFileBytesLimit_ErrorPaths(t *testing.T) {
 		require.NoError(t, err)
 
 		// Limit larger than file size - should read entire file
-		content, err := files.ReadFileBytesLimit(testFile, 1000)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 1000)
 		require.NoError(t, err)
 		require.Equal(t, testContent, content)
 	})

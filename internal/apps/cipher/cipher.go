@@ -10,7 +10,7 @@ import (
 	"io"
 	"os"
 
-	"cryptoutil/internal/apps/cipher/im"
+	cryptoutilAppsCipherIm "cryptoutil/internal/apps/cipher/im"
 )
 
 const (
@@ -58,7 +58,7 @@ func internalCipher(args []string, stdout, stderr io.Writer) int {
 	// Route to service command.
 	switch args[0] {
 	case "im":
-		return im.IM(args[1:], stdout, stderr)
+		return cryptoutilAppsCipherIm.IM(args[1:], stdout, stderr)
 	default:
 		_, _ = fmt.Fprintf(stderr, "Unknown service: %s\n\n", args[0])
 		printUsage(stderr)

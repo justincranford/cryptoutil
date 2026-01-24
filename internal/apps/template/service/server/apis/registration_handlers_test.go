@@ -8,18 +8,18 @@ package apis
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
@@ -30,7 +30,7 @@ func TestNewRegistrationHandlers(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 
 	handlers := NewRegistrationHandlers(registrationService)
 
@@ -45,7 +45,7 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
@@ -71,7 +71,7 @@ func TestHandleRegisterUser_ValidRequest(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	require.NotNil(t, handlers)
@@ -85,7 +85,7 @@ func TestHandleListJoinRequests(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	require.NotNil(t, handlers)
@@ -98,7 +98,7 @@ func TestHandleProcessJoinRequest_InvalidID(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
@@ -131,7 +131,7 @@ func TestHandleProcessJoinRequest_InvalidJSON(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
@@ -164,7 +164,7 @@ func TestHandlersCoverageBooster(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 
 	handlers := NewRegistrationHandlers(registrationService)
 	require.NotNil(t, handlers)
@@ -279,7 +279,7 @@ func TestHandleRegisterUser_TableDriven(t *testing.T) {
 			tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 			userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 			joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-			registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+			registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 			handlers := NewRegistrationHandlers(registrationService)
 
 			app := fiber.New()
@@ -315,7 +315,7 @@ func TestHandleListJoinRequests_TableDriven(t *testing.T) {
 			tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 			userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 			joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-			registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+			registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 			handlers := NewRegistrationHandlers(registrationService)
 
 			app := fiber.New()
@@ -389,7 +389,7 @@ func TestHandleProcessJoinRequest_TableDriven(t *testing.T) {
 			tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 			userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 			joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-			registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+			registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 			handlers := NewRegistrationHandlers(registrationService)
 
 			app := fiber.New()
@@ -475,7 +475,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	// Create test tenant
@@ -487,12 +487,12 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	ctx := context.Background()
 
 	// Request 1: User-initiated request (has UserID, no ClientID)
-	req1 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	req1 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.New(),
 		UserID:      &testUserID,
 		ClientID:    nil,
 		TenantID:    testTenantID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 		ProcessedAt: nil,
 		ProcessedBy: nil,
@@ -501,12 +501,12 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	require.NoError(t, err)
 
 	// Request 2: Client-initiated request (has ClientID, no UserID)
-	req2 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	req2 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.New(),
 		UserID:      nil,
 		ClientID:    &testClientID,
 		TenantID:    testTenantID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 		ProcessedAt: nil,
 		ProcessedBy: nil,
@@ -517,12 +517,12 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	// Request 3: Processed request (has ProcessedAt and ProcessedBy)
 	processedAt := time.Now().Add(-1 * time.Hour)
 	processedBy := googleUuid.New()
-	req3 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	req3 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.New(),
 		UserID:      &testUserID,
 		ClientID:    nil,
 		TenantID:    testTenantID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusApproved,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
 		RequestedAt: time.Now().Add(-2 * time.Hour),
 		ProcessedAt: &processedAt,
 		ProcessedBy: &processedBy,
@@ -619,7 +619,7 @@ func TestHandleProcessJoinRequest_ApproveMessage(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
@@ -654,7 +654,7 @@ func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()

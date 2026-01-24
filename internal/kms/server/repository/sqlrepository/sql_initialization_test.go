@@ -9,17 +9,17 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestNewSQLRepository_NilContext tests NewSQLRepository with nil context.
 func TestNewSQLRepository_NilContext(t *testing.T) {
 	t.Parallel()
 
-	settings := cryptoutilConfig.RequireNewForTest("sql_init_nil_ctx")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_init_nil_ctx")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(context.Background(), settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(context.Background(), settings)
 	defer telemetry.Shutdown()
 
 	// Call NewSQLRepository with nil context.
@@ -34,7 +34,7 @@ func TestNewSQLRepository_NilTelemetry(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_init_nil_telemetry")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_init_nil_telemetry")
 
 	// Call NewSQLRepository with nil telemetry.
 	repo, err := NewSQLRepository(ctx, nil, settings)
@@ -48,9 +48,9 @@ func TestNewSQLRepository_NilSettings(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_init_nil_settings")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_init_nil_settings")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Call NewSQLRepository with nil settings.
@@ -78,9 +78,9 @@ func TestWithTransaction_ReadOnlySQLite(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_transaction_readonly_sqlite")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_transaction_readonly_sqlite")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Create SQLite repository (dev mode uses SQLite).
@@ -100,9 +100,9 @@ func TestWithTransaction_FunctionError(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_transaction_func_error")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_transaction_func_error")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Create SQLite repository.
@@ -125,9 +125,9 @@ func TestWithTransaction_PanicRecovery(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("sql_transaction_panic")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sql_transaction_panic")
 
-	telemetry := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetry := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetry.Shutdown()
 
 	// Create SQLite repository.

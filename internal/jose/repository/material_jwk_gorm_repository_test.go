@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
@@ -55,8 +55,8 @@ func setupMaterialJWKTestDB(t *testing.T) *gorm.DB {
 	err = db.AutoMigrate(
 		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
 		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
-		&domain.ElasticJWK{},
-		&domain.MaterialJWK{},
+		&cryptoutilJoseDomain.ElasticJWK{},
+		&cryptoutilJoseDomain.MaterialJWK{},
 	)
 	require.NoError(t, err)
 
@@ -102,10 +102,10 @@ func createMaterialJWKTestTenantAndRealm(t *testing.T, db *gorm.DB) (googleUuid.
 }
 
 // createTestElasticJWK creates a test Elastic JWK and returns it.
-func createTestElasticJWK(t *testing.T, db *gorm.DB, tenantID, realmID googleUuid.UUID) *domain.ElasticJWK {
+func createTestElasticJWK(t *testing.T, db *gorm.DB, tenantID, realmID googleUuid.UUID) *cryptoutilJoseDomain.ElasticJWK {
 	t.Helper()
 
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		RealmID:              realmID,
@@ -128,10 +128,10 @@ func TestMaterialJWKGormRepository_Create(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
-	materialJWK := &domain.MaterialJWK{
+	materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    "material-kid-" + googleUuid.New().String(),
@@ -145,7 +145,7 @@ func TestMaterialJWKGormRepository_Create(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify it was created.
-	var found domain.MaterialJWK
+	var found cryptoutilJoseDomain.MaterialJWK
 
 	err = db.First(&found, "id = ?", materialJWK.ID).Error
 	require.NoError(t, err)
@@ -158,11 +158,11 @@ func TestMaterialJWKGormRepository_GetByMaterialKID(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	materialKID := "material-kid-" + googleUuid.New().String()
-	materialJWK := &domain.MaterialJWK{
+	materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    materialKID,
@@ -186,7 +186,7 @@ func TestMaterialJWKGormRepository_GetByMaterialKID_NotFound(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	_, err := repo.GetByMaterialKID(ctx, elasticJWK.ID, "non-existent-material-kid")
@@ -199,12 +199,12 @@ func TestMaterialJWKGormRepository_ListByElasticJWK(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Create 3 material JWKs.
 	for i := 0; i < 3; i++ {
-		materialJWK := &domain.MaterialJWK{
+		materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 			ID:             googleUuid.New(),
 			ElasticJWKID:   elasticJWK.ID,
 			MaterialKID:    "material-kid-" + googleUuid.New().String(),
@@ -237,7 +237,7 @@ func TestMaterialJWKGormRepository_ListByElasticJWK_Empty(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// List with no materials.
@@ -251,11 +251,11 @@ func TestMaterialJWKGormRepository_GetActiveMaterial(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Create inactive material.
-	inactiveMaterial := &domain.MaterialJWK{
+	inactiveMaterial := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    "inactive-material-kid",
@@ -268,7 +268,7 @@ func TestMaterialJWKGormRepository_GetActiveMaterial(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create active material.
-	activeMaterial := &domain.MaterialJWK{
+	activeMaterial := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    "active-material-kid",
@@ -292,7 +292,7 @@ func TestMaterialJWKGormRepository_GetActiveMaterial_NotFound(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// No materials at all - should return not found.
@@ -306,11 +306,11 @@ func TestMaterialJWKGormRepository_GetActiveMaterial_NoActive(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Create only inactive material.
-	inactiveMaterial := &domain.MaterialJWK{
+	inactiveMaterial := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    "inactive-material-kid",
@@ -333,11 +333,11 @@ func TestMaterialJWKGormRepository_RotateMaterial(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Create initial active material.
-	oldMaterial := &domain.MaterialJWK{
+	oldMaterial := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    "old-material-kid",
@@ -350,7 +350,7 @@ func TestMaterialJWKGormRepository_RotateMaterial(t *testing.T) {
 	require.NoError(t, err)
 
 	// Rotate to new material.
-	newMaterial := &domain.MaterialJWK{
+	newMaterial := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		MaterialKID:    "new-material-kid",
 		PrivateJWKJWE:  "encrypted-private-key-new",
@@ -361,7 +361,7 @@ func TestMaterialJWKGormRepository_RotateMaterial(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify old material is now inactive with retired_at set.
-	var oldFound domain.MaterialJWK
+	var oldFound cryptoutilJoseDomain.MaterialJWK
 
 	err = db.First(&oldFound, "id = ?", oldMaterial.ID).Error
 	require.NoError(t, err)
@@ -369,7 +369,7 @@ func TestMaterialJWKGormRepository_RotateMaterial(t *testing.T) {
 	require.NotNil(t, oldFound.RetiredAt)
 
 	// Verify new material is active.
-	var newFound domain.MaterialJWK
+	var newFound cryptoutilJoseDomain.MaterialJWK
 
 	err = db.First(&newFound, "id = ?", newMaterial.ID).Error
 	require.NoError(t, err)
@@ -382,11 +382,11 @@ func TestMaterialJWKGormRepository_RotateMaterial_NoExistingActive(t *testing.T)
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Rotate without any existing material (first rotation).
-	newMaterial := &domain.MaterialJWK{
+	newMaterial := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		MaterialKID:    "first-material-kid",
 		PrivateJWKJWE:  "encrypted-private-key",
@@ -397,7 +397,7 @@ func TestMaterialJWKGormRepository_RotateMaterial_NoExistingActive(t *testing.T)
 	require.NoError(t, err)
 
 	// Verify new material is active.
-	var found domain.MaterialJWK
+	var found cryptoutilJoseDomain.MaterialJWK
 
 	err = db.First(&found, "id = ?", newMaterial.ID).Error
 	require.NoError(t, err)
@@ -409,7 +409,7 @@ func TestMaterialJWKGormRepository_CountMaterials(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Count with no materials.
@@ -419,7 +419,7 @@ func TestMaterialJWKGormRepository_CountMaterials(t *testing.T) {
 
 	// Create 3 materials.
 	for i := 0; i < 3; i++ {
-		materialJWK := &domain.MaterialJWK{
+		materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 			ID:             googleUuid.New(),
 			ElasticJWKID:   elasticJWK.ID,
 			MaterialKID:    "material-kid-" + googleUuid.New().String(),
@@ -448,12 +448,12 @@ func TestMaterialJWKGormRepository_CountMaterials_Isolation(t *testing.T) {
 	tenantID2, realmID2 := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK2 := createTestElasticJWK(t, db, tenantID2, realmID2)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Create 2 materials for elastic JWK 1.
 	for i := 0; i < 2; i++ {
-		materialJWK := &domain.MaterialJWK{
+		materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 			ID:             googleUuid.New(),
 			ElasticJWKID:   elasticJWK1.ID,
 			MaterialKID:    "material-kid-e1-" + googleUuid.New().String(),
@@ -468,7 +468,7 @@ func TestMaterialJWKGormRepository_CountMaterials_Isolation(t *testing.T) {
 
 	// Create 5 materials for elastic JWK 2.
 	for i := 0; i < 5; i++ {
-		materialJWK := &domain.MaterialJWK{
+		materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 			ID:             googleUuid.New(),
 			ElasticJWKID:   elasticJWK2.ID,
 			MaterialKID:    "material-kid-e2-" + googleUuid.New().String(),
@@ -497,7 +497,7 @@ func TestMaterialJWKGormRepository_WithTransaction(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Start transaction.
@@ -506,7 +506,7 @@ func TestMaterialJWKGormRepository_WithTransaction(t *testing.T) {
 
 	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	materialJWK := &domain.MaterialJWK{
+	materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    "tx-material-kid",
@@ -534,7 +534,7 @@ func TestMaterialJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
 	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
 
-	repo := repository.NewMaterialJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
 	ctx := context.Background()
 
 	// Start transaction.
@@ -543,7 +543,7 @@ func TestMaterialJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 
 	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	materialJWK := &domain.MaterialJWK{
+	materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             googleUuid.New(),
 		ElasticJWKID:   elasticJWK.ID,
 		MaterialKID:    "rollback-material-kid",

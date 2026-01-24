@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ import (
 func TestGenerateEmailOTP_Format(t *testing.T) {
 	t.Parallel()
 
-	otp, err := cryptoutilIdentityMFA.GenerateEmailOTP()
+	otp, err := cryptoutilIdentityMfa.GenerateEmailOTP()
 	require.NoError(t, err)
 	require.Len(t, otp, cryptoutilIdentityMagic.DefaultEmailOTPLength, "OTP should be 6 digits")
 	require.Regexp(t, `^\d{6}$`, otp, "OTP should be 6 numeric digits")
@@ -28,7 +28,7 @@ func TestGenerateEmailOTP_Uniqueness(t *testing.T) {
 	seen := make(map[string]bool)
 
 	for i := 0; i < samples; i++ {
-		otp, err := cryptoutilIdentityMFA.GenerateEmailOTP()
+		otp, err := cryptoutilIdentityMfa.GenerateEmailOTP()
 		require.NoError(t, err)
 
 		seen[otp] = true
@@ -44,7 +44,7 @@ func TestGenerateEmailOTP_AllNumeric(t *testing.T) {
 	const samples = 100
 
 	for i := 0; i < samples; i++ {
-		otp, err := cryptoutilIdentityMFA.GenerateEmailOTP()
+		otp, err := cryptoutilIdentityMfa.GenerateEmailOTP()
 		require.NoError(t, err)
 
 		// Verify all characters are digits.

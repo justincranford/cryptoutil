@@ -8,9 +8,9 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -21,12 +21,12 @@ func TestNewSQLRepository_SQLite_PragmaSettings(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("pragma_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("pragma_test")
 	settings.DevMode = true // SQLite
 	settings.DatabaseContainer = containerModeDisabled
 	settings.VerboseMode = true // Enable verbose logging to cover logConnectionPoolSettings
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -50,12 +50,12 @@ func TestNewSQLRepository_PostgreSQL_SchemaCreation(t *testing.T) {
 	ctx := context.Background()
 
 	// This test will fail to connect to PostgreSQL but exercises the schema creation code path
-	settings := cryptoutilConfig.RequireNewForTest("schema_creation_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("schema_creation_test")
 	settings.DevMode = false
 	settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?search_path=test_schema_123&sslmode=disable"
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -88,12 +88,12 @@ func TestNewSQLRepository_VerboseMode_ConnectionPoolLogging(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = true
 			settings.DatabaseContainer = containerModeDisabled
 			settings.VerboseMode = tc.verboseMode
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -111,11 +111,11 @@ func TestSQLRepository_Shutdown_ErrorHandling(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("shutdown_error_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("shutdown_error_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -169,7 +169,7 @@ func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 
 			if tc.databaseURL != "" {
@@ -178,7 +178,7 @@ func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
 
 			settings.DatabaseContainer = containerModeDisabled
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -246,12 +246,12 @@ func TestExtractSchemaFromURL_PostgreSQL_VariousFormats(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = containerModeDisabled
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			// This will fail to connect, but exercises the URL parsing code

@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	googleUuid "github.com/google/uuid"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
@@ -21,14 +21,14 @@ import (
 // but old keys remain in the database for decrypting historical data.
 // Re-encryption of dependent keys is NOT performed automatically.
 type RotationService struct {
-	jwkGenService     *cryptoutilJose.JWKGenService
+	jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
 	repository        Repository
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 }
 
 // NewRotationService creates a new rotation service.
 func NewRotationService(
-	jwkGenService *cryptoutilJose.JWKGenService,
+	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
 	repository Repository,
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
 ) (*RotationService, error) {
@@ -77,8 +77,8 @@ func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*Ro
 
 		// Generate new root JWK
 		rootKeyKidUUID, clearRootKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(
-			&cryptoutilJose.EncA256GCM,
-			&cryptoutilJose.AlgDir,
+			&cryptoutilSharedCryptoJose.EncA256GCM,
+			&cryptoutilSharedCryptoJose.AlgDir,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to generate root JWK: %w", err)
@@ -159,15 +159,15 @@ func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason stri
 
 		// Generate new intermediate JWK
 		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(
-			&cryptoutilJose.EncA256GCM,
-			&cryptoutilJose.AlgA256KW,
+			&cryptoutilSharedCryptoJose.EncA256GCM,
+			&cryptoutilSharedCryptoJose.AlgA256KW,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to generate intermediate JWK: %w", err)
 		}
 
 		// Encrypt new intermediate key with current root key
-		_, encryptedIntermediateKeyBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{clearRootKey}, clearIntermediateKey)
+		_, encryptedIntermediateKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey([]joseJwk.Key{clearRootKey}, clearIntermediateKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt intermediate key: %w", err)
 		}
@@ -254,22 +254,22 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
 		}
 
 		// Decrypt intermediate key
-		clearIntermediateKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{clearRootKey}, []byte(currentIntermediateKey.Encrypted))
+		clearIntermediateKey, err := cryptoutilSharedCryptoJose.DecryptKey([]joseJwk.Key{clearRootKey}, []byte(currentIntermediateKey.Encrypted))
 		if err != nil {
 			return fmt.Errorf("failed to decrypt intermediate key: %w", err)
 		}
 
 		// Generate new content JWK
 		contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(
-			&cryptoutilJose.EncA256GCM,
-			&cryptoutilJose.AlgA256KW,
+			&cryptoutilSharedCryptoJose.EncA256GCM,
+			&cryptoutilSharedCryptoJose.AlgA256KW,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to generate content JWK: %w", err)
 		}
 
 		// Encrypt content key with intermediate key
-		_, encryptedContentKeyBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{clearIntermediateKey}, clearContentKey)
+		_, encryptedContentKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey([]joseJwk.Key{clearIntermediateKey}, clearContentKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt content key: %w", err)
 		}

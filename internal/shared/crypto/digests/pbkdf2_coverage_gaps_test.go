@@ -3,7 +3,7 @@
 package digests
 
 import (
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"hash"
 	"strings"
 	"testing"

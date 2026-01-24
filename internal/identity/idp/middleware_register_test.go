@@ -7,7 +7,7 @@ package idp_test
 import (
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"

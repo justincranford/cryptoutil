@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
-	cryptoutilIdentityPKCE "cryptoutil/internal/identity/authz/pkce"
+	cryptoutilIdentityAuthzPkce "cryptoutil/internal/identity/authz/pkce"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
@@ -55,10 +55,10 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 
 				// Create authorization request with different redirect URI.
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
-				codeVerifier, err := cryptoutilIdentityPKCE.GenerateCodeVerifier()
+				codeVerifier, err := cryptoutilIdentityAuthzPkce.GenerateCodeVerifier()
 				require.NoError(t, err)
 
-				codeChallenge := cryptoutilIdentityPKCE.GenerateCodeChallenge(codeVerifier, cryptoutilIdentityMagic.PKCEMethodS256)
+				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilIdentityMagic.PKCEMethodS256)
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            client.ClientID,
 					RedirectURI:         "https://example.com/callback",
@@ -83,10 +83,10 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 
 				// Create authorization request WITHOUT creating client in database.
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
-				codeVerifier, err := cryptoutilIdentityPKCE.GenerateCodeVerifier()
+				codeVerifier, err := cryptoutilIdentityAuthzPkce.GenerateCodeVerifier()
 				require.NoError(t, err)
 
-				codeChallenge := cryptoutilIdentityPKCE.GenerateCodeChallenge(codeVerifier, cryptoutilIdentityMagic.PKCEMethodS256)
+				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilIdentityMagic.PKCEMethodS256)
 				nonExistentClientID := "non-existent-client-" + googleUuid.NewString()
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            nonExistentClientID,

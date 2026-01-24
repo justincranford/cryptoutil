@@ -6,9 +6,9 @@ package authz
 
 import (
 	"fmt"
-	"net/http"
+	http "net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilApiIdentityAuthz "cryptoutil/api/identity/authz"
 )

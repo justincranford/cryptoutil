@@ -17,19 +17,19 @@ import (
 
 	postgresDriver "gorm.io/driver/postgres"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // StartPostgres starts a PostgreSQL test container and returns the DSN connection string.
-func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
+func StartPostgres(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
 	postgresContainerRequest := testcontainers.ContainerRequest{
 		Image:        "postgres:18",
 		ExposedPorts: []string{"5432/tcp"},
 		Env:          map[string]string{"POSTGRES_DB": dbName, "POSTGRES_USER": dbUsername, "POSTGRES_PASSWORD": dbPassword},
 		// WaitingFor:   wait.ForListeningPort("5432/tcp").WithStartupTimeout(postgresContainerStartupTimeout),
-		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(cryptoutilMagic.DBPostgresContainerStartupTimeout),
+		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(cryptoutilSharedMagic.DBPostgresContainerStartupTimeout),
 	}
 
 	postgresContainer, terminateContainer, err := StartContainer(ctx, telemetryService, postgresContainerRequest)

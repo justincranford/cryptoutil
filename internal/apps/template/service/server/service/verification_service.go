@@ -21,22 +21,22 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // VerificationService defines operations for verifying (approving) pending user and client registrations.
 type VerificationService interface {
 	// ListPendingUsers lists all unverified users for a tenant.
-	ListPendingUsers(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedUser, error)
+	ListPendingUsers(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error)
 
 	// ListPendingClients lists all unverified clients for a tenant.
-	ListPendingClients(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedClient, error)
+	ListPendingClients(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error)
 
 	// ApproveUser approves a pending user registration and assigns roles.
-	ApproveUser(ctx context.Context, tenantID, unverifiedUserID googleUuid.UUID, roleIDs []googleUuid.UUID) (*repository.User, error)
+	ApproveUser(ctx context.Context, tenantID, unverifiedUserID googleUuid.UUID, roleIDs []googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.User, error)
 
 	// ApproveClient approves a pending client registration and assigns roles.
-	ApproveClient(ctx context.Context, tenantID, unverifiedClientID googleUuid.UUID, roleIDs []googleUuid.UUID) (*repository.Client, error)
+	ApproveClient(ctx context.Context, tenantID, unverifiedClientID googleUuid.UUID, roleIDs []googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Client, error)
 
 	// RejectUser rejects a pending user registration (removes from unverified table).
 	RejectUser(ctx context.Context, tenantID, unverifiedUserID googleUuid.UUID) error
@@ -50,24 +50,24 @@ type VerificationService interface {
 
 // VerificationServiceImpl implements VerificationService.
 type VerificationServiceImpl struct {
-	userRepo             repository.UserRepository
-	clientRepo           repository.ClientRepository
-	unverifiedUserRepo   repository.UnverifiedUserRepository
-	unverifiedClientRepo repository.UnverifiedClientRepository
-	roleRepo             repository.RoleRepository
-	userRoleRepo         repository.UserRoleRepository
-	clientRoleRepo       repository.ClientRoleRepository
+	userRepo             cryptoutilAppsTemplateServiceServerRepository.UserRepository
+	clientRepo           cryptoutilAppsTemplateServiceServerRepository.ClientRepository
+	unverifiedUserRepo   cryptoutilAppsTemplateServiceServerRepository.UnverifiedUserRepository
+	unverifiedClientRepo cryptoutilAppsTemplateServiceServerRepository.UnverifiedClientRepository
+	roleRepo             cryptoutilAppsTemplateServiceServerRepository.RoleRepository
+	userRoleRepo         cryptoutilAppsTemplateServiceServerRepository.UserRoleRepository
+	clientRoleRepo       cryptoutilAppsTemplateServiceServerRepository.ClientRoleRepository
 }
 
 // NewVerificationService creates a new VerificationService instance.
 func NewVerificationService(
-	userRepo repository.UserRepository,
-	clientRepo repository.ClientRepository,
-	unverifiedUserRepo repository.UnverifiedUserRepository,
-	unverifiedClientRepo repository.UnverifiedClientRepository,
-	roleRepo repository.RoleRepository,
-	userRoleRepo repository.UserRoleRepository,
-	clientRoleRepo repository.ClientRoleRepository,
+	userRepo cryptoutilAppsTemplateServiceServerRepository.UserRepository,
+	clientRepo cryptoutilAppsTemplateServiceServerRepository.ClientRepository,
+	unverifiedUserRepo cryptoutilAppsTemplateServiceServerRepository.UnverifiedUserRepository,
+	unverifiedClientRepo cryptoutilAppsTemplateServiceServerRepository.UnverifiedClientRepository,
+	roleRepo cryptoutilAppsTemplateServiceServerRepository.RoleRepository,
+	userRoleRepo cryptoutilAppsTemplateServiceServerRepository.UserRoleRepository,
+	clientRoleRepo cryptoutilAppsTemplateServiceServerRepository.ClientRoleRepository,
 ) VerificationService {
 	return &VerificationServiceImpl{
 		userRepo:             userRepo,
@@ -81,7 +81,7 @@ func NewVerificationService(
 }
 
 // ListPendingUsers lists all unverified users for a tenant.
-func (s *VerificationServiceImpl) ListPendingUsers(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedUser, error) {
+func (s *VerificationServiceImpl) ListPendingUsers(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
 	users, err := s.unverifiedUserRepo.ListByTenant(ctx, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list pending users: %w", err)
@@ -91,7 +91,7 @@ func (s *VerificationServiceImpl) ListPendingUsers(ctx context.Context, tenantID
 }
 
 // ListPendingClients lists all unverified clients for a tenant.
-func (s *VerificationServiceImpl) ListPendingClients(ctx context.Context, tenantID googleUuid.UUID) ([]*repository.UnverifiedClient, error) {
+func (s *VerificationServiceImpl) ListPendingClients(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	clients, err := s.unverifiedClientRepo.ListByTenant(ctx, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list pending clients: %w", err)
@@ -101,7 +101,7 @@ func (s *VerificationServiceImpl) ListPendingClients(ctx context.Context, tenant
 }
 
 // ApproveUser approves a pending user registration and assigns roles.
-func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unverifiedUserID googleUuid.UUID, roleIDs []googleUuid.UUID) (*repository.User, error) {
+func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unverifiedUserID googleUuid.UUID, roleIDs []googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.User, error) {
 	// Get the unverified user.
 	unverifiedUser, err := s.unverifiedUserRepo.GetByID(ctx, unverifiedUserID)
 	if err != nil {
@@ -136,7 +136,7 @@ func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unv
 	}
 
 	// Create the verified user.
-	user := &repository.User{
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:           googleUuid.New(),
 		TenantID:     unverifiedUser.TenantID,
 		Username:     unverifiedUser.Username,
@@ -151,7 +151,7 @@ func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unv
 
 	// Assign roles.
 	for _, roleID := range roleIDs {
-		userRole := &repository.UserRole{
+		userRole := &cryptoutilAppsTemplateServiceServerRepository.UserRole{
 			TenantID: tenantID,
 			UserID:   user.ID,
 			RoleID:   roleID,
@@ -172,7 +172,7 @@ func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unv
 }
 
 // ApproveClient approves a pending client registration and assigns roles.
-func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, unverifiedClientID googleUuid.UUID, roleIDs []googleUuid.UUID) (*repository.Client, error) {
+func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, unverifiedClientID googleUuid.UUID, roleIDs []googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	// Get the unverified client.
 	unverifiedClient, err := s.unverifiedClientRepo.GetByID(ctx, unverifiedClientID)
 	if err != nil {
@@ -207,7 +207,7 @@ func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, u
 	}
 
 	// Create the verified client.
-	client := &repository.Client{
+	client := &cryptoutilAppsTemplateServiceServerRepository.Client{
 		ID:               googleUuid.New(),
 		TenantID:         unverifiedClient.TenantID,
 		ClientID:         unverifiedClient.ClientID,
@@ -220,7 +220,7 @@ func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, u
 
 	// Assign roles.
 	for _, roleID := range roleIDs {
-		clientRole := &repository.ClientRole{
+		clientRole := &cryptoutilAppsTemplateServiceServerRepository.ClientRole{
 			TenantID: tenantID,
 			ClientID: client.ID,
 			RoleID:   roleID,

@@ -12,22 +12,22 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateServerApplication "cryptoutil/internal/apps/template/service/server/application"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // ServiceTemplate encapsulates reusable service infrastructure.
 // Provides common initialization for telemetry, crypto, barrier, and dual HTTPS servers.
 type ServiceTemplate struct {
-	config    *cryptoutilConfig.ServiceTemplateServerSettings
+	config    *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	db        *gorm.DB
 	dbType    cryptoutilAppsTemplateServiceServerRepository.DatabaseType
-	telemetry *cryptoutilTelemetry.TelemetryService
-	jwkGen    *cryptoutilJose.JWKGenService
+	telemetry *cryptoutilSharedTelemetry.TelemetryService
+	jwkGen    *cryptoutilSharedCryptoJose.JWKGenService
 	barrier   *cryptoutilBarrierService.BarrierService // Optional (nil for demo services).
 }
 
@@ -48,7 +48,7 @@ func WithBarrier(barrier *cryptoutilBarrierService.BarrierService) ServiceTempla
 // Does NOT run migrations or create HTTP servers (caller-specific).
 func NewServiceTemplate(
 	ctx context.Context,
-	config *cryptoutilConfig.ServiceTemplateServerSettings,
+	config *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
 	db *gorm.DB,
 	dbType cryptoutilAppsTemplateServiceServerRepository.DatabaseType,
 	options ...ServiceTemplateOption,
@@ -70,14 +70,14 @@ func NewServiceTemplate(
 	}
 
 	// Initialize telemetry service.
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, config)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
 	}
 
 	// Initialize JWK Generation Service for cryptographic operations.
 	// Uses in-memory key pools with telemetry for monitoring.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize JWK generation service: %w", err)
 	}
@@ -102,7 +102,7 @@ func NewServiceTemplate(
 }
 
 // Config returns the server configuration.
-func (st *ServiceTemplate) Config() *cryptoutilConfig.ServiceTemplateServerSettings {
+func (st *ServiceTemplate) Config() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
 	return st.config
 }
 
@@ -123,12 +123,12 @@ func (st *ServiceTemplate) DBType() cryptoutilAppsTemplateServiceServerRepositor
 }
 
 // Telemetry returns the telemetry service.
-func (st *ServiceTemplate) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (st *ServiceTemplate) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return st.telemetry
 }
 
 // JWKGen returns the JWK generation service.
-func (st *ServiceTemplate) JWKGen() *cryptoutilJose.JWKGenService {
+func (st *ServiceTemplate) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return st.jwkGen
 }
 
@@ -155,7 +155,7 @@ func (st *ServiceTemplate) Shutdown() {
 // StartApplicationCore is a convenience wrapper for application.StartApplicationCore.
 // Creates ApplicationCore with automatic database provisioning.
 // Returns ApplicationCore with initialized telemetry, JWK gen, unseal, and database.
-func StartApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilTemplateServerApplication.Core, error) {
+func StartApplicationCore(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilAppsTemplateServiceServerApplication.Core, error) {
 	//nolint:wrapcheck // Pass-through to application layer.
-	return cryptoutilTemplateServerApplication.StartCore(ctx, settings)
+	return cryptoutilAppsTemplateServiceServerApplication.StartCore(ctx, settings)
 }

@@ -6,17 +6,17 @@ package crypto
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	crand "crypto/rand"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"fmt"
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -32,18 +32,18 @@ func TestCreateJWKFromKey_SymmetricKeys(t *testing.T) {
 		name        string
 		alg         cryptoutilOpenapiModel.GenerateAlgorithm
 		keySize     int
-		keyGenFunc  func(int) (cryptoutilKeyGen.SecretKey, error)
+		keyGenFunc  func(int) (cryptoutilSharedCryptoKeygen.SecretKey, error)
 		expectedAlg string
 		expectedUse string
 		prob        float32
 	}{
 		// AES variants (Oct128, Oct192 only - no Oct256 for AES!)
-		{"Oct128_AES", cryptoutilOpenapiModel.Oct128, cryptoutilMagic.AESKeySize128, cryptoutilKeyGen.GenerateAESKey, "A128GCM", "enc", cryptoutilMagic.TestProbAlways},
-		{"Oct192_AES", cryptoutilOpenapiModel.Oct192, cryptoutilMagic.AESKeySize192, cryptoutilKeyGen.GenerateAESKey, "A192GCM", "enc", cryptoutilMagic.TestProbTenth},
+		{"Oct128_AES", cryptoutilOpenapiModel.Oct128, cryptoutilSharedMagic.AESKeySize128, cryptoutilSharedCryptoKeygen.GenerateAESKey, "A128GCM", "enc", cryptoutilSharedMagic.TestProbAlways},
+		{"Oct192_AES", cryptoutilOpenapiModel.Oct192, cryptoutilSharedMagic.AESKeySize192, cryptoutilSharedCryptoKeygen.GenerateAESKey, "A192GCM", "enc", cryptoutilSharedMagic.TestProbTenth},
 		// HMAC variants (Oct256, Oct384, Oct512)
-		{"Oct256_HMAC", cryptoutilOpenapiModel.Oct256, cryptoutilMagic.HMACKeySize256, cryptoutilKeyGen.GenerateHMACKey, "HS256", "sig", cryptoutilMagic.TestProbAlways},
-		{"Oct384_HMAC", cryptoutilOpenapiModel.Oct384, cryptoutilMagic.HMACKeySize384, cryptoutilKeyGen.GenerateHMACKey, "HS384", "sig", cryptoutilMagic.TestProbTenth},
-		{"Oct512_HMAC", cryptoutilOpenapiModel.Oct512, cryptoutilMagic.HMACKeySize512, cryptoutilKeyGen.GenerateHMACKey, "HS512", "sig", cryptoutilMagic.TestProbTenth},
+		{"Oct256_HMAC", cryptoutilOpenapiModel.Oct256, cryptoutilSharedMagic.HMACKeySize256, cryptoutilSharedCryptoKeygen.GenerateHMACKey, "HS256", "sig", cryptoutilSharedMagic.TestProbAlways},
+		{"Oct384_HMAC", cryptoutilOpenapiModel.Oct384, cryptoutilSharedMagic.HMACKeySize384, cryptoutilSharedCryptoKeygen.GenerateHMACKey, "HS384", "sig", cryptoutilSharedMagic.TestProbTenth},
+		{"Oct512_HMAC", cryptoutilOpenapiModel.Oct512, cryptoutilSharedMagic.HMACKeySize512, cryptoutilSharedCryptoKeygen.GenerateHMACKey, "HS512", "sig", cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -88,29 +88,29 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 		prob       float32
 	}{
 		{"RSA2048", cryptoutilOpenapiModel.RSA2048, func() (any, any, error) {
-			key, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize2048)
+			key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize2048)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate RSA 2048 key: %w", err)
 			}
 
 			return key, &key.PublicKey, nil
-		}, cryptoutilMagic.TestProbAlways},
+		}, cryptoutilSharedMagic.TestProbAlways},
 		{"RSA3072", cryptoutilOpenapiModel.RSA3072, func() (any, any, error) {
-			key, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize3072)
+			key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize3072)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate RSA 3072 key: %w", err)
 			}
 
 			return key, &key.PublicKey, nil
-		}, cryptoutilMagic.TestProbTenth},
+		}, cryptoutilSharedMagic.TestProbTenth},
 		{"RSA4096", cryptoutilOpenapiModel.RSA4096, func() (any, any, error) {
-			key, err := rsa.GenerateKey(crand.Reader, cryptoutilMagic.RSAKeySize4096)
+			key, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize4096)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to generate RSA 4096 key: %w", err)
 			}
 
 			return key, &key.PublicKey, nil
-		}, cryptoutilMagic.TestProbTenth},
+		}, cryptoutilSharedMagic.TestProbTenth},
 		{"ECP256", cryptoutilOpenapiModel.ECP256, func() (any, any, error) {
 			key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 			if err != nil {
@@ -118,7 +118,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 			}
 
 			return key, &key.PublicKey, nil
-		}, cryptoutilMagic.TestProbAlways},
+		}, cryptoutilSharedMagic.TestProbAlways},
 		{"ECP384", cryptoutilOpenapiModel.ECP384, func() (any, any, error) {
 			key, err := ecdsa.GenerateKey(elliptic.P384(), crand.Reader)
 			if err != nil {
@@ -126,7 +126,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 			}
 
 			return key, &key.PublicKey, nil
-		}, cryptoutilMagic.TestProbTenth},
+		}, cryptoutilSharedMagic.TestProbTenth},
 		{"ECP521", cryptoutilOpenapiModel.ECP521, func() (any, any, error) {
 			key, err := ecdsa.GenerateKey(elliptic.P521(), crand.Reader)
 			if err != nil {
@@ -134,7 +134,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 			}
 
 			return key, &key.PublicKey, nil
-		}, cryptoutilMagic.TestProbTenth},
+		}, cryptoutilSharedMagic.TestProbTenth},
 		{"OKPEd25519", cryptoutilOpenapiModel.OKPEd25519, func() (any, any, error) {
 			pub, priv, err := ed25519.GenerateKey(crand.Reader)
 			if err != nil {
@@ -142,7 +142,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 			}
 
 			return priv, pub, nil
-		}, cryptoutilMagic.TestProbAlways},
+		}, cryptoutilSharedMagic.TestProbAlways},
 	}
 
 	for _, tc := range tests {
@@ -155,7 +155,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 			require.NoError(t, err)
 
 			kid := googleUuid.Must(googleUuid.NewV7())
-			keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: publicKey}
+			keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{Private: privateKey, Public: publicKey}
 
 			_, privateJWK, publicJWK, _, _, err := CreateJWKFromKey(&kid, &tc.alg, keyPair)
 			require.NoError(t, err)
@@ -185,7 +185,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 func TestIsPublicPrivateAsymmetricSymmetric_HMAC(t *testing.T) {
 	t.Parallel()
 
-	secretKey, err := cryptoutilKeyGen.GenerateHMACKey(cryptoutilMagic.HMACKeySize384)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(cryptoutilSharedMagic.HMACKeySize384)
 	require.NoError(t, err)
 
 	kid := googleUuid.Must(googleUuid.NewV7())
@@ -216,7 +216,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_HMAC(t *testing.T) {
 func TestIsPublicPrivateAsymmetricSymmetric_AES(t *testing.T) {
 	t.Parallel()
 
-	secretKey, err := cryptoutilKeyGen.GenerateAESKey(cryptoutilMagic.AESKeySize192)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.AESKeySize192)
 	require.NoError(t, err)
 
 	kid := googleUuid.Must(googleUuid.NewV7())
@@ -243,7 +243,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AES(t *testing.T) {
 func TestCreateJWEJWKFromKey_ECDH_P256(t *testing.T) {
 	t.Parallel()
 
-	keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDHKeyPair(ecdh.P256())
 	require.NoError(t, err)
 
 	kid := googleUuid.Must(googleUuid.NewV7())
@@ -267,7 +267,7 @@ func TestCreateJWEJWKFromKey_ECDH_P256(t *testing.T) {
 func TestCreateJWSJWKFromKey_ECDSA_P521(t *testing.T) {
 	t.Parallel()
 
-	keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P521())
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P521())
 	require.NoError(t, err)
 
 	kid := googleUuid.Must(googleUuid.NewV7())
@@ -303,9 +303,9 @@ func TestCreateJWEJWKFromKey_ECDH_Variants(t *testing.T) {
 		alg   joseJwa.KeyEncryptionAlgorithm
 		prob  float32
 	}{
-		{"P256", ecdh.P256(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilMagic.TestProbAlways},
-		{"P384", ecdh.P384(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilMagic.TestProbTenth},
-		{"P521", ecdh.P521(), joseJwa.A128GCM(), joseJwa.ECDH_ES_A256KW(), cryptoutilMagic.TestProbTenth},
+		{"P256", ecdh.P256(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilSharedMagic.TestProbAlways},
+		{"P384", ecdh.P384(), joseJwa.A256GCM(), joseJwa.ECDH_ES(), cryptoutilSharedMagic.TestProbTenth},
+		{"P521", ecdh.P521(), joseJwa.A128GCM(), joseJwa.ECDH_ES_A256KW(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -314,7 +314,7 @@ func TestCreateJWEJWKFromKey_ECDH_Variants(t *testing.T) {
 
 			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
-			keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(tc.curve)
+			keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDHKeyPair(tc.curve)
 			require.NoError(t, err)
 
 			kid := googleUuid.Must(googleUuid.NewV7())
@@ -341,9 +341,9 @@ func TestCreateJWEJWKFromKey_RSA_Variants(t *testing.T) {
 		alg     joseJwa.KeyEncryptionAlgorithm
 		prob    float32
 	}{
-		{"RSA2048", cryptoutilMagic.RSAKeySize2048, joseJwa.A256GCM(), joseJwa.RSA_OAEP_256(), cryptoutilMagic.TestProbAlways},
-		{"RSA3072", cryptoutilMagic.RSAKeySize3072, joseJwa.A192GCM(), joseJwa.RSA_OAEP_384(), cryptoutilMagic.TestProbTenth},
-		{"RSA4096", cryptoutilMagic.RSAKeySize4096, joseJwa.A256GCM(), joseJwa.RSA_OAEP_512(), cryptoutilMagic.TestProbTenth},
+		{"RSA2048", cryptoutilSharedMagic.RSAKeySize2048, joseJwa.A256GCM(), joseJwa.RSA_OAEP_256(), cryptoutilSharedMagic.TestProbAlways},
+		{"RSA3072", cryptoutilSharedMagic.RSAKeySize3072, joseJwa.A192GCM(), joseJwa.RSA_OAEP_384(), cryptoutilSharedMagic.TestProbTenth},
+		{"RSA4096", cryptoutilSharedMagic.RSAKeySize4096, joseJwa.A256GCM(), joseJwa.RSA_OAEP_512(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -355,7 +355,7 @@ func TestCreateJWEJWKFromKey_RSA_Variants(t *testing.T) {
 			privateKey, err := rsa.GenerateKey(crand.Reader, tc.keySize)
 			require.NoError(t, err)
 
-			keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+			keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
 			kid := googleUuid.Must(googleUuid.NewV7())
 
 			resultKid, encryptJWK, decryptJWK, encryptBytes, decryptBytes, err := CreateJWEJWKFromKey(&kid, &tc.enc, &tc.alg, keyPair)
@@ -379,9 +379,9 @@ func TestCreateJWEJWKFromKey_AES_Variants(t *testing.T) {
 		enc     joseJwa.ContentEncryptionAlgorithm
 		prob    float32
 	}{
-		{"AES128", cryptoutilMagic.AESKeySize128, joseJwa.A128GCM(), cryptoutilMagic.TestProbAlways},
-		{"AES192", cryptoutilMagic.AESKeySize192, joseJwa.A192GCM(), cryptoutilMagic.TestProbTenth},
-		{"AES256", cryptoutilMagic.AESKeySize256, joseJwa.A256GCM(), cryptoutilMagic.TestProbAlways},
+		{"AES128", cryptoutilSharedMagic.AESKeySize128, joseJwa.A128GCM(), cryptoutilSharedMagic.TestProbAlways},
+		{"AES192", cryptoutilSharedMagic.AESKeySize192, joseJwa.A192GCM(), cryptoutilSharedMagic.TestProbTenth},
+		{"AES256", cryptoutilSharedMagic.AESKeySize256, joseJwa.A256GCM(), cryptoutilSharedMagic.TestProbAlways},
 	}
 
 	for _, tc := range tests {
@@ -390,7 +390,7 @@ func TestCreateJWEJWKFromKey_AES_Variants(t *testing.T) {
 
 			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
-			secretKey, err := cryptoutilKeyGen.GenerateAESKey(tc.keySize)
+			secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(tc.keySize)
 			require.NoError(t, err)
 
 			kid := googleUuid.Must(googleUuid.NewV7())
@@ -417,9 +417,9 @@ func TestCreateJWSJWKFromKey_RSA_Variants(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		prob    float32
 	}{
-		{"RSA2048_PS256", cryptoutilMagic.RSAKeySize2048, joseJwa.PS256(), cryptoutilMagic.TestProbAlways},
-		{"RSA3072_PS384", cryptoutilMagic.RSAKeySize3072, joseJwa.PS384(), cryptoutilMagic.TestProbTenth},
-		{"RSA4096_PS512", cryptoutilMagic.RSAKeySize4096, joseJwa.PS512(), cryptoutilMagic.TestProbTenth},
+		{"RSA2048_PS256", cryptoutilSharedMagic.RSAKeySize2048, joseJwa.PS256(), cryptoutilSharedMagic.TestProbAlways},
+		{"RSA3072_PS384", cryptoutilSharedMagic.RSAKeySize3072, joseJwa.PS384(), cryptoutilSharedMagic.TestProbTenth},
+		{"RSA4096_PS512", cryptoutilSharedMagic.RSAKeySize4096, joseJwa.PS512(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -431,7 +431,7 @@ func TestCreateJWSJWKFromKey_RSA_Variants(t *testing.T) {
 			privateKey, err := rsa.GenerateKey(crand.Reader, tc.keySize)
 			require.NoError(t, err)
 
-			keyPair := &cryptoutilKeyGen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
+			keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{Private: privateKey, Public: &privateKey.PublicKey}
 			kid := googleUuid.Must(googleUuid.NewV7())
 
 			resultKid, signJWK, verifyJWK, signBytes, verifyBytes, err := CreateJWSJWKFromKey(&kid, &tc.alg, keyPair)
@@ -455,9 +455,9 @@ func TestCreateJWSJWKFromKey_HMAC_Variants(t *testing.T) {
 		alg     joseJwa.SignatureAlgorithm
 		prob    float32
 	}{
-		{"HMAC256", cryptoutilMagic.HMACKeySize256, joseJwa.HS256(), cryptoutilMagic.TestProbAlways},
-		{"HMAC384", cryptoutilMagic.HMACKeySize384, joseJwa.HS384(), cryptoutilMagic.TestProbTenth},
-		{"HMAC512", cryptoutilMagic.HMACKeySize512, joseJwa.HS512(), cryptoutilMagic.TestProbTenth},
+		{"HMAC256", cryptoutilSharedMagic.HMACKeySize256, joseJwa.HS256(), cryptoutilSharedMagic.TestProbAlways},
+		{"HMAC384", cryptoutilSharedMagic.HMACKeySize384, joseJwa.HS384(), cryptoutilSharedMagic.TestProbTenth},
+		{"HMAC512", cryptoutilSharedMagic.HMACKeySize512, joseJwa.HS512(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range tests {
@@ -466,7 +466,7 @@ func TestCreateJWSJWKFromKey_HMAC_Variants(t *testing.T) {
 
 			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
-			secretKey, err := cryptoutilKeyGen.GenerateHMACKey(tc.keySize)
+			secretKey, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(tc.keySize)
 			require.NoError(t, err)
 
 			kid := googleUuid.Must(googleUuid.NewV7())

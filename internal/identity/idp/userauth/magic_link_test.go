@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	"cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -77,48 +77,48 @@ func (m *mockMagicLinkUserRepo) AddUser(user *cryptoutilIdentityDomain.User) {
 func TestMagicLinkAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewMagicLinkAuthenticator(nil, nil, nil, nil, nil, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(nil, nil, nil, nil, nil, "https://example.com")
 	require.NotNil(t, auth, "NewMagicLinkAuthenticator should return non-nil authenticator")
 }
 
 func TestMagicLinkAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewMagicLinkAuthenticator(nil, nil, nil, nil, nil, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(nil, nil, nil, nil, nil, "https://example.com")
 	require.Equal(t, "magic_link", auth.Method(), "Method should return 'magic_link'")
 }
 
 func TestRiskBasedAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
-	thresholds := userauth.DefaultRiskThresholds()
-	auth := userauth.NewRiskBasedAuthenticator(nil, nil, nil, thresholds, nil)
+	thresholds := cryptoutilIdentityIdpUserauth.DefaultRiskThresholds()
+	auth := cryptoutilIdentityIdpUserauth.NewRiskBasedAuthenticator(nil, nil, nil, thresholds, nil)
 	require.NotNil(t, auth, "NewRiskBasedAuthenticator should return non-nil authenticator")
 }
 
 func TestRiskBasedAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	thresholds := userauth.DefaultRiskThresholds()
-	auth := userauth.NewRiskBasedAuthenticator(nil, nil, nil, thresholds, nil)
+	thresholds := cryptoutilIdentityIdpUserauth.DefaultRiskThresholds()
+	auth := cryptoutilIdentityIdpUserauth.NewRiskBasedAuthenticator(nil, nil, nil, thresholds, nil)
 	require.Equal(t, "risk_based", auth.Method(), "Method should return 'risk_based'")
 }
 
 func TestRiskBasedAuthenticator_DefaultThresholds(t *testing.T) {
 	t.Parallel()
 
-	thresholds := userauth.DefaultRiskThresholds()
+	thresholds := cryptoutilIdentityIdpUserauth.DefaultRiskThresholds()
 	require.NotNil(t, thresholds, "DefaultRiskThresholds should return non-nil thresholds")
 	require.Len(t, thresholds, 4, "Should have 4 risk levels: low, medium, high, critical")
 
 	// Verify keys exist.
-	require.Contains(t, thresholds, userauth.RiskLevelLow, "Should have low risk level")
-	require.Contains(t, thresholds, userauth.RiskLevelMedium, "Should have medium risk level")
-	require.Contains(t, thresholds, userauth.RiskLevelHigh, "Should have high risk level")
-	require.Contains(t, thresholds, userauth.RiskLevelCritical, "Should have critical risk level")
+	require.Contains(t, thresholds, cryptoutilIdentityIdpUserauth.RiskLevelLow, "Should have low risk level")
+	require.Contains(t, thresholds, cryptoutilIdentityIdpUserauth.RiskLevelMedium, "Should have medium risk level")
+	require.Contains(t, thresholds, cryptoutilIdentityIdpUserauth.RiskLevelHigh, "Should have high risk level")
+	require.Contains(t, thresholds, cryptoutilIdentityIdpUserauth.RiskLevelCritical, "Should have critical risk level")
 
 	// Verify MinFactors increases with risk level.
-	require.Less(t, thresholds[userauth.RiskLevelLow].MinFactors, thresholds[userauth.RiskLevelMedium].MinFactors,
+	require.Less(t, thresholds[cryptoutilIdentityIdpUserauth.RiskLevelLow].MinFactors, thresholds[cryptoutilIdentityIdpUserauth.RiskLevelMedium].MinFactors,
 		"Low risk should require fewer factors than medium")
 }
 
@@ -127,9 +127,9 @@ func TestRiskBasedAuthenticator_InitiateAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	thresholds := userauth.DefaultRiskThresholds()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
+	thresholds := cryptoutilIdentityIdpUserauth.DefaultRiskThresholds()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
 
 	userID := "test-user-risk"
 
@@ -145,9 +145,9 @@ func TestRiskBasedAuthenticator_VerifyAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	thresholds := userauth.DefaultRiskThresholds()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
+	thresholds := cryptoutilIdentityIdpUserauth.DefaultRiskThresholds()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
 
 	userID := "test-user-risk-verify"
 
@@ -171,9 +171,9 @@ func TestRiskBasedAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	thresholds := userauth.DefaultRiskThresholds()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
+	thresholds := cryptoutilIdentityIdpUserauth.DefaultRiskThresholds()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewRiskBasedAuthenticator(nil, nil, challengeStore, thresholds, nil)
 
 	// Generate a valid UUID that doesn't exist as a challenge.
 	nonExistentID, err := googleUuid.NewV7()
@@ -187,7 +187,7 @@ func TestRiskBasedAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 func TestMockDeliveryService_NewService(t *testing.T) {
 	t.Parallel()
 
-	service := userauth.NewMockDeliveryService()
+	service := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
 	require.NotNil(t, service, "NewMockDeliveryService should return non-nil service")
 }
 
@@ -195,7 +195,7 @@ func TestMockDeliveryService_SendSMSSuccess(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
-	service := userauth.NewMockDeliveryService()
+	service := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
 
 	err := service.SendSMS(ctx, "+1234567890", "Test message")
 	require.NoError(t, err, "SendSMS should succeed")
@@ -210,7 +210,7 @@ func TestMockDeliveryService_SendEmailSuccess(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
-	service := userauth.NewMockDeliveryService()
+	service := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
 
 	err := service.SendEmail(ctx, "test@example.com", "Test Subject", "Test body")
 	require.NoError(t, err, "SendEmail should succeed")
@@ -226,7 +226,7 @@ func TestMockDeliveryService_SetShouldFail(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
-	service := userauth.NewMockDeliveryService()
+	service := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
 
 	service.SetShouldFail(true)
 
@@ -241,7 +241,7 @@ func TestMockDeliveryService_Reset(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
-	service := userauth.NewMockDeliveryService()
+	service := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
 
 	// Send some messages.
 	err := service.SendSMS(ctx, "+1234567890", "Test message")
@@ -261,7 +261,7 @@ func TestMockDeliveryService_Reset(t *testing.T) {
 func TestStepUpAuthenticator_DefaultPolicies(t *testing.T) {
 	t.Parallel()
 
-	policies := userauth.DefaultStepUpPolicies()
+	policies := cryptoutilIdentityIdpUserauth.DefaultStepUpPolicies()
 	require.NotNil(t, policies, "DefaultStepUpPolicies should return non-nil policies")
 	require.NotEmpty(t, policies, "Should have at least one default policy")
 }
@@ -270,7 +270,7 @@ func TestStepUpAuthenticator_DefaultPolicies(t *testing.T) {
 func TestStepUpAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, nil, nil)
+	auth := cryptoutilIdentityIdpUserauth.NewStepUpAuthenticator(nil, nil, nil, nil, nil)
 	require.Equal(t, "step_up", auth.Method(), "Method should return 'step_up'")
 }
 
@@ -279,8 +279,8 @@ func TestStepUpAuthenticator_InitiateAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
 
 	userID := "test-user-stepup"
 
@@ -296,8 +296,8 @@ func TestStepUpAuthenticator_VerifyAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
 
 	userID := "test-user-stepup-verify"
 
@@ -317,8 +317,8 @@ func TestStepUpAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewStepUpAuthenticator(nil, nil, nil, challengeStore, nil)
 
 	// Generate a valid UUID that doesn't exist as a challenge.
 	nonExistentID, err := googleUuid.NewV7()
@@ -335,10 +335,10 @@ func TestMagicLinkAuthenticator_InitiateAuth(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -351,7 +351,7 @@ func TestMagicLinkAuthenticator_InitiateAuth(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.NoError(t, err, "InitiateAuth should succeed")
@@ -371,12 +371,12 @@ func TestMagicLinkAuthenticator_InitiateAuthUserNotFound(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	nonExistentID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -393,10 +393,10 @@ func TestMagicLinkAuthenticator_InitiateAuthNoEmail(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -409,7 +409,7 @@ func TestMagicLinkAuthenticator_InitiateAuthNoEmail(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.Error(t, err, "InitiateAuth should fail without email")
@@ -423,9 +423,9 @@ func TestMagicLinkAuthenticator_InitiateAuthTokenGenerationFailure(t *testing.T)
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 
 	// Mock OTPGenerator that fails.
 	generator := &mockFailingOTPGenerator{}
@@ -440,7 +440,7 @@ func TestMagicLinkAuthenticator_InitiateAuthTokenGenerationFailure(t *testing.T)
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.Error(t, err, "InitiateAuth should fail when token generation fails")
@@ -465,12 +465,12 @@ func TestMagicLinkAuthenticator_InitiateAuthEmailDeliveryFailure(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
 	delivery.SetShouldFail(true) // Make delivery fail.
 
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -482,7 +482,7 @@ func TestMagicLinkAuthenticator_InitiateAuthEmailDeliveryFailure(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.Error(t, err, "InitiateAuth should fail when email delivery fails")
@@ -496,10 +496,10 @@ func TestMagicLinkAuthenticator_VerifyAuth(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -512,7 +512,7 @@ func TestMagicLinkAuthenticator_VerifyAuth(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	// Initiate auth first.
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
@@ -535,12 +535,12 @@ func TestMagicLinkAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	// Generate a valid UUID that doesn't exist as a challenge.
 	nonExistentID, err := googleUuid.NewV7()
@@ -557,10 +557,10 @@ func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -572,16 +572,16 @@ func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	// Create expired challenge manually.
 	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
 	require.NoError(t, err)
 
-	hashedToken, err := userauth.HashToken(token)
+	hashedToken, err := cryptoutilIdentityIdpUserauth.HashToken(token)
 	require.NoError(t, err)
 
-	expiredChallenge := &userauth.AuthChallenge{
+	expiredChallenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID.String(),
 		Method:    "magic_link",
@@ -604,10 +604,10 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 
 	ctx := context.Background()
 	userRepo := newMockMagicLinkUserRepo()
-	delivery := userauth.NewMockDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	delivery := cryptoutilIdentityIdpUserauth.NewMockDeliveryService()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -619,17 +619,17 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
+	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	// Generate token before initiating auth so we can capture it.
 	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
 	require.NoError(t, err)
 
-	hashedToken, err := userauth.HashToken(token)
+	hashedToken, err := cryptoutilIdentityIdpUserauth.HashToken(token)
 	require.NoError(t, err)
 
 	// Create challenge manually with known token.
-	challenge := &userauth.AuthChallenge{
+	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID.String(),
 		Method:    "magic_link",

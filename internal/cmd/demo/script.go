@@ -10,14 +10,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/url"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // DemoEndpoints contains the endpoints for the integration demo.
@@ -89,7 +89,7 @@ func NewDemoScript(config *Config) *DemoScript {
 		credentials: DefaultDemoCredentials(),
 		httpClient: &http.Client{
 			Transport: transport,
-			Timeout:   cryptoutilMagic.DefaultDemoTimeout,
+			Timeout:   cryptoutilSharedMagic.DefaultDemoTimeout,
 		},
 		progress: NewProgressDisplay(config),
 		errors:   NewErrorAggregator("demo-script"),

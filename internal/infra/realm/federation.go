@@ -7,11 +7,11 @@ package realm
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"strings"
 	"sync"
 	"time"

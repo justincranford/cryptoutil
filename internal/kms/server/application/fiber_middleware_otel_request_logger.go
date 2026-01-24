@@ -9,9 +9,9 @@ import (
 	"log/slog"
 	"time"
 
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -44,7 +44,7 @@ import (
 //   - Old: No log entry (request fails before response)
 //   - New: "status=200 duration=854.6µs reqhead=128 reqbody=0 resphead=64 respbody=0 method=GET path=/nonexistent ip=127.0.0.1 user_agent=Mozilla/5.0... trace_id=abc123 span_id=def456 req_id=req789 error='no matching operation was found'"
 //   - Note: Status may be 200 (initial/default) when middleware executes, but error field captures the actual issue
-func commonOtelFiberRequestLoggerMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService) fiber.Handler {
+func commonOtelFiberRequestLoggerMiddleware(telemetryService *cryptoutilSharedTelemetry.TelemetryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// PHASE 1: PRE-REQUEST PROCESSING
 		// Capture timing and request details that are available before processing

@@ -4,7 +4,7 @@ package clientauth
 
 import (
 	"context"
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"

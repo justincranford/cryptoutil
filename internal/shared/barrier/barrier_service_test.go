@@ -9,12 +9,12 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -23,20 +23,20 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("barrier_service_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("barrier_service_test")
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testJWKGenService    *cryptoutilJose.JWKGenService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
+	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 )
 
 func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testJWKGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		testJWKGenService = cryptoutilSharedCryptoJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJWKGenService.Shutdown()
 
 		rc = m.Run()
@@ -52,7 +52,7 @@ func Test_HappyPath_SameUnsealJWKs(t *testing.T) {
 	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJWKGenService, testSettings)
 	defer ormRepository.Shutdown()
 
-	_, nonPublicJWEJWK, _, _, _, err := cryptoutilJose.GenerateJWEJWKForEncAndAlg(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWK, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKForEncAndAlg(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, nonPublicJWEJWK)
 
@@ -73,15 +73,15 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	defer testOrmRepository.Shutdown()
 
 	// generate three JWKs; 2 valid, 1 invalid
-	_, nonPublicJWEJWK1, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWK1, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, nonPublicJWEJWK1)
 
-	_, nonPublicJWEJWK2, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWK2, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, nonPublicJWEJWK2)
 
-	_, nonPublicJWEJWKInvalid, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWKInvalid, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, nonPublicJWEJWKInvalid)
 
@@ -242,16 +242,16 @@ func Test_ErrorCase_DecryptWithInvalidJWKs(t *testing.T) {
 	defer testOrmRepository.Shutdown()
 
 	// generate valid JWKs for encryption
-	_, validJWEJWK1, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, validJWEJWK1, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, validJWEJWK1)
 
-	_, validJWEJWK2, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, validJWEJWK2, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, validJWEJWK2)
 
 	// generate invalid JWK for decryption attempt
-	_, invalidJWEJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, invalidJWEJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, invalidJWEJWK)
 

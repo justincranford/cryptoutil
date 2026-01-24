@@ -8,9 +8,9 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -21,11 +21,11 @@ func TestNewSQLRepository_SQLite_ContainerMode(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("sqlite_container_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("sqlite_container_test")
 	settings.DevMode = true                            // SQLite
 	settings.DatabaseContainer = containerModeRequired // SQLite doesn't support containers
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -40,11 +40,11 @@ func TestNewSQLRepository_InvalidContainerMode(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("invalid_container_mode")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("invalid_container_mode")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeInvalid
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -58,17 +58,17 @@ func TestNewSQLRepository_NilInputs(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("nil_inputs_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("nil_inputs_test")
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	tests := []struct {
 		name          string
 		ctx           context.Context
-		telemetry     *cryptoutilTelemetry.TelemetryService
-		settings      *cryptoutilConfig.ServiceTemplateServerSettings
+		telemetry     *cryptoutilSharedTelemetry.TelemetryService
+		settings      *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 		errorContains string
 	}{
 		{
@@ -136,11 +136,11 @@ func TestMapDBTypeAndURL_EdgeCases(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseURL = tc.databaseURL
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -188,12 +188,12 @@ func TestExtractSchemaFromURL_EdgeCases(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = containerModeDisabled
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)

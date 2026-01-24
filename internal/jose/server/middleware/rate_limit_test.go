@@ -6,16 +6,16 @@ package middleware
 import (
 	"context"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -115,9 +115,9 @@ func TestNewRateLimiter_ExceedsLimit(t *testing.T) {
 func TestNewRateLimiter_WithTelemetry(t *testing.T) {
 	t.Parallel()
 
-	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	telemetrySettings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(
 		context.Background(),
 		telemetrySettings,
 	)

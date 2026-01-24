@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 )
@@ -440,27 +440,27 @@ func GetGenerateAlgorithmTestProbability(alg cryptoutilOpenapiModel.GenerateAlgo
 	switch alg {
 	// Base RSA size - always test.
 	case cryptoutilOpenapiModel.RSA2048:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Larger RSA sizes - sample testing.
 	case cryptoutilOpenapiModel.RSA3072, cryptoutilOpenapiModel.RSA4096:
-		return cryptoutilMagic.TestProbThird
+		return cryptoutilSharedMagic.TestProbThird
 	// Base EC size - always test.
 	case cryptoutilOpenapiModel.ECP256:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Larger EC sizes - sample testing.
 	case cryptoutilOpenapiModel.ECP384, cryptoutilOpenapiModel.ECP521:
-		return cryptoutilMagic.TestProbThird
+		return cryptoutilSharedMagic.TestProbThird
 	// EdDSA - always test (only one size).
 	case cryptoutilOpenapiModel.OKPEd25519:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Base symmetric key size - always test.
 	case cryptoutilOpenapiModel.Oct256:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Other symmetric sizes - sample testing.
 	case cryptoutilOpenapiModel.Oct128, cryptoutilOpenapiModel.Oct192, cryptoutilOpenapiModel.Oct384, cryptoutilOpenapiModel.Oct512:
-		return cryptoutilMagic.TestProbThird
+		return cryptoutilSharedMagic.TestProbThird
 	default:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	}
 }
 
@@ -472,7 +472,7 @@ func GetElasticKeyAlgorithmTestProbability(alg cryptoutilOpenapiModel.ElasticKey
 	switch alg {
 	// Base AES-GCM + Key Wrap combinations - always test 256-bit.
 	case cryptoutilOpenapiModel.A256GCMA256KW, cryptoutilOpenapiModel.A256GCMA256GCMKW, cryptoutilOpenapiModel.A256GCMDir:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Other AES-GCM + Key Wrap - sample testing.
 	case cryptoutilOpenapiModel.A192GCMA256KW, cryptoutilOpenapiModel.A128GCMA256KW,
 		cryptoutilOpenapiModel.A256GCMA192KW, cryptoutilOpenapiModel.A192GCMA192KW, cryptoutilOpenapiModel.A128GCMA192KW,
@@ -481,10 +481,10 @@ func GetElasticKeyAlgorithmTestProbability(alg cryptoutilOpenapiModel.ElasticKey
 		cryptoutilOpenapiModel.A256GCMA192GCMKW, cryptoutilOpenapiModel.A192GCMA192GCMKW, cryptoutilOpenapiModel.A128GCMA192GCMKW,
 		cryptoutilOpenapiModel.A256GCMA128GCMKW, cryptoutilOpenapiModel.A192GCMA128GCMKW, cryptoutilOpenapiModel.A128GCMA128GCMKW,
 		cryptoutilOpenapiModel.A192GCMDir, cryptoutilOpenapiModel.A128GCMDir:
-		return cryptoutilMagic.TestProbQuarter
+		return cryptoutilSharedMagic.TestProbQuarter
 	// Base RSA OAEP - always test.
 	case cryptoutilOpenapiModel.A256GCMRSAOAEP256, cryptoutilOpenapiModel.A256CBCHS512RSAOAEP256:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Other RSA OAEP variants - sample testing.
 	case cryptoutilOpenapiModel.A192GCMRSAOAEP512, cryptoutilOpenapiModel.A128GCMRSAOAEP512,
 		cryptoutilOpenapiModel.A256GCMRSAOAEP384, cryptoutilOpenapiModel.A192GCMRSAOAEP384, cryptoutilOpenapiModel.A128GCMRSAOAEP384,
@@ -496,10 +496,10 @@ func GetElasticKeyAlgorithmTestProbability(alg cryptoutilOpenapiModel.ElasticKey
 		cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256, cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256,
 		cryptoutilOpenapiModel.A256CBCHS512RSAOAEP, cryptoutilOpenapiModel.A192CBCHS384RSAOAEP, cryptoutilOpenapiModel.A128CBCHS256RSAOAEP,
 		cryptoutilOpenapiModel.A256CBCHS512RSA15, cryptoutilOpenapiModel.A192CBCHS384RSA15, cryptoutilOpenapiModel.A128CBCHS256RSA15:
-		return cryptoutilMagic.TestProbQuarter
+		return cryptoutilSharedMagic.TestProbQuarter
 	// Base ECDH-ES - always test.
 	case cryptoutilOpenapiModel.A256GCMECDHESA256KW, cryptoutilOpenapiModel.A256CBCHS512ECDHESA256KW:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Other ECDH-ES variants - sample testing.
 	case cryptoutilOpenapiModel.A192GCMECDHESA256KW, cryptoutilOpenapiModel.A128GCMECDHESA256KW,
 		cryptoutilOpenapiModel.A256GCMECDHESA192KW, cryptoutilOpenapiModel.A192GCMECDHESA192KW, cryptoutilOpenapiModel.A128GCMECDHESA192KW,
@@ -509,10 +509,10 @@ func GetElasticKeyAlgorithmTestProbability(alg cryptoutilOpenapiModel.ElasticKey
 		cryptoutilOpenapiModel.A256CBCHS512ECDHESA192KW, cryptoutilOpenapiModel.A192CBCHS384ECDHESA192KW, cryptoutilOpenapiModel.A128CBCHS256ECDHESA192KW,
 		cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW,
 		cryptoutilOpenapiModel.A256CBCHS512ECDHES, cryptoutilOpenapiModel.A192CBCHS384ECDHES, cryptoutilOpenapiModel.A128CBCHS256ECDHES:
-		return cryptoutilMagic.TestProbQuarter
+		return cryptoutilSharedMagic.TestProbQuarter
 	// Base AES-CBC-HMAC + Key Wrap - always test 256-bit.
 	case cryptoutilOpenapiModel.A256CBCHS512A256KW, cryptoutilOpenapiModel.A256CBCHS512A256GCMKW, cryptoutilOpenapiModel.A256CBCHS512Dir:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Other AES-CBC-HMAC + Key Wrap - sample testing.
 	case cryptoutilOpenapiModel.A192CBCHS384A256KW, cryptoutilOpenapiModel.A128CBCHS256A256KW,
 		cryptoutilOpenapiModel.A256CBCHS512A192KW, cryptoutilOpenapiModel.A192CBCHS384A192KW, cryptoutilOpenapiModel.A128CBCHS256A192KW,
@@ -521,17 +521,17 @@ func GetElasticKeyAlgorithmTestProbability(alg cryptoutilOpenapiModel.ElasticKey
 		cryptoutilOpenapiModel.A256CBCHS512A192GCMKW, cryptoutilOpenapiModel.A192CBCHS384A192GCMKW, cryptoutilOpenapiModel.A128CBCHS256A192GCMKW,
 		cryptoutilOpenapiModel.A256CBCHS512A128GCMKW, cryptoutilOpenapiModel.A192CBCHS384A128GCMKW, cryptoutilOpenapiModel.A128CBCHS256A128GCMKW,
 		cryptoutilOpenapiModel.A192CBCHS384Dir, cryptoutilOpenapiModel.A128CBCHS256Dir:
-		return cryptoutilMagic.TestProbQuarter
+		return cryptoutilSharedMagic.TestProbQuarter
 	// Base signature algorithms - always test.
 	case cryptoutilOpenapiModel.RS256, cryptoutilOpenapiModel.PS256, cryptoutilOpenapiModel.ES256, cryptoutilOpenapiModel.HS256, cryptoutilOpenapiModel.EdDSA:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	// Other signature algorithm sizes - sample testing.
 	case cryptoutilOpenapiModel.RS384, cryptoutilOpenapiModel.RS512,
 		cryptoutilOpenapiModel.PS384, cryptoutilOpenapiModel.PS512,
 		cryptoutilOpenapiModel.ES384, cryptoutilOpenapiModel.ES512,
 		cryptoutilOpenapiModel.HS384, cryptoutilOpenapiModel.HS512:
-		return cryptoutilMagic.TestProbThird
+		return cryptoutilSharedMagic.TestProbThird
 	default:
-		return cryptoutilMagic.TestProbAlways
+		return cryptoutilSharedMagic.TestProbAlways
 	}
 }

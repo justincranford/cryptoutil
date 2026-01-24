@@ -7,9 +7,9 @@ package server
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -20,10 +20,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for resource server.
@@ -201,13 +201,13 @@ func (s *AdminServer) Start(ctx context.Context) error {
 // generateSelfSignedTLSConfig generates a self-signed TLS certificate for testing.
 func generateSelfSignedTLSConfig() (*tls.Config, error) {
 	// Generate ECDSA P-256 key pair.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate private key: %w", err)
 	}
 
 	// Create certificate template.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilMagic.TLSSelfSignedCertSerialNumberBits))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -218,7 +218,7 @@ func generateSelfSignedTLSConfig() (*tls.Config, error) {
 			Organization: []string{"CryptoUtil Test"},
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(time.Duration(cryptoutilMagic.TLSTestEndEntityCertValidity1Day*cryptoutilMagic.HoursPerDay) * time.Hour),
+		NotAfter:              time.Now().Add(time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Day*cryptoutilSharedMagic.HoursPerDay) * time.Hour),
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
@@ -227,7 +227,7 @@ func generateSelfSignedTLSConfig() (*tls.Config, error) {
 	}
 
 	// Create self-signed certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate: %w", err)
 	}

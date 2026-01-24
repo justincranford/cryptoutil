@@ -5,7 +5,7 @@
 package idp
 
 import (
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // RegisterRoutes registers all OIDC identity provider routes.

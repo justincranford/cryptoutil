@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -171,7 +171,7 @@ func parseScaling(scalingStr string) (map[string]int, error) {
 	pairs := strings.Split(scalingStr, ",")
 	for _, pair := range pairs {
 		parts := strings.Split(strings.TrimSpace(pair), "=")
-		if len(parts) != cryptoutilMagic.ScalingPairParts {
+		if len(parts) != cryptoutilSharedMagic.ScalingPairParts {
 			return nil, fmt.Errorf("invalid scaling format: %s (expected service=count)", pair)
 		}
 

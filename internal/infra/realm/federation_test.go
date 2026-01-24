@@ -6,8 +6,8 @@ package realm
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
+	json "encoding/json"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 

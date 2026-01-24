@@ -7,13 +7,13 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiIdentityRs "cryptoutil/api/identity/rs"

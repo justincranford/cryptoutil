@@ -7,7 +7,7 @@ package service
 import (
 	"testing"
 
-	"cryptoutil/internal/jose/domain"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -126,7 +126,7 @@ func TestRotateMaterial_AtLimit(t *testing.T) {
 
 	// Also need to add fake material rows for count check.
 	for i := 1; i < MaxMaterialsPerElasticJWK; i++ {
-		material := &domain.MaterialJWK{
+		material := &cryptoutilJoseDomain.MaterialJWK{
 			ID:             googleUuid.New(),
 			ElasticJWKID:   createResp.ElasticJWK.ID,
 			MaterialKID:    googleUuid.New().String(),

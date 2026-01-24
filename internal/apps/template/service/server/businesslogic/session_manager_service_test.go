@@ -14,20 +14,20 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // setupTelemetryService creates a TelemetryService for testing.
-func setupTelemetryService(t *testing.T) *cryptoutilTelemetry.TelemetryService {
+func setupTelemetryService(t *testing.T) *cryptoutilSharedTelemetry.TelemetryService {
 	t.Helper()
 
 	ctx := context.Background()
-	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -38,11 +38,11 @@ func setupTelemetryService(t *testing.T) *cryptoutilTelemetry.TelemetryService {
 }
 
 // setupJWKGenService creates a JWKGenService for testing.
-func setupJWKGenService(t *testing.T, telemetrySvc *cryptoutilTelemetry.TelemetryService) *cryptoutilJose.JWKGenService {
+func setupJWKGenService(t *testing.T, telemetrySvc *cryptoutilSharedTelemetry.TelemetryService) *cryptoutilSharedCryptoJose.JWKGenService {
 	t.Helper()
 
 	ctx := context.Background()
-	jwkGenSvc, err := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -53,7 +53,7 @@ func setupJWKGenService(t *testing.T, telemetrySvc *cryptoutilTelemetry.Telemetr
 }
 
 // setupBarrierService creates a BarrierService for testing.
-func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTelemetry.TelemetryService, jwkGenSvc *cryptoutilJose.JWKGenService) *cryptoutilTemplateBarrier.Service {
+func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilSharedTelemetry.TelemetryService, jwkGenSvc *cryptoutilSharedCryptoJose.JWKGenService) *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	t.Helper()
 
 	ctx := context.Background()
@@ -90,7 +90,7 @@ func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTele
 	require.NoError(t, err)
 
 	// Create unseal JWK.
-	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
@@ -101,7 +101,7 @@ func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTele
 	})
 
 	// Create barrier repository.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -109,7 +109,7 @@ func setupBarrierService(t *testing.T, db *gorm.DB, telemetrySvc *cryptoutilTele
 	})
 
 	// Create barrier service.
-	barrierSvc, err := cryptoutilTemplateBarrier.NewService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealService)
+	barrierSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(ctx, telemetrySvc, jwkGenSvc, barrierRepo, unsealService)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -171,7 +171,7 @@ func TestSessionManagerService_IssueBrowserSessionWithTenant_NilContext(t *testi
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	//nolint:staticcheck // SA1012: Intentionally passing nil context to test validation.
@@ -187,7 +187,7 @@ func TestSessionManagerService_IssueBrowserSessionWithTenant_EmptyUserID(t *test
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -203,7 +203,7 @@ func TestSessionManagerService_IssueBrowserSessionWithTenant_Success(t *testing.
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -223,7 +223,7 @@ func TestSessionManagerService_ValidateBrowserSession_NilContext(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	//nolint:staticcheck // SA1012: Intentionally passing nil context to test validation.
@@ -239,7 +239,7 @@ func TestSessionManagerService_ValidateBrowserSession_EmptyToken(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -255,7 +255,7 @@ func TestSessionManagerService_ValidateBrowserSession_Success(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -284,7 +284,7 @@ func TestSessionManagerService_IssueServiceSessionWithTenant_NilContext(t *testi
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	//nolint:staticcheck // SA1012: Intentionally passing nil context to test validation.
@@ -300,7 +300,7 @@ func TestSessionManagerService_IssueServiceSessionWithTenant_EmptyClientID(t *te
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -316,7 +316,7 @@ func TestSessionManagerService_IssueServiceSessionWithTenant_Success(t *testing.
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -335,7 +335,7 @@ func TestSessionManagerService_ValidateServiceSession_NilContext(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	//nolint:staticcheck // SA1012: Intentionally passing nil context to test validation.
@@ -351,7 +351,7 @@ func TestSessionManagerService_ValidateServiceSession_EmptyToken(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -367,7 +367,7 @@ func TestSessionManagerService_ValidateServiceSession_Success(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()
@@ -396,7 +396,7 @@ func TestSessionManagerService_CleanupExpiredSessions_NilContext(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	//nolint:staticcheck // SA1012: Intentionally passing nil context to test validation.
@@ -411,7 +411,7 @@ func TestSessionManagerService_CleanupExpiredSessions_Success(t *testing.T) {
 	t.Parallel()
 
 	svc := &SessionManagerService{
-		sessionManager: setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE),
+		sessionManager: setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
 	}
 
 	ctx := context.Background()

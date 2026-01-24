@@ -9,7 +9,7 @@ import (
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -130,7 +130,7 @@ func TestSaveLoadCircularDepCache_RoundTrip(t *testing.T) {
 	tmpFile := filepath.Join(t.TempDir(), "cache.json")
 
 	// Create cache data.
-	original := cryptoutilMagic.CircularDepCache{
+	original := cryptoutilSharedMagic.CircularDepCache{
 		LastCheck:       time.Now().UTC().Truncate(time.Second), // Truncate to avoid precision loss.
 		GoModModTime:    time.Now().UTC().Add(-1 * time.Hour).Truncate(time.Second),
 		HasCircularDeps: true,
@@ -164,7 +164,7 @@ func TestSaveCircularDepCache_CreateDirectory(t *testing.T) {
 	tmpDir := t.TempDir()
 	cacheFile := filepath.Join(tmpDir, "subdir", "cache.json")
 
-	cache := cryptoutilMagic.CircularDepCache{
+	cache := cryptoutilSharedMagic.CircularDepCache{
 		LastCheck:       time.Now().UTC(),
 		GoModModTime:    time.Now().UTC(),
 		HasCircularDeps: false,

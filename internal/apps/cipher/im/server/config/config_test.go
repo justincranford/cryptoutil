@@ -8,14 +8,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestDefaultTestConfig(t *testing.T) {
 	t.Parallel()
 
-	settings := config.DefaultTestConfig()
+	settings := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
 	require.NotNil(t, settings)
 	require.NotNil(t, settings.ServiceTemplateServerSettings)
@@ -43,7 +43,7 @@ func TestNewTestConfig_CustomValues(t *testing.T) {
 	bindPort := uint16(8888)
 	devMode := false
 
-	settings := config.NewTestConfig(bindAddr, bindPort, devMode)
+	settings := cryptoutilAppsCipherImServerConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	require.NotNil(t, settings)
 	require.Equal(t, bindAddr, settings.BindPublicAddress)
@@ -59,7 +59,7 @@ func TestNewTestConfig_CustomValues(t *testing.T) {
 func TestNewTestConfig_OTLPServiceOverride(t *testing.T) {
 	t.Parallel()
 
-	settings := config.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsCipherImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	require.NotNil(t, settings)
 	require.Equal(t, cryptoutilSharedMagic.OTLPServiceCipherIM, settings.OTLPService)
@@ -70,7 +70,7 @@ func TestNewTestConfig_ZeroValue(t *testing.T) {
 
 	// NewTestConfig validates addresses aren't empty (security requirement).
 	// Use minimal valid addresses instead of empty strings.
-	settings := config.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, false)
+	settings := cryptoutilAppsCipherImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, false)
 
 	require.NotNil(t, settings)
 	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, settings.BindPublicAddress)
@@ -89,8 +89,8 @@ func TestDefaultTestConfig_PortAllocation(t *testing.T) {
 	t.Parallel()
 
 	// Create two instances to verify they don't conflict.
-	settings1 := config.DefaultTestConfig()
-	settings2 := config.DefaultTestConfig()
+	settings1 := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
+	settings2 := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
 	require.NotNil(t, settings1)
 	require.NotNil(t, settings2)
@@ -111,7 +111,7 @@ func TestParse_HappyPath(t *testing.T) {
 		"--bind-public-port", "8080",
 	}
 
-	settings, err := config.Parse(args, false)
+	settings, err := cryptoutilAppsCipherImServerConfig.Parse(args, false)
 
 	require.NoError(t, err)
 	require.NotNil(t, settings)
@@ -133,7 +133,7 @@ func TestParse_HappyPath(t *testing.T) {
 func TestNewTestConfig_InheritedTemplateSettings(t *testing.T) {
 	t.Parallel()
 
-	settings := config.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8888, false)
+	settings := cryptoutilAppsCipherImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8888, false)
 
 	require.NotNil(t, settings)
 	require.NotNil(t, settings.ServiceTemplateServerSettings)
@@ -151,7 +151,7 @@ func TestNewTestConfig_InheritedTemplateSettings(t *testing.T) {
 func TestNewTestConfig_MessageConstraints(t *testing.T) {
 	t.Parallel()
 
-	settings := config.DefaultTestConfig()
+	settings := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
 	require.NotNil(t, settings)
 
@@ -167,7 +167,7 @@ func TestNewTestConfig_MessageConstraints(t *testing.T) {
 func TestNewTestConfig_MessageJWEAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	settings := config.DefaultTestConfig()
+	settings := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
 	require.NotNil(t, settings)
 	require.NotEmpty(t, settings.MessageJWEAlgorithm)

@@ -19,14 +19,14 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 var (
@@ -34,11 +34,11 @@ var (
 	testCtxCancel        context.CancelFunc
 	testSQLDB            *sql.DB
 	testDB               *gorm.DB
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testJWKGenService    *cryptoutilJose.JWKGenService
-	testBarrierService   *cryptoutilTemplateBarrier.Service
-	testElasticRepo      repository.ElasticJWKRepository
-	testMaterialRepo     repository.MaterialJWKRepository
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
+	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
+	testBarrierService   *cryptoutilAppsTemplateServiceServerBarrier.Service
+	testElasticRepo      cryptoutilJoseRepository.ElasticJWKRepository
+	testMaterialRepo     cryptoutilJoseRepository.MaterialJWKRepository
 	testElasticJWKSvc    *ElasticJWKService
 )
 
@@ -63,8 +63,8 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to set busy timeout: " + err.Error())
 	}
 
-	testSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	testSQLDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.
@@ -81,28 +81,28 @@ func TestMain(m *testing.M) {
 	}
 
 	// Auto-migrate domain models.
-	if err := testDB.AutoMigrate(&domain.ElasticJWK{}, &domain.MaterialJWK{}); err != nil {
+	if err := testDB.AutoMigrate(&cryptoutilJoseDomain.ElasticJWK{}, &cryptoutilJoseDomain.MaterialJWK{}); err != nil {
 		panic("TestMain: failed to migrate domain models: " + err.Error())
 	}
 
 	// Initialize telemetry.
-	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	telemetrySettings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	testTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(testCtx, telemetrySettings)
+	testTelemetryService, err = cryptoutilSharedTelemetry.NewTelemetryService(testCtx, telemetrySettings)
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
 	defer testTelemetryService.Shutdown()
 
 	// Initialize JWK Generation Service.
-	testJWKGenService, err = cryptoutilJose.NewJWKGenService(testCtx, testTelemetryService, false)
+	testJWKGenService, err = cryptoutilSharedCryptoJose.NewJWKGenService(testCtx, testTelemetryService, false)
 	if err != nil {
 		panic("TestMain: failed to create JWK service: " + err.Error())
 	}
 	defer testJWKGenService.Shutdown()
 
 	// Initialize Barrier Service.
-	_, testUnsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, testUnsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	if err != nil {
 		panic("TestMain: failed to generate test unseal JWK: " + err.Error())
 	}
@@ -113,21 +113,21 @@ func TestMain(m *testing.M) {
 	}
 	defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
-	testBarrierService, err = cryptoutilTemplateBarrier.NewService(testCtx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
+	testBarrierService, err = cryptoutilAppsTemplateServiceServerBarrier.NewService(testCtx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}
 	defer testBarrierService.Shutdown()
 
 	// Initialize repositories.
-	testElasticRepo = repository.NewElasticJWKRepository(testDB)
-	testMaterialRepo = repository.NewMaterialJWKRepository(testDB)
+	testElasticRepo = cryptoutilJoseRepository.NewElasticJWKRepository(testDB)
+	testMaterialRepo = cryptoutilJoseRepository.NewMaterialJWKRepository(testDB)
 
 	// Initialize ElasticJWKService.
 	testElasticJWKSvc = NewElasticJWKService(

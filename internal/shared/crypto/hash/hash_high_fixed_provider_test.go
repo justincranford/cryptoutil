@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +21,7 @@ type highEntropyTest struct {
 func randomHighEntropyValue(t *testing.T, length int) string {
 	t.Helper()
 
-	value, err := random.GenerateString(length)
+	value, err := cryptoutilSharedUtilRandom.GenerateString(length)
 	require.NoError(t, err)
 
 	return value
@@ -30,10 +30,10 @@ func randomHighEntropyValue(t *testing.T, length int) string {
 func highEntropyTests(t *testing.T) []highEntropyTest {
 	t.Helper()
 
-	randomValue1, err := random.GenerateString(16)
+	randomValue1, err := cryptoutilSharedUtilRandom.GenerateString(16)
 	require.NoError(t, err)
 
-	randomValue2, err := random.GenerateString(256)
+	randomValue2, err := cryptoutilSharedUtilRandom.GenerateString(256)
 	require.NoError(t, err)
 
 	return []highEntropyTest{
@@ -111,7 +111,7 @@ func TestHashSecretHKDFFixedHigh_Determinism(t *testing.T) {
 	t.Parallel()
 
 	// Generate high-entropy test value (simulates API key/token)
-	value, err := random.GenerateString(36)
+	value, err := cryptoutilSharedUtilRandom.GenerateString(36)
 	require.NoError(t, err)
 
 	fixedInfo := []byte("deterministic-info-high")
@@ -211,7 +211,7 @@ func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	t.Parallel()
 
 	// Generate high-entropy test value (simulates API key/token)
-	secret, err := random.GenerateString(36)
+	secret, err := cryptoutilSharedUtilRandom.GenerateString(36)
 	require.NoError(t, err)
 
 	// Generate hash.
@@ -235,7 +235,7 @@ func TestHashHighEntropyDeterministic_CrossVerification(t *testing.T) {
 	require.True(t, match2, "hash2 should verify with correct secret")
 
 	// Verify hashes fail with wrong secret.
-	wrongSecret, err := random.GenerateString(36)
+	wrongSecret, err := cryptoutilSharedUtilRandom.GenerateString(36)
 	require.NoError(t, err)
 
 	matchWrong1, err := VerifySecretHKDFFixedHigh(hash1, wrongSecret)

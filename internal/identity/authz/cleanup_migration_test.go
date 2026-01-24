@@ -10,13 +10,13 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestMigrateClientSecrets_Success validates client secret migration from legacy to PBKDF2.
@@ -50,7 +50,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 
 	// Create test client with legacy bcrypt hash (simulated with PBKDF2 for testing)
 	clientUUID := googleUuid.Must(googleUuid.NewV7())
-	legacyHash, err := cryptoutilHash.HashSecretPBKDF2("legacy-secret")
+	legacyHash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2("legacy-secret")
 	require.NoError(t, err, "Failed to hash legacy secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{
@@ -72,7 +72,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 	err = clientRepo.Create(ctx, testClient)
 	require.NoError(t, err, "Failed to create test client")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err = svc.Start(context.Background())
@@ -91,7 +91,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 	migratedClient, err := clientRepo.GetByClientID(ctx, testClient.ClientID)
 	require.NoError(t, err, "Failed to retrieve migrated client")
 	require.NotEmpty(t, migratedClient.ClientSecret, "Client secret should not be empty")
-	require.Contains(t, migratedClient.ClientSecret, "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$", "Client secret should use PBKDF2 format")
+	require.Contains(t, migratedClient.ClientSecret, "$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$", "Client secret should use PBKDF2 format")
 }
 
 // TestMigrateClientSecrets_NoClients validates migration with empty database.
@@ -123,7 +123,7 @@ func TestMigrateClientSecrets_NoClients(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err = svc.Start(context.Background())

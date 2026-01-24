@@ -2,14 +2,14 @@ package apis
 
 import (
 	"bytes"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"testing"
 
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -23,7 +23,7 @@ func TestHandleListJoinRequests_MissingTenantID(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
@@ -56,7 +56,7 @@ func TestHandleListJoinRequests_InvalidTenantIDType(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
@@ -91,7 +91,7 @@ func TestHandleProcessJoinRequest_MissingUserID(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()
@@ -130,7 +130,7 @@ func TestHandleProcessJoinRequest_InvalidUserIDType(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 	handlers := NewRegistrationHandlers(registrationService)
 
 	app := fiber.New()

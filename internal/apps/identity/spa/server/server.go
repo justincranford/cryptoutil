@@ -10,41 +10,41 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
+	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity/spa/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // SPAServer wraps the template Application with SPA-specific functionality.
 // SPA serves static files for Single Page Application frontends.
 type SPAServer struct {
-	cfg              *cryptoutilSPAConfig.IdentitySPAServerSettings
+	cfg              *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings
 	app              *cryptoutilAppsTemplateServiceServer.Application
 	db               *gorm.DB
-	barrierService   *cryptoutilBarrier.Service
-	jwkGenService    *cryptoutilJose.JWKGenService
-	telemetryService *cryptoutilTelemetry.TelemetryService
+	barrierService   *cryptoutilAppsTemplateServiceServerBarrier.Service
+	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService
 	shutdownCore     func()
 }
 
 // NewFromConfig creates a new SPA server from configuration.
-func NewFromConfig(ctx context.Context, cfg *cryptoutilSPAConfig.IdentitySPAServerSettings) (*SPAServer, error) {
+func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings) (*SPAServer, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("config is nil")
 	}
 
 	// Create server builder with template configuration.
-	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
 	// No domain-specific migrations for SPA (static file server).
 
 	// Register public route registration for SPA endpoints.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		_ *cryptoutilTemplateBuilder.ServiceResources,
+		_ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 	) error {
 		// Create SPA public server.
 		publicServer := NewPublicServer(base, cfg)
@@ -117,22 +117,22 @@ func (s *SPAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 }
 
 // JWKGen returns the JWK generation service for tests.
-func (s *SPAServer) JWKGen() *cryptoutilJose.JWKGenService {
+func (s *SPAServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return s.jwkGenService
 }
 
 // Telemetry returns the telemetry service for tests.
-func (s *SPAServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (s *SPAServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
 // Barrier returns the barrier encryption service for tests.
-func (s *SPAServer) Barrier() *cryptoutilBarrier.Service {
+func (s *SPAServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	return s.barrierService
 }
 
 // Config returns the server configuration for tests.
-func (s *SPAServer) Config() *cryptoutilSPAConfig.IdentitySPAServerSettings {
+func (s *SPAServer) Config() *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings {
 	return s.cfg
 }
 

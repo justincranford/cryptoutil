@@ -8,35 +8,35 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
-	"net/http"
+	json "encoding/json"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Helper function to create test TLS material.
-func createTestTLSMaterial(t *testing.T) *cryptoutilConfig.TLSMaterial {
+func createTestTLSMaterial(t *testing.T) *cryptoutilAppsTemplateServiceConfig.TLSMaterial {
 	t.Helper()
 
 	// Generate TLS settings with auto-generated CA hierarchy.
-	tlsSettings, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+	tlsSettings, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost"},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tlsSettings)
 
 	// Convert TLSGeneratedSettings (PEM bytes) to TLSMaterial (parsed tls.Config).
-	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsSettings)
+	tlsMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(tlsSettings)
 	require.NoError(t, err)
 	require.NotNil(t, tlsMaterial)
 
@@ -76,7 +76,7 @@ func TestNewPublicServerBase_NilTLSMaterial(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: nil,
 	}
@@ -93,7 +93,7 @@ func TestNewPublicServerBase_Success(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -110,7 +110,7 @@ func TestPublicServerBase_HandleServiceHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -139,7 +139,7 @@ func TestPublicServerBase_HandleServiceHealth_ShuttingDown(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -173,7 +173,7 @@ func TestPublicServerBase_HandleBrowserHealth_Healthy(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -202,7 +202,7 @@ func TestPublicServerBase_HandleBrowserHealth_ShuttingDown(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -236,7 +236,7 @@ func TestPublicServerBase_Shutdown_NotStarted(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -254,7 +254,7 @@ func TestPublicServerBase_Shutdown_AlreadyShutdown(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -277,7 +277,7 @@ func TestPublicServerBase_ActualPort_BeforeStart(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -294,7 +294,7 @@ func TestPublicServerBase_PublicBaseURL_BeforeStart(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -311,7 +311,7 @@ func TestPublicServerBase_App(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -328,7 +328,7 @@ func TestPublicServerBase_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -347,7 +347,7 @@ func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 	t.Parallel()
 
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
@@ -394,7 +394,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 
 	tlsMaterial := createTestTLSMaterial(t)
 	cfg := &PublicServerConfig{
-		BindAddress: cryptoutilMagic.IPv4Loopback,
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
 		Port:        0,
 		TLSMaterial: tlsMaterial,
 	}
@@ -452,7 +452,7 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 }
 
 // createTestHTTPClient creates an HTTP client that trusts the test CA.
-func createTestHTTPClient(t *testing.T, tlsMaterial *cryptoutilConfig.TLSMaterial) *http.Client {
+func createTestHTTPClient(t *testing.T, tlsMaterial *cryptoutilAppsTemplateServiceConfig.TLSMaterial) *http.Client {
 	t.Helper()
 
 	return &http.Client{

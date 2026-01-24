@@ -9,10 +9,10 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	jose "github.com/go-jose/go-jose/v4"
 	googleUuid "github.com/google/uuid"
@@ -34,14 +34,14 @@ type JWSService interface {
 type jwsServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilBarrier.Service
+	barrierSvc   *cryptoutilAppsTemplateServiceServerBarrier.Service
 }
 
 // NewJWSService creates a new JWSService.
 func NewJWSService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilBarrier.Service,
+	barrierSvc *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) JWSService {
 	return &jwsServiceImpl{
 		elasticRepo:  elasticRepo,
@@ -64,7 +64,7 @@ func (s *jwsServiceImpl) Sign(ctx context.Context, tenantID, elasticJWKID google
 	}
 
 	// Verify key use is for signing.
-	if elasticJWK.Use != joseJADomain.KeyUseSig {
+	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseSig {
 		return "", fmt.Errorf("elastic JWK is not configured for signing (use=%s)", elasticJWK.Use)
 	}
 
@@ -105,7 +105,7 @@ func (s *jwsServiceImpl) Verify(ctx context.Context, tenantID, elasticJWKID goog
 	}
 
 	// Try to verify with all available materials.
-	materials, _, err := s.materialRepo.ListByElasticJWK(ctx, elasticJWKID, 0, cryptoutilMagic.JoseJADefaultListLimit)
+	materials, _, err := s.materialRepo.ListByElasticJWK(ctx, elasticJWKID, 0, cryptoutilSharedMagic.JoseJADefaultListLimit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list materials: %w", err)
 	}
@@ -134,7 +134,7 @@ func (s *jwsServiceImpl) SignWithKID(ctx context.Context, tenantID, elasticJWKID
 	}
 
 	// Verify key use is for signing.
-	if elasticJWK.Use != joseJADomain.KeyUseSig {
+	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseSig {
 		return "", fmt.Errorf("elastic JWK is not configured for signing (use=%s)", elasticJWK.Use)
 	}
 
@@ -153,7 +153,7 @@ func (s *jwsServiceImpl) SignWithKID(ctx context.Context, tenantID, elasticJWKID
 }
 
 // signWithMaterial signs payload using a specific material key.
-func (s *jwsServiceImpl) signWithMaterial(ctx context.Context, elasticJWK *joseJADomain.ElasticJWK, material *joseJADomain.MaterialJWK, payload []byte) (string, error) {
+func (s *jwsServiceImpl) signWithMaterial(ctx context.Context, elasticJWK *cryptoutilAppsJoseJaDomain.ElasticJWK, material *cryptoutilAppsJoseJaDomain.MaterialJWK, payload []byte) (string, error) {
 	// Decode base64 encoded JWE string.
 	privateJWKEncrypted, err := base64.StdEncoding.DecodeString(material.PrivateJWKJWE)
 	if err != nil {
@@ -203,7 +203,7 @@ func (s *jwsServiceImpl) signWithMaterial(ctx context.Context, elasticJWK *joseJ
 }
 
 // verifyWithMaterial verifies a JWS with a specific material key.
-func (s *jwsServiceImpl) verifyWithMaterial(ctx context.Context, jwsObject *jose.JSONWebSignature, material *joseJADomain.MaterialJWK) ([]byte, error) {
+func (s *jwsServiceImpl) verifyWithMaterial(ctx context.Context, jwsObject *jose.JSONWebSignature, material *cryptoutilAppsJoseJaDomain.MaterialJWK) ([]byte, error) {
 	// Decode base64 encoded JWE string.
 	publicJWKEncrypted, err := base64.StdEncoding.DecodeString(material.PublicJWKJWE)
 	if err != nil {

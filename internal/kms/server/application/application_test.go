@@ -8,27 +8,27 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
+	http "net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilClient "cryptoutil/internal/kms/client"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilKmsClient "cryptoutil/internal/kms/client"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	testSettings                   = cryptoutilConfig.RequireNewForTest("application_test")
+	testSettings                   = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("application_test")
 	startServerListenerApplication *ServerApplicationListener
 	testServerPublicURL            string
 	testServerPrivateURL           string
@@ -50,7 +50,7 @@ func TestMain(m *testing.M) {
 	testServerPublicURL = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
 	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
 
-	cryptoutilClient.WaitUntilReady(&testServerPrivateURL, cryptoutilMagic.TimeoutTestServerReady, cryptoutilMagic.TimeoutTestServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+	cryptoutilKmsClient.WaitUntilReady(&testServerPrivateURL, cryptoutilSharedMagic.TimeoutTestServerReady, cryptoutilSharedMagic.TimeoutTestServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 	exitCode := m.Run()
 	if exitCode != 0 {
@@ -220,10 +220,10 @@ func TestHealthChecks(t *testing.T) {
 		validateBody   func(t *testing.T, body []byte)
 	}{
 		{
-			name:     "Liveness Check (" + cryptoutilMagic.PrivateAdminLivezRequestPath + ")",
-			endpoint: cryptoutilMagic.PrivateAdminLivezRequestPath,
+			name:     "Liveness Check (" + cryptoutilSharedMagic.PrivateAdminLivezRequestPath + ")",
+			endpoint: cryptoutilSharedMagic.PrivateAdminLivezRequestPath,
 			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-				return cryptoutilSharedUtilNetwork.HTTPGetLivez(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
+				return cryptoutilSharedUtilNetwork.HTTPGetLivez(context.Background(), *baseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
@@ -247,10 +247,10 @@ func TestHealthChecks(t *testing.T) {
 			},
 		},
 		{
-			name:     "Readiness Check (" + cryptoutilMagic.PrivateAdminReadyzRequestPath + ")",
-			endpoint: cryptoutilMagic.PrivateAdminReadyzRequestPath,
+			name:     "Readiness Check (" + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath + ")",
+			endpoint: cryptoutilSharedMagic.PrivateAdminReadyzRequestPath,
 			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-				return cryptoutilSharedUtilNetwork.HTTPGetReadyz(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
+				return cryptoutilSharedUtilNetwork.HTTPGetReadyz(context.Background(), *baseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {

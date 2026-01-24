@@ -9,20 +9,20 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"time"
 
 	"gorm.io/gorm"
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	"cryptoutil/internal/apps/cipher/im/server"
-	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestServerResources holds shared resources created by SetupTestServer.
@@ -32,14 +32,14 @@ type TestServerResources struct {
 	SQLDB *sql.DB
 
 	// Server resources
-	CipherIMServer *server.CipherIMServer
+	CipherIMServer *cryptoutilAppsCipherImServer.CipherIMServer
 	BaseURL        string
 	AdminURL       string
 
 	// Shared services
-	JWKGenService    *cryptoutilJose.JWKGenService
-	TelemetryService *cryptoutilTelemetry.TelemetryService
-	TLSCfg           *cryptoutilTLSGenerator.TLSGeneratedSettings
+	JWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
+	TelemetryService *cryptoutilSharedTelemetry.TelemetryService
+	TLSCfg           *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
 
 	// HTTP client for tests
 	HTTPClient *http.Client
@@ -70,23 +70,23 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 	// Generate TLS config for HTTP client.
 	var err error
 
-	resources.TLSCfg, err = cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
-		[]string{cryptoutilMagic.HostnameLocalhost},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+	resources.TLSCfg, err = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{cryptoutilSharedMagic.HostnameLocalhost},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS config: %w", err)
 	}
 
 	// Create CipherImServerSettings with test settings.
-	cfg := &config.CipherImServerSettings{
-		ServiceTemplateServerSettings: cryptoutilE2E.NewTestServerSettingsWithService("cipher-im-test"),
+	cfg := &cryptoutilAppsCipherImServerConfig.CipherImServerSettings{
+		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceTestingE2e.NewTestServerSettingsWithService("cipher-im-test"),
 	}
 	cfg.DatabaseURL = dsn // Set database URL for NewFromConfig
 
 	// Create full server using NewFromConfig.
-	resources.CipherIMServer, err = server.NewFromConfig(ctx, cfg)
+	resources.CipherIMServer, err = cryptoutilAppsCipherImServer.NewFromConfig(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CipherIMServer: %w", err)
 	}
@@ -155,8 +155,8 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 		return nil, fmt.Errorf("admin server did not bind to port")
 	}
 
-	resources.BaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, publicPort)
-	resources.AdminURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, adminPort)
+	resources.BaseURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, publicPort)
+	resources.AdminURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, adminPort)
 
 	// Create HTTP client with test TLS config.
 	resources.HTTPClient = &http.Client{
@@ -165,7 +165,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout,
+		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout,
 	}
 
 	// Setup shutdown function.
@@ -190,10 +190,10 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 //	CipherImServerSettings := &config.CipherImServerSettings{...}
 //	server := StartCipherIMService(CipherImServerSettings)
 //	defer server.Shutdown(context.Background())
-func StartCipherIMService(CipherImServerSettings *config.CipherImServerSettings) *server.CipherIMServer {
+func StartCipherIMService(CipherImServerSettings *cryptoutilAppsCipherImServerConfig.CipherImServerSettings) *cryptoutilAppsCipherImServer.CipherIMServer {
 	ctx := context.Background()
 
-	cipherImServer, err := server.NewFromConfig(ctx, CipherImServerSettings)
+	cipherImServer, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, CipherImServerSettings)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create server: %v", err))
 	}

@@ -3,17 +3,17 @@
 package handler
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCAMagic "cryptoutil/internal/ca/magic"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
@@ -72,19 +72,19 @@ func TestMapAPIRevocationReasonToStorage(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		input    cryptoutilCAServer.RevocationReason
+		input    cryptoutilApiCaServer.RevocationReason
 		expected cryptoutilCAStorage.RevocationReason
 	}{
-		{"key_compromise", cryptoutilCAServer.KeyCompromise, cryptoutilCAStorage.ReasonKeyCompromise},
-		{"ca_compromise", cryptoutilCAServer.CACompromise, cryptoutilCAStorage.ReasonCACompromise},
-		{"affiliation_changed", cryptoutilCAServer.AffiliationChanged, cryptoutilCAStorage.ReasonAffiliationChanged},
-		{"superseded", cryptoutilCAServer.Superseded, cryptoutilCAStorage.ReasonSuperseded},
-		{"cessation_of_operation", cryptoutilCAServer.CessationOfOperation, cryptoutilCAStorage.ReasonCessationOfOperation},
-		{"certificate_hold", cryptoutilCAServer.CertificateHold, cryptoutilCAStorage.ReasonCertificateHold},
-		{"remove_from_crl", cryptoutilCAServer.RemoveFromCRL, cryptoutilCAStorage.ReasonRemoveFromCRL},
-		{"privilege_withdrawn", cryptoutilCAServer.PrivilegeWithdrawn, cryptoutilCAStorage.ReasonPrivilegeWithdrawn},
-		{"aa_compromise", cryptoutilCAServer.AaCompromise, cryptoutilCAStorage.ReasonAACompromise},
-		{"unspecified", cryptoutilCAServer.Unspecified, cryptoutilCAStorage.ReasonUnspecified},
+		{"key_compromise", cryptoutilApiCaServer.KeyCompromise, cryptoutilCAStorage.ReasonKeyCompromise},
+		{"ca_compromise", cryptoutilApiCaServer.CACompromise, cryptoutilCAStorage.ReasonCACompromise},
+		{"affiliation_changed", cryptoutilApiCaServer.AffiliationChanged, cryptoutilCAStorage.ReasonAffiliationChanged},
+		{"superseded", cryptoutilApiCaServer.Superseded, cryptoutilCAStorage.ReasonSuperseded},
+		{"cessation_of_operation", cryptoutilApiCaServer.CessationOfOperation, cryptoutilCAStorage.ReasonCessationOfOperation},
+		{"certificate_hold", cryptoutilApiCaServer.CertificateHold, cryptoutilCAStorage.ReasonCertificateHold},
+		{"remove_from_crl", cryptoutilApiCaServer.RemoveFromCRL, cryptoutilCAStorage.ReasonRemoveFromCRL},
+		{"privilege_withdrawn", cryptoutilApiCaServer.PrivilegeWithdrawn, cryptoutilCAStorage.ReasonPrivilegeWithdrawn},
+		{"aa_compromise", cryptoutilApiCaServer.AaCompromise, cryptoutilCAStorage.ReasonAACompromise},
+		{"unspecified", cryptoutilApiCaServer.Unspecified, cryptoutilCAStorage.ReasonUnspecified},
 		{"unknown_defaults_to_unspecified", "unknown_reason", cryptoutilCAStorage.ReasonUnspecified},
 	}
 
@@ -111,7 +111,7 @@ func TestGetKeyInfo(t *testing.T) {
 		{
 			name: "rsa_2048",
 			generateCert: func() *x509.Certificate {
-				key, _ := rsa.GenerateKey(rand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, 2048)
 
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
@@ -122,7 +122,7 @@ func TestGetKeyInfo(t *testing.T) {
 		{
 			name: "ecdsa_p256",
 			generateCert: func() *x509.Certificate {
-				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, _ := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
@@ -133,7 +133,7 @@ func TestGetKeyInfo(t *testing.T) {
 		{
 			name: "ecdsa_p384",
 			generateCert: func() *x509.Certificate {
-				key, _ := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+				key, _ := ecdsa.GenerateKey(elliptic.P384(), crand.Reader)
 
 				return &x509.Certificate{PublicKey: &key.PublicKey}
 			},
@@ -144,7 +144,7 @@ func TestGetKeyInfo(t *testing.T) {
 		{
 			name: "ed25519",
 			generateCert: func() *x509.Certificate {
-				pub, _, _ := ed25519.GenerateKey(rand.Reader)
+				pub, _, _ := ed25519.GenerateKey(crand.Reader)
 
 				return &x509.Certificate{PublicKey: pub}
 			},

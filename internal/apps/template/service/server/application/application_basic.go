@@ -9,24 +9,24 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Basic encapsulates basic service infrastructure (telemetry, unseal, JWK generation).
 // This is the foundation layer used by Core.
 type Basic struct {
-	TelemetryService  *cryptoutilTelemetry.TelemetryService
+	TelemetryService  *cryptoutilSharedTelemetry.TelemetryService
 	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
-	JWKGenService     *cryptoutilJose.JWKGenService
-	Settings          *cryptoutilConfig.ServiceTemplateServerSettings
+	JWKGenService     *cryptoutilSharedCryptoJose.JWKGenService
+	Settings          *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 }
 
 // StartBasic initializes basic service infrastructure.
 // This includes telemetry, unseal keys, and JWK generation services.
-func StartBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Basic, error) {
+func StartBasic(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*Basic, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {
@@ -36,7 +36,7 @@ func StartBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateS
 	app := &Basic{Settings: settings}
 
 	// Initialize telemetry service.
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
 	}
@@ -55,7 +55,7 @@ func StartBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateS
 	app.UnsealKeysService = unsealKeysService
 
 	// Initialize JWK Generation Service.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
 		app.Shutdown()

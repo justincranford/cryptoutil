@@ -6,13 +6,13 @@ package crypto
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
 	crand "crypto/rand"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"testing"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -103,15 +103,15 @@ func TestValidateOrGenerateJWEAESJWK_Generate(t *testing.T) {
 func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 	t.Parallel()
 
-	validKey256, err := cryptoutilKeyGen.GenerateAESKey(256)
+	validKey256, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 	require.NoError(t, err)
 
-	validKey128, err := cryptoutilKeyGen.GenerateAESKey(128)
+	validKey128, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(128)
 	require.NoError(t, err)
 
 	tests := []struct {
 		name        string
-		key         cryptoutilKeyGen.Key
+		key         cryptoutilSharedCryptoKeygen.Key
 		enc         *joseJwa.ContentEncryptionAlgorithm
 		alg         *joseJwa.KeyEncryptionAlgorithm
 		keyBitsLen  int
@@ -138,7 +138,7 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 		},
 		{
 			name:        "nil key bytes",
-			key:         cryptoutilKeyGen.SecretKey(nil),
+			key:         cryptoutilSharedCryptoKeygen.SecretKey(nil),
 			enc:         &EncA256GCM,
 			alg:         &AlgA256KW,
 			keyBitsLen:  256,
@@ -147,7 +147,7 @@ func TestValidateOrGenerateJWEAESJWK_Validate(t *testing.T) {
 		},
 		{
 			name:        "wrong key type",
-			key:         &cryptoutilKeyGen.KeyPair{},
+			key:         &cryptoutilSharedCryptoKeygen.KeyPair{},
 			enc:         &EncA256GCM,
 			alg:         &AlgA256KW,
 			keyBitsLen:  256,
@@ -196,7 +196,7 @@ func TestValidateOrGenerateJWEAESJWK_WrongKeyType(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: rsaKey,
 		Public:  &rsaKey.PublicKey,
 	}
@@ -211,7 +211,7 @@ func TestValidateOrGenerateJWEAESJWK_DisallowedEnc(t *testing.T) {
 	t.Parallel()
 
 	// Test enc not in allowedEncs list.
-	secretKey, err := cryptoutilKeyGen.GenerateAESKey(256)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 	require.NoError(t, err)
 
 	// Use A128GCM but only allow A256GCM.
@@ -225,7 +225,7 @@ func TestValidateOrGenerateJWEAESJWK_NilKey(t *testing.T) {
 	t.Parallel()
 
 	// Test nil key bytes.
-	var secretKey cryptoutilKeyGen.SecretKey
+	var secretKey cryptoutilSharedCryptoKeygen.SecretKey
 
 	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
 	require.Error(t, err)
@@ -237,7 +237,7 @@ func TestValidateOrGenerateJWEAESJWK_WrongLength(t *testing.T) {
 	t.Parallel()
 
 	// Test wrong length key (128 bits instead of 256 bits).
-	secretKey, err := cryptoutilKeyGen.GenerateAESKey(128)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(128)
 	require.NoError(t, err)
 
 	result, err := validateOrGenerateJWEAESJWK(secretKey, &EncA256GCM, &AlgA256KW, 256, &EncA256GCM)
@@ -308,7 +308,7 @@ func TestValidateOrGenerateJWEEcdhJWK_ValidateExistingKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid ECDH P-256 key pair.
-	validKeyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+	validKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDHKeyPair(ecdh.P256())
 	require.NoError(t, err)
 
 	// Test validation with valid key.
@@ -321,7 +321,7 @@ func TestValidateOrGenerateJWEEcdhJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use symmetric key (wrong type for ECDH).
-	symmetricKey := cryptoutilKeyGen.SecretKey(make([]byte, 32))
+	symmetricKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 32))
 
 	validated, err := validateOrGenerateJWEEcdhJWK(symmetricKey, &EncA256GCM, &AlgECDHES, ecdh.P256(), &EncA256GCM)
 	require.Error(t, err)
@@ -333,7 +333,7 @@ func TestValidateOrGenerateJWERSAJWK_ValidateExistingKey(t *testing.T) {
 	t.Parallel()
 
 	// Generate valid RSA key pair.
-	validKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	validKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	// Test validation with valid key.
@@ -346,7 +346,7 @@ func TestValidateOrGenerateJWERSAJWK_WrongKeyType(t *testing.T) {
 	t.Parallel()
 
 	// Use symmetric key (wrong type for RSA).
-	symmetricKey := cryptoutilKeyGen.SecretKey(make([]byte, 32))
+	symmetricKey := cryptoutilSharedCryptoKeygen.SecretKey(make([]byte, 32))
 
 	validated, err := validateOrGenerateJWERSAJWK(symmetricKey, &EncA256GCM, &AlgRSAOAEP, 2048, &EncA256GCM)
 	require.Error(t, err)
@@ -361,7 +361,7 @@ func TestValidateOrGenerateJWERSAJWK_NilPrivateKey(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: (*rsa.PrivateKey)(nil), // Typed nil to pass type check
 		Public:  &rsaKey.PublicKey,
 	}
@@ -379,7 +379,7 @@ func TestValidateOrGenerateJWERSAJWK_NilPublicKey(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: rsaKey,
 		Public:  (*rsa.PublicKey)(nil), // Typed nil to pass type check
 	}
@@ -397,7 +397,7 @@ func TestValidateOrGenerateJWERSAJWK_WrongPrivateKeyType(t *testing.T) {
 	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: ecdsaKey,
 		Public:  &ecdsaKey.PublicKey,
 	}
@@ -418,7 +418,7 @@ func TestValidateOrGenerateJWERSAJWK_WrongPublicKeyType(t *testing.T) {
 	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: rsaKey,
 		Public:  &ecdsaKey.PublicKey,
 	}
@@ -436,7 +436,7 @@ func TestValidateOrGenerateJWERSAJWK_DisallowedEnc(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: rsaKey,
 		Public:  &rsaKey.PublicKey,
 	}
@@ -455,7 +455,7 @@ func TestValidateOrGenerateJWEEcdhJWK_WrongPrivateKeyType(t *testing.T) {
 	rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: rsaKey,
 		Public:  &rsaKey.PublicKey,
 	}
@@ -476,7 +476,7 @@ func TestValidateOrGenerateJWEEcdhJWK_WrongPublicKeyType(t *testing.T) {
 	ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: ecdhKey,
 		Public:  &ecdsaKey.PublicKey,
 	}
@@ -494,7 +494,7 @@ func TestValidateOrGenerateJWEEcdhJWK_DisallowedEnc(t *testing.T) {
 	ecdhKey, err := ecdh.P256().GenerateKey(crand.Reader)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: ecdhKey,
 		Public:  ecdhKey.PublicKey(),
 	}
@@ -513,7 +513,7 @@ func TestValidateOrGenerateJWEEcdhJWK_NilPrivateKey(t *testing.T) {
 	ecdhPriv, err := ecdh.P256().GenerateKey(crand.Reader)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: (*ecdh.PrivateKey)(nil), // Typed nil to pass type check
 		Public:  ecdhPriv.PublicKey(),
 	}
@@ -531,7 +531,7 @@ func TestValidateOrGenerateJWEEcdhJWK_NilPublicKey(t *testing.T) {
 	ecdhPriv, err := ecdh.P256().GenerateKey(crand.Reader)
 	require.NoError(t, err)
 
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: ecdhPriv,
 		Public:  (*ecdh.PublicKey)(nil), // Typed nil to pass type check
 	}
@@ -604,7 +604,7 @@ func TestCreateJWEJWKFromKey_AESSecretKey(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.A256GCMKW()
-	key := make(cryptoutilKeyGen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
 	_, _ = crand.Read(key)
 
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, key)
@@ -622,7 +622,7 @@ func TestCreateJWEJWKFromKey_ECDHKeyPair(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.ECDH_ES_A256KW()
-	keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDHKeyPair(ecdh.P256())
 	require.NoError(t, err)
 
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
@@ -640,7 +640,7 @@ func TestCreateJWEJWKFromKey_RSAKeyPair(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.RSA_OAEP_256()
-	keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	_, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, &alg, keyPair)
@@ -661,7 +661,7 @@ func TestCreateJWEJWKFromKey_UnexpectedKeyPairPrivateType(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.A256GCMKW()
-	keyPair := &cryptoutilKeyGen.KeyPair{
+	keyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: "not-a-private-key",
 		Public:  "not-a-public-key",
 	}
@@ -676,7 +676,7 @@ func TestCreateJWEJWKFromKey_NilKid(t *testing.T) {
 
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.DIRECT()
-	key := make(cryptoutilKeyGen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
 	_, _ = crand.Read(key)
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(nil, &enc, &alg, key)
@@ -689,7 +689,7 @@ func TestCreateJWEJWKFromKey_NilAlg(t *testing.T) {
 
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
-	key := make(cryptoutilKeyGen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
 	_, _ = crand.Read(key)
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, nil, key)
@@ -702,7 +702,7 @@ func TestCreateJWEJWKFromKey_NilEnc(t *testing.T) {
 
 	kid := googleUuid.New()
 	alg := joseJwa.DIRECT()
-	key := make(cryptoutilKeyGen.SecretKey, 32)
+	key := make(cryptoutilSharedCryptoKeygen.SecretKey, 32)
 	_, _ = crand.Read(key)
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, nil, &alg, key)
@@ -729,7 +729,7 @@ func TestCreateJWEJWKFromKey_EmptySecretKey(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.DIRECT()
-	emptyKey := cryptoutilKeyGen.SecretKey("")
+	emptyKey := cryptoutilSharedCryptoKeygen.SecretKey("")
 
 	_, _, _, _, _, err := CreateJWEJWKFromKey(&kid, &enc, &alg, emptyKey)
 	require.Error(t, err)
@@ -743,7 +743,7 @@ func TestCreateJWEJWKFromKey_NilPrivateKeyPair(t *testing.T) {
 	kid := googleUuid.New()
 	enc := joseJwa.A256GCM()
 	alg := joseJwa.ECDH_ES()
-	invalidKeyPair := &cryptoutilKeyGen.KeyPair{
+	invalidKeyPair := &cryptoutilSharedCryptoKeygen.KeyPair{
 		Private: nil,
 		Public:  nil,
 	}
@@ -760,7 +760,7 @@ func TestCreateJWEJWKFromKey_InvalidEnc(t *testing.T) {
 	// Create ContentEncryptionAlgorithm not in EncToBitsLength switch.
 	invalidEnc := joseJwa.NewContentEncryptionAlgorithm("INVALID_ENC")
 	alg := joseJwa.A256KW()
-	secretKey, err := cryptoutilKeyGen.GenerateAESKey(256)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 	require.NoError(t, err)
 
 	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, &invalidEnc, &alg, secretKey)
@@ -775,7 +775,7 @@ func TestCreateJWEJWKFromKey_UnsupportedAlg(t *testing.T) {
 	enc := joseJwa.A256GCM()
 	// Create unsupported KeyEncryptionAlgorithm.
 	invalidAlg := joseJwa.NewKeyEncryptionAlgorithm("UNSUPPORTED_ALG")
-	secretKey, err := cryptoutilKeyGen.GenerateAESKey(256)
+	secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 	require.NoError(t, err)
 
 	_, _, _, _, _, err = CreateJWEJWKFromKey(&kid, &enc, &invalidAlg, secretKey)
@@ -803,7 +803,7 @@ func TestCreateJWEJWKFromKey_RSA_AllAlgorithms(t *testing.T) {
 			t.Parallel()
 
 			kid := googleUuid.New()
-			keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(tt.keySize)
+			keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(tt.keySize)
 			require.NoError(t, err)
 
 			resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &tt.enc, &tt.alg, keyPair)
@@ -840,7 +840,7 @@ func TestCreateJWEJWKFromKey_ECDH_AllCurves(t *testing.T) {
 			t.Parallel()
 
 			kid := googleUuid.New()
-			keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(tt.curve)
+			keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDHKeyPair(tt.curve)
 			require.NoError(t, err)
 
 			resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &tt.enc, &tt.alg, keyPair)
@@ -877,7 +877,7 @@ func TestCreateJWEJWKFromKey_AES_AllSizes(t *testing.T) {
 			t.Parallel()
 
 			kid := googleUuid.New()
-			secretKey, err := cryptoutilKeyGen.GenerateAESKey(tt.keySize)
+			secretKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(tt.keySize)
 			require.NoError(t, err)
 
 			resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &tt.enc, &tt.alg, secretKey)
@@ -902,7 +902,7 @@ func TestCreateJWEJWKFromKey_ErrorCases(t *testing.T) {
 
 		enc := joseJwa.A256GCM()
 		alg := joseJwa.A256KW()
-		key, err := cryptoutilKeyGen.GenerateAESKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(nil, &enc, &alg, key)
@@ -920,7 +920,7 @@ func TestCreateJWEJWKFromKey_ErrorCases(t *testing.T) {
 
 		kid := googleUuid.New()
 		alg := joseJwa.A256KW()
-		key, err := cryptoutilKeyGen.GenerateAESKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, nil, &alg, key)
@@ -938,7 +938,7 @@ func TestCreateJWEJWKFromKey_ErrorCases(t *testing.T) {
 
 		kid := googleUuid.New()
 		enc := joseJwa.A256GCM()
-		key, err := cryptoutilKeyGen.GenerateAESKey(256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 		require.NoError(t, err)
 
 		resultKid, nonPublicJWK, publicJWK, nonPublicBytes, publicBytes, err := CreateJWEJWKFromKey(&kid, &enc, nil, key)

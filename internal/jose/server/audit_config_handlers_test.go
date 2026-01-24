@@ -7,15 +7,15 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	json "encoding/json"
 	"io"
-	"net/http"
+	http "net/http"
 	"sync"
 	"testing"
 	"time"
 
 	cryptoutilJoseConfig "cryptoutil/internal/jose/config"
-	"cryptoutil/internal/jose/domain"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
 
 	"github.com/stretchr/testify/require"
 )
@@ -287,4 +287,4 @@ func TestAuditConfigHandlers_SetAuditConfig_MissingOperation(t *testing.T) {
 }
 
 // Ensure domain is imported.
-var _ = domain.AuditConfig{}
+var _ = cryptoutilJoseDomain.AuditConfig{}

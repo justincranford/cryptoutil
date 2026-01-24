@@ -6,11 +6,11 @@ package e2e
 
 import (
 	"crypto/tls"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CreateInsecureHTTPClient creates an HTTP client that trusts self-signed certificates.
@@ -26,7 +26,7 @@ func CreateInsecureHTTPClient(t *testing.T) *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout, // Increased for concurrent test execution.
+		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout, // Increased for concurrent test execution.
 	}
 }
 
@@ -41,6 +41,6 @@ func CreateInsecureHTTPClientWithTimeout(t *testing.T, timeout int64) *http.Clie
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilMagic.CipherDefaultTimeout * time.Duration(timeout),
+		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout * time.Duration(timeout),
 	}
 }

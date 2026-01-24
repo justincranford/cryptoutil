@@ -9,9 +9,9 @@ import (
 	"database/sql"
 	"testing"
 
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -38,8 +38,8 @@ func setupAuditConfigTestDB(t *testing.T) *gorm.DB {
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.
@@ -49,7 +49,7 @@ func setupAuditConfigTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Auto-migrate the AuditConfig table.
-	err = db.AutoMigrate(&domain.AuditConfig{})
+	err = db.AutoMigrate(&cryptoutilJoseDomain.AuditConfig{})
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -64,7 +64,7 @@ func TestNewAuditConfigService(t *testing.T) {
 	t.Parallel()
 
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	svc := NewAuditConfigService(repo)
 
 	require.NotNil(t, svc)
@@ -76,7 +76,7 @@ func TestAuditConfigService_GetConfig(t *testing.T) {
 	t.Parallel()
 
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	svc := NewAuditConfigService(repo)
 	ctx := context.Background()
 	tenantID := googleUuid.New()
@@ -101,7 +101,7 @@ func TestAuditConfigService_GetConfig(t *testing.T) {
 			name:      "returns existing config",
 			operation: AuditOperationSign,
 			setupConfig: func() {
-				config := &domain.AuditConfig{
+				config := &cryptoutilJoseDomain.AuditConfig{
 					TenantID:     tenantID,
 					Operation:    AuditOperationSign,
 					Enabled:      false,
@@ -148,7 +148,7 @@ func TestAuditConfigService_SetConfig(t *testing.T) {
 	t.Parallel()
 
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	svc := NewAuditConfigService(repo)
 	ctx := context.Background()
 	tenantID := googleUuid.New()
@@ -221,7 +221,7 @@ func TestAuditConfigService_GetAllConfigs(t *testing.T) {
 	t.Parallel()
 
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	svc := NewAuditConfigService(repo)
 	ctx := context.Background()
 	tenantID := googleUuid.New()
@@ -239,7 +239,7 @@ func TestAuditConfigService_GetAllConfigs(t *testing.T) {
 	require.Len(t, configs, len(AllAuditOperations))
 
 	// Check specific configs.
-	configMap := make(map[string]domain.AuditConfig)
+	configMap := make(map[string]cryptoutilJoseDomain.AuditConfig)
 
 	for _, c := range configs {
 		configMap[c.Operation] = c
@@ -265,7 +265,7 @@ func TestAuditConfigService_InitializeDefaults(t *testing.T) {
 	t.Parallel()
 
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	svc := NewAuditConfigService(repo)
 	ctx := context.Background()
 	tenantID := googleUuid.New()
@@ -291,7 +291,7 @@ func TestAuditConfigService_IsEnabled(t *testing.T) {
 	t.Parallel()
 
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	svc := NewAuditConfigService(repo)
 	ctx := context.Background()
 	tenantID := googleUuid.New()

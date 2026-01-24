@@ -5,7 +5,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"flag"
 	"fmt"
 	"io"

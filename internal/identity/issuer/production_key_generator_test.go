@@ -6,8 +6,8 @@ package issuer_test
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/rsa"
+	ecdsa "crypto/ecdsa"
+	rsa "crypto/rsa"
 	"testing"
 
 	"github.com/stretchr/testify/require"

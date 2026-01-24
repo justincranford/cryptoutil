@@ -10,7 +10,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"

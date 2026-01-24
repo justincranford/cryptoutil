@@ -4,11 +4,11 @@ package security
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"math/big"
@@ -69,7 +69,7 @@ func TestValidator_ValidateCertificate(t *testing.T) {
 	validator := NewValidator(nil)
 
 	// Generate test key.
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -143,7 +143,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		{
 			name: "RSA 2048 with 2048 minimum",
 			keyFunc: func() any {
-				key, _ := rsa.GenerateKey(rand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, 2048)
 
 				return key
 			},
@@ -153,7 +153,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		{
 			name: "RSA 2048 with 4096 minimum",
 			keyFunc: func() any {
-				key, _ := rsa.GenerateKey(rand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, 2048)
 
 				return key
 			},
@@ -163,7 +163,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		{
 			name: "EC P-256 with 256 minimum",
 			keyFunc: func() any {
-				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, _ := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 
 				return key
 			},
@@ -173,7 +173,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		{
 			name: "EC P-256 with 384 minimum",
 			keyFunc: func() any {
-				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, _ := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 
 				return key
 			},
@@ -183,7 +183,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 		{
 			name: "Ed25519 key",
 			keyFunc: func() any {
-				_, key, _ := ed25519.GenerateKey(rand.Reader)
+				_, key, _ := ed25519.GenerateKey(crand.Reader)
 
 				return key
 			},
@@ -223,7 +223,7 @@ func TestValidator_ValidatePrivateKey(t *testing.T) {
 		{
 			name: "valid RSA 2048 key",
 			keyFunc: func() any {
-				key, _ := rsa.GenerateKey(rand.Reader, 2048)
+				key, _ := rsa.GenerateKey(crand.Reader, 2048)
 
 				return key
 			},
@@ -233,7 +233,7 @@ func TestValidator_ValidatePrivateKey(t *testing.T) {
 		{
 			name: "valid EC P-256 key",
 			keyFunc: func() any {
-				key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				key, _ := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 
 				return key
 			},
@@ -243,7 +243,7 @@ func TestValidator_ValidatePrivateKey(t *testing.T) {
 		{
 			name: "valid Ed25519 key",
 			keyFunc: func() any {
-				_, key, _ := ed25519.GenerateKey(rand.Reader)
+				_, key, _ := ed25519.GenerateKey(crand.Reader)
 
 				return key
 			},
@@ -287,7 +287,7 @@ func TestValidator_ValidateCSR(t *testing.T) {
 	ctx := context.Background()
 	validator := NewValidator(nil)
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -345,7 +345,7 @@ func TestValidator_WeakAlgorithms(t *testing.T) {
 	config.DisallowWeakAlgorithms = true
 	validator := NewValidator(config)
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	// Create certificate with weak algorithm indicator.
@@ -433,19 +433,19 @@ func TestScanner_ScanCertificateChain(t *testing.T) {
 	scanner := NewScanner(nil)
 
 	// Generate root CA.
-	rootKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	rootKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	rootCert := createTestCACert(t, rootKey, nil, nil, "Root CA")
 
 	// Generate intermediate CA signed by root.
-	intKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	intKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	intCert := createTestCACert(t, intKey, rootCert, rootKey, "Intermediate CA")
 
 	// Generate leaf certificate signed by intermediate.
-	leafKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	leafKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	leafCert := createTestLeafCert(t, leafKey, intCert, intKey, "leaf.example.com")
@@ -500,12 +500,12 @@ func TestScanner_InvalidChainLinkage(t *testing.T) {
 	scanner := NewScanner(nil)
 
 	// Generate two unrelated CAs.
-	key1, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key1, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	cert1 := createTestCACert(t, key1, nil, nil, "CA 1")
 
-	key2, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key2, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	cert2 := createTestCACert(t, key2, nil, nil, "CA 2")
@@ -607,7 +607,7 @@ func createTestCert(t *testing.T, key *ecdsa.PrivateKey, isCA bool, notBefore, n
 		DNSNames:              []string{"test.example.com"},
 	}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	certBytes, err := x509.CreateCertificate(crand.Reader, template, template, &key.PublicKey, key)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certBytes)
@@ -653,7 +653,7 @@ func createTestCertWithKey(t *testing.T, key any, isCA bool, notBefore, notAfter
 		DNSNames:              []string{"test.example.com"},
 	}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, pub, key)
+	certBytes, err := x509.CreateCertificate(crand.Reader, template, template, pub, key)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certBytes)
@@ -672,7 +672,7 @@ func createTestCSR(t *testing.T, key *ecdsa.PrivateKey, dnsNames []string) *x509
 		DNSNames: dnsNames,
 	}
 
-	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+	csrBytes, err := x509.CreateCertificateRequest(crand.Reader, template, key)
 	require.NoError(t, err)
 
 	csr, err := x509.ParseCertificateRequest(csrBytes)
@@ -702,7 +702,7 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey, parent *x509.Certific
 		parentKey = key
 	}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, template, parent, &key.PublicKey, parentKey)
+	certBytes, err := x509.CreateCertificate(crand.Reader, template, parent, &key.PublicKey, parentKey)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certBytes)
@@ -728,7 +728,7 @@ func createTestLeafCert(t *testing.T, key *ecdsa.PrivateKey, parent *x509.Certif
 		DNSNames:              []string{cn},
 	}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, template, parent, &key.PublicKey, parentKey)
+	certBytes, err := x509.CreateCertificate(crand.Reader, template, parent, &key.PublicKey, parentKey)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certBytes)

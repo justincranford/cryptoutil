@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // JoseServerSettings contains JOSE Authority Server configuration.
 type JoseServerSettings struct {
-	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// Key management settings.
 	MaxMaterialsPerElasticKey int
@@ -34,25 +34,25 @@ const (
 	defaultAuditSamplingRate         = 0.01 // 1% sampling rate.
 )
 
-var allJoseServerRegisteredSettings []*cryptoutilTemplateConfig.Setting
+var allJoseServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting
 
 // JOSE-specific Setting objects for parameter attributes.
 var (
-	maxMaterialsPerElasticKey = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allJoseServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	maxMaterialsPerElasticKey = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "max-materials-per-elastic-key",
 		Shorthand:   "",
 		Value:       defaultMaxMaterialsPerElasticKey,
 		Usage:       "maximum number of material keys per elastic key",
 		Description: "Max Materials per Elastic Key",
 	})
-	auditEnabled = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allJoseServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	auditEnabled = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "audit-enabled",
 		Shorthand:   "",
 		Value:       defaultAuditEnabled,
 		Usage:       "enable audit logging for JOSE operations",
 		Description: "Audit Enabled",
 	})
-	auditSamplingRate = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allJoseServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	auditSamplingRate = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "audit-sampling-rate",
 		Shorthand:   "",
 		Value:       defaultAuditSamplingRate,
@@ -65,14 +65,14 @@ var (
 // It layers: defaults < config file < environment variables < command-line flags.
 func Parse(args []string, exitIfHelp bool) (*JoseServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register JOSE-specific flags.
-	pflag.IntP(maxMaterialsPerElasticKey.Name, maxMaterialsPerElasticKey.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(maxMaterialsPerElasticKey), maxMaterialsPerElasticKey.Description)
-	pflag.BoolP(auditEnabled.Name, auditEnabled.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(auditEnabled), auditEnabled.Description)
+	pflag.IntP(maxMaterialsPerElasticKey.Name, maxMaterialsPerElasticKey.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(maxMaterialsPerElasticKey), maxMaterialsPerElasticKey.Description)
+	pflag.BoolP(auditEnabled.Name, auditEnabled.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(auditEnabled), auditEnabled.Description)
 	pflag.Float64(auditSamplingRate.Name, defaultAuditSamplingRate, auditSamplingRate.Description)
 
 	// Parse flags.
@@ -144,7 +144,7 @@ func logJoseSettings(s *JoseServerSettings) {
 // NewDevSettings creates development settings with sensible defaults.
 func NewDevSettings() *JoseServerSettings {
 	return &JoseServerSettings{
-		ServiceTemplateServerSettings: cryptoutilTemplateConfig.NewForJOSEServer(
+		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceConfig.NewForJOSEServer(
 			cryptoutilSharedMagic.IPv4Loopback,
 			cryptoutilSharedMagic.DefaultPublicPortJOSEServer,
 			true, // dev mode.
@@ -160,7 +160,7 @@ func NewDevSettings() *JoseServerSettings {
 // Use this in tests instead of NewDevSettings to avoid "flag redefined" panics.
 func NewTestSettings() *JoseServerSettings {
 	return &JoseServerSettings{
-		ServiceTemplateServerSettings: cryptoutilTemplateConfig.NewTestConfig(
+		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceConfig.NewTestConfig(
 			cryptoutilSharedMagic.IPv4Loopback,
 			0, // Dynamic port allocation for tests.
 			true,

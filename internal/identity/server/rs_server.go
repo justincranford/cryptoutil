@@ -13,7 +13,7 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityRS "cryptoutil/internal/identity/rs"
+	cryptoutilIdentityRs "cryptoutil/internal/identity/rs"
 )
 
 // RSServer wraps the Resource Server service with HTTP server lifecycle.
@@ -21,12 +21,12 @@ type RSServer struct {
 	config     *cryptoutilIdentityConfig.Config
 	logger     *slog.Logger
 	fiberApp   *fiber.App
-	service    *cryptoutilIdentityRS.Service
+	service    *cryptoutilIdentityRs.Service
 	shutdownCh chan struct{}
 }
 
 // NewRSServer creates a new Resource Server HTTP server.
-func NewRSServer(_ context.Context, config *cryptoutilIdentityConfig.Config, logger *slog.Logger, tokenSvc cryptoutilIdentityRS.TokenService) (*RSServer, error) {
+func NewRSServer(_ context.Context, config *cryptoutilIdentityConfig.Config, logger *slog.Logger, tokenSvc cryptoutilIdentityRs.TokenService) (*RSServer, error) {
 	if config == nil {
 		return nil, fmt.Errorf("config cannot be nil")
 	} else if logger == nil {
@@ -46,7 +46,7 @@ func NewRSServer(_ context.Context, config *cryptoutilIdentityConfig.Config, log
 	})
 
 	// Create resource server service.
-	service := cryptoutilIdentityRS.NewService(config, logger, tokenSvc)
+	service := cryptoutilIdentityRs.NewService(config, logger, tokenSvc)
 
 	// Register middleware and routes.
 	service.RegisterMiddleware(fiberApp)

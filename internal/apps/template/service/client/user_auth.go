@@ -7,10 +7,10 @@ package client
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 
 	googleUuid "github.com/google/uuid"
 

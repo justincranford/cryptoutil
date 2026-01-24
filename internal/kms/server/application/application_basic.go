@@ -9,24 +9,24 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // ServerApplicationBasic provides basic server application components including telemetry, unseal keys, and JWK generation.
 type ServerApplicationBasic struct {
-	TelemetryService  *cryptoutilTelemetry.TelemetryService
+	TelemetryService  *cryptoutilSharedTelemetry.TelemetryService
 	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
-	JWKGenService     *cryptoutilJose.JWKGenService
+	JWKGenService     *cryptoutilSharedCryptoJose.JWKGenService
 }
 
 // StartServerApplicationBasic initializes and starts a basic server application with essential services.
-func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ServerApplicationBasic, error) {
+func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*ServerApplicationBasic, error) {
 	serverApplicationBasic := &ServerApplicationBasic{}
 
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initailize telemetry: %w", err)
 	}
@@ -43,7 +43,7 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig
 
 	serverApplicationBasic.UnsealKeysService = unsealKeysService
 
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
 		serverApplicationBasic.Shutdown()

@@ -4,14 +4,14 @@ package unsealkeysservice
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"
 )
@@ -21,8 +21,8 @@ func TestNewUnsealKeysServiceFromSettings_VerboseMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilConfig.RequireNewForTest("test-verbose-mode")
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-verbose-mode")
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	telemetryService.VerboseMode = true
 
 	// Use DevMode=true to avoid sysinfo collection timeout on Windows (CPU info takes 4+ seconds).
@@ -39,7 +39,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_NegativeN(t *testing.T) {
 	t.Parallel()
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-negative-n")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-negative-n")
 	settings.DevMode = false
 	settings.UnsealMode = "-5" // Negative N
 
@@ -54,7 +54,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_FileCountMismatch(t *testin
 	t.Parallel()
 
 	// Create 1 JWK file but expect 3
-	jwks, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	jwks, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	tmpDir := t.TempDir()
@@ -67,7 +67,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_FileCountMismatch(t *testin
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-simple-file-mismatch")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-simple-file-mismatch")
 	settings.DevMode = false
 	settings.UnsealMode = "3" // Expecting 3 files
 	settings.UnsealFiles = []string{jwkFile}
@@ -87,7 +87,7 @@ func TestUnsealKeysServiceFromSysInfo_EncryptDecryptKey(t *testing.T) {
 	require.NotNil(t, service)
 
 	// Generate a test key
-	testKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	testKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	clearKey := testKeys[0]

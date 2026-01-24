@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
-	cryptoutilIdentityPKCE "cryptoutil/internal/identity/authz/pkce"
+	cryptoutilIdentityAuthzPkce "cryptoutil/internal/identity/authz/pkce"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
@@ -134,7 +134,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 	}
 
 	// Validate PKCE code_verifier.
-	if !cryptoutilIdentityPKCE.ValidateCodeVerifier(codeVerifier, authRequest.CodeChallenge, authRequest.CodeChallengeMethod) {
+	if !cryptoutilIdentityAuthzPkce.ValidateCodeVerifier(codeVerifier, authRequest.CodeChallenge, authRequest.CodeChallengeMethod) {
 		slog.ErrorContext(ctx, "PKCE validation failed", "code_challenge", authRequest.CodeChallenge, "method", authRequest.CodeChallengeMethod)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

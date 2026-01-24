@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -16,13 +16,13 @@ import (
 
 // JoseJAServerSettings contains jose-ja specific configuration.
 type JoseJAServerSettings struct {
-	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// Elastic Key settings.
 	DefaultMaxMaterials int
 
 	// Audit settings.
-	AuditEnabled     bool
+	AuditEnabled      bool
 	AuditSamplingRate int
 }
 
@@ -33,25 +33,25 @@ const (
 	defaultAuditSamplingRate = cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate
 )
 
-var allJoseJAServerRegisteredSettings []*cryptoutilTemplateConfig.Setting
+var allJoseJAServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting
 
 // Jose-JA specific Setting objects for parameter attributes.
 var (
-	maxMaterialsSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	maxMaterialsSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "max-materials",
 		Shorthand:   "",
 		Value:       defaultMaxMaterials,
 		Usage:       "default maximum material keys per elastic key",
 		Description: "Max Materials Per Elastic Key",
 	})
-	auditEnabledSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	auditEnabledSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "audit-enabled",
 		Shorthand:   "",
 		Value:       defaultAuditEnabled,
 		Usage:       "enable audit logging for JWK operations",
 		Description: "Audit Enabled",
 	})
-	auditSamplingRateSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	auditSamplingRateSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allJoseJAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "audit-sampling-rate",
 		Shorthand:   "",
 		Value:       defaultAuditSamplingRate,
@@ -63,15 +63,15 @@ var (
 // Parse parses command line arguments and returns jose-ja settings.
 func Parse(args []string, exitIfHelp bool) (*JoseJAServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register jose-ja specific flags.
-	pflag.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
-	pflag.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
-	pflag.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
+	pflag.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
+	pflag.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
+	pflag.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()

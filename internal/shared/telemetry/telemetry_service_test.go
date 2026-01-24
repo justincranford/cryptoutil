@@ -6,18 +6,18 @@ package telemetry
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 	"math/big"
 	"os"
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("telemetry_service_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("telemetry_service_test")
 	testCtx              = context.Background()
 	testTelemetryService *TelemetryService
 )
@@ -53,21 +53,21 @@ func TestMetric(_ *testing.T) {
 	exampleMetricHistogram, err := exampleMetricsScope.Int64Histogram("example-histogram")
 	if err == nil {
 		// Generate cryptographically secure random numbers for histogram test data
-		val1, err := rand.Int(rand.Reader, big.NewInt(100))
+		val1, err := crand.Int(crand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
 
 			return
 		}
 
-		val2, err := rand.Int(rand.Reader, big.NewInt(100))
+		val2, err := crand.Int(crand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
 
 			return
 		}
 
-		val3, err := rand.Int(rand.Reader, big.NewInt(100))
+		val3, err := crand.Int(crand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
 

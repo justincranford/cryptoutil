@@ -4,14 +4,14 @@ package authz_test
 
 import (
 	"bytes"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 )
 
 // handleGenerateRecoveryCodes tests.
@@ -22,7 +22,7 @@ func TestHandleGenerateRecoveryCodes_InvalidBody(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -43,11 +43,11 @@ func TestHandleGenerateRecoveryCodes_MissingUserID(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.GenerateRecoveryCodesRequest{
+	reqBody := cryptoutilIdentityAuthz.GenerateRecoveryCodesRequest{
 		UserID: "",
 	}
 
@@ -71,11 +71,11 @@ func TestHandleGenerateRecoveryCodes_InvalidUserIDFormat(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.GenerateRecoveryCodesRequest{
+	reqBody := cryptoutilIdentityAuthz.GenerateRecoveryCodesRequest{
 		UserID: "not-a-uuid",
 	}
 
@@ -101,7 +101,7 @@ func TestHandleGetRecoveryCodeCount_MissingUserIDQueryParam(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -121,7 +121,7 @@ func TestHandleGetRecoveryCodeCount_InvalidUserIDFormat(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -143,7 +143,7 @@ func TestHandleRegenerateRecoveryCodes_InvalidBody(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -164,11 +164,11 @@ func TestHandleRegenerateRecoveryCodes_MissingUserID(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.GenerateRecoveryCodesRequest{
+	reqBody := cryptoutilIdentityAuthz.GenerateRecoveryCodesRequest{
 		UserID: "",
 	}
 
@@ -192,11 +192,11 @@ func TestHandleRegenerateRecoveryCodes_InvalidUserIDFormat(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.GenerateRecoveryCodesRequest{
+	reqBody := cryptoutilIdentityAuthz.GenerateRecoveryCodesRequest{
 		UserID: "not-a-uuid",
 	}
 
@@ -222,7 +222,7 @@ func TestHandleVerifyRecoveryCode_InvalidBody(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -243,11 +243,11 @@ func TestHandleVerifyRecoveryCode_MissingCode(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.VerifyRecoveryCodeRequest{
+	reqBody := cryptoutilIdentityAuthz.VerifyRecoveryCodeRequest{
 		Code: "", // Missing code
 	}
 
@@ -271,11 +271,11 @@ func TestHandleVerifyRecoveryCode_MissingUserID(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.VerifyRecoveryCodeRequest{
+	reqBody := cryptoutilIdentityAuthz.VerifyRecoveryCodeRequest{
 		Code: "TEST-CODE-1234",
 	}
 
@@ -300,11 +300,11 @@ func TestHandleVerifyRecoveryCode_InvalidUserIDFormat(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.VerifyRecoveryCodeRequest{
+	reqBody := cryptoutilIdentityAuthz.VerifyRecoveryCodeRequest{
 		Code: "TEST-CODE-1234",
 	}
 

@@ -6,7 +6,7 @@ package compliance
 import (
 	"context"
 	"crypto/x509"
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -91,24 +91,24 @@ type AuditEvent struct {
 
 // Requirement represents a specific compliance requirement.
 type Requirement struct {
-	ID          string              `json:"id"`
+	ID          string    `json:"id"`
 	Framework   Framework `json:"framework"`
-	Section     string              `json:"section"`
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	Severity    Severity            `json:"severity"`
+	Section     string    `json:"section"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Severity    Severity  `json:"severity"`
 	Status      Status    `json:"status"`
-	Evidence    []string            `json:"evidence,omitempty"`
-	Notes       string              `json:"notes,omitempty"`
+	Evidence    []string  `json:"evidence,omitempty"`
+	Notes       string    `json:"notes,omitempty"`
 }
 
 // Report represents a compliance audit report.
 type Report struct {
-	ID           string                  `json:"id"`
+	ID           string        `json:"id"`
 	Framework    Framework     `json:"framework"`
-	GeneratedAt  time.Time               `json:"generated_at"`
-	GeneratedBy  string                  `json:"generated_by"`
-	Period       AuditPeriod             `json:"period"`
+	GeneratedAt  time.Time     `json:"generated_at"`
+	GeneratedBy  string        `json:"generated_by"`
+	Period       AuditPeriod   `json:"period"`
 	Requirements []Requirement `json:"requirements"`
 	Summary      Summary       `json:"summary"`
 }

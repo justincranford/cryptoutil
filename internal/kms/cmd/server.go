@@ -8,14 +8,14 @@ package cmd
 import (
 	"log"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )
 
 // Server handles the KMS server command and subcommands.
 func Server(parameters []string) {
 	// reuse same Settings for start, ready, live, stop sub-commands, since they need to share private API coordinates
-	settings, err := cryptoutilConfig.Parse(parameters, true)
+	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(parameters, true)
 	if err != nil {
 		log.Fatal("Error parsing config:", err)
 	}

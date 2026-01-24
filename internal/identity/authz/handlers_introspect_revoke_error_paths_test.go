@@ -18,7 +18,7 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

@@ -2,13 +2,13 @@ package businesslogic
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"testing"
 	"time"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilJOSE "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -16,7 +16,7 @@ import (
 )
 
 func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -42,7 +42,7 @@ func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
 	require.NoError(t, parseErr)
 
 	// Decrypt JWE
-	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	claimsBytes, decryptErr := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	require.NoError(t, decryptErr)
 
 	var claims map[string]any
@@ -63,7 +63,7 @@ func TestSessionManager_IssueBrowserSession_JWE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_JWE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -85,7 +85,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_JWE_InvalidToken(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	// Validate should fail with invalid token
@@ -96,7 +96,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_InvalidToken(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_JWE_ExpiredJWT(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -133,7 +133,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_ExpiredJWT(t *testing.T) {
 	require.NoError(t, parseErr)
 
 	// Encrypt claims
-	_, jweBytes, encryptErr := cryptoutilJOSE.EncryptBytes([]joseJwk.Key{jwk}, claimsBytes)
+	_, jweBytes, encryptErr := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{jwk}, claimsBytes)
 	require.NoError(t, encryptErr)
 
 	// Validate should fail due to expiration
@@ -144,7 +144,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_ExpiredJWT(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_JWE_RevokedSession(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -169,7 +169,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_RevokedSession(t *testing.T) 
 	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
 	require.NoError(t, parseErr)
 
-	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	claimsBytes, decryptErr := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	require.NoError(t, decryptErr)
 
 	var claims map[string]any
@@ -195,7 +195,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_RevokedSession(t *testing.T) 
 }
 
 func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmJWE)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -220,7 +220,7 @@ func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
 	jwk, parseErr := joseJwk.ParseKey([]byte(serviceJWK.EncryptedJWK))
 	require.NoError(t, parseErr)
 
-	claimsBytes, decryptErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	claimsBytes, decryptErr := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	require.NoError(t, decryptErr)
 
 	var claims map[string]any
@@ -234,7 +234,7 @@ func TestSessionManager_IssueServiceSession_JWE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateServiceSession_JWE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmJWE)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()

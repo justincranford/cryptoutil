@@ -6,7 +6,7 @@ package thread
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 	"math"
 	"math/big"
@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -50,7 +50,7 @@ func TestChan(t *testing.T) {
 	r := &stats{minimum: int64(math.MaxInt64), maximum: int64(math.MinInt64)}
 	sender := func() any {
 		// Generate cryptographically secure random number 0-100 inclusive
-		val, err := rand.Int(rand.Reader, big.NewInt(101))
+		val, err := crand.Int(crand.Reader, big.NewInt(101))
 		require.NoError(t, err)
 
 		return s.record(val.Int64())
@@ -65,7 +65,7 @@ func TestChan(t *testing.T) {
 	waitAndClose := runSendersReceivers(ctx, 100, 8, 4, sender, receiver)
 
 	go func() {
-		time.Sleep(cryptoutilMagic.TestSleepCancelChanContext)
+		time.Sleep(cryptoutilSharedMagic.TestSleepCancelChanContext)
 		cancel()
 	}()
 

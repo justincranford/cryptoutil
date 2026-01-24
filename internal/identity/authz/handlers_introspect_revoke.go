@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"

@@ -5,7 +5,7 @@
 package util
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 
 	"github.com/goccy/go-yaml"

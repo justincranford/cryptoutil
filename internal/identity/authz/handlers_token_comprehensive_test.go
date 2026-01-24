@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
@@ -35,7 +35,7 @@ func TestHandleToken_AuthorizationCodeGrant_HappyPath(t *testing.T) {
 	testClient := createTestClientForToken(ctx, t, repoFactory)
 	testAuthCode := createTestAuthorizationCode(ctx, t, repoFactory, testClient.ClientID)
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -69,7 +69,7 @@ func TestHandleToken_ClientCredentialsGrant_HappyPath(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForToken(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -128,7 +128,7 @@ func TestHandleToken_InvalidGrant_ExpiredCode(t *testing.T) {
 	err := authzReqRepo.Create(ctx, expiredCode)
 	require.NoError(t, err, "Failed to create expired authorization code")
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -185,7 +185,7 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 	err := authzReqRepo.Create(ctx, usedCode)
 	require.NoError(t, err, "Failed to create used authorization code")
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -220,7 +220,7 @@ func TestHandleToken_InvalidGrant_ClientIDMismatch(t *testing.T) {
 	testClient := createTestClientForToken(ctx, t, repoFactory)
 	testAuthCode := createTestAuthorizationCode(ctx, t, repoFactory, testClient.ClientID)
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -255,7 +255,7 @@ func TestHandleToken_InvalidGrant_PKCEValidationFailed(t *testing.T) {
 	testClient := createTestClientForToken(ctx, t, repoFactory)
 	testAuthCode := createTestAuthorizationCode(ctx, t, repoFactory, testClient.ClientID)
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

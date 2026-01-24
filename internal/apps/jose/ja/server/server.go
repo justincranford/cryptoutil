@@ -11,16 +11,16 @@ import (
 
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/jose/ja/repository"
-	"cryptoutil/internal/apps/jose/ja/server/config"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // JoseJAServer represents the jose-ja service application.
@@ -29,23 +29,23 @@ type JoseJAServer struct {
 	db  *gorm.DB
 
 	// Services.
-	telemetryService      *cryptoutilTelemetry.TelemetryService
-	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.Service
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService          cryptoutilTemplateService.RealmService
+	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
 
 	// Repositories.
-	elasticJWKRepo  repository.ElasticJWKRepository
-	materialJWKRepo repository.MaterialJWKRepository
-	auditConfigRepo repository.AuditConfigRepository
-	auditLogRepo    repository.AuditLogRepository
+	elasticJWKRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
+	materialJWKRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
+	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository
+	auditLogRepo    cryptoutilAppsJoseJaRepository.AuditLogRepository
 	realmRepo       cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository // Uses service-template repository.
 }
 
 // NewFromConfig creates a new jose-ja server from JoseJAServerSettings only.
 // Uses service-template builder for infrastructure initialization.
-func NewFromConfig(ctx context.Context, cfg *config.JoseJAServerSettings) (*JoseJAServer, error) {
+func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings) (*JoseJAServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
@@ -53,21 +53,21 @@ func NewFromConfig(ctx context.Context, cfg *config.JoseJAServerSettings) (*Jose
 	}
 
 	// Create server builder with template config.
-	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
 	// Register jose-ja specific migrations.
-	builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
+	builder.WithDomainMigrations(cryptoutilAppsJoseJaRepository.MigrationsFS, "migrations")
 
 	// Register jose-ja specific public routes.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		res *cryptoutilTemplateBuilder.ServiceResources,
+		res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 	) error {
 		// Create jose-ja specific repositories.
-		elasticJWKRepo := repository.NewElasticJWKRepository(res.DB)
-		materialJWKRepo := repository.NewMaterialJWKRepository(res.DB)
-		auditConfigRepo := repository.NewAuditConfigRepository(res.DB)
-		auditLogRepo := repository.NewAuditLogRepository(res.DB)
+		elasticJWKRepo := cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(res.DB)
+		materialJWKRepo := cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(res.DB)
+		auditConfigRepo := cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(res.DB)
+		auditLogRepo := cryptoutilAppsJoseJaRepository.NewAuditLogRepository(res.DB)
 
 		// Create public server with jose-ja handlers.
 		publicServer, err := NewPublicServer(
@@ -100,10 +100,10 @@ func NewFromConfig(ctx context.Context, cfg *config.JoseJAServerSettings) (*Jose
 	}
 
 	// Create jose-ja specific repositories for server struct.
-	elasticJWKRepo := repository.NewElasticJWKRepository(resources.DB)
-	materialJWKRepo := repository.NewMaterialJWKRepository(resources.DB)
-	auditConfigRepo := repository.NewAuditConfigRepository(resources.DB)
-	auditLogRepo := repository.NewAuditLogRepository(resources.DB)
+	elasticJWKRepo := cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(resources.DB)
+	materialJWKRepo := cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(resources.DB)
+	auditConfigRepo := cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(resources.DB)
+	auditLogRepo := cryptoutilAppsJoseJaRepository.NewAuditLogRepository(resources.DB)
 
 	// Create jose-ja server wrapper.
 	server := &JoseJAServer{
@@ -154,17 +154,17 @@ func (s *JoseJAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 }
 
 // JWKGen returns the JWK generation service (for tests).
-func (s *JoseJAServer) JWKGen() *cryptoutilJose.JWKGenService {
+func (s *JoseJAServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return s.jwkGenService
 }
 
 // Telemetry returns the telemetry service (for tests).
-func (s *JoseJAServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (s *JoseJAServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *JoseJAServer) Barrier() *cryptoutilTemplateBarrier.Service {
+func (s *JoseJAServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	return s.barrierService
 }
 

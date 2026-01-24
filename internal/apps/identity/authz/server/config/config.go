@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // IdentityAuthzServerSettings contains identity-authz specific configuration.
 type IdentityAuthzServerSettings struct {
-	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// OAuth 2.1 Authorization Server settings.
 	Issuer               string // OAuth 2.1 issuer URL (used in tokens and discovery).
@@ -42,46 +42,46 @@ const (
 	defaultEnableDynReg         = false                     // Disable dynamic registration by default.
 )
 
-var allIdentityAuthzServerRegisteredSettings []*cryptoutilTemplateConfig.Setting //nolint:gochecknoglobals
+var allIdentityAuthzServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
 
 // Identity-Authz specific Setting objects for parameter attributes.
 var (
-	issuerSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	issuerSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "issuer",
 		Shorthand:   "",
 		Value:       defaultIssuer,
 		Usage:       "OAuth 2.1 issuer URL (used in tokens and discovery)",
 		Description: "Issuer URL",
 	})
-	tokenLifetimeSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	tokenLifetimeSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "token-lifetime",
 		Shorthand:   "",
 		Value:       defaultTokenLifetime,
 		Usage:       "Access token lifetime in seconds",
 		Description: "Token Lifetime",
 	})
-	refreshTokenLifetimeSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	refreshTokenLifetimeSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "refresh-token-lifetime",
 		Shorthand:   "",
 		Value:       defaultRefreshTokenLifetime,
 		Usage:       "Refresh token lifetime in seconds",
 		Description: "Refresh Token Lifetime",
 	})
-	authorizationCodeTTLSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	authorizationCodeTTLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "authorization-code-ttl",
 		Shorthand:   "",
 		Value:       defaultAuthorizationCodeTTL,
 		Usage:       "Authorization code TTL in seconds",
 		Description: "Authorization Code TTL",
 	})
-	enableDiscoverySetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableDiscoverySetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-discovery",
 		Shorthand:   "",
 		Value:       defaultEnableDiscovery,
 		Usage:       "Enable OIDC Discovery endpoint",
 		Description: "Enable Discovery",
 	})
-	enableDynamicRegistrationSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableDynamicRegistrationSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityAuthzServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-dynamic-registration",
 		Shorthand:   "",
 		Value:       defaultEnableDynReg,
@@ -93,18 +93,18 @@ var (
 // Parse parses command line arguments and returns identity-authz settings.
 func Parse(args []string, exitIfHelp bool) (*IdentityAuthzServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register identity-authz specific flags.
-	pflag.StringP(issuerSetting.Name, issuerSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(issuerSetting), issuerSetting.Description)
-	pflag.IntP(tokenLifetimeSetting.Name, tokenLifetimeSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(tokenLifetimeSetting), tokenLifetimeSetting.Description)
-	pflag.IntP(refreshTokenLifetimeSetting.Name, refreshTokenLifetimeSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(refreshTokenLifetimeSetting), refreshTokenLifetimeSetting.Description)
-	pflag.IntP(authorizationCodeTTLSetting.Name, authorizationCodeTTLSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(authorizationCodeTTLSetting), authorizationCodeTTLSetting.Description)
-	pflag.BoolP(enableDiscoverySetting.Name, enableDiscoverySetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableDiscoverySetting), enableDiscoverySetting.Description)
-	pflag.BoolP(enableDynamicRegistrationSetting.Name, enableDynamicRegistrationSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableDynamicRegistrationSetting), enableDynamicRegistrationSetting.Description)
+	pflag.StringP(issuerSetting.Name, issuerSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(issuerSetting), issuerSetting.Description)
+	pflag.IntP(tokenLifetimeSetting.Name, tokenLifetimeSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(tokenLifetimeSetting), tokenLifetimeSetting.Description)
+	pflag.IntP(refreshTokenLifetimeSetting.Name, refreshTokenLifetimeSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(refreshTokenLifetimeSetting), refreshTokenLifetimeSetting.Description)
+	pflag.IntP(authorizationCodeTTLSetting.Name, authorizationCodeTTLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(authorizationCodeTTLSetting), authorizationCodeTTLSetting.Description)
+	pflag.BoolP(enableDiscoverySetting.Name, enableDiscoverySetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableDiscoverySetting), enableDiscoverySetting.Description)
+	pflag.BoolP(enableDynamicRegistrationSetting.Name, enableDynamicRegistrationSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableDynamicRegistrationSetting), enableDynamicRegistrationSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()
@@ -200,7 +200,7 @@ func logIdentityAuthzSettings(s *IdentityAuthzServerSettings) {
 // Returns directly populated IdentityAuthzServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityAuthzServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilTemplateConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with identity-authz specific values.
 	baseConfig.BindPublicPort = bindPort

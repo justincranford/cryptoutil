@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RateLimiter provides in-memory rate limiting per IP address.
@@ -36,7 +36,7 @@ func NewRateLimiter(requestsPerMin, burstSize int) *RateLimiter {
 		buckets:        make(map[string]*tokenBucket),
 		requestsPerMin: requestsPerMin,
 		burstSize:      burstSize,
-		cleanupTicker:  time.NewTicker(cryptoutilMagic.RateLimitCleanupIntervalMinutes * time.Minute),
+		cleanupTicker:  time.NewTicker(cryptoutilSharedMagic.RateLimitCleanupIntervalMinutes * time.Minute),
 		stopCleanup:    make(chan struct{}),
 	}
 
@@ -65,7 +65,7 @@ func (rl *RateLimiter) Allow(ipAddress string) bool {
 	// Refill tokens based on time elapsed.
 	now := time.Now()
 	elapsed := now.Sub(bucket.lastRefillTime)
-	tokensToAdd := int(elapsed.Seconds() * float64(rl.requestsPerMin) / cryptoutilMagic.RateLimitSecondsPerMinute)
+	tokensToAdd := int(elapsed.Seconds() * float64(rl.requestsPerMin) / cryptoutilSharedMagic.RateLimitSecondsPerMinute)
 
 	if tokensToAdd > 0 {
 		bucket.tokens += tokensToAdd
@@ -104,7 +104,7 @@ func (rl *RateLimiter) cleanup() {
 	defer rl.mu.Unlock()
 
 	now := time.Now()
-	threshold := cryptoutilMagic.RateLimitStaleThresholdMinutes * time.Minute
+	threshold := cryptoutilSharedMagic.RateLimitStaleThresholdMinutes * time.Minute
 
 	for ip, bucket := range rl.buckets {
 		if now.Sub(bucket.lastRefillTime) > threshold {

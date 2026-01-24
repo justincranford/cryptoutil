@@ -7,11 +7,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	_ "github.com/lib/pq" // PostgreSQL driver.
@@ -58,7 +58,7 @@ func TestE2E_HealthChecks(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 			defer cancel()
 
-			healthURL := tt.publicURL + cryptoutilMagic.CipherE2EHealthEndpoint
+			healthURL := tt.publicURL + cryptoutilSharedMagic.CipherE2EHealthEndpoint
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 			require.NoError(t, err, "Creating health check request should succeed")
 

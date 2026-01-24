@@ -6,10 +6,10 @@ package crypto
 
 import (
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rsa"
-	"crypto/sha256"
+	rsa "crypto/rsa"
+	sha256 "crypto/sha256"
 	"crypto/x509"
 	"testing"
 

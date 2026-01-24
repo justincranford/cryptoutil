@@ -15,12 +15,12 @@
 package service
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestRealmConfig_GetType tests all 14 config types implement GetType() correctly.
@@ -194,7 +194,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 			config: &OpaqueSessionCookieConfig{
 				TokenLengthBytes:     32,
 				SessionExpiryMinutes: 15,
-				StorageType:          cryptoutilMagic.RealmStorageTypeDatabase,
+				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 		},
 		{
@@ -202,7 +202,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 			config: &OpaqueSessionCookieConfig{
 				TokenLengthBytes:     32,
 				SessionExpiryMinutes: 15,
-				StorageType:          cryptoutilMagic.RealmStorageTypeRedis,
+				StorageType:          cryptoutilSharedMagic.RealmStorageTypeRedis,
 			},
 		},
 		{
@@ -259,7 +259,7 @@ func TestRealmConfig_Validate_Valid(t *testing.T) {
 			config: &OpaqueSessionTokenConfig{
 				TokenLengthBytes:   32,
 				TokenExpiryMinutes: 60,
-				StorageType:        cryptoutilMagic.RealmStorageTypeDatabase,
+				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 		},
 		{
@@ -378,7 +378,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &OpaqueSessionCookieConfig{
 				TokenLengthBytes:     8, // Below minimum
 				SessionExpiryMinutes: 15,
-				StorageType:          cryptoutilMagic.RealmStorageTypeDatabase,
+				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 			expectedSubstr: "token_length_bytes must be at least",
 		},
@@ -387,7 +387,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &OpaqueSessionCookieConfig{
 				TokenLengthBytes:     32,
 				SessionExpiryMinutes: 0,
-				StorageType:          cryptoutilMagic.RealmStorageTypeDatabase,
+				StorageType:          cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 			expectedSubstr: "session_expiry_minutes must be at least 1",
 		},
@@ -456,7 +456,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &OpaqueSessionTokenConfig{
 				TokenLengthBytes:   8, // Below minimum
 				TokenExpiryMinutes: 60,
-				StorageType:        cryptoutilMagic.RealmStorageTypeDatabase,
+				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 			expectedSubstr: "token_length_bytes must be at least",
 		},
@@ -465,7 +465,7 @@ func TestRealmConfig_Validate_Errors(t *testing.T) {
 			config: &OpaqueSessionTokenConfig{
 				TokenLengthBytes:   32,
 				TokenExpiryMinutes: 0,
-				StorageType:        cryptoutilMagic.RealmStorageTypeDatabase,
+				StorageType:        cryptoutilSharedMagic.RealmStorageTypeDatabase,
 			},
 			expectedSubstr: "token_expiry_minutes must be at least 1",
 		},

@@ -7,8 +7,8 @@ package barrier
 import (
 	"fmt"
 
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 
@@ -18,14 +18,14 @@ import (
 
 // ContentKeysService encrypts and decrypts content data using content keys.
 type ContentKeysService struct {
-	telemetryService        *cryptoutilTelemetry.TelemetryService
-	jwkGenService           *cryptoutilJose.JWKGenService
+	telemetryService        *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
 	repository              Repository
 	intermediateKeysService *IntermediateKeysService
 }
 
 // NewContentKeysService creates a new ContentKeysService with the specified dependencies.
-func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, repository Repository, intermediateKeysService *IntermediateKeysService) (*ContentKeysService, error) {
+func NewContentKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, intermediateKeysService *IntermediateKeysService) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -41,12 +41,12 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 
 // EncryptContent encrypts content data and returns the encrypted bytes and encryption key ID.
 func (s *ContentKeysService) EncryptContent(sqlTransaction Transaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
 
-	_, encryptedContentJWEMessageBytes, err := cryptoutilJose.EncryptBytesWithContext([]joseJwk.Key{clearContentKey}, clearContentBytes, nil)
+	_, encryptedContentJWEMessageBytes, err := cryptoutilSharedCryptoJose.EncryptBytesWithContext([]joseJwk.Key{clearContentKey}, clearContentBytes, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content with JWK: %w", err)
 	}
@@ -93,7 +93,7 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction Transaction, encrypte
 		return nil, fmt.Errorf("failed to decrypt content key: %w", err)
 	}
 
-	decryptedBytes, err := cryptoutilJose.DecryptBytesWithContext([]joseJwk.Key{decryptedContentKey}, encryptedContentJWEMessageBytes, nil)
+	decryptedBytes, err := cryptoutilSharedCryptoJose.DecryptBytesWithContext([]joseJwk.Key{decryptedContentKey}, encryptedContentJWEMessageBytes, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt content with content key: %w", err)
 	}

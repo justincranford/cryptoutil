@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -483,8 +483,8 @@ func TestStoreCertificatePEM(t *testing.T) {
 				Directory:           filepath.Join(tempDir, "p12"),
 				CertificateFilename: "cert.p12",
 				IncludePrivateKey:   true,
-				FileMode:            cryptoutilMagic.FilePermOwnerReadWriteOnly,
-				DirMode:             cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute,
+				FileMode:            cryptoutilSharedMagic.FilePermOwnerReadWriteOnly,
+				DirMode:             cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute,
 			},
 			expectError: true,
 		},
@@ -497,7 +497,7 @@ func TestStoreCertificatePEM(t *testing.T) {
 
 			var err error
 
-			if subject, ok := tc.subject.(*cryptoutilCertificate.Subject); ok {
+			if subject, ok := tc.subject.(*cryptoutilSharedCryptoCertificate.Subject); ok {
 				stored, err = StoreCertificate(subject, tc.opts)
 			} else {
 				stored, err = StoreCertificate(nil, tc.opts)

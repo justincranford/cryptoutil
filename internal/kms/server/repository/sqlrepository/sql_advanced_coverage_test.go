@@ -8,9 +8,9 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -51,12 +51,12 @@ func TestSQLRepository_PoolSettings(t *testing.T) {
 
 			ctx := context.Background()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseContainer = containerModeDisabled
 			settings.VerboseMode = tc.verboseMode
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -82,11 +82,11 @@ func TestSQLRepository_Shutdown_Multiple(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("shutdown_multiple_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("shutdown_multiple_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -124,12 +124,12 @@ func TestSQLRepository_DBStats(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("dbstats_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("dbstats_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 	settings.VerboseMode = true
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -157,11 +157,11 @@ func TestSQLRepository_ConnectionPoolExhaustion(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("pool_exhaustion_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("pool_exhaustion_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)

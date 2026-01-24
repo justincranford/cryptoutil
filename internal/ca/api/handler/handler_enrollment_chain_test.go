@@ -4,16 +4,16 @@ package handler
 
 import (
 	"context"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
@@ -28,7 +28,7 @@ func TestGetEnrollmentStatus_WithCertificate(t *testing.T) {
 	tracker := newEnrollmentTracker(100)
 	requestID := googleUuid.New()
 	serialNumber := googleUuid.NewString()
-	tracker.track(requestID, cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, serialNumber)
+	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, serialNumber)
 
 	// Store the issued certificate in storage.
 	cert := &cryptoutilCAStorage.StoredCertificate{
@@ -80,7 +80,7 @@ func TestGetEnrollmentStatus_IssuedNoCertificate(t *testing.T) {
 	// Create tracker and track an issued enrollment with non-existent serial.
 	tracker := newEnrollmentTracker(100)
 	requestID := googleUuid.New()
-	tracker.track(requestID, cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, "NONEXISTENT")
+	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, "NONEXISTENT")
 
 	handler := &Handler{
 		storage:           storage,
@@ -118,7 +118,7 @@ func TestGetEnrollmentStatus_Pending(t *testing.T) {
 	// Create tracker and track a pending enrollment.
 	tracker := newEnrollmentTracker(100)
 	requestID := googleUuid.New()
-	tracker.track(requestID, cryptoutilCAServer.EnrollmentStatusResponseStatusPending, "")
+	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusPending, "")
 
 	handler := &Handler{
 		storage:           storage,

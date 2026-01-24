@@ -5,7 +5,7 @@ package server_test
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 

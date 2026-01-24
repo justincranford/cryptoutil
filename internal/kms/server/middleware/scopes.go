@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ScopeConfig configures scope validation behavior.

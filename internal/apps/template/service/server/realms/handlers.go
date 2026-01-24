@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // HandleRegisterUser returns a Fiber handler for user registration.
@@ -60,15 +60,15 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 		}
 
 		// Validate username length (3-50 characters).
-		if len(req.Username) < cryptoutilMagic.CipherMinUsernameLength ||
-			len(req.Username) > cryptoutilMagic.CipherMaxUsernameLength {
+		if len(req.Username) < cryptoutilSharedMagic.CipherMinUsernameLength ||
+			len(req.Username) > cryptoutilSharedMagic.CipherMaxUsernameLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "username must be 3-50 characters",
 			})
 		}
 
 		// Validate password length (minimum 8 characters).
-		if len(req.Password) < cryptoutilMagic.CipherMinPasswordLength {
+		if len(req.Password) < cryptoutilSharedMagic.CipherMinPasswordLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "password must be at least 8 characters",
 			})
@@ -286,7 +286,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		// Session expiration is handled by SessionManager configuration.
 		// For compatibility, return current time + configured session expiration.
-		expiresAt := time.Now().Add(cryptoutilMagic.DefaultCompatibilitySessionExpiration)
+		expiresAt := time.Now().Add(cryptoutilSharedMagic.DefaultCompatibilitySessionExpiration)
 
 		return c.JSON(fiber.Map{
 			"token":      token,
@@ -313,14 +313,14 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 // - Issuer: "cipher-im" (configurable via cryptoutilMagic.CipherJWTIssuer)
 // - Claims: user_id (string), username (string), iat, exp, iss.
 func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(cryptoutilMagic.CipherJWTExpiration)
+	expirationTime := time.Now().Add(cryptoutilSharedMagic.CipherJWTExpiration)
 	claims := &Claims{
 		UserID:   userID.String(),
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    cryptoutilMagic.CipherJWTIssuer,
+			Issuer:    cryptoutilSharedMagic.CipherJWTIssuer,
 		},
 	}
 

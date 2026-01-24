@@ -5,12 +5,12 @@ package e2e_test
 import (
 	"context"
 	"io"
-	"net/http"
+	http "net/http"
 	"strings"
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +43,7 @@ func TestE2E_HealthChecks(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 			defer cancel()
 
-			healthURL := tt.publicURL + cryptoutilMagic.IdentityE2EHealthEndpoint
+			healthURL := tt.publicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 			require.NoError(t, err, "Creating health check request should succeed")
 
@@ -165,7 +165,7 @@ func TestE2E_CSP_Headers(t *testing.T) {
 	defer cancel()
 
 	// Test browser health endpoint for CSP headers.
-	healthURL := authzPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint
+	healthURL := authzPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 	require.NoError(t, err, "Creating CSP test request should succeed")
 
@@ -209,7 +209,7 @@ func TestE2E_ServicePath_IDP(t *testing.T) {
 	defer cancel()
 
 	// Test IDP health endpoint.
-	healthURL := idpPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint
+	healthURL := idpPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 	require.NoError(t, err, "Creating IDP health request should succeed")
 
@@ -251,7 +251,7 @@ func TestE2E_ServicePath_RP(t *testing.T) {
 	defer cancel()
 
 	// Test RP health endpoint.
-	healthURL := rpPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint
+	healthURL := rpPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 	require.NoError(t, err, "Creating RP health request should succeed")
 
@@ -271,7 +271,7 @@ func TestE2E_ServicePath_SPA(t *testing.T) {
 	defer cancel()
 
 	// Test SPA health endpoint.
-	healthURL := spaPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint
+	healthURL := spaPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 	require.NoError(t, err, "Creating SPA health request should succeed")
 
@@ -305,7 +305,7 @@ func TestE2E_AllServicesIntegration(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
 			defer cancel()
 
-			healthURL := svc.publicURL + cryptoutilMagic.IdentityE2EHealthEndpoint
+			healthURL := svc.publicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 			require.NoError(t, err, "Creating health request should succeed")
 

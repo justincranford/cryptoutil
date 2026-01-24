@@ -14,8 +14,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -42,7 +42,7 @@ type ValueGenPool[T any] struct {
 // ValueGenPoolConfig holds configuration options for creating a ValueGenPool.
 type ValueGenPoolConfig[T any] struct {
 	ctx                 context.Context
-	telemetryService    *cryptoutilTelemetry.TelemetryService // telemetry service for metrics and logging
+	telemetryService    *cryptoutilSharedTelemetry.TelemetryService // telemetry service for metrics and logging
 	poolName            string
 	numWorkers          uint32
 	poolSize            uint32
@@ -64,10 +64,10 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 
 	// Safe conversion with bounds checking
 	var maxLifetimeValuesInt64 int64
-	if cfg.maxLifetimeValues <= cryptoutilMagic.MaxPoolLifetimeValues {
+	if cfg.maxLifetimeValues <= cryptoutilSharedMagic.MaxPoolLifetimeValues {
 		maxLifetimeValuesInt64 = int64(cfg.maxLifetimeValues)
 	} else {
-		maxLifetimeValuesInt64 = cryptoutilMagic.MaxPoolLifetimeValuesInt64
+		maxLifetimeValuesInt64 = cryptoutilSharedMagic.MaxPoolLifetimeValuesInt64
 	}
 
 	meter := cfg.telemetryService.MetricsProvider.Meter("cryptoutil.pool."+cfg.poolName, []metric.MeterOption{
@@ -137,7 +137,7 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 }
 
 // NewValueGenPoolConfig creates a new configuration for a ValueGenPool.
-func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers, poolSize uint32, maxLifetimeValues uint64, maxLifetimeDuration time.Duration, generateFunction func() (T, error), verbose bool) (*ValueGenPoolConfig[T], error) {
+func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, poolName string, numWorkers, poolSize uint32, maxLifetimeValues uint64, maxLifetimeDuration time.Duration, generateFunction func() (T, error), verbose bool) (*ValueGenPoolConfig[T], error) {
 	config := &ValueGenPoolConfig[T]{
 		ctx:                 ctx,
 		telemetryService:    telemetryService,
@@ -382,7 +382,7 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 	}
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
-	ticker := time.NewTicker(cryptoutilMagic.PoolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
+	ticker := time.NewTicker(cryptoutilSharedMagic.PoolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
 
 	defer func() { ticker.Stop() }() //nolint:errcheck
 

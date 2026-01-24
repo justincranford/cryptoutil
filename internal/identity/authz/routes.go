@@ -7,7 +7,7 @@ package authz
 import (
 	"log/slog"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // RegisterRoutes registers all OAuth 2.1 authorization server routes.

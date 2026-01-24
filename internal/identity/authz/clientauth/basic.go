@@ -13,7 +13,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 // BasicAuthenticator implements HTTP Basic authentication for OAuth 2.1 clients.
@@ -52,7 +52,7 @@ func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credent
 	// Validate client secret using PBKDF2-HMAC-SHA256 hash comparison.
 	// Use cryptoutilCrypto.VerifySecret (format: pbkdf2$iter$salt$hash) instead of
 	// clientauth.CompareSecret (format: salt:hash).
-	match, err := cryptoutilDigests.VerifySecret(client.ClientSecret, clientSecret)
+	match, err := cryptoutilSharedCryptoDigests.VerifySecret(client.ClientSecret, clientSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare client secret: %w", err)
 	}

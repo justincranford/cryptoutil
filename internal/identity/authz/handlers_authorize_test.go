@@ -10,10 +10,10 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -25,7 +25,7 @@ func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
 	config := createAuthorizeTestConfig(t)
 	repoFactory := createAuthorizeTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -56,7 +56,7 @@ func TestHandleAuthorizeGET_MissingResponseType(t *testing.T) {
 	config := createAuthorizeTestConfig(t)
 	repoFactory := createAuthorizeTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -87,7 +87,7 @@ func TestHandleAuthorizeGET_MissingRedirectURI(t *testing.T) {
 	config := createAuthorizeTestConfig(t)
 	repoFactory := createAuthorizeTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -116,7 +116,7 @@ func TestHandleAuthorizePOST_MissingClientID(t *testing.T) {
 	config := createAuthorizeTestConfig(t)
 	repoFactory := createAuthorizeTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

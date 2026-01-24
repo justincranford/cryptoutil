@@ -12,32 +12,32 @@ import (
 
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/cipher/im/server"
-	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilAppsCipherImTesting "cryptoutil/internal/apps/cipher/im/testing"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 var (
 	testDB    *gorm.DB
 	testSQLDB *sql.DB
 
-	testCipherIMServer *server.CipherIMServer
+	testCipherIMServer *cryptoutilAppsCipherImServer.CipherIMServer
 	baseURL            string
 	adminURL           string
 
-	testJWKGenService    *cryptoutilJose.JWKGenService
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 
-	testTLSCfg *cryptoutilTLSGenerator.TLSGeneratedSettings
+	testTLSCfg *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings
 )
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Setup: Create shared heavyweight resources ONCE using helper.
-	resources, err := cipherTesting.SetupTestServer(ctx, false)
+	resources, err := cryptoutilAppsCipherImTesting.SetupTestServer(ctx, false)
 	if err != nil {
 		panic("TestMain: failed to setup test server: " + err.Error())
 	}

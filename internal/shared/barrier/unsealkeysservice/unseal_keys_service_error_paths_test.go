@@ -5,7 +5,7 @@ package unsealkeysservice
 import (
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -148,8 +148,8 @@ func TestNewUnsealKeysServiceSharedSecrets_MaxSecrets(t *testing.T) {
 	t.Parallel()
 
 	// Create exactly MaxUnsealSharedSecrets (256) secrets
-	secrets := make([][]byte, cryptoutilMagic.MaxUnsealSharedSecrets)
-	for i := 0; i < cryptoutilMagic.MaxUnsealSharedSecrets; i++ {
+	secrets := make([][]byte, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
+	for i := 0; i < cryptoutilSharedMagic.MaxUnsealSharedSecrets; i++ {
 		secrets[i] = []byte("shared secret with sufficient minimum length here")
 	}
 

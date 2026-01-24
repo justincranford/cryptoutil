@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strings"
 
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -53,11 +53,11 @@ var AllAuditOperations = []string{
 
 // AuditConfigService provides business logic for audit configuration management.
 type AuditConfigService struct {
-	repo repository.AuditConfigRepository
+	repo cryptoutilJoseRepository.AuditConfigRepository
 }
 
 // NewAuditConfigService creates a new audit config service.
-func NewAuditConfigService(repo repository.AuditConfigRepository) *AuditConfigService {
+func NewAuditConfigService(repo cryptoutilJoseRepository.AuditConfigRepository) *AuditConfigService {
 	return &AuditConfigService{
 		repo: repo,
 	}
@@ -65,7 +65,7 @@ func NewAuditConfigService(repo repository.AuditConfigRepository) *AuditConfigSe
 
 // GetConfig retrieves audit config for a tenant and operation.
 // Returns the config if found, or creates a default config if not found.
-func (s *AuditConfigService) GetConfig(ctx context.Context, tenantID googleUuid.UUID, operation string) (*domain.AuditConfig, error) {
+func (s *AuditConfigService) GetConfig(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilJoseDomain.AuditConfig, error) {
 	if !isValidOperation(operation) {
 		return nil, fmt.Errorf("invalid operation: %s", operation)
 	}
@@ -74,7 +74,7 @@ func (s *AuditConfigService) GetConfig(ctx context.Context, tenantID googleUuid.
 	if err != nil {
 		// If not found error, return default values.
 		if isNotFoundAuditConfigError(err) {
-			return &domain.AuditConfig{
+			return &cryptoutilJoseDomain.AuditConfig{
 				TenantID:     tenantID,
 				Operation:    operation,
 				Enabled:      DefaultAuditEnabled,
@@ -99,7 +99,7 @@ func isNotFoundAuditConfigError(err error) bool {
 
 // GetAllConfigs retrieves all audit configs for a tenant.
 // For operations not configured, returns defaults.
-func (s *AuditConfigService) GetAllConfigs(ctx context.Context, tenantID googleUuid.UUID) ([]domain.AuditConfig, error) {
+func (s *AuditConfigService) GetAllConfigs(ctx context.Context, tenantID googleUuid.UUID) ([]cryptoutilJoseDomain.AuditConfig, error) {
 	// Get existing configs.
 	existing, err := s.repo.GetAll(ctx, tenantID)
 	if err != nil {
@@ -107,20 +107,20 @@ func (s *AuditConfigService) GetAllConfigs(ctx context.Context, tenantID googleU
 	}
 
 	// Build a map of existing configs.
-	existingMap := make(map[string]domain.AuditConfig)
+	existingMap := make(map[string]cryptoutilJoseDomain.AuditConfig)
 
 	for _, config := range existing {
 		existingMap[config.Operation] = config
 	}
 
 	// Build result with defaults for missing operations.
-	result := make([]domain.AuditConfig, 0, len(AllAuditOperations))
+	result := make([]cryptoutilJoseDomain.AuditConfig, 0, len(AllAuditOperations))
 
 	for _, op := range AllAuditOperations {
 		if config, found := existingMap[op]; found {
 			result = append(result, config)
 		} else {
-			result = append(result, domain.AuditConfig{
+			result = append(result, cryptoutilJoseDomain.AuditConfig{
 				TenantID:     tenantID,
 				Operation:    op,
 				Enabled:      DefaultAuditEnabled,
@@ -142,7 +142,7 @@ func (s *AuditConfigService) SetConfig(ctx context.Context, tenantID googleUuid.
 		return fmt.Errorf("sampling rate must be between 0.0 and 1.0, got %f", samplingRate)
 	}
 
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      enabled,
@@ -160,7 +160,7 @@ func (s *AuditConfigService) SetConfig(ctx context.Context, tenantID googleUuid.
 // This is typically called when a new tenant is created.
 func (s *AuditConfigService) InitializeDefaults(ctx context.Context, tenantID googleUuid.UUID) error {
 	for _, op := range AllAuditOperations {
-		config := &domain.AuditConfig{
+		config := &cryptoutilJoseDomain.AuditConfig{
 			TenantID:     tenantID,
 			Operation:    op,
 			Enabled:      DefaultAuditEnabled,

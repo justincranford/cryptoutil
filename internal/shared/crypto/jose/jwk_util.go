@@ -5,18 +5,18 @@
 package crypto
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rsa"
-	"encoding/json"
+	rsa "crypto/rsa"
+	json "encoding/json"
 	"fmt"
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
@@ -176,7 +176,7 @@ func GenerateJWKForAlg(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUu
 }
 
 // CreateJWKFromKey creates a JWK from an existing cryptographic key.
-func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilSharedCryptoKeygen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	now := time.Now().UTC().Unix()
 
 	_, err := validateJWKHeaders2(kid, alg, key, false)
@@ -187,7 +187,7 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 	var nonPublicJWK joseJwk.Key
 
 	switch typedKey := key.(type) {
-	case cryptoutilKeyGen.SecretKey: // HMAC // pragma: allowlist secret
+	case cryptoutilSharedCryptoKeygen.SecretKey: // HMAC // pragma: allowlist secret
 		if nonPublicJWK, err = joseJwk.Import([]byte(typedKey)); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key material into JWK: %w", err)
 		}
@@ -255,7 +255,7 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 		default:
 			return nil, nil, nil, nil, nil, fmt.Errorf("unexpected algorithm %s for secret key", *alg)
 		}
-	case *cryptoutilKeyGen.KeyPair: // RSA, ECDSA, EdDSA
+	case *cryptoutilSharedCryptoKeygen.KeyPair: // RSA, ECDSA, EdDSA
 		if nonPublicJWK, err = joseJwk.Import(typedKey.Private); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key pair into JWK: %w", err)
 		}
@@ -297,7 +297,7 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 
 	var clearPublicJWKBytes []byte
 
-	if _, ok := key.(*cryptoutilKeyGen.KeyPair); ok { // RSA, EC, ED
+	if _, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair); ok { // RSA, EC, ED
 		publicJWK, err = nonPublicJWK.PublicKey()
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to get public JWE JWK from private JWE JWK: %w", err)
@@ -312,7 +312,7 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 	return kid, nonPublicJWK, publicJWK, clearNonPublicJWKBytes, clearPublicJWKBytes, nil
 }
 
-func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
+func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilSharedCryptoKeygen.Key, isNilRawKeyOk bool) (cryptoutilSharedCryptoKeygen.Key, error) {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, &ErrInvalidJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWK kid must be valid: %w", err)
 	} else if alg == nil {
@@ -323,11 +323,11 @@ func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 
 	switch *alg {
 	case cryptoutilOpenapiModel.RSA4096:
-		return validateOrGenerateRSAJWK(key, cryptoutilMagic.RSAKeySize4096)
+		return validateOrGenerateRSAJWK(key, cryptoutilSharedMagic.RSAKeySize4096)
 	case cryptoutilOpenapiModel.RSA3072:
-		return validateOrGenerateRSAJWK(key, cryptoutilMagic.RSAKeySize3072)
+		return validateOrGenerateRSAJWK(key, cryptoutilSharedMagic.RSAKeySize3072)
 	case cryptoutilOpenapiModel.RSA2048:
-		return validateOrGenerateRSAJWK(key, cryptoutilMagic.RSAKeySize2048)
+		return validateOrGenerateRSAJWK(key, cryptoutilSharedMagic.RSAKeySize2048)
 	case cryptoutilOpenapiModel.ECP521:
 		return validateOrGenerateEcdsaJWK(key, elliptic.P521())
 	case cryptoutilOpenapiModel.ECP384:
@@ -337,23 +337,23 @@ func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 	case cryptoutilOpenapiModel.OKPEd25519:
 		return validateOrGenerateEddsaJWK(key, "Ed25519")
 	case cryptoutilOpenapiModel.Oct512:
-		return validateOrGenerateHMACJWK(key, cryptoutilMagic.HMACKeySize512)
+		return validateOrGenerateHMACJWK(key, cryptoutilSharedMagic.HMACKeySize512)
 	case cryptoutilOpenapiModel.Oct384:
-		return validateOrGenerateHMACJWK(key, cryptoutilMagic.HMACKeySize384)
+		return validateOrGenerateHMACJWK(key, cryptoutilSharedMagic.HMACKeySize384)
 	case cryptoutilOpenapiModel.Oct256:
-		return validateOrGenerateAESJWK(key, cryptoutilMagic.AESKeySize256)
+		return validateOrGenerateAESJWK(key, cryptoutilSharedMagic.AESKeySize256)
 	case cryptoutilOpenapiModel.Oct192:
-		return validateOrGenerateAESJWK(key, cryptoutilMagic.AESKeySize192)
+		return validateOrGenerateAESJWK(key, cryptoutilSharedMagic.AESKeySize192)
 	case cryptoutilOpenapiModel.Oct128:
-		return validateOrGenerateAESJWK(key, cryptoutilMagic.AESKeySize128)
+		return validateOrGenerateAESJWK(key, cryptoutilSharedMagic.AESKeySize128)
 	default:
 		return nil, fmt.Errorf("unsupported JWK alg: %v", alg)
 	}
 }
 
-func validateOrGenerateRSAJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateRSAJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if key == nil {
-		generatedKey, err := cryptoutilKeyGen.GenerateRSAKeyPair(keyBitsLength)
+		generatedKey, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate RSA %d key: %w", keyBitsLength, err)
 		}
@@ -361,7 +361,7 @@ func validateOrGenerateRSAJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (*cry
 		return generatedKey, nil
 	}
 
-	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	keyPair, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair)
 	if !ok {
 		return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
 	}
@@ -387,9 +387,9 @@ func validateOrGenerateRSAJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (*cry
 	return keyPair, nil
 }
 
-func validateOrGenerateEcdsaJWK(key cryptoutilKeyGen.Key, curve elliptic.Curve) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateEcdsaJWK(key cryptoutilSharedCryptoKeygen.Key, curve elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if key == nil {
-		generatedKey, err := cryptoutilKeyGen.GenerateECDSAKeyPair(curve)
+		generatedKey, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(curve)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA %s key pair: %w", curve, err)
 		}
@@ -397,7 +397,7 @@ func validateOrGenerateEcdsaJWK(key cryptoutilKeyGen.Key, curve elliptic.Curve) 
 		return generatedKey, nil
 	}
 
-	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	keyPair, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair)
 	if !ok {
 		return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
 	}
@@ -423,9 +423,9 @@ func validateOrGenerateEcdsaJWK(key cryptoutilKeyGen.Key, curve elliptic.Curve) 
 	return keyPair, nil
 }
 
-func validateOrGenerateEddsaJWK(key cryptoutilKeyGen.Key, curve string) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateEddsaJWK(key cryptoutilSharedCryptoKeygen.Key, curve string) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if key == nil {
-		generatedKey, err := cryptoutilKeyGen.GenerateEDDSAKeyPair(curve)
+		generatedKey, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(curve)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate Ed29919 key pair: %w", err)
 		}
@@ -433,7 +433,7 @@ func validateOrGenerateEddsaJWK(key cryptoutilKeyGen.Key, curve string) (*crypto
 		return generatedKey, nil
 	}
 
-	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	keyPair, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair)
 	if !ok {
 		return nil, fmt.Errorf("unsupported key type %T; use *cryptoutilKeyGen.KeyPair", key)
 	}
@@ -459,9 +459,9 @@ func validateOrGenerateEddsaJWK(key cryptoutilKeyGen.Key, curve string) (*crypto
 	return keyPair, nil
 }
 
-func validateOrGenerateHMACJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) { // pragma: allowlist secret
+func validateOrGenerateHMACJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (cryptoutilSharedCryptoKeygen.SecretKey, error) { // pragma: allowlist secret
 	if key == nil {
-		generatedKey, err := cryptoutilKeyGen.GenerateHMACKey(keyBitsLength)
+		generatedKey, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate HMAC %d key: %w", keyBitsLength, err)
 		}
@@ -469,7 +469,7 @@ func validateOrGenerateHMACJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cry
 		return generatedKey, nil
 	}
 
-	hmacKey, ok := key.(cryptoutilKeyGen.SecretKey) // pragma: allowlist secret
+	hmacKey, ok := key.(cryptoutilSharedCryptoKeygen.SecretKey) // pragma: allowlist secret
 	if !ok {
 		return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
 	}
@@ -478,16 +478,16 @@ func validateOrGenerateHMACJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cry
 		return nil, fmt.Errorf("invalid nil key bytes")
 	}
 
-	if len(hmacKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
+	if len(hmacKey) != keyBitsLength/cryptoutilSharedMagic.BitsToBytes {
 		return nil, fmt.Errorf("invalid key length %d; use HMAC %d", len(hmacKey), keyBitsLength)
 	}
 
 	return hmacKey, nil
 }
 
-func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) { // pragma: allowlist secret
+func validateOrGenerateAESJWK(key cryptoutilSharedCryptoKeygen.Key, keyBitsLength int) (cryptoutilSharedCryptoKeygen.SecretKey, error) { // pragma: allowlist secret
 	if key == nil {
-		generatedKey, err := cryptoutilKeyGen.GenerateAESKey(keyBitsLength)
+		generatedKey, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate AES %d key: %w", keyBitsLength, err)
 		}
@@ -495,7 +495,7 @@ func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryp
 		return generatedKey, nil
 	}
 
-	aesKey, ok := key.(cryptoutilKeyGen.SecretKey) // pragma: allowlist secret
+	aesKey, ok := key.(cryptoutilSharedCryptoKeygen.SecretKey) // pragma: allowlist secret
 	if !ok {
 		return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
 	}
@@ -504,7 +504,7 @@ func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryp
 		return nil, fmt.Errorf("invalid nil key bytes")
 	}
 
-	if len(aesKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
+	if len(aesKey) != keyBitsLength/cryptoutilSharedMagic.BitsToBytes {
 		return nil, fmt.Errorf("invalid key length %d; use AES %d", len(aesKey), keyBitsLength)
 	}
 

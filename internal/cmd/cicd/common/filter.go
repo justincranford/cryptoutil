@@ -5,7 +5,7 @@ package common
 import (
 	"regexp"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // FilterFilesForCommand filters files by applying the self-exclusion pattern
@@ -17,7 +17,7 @@ func FilterFilesForCommand(files []string, commandName string) []string {
 	}
 
 	// Get self-exclusion pattern for this command.
-	selfExclusionPattern, hasSelfExclusion := cryptoutilMagic.CICDSelfExclusionPatterns[commandName]
+	selfExclusionPattern, hasSelfExclusion := cryptoutilSharedMagic.CICDSelfExclusionPatterns[commandName]
 
 	// Compile patterns.
 	var selfExclusionRegex *regexp.Regexp
@@ -25,8 +25,8 @@ func FilterFilesForCommand(files []string, commandName string) []string {
 		selfExclusionRegex = regexp.MustCompile(selfExclusionPattern)
 	}
 
-	generatedPatterns := make([]*regexp.Regexp, 0, len(cryptoutilMagic.GeneratedFileExcludePatterns))
-	for _, pattern := range cryptoutilMagic.GeneratedFileExcludePatterns {
+	generatedPatterns := make([]*regexp.Regexp, 0, len(cryptoutilSharedMagic.GeneratedFileExcludePatterns))
+	for _, pattern := range cryptoutilSharedMagic.GeneratedFileExcludePatterns {
 		generatedPatterns = append(generatedPatterns, regexp.MustCompile(pattern))
 	}
 

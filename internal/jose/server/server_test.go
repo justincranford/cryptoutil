@@ -8,28 +8,28 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"sync"
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJoseServerMiddleware "cryptoutil/internal/jose/server/middleware"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
 
 // createTestTLSConfig creates a TLSGeneratedSettings for testing.
-func createTestTLSConfig() *cryptoutilTLSGenerator.TLSGeneratedSettings {
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+func createTestTLSConfig() *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings {
+	tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost", "jose-server"},
 		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
 		panic(fmt.Sprintf("failed to generate test TLS config: %v", err))
@@ -39,7 +39,7 @@ func createTestTLSConfig() *cryptoutilTLSGenerator.TLSGeneratedSettings {
 }
 
 var (
-	testSettings   *cryptoutilConfig.ServiceTemplateServerSettings
+	testSettings   *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	testServer     *Server
 	testBaseURL    string
 	testHTTPClient *http.Client
@@ -54,8 +54,8 @@ func setupTestServer() error {
 	setupOnce.Do(func() {
 		// Create test settings with dynamic port allocation using test helper.
 		// NewTestConfig bypasses pflag global FlagSet to allow multiple test instances.
-		testSettings = cryptoutilConfig.NewTestConfig(
-			cryptoutilMagic.IPv4Loopback,
+		testSettings = cryptoutilAppsTemplateServiceConfig.NewTestConfig(
+			cryptoutilSharedMagic.IPv4Loopback,
 			0, // Dynamic port allocation.
 			true,
 		)
@@ -76,10 +76,10 @@ func setupTestServer() error {
 		}
 
 		// Wait for server to be ready.
-		time.Sleep(cryptoutilMagic.ServerStartupWait)
+		time.Sleep(cryptoutilSharedMagic.ServerStartupWait)
 
 		// Get the actual port from the listener.
-		testBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, testServer.ActualPort())
+		testBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, testServer.ActualPort())
 
 		// Create HTTP client with TLS config for self-signed certificates.
 		testHTTPClient = &http.Client{
@@ -1152,8 +1152,8 @@ func TestServerLifecycle(t *testing.T) {
 
 	require.NoError(t, setupTestServer())
 
-	settings := cryptoutilConfig.NewTestConfig(
-		cryptoutilMagic.IPv4Loopback,
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(
+		cryptoutilSharedMagic.IPv4Loopback,
 		0, // Dynamic port.
 		true,
 	)
@@ -1175,8 +1175,8 @@ func TestAPIKeyMiddleware(t *testing.T) {
 
 	require.NoError(t, setupTestServer())
 
-	settings := cryptoutilConfig.NewTestConfig(
-		cryptoutilMagic.IPv4Loopback,
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(
+		cryptoutilSharedMagic.IPv4Loopback,
 		0,
 		true,
 	)
@@ -1209,8 +1209,8 @@ func TestNewServerErrorPaths(t *testing.T) {
 
 	require.NoError(t, setupTestServer())
 
-	validSettings := cryptoutilConfig.NewTestConfig(
-		cryptoutilMagic.IPv4Loopback,
+	validSettings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(
+		cryptoutilSharedMagic.IPv4Loopback,
 		0,
 		true,
 	)
@@ -1238,8 +1238,8 @@ func TestStartBlocking(t *testing.T) {
 
 	require.NoError(t, setupTestServer())
 
-	settings := cryptoutilConfig.NewTestConfig(
-		cryptoutilMagic.IPv4Loopback,
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(
+		cryptoutilSharedMagic.IPv4Loopback,
 		0,
 		true,
 	)
@@ -1264,8 +1264,8 @@ func TestShutdownCoverage(t *testing.T) {
 	t.Run("NormalShutdown", func(t *testing.T) {
 		t.Parallel()
 
-		settings := cryptoutilConfig.NewTestConfig(
-			cryptoutilMagic.IPv4Loopback,
+		settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(
+			cryptoutilSharedMagic.IPv4Loopback,
 			0,
 			true,
 		)
@@ -1285,8 +1285,8 @@ func TestShutdownCoverage(t *testing.T) {
 	t.Run("ShutdownWithoutStart", func(t *testing.T) {
 		t.Parallel()
 
-		settings := cryptoutilConfig.NewTestConfig(
-			cryptoutilMagic.IPv4Loopback,
+		settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(
+			cryptoutilSharedMagic.IPv4Loopback,
 			0,
 			true,
 		)

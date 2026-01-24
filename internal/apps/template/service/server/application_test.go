@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 )
 
 // mockPublicServer is a mock implementation of IPublicServer for testing.
@@ -159,7 +159,7 @@ func TestNewApplication_HappyPath(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 
 	require.NoError(t, err)
 	require.NotNil(t, app)
@@ -173,7 +173,7 @@ func TestNewApplication_NilContext(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally
 
 	require.Error(t, err)
 	require.Nil(t, app)
@@ -187,7 +187,7 @@ func TestNewApplication_NilPublicServer(t *testing.T) {
 	ctx := context.Background()
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, nil, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, nil, adminServer)
 
 	require.Error(t, err)
 	require.Nil(t, app)
@@ -201,7 +201,7 @@ func TestNewApplication_NilAdminServer(t *testing.T) {
 	ctx := context.Background()
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 
-	app, err := server.NewApplication(ctx, publicServer, nil)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, nil)
 
 	require.Error(t, err)
 	require.Nil(t, app)
@@ -216,7 +216,7 @@ func TestApplication_Start_NilContext(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	err = app.Start(nil) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally
@@ -236,7 +236,7 @@ func TestApplication_Start_PublicServerFails(t *testing.T) {
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 	adminServer.blockUntilStop = true
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	startCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
@@ -260,7 +260,7 @@ func TestApplication_Start_AdminServerFails(t *testing.T) {
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 	adminServer.startErr = fmt.Errorf("admin server startup failed")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	startCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
@@ -284,7 +284,7 @@ func TestApplication_Start_ContextCancelled(t *testing.T) {
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 	adminServer.blockUntilStop = true
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	startCtx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
@@ -305,7 +305,7 @@ func TestApplication_Shutdown_NilContext(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	err = app.Shutdown(nil) //nolint:staticcheck // SA1012 - Testing nil context behavior intentionally (Shutdown accepts nil)
@@ -324,7 +324,7 @@ func TestApplication_Shutdown_PublicServerFails(t *testing.T) {
 
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	err = app.Shutdown(ctx)
@@ -343,7 +343,7 @@ func TestApplication_Shutdown_AdminServerFails(t *testing.T) {
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 	adminServer.shutdownErr = fmt.Errorf("admin server shutdown failed")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	err = app.Shutdown(ctx)
@@ -364,7 +364,7 @@ func TestApplication_Shutdown_BothServersFail(t *testing.T) {
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 	adminServer.shutdownErr = fmt.Errorf("admin server shutdown failed")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	err = app.Shutdown(ctx)
@@ -384,7 +384,7 @@ func TestApplication_PublicPort(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	port := app.PublicPort()
@@ -399,7 +399,7 @@ func TestApplication_AdminPort(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	port := app.AdminPort()
@@ -414,7 +414,7 @@ func TestApplication_PublicBaseURL(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	baseURL := app.PublicBaseURL()
@@ -429,7 +429,7 @@ func TestApplication_AdminBaseURL(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	baseURL := app.AdminBaseURL()
@@ -444,7 +444,7 @@ func TestApplication_SetReady(t *testing.T) {
 	publicServer := newMockPublicServer(8080, "https://localhost:8080")
 	adminServer := newMockAdminServer(9090, "https://localhost:9090")
 
-	app, err := server.NewApplication(ctx, publicServer, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 	require.NoError(t, err)
 
 	require.False(t, adminServer.isReady())

@@ -8,17 +8,17 @@ import (
 	"context"
 
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/kms/server/businesslogic"
 )
 
 // StrictServer implements cryptoutilOpenapiServer.StrictServerInterface.
 type StrictServer struct {
-	businessLogicService *cryptoutilBusinessLogic.BusinessLogicService
+	businessLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService
 	oasOamMapper         *OamOasMapper
 }
 
 // NewOpenapiStrictServer creates a new OpenAPI strict server handler.
-func NewOpenapiStrictServer(service *cryptoutilBusinessLogic.BusinessLogicService) *StrictServer {
+func NewOpenapiStrictServer(service *cryptoutilKmsServerBusinesslogic.BusinessLogicService) *StrictServer {
 	return &StrictServer{businessLogicService: service, oasOamMapper: &OamOasMapper{}}
 }
 

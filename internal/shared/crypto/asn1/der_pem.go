@@ -6,21 +6,21 @@ package asn1
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PEMTypes lists all supported PEM type identifiers for DER/PEM encoding.
 var PEMTypes = []string{
-	cryptoutilMagic.StringPEMTypePKCS8PrivateKey, cryptoutilMagic.StringPEMTypePKIXPublicKey, cryptoutilMagic.StringPEMTypeRSAPrivateKey, cryptoutilMagic.StringPEMTypeRSAPublicKey, cryptoutilMagic.StringPEMTypeECPrivateKey, cryptoutilMagic.StringPEMTypeCertificate, cryptoutilMagic.StringPEMTypeCSR, cryptoutilMagic.StringPEMTypeSecretKey,
+	cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, cryptoutilSharedMagic.StringPEMTypePKIXPublicKey, cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey, cryptoutilSharedMagic.StringPEMTypeRSAPublicKey, cryptoutilSharedMagic.StringPEMTypeECPrivateKey, cryptoutilSharedMagic.StringPEMTypeCertificate, cryptoutilSharedMagic.StringPEMTypeCSR, cryptoutilSharedMagic.StringPEMTypeSecretKey,
 }
 
 // PEMEncodes encodes multiple keys (e.g., certificate chains) to PEM format.
@@ -86,25 +86,25 @@ func DEREncode(key any) ([]byte, string, error) {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
 
-		return privateKeyBytes, cryptoutilMagic.StringPEMTypePKCS8PrivateKey, nil
+		return privateKeyBytes, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, nil
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
 		publicKeyBytes, err := x509.MarshalPKIXPublicKey(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
 
-		return publicKeyBytes, cryptoutilMagic.StringPEMTypePKIXPublicKey, nil
+		return publicKeyBytes, cryptoutilSharedMagic.StringPEMTypePKIXPublicKey, nil
 	case *x509.Certificate:
-		return x509Type.Raw, cryptoutilMagic.StringPEMTypeCertificate, nil
+		return x509Type.Raw, cryptoutilSharedMagic.StringPEMTypeCertificate, nil
 	case *x509.CertificateRequest:
-		return x509Type.Raw, cryptoutilMagic.StringPEMTypeCSR, nil
+		return x509Type.Raw, cryptoutilSharedMagic.StringPEMTypeCSR, nil
 	case []byte:
 		byteKey, ok := key.([]byte)
 		if !ok {
 			return nil, "", fmt.Errorf("type assertion to []byte failed")
 		}
 
-		return byteKey, cryptoutilMagic.StringPEMTypeSecretKey, nil
+		return byteKey, cryptoutilSharedMagic.StringPEMTypeSecretKey, nil
 	default:
 		return nil, "", fmt.Errorf("not supported [%T]", x509Type)
 	}
@@ -117,21 +117,21 @@ func DERDecode(bytes []byte, x509Type string) (any, error) {
 	var err error
 
 	switch x509Type {
-	case cryptoutilMagic.StringPEMTypePKCS8PrivateKey:
+	case cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey:
 		key, err = x509.ParsePKCS8PrivateKey(bytes) // Generic: RSA, EC, ED
-	case cryptoutilMagic.StringPEMTypePKIXPublicKey:
+	case cryptoutilSharedMagic.StringPEMTypePKIXPublicKey:
 		key, err = x509.ParsePKIXPublicKey(bytes) // Generic: RSA, EC, ED
-	case cryptoutilMagic.StringPEMTypeRSAPrivateKey:
+	case cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey:
 		key, err = x509.ParsePKCS1PrivateKey(bytes) // RSA PrivateKey
-	case cryptoutilMagic.StringPEMTypeRSAPublicKey:
+	case cryptoutilSharedMagic.StringPEMTypeRSAPublicKey:
 		key, err = x509.ParsePKCS1PublicKey(bytes) // RSA PublicKey
-	case cryptoutilMagic.StringPEMTypeECPrivateKey:
+	case cryptoutilSharedMagic.StringPEMTypeECPrivateKey:
 		key, err = x509.ParseECPrivateKey(bytes) // EC, ED PrivateKey
-	case cryptoutilMagic.StringPEMTypeCertificate:
+	case cryptoutilSharedMagic.StringPEMTypeCertificate:
 		key, err = x509.ParseCertificate(bytes)
-	case cryptoutilMagic.StringPEMTypeCSR:
+	case cryptoutilSharedMagic.StringPEMTypeCSR:
 		key, err = x509.ParseCertificateRequest(bytes)
-	case cryptoutilMagic.StringPEMTypeSecretKey:
+	case cryptoutilSharedMagic.StringPEMTypeSecretKey:
 		key, err = bytes, nil // AES, HMAC, AES-HMAC
 	default:
 		return nil, fmt.Errorf("type not supported: %s", x509Type)
@@ -202,12 +202,12 @@ func PEMWrite(key any, filename string) error {
 
 	dir := filepath.Dir(filename)
 
-	err = os.MkdirAll(dir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
+	err = os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
-	err = os.WriteFile(filename, pemBytes, cryptoutilMagic.FilePermOwnerReadWriteOnly)
+	err = os.WriteFile(filename, pemBytes, cryptoutilSharedMagic.FilePermOwnerReadWriteOnly)
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}
@@ -224,12 +224,12 @@ func DERWrite(key any, filename string) error {
 
 	dir := filepath.Dir(filename)
 
-	err = os.MkdirAll(dir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
+	err = os.MkdirAll(dir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
-	err = os.WriteFile(filename, derBytes, cryptoutilMagic.FilePermOwnerReadWriteOnly)
+	err = os.WriteFile(filename, derBytes, cryptoutilSharedMagic.FilePermOwnerReadWriteOnly)
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}

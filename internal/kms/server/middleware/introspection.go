@@ -6,15 +6,15 @@ package middleware
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"strings"
 	"sync"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // BatchIntrospector handles batch token introspection with deduplication.
@@ -96,9 +96,9 @@ type IntrospectionResult struct {
 // DefaultIntrospectionConfig returns a default configuration.
 func DefaultIntrospectionConfig() IntrospectionConfig {
 	return IntrospectionConfig{
-		CacheTTL:     cryptoutilMagic.IntrospectionCacheTTL,
-		MaxBatchSize: cryptoutilMagic.IntrospectionMaxBatchSize,
-		HTTPTimeout:  cryptoutilMagic.IntrospectionHTTPTimeout,
+		CacheTTL:     cryptoutilSharedMagic.IntrospectionCacheTTL,
+		MaxBatchSize: cryptoutilSharedMagic.IntrospectionMaxBatchSize,
+		HTTPTimeout:  cryptoutilSharedMagic.IntrospectionHTTPTimeout,
 	}
 }
 

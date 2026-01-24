@@ -7,11 +7,11 @@ package unsealkeysservice
 import (
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilCombinations "cryptoutil/internal/shared/util/combinations"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilCombinations "cryptoutil/internal/shared/util/combinations"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -27,7 +27,7 @@ type UnsealKeysService interface {
 }
 
 func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key, error) {
-	combinations, err := cryptoutilCombinations.ComputeCombinations(m, chooseN)
+	combinations, err := cryptoutilSharedUtilCombinations.ComputeCombinations(m, chooseN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute %d of %d combinations of shared secrets: %w", len(m), chooseN, err)
 	} else if len(combinations) == 0 {
@@ -47,25 +47,25 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 
 		// Derive deterministic KID UUID from current combination of shared secrets
 
-		ikmForDerivedKid := append(append([]byte{}, cryptoutilMagic.FixedIKMForDerivedKid...), currentCombinationBytesConcat...)
-		saltForDerivedKid := append(append([]byte{}, cryptoutilMagic.FixedSaltForDerivedKid...), currentCombinationBytesConcat...)
+		ikmForDerivedKid := append(append([]byte{}, cryptoutilSharedMagic.FixedIKMForDerivedKid...), currentCombinationBytesConcat...)
+		saltForDerivedKid := append(append([]byte{}, cryptoutilSharedMagic.FixedSaltForDerivedKid...), currentCombinationBytesConcat...)
 
-		derivedKidBytes, err := cryptoutilDigests.HKDFwithSHA256(ikmForDerivedKid, saltForDerivedKid, cryptoutilMagic.FixedContextForDerivedKid, cryptoutilMagic.DerivedKeySizeBytes)
+		derivedKidBytes, err := cryptoutilSharedCryptoDigests.HKDFwithSHA256(ikmForDerivedKid, saltForDerivedKid, cryptoutilSharedMagic.FixedContextForDerivedKid, cryptoutilSharedMagic.DerivedKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive unseal JWK kid bytes: %w", err)
 		}
 
-		derivedKidUUID, err := googleUuid.FromBytes(derivedKidBytes[:cryptoutilMagic.UUIDBytesLength])
+		derivedKidUUID, err := googleUuid.FromBytes(derivedKidBytes[:cryptoutilSharedMagic.UUIDBytesLength])
 		if err != nil {
 			return nil, fmt.Errorf("failed to create unseal JWK kid UUID from derived kid bytes: %w", err)
 		}
 
 		// Derive deterministic key material from current combination of shared secrets
 
-		ikmForDerivedSecret := append(append([]byte{}, cryptoutilMagic.FixedIKMForDerivedSecret...), currentCombinationBytesConcat...)
-		saltForDerivedSecret := append(append([]byte{}, cryptoutilMagic.FixedSaltForDerivedSecret...), currentCombinationBytesConcat...)
+		ikmForDerivedSecret := append(append([]byte{}, cryptoutilSharedMagic.FixedIKMForDerivedSecret...), currentCombinationBytesConcat...)
+		saltForDerivedSecret := append(append([]byte{}, cryptoutilSharedMagic.FixedSaltForDerivedSecret...), currentCombinationBytesConcat...)
 
-		derivedSecretBytes, err := cryptoutilDigests.HKDFwithSHA256(ikmForDerivedSecret, saltForDerivedSecret, cryptoutilMagic.FixedContextForDerivedSecret, cryptoutilMagic.DerivedKeySizeBytes)
+		derivedSecretBytes, err := cryptoutilSharedCryptoDigests.HKDFwithSHA256(ikmForDerivedSecret, saltForDerivedSecret, cryptoutilSharedMagic.FixedContextForDerivedSecret, cryptoutilSharedMagic.DerivedKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive unseal JWK secret bytes: %w", err)
 		}
@@ -73,10 +73,10 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		// Create JWK from derived KID and derived key material
 
 		// CRITICAL: Use JWK for envelope encryption (i.e. alg=A256GCMKW), not DIRECT encryption (i.e. alg=dir)
-		unsealJWKEncHeader := cryptoutilJose.EncA256GCM
-		unsealJWKAlgHeader := cryptoutilJose.AlgA256KW
+		unsealJWKEncHeader := cryptoutilSharedCryptoJose.EncA256GCM
+		unsealJWKAlgHeader := cryptoutilSharedCryptoJose.AlgA256KW
 
-		_, derivedJWK, _, _, _, err := cryptoutilJose.CreateJWEJWKFromKey(&derivedKidUUID, &unsealJWKEncHeader, &unsealJWKAlgHeader, cryptoutilKeyGen.SecretKey(derivedSecretBytes))
+		_, derivedJWK, _, _, _, err := cryptoutilSharedCryptoJose.CreateJWEJWKFromKey(&derivedKidUUID, &unsealJWKEncHeader, &unsealJWKAlgHeader, cryptoutilSharedCryptoKeygen.SecretKey(derivedSecretBytes))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create unseal JWK from derived kid bytes and secret bytes: %w", err)
 		}
@@ -88,7 +88,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 }
 
 func encryptKey(unsealJWKs []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, error) {
-	_, encryptedRootKeyBytes, err := cryptoutilJose.EncryptKey(unsealJWKs, clearRootKey)
+	_, encryptedRootKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey(unsealJWKs, clearRootKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt root JWK with unseal JWK: %w", err)
 	}
@@ -97,7 +97,7 @@ func encryptKey(unsealJWKs []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, err
 }
 
 func decryptKey(unsealJWKs []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
-	decryptedRootKey, err := cryptoutilJose.DecryptKey(unsealJWKs, encryptedRootKeyBytes)
+	decryptedRootKey, err := cryptoutilSharedCryptoJose.DecryptKey(unsealJWKs, encryptedRootKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK: %w", err)
 	}
@@ -106,7 +106,7 @@ func decryptKey(unsealJWKs []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk
 }
 
 func encryptData(unsealJWKs []joseJwk.Key, clearData []byte) ([]byte, error) {
-	_, encryptedDataBytes, err := cryptoutilJose.EncryptBytes(unsealJWKs, clearData)
+	_, encryptedDataBytes, err := cryptoutilSharedCryptoJose.EncryptBytes(unsealJWKs, clearData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt data with unseal JWK: %w", err)
 	}
@@ -115,7 +115,7 @@ func encryptData(unsealJWKs []joseJwk.Key, clearData []byte) ([]byte, error) {
 }
 
 func decryptData(unsealJWKs []joseJwk.Key, encryptedDataBytes []byte) ([]byte, error) {
-	decryptedData, err := cryptoutilJose.DecryptBytes(unsealJWKs, encryptedDataBytes)
+	decryptedData, err := cryptoutilSharedCryptoJose.DecryptBytes(unsealJWKs, encryptedDataBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt data with unseal JWK: %w", err)
 	}

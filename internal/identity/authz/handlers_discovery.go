@@ -7,7 +7,7 @@ package authz
 import (
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // handleOAuthMetadata handles GET /.well-known/oauth-authorization-server.

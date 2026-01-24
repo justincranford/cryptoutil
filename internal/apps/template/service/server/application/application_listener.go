@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 // Listener represents the top-level service application.
@@ -17,7 +17,7 @@ type Listener struct {
 	Core         *Core
 	PublicServer IPublicServer
 	AdminServer  IAdminServer
-	Settings     *cryptoutilConfig.ServiceTemplateServerSettings
+	Settings     *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 }
 
 // IPublicServer interface defines the contract for public HTTPS servers.
@@ -39,7 +39,7 @@ type IAdminServer interface {
 
 // ListenerConfig holds configuration for creating an Listener.
 type ListenerConfig struct {
-	Settings     *cryptoutilConfig.ServiceTemplateServerSettings
+	Settings     *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	PublicServer IPublicServer
 	AdminServer  IAdminServer
 }

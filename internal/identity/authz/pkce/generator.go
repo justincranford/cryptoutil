@@ -6,8 +6,8 @@
 package pkce
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
+	crand "crypto/rand"
+	sha256 "crypto/sha256"
 	"encoding/base64"
 	"fmt"
 
@@ -22,7 +22,7 @@ const (
 func GenerateCodeVerifier() (string, error) {
 	bytes := make([]byte, codeVerifierLength)
 
-	_, err := rand.Read(bytes)
+	_, err := crand.Read(bytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate code verifier: %w", err)
 	}

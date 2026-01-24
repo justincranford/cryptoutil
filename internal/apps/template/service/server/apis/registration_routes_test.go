@@ -10,10 +10,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
@@ -22,7 +22,7 @@ func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 
 	app := fiber.New()
 
@@ -37,7 +37,7 @@ func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 
 	app := fiber.New()
 
@@ -72,7 +72,7 @@ func TestRegisterJoinRequestManagementRoutes_Integration(t *testing.T) {
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 
 	adminAPI := fiber.New()
 

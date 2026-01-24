@@ -15,7 +15,7 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // InitTestDB creates an in-memory SQLite database with proper configuration.
@@ -51,8 +51,8 @@ func InitTestDB(ctx context.Context, applyMigrations func(*sql.DB) error) (*gorm
 	}
 
 	// Configure connection pool for GORM transactions (MaxOpenConns=5 required).
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetConnMaxLifetime(0) // In-memory: keep connections alive.
 
 	// Wrap with GORM using sqlite Dialector.

@@ -11,14 +11,14 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/cipher/im/domain"
+	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestMessage_TableName(t *testing.T) {
 	t.Parallel()
 
-	m := domain.Message{}
+	m := cryptoutilAppsCipherImDomain.Message{}
 	require.Equal(t, "messages", m.TableName())
 }
 
@@ -31,7 +31,7 @@ func TestMessage_FieldTypes(t *testing.T) {
 	readAt := time.Now().Add(10 * time.Minute)
 	jwe := `{"protected":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIn0","iv":"test","ciphertext":"test","tag":"test"}`
 
-	m := domain.Message{
+	m := cryptoutilAppsCipherImDomain.Message{
 		ID:        messageID,
 		SenderID:  senderID,
 		JWE:       jwe,
@@ -56,7 +56,7 @@ func TestMessage_FieldTypes(t *testing.T) {
 func TestMessage_NilReadAt(t *testing.T) {
 	t.Parallel()
 
-	m := domain.Message{
+	m := cryptoutilAppsCipherImDomain.Message{
 		ID:        googleUuid.New(),
 		SenderID:  googleUuid.New(),
 		JWE:       "test-jwe",
@@ -70,7 +70,7 @@ func TestMessage_NilReadAt(t *testing.T) {
 func TestMessage_ZeroValue(t *testing.T) {
 	t.Parallel()
 
-	var m domain.Message
+	var m cryptoutilAppsCipherImDomain.Message
 
 	require.Equal(t, googleUuid.Nil, m.ID)
 	require.Equal(t, googleUuid.Nil, m.SenderID)

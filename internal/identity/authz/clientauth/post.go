@@ -11,7 +11,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 )
 
 // PostAuthenticator implements form-encoded POST authentication for OAuth 2.1 clients.
@@ -49,7 +49,7 @@ func (p *PostAuthenticator) Authenticate(ctx context.Context, clientID, credenti
 	// Validate client secret using PBKDF2-HMAC-SHA256 hash comparison.
 	// Use cryptoutilCrypto.VerifySecret (format: pbkdf2$iter$salt$hash) instead of
 	// clientauth.CompareSecret (format: salt:hash).
-	match, err := cryptoutilDigests.VerifySecret(client.ClientSecret, clientSecret)
+	match, err := cryptoutilSharedCryptoDigests.VerifySecret(client.ClientSecret, clientSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare client secret: %w", err)
 	}

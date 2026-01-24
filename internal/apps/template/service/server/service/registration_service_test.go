@@ -23,15 +23,15 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // Mock TenantService.
 type mockTenantService struct {
-	createTenantFn func(ctx context.Context, name, description string) (*repository.Tenant, error)
+	createTenantFn func(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error)
 }
 
-func (m *mockTenantService) CreateTenant(ctx context.Context, name, description string) (*repository.Tenant, error) {
+func (m *mockTenantService) CreateTenant(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	if m.createTenantFn != nil {
 		return m.createTenantFn(ctx, name, description)
 	}
@@ -39,19 +39,19 @@ func (m *mockTenantService) CreateTenant(ctx context.Context, name, description 
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) GetTenant(_ context.Context, _ googleUuid.UUID) (*repository.Tenant, error) {
+func (m *mockTenantService) GetTenant(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) GetTenantByName(_ context.Context, _ string) (*repository.Tenant, error) {
+func (m *mockTenantService) GetTenantByName(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) ListTenants(_ context.Context, _ bool) ([]*repository.Tenant, error) {
+func (m *mockTenantService) ListTenants(_ context.Context, _ bool) ([]*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockTenantService) UpdateTenant(_ context.Context, _ googleUuid.UUID, _, _ *string, _ *bool) (*repository.Tenant, error) {
+func (m *mockTenantService) UpdateTenant(_ context.Context, _ googleUuid.UUID, _, _ *string, _ *bool) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -61,10 +61,10 @@ func (m *mockTenantService) DeleteTenant(_ context.Context, _ googleUuid.UUID) e
 
 // Mock UserRepository.
 type mockUserRepository struct {
-	createFn func(ctx context.Context, user *repository.User) error
+	createFn func(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.User) error
 }
 
-func (m *mockUserRepository) Create(ctx context.Context, user *repository.User) error {
+func (m *mockUserRepository) Create(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.User) error {
 	if m.createFn != nil {
 		return m.createFn(ctx, user)
 	}
@@ -72,23 +72,23 @@ func (m *mockUserRepository) Create(ctx context.Context, user *repository.User) 
 	return nil
 }
 
-func (m *mockUserRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.User, error) {
+func (m *mockUserRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) GetByUsername(_ context.Context, _ string) (*repository.User, error) {
+func (m *mockUserRepository) GetByUsername(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) GetByEmail(_ context.Context, _ string) (*repository.User, error) {
+func (m *mockUserRepository) GetByEmail(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) ListByTenant(_ context.Context, _ googleUuid.UUID, _ bool) ([]*repository.User, error) {
+func (m *mockUserRepository) ListByTenant(_ context.Context, _ googleUuid.UUID, _ bool) ([]*cryptoutilAppsTemplateServiceServerRepository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRepository) Update(_ context.Context, _ *repository.User) error {
+func (m *mockUserRepository) Update(_ context.Context, _ *cryptoutilAppsTemplateServiceServerRepository.User) error {
 	return errors.New("not implemented")
 }
 
@@ -98,10 +98,10 @@ func (m *mockUserRepository) Delete(_ context.Context, _ googleUuid.UUID) error 
 
 // Mock ClientRepository.
 type mockClientRepository struct {
-	createFn func(ctx context.Context, client *repository.Client) error
+	createFn func(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.Client) error
 }
 
-func (m *mockClientRepository) Create(ctx context.Context, client *repository.Client) error {
+func (m *mockClientRepository) Create(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.Client) error {
 	if m.createFn != nil {
 		return m.createFn(ctx, client)
 	}
@@ -109,19 +109,19 @@ func (m *mockClientRepository) Create(ctx context.Context, client *repository.Cl
 	return nil
 }
 
-func (m *mockClientRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.Client, error) {
+func (m *mockClientRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRepository) GetByClientID(_ context.Context, _ string) (*repository.Client, error) {
+func (m *mockClientRepository) GetByClientID(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRepository) ListByTenant(_ context.Context, _ googleUuid.UUID, _ bool) ([]*repository.Client, error) {
+func (m *mockClientRepository) ListByTenant(_ context.Context, _ googleUuid.UUID, _ bool) ([]*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRepository) Update(_ context.Context, _ *repository.Client) error {
+func (m *mockClientRepository) Update(_ context.Context, _ *cryptoutilAppsTemplateServiceServerRepository.Client) error {
 	return errors.New("not implemented")
 }
 
@@ -131,10 +131,10 @@ func (m *mockClientRepository) Delete(_ context.Context, _ googleUuid.UUID) erro
 
 // Mock UnverifiedUserRepository.
 type mockUnverifiedUserRepository struct {
-	createFn func(ctx context.Context, user *repository.UnverifiedUser) error
+	createFn func(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser) error
 }
 
-func (m *mockUnverifiedUserRepository) Create(ctx context.Context, user *repository.UnverifiedUser) error {
+func (m *mockUnverifiedUserRepository) Create(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser) error {
 	if m.createFn != nil {
 		return m.createFn(ctx, user)
 	}
@@ -142,15 +142,15 @@ func (m *mockUnverifiedUserRepository) Create(ctx context.Context, user *reposit
 	return nil
 }
 
-func (m *mockUnverifiedUserRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedUserRepository) GetByUsername(_ context.Context, _ string) (*repository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepository) GetByUsername(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedUserRepository) ListByTenant(_ context.Context, _ googleUuid.UUID) ([]*repository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepository) ListByTenant(_ context.Context, _ googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -164,10 +164,10 @@ func (m *mockUnverifiedUserRepository) DeleteExpired(_ context.Context) (int64, 
 
 // Mock UnverifiedClientRepository.
 type mockUnverifiedClientRepository struct {
-	createFn func(ctx context.Context, client *repository.UnverifiedClient) error
+	createFn func(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient) error
 }
 
-func (m *mockUnverifiedClientRepository) Create(ctx context.Context, client *repository.UnverifiedClient) error {
+func (m *mockUnverifiedClientRepository) Create(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient) error {
 	if m.createFn != nil {
 		return m.createFn(ctx, client)
 	}
@@ -175,15 +175,15 @@ func (m *mockUnverifiedClientRepository) Create(ctx context.Context, client *rep
 	return nil
 }
 
-func (m *mockUnverifiedClientRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*repository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepository) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedClientRepository) GetByClientID(_ context.Context, _ string) (*repository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepository) GetByClientID(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUnverifiedClientRepository) ListByTenant(_ context.Context, _ googleUuid.UUID) ([]*repository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepository) ListByTenant(_ context.Context, _ googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -197,10 +197,10 @@ func (m *mockUnverifiedClientRepository) DeleteExpired(_ context.Context) (int64
 
 // Mock UserRoleRepository.
 type mockUserRoleRepository struct {
-	assignFn func(ctx context.Context, userRole *repository.UserRole) error
+	assignFn func(ctx context.Context, userRole *cryptoutilAppsTemplateServiceServerRepository.UserRole) error
 }
 
-func (m *mockUserRoleRepository) Assign(ctx context.Context, userRole *repository.UserRole) error {
+func (m *mockUserRoleRepository) Assign(ctx context.Context, userRole *cryptoutilAppsTemplateServiceServerRepository.UserRole) error {
 	if m.assignFn != nil {
 		return m.assignFn(ctx, userRole)
 	}
@@ -208,11 +208,11 @@ func (m *mockUserRoleRepository) Assign(ctx context.Context, userRole *repositor
 	return nil
 }
 
-func (m *mockUserRoleRepository) ListRolesByUser(_ context.Context, _ googleUuid.UUID) ([]*repository.Role, error) {
+func (m *mockUserRoleRepository) ListRolesByUser(_ context.Context, _ googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockUserRoleRepository) ListUsersByRole(_ context.Context, _ googleUuid.UUID) ([]*repository.User, error) {
+func (m *mockUserRoleRepository) ListUsersByRole(_ context.Context, _ googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.User, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -222,10 +222,10 @@ func (m *mockUserRoleRepository) Revoke(_ context.Context, _, _ googleUuid.UUID)
 
 // Mock ClientRoleRepository.
 type mockClientRoleRepository struct {
-	assignFn func(ctx context.Context, clientRole *repository.ClientRole) error
+	assignFn func(ctx context.Context, clientRole *cryptoutilAppsTemplateServiceServerRepository.ClientRole) error
 }
 
-func (m *mockClientRoleRepository) Assign(ctx context.Context, clientRole *repository.ClientRole) error {
+func (m *mockClientRoleRepository) Assign(ctx context.Context, clientRole *cryptoutilAppsTemplateServiceServerRepository.ClientRole) error {
 	if m.assignFn != nil {
 		return m.assignFn(ctx, clientRole)
 	}
@@ -233,11 +233,11 @@ func (m *mockClientRoleRepository) Assign(ctx context.Context, clientRole *repos
 	return nil
 }
 
-func (m *mockClientRoleRepository) ListRolesByClient(_ context.Context, _ googleUuid.UUID) ([]*repository.Role, error) {
+func (m *mockClientRoleRepository) ListRolesByClient(_ context.Context, _ googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *mockClientRoleRepository) ListClientsByRole(_ context.Context, _ googleUuid.UUID) ([]*repository.Client, error) {
+func (m *mockClientRoleRepository) ListClientsByRole(_ context.Context, _ googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -271,25 +271,25 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Description: "Test tenant",
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
-				tenantSvc.createTenantFn = func(_ context.Context, name, description string) (*repository.Tenant, error) {
-					return &repository.Tenant{
+				tenantSvc.createTenantFn = func(_ context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
+					return &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 						ID:          tenantID,
 						Name:        name,
 						Description: description,
 						Active:      1,
 					}, nil
 				}
-				userRepo.createFn = func(ctx context.Context, user *repository.User) error {
+				userRepo.createFn = func(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.User) error {
 					return nil
 				}
-				roleRepo.getByNameFn = func(ctx context.Context, tenantID googleUuid.UUID, name string) (*repository.Role, error) {
-					return &repository.Role{
+				roleRepo.getByNameFn = func(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
+					return &cryptoutilAppsTemplateServiceServerRepository.Role{
 						ID:       roleID,
 						TenantID: tenantID,
 						Name:     "admin",
 					}, nil
 				}
-				userRoleRepo.assignFn = func(ctx context.Context, userRole *repository.UserRole) error {
+				userRoleRepo.assignFn = func(ctx context.Context, userRole *cryptoutilAppsTemplateServiceServerRepository.UserRole) error {
 					return nil
 				}
 			},
@@ -306,7 +306,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Description: "Test tenant",
 			},
 			setupMocks: func(tenantSvc *mockTenantService, _ *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
-				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*repository.Tenant, error) {
+				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 					return nil, errors.New("database error")
 				}
 			},
@@ -323,10 +323,10 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Description: "Test tenant",
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, _ *mockRoleRepository, _ *mockUserRoleRepository) {
-				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*repository.Tenant, error) {
-					return &repository.Tenant{ID: tenantID, Name: name}, nil
+				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
+					return &cryptoutilAppsTemplateServiceServerRepository.Tenant{ID: tenantID, Name: name}, nil
 				}
-				userRepo.createFn = func(ctx context.Context, user *repository.User) error {
+				userRepo.createFn = func(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.User) error {
 					return errors.New("duplicate username")
 				}
 			},
@@ -343,16 +343,16 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 				Description: "Test tenant",
 			},
 			setupMocks: func(tenantSvc *mockTenantService, userRepo *mockUserRepository, roleRepo *mockRoleRepository, userRoleRepo *mockUserRoleRepository) {
-				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*repository.Tenant, error) {
-					return &repository.Tenant{ID: tenantID, Name: name}, nil
+				tenantSvc.createTenantFn = func(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
+					return &cryptoutilAppsTemplateServiceServerRepository.Tenant{ID: tenantID, Name: name}, nil
 				}
-				userRepo.createFn = func(ctx context.Context, user *repository.User) error {
+				userRepo.createFn = func(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.User) error {
 					return nil
 				}
-				roleRepo.getByNameFn = func(ctx context.Context, tenantID googleUuid.UUID, name string) (*repository.Role, error) {
-					return &repository.Role{ID: roleID, TenantID: tenantID, Name: "admin"}, nil
+				roleRepo.getByNameFn = func(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
+					return &cryptoutilAppsTemplateServiceServerRepository.Role{ID: roleID, TenantID: tenantID, Name: "admin"}, nil
 				}
-				userRoleRepo.assignFn = func(ctx context.Context, userRole *repository.UserRole) error {
+				userRoleRepo.assignFn = func(ctx context.Context, userRole *cryptoutilAppsTemplateServiceServerRepository.UserRole) error {
 					return errors.New("database error")
 				}
 			},
@@ -419,7 +419,7 @@ func TestRegistrationService_RegisterUser_ExistingTenant(t *testing.T) {
 			email:    "newuser@example.com",
 			password: "hashed_password",
 			setupMocks: func(unverifiedUserRepo *mockUnverifiedUserRepository) {
-				unverifiedUserRepo.createFn = func(ctx context.Context, user *repository.UnverifiedUser) error {
+				unverifiedUserRepo.createFn = func(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser) error {
 					return nil
 				}
 			},
@@ -432,7 +432,7 @@ func TestRegistrationService_RegisterUser_ExistingTenant(t *testing.T) {
 			email:    "newuser@example.com",
 			password: "hashed_password",
 			setupMocks: func(unverifiedUserRepo *mockUnverifiedUserRepository) {
-				unverifiedUserRepo.createFn = func(ctx context.Context, user *repository.UnverifiedUser) error {
+				unverifiedUserRepo.createFn = func(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser) error {
 					return errors.New("duplicate username")
 				}
 			},
@@ -524,22 +524,22 @@ func TestRegistrationService_RegisterClient_NewTenant(t *testing.T) {
 	roleID := googleUuid.New()
 
 	tenantSvc := &mockTenantService{
-		createTenantFn: func(ctx context.Context, name, description string) (*repository.Tenant, error) {
-			return &repository.Tenant{ID: tenantID, Name: name, Active: 1}, nil
+		createTenantFn: func(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
+			return &cryptoutilAppsTemplateServiceServerRepository.Tenant{ID: tenantID, Name: name, Active: 1}, nil
 		},
 	}
 	clientRepo := &mockClientRepository{
-		createFn: func(ctx context.Context, client *repository.Client) error {
+		createFn: func(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.Client) error {
 			return nil
 		},
 	}
 	roleRepo := &mockRoleRepository{
-		getByNameFn: func(ctx context.Context, tenantID googleUuid.UUID, name string) (*repository.Role, error) {
-			return &repository.Role{ID: roleID, TenantID: tenantID, Name: "admin"}, nil
+		getByNameFn: func(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
+			return &cryptoutilAppsTemplateServiceServerRepository.Role{ID: roleID, TenantID: tenantID, Name: "admin"}, nil
 		},
 	}
 	clientRoleRepo := &mockClientRoleRepository{
-		assignFn: func(ctx context.Context, clientRole *repository.ClientRole) error {
+		assignFn: func(ctx context.Context, clientRole *cryptoutilAppsTemplateServiceServerRepository.ClientRole) error {
 			return nil
 		},
 	}
@@ -568,7 +568,7 @@ func TestRegistrationService_RegisterClient_ExistingTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	unverifiedClientRepo := &mockUnverifiedClientRepository{
-		createFn: func(ctx context.Context, client *repository.UnverifiedClient) error {
+		createFn: func(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient) error {
 			return nil
 		},
 	}

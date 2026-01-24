@@ -9,13 +9,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	cryptoutilCAServer "cryptoutil/internal/apps/ca/server"
+	cryptoutilAppsCaServer "cryptoutil/internal/apps/ca/server"
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
 )
 
@@ -84,7 +84,7 @@ func startService(parameters []string) {
 	ctx := context.Background()
 
 	// Create CA server using new template-based implementation.
-	server, err := cryptoutilCAServer.NewFromConfig(ctx, settings)
+	server, err := cryptoutilAppsCaServer.NewFromConfig(ctx, settings)
 	if err != nil {
 		log.Fatalf("Failed to create CA server: %v", err)
 	}

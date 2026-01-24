@@ -10,14 +10,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TestClient_TableName tests Client table name.
 func TestClient_TableName(t *testing.T) {
 	t.Parallel()
 
-	client := repository.Client{}
+	client := cryptoutilAppsTemplateServiceServerRepository.Client{}
 	require.Equal(t, "clients", client.TableName())
 }
 
@@ -38,7 +38,7 @@ func TestClient_IsActive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			client := &repository.Client{Active: tt.active}
+			client := &cryptoutilAppsTemplateServiceServerRepository.Client{Active: tt.active}
 			require.Equal(t, tt.expected, client.IsActive())
 		})
 	}
@@ -61,7 +61,7 @@ func TestClient_SetActive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			client := &repository.Client{}
+			client := &cryptoutilAppsTemplateServiceServerRepository.Client{}
 			client.SetActive(tt.active)
 			require.Equal(t, tt.expected, client.Active)
 		})
@@ -72,7 +72,7 @@ func TestClient_SetActive(t *testing.T) {
 func TestUnverifiedUser_TableName(t *testing.T) {
 	t.Parallel()
 
-	user := repository.UnverifiedUser{}
+	user := cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{}
 	require.Equal(t, "unverified_users", user.TableName())
 }
 
@@ -93,7 +93,7 @@ func TestUnverifiedUser_IsExpired(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			user := &repository.UnverifiedUser{ExpiresAt: tt.expiresAt}
+			user := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{ExpiresAt: tt.expiresAt}
 			require.Equal(t, tt.expected, user.IsExpired())
 		})
 	}
@@ -103,7 +103,7 @@ func TestUnverifiedUser_IsExpired(t *testing.T) {
 func TestUnverifiedClient_TableName(t *testing.T) {
 	t.Parallel()
 
-	client := repository.UnverifiedClient{}
+	client := cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{}
 	require.Equal(t, "unverified_clients", client.TableName())
 }
 
@@ -124,7 +124,7 @@ func TestUnverifiedClient_IsExpired(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			client := &repository.UnverifiedClient{ExpiresAt: tt.expiresAt}
+			client := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{ExpiresAt: tt.expiresAt}
 			require.Equal(t, tt.expected, client.IsExpired())
 		})
 	}
@@ -134,7 +134,7 @@ func TestUnverifiedClient_IsExpired(t *testing.T) {
 func TestRole_TableName(t *testing.T) {
 	t.Parallel()
 
-	role := repository.Role{}
+	role := cryptoutilAppsTemplateServiceServerRepository.Role{}
 	require.Equal(t, "roles", role.TableName())
 }
 
@@ -142,7 +142,7 @@ func TestRole_TableName(t *testing.T) {
 func TestUserRole_TableName(t *testing.T) {
 	t.Parallel()
 
-	userRole := repository.UserRole{}
+	userRole := cryptoutilAppsTemplateServiceServerRepository.UserRole{}
 	require.Equal(t, "user_roles", userRole.TableName())
 }
 
@@ -150,7 +150,7 @@ func TestUserRole_TableName(t *testing.T) {
 func TestClientRole_TableName(t *testing.T) {
 	t.Parallel()
 
-	clientRole := repository.ClientRole{}
+	clientRole := cryptoutilAppsTemplateServiceServerRepository.ClientRole{}
 	require.Equal(t, "client_roles", clientRole.TableName())
 }
 
@@ -158,6 +158,6 @@ func TestClientRole_TableName(t *testing.T) {
 func TestTenantRealm_TableName(t *testing.T) {
 	t.Parallel()
 
-	tenantRealm := repository.TenantRealm{}
+	tenantRealm := cryptoutilAppsTemplateServiceServerRepository.TenantRealm{}
 	require.Equal(t, "tenant_realms", tenantRealm.TableName())
 }

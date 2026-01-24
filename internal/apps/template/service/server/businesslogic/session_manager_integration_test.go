@@ -12,44 +12,44 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestSessionManager_Integration_CrossAlgorithm tests interactions between different session algorithms.
 func TestSessionManager_Integration_CrossAlgorithm(t *testing.T) {
 	tests := []struct {
 		name               string
-		browserAlgorithm   cryptoutilMagic.SessionAlgorithmType
-		serviceAlgorithm   cryptoutilMagic.SessionAlgorithmType
+		browserAlgorithm   cryptoutilSharedMagic.SessionAlgorithmType
+		serviceAlgorithm   cryptoutilSharedMagic.SessionAlgorithmType
 		expectedBrowserJWK bool
 		expectedServiceJWK bool
 	}{
 		{
 			name:               "OPAQUE_OPAQUE_NoJWKs",
-			browserAlgorithm:   cryptoutilMagic.SessionAlgorithmOPAQUE,
-			serviceAlgorithm:   cryptoutilMagic.SessionAlgorithmOPAQUE,
+			browserAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
+			serviceAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
 			expectedBrowserJWK: false,
 			expectedServiceJWK: false,
 		},
 		{
 			name:               "JWS_JWE_BothJWKs",
-			browserAlgorithm:   cryptoutilMagic.SessionAlgorithmJWS,
-			serviceAlgorithm:   cryptoutilMagic.SessionAlgorithmJWE,
+			browserAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmJWS,
+			serviceAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmJWE,
 			expectedBrowserJWK: true,
 			expectedServiceJWK: true,
 		},
 		{
 			name:               "OPAQUE_JWS_ServiceJWKOnly",
-			browserAlgorithm:   cryptoutilMagic.SessionAlgorithmOPAQUE,
-			serviceAlgorithm:   cryptoutilMagic.SessionAlgorithmJWS,
+			browserAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
+			serviceAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmJWS,
 			expectedBrowserJWK: false,
 			expectedServiceJWK: true,
 		},
 		{
 			name:               "JWE_OPAQUE_BrowserJWKOnly",
-			browserAlgorithm:   cryptoutilMagic.SessionAlgorithmJWE,
-			serviceAlgorithm:   cryptoutilMagic.SessionAlgorithmOPAQUE,
+			browserAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmJWE,
+			serviceAlgorithm:   cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
 			expectedBrowserJWK: true,
 			expectedServiceJWK: false,
 		},
@@ -103,13 +103,13 @@ func TestSessionManager_Integration_CrossAlgorithm(t *testing.T) {
 func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 	algorithms := []struct {
 		name             string
-		browserAlgorithm cryptoutilMagic.SessionAlgorithmType
-		serviceAlgorithm cryptoutilMagic.SessionAlgorithmType
+		browserAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
+		serviceAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
 	}{
-		{"OPAQUE", cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE},
-		{"JWS", cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmJWS},
-		{"JWE", cryptoutilMagic.SessionAlgorithmJWE, cryptoutilMagic.SessionAlgorithmJWE},
-		{"Mixed", cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmJWE},
+		{"OPAQUE", cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE},
+		{"JWS", cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmJWS},
+		{"JWE", cryptoutilSharedMagic.SessionAlgorithmJWE, cryptoutilSharedMagic.SessionAlgorithmJWE},
+		{"Mixed", cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmJWE},
 	}
 
 	for _, alg := range algorithms {
@@ -168,7 +168,7 @@ func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 
 // TestSessionManager_Integration_MultiAlgorithmWorkflow tests realistic multi-algorithm workflows.
 func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmJWE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmJWE)
 	ctx := context.Background()
 
 	// Test realistic workflow: user logs in (browser session) and API client connects (service session)
@@ -258,12 +258,12 @@ func TestSessionManager_Integration_MultiAlgorithmWorkflow(t *testing.T) {
 }
 
 // setupShortSessionManager creates a SessionManager with very short expiration times for testing.
-func setupShortSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilMagic.SessionAlgorithmType) *SessionManager {
+func setupShortSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilSharedMagic.SessionAlgorithmType) *SessionManager {
 	t.Helper()
 
 	db := setupTestDB(t)
 
-	config := &cryptoutilConfig.ServiceTemplateServerSettings{
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(browserAlg),
 		ServiceSessionAlgorithm:    string(serviceAlg),
 		BrowserSessionExpiration:   50 * time.Millisecond, // Very short

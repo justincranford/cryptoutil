@@ -14,9 +14,9 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestPublicServerBase_StartContextCancellation tests Start when context is canceled before server runs.
@@ -82,7 +82,7 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 	ctx := context.Background()
 
 	// Provide minimal valid config so telemetry initialization passes.
-	config := &cryptoutilConfig.ServiceTemplateServerSettings{
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		OTLPService:  "test-service",
 		LogLevel:     "INFO",
 		OTLPEndpoint: "http://localhost:4318", // Valid OTLP HTTP endpoint.
@@ -106,8 +106,8 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.

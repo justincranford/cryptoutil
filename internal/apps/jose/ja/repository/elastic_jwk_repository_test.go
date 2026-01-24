@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
@@ -22,20 +22,20 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		jwk     func() *cryptoutilJoseJADomain.ElasticJWK
+		jwk     func() *cryptoutilAppsJoseJaDomain.ElasticJWK
 		wantErr bool
 	}{
 		{
 			name: "valid elastic JWK creation",
-			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
+			jwk: func() *cryptoutilAppsJoseJaDomain.ElasticJWK {
 				id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 				tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-				return &cryptoutilJoseJADomain.ElasticJWK{
+				return &cryptoutilAppsJoseJaDomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
 					KID:          "test-kid-" + id.String()[:8],
-					KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+					KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 					Algorithm:    "RS256",
 					Use:          "sig",
 					MaxMaterials: 10,
@@ -46,15 +46,15 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 		},
 		{
 			name: "elastic JWK with EC key type",
-			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
+			jwk: func() *cryptoutilAppsJoseJaDomain.ElasticJWK {
 				id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 				tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-				return &cryptoutilJoseJADomain.ElasticJWK{
+				return &cryptoutilAppsJoseJaDomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
 					KID:          "test-ec-" + id.String()[:8],
-					KeyType:      cryptoutilJoseJADomain.KeyTypeEC,
+					KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeEC,
 					Algorithm:    "ES256",
 					Use:          "sig",
 					MaxMaterials: 5,
@@ -65,15 +65,15 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 		},
 		{
 			name: "elastic JWK with OKP key type",
-			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
+			jwk: func() *cryptoutilAppsJoseJaDomain.ElasticJWK {
 				id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 				tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-				return &cryptoutilJoseJADomain.ElasticJWK{
+				return &cryptoutilAppsJoseJaDomain.ElasticJWK{
 					ID:           *id,
 					TenantID:     *tenantID,
 					KID:          "test-okp-" + id.String()[:8],
-					KeyType:      cryptoutilJoseJADomain.KeyTypeOKP,
+					KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeOKP,
 					Algorithm:    "EdDSA",
 					Use:          "sig",
 					MaxMaterials: 20,
@@ -124,11 +124,11 @@ func TestElasticJWKRepository_Get(t *testing.T) {
 	// Create a test JWK first - use unique IDs for this test function.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
 		KID:          "test-get-" + id.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -168,15 +168,15 @@ func TestElasticJWKRepository_List(t *testing.T) {
 	// Create multiple test JWKs - use unique tenant for this test to avoid conflicts.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-	var createdJWKs []*cryptoutilJoseJADomain.ElasticJWK
+	var createdJWKs []*cryptoutilAppsJoseJaDomain.ElasticJWK
 
 	for i := 0; i < 5; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-		jwk := &cryptoutilJoseJADomain.ElasticJWK{
+		jwk := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 			ID:           *id,
 			TenantID:     *tenantID,
 			KID:          "test-list-" + id.String(), // Use full UUID to avoid collisions
-			KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+			KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 			Algorithm:    "RS256",
 			Use:          "sig",
 			MaxMaterials: 10,
@@ -256,11 +256,11 @@ func TestElasticJWKRepository_Update(t *testing.T) {
 	// Create a test JWK first.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
 		KID:          "test-update-" + id.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -293,11 +293,11 @@ func TestElasticJWKRepository_Delete(t *testing.T) {
 	// Create a test JWK first.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
 		KID:          "test-delete-" + id.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -324,11 +324,11 @@ func TestElasticJWKRepository_GetByID(t *testing.T) {
 	// Create a test JWK first.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
 		KID:          "test-getbyid-" + id.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -363,11 +363,11 @@ func TestElasticJWKRepository_IncrementMaterialCount(t *testing.T) {
 	// Create a test JWK with initial count of 0.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   *id,
 		TenantID:             *tenantID,
 		KID:                  "test-increment-" + id.String()[:8],
-		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:            "RS256",
 		Use:                  "sig",
 		MaxMaterials:         10,
@@ -418,11 +418,11 @@ func TestElasticJWKRepository_DecrementMaterialCount(t *testing.T) {
 	// Create a test JWK with initial count of 5.
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	testJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   *id,
 		TenantID:             *tenantID,
 		KID:                  "test-decrement-" + id.String()[:8],
-		KeyType:              cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:              cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:            "RS256",
 		Use:                  "sig",
 		MaxMaterials:         10,

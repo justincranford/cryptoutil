@@ -7,9 +7,9 @@ package middleware
 import (
 	"time"
 
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
@@ -30,7 +30,7 @@ type RateLimitConfig struct {
 	Expiration time.Duration
 
 	// TelemetryService for logging rate limit violations.
-	TelemetryService *cryptoutilTelemetry.TelemetryService
+	TelemetryService *cryptoutilSharedTelemetry.TelemetryService
 }
 
 // NewRateLimiter creates a new rate limiting middleware.

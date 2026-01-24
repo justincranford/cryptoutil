@@ -3,16 +3,16 @@
 package digests
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"crypto/sha512"
+	crand "crypto/rand"
+	sha256 "crypto/sha256"
+	sha512 "crypto/sha512"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"hash"
 	"strings"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -59,7 +59,7 @@ func PBKDF2WithParams(secret string, params *PBKDF2Params) (string, error) {
 	}
 
 	salt := make([]byte, params.SaltLength)
-	if _, err := rand.Read(salt); err != nil {
+	if _, err := crand.Read(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
@@ -106,14 +106,14 @@ func VerifySecretWithParams(stored, provided string, params *PBKDF2Params) (bool
 	var hashFunc func() hash.Hash
 
 	switch hashname {
-	case cryptoutilMagic.PBKDF2DefaultHashName:
+	case cryptoutilSharedMagic.PBKDF2DefaultHashName:
 		hashFunc = sha256.New
-	case cryptoutilMagic.PBKDF2SHA384HashName:
+	case cryptoutilSharedMagic.PBKDF2SHA384HashName:
 		hashFunc = sha512.New384
-	case cryptoutilMagic.PBKDF2SHA512HashName:
+	case cryptoutilSharedMagic.PBKDF2SHA512HashName:
 		hashFunc = sha512.New
 	default:
-		return false, fmt.Errorf("unsupported hash algorithm: %s (supported: %s, %s, %s)", hashname, cryptoutilMagic.PBKDF2DefaultHashName, cryptoutilMagic.PBKDF2SHA384HashName, cryptoutilMagic.PBKDF2SHA512HashName)
+		return false, fmt.Errorf("unsupported hash algorithm: %s (supported: %s, %s, %s)", hashname, cryptoutilSharedMagic.PBKDF2DefaultHashName, cryptoutilSharedMagic.PBKDF2SHA384HashName, cryptoutilSharedMagic.PBKDF2SHA512HashName)
 	}
 
 	// CRITICAL: Concatenate provided||pepper before PBKDF2 (OWASP requirement).
@@ -152,8 +152,8 @@ func parsePbkdf2Params(stored string) (string, string, int, []byte, []byte, erro
 	}
 
 	parts := strings.Split(stored, "$")
-	if len(parts) != cryptoutilMagic.PBKDF2VersionedFormatParts {
-		return "", "", 0, nil, nil, fmt.Errorf("invalid versioned hash format (expected %d parts, got %d)", cryptoutilMagic.PBKDF2VersionedFormatParts, len(parts))
+	if len(parts) != cryptoutilSharedMagic.PBKDF2VersionedFormatParts {
+		return "", "", 0, nil, nil, fmt.Errorf("invalid versioned hash format (expected %d parts, got %d)", cryptoutilSharedMagic.PBKDF2VersionedFormatParts, len(parts))
 	}
 
 	// Extract version from {1} format

@@ -6,9 +6,9 @@ package idp
 
 import (
 	"fmt"
-	"net/http"
+	http "net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilApiIdentityIdp "cryptoutil/api/identity/idp"
 )

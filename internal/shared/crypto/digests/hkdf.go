@@ -5,15 +5,15 @@
 package digests
 
 import (
-	"crypto/sha256"
-	"crypto/sha512"
+	sha256 "crypto/sha256"
+	sha512 "crypto/sha512"
 	"errors"
 	"fmt"
 	"hash"
 
 	"golang.org/x/crypto/hkdf"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Error variables for HKDF validation.
@@ -30,10 +30,10 @@ var (
 // Digest name constants for HKDF operations.
 const (
 	// DigestSHA512 is the name constant for SHA-512 digest.
-	DigestSHA512 = cryptoutilMagic.SHA512
-	DigestSHA384 = cryptoutilMagic.SHA384
-	DigestSHA256 = cryptoutilMagic.SHA256
-	DigestSHA224 = cryptoutilMagic.SHA224
+	DigestSHA512 = cryptoutilSharedMagic.SHA512
+	DigestSHA384 = cryptoutilSharedMagic.SHA384
+	DigestSHA256 = cryptoutilSharedMagic.SHA256
+	DigestSHA224 = cryptoutilSharedMagic.SHA224
 )
 
 // HKDFwithSHA512 performs HKDF key derivation using SHA-512 digest.

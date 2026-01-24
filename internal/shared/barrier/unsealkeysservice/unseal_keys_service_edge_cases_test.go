@@ -5,7 +5,7 @@ package unsealkeysservice
 import (
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	"github.com/stretchr/testify/require"
 )
@@ -37,7 +37,7 @@ func TestEncryptKey_EncryptData_Comprehensive(t *testing.T) {
 	require.Equal(t, testData, decrypted)
 
 	// Test EncryptKey path
-	testKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	testKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	encryptedKey, err := service.EncryptKey(testKeys[0])
@@ -167,7 +167,7 @@ func TestEncryptDecryptKey_LargeKey(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate RSA key (larger than AES)
-	testKeys, _, err := cryptoutilJose.GenerateJWSJWKsForTest(t, 1, &cryptoutilJose.AlgRS256)
+	testKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWSJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.AlgRS256)
 	require.NoError(t, err)
 
 	encryptedKey, err := service.EncryptKey(testKeys[0])

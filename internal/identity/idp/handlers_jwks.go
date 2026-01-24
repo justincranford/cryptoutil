@@ -3,12 +3,12 @@
 package idp
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 

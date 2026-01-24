@@ -12,8 +12,8 @@ import (
 	"time"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -55,10 +55,10 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
 		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
 		// JOSE domain models.
-		&domain.ElasticJWK{},
-		&domain.MaterialJWK{},
-		&domain.AuditConfig{},
-		&domain.AuditLogEntry{},
+		&cryptoutilJoseDomain.ElasticJWK{},
+		&cryptoutilJoseDomain.MaterialJWK{},
+		&cryptoutilJoseDomain.AuditConfig{},
+		&cryptoutilJoseDomain.AuditLogEntry{},
 	)
 	require.NoError(t, err)
 
@@ -101,11 +101,11 @@ func createTestTenantAndRealm(t *testing.T, db *gorm.DB) (tenantID, realmID goog
 func TestElasticJWKGormRepository_Create(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		RealmID:              realmID,
@@ -121,7 +121,7 @@ func TestElasticJWKGormRepository_Create(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify in database
-	var result domain.ElasticJWK
+	var result cryptoutilJoseDomain.ElasticJWK
 
 	err = db.Where("id = ?", elasticJWK.ID).First(&result).Error
 	require.NoError(t, err)
@@ -136,12 +136,12 @@ func TestElasticJWKGormRepository_Create(t *testing.T) {
 func TestElasticJWKGormRepository_Get(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
 	// Create test data
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		RealmID:              realmID,
@@ -166,7 +166,7 @@ func TestElasticJWKGormRepository_Get(t *testing.T) {
 func TestElasticJWKGormRepository_Get_NotFound(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
@@ -181,12 +181,12 @@ func TestElasticJWKGormRepository_Get_TenantIsolation(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID1, realmID1 := createTestTenantAndRealm(t, db)
 	tenantID2, realmID2 := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
 	// Create JWK for tenant1
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID1,
 		RealmID:              realmID1,
@@ -209,13 +209,13 @@ func TestElasticJWKGormRepository_Get_TenantIsolation(t *testing.T) {
 func TestElasticJWKGormRepository_List(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
 	// Create multiple JWKs
 	for i := 0; i < 5; i++ {
-		elasticJWK := &domain.ElasticJWK{
+		elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 			ID:                   googleUuid.New(),
 			TenantID:             tenantID,
 			RealmID:              realmID,
@@ -248,13 +248,13 @@ func TestElasticJWKGormRepository_List_TenantIsolation(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID1, realmID1 := createTestTenantAndRealm(t, db)
 	tenantID2, realmID2 := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
 	// Create JWKs for tenant1
 	for i := 0; i < 3; i++ {
-		elasticJWK := &domain.ElasticJWK{
+		elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 			ID:                   googleUuid.New(),
 			TenantID:             tenantID1,
 			RealmID:              realmID1,
@@ -270,7 +270,7 @@ func TestElasticJWKGormRepository_List_TenantIsolation(t *testing.T) {
 
 	// Create JWKs for tenant2
 	for i := 0; i < 2; i++ {
-		elasticJWK := &domain.ElasticJWK{
+		elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 			ID:                   googleUuid.New(),
 			TenantID:             tenantID2,
 			RealmID:              realmID2,
@@ -298,12 +298,12 @@ func TestElasticJWKGormRepository_List_TenantIsolation(t *testing.T) {
 func TestElasticJWKGormRepository_IncrementMaterialCount(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
 	// Create test data
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		RealmID:              realmID,
@@ -336,7 +336,7 @@ func TestElasticJWKGormRepository_IncrementMaterialCount(t *testing.T) {
 
 func TestElasticJWKGormRepository_IncrementMaterialCount_NotFound(t *testing.T) {
 	db := setupTestDB(t)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
@@ -348,11 +348,11 @@ func TestElasticJWKGormRepository_IncrementMaterialCount_NotFound(t *testing.T) 
 func TestElasticJWKGormRepository_Create_DuplicateKID(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
-	elasticJWK1 := &domain.ElasticJWK{
+	elasticJWK1 := &cryptoutilJoseDomain.ElasticJWK{
 		ID:           googleUuid.New(),
 		TenantID:     tenantID,
 		RealmID:      realmID,
@@ -365,7 +365,7 @@ func TestElasticJWKGormRepository_Create_DuplicateKID(t *testing.T) {
 	require.NoError(t, repo.Create(ctx, elasticJWK1))
 
 	// Try to create another with same KID (should fail due to unique constraint).
-	elasticJWK2 := &domain.ElasticJWK{
+	elasticJWK2 := &cryptoutilJoseDomain.ElasticJWK{
 		ID:           googleUuid.New(),
 		TenantID:     tenantID,
 		RealmID:      realmID,
@@ -383,7 +383,7 @@ func TestElasticJWKGormRepository_Create_DuplicateKID(t *testing.T) {
 func TestElasticJWKGormRepository_WithTransaction(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
@@ -394,7 +394,7 @@ func TestElasticJWKGormRepository_WithTransaction(t *testing.T) {
 	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	// Create within transaction.
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:           googleUuid.New(),
 		TenantID:     tenantID,
 		RealmID:      realmID,
@@ -419,7 +419,7 @@ func TestElasticJWKGormRepository_WithTransaction(t *testing.T) {
 func TestElasticJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 	db := setupTestDB(t)
 	tenantID, realmID := createTestTenantAndRealm(t, db)
-	repo := repository.NewElasticJWKRepository(db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
 
 	ctx := context.Background()
 
@@ -430,7 +430,7 @@ func TestElasticJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	// Create within transaction.
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:           googleUuid.New(),
 		TenantID:     tenantID,
 		RealmID:      realmID,

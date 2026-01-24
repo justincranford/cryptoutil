@@ -4,7 +4,7 @@ package authz_test
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"net/http/httptest"
 	"net/url"
@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
@@ -129,7 +129,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	err = tokenRepo.Create(ctx, refreshToken)
 	require.NoError(t, err, "Failed to create refresh token")
 
-	svc := authz.NewService(cfg, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err = svc.Start(context.Background())
@@ -202,7 +202,7 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err = svc.Start(context.Background())
@@ -270,7 +270,7 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err = svc.Start(context.Background())
@@ -392,7 +392,7 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 	err = tokenRepo.Create(ctx, refreshToken)
 	require.NoError(t, err, "Failed to create revoked refresh token")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err = svc.Start(context.Background())

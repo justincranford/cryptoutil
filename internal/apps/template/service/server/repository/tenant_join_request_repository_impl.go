@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
 )
 
 // tenantJoinRequestRepository implements TenantJoinRequestRepository using GORM.
@@ -24,7 +24,7 @@ func NewTenantJoinRequestRepository(db *gorm.DB) TenantJoinRequestRepository {
 	return &tenantJoinRequestRepository{db: db}
 }
 
-func (r *tenantJoinRequestRepository) Create(ctx context.Context, request *cryptoutilTemplateDomain.TenantJoinRequest) error {
+func (r *tenantJoinRequestRepository) Create(ctx context.Context, request *cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest) error {
 	if err := GetDB(ctx, r.db).WithContext(ctx).Create(request).Error; err != nil {
 		return fmt.Errorf("failed to create join request: %w", err)
 	}
@@ -32,7 +32,7 @@ func (r *tenantJoinRequestRepository) Create(ctx context.Context, request *crypt
 	return nil
 }
 
-func (r *tenantJoinRequestRepository) Update(ctx context.Context, request *cryptoutilTemplateDomain.TenantJoinRequest) error {
+func (r *tenantJoinRequestRepository) Update(ctx context.Context, request *cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest) error {
 	if err := GetDB(ctx, r.db).WithContext(ctx).Save(request).Error; err != nil {
 		return fmt.Errorf("failed to update join request: %w", err)
 	}
@@ -40,8 +40,8 @@ func (r *tenantJoinRequestRepository) Update(ctx context.Context, request *crypt
 	return nil
 }
 
-func (r *tenantJoinRequestRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateDomain.TenantJoinRequest, error) {
-	var request cryptoutilTemplateDomain.TenantJoinRequest
+func (r *tenantJoinRequestRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest, error) {
+	var request cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 
 	if err := GetDB(ctx, r.db).WithContext(ctx).Where("id = ?", id.String()).First(&request).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -54,8 +54,8 @@ func (r *tenantJoinRequestRepository) GetByID(ctx context.Context, id googleUuid
 	return &request, nil
 }
 
-func (r *tenantJoinRequestRepository) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilTemplateDomain.TenantJoinRequest, error) {
-	var requests []*cryptoutilTemplateDomain.TenantJoinRequest
+func (r *tenantJoinRequestRepository) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest, error) {
+	var requests []*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 
 	if err := GetDB(ctx, r.db).WithContext(ctx).
 		Where("tenant_id = ?", tenantID.String()).
@@ -67,8 +67,8 @@ func (r *tenantJoinRequestRepository) ListByTenant(ctx context.Context, tenantID
 	return requests, nil
 }
 
-func (r *tenantJoinRequestRepository) ListByStatus(ctx context.Context, status string) ([]*cryptoutilTemplateDomain.TenantJoinRequest, error) {
-	var requests []*cryptoutilTemplateDomain.TenantJoinRequest
+func (r *tenantJoinRequestRepository) ListByStatus(ctx context.Context, status string) ([]*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest, error) {
+	var requests []*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 
 	if err := GetDB(ctx, r.db).WithContext(ctx).
 		Where("status = ?", status).
@@ -80,8 +80,8 @@ func (r *tenantJoinRequestRepository) ListByStatus(ctx context.Context, status s
 	return requests, nil
 }
 
-func (r *tenantJoinRequestRepository) ListByTenantAndStatus(ctx context.Context, tenantID googleUuid.UUID, status string) ([]*cryptoutilTemplateDomain.TenantJoinRequest, error) {
-	var requests []*cryptoutilTemplateDomain.TenantJoinRequest
+func (r *tenantJoinRequestRepository) ListByTenantAndStatus(ctx context.Context, tenantID googleUuid.UUID, status string) ([]*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest, error) {
+	var requests []*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 
 	if err := GetDB(ctx, r.db).WithContext(ctx).
 		Where("tenant_id = ? AND status = ?", tenantID.String(), status).

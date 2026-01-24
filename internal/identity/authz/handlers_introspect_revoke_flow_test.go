@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -32,7 +32,7 @@ func TestHandleIntrospect_ActiveToken(t *testing.T) {
 	testClient := createIntrospectRevokeTestClient(t, repoFactory)
 	testToken := createIntrospectRevokeTestToken(t, repoFactory, testClient.ID, cryptoutilIdentityDomain.TokenTypeAccess, false)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -63,7 +63,7 @@ func TestHandleIntrospect_RevokedToken(t *testing.T) {
 	testClient := createIntrospectRevokeTestClient(t, repoFactory)
 	testToken := createIntrospectRevokeTestToken(t, repoFactory, testClient.ID, cryptoutilIdentityDomain.TokenTypeAccess, true)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -112,7 +112,7 @@ func TestHandleIntrospect_ExpiredToken(t *testing.T) {
 	err := tokenRepo.Create(ctx, expiredToken)
 	require.NoError(t, err, "Failed to create expired token")
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -143,7 +143,7 @@ func TestHandleRevoke_ValidToken(t *testing.T) {
 	testClient := createIntrospectRevokeTestClient(t, repoFactory)
 	testToken := createIntrospectRevokeTestToken(t, repoFactory, testClient.ID, cryptoutilIdentityDomain.TokenTypeAccess, false)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -171,7 +171,7 @@ func TestHandleRevoke_NonExistentToken(t *testing.T) {
 	config := createIntrospectRevokeTestConfig(t)
 	repoFactory := createIntrospectRevokeTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

@@ -11,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -26,7 +26,7 @@ func TestHandleToken_UnsupportedGrantType(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -53,7 +53,7 @@ func TestHandleToken_AuthorizationCodeGrant_MissingCode(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -82,7 +82,7 @@ func TestHandleToken_AuthorizationCodeGrant_MissingRedirectURI(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -111,7 +111,7 @@ func TestHandleToken_ClientCredentialsGrant_MissingClient(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -138,7 +138,7 @@ func TestHandleToken_RefreshTokenGrant_MissingRefreshToken(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

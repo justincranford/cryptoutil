@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestLint_NoGoMod(t *testing.T) {
@@ -198,7 +198,7 @@ func TestSaveDepCache_Success(t *testing.T) {
 	tmpDir := t.TempDir()
 	cacheFile := filepath.Join(tmpDir, "test_cache.json")
 
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
@@ -346,7 +346,7 @@ func TestCheckAndUseDepCache_ModeMismatch(t *testing.T) {
 	require.NoError(t, err)
 
 	cacheFile := filepath.Join(tmpDir, "cache.json")
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
@@ -383,7 +383,7 @@ func TestCheckAndUseDepCache_Expired(t *testing.T) {
 	require.NoError(t, err)
 
 	cacheFile := filepath.Join(tmpDir, "cache.json")
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC().Add(-2 * time.Hour),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
@@ -422,7 +422,7 @@ func TestCheckAndUseDepCache_GoModChanged(t *testing.T) {
 	require.NoError(t, err)
 
 	cacheFile := filepath.Join(tmpDir, "cache.json")
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime().Add(-1 * time.Hour),
 		GoSumModTime: goSumStat.ModTime(),
@@ -459,7 +459,7 @@ func TestCheckAndUseDepCache_ValidCacheWithOutdated(t *testing.T) {
 	require.NoError(t, err)
 
 	cacheFile := filepath.Join(tmpDir, "cache.json")
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
@@ -497,7 +497,7 @@ func TestCheckAndUseDepCache_ValidCacheClean(t *testing.T) {
 	require.NoError(t, err)
 
 	cacheFile := filepath.Join(tmpDir, "cache.json")
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
@@ -519,7 +519,7 @@ func TestLoadDepCache_ValidCache(t *testing.T) {
 	tmpDir := t.TempDir()
 	cacheFile := filepath.Join(tmpDir, "cache.json")
 
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),
@@ -542,7 +542,7 @@ func TestSaveDepCache_CreateDirectory(t *testing.T) {
 	tmpDir := t.TempDir()
 	cacheFile := filepath.Join(tmpDir, "subdir", "cache.json")
 
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: time.Now().UTC(),
 		GoSumModTime: time.Now().UTC(),

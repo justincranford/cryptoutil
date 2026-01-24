@@ -4,22 +4,22 @@
 package apis
 
 import (
-	"net/http"
+	http "net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 )
 
 // RegistrationHandlers handles tenant registration endpoints.
 type RegistrationHandlers struct {
-	registrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
+	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
 }
 
 // NewRegistrationHandlers creates registration API handlers.
 func NewRegistrationHandlers(
-	registrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService,
+	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService,
 ) *RegistrationHandlers {
 	return &RegistrationHandlers{
 		registrationService: registrationService,

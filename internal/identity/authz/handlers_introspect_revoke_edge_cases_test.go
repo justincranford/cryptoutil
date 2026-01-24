@@ -4,7 +4,7 @@ package authz_test
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"net/http/httptest"
 	"net/url"
@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -52,7 +52,7 @@ func TestHandleIntrospect_InvalidTokenFormat(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New(fiber.Config{
@@ -104,7 +104,7 @@ func TestHandleRevoke_InvalidTokenFormat(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New(fiber.Config{
@@ -156,7 +156,7 @@ func TestHandleIntrospect_UnknownToken(t *testing.T) {
 	err = repoFactory.AutoMigrate(ctx)
 	require.NoError(t, err, "Failed to run migrations")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New(fiber.Config{
@@ -277,7 +277,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	err = tokenRepo.Create(ctx, revokedToken)
 	require.NoError(t, err, "Failed to create revoked token")
 
-	svc := authz.NewService(cfg, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(cfg, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New(fiber.Config{

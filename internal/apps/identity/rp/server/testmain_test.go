@@ -6,13 +6,13 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"testing"
 	"time"
 
-	"cryptoutil/internal/apps/identity/rp/server"
-	"cryptoutil/internal/apps/identity/rp/server/config"
+	cryptoutilAppsIdentityRpServer "cryptoutil/internal/apps/identity/rp/server"
+	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity/rp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -26,7 +26,7 @@ const (
 )
 
 // testServer is the shared server instance for all tests.
-var testServer *server.RPServer //nolint:gochecknoglobals
+var testServer *cryptoutilAppsIdentityRpServer.RPServer //nolint:gochecknoglobals
 
 // testHTTPClient is a pre-configured HTTP client for testing.
 var testHTTPClient *http.Client //nolint:gochecknoglobals
@@ -42,12 +42,12 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create test configuration.
-	cfg := config.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	cfg := cryptoutilAppsIdentityRpServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// Create server.
 	var err error
 
-	testServer, err = server.NewFromConfig(ctx, cfg)
+	testServer, err = cryptoutilAppsIdentityRpServer.NewFromConfig(ctx, cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create RP server: %v\n", err)
 		os.Exit(1)
@@ -99,7 +99,7 @@ func TestMain(m *testing.M) {
 }
 
 // waitForReady waits for the server to be ready by polling port allocation.
-func waitForReady(ctx context.Context, srv *server.RPServer) error {
+func waitForReady(ctx context.Context, srv *cryptoutilAppsIdentityRpServer.RPServer) error {
 	deadline := time.Now().Add(readyTimeout)
 
 	for time.Now().Before(deadline) {

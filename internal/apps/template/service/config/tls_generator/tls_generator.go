@@ -11,10 +11,10 @@ import (
 	"net"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 //   - TLSModeAuto: Fully auto-generates 3-tier CA hierarchy and server certificate.
 //
 // Returns TLSMaterial containing tls.Config and certificate pools for client validation.
-func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
+func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilAppsTemplateServiceConfig.TLSMaterial, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("TLS config cannot be nil")
 	}
@@ -58,7 +58,7 @@ func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMateri
 }
 
 // generateTLSMaterialStatic uses pre-provided TLS certificates (production mode).
-func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLSMaterial, error) {
+func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilAppsTemplateServiceConfig.TLSMaterial, error) {
 	if len(cfg.StaticCertPEM) == 0 {
 		return nil, fmt.Errorf("static mode requires StaticCertPEM")
 	} else if len(cfg.StaticKeyPEM) == 0 {
@@ -120,7 +120,7 @@ func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilConfig.TLS
 		ClientAuth:   tls.NoClientCert, // Can be upgraded to RequireAndVerifyClientCert if needed.
 	}
 
-	return &cryptoutilConfig.TLSMaterial{
+	return &cryptoutilAppsTemplateServiceConfig.TLSMaterial{
 		Config:             tlsConfig,
 		RootCAPool:         rootCAPool,
 		IntermediateCAPool: intermediateCAPool,
@@ -172,7 +172,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	}
 
 	// Generate server key pair (ECDSA P-384).
-	serverKeyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+	serverKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate server key pair: %w", err)
 	}
@@ -194,18 +194,18 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	duration := time.Duration(validityDays) * 24 * time.Hour //nolint:mnd // Duration calculation (24 hours per day).
 
 	// Create CA Subject from parsed certificate.
-	issuerSubject := &cryptoutilCertificate.Subject{
+	issuerSubject := &cryptoutilSharedCryptoCertificate.Subject{
 		SubjectName: caCert.Subject.CommonName,
 		IssuerName:  caCert.Issuer.CommonName,
 		IsCA:        true,
-		KeyMaterial: cryptoutilCertificate.KeyMaterial{
+		KeyMaterial: cryptoutilSharedCryptoCertificate.KeyMaterial{
 			CertificateChain: []*x509.Certificate{caCert},
 			PrivateKey:       caPrivateKey,
 		},
 	}
 
 	// Generate server certificate signed by CA.
-	serverSubject, err := cryptoutilCertificate.CreateEndEntitySubject(
+	serverSubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(
 		issuerSubject,
 		serverKeyPair,
 		"Server Certificate",
@@ -222,7 +222,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	}
 
 	// Build TLS certificate from server subject to validate and obtain chains.
-	_, _, _, err = cryptoutilCertificate.BuildTLSCertificate(serverSubject)
+	_, _, _, err = cryptoutilSharedCryptoCertificate.BuildTLSCertificate(serverSubject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
@@ -261,24 +261,24 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	}
 
 	// Calculate validity period.
-	duration := time.Duration(validityDays) * cryptoutilMagic.HoursPerDay * time.Hour
+	duration := time.Duration(validityDays) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// Generate 3-tier CA hierarchy (Root → Intermediate → Server CA keys).
 	const caTiers = 3
 
-	caKeyPairs := make([]*cryptoutilKeyGen.KeyPair, caTiers-1) // Root CA and Intermediate CA (2 CAs).
+	caKeyPairs := make([]*cryptoutilSharedCryptoKeygen.KeyPair, caTiers-1) // Root CA and Intermediate CA (2 CAs).
 
 	var err error
 
 	for i := range caKeyPairs {
-		caKeyPairs[i], err = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+		caKeyPairs[i], err = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate CA key pair %d: %w", i, err)
 		}
 	}
 
 	// Create CA subjects (Root → Intermediate).
-	caSubjects, err := cryptoutilCertificate.CreateCASubjects(caKeyPairs, "Auto-Generated CA", duration)
+	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(caKeyPairs, "Auto-Generated CA", duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}
@@ -287,7 +287,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	issuingCAPrivateKey := caKeyPairs[len(caKeyPairs)-1].Private
 
 	// Generate server key pair.
-	serverKeyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+	serverKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate server key pair: %w", err)
 	}
@@ -306,7 +306,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	issuingCA := caSubjects[len(caSubjects)-1]
 	issuingCA.KeyMaterial.PrivateKey = issuingCAPrivateKey
 
-	serverSubject, err := cryptoutilCertificate.CreateEndEntitySubject(
+	serverSubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(
 		issuingCA,
 		serverKeyPair,
 		"Auto-Generated Server Certificate",
@@ -323,7 +323,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	}
 
 	// Validate by building TLS certificate.
-	_, _, _, err = cryptoutilCertificate.BuildTLSCertificate(serverSubject)
+	_, _, _, err = cryptoutilSharedCryptoCertificate.BuildTLSCertificate(serverSubject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
@@ -352,15 +352,15 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 // Returns CA certificate PEM, CA private key PEM, and any error.
 func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 	// Generate CA key pair using ECDSA P-384.
-	caKeyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+	caKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate CA key pair: %w", err)
 	}
 
 	// Create 1-tier CA (just a root CA for simplicity in tests).
-	duration := time.Duration(cryptoutilMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilMagic.HoursPerDay * time.Hour
+	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
-	caSubjects, err := cryptoutilCertificate.CreateCASubjects([]*cryptoutilKeyGen.KeyPair{caKeyPair}, "Test CA", duration)
+	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects([]*cryptoutilSharedCryptoKeygen.KeyPair{caKeyPair}, "Test CA", duration)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}

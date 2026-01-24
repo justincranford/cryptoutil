@@ -3,12 +3,12 @@
 package hash
 
 import (
-	"crypto/sha256"
-	"crypto/sha512"
+	sha256 "crypto/sha256"
+	sha512 "crypto/sha512"
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // HashSecretPBKDF2 returns a formatted PBKDF2 hash string using default parameter set (version "1").
@@ -20,7 +20,7 @@ import (
 //  2. Get parameter set: params := registry.GetDefaultParameterSet()
 //  3. Hash with pepper: HashSecretPBKDF2WithParams(secret, params)
 func HashSecretPBKDF2(secret string) (string, error) {
-	hash, err := cryptoutilDigests.PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
+	hash, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
 	if err != nil {
 		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
 	}
@@ -34,8 +34,8 @@ func HashSecretPBKDF2(secret string) (string, error) {
 // CRITICAL: OWASP MANDATORY requirement - params MUST include pepper loaded from Docker/K8s secrets.
 // Pattern: PBKDF2(password||pepper, salt, iterations, keyLength)
 // Reference: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#peppering
-func HashSecretPBKDF2WithParams(secret string, params *cryptoutilDigests.PBKDF2Params) (string, error) {
-	hash, err := cryptoutilDigests.PBKDF2WithParams(secret, params)
+func HashSecretPBKDF2WithParams(secret string, params *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error) {
+	hash, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, params)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
 	}
@@ -46,8 +46,8 @@ func HashSecretPBKDF2WithParams(secret string, params *cryptoutilDigests.PBKDF2P
 // VerifySecretPBKDF2WithParams verifies a stored hash against a provided secret using specified parameter set.
 // CRITICAL: params MUST include pepper loaded from Docker/K8s secrets (same pepper used during hashing).
 // Pattern: PBKDF2(password||pepper, salt, iterations, keyLength).
-func VerifySecretPBKDF2WithParams(stored, provided string, params *cryptoutilDigests.PBKDF2Params) (bool, error) {
-	valid, err := cryptoutilDigests.VerifySecretWithParams(stored, provided, params)
+func VerifySecretPBKDF2WithParams(stored, provided string, params *cryptoutilSharedCryptoDigests.PBKDF2Params) (bool, error) {
+	valid, err := cryptoutilSharedCryptoDigests.VerifySecretWithParams(stored, provided, params)
 	if err != nil {
 		return false, fmt.Errorf("failed to verify secret: %w", err)
 	}
@@ -62,19 +62,19 @@ func VerifySecretPBKDF2WithParams(stored, provided string, params *cryptoutilDig
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
-func DefaultPBKDF2ParameterSet() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func DefaultPBKDF2ParameterSet() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "1",
-		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
-		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2DerivedKeyLength,
+		HashName:   cryptoutilSharedMagic.PBKDF2DefaultHashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2DefaultIterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2DerivedKeyLength,
 		HashFunc:   sha256.New,
 	}
 }
 
 // PBKDF2ParameterSetV1 returns version "1" parameter set (same as default).
-func PBKDF2ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
+func PBKDF2ParameterSetV1() *cryptoutilSharedCryptoDigests.PBKDF2Params {
 	return DefaultPBKDF2ParameterSet()
 }
 
@@ -85,13 +85,13 @@ func PBKDF2ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
 // - 32-byte salt (256 bits)
 // - 32-byte key (256 bits)
 // - SHA-256 hash function.
-func PBKDF2ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2ParameterSetV2() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "2",
-		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
-		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2DerivedKeyLength,
+		HashName:   cryptoutilSharedMagic.PBKDF2DefaultHashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2V2Iterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2DerivedKeyLength,
 		HashFunc:   sha256.New,
 	}
 }
@@ -106,13 +106,13 @@ func PBKDF2ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
 //
 // Note: This low iteration count is ONLY for migrating legacy passwords from systems
 // that used weak hashing (e.g., old databases). New passwords MUST use V1 (600k) or V2 (310k).
-func PBKDF2ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2ParameterSetV3() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "3",
-		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
-		Iterations: cryptoutilMagic.PBKDF2V3Iterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2DerivedKeyLength,
+		HashName:   cryptoutilSharedMagic.PBKDF2DefaultHashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2V3Iterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2DerivedKeyLength,
 		HashFunc:   sha256.New,
 	}
 }
@@ -124,13 +124,13 @@ func PBKDF2ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
 // - 32-byte salt (256 bits)
 // - 48-byte key (384 bits for SHA-384 output)
 // - SHA-384 hash function.
-func PBKDF2SHA384ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2SHA384ParameterSetV1() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "1",
-		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
-		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2SHA384HashBytes,
+		HashName:   cryptoutilSharedMagic.PBKDF2SHA384HashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2DefaultIterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2SHA384HashBytes,
 		HashFunc:   sha512.New384,
 	}
 }
@@ -142,13 +142,13 @@ func PBKDF2SHA384ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
 // - 32-byte salt (256 bits)
 // - 48-byte key (384 bits for SHA-384 output)
 // - SHA-384 hash function.
-func PBKDF2SHA384ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2SHA384ParameterSetV2() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "2",
-		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
-		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2SHA384HashBytes,
+		HashName:   cryptoutilSharedMagic.PBKDF2SHA384HashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2V2Iterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2SHA384HashBytes,
 		HashFunc:   sha512.New384,
 	}
 }
@@ -160,13 +160,13 @@ func PBKDF2SHA384ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
 // - 32-byte salt (256 bits)
 // - 48-byte key (384 bits for SHA-384 output)
 // - SHA-384 hash function.
-func PBKDF2SHA384ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2SHA384ParameterSetV3() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "3",
-		HashName:   cryptoutilMagic.PBKDF2SHA384HashName,
-		Iterations: cryptoutilMagic.PBKDF2V3Iterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2SHA384HashBytes,
+		HashName:   cryptoutilSharedMagic.PBKDF2SHA384HashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2V3Iterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2SHA384HashBytes,
 		HashFunc:   sha512.New384,
 	}
 }
@@ -178,13 +178,13 @@ func PBKDF2SHA384ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
 // - 32-byte salt (256 bits)
 // - 64-byte key (512 bits for SHA-512 output)
 // - SHA-512 hash function.
-func PBKDF2SHA512ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2SHA512ParameterSetV1() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "1",
-		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
-		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2SHA512HashBytes,
+		HashName:   cryptoutilSharedMagic.PBKDF2SHA512HashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2DefaultIterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2SHA512HashBytes,
 		HashFunc:   sha512.New,
 	}
 }
@@ -196,13 +196,13 @@ func PBKDF2SHA512ParameterSetV1() *cryptoutilDigests.PBKDF2Params {
 // - 32-byte salt (256 bits)
 // - 64-byte key (512 bits for SHA-512 output)
 // - SHA-512 hash function.
-func PBKDF2SHA512ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2SHA512ParameterSetV2() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "2",
-		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
-		Iterations: cryptoutilMagic.PBKDF2V2Iterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2SHA512HashBytes,
+		HashName:   cryptoutilSharedMagic.PBKDF2SHA512HashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2V2Iterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2SHA512HashBytes,
 		HashFunc:   sha512.New,
 	}
 }
@@ -214,13 +214,13 @@ func PBKDF2SHA512ParameterSetV2() *cryptoutilDigests.PBKDF2Params {
 // - 32-byte salt (256 bits)
 // - 64-byte key (512 bits for SHA-512 output)
 // - SHA-512 hash function.
-func PBKDF2SHA512ParameterSetV3() *cryptoutilDigests.PBKDF2Params {
-	return &cryptoutilDigests.PBKDF2Params{
+func PBKDF2SHA512ParameterSetV3() *cryptoutilSharedCryptoDigests.PBKDF2Params {
+	return &cryptoutilSharedCryptoDigests.PBKDF2Params{
 		Version:    "3",
-		HashName:   cryptoutilMagic.PBKDF2SHA512HashName,
-		Iterations: cryptoutilMagic.PBKDF2V3Iterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2SHA512HashBytes,
+		HashName:   cryptoutilSharedMagic.PBKDF2SHA512HashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2V3Iterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2SHA512HashBytes,
 		HashFunc:   sha512.New,
 	}
 }

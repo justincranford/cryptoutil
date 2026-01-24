@@ -3,17 +3,17 @@
 package handler
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	"github.com/stretchr/testify/require"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestGenerateKeyPairFromCSR_AllAlgorithms tests key pair generation for all supported algorithms.
@@ -26,7 +26,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 		t.Parallel()
 
 		// Create RSA CSR template.
-		rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 		require.NoError(t, err)
 
 		csrTemplate := &x509.CertificateRequest{
@@ -36,7 +36,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 			PublicKeyAlgorithm: x509.RSA,
 		}
 
-		csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, rsaKey)
+		csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, rsaKey)
 		require.NoError(t, err)
 
 		csr, parseErr := x509.ParseCertificateRequest(csrDER)
@@ -60,7 +60,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 		t.Parallel()
 
 		// Create ECDSA CSR template.
-		ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 		require.NoError(t, err)
 
 		csrTemplate := &x509.CertificateRequest{
@@ -70,7 +70,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 			PublicKeyAlgorithm: x509.ECDSA,
 		}
 
-		csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, ecdsaKey)
+		csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, ecdsaKey)
 		require.NoError(t, err)
 
 		csr, parseErr := x509.ParseCertificateRequest(csrDER)
@@ -94,7 +94,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 		t.Parallel()
 
 		// Create Ed25519 CSR template.
-		ed25519Public, ed25519Private, err := ed25519.GenerateKey(rand.Reader)
+		ed25519Public, ed25519Private, err := ed25519.GenerateKey(crand.Reader)
 		require.NoError(t, err)
 
 		csrTemplate := &x509.CertificateRequest{
@@ -104,7 +104,7 @@ func TestGenerateKeyPairFromCSR_AllAlgorithms(t *testing.T) {
 			PublicKeyAlgorithm: x509.Ed25519,
 		}
 
-		csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, ed25519Private)
+		csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, ed25519Private)
 		require.NoError(t, err)
 
 		csr, parseErr := x509.ParseCertificateRequest(csrDER)
@@ -158,7 +158,7 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		t.Parallel()
 
 		// Generate RSA private key.
-		rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 		require.NoError(t, err)
 
 		// Encode to PEM.
@@ -167,15 +167,15 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		require.NotEmpty(t, pemBytes)
 
 		// Verify PEM format (PKCS#1 for RSA).
-		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilMagic.StringPEMTypeRSAPrivateKey+"-----") // pragma: allowlist secret
-		require.Contains(t, string(pemBytes), "-----END "+cryptoutilMagic.StringPEMTypeRSAPrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----END "+cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey+"-----")   // pragma: allowlist secret
 	})
 
 	t.Run("ECDSA_PrivateKey", func(t *testing.T) {
 		t.Parallel()
 
 		// Generate ECDSA private key.
-		ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 		require.NoError(t, err)
 
 		// Encode to PEM.
@@ -184,15 +184,15 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		require.NotEmpty(t, pemBytes)
 
 		// Verify PEM format (EC format for ECDSA).
-		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilMagic.StringPEMTypeECPrivateKey+"-----") // pragma: allowlist secret
-		require.Contains(t, string(pemBytes), "-----END "+cryptoutilMagic.StringPEMTypeECPrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilSharedMagic.StringPEMTypeECPrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----END "+cryptoutilSharedMagic.StringPEMTypeECPrivateKey+"-----")   // pragma: allowlist secret
 	})
 
 	t.Run("Ed25519_PrivateKey", func(t *testing.T) {
 		t.Parallel()
 
 		// Generate Ed25519 private key.
-		_, ed25519Private, err := ed25519.GenerateKey(rand.Reader)
+		_, ed25519Private, err := ed25519.GenerateKey(crand.Reader)
 		require.NoError(t, err)
 
 		// Encode to PEM.
@@ -201,8 +201,8 @@ func TestEncodePrivateKeyPEM_AllKeyTypes(t *testing.T) {
 		require.NotEmpty(t, pemBytes)
 
 		// Verify PEM format.
-		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilMagic.StringPEMTypePKCS8PrivateKey+"-----") // pragma: allowlist secret
-		require.Contains(t, string(pemBytes), "-----END "+cryptoutilMagic.StringPEMTypePKCS8PrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----BEGIN "+cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey+"-----") // pragma: allowlist secret
+		require.Contains(t, string(pemBytes), "-----END "+cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey+"-----")   // pragma: allowlist secret
 	})
 
 	t.Run("UnsupportedKeyType_String", func(t *testing.T) {
@@ -226,7 +226,7 @@ func TestCreateCSRWithKey_AllKeyTypes(t *testing.T) {
 		t.Parallel()
 
 		// Generate RSA key.
-		rsaKey, err := rsa.GenerateKey(rand.Reader, 2048)
+		rsaKey, err := rsa.GenerateKey(crand.Reader, 2048)
 		require.NoError(t, err)
 
 		// Create CSR template.
@@ -253,7 +253,7 @@ func TestCreateCSRWithKey_AllKeyTypes(t *testing.T) {
 		t.Parallel()
 
 		// Generate ECDSA key.
-		ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		ecdsaKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 		require.NoError(t, err)
 
 		// Create CSR template.
@@ -280,7 +280,7 @@ func TestCreateCSRWithKey_AllKeyTypes(t *testing.T) {
 		t.Parallel()
 
 		// Generate Ed25519 key.
-		_, ed25519Private, err := ed25519.GenerateKey(rand.Reader)
+		_, ed25519Private, err := ed25519.GenerateKey(crand.Reader)
 		require.NoError(t, err)
 
 		// Create CSR template.

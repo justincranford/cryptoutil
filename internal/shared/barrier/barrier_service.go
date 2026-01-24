@@ -15,14 +15,14 @@ import (
 	cryptoutilIntermediateKeysService "cryptoutil/internal/shared/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // BarrierService provides hierarchical encryption-at-rest using unseal, root, intermediate, and content keys.
 type BarrierService struct {
-	telemetryService        *cryptoutilTelemetry.TelemetryService
-	jwkGenService           *cryptoutilJose.JWKGenService
+	telemetryService        *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *cryptoutilRootKeysService.RootKeysService
@@ -33,7 +33,7 @@ type BarrierService struct {
 }
 
 // NewService creates a new BarrierService with the specified dependencies.
-func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
+func NewService(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {

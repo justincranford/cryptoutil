@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Logger provides structured logging for CICD commands with timing information.
@@ -23,7 +23,7 @@ type Logger struct {
 func NewLogger(operation string) *Logger {
 	start := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] start=%s operation=%s\n",
-		start.Format(cryptoutilMagic.TimeFormat),
+		start.Format(cryptoutilSharedMagic.TimeFormat),
 		operation)
 
 	return &Logger{
@@ -37,7 +37,7 @@ func (l *Logger) Log(message string) {
 	now := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s: %s\n",
 		now.Sub(l.startTime),
-		now.Format(cryptoutilMagic.TimeFormat),
+		now.Format(cryptoutilSharedMagic.TimeFormat),
 		message)
 }
 
@@ -46,7 +46,7 @@ func (l *Logger) LogError(err error) {
 	now := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s ERROR: %v\n",
 		now.Sub(l.startTime),
-		now.Format(cryptoutilMagic.TimeFormat),
+		now.Format(cryptoutilSharedMagic.TimeFormat),
 		err)
 }
 
@@ -55,7 +55,7 @@ func (l *Logger) LogWithPrefix(prefix, message string) {
 	now := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s %s: %s\n",
 		now.Sub(l.startTime),
-		now.Format(cryptoutilMagic.TimeFormat),
+		now.Format(cryptoutilSharedMagic.TimeFormat),
 		prefix,
 		message)
 }

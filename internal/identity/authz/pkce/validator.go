@@ -5,7 +5,7 @@
 package pkce
 
 import (
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"encoding/base64"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"

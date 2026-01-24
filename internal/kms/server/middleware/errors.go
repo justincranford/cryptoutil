@@ -7,7 +7,7 @@ package middleware
 import (
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // ErrorFormat specifies the error response format.

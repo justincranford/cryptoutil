@@ -7,7 +7,7 @@ package repository
 import (
 	"context"
 
-	"cryptoutil/internal/jose/domain"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -15,13 +15,13 @@ import (
 // AuditConfigRepository manages per-tenant audit configuration settings.
 type AuditConfigRepository interface {
 	// Get retrieves audit config for a tenant and operation.
-	Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*domain.AuditConfig, error)
+	Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilJoseDomain.AuditConfig, error)
 
 	// GetAll retrieves all audit configs for a tenant.
-	GetAll(ctx context.Context, tenantID googleUuid.UUID) ([]domain.AuditConfig, error)
+	GetAll(ctx context.Context, tenantID googleUuid.UUID) ([]cryptoutilJoseDomain.AuditConfig, error)
 
 	// Upsert creates or updates audit config for a tenant and operation.
-	Upsert(ctx context.Context, config *domain.AuditConfig) error
+	Upsert(ctx context.Context, config *cryptoutilJoseDomain.AuditConfig) error
 
 	// Delete removes audit config for a tenant and operation.
 	Delete(ctx context.Context, tenantID googleUuid.UUID, operation string) error

@@ -8,7 +8,7 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +26,7 @@ func TestServerApplicationBasic_Shutdown(t *testing.T) {
 			setupFunc: func(t *testing.T) *ServerApplicationBasic {
 				t.Helper()
 
-				settings := cryptoutilConfig.RequireNewForTest("shutdown_test_basic")
+				settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("shutdown_test_basic")
 				ctx := context.Background()
 				app, err := StartServerApplicationBasic(ctx, settings)
 				require.NoError(t, err, "failed to start server application basic")
@@ -80,7 +80,7 @@ func TestServerApplicationCore_Shutdown(t *testing.T) {
 			setupFunc: func(t *testing.T) *ServerApplicationCore {
 				t.Helper()
 
-				settings := cryptoutilConfig.RequireNewForTest("shutdown_test_core")
+				settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("shutdown_test_core")
 				ctx := context.Background()
 
 				// Start core (which starts basic internally)
@@ -128,16 +128,16 @@ func TestSendServerListenerShutdownRequest(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		settingsFunc  func(t *testing.T) *cryptoutilConfig.ServiceTemplateServerSettings
+		settingsFunc  func(t *testing.T) *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 		expectError   bool
 		errorContains string
 	}{
 		{
 			name: "Shutdown_InvalidURL_Error",
-			settingsFunc: func(t *testing.T) *cryptoutilConfig.ServiceTemplateServerSettings {
+			settingsFunc: func(t *testing.T) *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
 				t.Helper()
 
-				settings := cryptoutilConfig.RequireNewForTest("shutdown_request_invalid")
+				settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("shutdown_request_invalid")
 				settings.BindPrivateAddress = "invalid-url-that-does-not-exist"
 				settings.BindPrivatePort = 9999
 

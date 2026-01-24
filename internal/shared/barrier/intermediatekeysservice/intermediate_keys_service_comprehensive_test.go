@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
@@ -78,7 +78,7 @@ func TestIntermediateKeysService_EncryptKey_Success(t *testing.T) {
 
 	defer intermediateKeysService.Shutdown()
 
-	_, clearContentKey, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	_, clearContentKey, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 	require.NoError(t, err)
 	require.NotNil(t, clearContentKey)
 
@@ -102,7 +102,7 @@ func TestIntermediateKeysService_DecryptKey_Success(t *testing.T) {
 
 	defer intermediateKeysService.Shutdown()
 
-	_, clearContentKey, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	_, clearContentKey, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 	require.NoError(t, err)
 	require.NotNil(t, clearContentKey)
 
@@ -192,9 +192,9 @@ func TestIntermediateKeysService_RoundTrip(t *testing.T) {
 			var err error
 
 			if tc.name == "A256GCM with dir" {
-				_, clearContentKey, _, _, _, err = testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+				_, clearContentKey, _, _, _, err = testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 			} else {
-				_, clearContentKey, _, _, _, err = testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgDir)
+				_, clearContentKey, _, _, _, err = testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA128GCM, &cryptoutilSharedCryptoJose.AlgDir)
 			}
 
 			require.NoError(t, err)

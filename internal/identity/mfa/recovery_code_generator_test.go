@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 )
 
 const recoveryCodePattern = `^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$`
@@ -16,7 +16,7 @@ const recoveryCodePattern = `^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKL
 func TestGenerateRecoveryCode_Format(t *testing.T) {
 	t.Parallel()
 
-	code, err := cryptoutilIdentityMFA.GenerateRecoveryCode()
+	code, err := cryptoutilIdentityMfa.GenerateRecoveryCode()
 	require.NoError(t, err)
 
 	// Verify format: XXXX-XXXX-XXXX-XXXX (4 groups of 4 chars, separated by hyphens).
@@ -28,7 +28,7 @@ func TestGenerateRecoveryCode_Format(t *testing.T) {
 func TestGenerateRecoveryCode_Length(t *testing.T) {
 	t.Parallel()
 
-	code, err := cryptoutilIdentityMFA.GenerateRecoveryCode()
+	code, err := cryptoutilIdentityMfa.GenerateRecoveryCode()
 	require.NoError(t, err)
 
 	// Expected length: 16 chars + 3 hyphens = 19 characters.
@@ -43,7 +43,7 @@ func TestGenerateRecoveryCode_Uniqueness(t *testing.T) {
 	seen := make(map[string]bool, sampleSize)
 
 	for range sampleSize {
-		code, err := cryptoutilIdentityMFA.GenerateRecoveryCode()
+		code, err := cryptoutilIdentityMfa.GenerateRecoveryCode()
 		require.NoError(t, err)
 		require.False(t, seen[code], "duplicate code detected: %q", code)
 		seen[code] = true
@@ -57,7 +57,7 @@ func TestGenerateRecoveryCodes_Batch(t *testing.T) {
 
 	const count = 10
 
-	codes, err := cryptoutilIdentityMFA.GenerateRecoveryCodes(count)
+	codes, err := cryptoutilIdentityMfa.GenerateRecoveryCodes(count)
 	require.NoError(t, err)
 	require.Len(t, codes, count, "should generate %d codes", count)
 

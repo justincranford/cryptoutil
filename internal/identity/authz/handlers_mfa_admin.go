@@ -8,7 +8,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 )
 

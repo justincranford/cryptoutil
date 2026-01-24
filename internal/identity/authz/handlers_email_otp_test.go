@@ -4,15 +4,15 @@ package authz_test
 
 import (
 	"bytes"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 )
 
 func TestHandleSendEmailOTP_InvalidBody(t *testing.T) {
@@ -21,7 +21,7 @@ func TestHandleSendEmailOTP_InvalidBody(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -42,11 +42,11 @@ func TestHandleSendEmailOTP_InvalidUserIDFormat(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.SendEmailOTPRequest{
+	reqBody := cryptoutilIdentityAuthz.SendEmailOTPRequest{
 		UserID: "not-a-uuid",
 		Email:  "test@example.com",
 	}
@@ -76,7 +76,7 @@ func TestHandleVerifyEmailOTP_InvalidBody(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -97,11 +97,11 @@ func TestHandleVerifyEmailOTP_MissingUserIDHeader(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.VerifyEmailOTPRequest{
+	reqBody := cryptoutilIdentityAuthz.VerifyEmailOTPRequest{
 		Code: "123456",
 	}
 
@@ -126,11 +126,11 @@ func TestHandleVerifyEmailOTP_InvalidUserIDHeader(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
-	reqBody := authz.VerifyEmailOTPRequest{
+	reqBody := cryptoutilIdentityAuthz.VerifyEmailOTPRequest{
 		Code: "123456",
 	}
 
@@ -155,13 +155,13 @@ func TestHandleVerifyEmailOTP_InvalidOTP(t *testing.T) {
 	config := createTokenTestConfig(t)
 	repoFactory := createTokenTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
 	userID := googleUuid.New()
 
-	reqBody := authz.VerifyEmailOTPRequest{
+	reqBody := cryptoutilIdentityAuthz.VerifyEmailOTPRequest{
 		Code: "999999",
 	}
 

@@ -10,14 +10,14 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TestTenant_TableName tests Tenant table name.
 func TestTenant_TableName(t *testing.T) {
 	t.Parallel()
 
-	tenant := repository.Tenant{}
+	tenant := cryptoutilAppsTemplateServiceServerRepository.Tenant{}
 	require.Equal(t, "tenants", tenant.TableName())
 }
 
@@ -38,7 +38,7 @@ func TestTenant_IsActive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tenant := &repository.Tenant{Active: tt.active}
+			tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{Active: tt.active}
 			require.Equal(t, tt.expected, tenant.IsActive())
 		})
 	}
@@ -61,7 +61,7 @@ func TestTenant_SetActive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tenant := &repository.Tenant{}
+			tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{}
 			tenant.SetActive(tt.active)
 			require.Equal(t, tt.expected, tenant.Active)
 		})
@@ -72,7 +72,7 @@ func TestTenant_SetActive(t *testing.T) {
 func TestUser_TableName(t *testing.T) {
 	t.Parallel()
 
-	user := repository.User{}
+	user := cryptoutilAppsTemplateServiceServerRepository.User{}
 	require.Equal(t, "users", user.TableName())
 }
 
@@ -81,7 +81,7 @@ func TestUser_GetID(t *testing.T) {
 	t.Parallel()
 
 	id := googleUuid.New()
-	user := &repository.User{ID: id}
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{ID: id}
 	require.Equal(t, id, user.GetID())
 }
 
@@ -89,7 +89,7 @@ func TestUser_GetID(t *testing.T) {
 func TestUser_GetUsername(t *testing.T) {
 	t.Parallel()
 
-	user := &repository.User{Username: "testuser"}
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{Username: "testuser"}
 	require.Equal(t, "testuser", user.GetUsername())
 }
 
@@ -97,7 +97,7 @@ func TestUser_GetUsername(t *testing.T) {
 func TestUser_GetPasswordHash(t *testing.T) {
 	t.Parallel()
 
-	user := &repository.User{PasswordHash: "hash123"}
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{PasswordHash: "hash123"}
 	require.Equal(t, "hash123", user.GetPasswordHash())
 }
 
@@ -106,7 +106,7 @@ func TestUser_SetID(t *testing.T) {
 	t.Parallel()
 
 	id := googleUuid.New()
-	user := &repository.User{}
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{}
 	user.SetID(id)
 	require.Equal(t, id, user.ID)
 }
@@ -115,7 +115,7 @@ func TestUser_SetID(t *testing.T) {
 func TestUser_SetUsername(t *testing.T) {
 	t.Parallel()
 
-	user := &repository.User{}
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{}
 	user.SetUsername("newuser")
 	require.Equal(t, "newuser", user.Username)
 }
@@ -124,7 +124,7 @@ func TestUser_SetUsername(t *testing.T) {
 func TestUser_SetPasswordHash(t *testing.T) {
 	t.Parallel()
 
-	user := &repository.User{}
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{}
 	user.SetPasswordHash("newhash")
 	require.Equal(t, "newhash", user.PasswordHash)
 }
@@ -134,7 +134,7 @@ func TestUser_GetTenantID(t *testing.T) {
 	t.Parallel()
 
 	tenantID := googleUuid.New()
-	user := &repository.User{TenantID: tenantID}
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{TenantID: tenantID}
 	require.Equal(t, tenantID, user.GetTenantID())
 }
 
@@ -155,7 +155,7 @@ func TestUser_IsActive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			user := &repository.User{Active: tt.active}
+			user := &cryptoutilAppsTemplateServiceServerRepository.User{Active: tt.active}
 			require.Equal(t, tt.expected, user.IsActive())
 		})
 	}
@@ -178,7 +178,7 @@ func TestUser_SetActive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			user := &repository.User{}
+			user := &cryptoutilAppsTemplateServiceServerRepository.User{}
 			user.SetActive(tt.active)
 			require.Equal(t, tt.expected, user.Active)
 		})

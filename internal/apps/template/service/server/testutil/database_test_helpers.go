@@ -12,7 +12,7 @@ import (
 	"time"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilContainer "cryptoutil/internal/shared/container"
+	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -25,7 +25,7 @@ import (
 // Returns: sqlDB (*sql.DB), closeDB (cleanup function), error.
 // Usage: sqlDB, closeDB, err := NewInitializedPostgresTestDatabase(ctx, migrationsFS); defer closeDB().
 func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS fs.FS) (*sql.DB, func(), error) {
-	postgresContainer, err := cryptoutilContainer.NewPostgresTestContainer(ctx)
+	postgresContainer, err := cryptoutilSharedContainer.NewPostgresTestContainer(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create PostgreSQL container: %w", err)
 	}

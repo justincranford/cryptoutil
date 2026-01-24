@@ -6,22 +6,22 @@ package integration
 
 import (
 	"context"
-	"net/http"
+	http "net/http"
 	"os"
 	"testing"
 
-	"cryptoutil/internal/apps/cipher/im/server"
-	"cryptoutil/internal/apps/cipher/im/server/config"
-	cipherTesting "cryptoutil/internal/apps/cipher/im/testing"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilAppsCipherImTesting "cryptoutil/internal/apps/cipher/im/testing"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 )
 
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient     *http.Client
-	cipherImServer       *server.CipherIMServer
-	testCipherIMServer   *config.CipherImServerSettings
+	cipherImServer       *cryptoutilAppsCipherImServer.CipherIMServer
+	testCipherIMServer   *cryptoutilAppsCipherImServerConfig.CipherImServerSettings
 	publicBaseURL        string
 	adminBaseURL         string
 	sharedServiceBaseURL string // Deprecated: use publicBaseURL.
@@ -31,14 +31,14 @@ var (
 // Integration tests start the full application but use SQLite instead of PostgreSQL,
 // and exclude telemetry containers (otel-collector, grafana-lgtm).
 func TestMain(m *testing.M) {
-	settings := cryptoutilConfig.RequireNewForTest("cipher-im-integration-test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("cipher-im-integration-test")
 	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast integration tests.
 
-	testCipherIMServer = &config.CipherImServerSettings{
+	testCipherIMServer = &cryptoutilAppsCipherImServerConfig.CipherImServerSettings{
 		ServiceTemplateServerSettings: settings,
 	}
 
-	cipherImServer = cipherTesting.StartCipherIMService(testCipherIMServer)
+	cipherImServer = cryptoutilAppsCipherImTesting.StartCipherIMService(testCipherIMServer)
 
 	defer func() {
 		_ = cipherImServer.Shutdown(context.Background())
@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	publicBaseURL = cipherImServer.PublicBaseURL()
 	adminBaseURL = cipherImServer.AdminBaseURL()
 	sharedServiceBaseURL = publicBaseURL // Backward compatibility.
-	sharedHTTPClient = cryptoutilTLS.NewClientForTest()
+	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
 
 	exitCode := m.Run()
 

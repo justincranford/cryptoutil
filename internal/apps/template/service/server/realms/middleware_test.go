@@ -4,12 +4,12 @@
 package realms
 
 import (
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

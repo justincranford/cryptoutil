@@ -4,9 +4,9 @@
 package dpop
 
 import (
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"strings"
 	"time"

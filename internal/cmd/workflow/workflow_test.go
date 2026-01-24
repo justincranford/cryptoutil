@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +21,7 @@ func TestGetAvailableWorkflows(t *testing.T) {
 	workflowsDir := filepath.Join(tempDir, "test_workflows")
 
 	// Create the workflows directory
-	err := os.MkdirAll(workflowsDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(workflowsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Failed to create workflows directory")
 
 	// Create some test workflow files
@@ -38,14 +38,14 @@ func TestGetAvailableWorkflows(t *testing.T) {
 	for _, filename := range testFiles {
 		filePath := filepath.Join(workflowsDir, filename)
 
-		err := os.WriteFile(filePath, []byte("name: Test Workflow"), cryptoutilMagic.FilePermOwnerReadWriteOnly)
+		err := os.WriteFile(filePath, []byte("name: Test Workflow"), cryptoutilSharedMagic.FilePermOwnerReadWriteOnly)
 		require.NoError(t, err, "Failed to create test file %s", filename)
 	}
 
 	// Create a subdirectory (should be ignored)
 	subDir := filepath.Join(workflowsDir, "subdir")
 
-	err = os.MkdirAll(subDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err = os.MkdirAll(subDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Failed to create subdirectory")
 
 	// Change to the temp directory to test the function
@@ -99,7 +99,7 @@ func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
 	workflowsDir := filepath.Join(tempDir, "empty_workflows")
 
 	// Create the empty directory
-	err := os.MkdirAll(workflowsDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
+	err := os.MkdirAll(workflowsDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Failed to create empty workflows directory")
 
 	// Test the function

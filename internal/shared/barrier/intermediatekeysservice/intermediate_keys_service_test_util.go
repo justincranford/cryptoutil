@@ -8,12 +8,12 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // RequireNewForTest creates a new IntermediateKeysService for testing and panics on error.
-func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) *IntermediateKeysService {
+func RequireNewForTest(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) *IntermediateKeysService {
 	intermediateKeysService, err := NewIntermediateKeysService(telemetryService, jwkGenService, ormRepository, rootKeysService)
 	cryptoutilSharedApperr.RequireNoError(err, "failed to create intermediateKeysService")
 
@@ -21,12 +21,12 @@ func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, j
 }
 
 // Helper functions for validation tests - allow passing nil values.
-func toTelemetryService(v any) *cryptoutilTelemetry.TelemetryService {
+func toTelemetryService(v any) *cryptoutilSharedTelemetry.TelemetryService {
 	if v == nil {
 		return nil
 	}
 
-	service, ok := v.(*cryptoutilTelemetry.TelemetryService)
+	service, ok := v.(*cryptoutilSharedTelemetry.TelemetryService)
 	if !ok {
 		return nil
 	}
@@ -34,12 +34,12 @@ func toTelemetryService(v any) *cryptoutilTelemetry.TelemetryService {
 	return service
 }
 
-func toJWKGenService(v any) *cryptoutilJose.JWKGenService {
+func toJWKGenService(v any) *cryptoutilSharedCryptoJose.JWKGenService {
 	if v == nil {
 		return nil
 	}
 
-	service, ok := v.(*cryptoutilJose.JWKGenService)
+	service, ok := v.(*cryptoutilSharedCryptoJose.JWKGenService)
 	if !ok {
 		return nil
 	}

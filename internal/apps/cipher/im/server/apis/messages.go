@@ -6,31 +6,31 @@ package apis
 import (
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
 	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
 // MessageHandler handles message operations (send, receive, delete).
 type MessageHandler struct {
 	messageRepo             *cryptoutilAppsCipherImRepository.MessageRepository
 	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository
-	jwkGenService           *cryptoutilJose.JWKGenService
-	barrierService          *cryptoutilBarrier.Service
+	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService          *cryptoutilAppsTemplateServiceServerBarrier.Service
 }
 
 // NewMessageHandler creates a new MessageHandler with injected dependencies.
 func NewMessageHandler(
 	messageRepo *cryptoutilAppsCipherImRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository,
-	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilBarrier.Service,
+	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
+	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) *MessageHandler {
 	return &MessageHandler{
 		messageRepo:             messageRepo,
@@ -92,7 +92,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Extract sender ID from authentication context.
-		senderID, ok := c.Locals(cryptoutilTemplateMiddleware.ContextKeyUserID).(googleUuid.UUID)
+		senderID, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -101,7 +101,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Generate JWE JWK for message encryption using dir + A256GCM.
-		_, cekJWK, _, cekJWKBytes, _, err := h.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+		_, cekJWK, _, cekJWKBytes, _, err := h.jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -120,7 +120,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		// Encrypt message using JWE Compact Serialization.
 		jwks := []joseJwk.Key{cekJWK}
 
-		jweMessage, jweCompactBytes, err := cryptoutilJose.EncryptBytesWithContext(jwks, []byte(req.Message), nil)
+		jweMessage, jweCompactBytes, err := cryptoutilSharedCryptoJose.EncryptBytesWithContext(jwks, []byte(req.Message), nil)
 		if err != nil {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -190,7 +190,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Extract recipient ID from authentication context.
-		recipientID, ok := c.Locals(cryptoutilTemplateMiddleware.ContextKeyUserID).(googleUuid.UUID)
+		recipientID, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -245,7 +245,7 @@ func (h *MessageHandler) HandleReceiveMessages() fiber.Handler {
 			// Decrypt JWE to get plaintext message.
 			jwks := []joseJwk.Key{cekJWK}
 
-			plaintext, err := cryptoutilJose.DecryptBytesWithContext(jwks, []byte(msg.JWE), nil)
+			plaintext, err := cryptoutilSharedCryptoJose.DecryptBytesWithContext(jwks, []byte(msg.JWE), nil)
 			if err != nil {
 				// Decryption failed.
 				continue
@@ -294,7 +294,7 @@ func (h *MessageHandler) HandleDeleteMessage() fiber.Handler {
 		}
 
 		// Extract authenticated user ID from context.
-		userID, ok := c.Locals(cryptoutilTemplateMiddleware.ContextKeyUserID).(googleUuid.UUID)
+		userID, ok := c.Locals(cryptoutilAppsTemplateServiceServerMiddleware.ContextKeyUserID).(googleUuid.UUID)
 		if !ok {
 			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

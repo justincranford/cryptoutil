@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/ca/server/config"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
 )
 
 // TestCAServer_Shutdown tests the Shutdown method.
@@ -15,7 +15,7 @@ func TestCAServer_Shutdown(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ func TestCAServer_Shutdown_ContextCanceled(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -73,7 +73,7 @@ func TestCAServer_App(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -89,7 +89,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 	t.Parallel()
 
 	// Create test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -127,7 +127,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 func TestNewFromConfig_NilContext(t *testing.T) {
 	t.Parallel()
 
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	server, err := NewFromConfig(nil, cfg) //nolint:staticcheck // SA1012 intentionally testing nil context handling
 	require.Error(t, err)
 	require.Nil(t, server)
@@ -162,7 +162,7 @@ func TestCreateSelfSignedCA_EdgeCases(t *testing.T) {
 	// This function is already 73.9% covered, so we'll add edge case tests.
 	// The function is internal and tested indirectly through NewFromConfig.
 	// Create test server to trigger self-signed CA creation.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)

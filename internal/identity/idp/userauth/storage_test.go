@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -21,7 +21,7 @@ import (
 func TestInMemoryChallengeStore_NewStore(t *testing.T) {
 	t.Parallel()
 
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	require.NotNil(t, store, "NewInMemoryChallengeStore should return non-nil store")
 }
 
@@ -29,11 +29,11 @@ func TestInMemoryChallengeStore_StoreAndRetrieve(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 
 	challengeID := googleUuid.Must(googleUuid.NewV7())
 	testSecret := "test-secret-12345"
-	challenge := &userauth.AuthChallenge{
+	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
@@ -56,7 +56,7 @@ func TestInMemoryChallengeStore_RetrieveNotFound(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 
 	nonExistentID := googleUuid.Must(googleUuid.NewV7())
 
@@ -69,11 +69,11 @@ func TestInMemoryChallengeStore_RetrieveExpired(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 
 	challengeID := googleUuid.Must(googleUuid.NewV7())
 	testSecret := "test-secret-expired"
-	challenge := &userauth.AuthChallenge{
+	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
@@ -94,11 +94,11 @@ func TestInMemoryChallengeStore_Delete(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 
 	challengeID := googleUuid.Must(googleUuid.NewV7())
 	testSecret := "test-secret-delete"
-	challenge := &userauth.AuthChallenge{
+	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
@@ -122,7 +122,7 @@ func TestInMemoryChallengeStore_DeleteNonExistent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 
 	nonExistentID := googleUuid.Must(googleUuid.NewV7())
 
@@ -135,14 +135,14 @@ func TestInMemoryChallengeStore_MultipleChallenges(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 
 	// Store multiple challenges.
-	challenges := make([]*userauth.AuthChallenge, 3)
+	challenges := make([]*cryptoutilIdentityIdpUserauth.AuthChallenge, 3)
 	secrets := make([]string, 3)
 
 	for i := range 3 {
-		challenges[i] = &userauth.AuthChallenge{
+		challenges[i] = &cryptoutilIdentityIdpUserauth.AuthChallenge{
 			ID:        googleUuid.Must(googleUuid.NewV7()),
 			UserID:    googleUuid.NewString(),
 			Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
@@ -168,7 +168,7 @@ func TestInMemoryChallengeStore_MultipleChallenges(t *testing.T) {
 func TestInMemoryRateLimiter_NewLimiter(t *testing.T) {
 	t.Parallel()
 
-	limiter := userauth.NewInMemoryRateLimiter()
+	limiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	require.NotNil(t, limiter, "NewInMemoryRateLimiter should return non-nil limiter")
 }
 
@@ -176,7 +176,7 @@ func TestInMemoryRateLimiter_CheckLimitNoRecord(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	limiter := userauth.NewInMemoryRateLimiter()
+	limiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 
 	// Check limit for identifier with no record.
 	err := limiter.CheckLimit(ctx, "new-identifier")
@@ -187,7 +187,7 @@ func TestInMemoryRateLimiter_RecordFailedAttempt(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	limiter := userauth.NewInMemoryRateLimiter()
+	limiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 
 	identifier := "test-user-failed"
 
@@ -204,7 +204,7 @@ func TestInMemoryRateLimiter_RecordSuccessfulAttempt(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	limiter := userauth.NewInMemoryRateLimiter()
+	limiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 
 	identifier := "test-user-success"
 
@@ -227,7 +227,7 @@ func TestInMemoryRateLimiter_ExceedMaxAttempts(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	limiter := userauth.NewInMemoryRateLimiter()
+	limiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 
 	identifier := "test-user-lockout"
 
@@ -247,7 +247,7 @@ func TestInMemoryRateLimiter_LockoutWithRemainingTime(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	limiter := userauth.NewInMemoryRateLimiter()
+	limiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 
 	identifier := "test-user-lockout-time"
 
@@ -267,7 +267,7 @@ func TestInMemoryRateLimiter_MultipleIdentifiers(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	limiter := userauth.NewInMemoryRateLimiter()
+	limiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 
 	identifier1 := "user-1"
 	identifier2 := "user-2"

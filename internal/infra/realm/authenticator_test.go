@@ -6,7 +6,7 @@ package realm
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base64"
 	"testing"
 
@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/pbkdf2"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Test UUIDs generated once per test run for consistency.
@@ -478,20 +478,20 @@ func TestAuthenticator_VerifyPasswordErrors(t *testing.T) {
 func createTestPasswordHash(t *testing.T, password string) string {
 	t.Helper()
 
-	salt := make([]byte, cryptoutilMagic.PBKDF2DefaultSaltBytes)
-	_, err := rand.Read(salt)
+	salt := make([]byte, cryptoutilSharedMagic.PBKDF2DefaultSaltBytes)
+	_, err := crand.Read(salt)
 	require.NoError(t, err)
 
-	hashFunc := cryptoutilMagic.PBKDF2HashFunction(cryptoutilMagic.PBKDF2DefaultAlgorithm)
+	hashFunc := cryptoutilSharedMagic.PBKDF2HashFunction(cryptoutilSharedMagic.PBKDF2DefaultAlgorithm)
 	derivedKey := pbkdf2.Key(
 		[]byte(password),
 		salt,
-		cryptoutilMagic.PBKDF2DefaultIterations,
-		cryptoutilMagic.PBKDF2DefaultHashBytes,
+		cryptoutilSharedMagic.PBKDF2DefaultIterations,
+		cryptoutilSharedMagic.PBKDF2DefaultHashBytes,
 		hashFunc,
 	)
 
-	return "$" + cryptoutilMagic.PBKDF2DefaultHashName + "$" +
+	return "$" + cryptoutilSharedMagic.PBKDF2DefaultHashName + "$" +
 		"600000$" +
 		base64.StdEncoding.EncodeToString(salt) + "$" +
 		base64.StdEncoding.EncodeToString(derivedKey)

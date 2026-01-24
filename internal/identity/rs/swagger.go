@@ -6,9 +6,9 @@ package rs
 
 import (
 	"fmt"
-	"net/http"
+	http "net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilApiIdentityRs "cryptoutil/api/identity/rs"
 )

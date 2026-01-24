@@ -5,10 +5,10 @@ package jwks
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"log/slog"
-	"net/http"
+	http "net/http"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"

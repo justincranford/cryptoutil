@@ -11,24 +11,24 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 )
 
 // DemoCA holds a pre-generated CA chain for demo purposes.
 // This is a singleton that is lazily initialized on first access.
 type DemoCA struct {
-	Chain *cryptoutilTLS.CAChain
+	Chain *cryptoutilSharedCryptoTls.CAChain
 }
 
 // DefaultDemoCAOptions are the options used for the demo CA.
 // Uses FQDN style with "cryptoutil.demo.local" prefix.
-var DefaultDemoCAOptions = &cryptoutilTLS.CAChainOptions{
-	ChainLength:      cryptoutilTLS.DefaultCAChainLength,
+var DefaultDemoCAOptions = &cryptoutilSharedCryptoTls.CAChainOptions{
+	ChainLength:      cryptoutilSharedCryptoTls.DefaultCAChainLength,
 	CommonNamePrefix: "cryptoutil.demo.local",
-	CNStyle:          cryptoutilTLS.CNStyleFQDN,
-	Duration:         cryptoutilTLS.DefaultCADuration,
-	Curve:            cryptoutilTLS.DefaultECCurve,
+	CNStyle:          cryptoutilSharedCryptoTls.CNStyleFQDN,
+	Duration:         cryptoutilSharedCryptoTls.DefaultCADuration,
+	Curve:            cryptoutilSharedCryptoTls.DefaultECCurve,
 }
 
 var (
@@ -41,7 +41,7 @@ var (
 // The CA is lazily created on first access.
 func GetDemoCA() (*DemoCA, error) {
 	demoCAOnce.Do(func() {
-		chain, err := cryptoutilTLS.CreateCAChain(DefaultDemoCAOptions)
+		chain, err := cryptoutilSharedCryptoTls.CreateCAChain(DefaultDemoCAOptions)
 		if err != nil {
 			demoCAErr = fmt.Errorf("failed to create demo CA chain: %w", err)
 
@@ -59,7 +59,7 @@ func GetDemoCA() (*DemoCA, error) {
 // CreateDemoCA creates a new demo CA with the default options.
 // Unlike GetDemoCA, this creates a fresh CA each time.
 func CreateDemoCA() (*DemoCA, error) {
-	chain, err := cryptoutilTLS.CreateCAChain(DefaultDemoCAOptions)
+	chain, err := cryptoutilSharedCryptoTls.CreateCAChain(DefaultDemoCAOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create demo CA chain: %w", err)
 	}
@@ -70,12 +70,12 @@ func CreateDemoCA() (*DemoCA, error) {
 }
 
 // CreateDemoCAWithOptions creates a new demo CA with custom options.
-func CreateDemoCAWithOptions(opts *cryptoutilTLS.CAChainOptions) (*DemoCA, error) {
+func CreateDemoCAWithOptions(opts *cryptoutilSharedCryptoTls.CAChainOptions) (*DemoCA, error) {
 	if opts == nil {
 		opts = DefaultDemoCAOptions
 	}
 
-	chain, err := cryptoutilTLS.CreateCAChain(opts)
+	chain, err := cryptoutilSharedCryptoTls.CreateCAChain(opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create demo CA chain: %w", err)
 	}
@@ -86,12 +86,12 @@ func CreateDemoCAWithOptions(opts *cryptoutilTLS.CAChainOptions) (*DemoCA, error
 }
 
 // CreateServerCertificate creates a TLS server certificate for the demo.
-func (d *DemoCA) CreateServerCertificate(serverName string) (*cryptoutilCertificate.Subject, error) {
+func (d *DemoCA) CreateServerCertificate(serverName string) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	if serverName == "" {
 		return nil, fmt.Errorf("server name cannot be empty")
 	}
 
-	opts := cryptoutilTLS.ServerEndEntityOptions(
+	opts := cryptoutilSharedCryptoTls.ServerEndEntityOptions(
 		serverName,
 		[]string{serverName},
 		nil, // No IP addresses
@@ -106,12 +106,12 @@ func (d *DemoCA) CreateServerCertificate(serverName string) (*cryptoutilCertific
 }
 
 // CreateClientCertificate creates a TLS client certificate for the demo.
-func (d *DemoCA) CreateClientCertificate(clientName string) (*cryptoutilCertificate.Subject, error) {
+func (d *DemoCA) CreateClientCertificate(clientName string) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	if clientName == "" {
 		return nil, fmt.Errorf("client name cannot be empty")
 	}
 
-	opts := cryptoutilTLS.ClientEndEntityOptions(clientName)
+	opts := cryptoutilSharedCryptoTls.ClientEndEntityOptions(clientName)
 
 	subject, err := d.Chain.CreateEndEntity(opts)
 	if err != nil {

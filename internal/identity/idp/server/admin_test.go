@@ -7,17 +7,17 @@ package server
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestNewAdminHTTPServer tests admin server creation.
@@ -191,7 +191,7 @@ func TestAdminEndpointLivez(t *testing.T) {
 	// Wait for server to start and get port (polling avoids race condition).
 	port := waitForAdminPort(t, server, 5*time.Second)
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	t.Run("LivezReturnsAlive", func(t *testing.T) {
 		statusCode, body := doAdminGet(t, baseURL+"/admin/api/v1/livez")
@@ -249,7 +249,7 @@ func TestAdminEndpointReadyz(t *testing.T) {
 	// Wait for server to start and get port (polling avoids race condition).
 	port := waitForAdminPort(t, server, 5*time.Second)
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	t.Run("ReadyzBeforeReady", func(t *testing.T) {
 		// Server starts not ready by default.
@@ -315,7 +315,7 @@ func TestAdminEndpointShutdown(t *testing.T) {
 	// Wait for server to start and get port (polling avoids race condition).
 	port := waitForAdminPort(t, server, 5*time.Second)
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	t.Run("ShutdownViaEndpoint", func(t *testing.T) {
 		// Call shutdown endpoint.

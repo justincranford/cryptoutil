@@ -4,7 +4,7 @@
 package config
 
 import (
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -22,7 +22,7 @@ import (
 // Returns directly populated CipherImServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *CipherImServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilTemplateConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with cipher-im specific values.
 	baseConfig.BindPublicPort = bindPort

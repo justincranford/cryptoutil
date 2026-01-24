@@ -6,7 +6,7 @@
 package random
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 	"math"
 	"sync"
@@ -69,7 +69,7 @@ func validateProbability(prob float32) error {
 func normalizedRandomFloat32(t *testing.T) float32 {
 	var b [bytesPerUint32]byte
 
-	_, err := rand.Read(b[:])
+	_, err := crand.Read(b[:])
 	require.NoError(t, err)
 
 	randomUint32 := uint32(0)

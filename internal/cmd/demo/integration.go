@@ -10,22 +10,22 @@ package demo
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Integration demo step counts.
@@ -86,7 +86,7 @@ type integrationServers struct {
 	identityCancel  context.CancelFunc
 	identityBaseURL string
 	kmsServer       *cryptoutilServerApplication.ServerApplicationListener
-	kmsSettings     *cryptoutilConfig.ServiceTemplateServerSettings
+	kmsSettings     *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	kmsBaseURL      string
 }
 
@@ -385,7 +385,7 @@ func startIntegrationKMSServer(_ context.Context, servers *integrationServers) e
 		"--bind-private-port", "0",
 	}
 
-	settings, err := cryptoutilConfig.Parse(args, true)
+	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, true)
 	if err != nil {
 		return fmt.Errorf("failed to parse KMS config: %w", err)
 	}
@@ -400,7 +400,7 @@ func startIntegrationKMSServer(_ context.Context, servers *integrationServers) e
 	go server.StartFunction()
 
 	// Give server time to start.
-	time.Sleep(cryptoutilMagic.DefaultServerStartupDelay)
+	time.Sleep(cryptoutilSharedMagic.DefaultServerStartupDelay)
 
 	// Update settings with actual ports.
 	settings.BindPublicPort = server.ActualPublicPort

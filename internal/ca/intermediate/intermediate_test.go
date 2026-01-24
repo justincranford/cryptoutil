@@ -12,7 +12,7 @@ import (
 	cryptoutilCABootstrap "cryptoutil/internal/ca/bootstrap"
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -225,7 +225,7 @@ func TestProvisioner_Provision_WithPersistence(t *testing.T) {
 	keyData, err := os.ReadFile(keyPath)
 	require.NoError(t, err)
 	require.NotEmpty(t, keyData)
-	require.Contains(t, string(keyData), "BEGIN "+cryptoutilMagic.StringPEMTypePKCS8PrivateKey) // pragma: allowlist secret
+	require.Contains(t, string(keyData), "BEGIN "+cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey) // pragma: allowlist secret
 }
 
 func TestProvisioner_Provision_InvalidConfig(t *testing.T) {

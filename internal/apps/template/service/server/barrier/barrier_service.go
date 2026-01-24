@@ -10,15 +10,15 @@ import (
 	"sync"
 
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Service provides multi-layer encryption using unseal → root → intermediate → content key hierarchy.
 // This version uses Repository interface to work with any database (KMS OrmRepository, gorm.DB, etc.)
 type Service struct {
-	telemetryService        *cryptoutilTelemetry.TelemetryService
-	jwkGenService           *cryptoutilJose.JWKGenService
+	telemetryService        *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
 	repository              Repository
 	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *RootKeysService
@@ -34,8 +34,8 @@ type Service struct {
 // - GormRepository (wraps gorm.DB for cipher-im and future services).
 func NewService(
 	ctx context.Context,
-	telemetryService *cryptoutilTelemetry.TelemetryService,
-	jwkGenService *cryptoutilJose.JWKGenService,
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService,
+	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
 	repository Repository,
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
 ) (*Service, error) {

@@ -8,11 +8,11 @@ import (
 	"context"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // RequireNewForTest creates a JWKGenService for testing with panic on error.
-func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) *JWKGenService {
+func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService) *JWKGenService {
 	jwkGenService, err := NewJWKGenService(ctx, telemetryService, false)
 	cryptoutilSharedApperr.RequireNoError(err, "failed to initialize jwkGenService")
 

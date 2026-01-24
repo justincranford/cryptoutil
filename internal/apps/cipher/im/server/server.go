@@ -11,16 +11,16 @@ import (
 
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/cipher/im/repository"
-	"cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
+	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // CipherIMServer represents the cipher-im service application.
@@ -29,23 +29,23 @@ type CipherIMServer struct {
 	db  *gorm.DB
 
 	// Services.
-	telemetryService      *cryptoutilTelemetry.TelemetryService
-	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.Service
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService          cryptoutilTemplateService.RealmService
-	registrationService   *cryptoutilTemplateBusinessLogic.TenantRegistrationService
+	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
+	registrationService   *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
 
 	// Repositories.
-	userRepo                *repository.UserRepository
-	messageRepo             *repository.MessageRepository
-	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository
+	userRepo                *cryptoutilAppsCipherImRepository.UserRepository
+	messageRepo             *cryptoutilAppsCipherImRepository.MessageRepository
+	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository
 	realmRepo               cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository // Uses service-template repository.
 }
 
 // NewFromConfig creates a new cipher-im server from CipherImServerSettings only.
 // Uses service-template builder for infrastructure initialization.
-func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*CipherIMServer, error) {
+func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsCipherImServerConfig.CipherImServerSettings) (*CipherIMServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
@@ -53,20 +53,20 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	}
 
 	// Create server builder with template config.
-	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
 	// Register cipher-im specific migrations.
-	builder.WithDomainMigrations(repository.MigrationsFS, "migrations")
+	builder.WithDomainMigrations(cryptoutilAppsCipherImRepository.MigrationsFS, "migrations")
 
 	// Register cipher-im specific public routes.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		res *cryptoutilTemplateBuilder.ServiceResources,
+		res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 	) error {
 		// Create cipher-im specific repositories.
-		userRepo := repository.NewUserRepository(res.DB)
-		messageRepo := repository.NewMessageRepository(res.DB)
-		messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
+		userRepo := cryptoutilAppsCipherImRepository.NewUserRepository(res.DB)
+		messageRepo := cryptoutilAppsCipherImRepository.NewMessageRepository(res.DB)
+		messageRecipientJWKRepo := cryptoutilAppsCipherImRepository.NewMessageRecipientJWKRepository(res.DB, res.BarrierService)
 
 		// Create public server with cipher-im handlers.
 		publicServer, err := NewPublicServer(
@@ -99,9 +99,9 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 	}
 
 	// Create cipher-im specific repositories for server struct.
-	userRepo := repository.NewUserRepository(resources.DB)
-	messageRepo := repository.NewMessageRepository(resources.DB)
-	messageRecipientJWKRepo := repository.NewMessageRecipientJWKRepository(resources.DB, resources.BarrierService)
+	userRepo := cryptoutilAppsCipherImRepository.NewUserRepository(resources.DB)
+	messageRepo := cryptoutilAppsCipherImRepository.NewMessageRepository(resources.DB)
+	messageRecipientJWKRepo := cryptoutilAppsCipherImRepository.NewMessageRecipientJWKRepository(resources.DB, resources.BarrierService)
 
 	// Create cipher-im server wrapper.
 	server := &CipherIMServer{
@@ -152,12 +152,12 @@ func (s *CipherIMServer) App() *cryptoutilAppsTemplateServiceServer.Application 
 }
 
 // JWKGen returns the JWK generation service (for tests).
-func (s *CipherIMServer) JWKGen() *cryptoutilJose.JWKGenService {
+func (s *CipherIMServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return s.jwkGenService
 }
 
 // Telemetry returns the telemetry service (for tests).
-func (s *CipherIMServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (s *CipherIMServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
@@ -201,37 +201,37 @@ func (s *CipherIMServer) AdminServerActualPort() int {
 }
 
 // SessionManager returns the session manager service (for tests).
-func (s *CipherIMServer) SessionManager() *cryptoutilTemplateBusinessLogic.SessionManagerService {
+func (s *CipherIMServer) SessionManager() *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService {
 	return s.sessionManagerService
 }
 
 // RealmService returns the realm service (for tests).
-func (s *CipherIMServer) RealmService() cryptoutilTemplateService.RealmService {
+func (s *CipherIMServer) RealmService() cryptoutilAppsTemplateServiceServerService.RealmService {
 	return s.realmService
 }
 
 // RegistrationService returns the tenant registration service (for tests).
-func (s *CipherIMServer) RegistrationService() *cryptoutilTemplateBusinessLogic.TenantRegistrationService {
+func (s *CipherIMServer) RegistrationService() *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService {
 	return s.registrationService
 }
 
 // BarrierService returns the barrier service (for tests).
-func (s *CipherIMServer) BarrierService() *cryptoutilTemplateBarrier.Service {
+func (s *CipherIMServer) BarrierService() *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	return s.barrierService
 }
 
 // UserRepo returns the user repository (for tests).
-func (s *CipherIMServer) UserRepo() *repository.UserRepository {
+func (s *CipherIMServer) UserRepo() *cryptoutilAppsCipherImRepository.UserRepository {
 	return s.userRepo
 }
 
 // MessageRepo returns the message repository (for tests).
-func (s *CipherIMServer) MessageRepo() *repository.MessageRepository {
+func (s *CipherIMServer) MessageRepo() *cryptoutilAppsCipherImRepository.MessageRepository {
 	return s.messageRepo
 }
 
 // MessageRecipientJWKRepo returns the message recipient JWK repository (for tests).
-func (s *CipherIMServer) MessageRecipientJWKRepo() *repository.MessageRecipientJWKRepository {
+func (s *CipherIMServer) MessageRecipientJWKRepo() *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository {
 	return s.messageRecipientJWKRepo
 }
 

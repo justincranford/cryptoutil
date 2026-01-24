@@ -6,9 +6,9 @@ package server
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -19,15 +19,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for CA service.
 type AdminServer struct {
-	settings *cryptoutilConfig.ServiceTemplateServerSettings
+	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	app      *fiber.App
 	listener net.Listener
 	mu       sync.RWMutex
@@ -38,7 +38,7 @@ type AdminServer struct {
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
 func NewAdminHTTPServer(
 	ctx context.Context,
-	settings *cryptoutilConfig.ServiceTemplateServerSettings,
+	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
 ) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -178,7 +178,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	// Bind to localhost only (127.0.0.1 explicit, not localhost due to IPv6 issues).
 	const defaultAdminPort = 9090
 
-	addr := fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, defaultAdminPort)
+	addr := fmt.Sprintf("%s:%d", cryptoutilSharedMagic.IPv4Loopback, defaultAdminPort)
 
 	// Create listener.
 	var lc net.ListenConfig
@@ -264,7 +264,7 @@ func (s *AdminServer) AdminBaseURL() string {
 // generateTLSConfig creates a self-signed certificate for admin server.
 func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
 	// Generate private key.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate private key: %w", err)
 	}
@@ -278,7 +278,7 @@ func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
 
 	validityDuration := validityDays * hoursPerDay * time.Hour
 
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBits))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBits))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -294,11 +294,11 @@ func (s *AdminServer) generateTLSConfig() (*tls.Config, error) {
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		IPAddresses:           []net.IP{net.ParseIP(cryptoutilMagic.IPv4Loopback)},
+		IPAddresses:           []net.IP{net.ParseIP(cryptoutilSharedMagic.IPv4Loopback)},
 	}
 
 	// Self-sign certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate: %w", err)
 	}

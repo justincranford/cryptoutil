@@ -7,7 +7,7 @@ package client
 import (
 	"context"
 	"crypto/x509"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -16,10 +16,10 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("application_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("application_test")
 	testServerPublicURL  string
 	testServerPrivateURL string
 	testRootCAsPool      *x509.CertPool
@@ -57,7 +57,7 @@ func TestMain(m *testing.M) {
 
 	// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
 	testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
-	WaitUntilReady(&testServerPrivateURL, cryptoutilMagic.TimeoutTestServerReady, cryptoutilMagic.TimeoutTestServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+	WaitUntilReady(&testServerPrivateURL, cryptoutilSharedMagic.TimeoutTestServerReady, cryptoutilSharedMagic.TimeoutTestServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 	os.Exit(m.Run())
 }
@@ -244,11 +244,11 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			// Base algorithms (<1.5s): TestProbAlways (100% execution)
 			switch testCase.algorithm {
 			case "A128CBC-HS256/RSA1_5", "A128CBC-HS256/RSA-OAEP", "A128CBC-HS256/dir", "A128GCM/A128KW", "A128CBC-HS256/ECDH-ES", "A128CBC-HS256/ECDH-ES+A128KW", "A128CBC-HS256/RSA-OAEP-256":
-				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilMagic.TestProbTenth) // 10% execution for >3.0s tests
+				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilSharedMagic.TestProbTenth) // 10% execution for >3.0s tests
 			case "A128CBC-HS256/A128GCMKW", "A128GCM/ECDH-ES", "A128CBC-HS256/A128KW", "A128GCM/ECDH-ES+A128KW", "A128GCM/RSA-OAEP", "A128GCM/RSA1_5", "A128GCM/A128GCMKW", "A128GCM/RSA-OAEP-256":
-				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilMagic.TestProbQuarter) // 25% execution for 1.5-3.0s tests
+				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilSharedMagic.TestProbQuarter) // 25% execution for 1.5-3.0s tests
 			default:
-				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilMagic.TestProbAlways) // 100% execution for <1.5s tests (base algorithms)
+				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilSharedMagic.TestProbAlways) // 100% execution for <1.5s tests (base algorithms)
 			}
 
 			// Generate unique names per subtest to avoid UNIQUE constraint violations in concurrent tests
@@ -268,7 +268,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			}
 
 			elasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(testCase.algorithm)
-			isAsymmetric, err := cryptoutilJose.IsAsymmetric(&elasticKeyAlgorithm)
+			isAsymmetric, err := cryptoutilSharedCryptoJose.IsAsymmetric(&elasticKeyAlgorithm)
 			require.NoError(t, err)
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
@@ -328,11 +328,11 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 					require.NotNil(t, dataKeyJWK)
 					logObjectAsJSON(t, dataKeyJWK)
 
-					kidUUID, err := cryptoutilJose.ExtractKidUUID(dataKeyJWK)
+					kidUUID, err := cryptoutilSharedCryptoJose.ExtractKidUUID(dataKeyJWK)
 					require.NoError(t, err)
 					require.NotNil(t, kidUUID)
 
-					kty, err := cryptoutilJose.ExtractKty(dataKeyJWK)
+					kty, err := cryptoutilSharedCryptoJose.ExtractKty(dataKeyJWK)
 					require.NoError(t, err)
 					require.NotNil(t, kty)
 				})
@@ -370,13 +370,13 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				return
 			}
 
-			oamElasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(&testCase.algorithm)
+			oamElasticKeyAlgorithm, err := cryptoutilSharedCryptoJose.ToElasticKeyAlgorithm(&testCase.algorithm)
 			require.NoError(t, err)
 			require.NotNil(t, oamElasticKeyAlgorithm)
 
 			elasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(testCase.algorithm)
 
-			isAsymmetric, err := cryptoutilJose.IsAsymmetric(&elasticKeyAlgorithm)
+			isAsymmetric, err := cryptoutilSharedCryptoJose.IsAsymmetric(&elasticKeyAlgorithm)
 			require.NoError(t, err)
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
@@ -429,7 +429,7 @@ func validateKeyResponsePublicKey(t *testing.T, key *cryptoutilOpenapiModel.Mate
 		jwk, err := joseJwk.ParseKey([]byte(*key.ClearPublic))
 		require.NoError(t, err)
 
-		isPublic, err := cryptoutilJose.IsPublicJWK(jwk)
+		isPublic, err := cryptoutilSharedCryptoJose.IsPublicJWK(jwk)
 		require.NoError(t, err)
 		require.True(t, isPublic, "parsed JWK must be a public key")
 

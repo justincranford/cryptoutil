@@ -6,7 +6,7 @@ package businesslogic
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"testing"
 	"time"
 
@@ -15,12 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilJOSE "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -53,7 +53,7 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	require.NoError(t, publicKeyErr)
 
 	// Verify JWS signature
-	claimsBytes, verifyErr := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, verifyErr := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
 	require.NoError(t, verifyErr)
 
 	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
@@ -80,7 +80,7 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_JWS_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -102,7 +102,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_JWS_InvalidSignature(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	// Create invalid JWT (malformed token)
@@ -114,7 +114,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_InvalidSignature(t *testing.T
 }
 
 func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -150,7 +150,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
 	}
 
 	claimsBytes, _ := json.Marshal(claims)
-	_, jwsBytes, signErr := cryptoutilJOSE.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+	_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
 	require.NoError(t, signErr)
 
 	// Validate should fail due to expiration
@@ -161,7 +161,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmJWS, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -189,7 +189,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 	publicJWK, publicKeyErr := privateJWK.PublicKey()
 	require.NoError(t, publicKeyErr)
 
-	claimsBytes, verifyErr := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, verifyErr := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
 	require.NoError(t, verifyErr)
 
 	var claims map[string]any
@@ -215,7 +215,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 }
 
 func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWS)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmJWS)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -243,7 +243,7 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 	publicJWK, publicKeyErr := privateJWK.PublicKey()
 	require.NoError(t, publicKeyErr)
 
-	claimsBytes, verifyErr := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, verifyErr := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
 	require.NoError(t, verifyErr)
 
 	var claims map[string]any
@@ -257,7 +257,7 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateServiceSession_JWS_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmJWS)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmJWS)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()

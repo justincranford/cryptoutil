@@ -9,13 +9,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	cryptoutilIDPServer "cryptoutil/internal/apps/identity/idp/server"
+	cryptoutilAppsIdentityIdpServer "cryptoutil/internal/apps/identity/idp/server"
 	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity/idp/server/config"
 )
 
@@ -84,7 +84,7 @@ func startService(parameters []string) {
 	ctx := context.Background()
 
 	// Create IDP server using template-based implementation.
-	server, err := cryptoutilIDPServer.NewFromConfig(ctx, settings)
+	server, err := cryptoutilAppsIdentityIdpServer.NewFromConfig(ctx, settings)
 	if err != nil {
 		log.Fatalf("Failed to create IDP server: %v", err)
 	}

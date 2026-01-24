@@ -12,18 +12,18 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 )
 
 // TestInMemoryAuthorizationRequestStore_StoreAndGet validates basic store and retrieval.
 func TestInMemoryAuthorizationRequestStore_StoreAndGet(t *testing.T) {
 	t.Parallel()
 
-	store := authz.NewInMemoryAuthorizationRequestStore()
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
 	ctx := context.Background()
 
 	requestID := googleUuid.New()
-	request := &authz.AuthorizationRequest{
+	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
@@ -47,12 +47,12 @@ func TestInMemoryAuthorizationRequestStore_StoreAndGet(t *testing.T) {
 func TestInMemoryAuthorizationRequestStore_GetByCode(t *testing.T) {
 	t.Parallel()
 
-	store := authz.NewInMemoryAuthorizationRequestStore()
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
 	ctx := context.Background()
 
 	requestID := googleUuid.New()
 	code := "auth-code-12345"
-	request := &authz.AuthorizationRequest{
+	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
@@ -75,11 +75,11 @@ func TestInMemoryAuthorizationRequestStore_GetByCode(t *testing.T) {
 func TestInMemoryAuthorizationRequestStore_Update(t *testing.T) {
 	t.Parallel()
 
-	store := authz.NewInMemoryAuthorizationRequestStore()
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
 	ctx := context.Background()
 
 	requestID := googleUuid.New()
-	request := &authz.AuthorizationRequest{
+	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
@@ -105,12 +105,12 @@ func TestInMemoryAuthorizationRequestStore_Update(t *testing.T) {
 func TestInMemoryAuthorizationRequestStore_Delete(t *testing.T) {
 	t.Parallel()
 
-	store := authz.NewInMemoryAuthorizationRequestStore()
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
 	ctx := context.Background()
 
 	requestID := googleUuid.New()
 	code := "delete-test-code"
-	request := &authz.AuthorizationRequest{
+	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
@@ -137,11 +137,11 @@ func TestInMemoryAuthorizationRequestStore_Delete(t *testing.T) {
 func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 	t.Parallel()
 
-	store := authz.NewInMemoryAuthorizationRequestStore()
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
 	ctx := context.Background()
 
 	requestID := googleUuid.New()
-	request := &authz.AuthorizationRequest{
+	request := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    requestID,
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
@@ -162,7 +162,7 @@ func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 func TestInMemoryAuthorizationRequestStore_NotFound(t *testing.T) {
 	t.Parallel()
 
-	store := authz.NewInMemoryAuthorizationRequestStore()
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
 	ctx := context.Background()
 
 	nonExistentID := googleUuid.New()
@@ -180,10 +180,10 @@ func TestInMemoryAuthorizationRequestStore_NotFound(t *testing.T) {
 func TestInMemoryAuthorizationRequestStore_UpdateNonExistent(t *testing.T) {
 	t.Parallel()
 
-	store := authz.NewInMemoryAuthorizationRequestStore()
+	store := cryptoutilIdentityAuthz.NewInMemoryAuthorizationRequestStore()
 	ctx := context.Background()
 
-	nonExistentRequest := &authz.AuthorizationRequest{
+	nonExistentRequest := &cryptoutilIdentityAuthz.AuthorizationRequest{
 		RequestID:    googleUuid.New(),
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",

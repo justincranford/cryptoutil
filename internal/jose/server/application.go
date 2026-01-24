@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Application represents the unified JOSE server application (public + admin).
 type Application struct {
-	settings     *cryptoutilConfig.ServiceTemplateServerSettings
+	settings     *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	publicServer *Server
 	adminServer  *AdminServer
 	mu           sync.RWMutex
@@ -26,7 +26,7 @@ type Application struct {
 // NewApplication creates a new JOSE application with public and admin servers.
 func NewApplication(
 	ctx context.Context,
-	settings *cryptoutilConfig.ServiceTemplateServerSettings,
+	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
 ) (*Application, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -40,10 +40,10 @@ func NewApplication(
 	}
 
 	// Create TLS config for public server.
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+	tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost", "jose-server"},
 		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate public TLS config: %w", err)
@@ -58,10 +58,10 @@ func NewApplication(
 	app.publicServer = publicServer
 
 	// Create TLS config for admin server (localhost-only, 1-year validity).
-	adminTLSCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+	adminTLSCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost"},
 		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate admin TLS config: %w", err)

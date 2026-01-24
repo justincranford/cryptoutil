@@ -12,10 +12,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -26,7 +26,7 @@ func TestClientAuthentication_BasicAuth_InvalidFormat(t *testing.T) {
 	config := createClientAuthTestConfig(t)
 	repoFactory := createClientAuthTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -56,7 +56,7 @@ func TestClientAuthentication_BasicAuth_InvalidClientID(t *testing.T) {
 	config := createClientAuthTestConfig(t)
 	repoFactory := createClientAuthTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -90,7 +90,7 @@ func TestClientAuthentication_PostAuth_MissingClientID(t *testing.T) {
 	config := createClientAuthTestConfig(t)
 	repoFactory := createClientAuthTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -120,7 +120,7 @@ func TestClientAuthentication_PostAuth_InvalidClientID(t *testing.T) {
 	config := createClientAuthTestConfig(t)
 	repoFactory := createClientAuthTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

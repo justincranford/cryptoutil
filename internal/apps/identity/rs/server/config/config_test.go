@@ -5,7 +5,7 @@ package config
 import (
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -13,10 +13,10 @@ import (
 func TestNewTestConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	require.NotNil(t, cfg)
-	require.Equal(t, cryptoutilMagic.OTLPServiceIdentityRS, cfg.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceIdentityRS, cfg.OTLPService)
 	require.True(t, cfg.DevMode)
 	require.Equal(t, defaultRSAuthzServerURL, cfg.AuthzServerURL)
 	require.Equal(t, defaultJWKSEndpoint, cfg.JWKSEndpoint)
@@ -34,7 +34,7 @@ func TestDefaultTestConfig(t *testing.T) {
 	cfg := DefaultTestConfig()
 
 	require.NotNil(t, cfg)
-	require.Equal(t, cryptoutilMagic.IPv4Loopback, cfg.BindPublicAddress)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, cfg.BindPublicAddress)
 	require.Equal(t, uint16(0), cfg.BindPublicPort, "Should use dynamic port allocation")
 	require.True(t, cfg.DevMode, "Should be in dev mode")
 }
@@ -42,7 +42,7 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 18200, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 18200, false)
 
 	require.NotNil(t, cfg)
 	require.Equal(t, uint16(18200), cfg.BindPublicPort)
@@ -52,11 +52,11 @@ func TestNewTestConfig_ProductionMode(t *testing.T) {
 func TestIdentityRSServerSettings_FullConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// Verify embedded template config is populated.
 	require.NotNil(t, cfg.ServiceTemplateServerSettings)
-	require.Equal(t, cryptoutilMagic.IPv4Loopback, cfg.BindPublicAddress)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, cfg.BindPublicAddress)
 
 	// Verify rs-specific settings.
 	require.Equal(t, defaultRSAuthzServerURL, cfg.AuthzServerURL)
@@ -90,7 +90,7 @@ func TestValidateIdentityRSSettings_AuthzURLFormat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, tt.devMode)
+			cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, tt.devMode)
 			cfg.AuthzServerURL = tt.authzURL
 
 			err := validateIdentityRSSettings(cfg)
@@ -121,7 +121,7 @@ func TestValidateIdentityRSSettings_AuthMethods(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 			cfg.AllowBearerToken = tt.allowBearerToken
 			cfg.AllowClientCert = tt.allowClientCert
 
@@ -154,7 +154,7 @@ func TestValidateIdentityRSSettings_CacheTTLs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 			cfg.JWKSCacheTTL = tt.jwksCacheTTL
 			cfg.TokenCacheTTL = tt.tokenCacheTTL
 

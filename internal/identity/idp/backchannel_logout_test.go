@@ -5,7 +5,7 @@
 package idp_test
 
 import (
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"

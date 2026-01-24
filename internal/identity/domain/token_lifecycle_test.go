@@ -5,7 +5,7 @@ package domain_test
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"testing"
 	"time"

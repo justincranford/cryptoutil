@@ -20,7 +20,7 @@ import (
 	cryptoutilCmdCicdLintGotest "cryptoutil/internal/cmd/cicd/lint_gotest"
 	cryptoutilCmdCicdLintText "cryptoutil/internal/cmd/cicd/lint_text"
 	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/cmd/cicd/lint_workflow"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
@@ -49,7 +49,7 @@ func Run(commands []string) error {
 
 	logger.Log("validateCommands completed")
 
-	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(cryptoutilMagic.ListAllFilesStartDirectory)
+	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(cryptoutilSharedMagic.ListAllFilesStartDirectory)
 	if err != nil {
 		return fmt.Errorf("failed to collect files: %w", err)
 	}
@@ -122,7 +122,7 @@ func validateCommands(commands []string) ([]string, error) {
 	if len(commands) == 0 {
 		logger.Log("validateCommands: empty commands")
 
-		return nil, fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
+		return nil, fmt.Errorf("%s", cryptoutilSharedMagic.UsageCICD)
 	}
 
 	// Extract actual commands (skip flags starting with - and their values).
@@ -148,7 +148,7 @@ func validateCommands(commands []string) ([]string, error) {
 	if len(actualCommands) == 0 {
 		logger.Log("validateCommands: no actual commands after flag extraction")
 
-		return nil, fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
+		return nil, fmt.Errorf("%s", cryptoutilSharedMagic.UsageCICD)
 	}
 
 	var errs []error
@@ -156,10 +156,10 @@ func validateCommands(commands []string) ([]string, error) {
 	commandCounts := make(map[string]int)
 
 	for _, command := range actualCommands {
-		if cryptoutilMagic.ValidCommands[command] {
+		if cryptoutilSharedMagic.ValidCommands[command] {
 			commandCounts[command]++
 		} else {
-			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, cryptoutilMagic.UsageCICD))
+			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, cryptoutilSharedMagic.UsageCICD))
 		}
 	}
 

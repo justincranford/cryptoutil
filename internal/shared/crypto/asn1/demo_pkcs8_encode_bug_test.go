@@ -6,9 +6,9 @@ package asn1
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -42,7 +42,7 @@ func TestEncodeDecodeECDH(t *testing.T) {
 
 	for _, curve := range ecdhTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
-			original, err := curve.Curve.GenerateKey(rand.Reader)
+			original, err := curve.Curve.GenerateKey(crand.Reader)
 			require.NoError(t, err)
 
 			require.IsType(t, &ecdh.PrivateKey{}, original)
@@ -58,7 +58,7 @@ func TestEncodeDecodeECDH(t *testing.T) {
 func TestEncodeDecodeECDSA(t *testing.T) {
 	for _, curve := range ecdsaTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
-			original, err := ecdsa.GenerateKey(curve.Curve, rand.Reader)
+			original, err := ecdsa.GenerateKey(curve.Curve, crand.Reader)
 			require.NoError(t, err)
 
 			require.IsType(t, &ecdsa.PrivateKey{}, original)

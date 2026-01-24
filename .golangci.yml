@@ -157,6 +157,7 @@ linters:
             - pkg: github.com/pkg/errors
               desc: "Use Go 1.13+ error wrapping instead"
     importas:
+      no-unaliased: true
       alias:
         # JOSE libraries
         - { pkg: "github.com/lestrrat-go/jwx/v3/jwe", alias: joseJwe }
@@ -174,6 +175,13 @@ linters:
         - { pkg: "cryptoutil/api/client", alias: cryptoutilOpenapiClient }
         - { pkg: "cryptoutil/api/model", alias: cryptoutilOpenapiModel }
         - { pkg: "cryptoutil/api/server", alias: cryptoutilOpenapiServer }
+        - { pkg: "cryptoutil/api/ca/client", alias: cryptoutilApiCaClient }
+        - { pkg: "cryptoutil/api/ca/models", alias: cryptoutilApiCaModels }
+        - { pkg: "cryptoutil/api/ca/server", alias: cryptoutilApiCaServer }
+        - { pkg: "cryptoutil/api/identity/authz", alias: cryptoutilApiIdentityAuthz }
+        - { pkg: "cryptoutil/api/identity/idp", alias: cryptoutilApiIdentityIdp }
+        - { pkg: "cryptoutil/api/identity/rs", alias: cryptoutilApiIdentityRs }
+        - { pkg: "cryptoutil/api/jose/client", alias: cryptoutilApiJoseClient }
         # Cryptoutil cmd
         - pkg: "cryptoutil/internal/cmd"
           alias: cryptoutilCmd
@@ -209,6 +217,42 @@ linters:
           alias: cryptoutilGoUpdateProjectStatusV2
         - pkg: "cryptoutil/internal/cmd/cicd/github_workflow_lint"
           alias: cryptoutilCmdCicdGithubWorkflowLint
+        - pkg: "cryptoutil/internal/cmd/cicd/format_go"
+          alias: cryptoutilCmdCicdFormatGo
+        - pkg: "cryptoutil/internal/cmd/cicd/format_gotest"
+          alias: cryptoutilCmdCicdFormatGotest
+        - pkg: "cryptoutil/internal/cmd/cicd/lint_compose"
+          alias: cryptoutilCmdCicdLintCompose
+        - pkg: "cryptoutil/internal/cmd/cicd/lint_go"
+          alias: cryptoutilCmdCicdLintGo
+        - pkg: "cryptoutil/internal/cmd/cicd/lint_go_mod"
+          alias: cryptoutilCmdCicdLintGoMod
+        - pkg: "cryptoutil/internal/cmd/cicd/lint_gotest"
+          alias: cryptoutilCmdCicdLintGotest
+        - pkg: "cryptoutil/internal/cmd/cicd/lint_text"
+          alias: cryptoutilCmdCicdLintText
+        - pkg: "cryptoutil/internal/cmd/cicd/lint_workflow"
+          alias: cryptoutilCmdCicdLintWorkflow
+        - pkg: "cryptoutil/internal/cmd/cipher"
+          alias: cryptoutilCmdCipher
+        - pkg: "cryptoutil/internal/cmd/demo"
+          alias: cryptoutilCmdDemo
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/authz"
+          alias: cryptoutilCmdCryptoutilAuthz
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/ca"
+          alias: cryptoutilCmdCryptoutilCa
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/identity"
+          alias: cryptoutilCmdCryptoutilIdentity
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/idp"
+          alias: cryptoutilCmdCryptoutilIdp
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/jose"
+          alias: cryptoutilCmdCryptoutilJose
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/rp"
+          alias: cryptoutilCmdCryptoutilRp
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/rs"
+          alias: cryptoutilCmdCryptoutilRs
+        - pkg: "cryptoutil/internal/cmd/cryptoutil/spa"
+          alias: cryptoutilCmdCryptoutilSpa
         # Cryptoutil test
         - pkg: "cryptoutil/internal/test/e2e"
           alias: cryptoutilE2E
@@ -256,6 +300,40 @@ linters:
           alias: cryptoutilSharedUtilNetwork
         - pkg: "cryptoutil/internal/shared/util/random"
           alias: cryptoutilSharedUtilRandom
+        - pkg: "cryptoutil/internal/shared/container"
+          alias: cryptoutilSharedContainer
+        - pkg: "cryptoutil/internal/shared/crypto/asn1"
+          alias: cryptoutilSharedCryptoAsn1
+        - pkg: "cryptoutil/internal/shared/crypto/certificate"
+          alias: cryptoutilSharedCryptoCertificate
+        - pkg: "cryptoutil/internal/shared/crypto/digests"
+          alias: cryptoutilSharedCryptoDigests
+        - pkg: "cryptoutil/internal/shared/crypto/hash"
+          alias: cryptoutilSharedCryptoHash
+        - pkg: "cryptoutil/internal/shared/crypto/jose"
+          alias: cryptoutilSharedCryptoJose
+        - pkg: "cryptoutil/internal/shared/crypto/keygen"
+          alias: cryptoutilSharedCryptoKeygen
+        - pkg: "cryptoutil/internal/shared/crypto/password"
+          alias: cryptoutilSharedCryptoPassword
+        - pkg: "cryptoutil/internal/shared/crypto/pbkdf2"
+          alias: cryptoutilSharedCryptoPbkdf2
+        - pkg: "cryptoutil/internal/shared/crypto/tls"
+          alias: cryptoutilSharedCryptoTls
+        - pkg: "cryptoutil/internal/shared/magic"
+          alias: cryptoutilSharedMagic
+        - pkg: "cryptoutil/internal/shared/pool"
+          alias: cryptoutilSharedPool
+        - pkg: "cryptoutil/internal/shared/pwdgen"
+          alias: cryptoutilSharedPwdgen
+        - pkg: "cryptoutil/internal/shared/telemetry"
+          alias: cryptoutilSharedTelemetry
+        - pkg: "cryptoutil/internal/shared/util/combinations"
+          alias: cryptoutilSharedUtilCombinations
+        - pkg: "cryptoutil/internal/shared/util/datetime"
+          alias: cryptoutilSharedUtilDatetime
+        - pkg: "cryptoutil/internal/shared/util/sysinfo"
+          alias: cryptoutilSharedUtilSysinfo
         # Cryptoutil infra
         - pkg: "cryptoutil/internal/infra/tls"
           alias: cryptoutilTLS
@@ -293,6 +371,16 @@ linters:
           alias: cryptoutilOrmRepository
         - pkg: "cryptoutil/internal/kms/server/repository/sqlrepository"
           alias: cryptoutilSQLRepository
+        - pkg: "cryptoutil/internal/kms/client"
+          alias: cryptoutilKmsClient
+        - pkg: "cryptoutil/internal/kms/cmd"
+          alias: cryptoutilKmsCmd
+        - pkg: "cryptoutil/internal/kms/server/businesslogic"
+          alias: cryptoutilKmsServerBusinesslogic
+        - pkg: "cryptoutil/internal/kms/server/demo"
+          alias: cryptoutilKmsServerDemo
+        - pkg: "cryptoutil/internal/kms/server/handler"
+          alias: cryptoutilKmsServerHandler
         # Cryptoutil template
         - pkg: "cryptoutil/internal/template/server"
           alias: cryptoutilTemplateServer
@@ -346,6 +434,60 @@ linters:
           alias: cryptoutilAppsTemplateServiceServer
         - pkg: "cryptoutil/internal/apps/template/service/server/repository"
           alias: cryptoutilAppsTemplateServiceServerRepository
+        - pkg: "cryptoutil/internal/apps/ca/server"
+          alias: cryptoutilAppsCaServer
+        - pkg: "cryptoutil/internal/apps/cipher/im/client"
+          alias: cryptoutilAppsCipherImClient
+        - pkg: "cryptoutil/internal/apps/cipher/im/testing"
+          alias: cryptoutilAppsCipherImTesting
+        - pkg: "cryptoutil/internal/apps/identity/authz/server"
+          alias: cryptoutilAppsIdentityAuthzServer
+        - pkg: "cryptoutil/internal/apps/identity/idp/server"
+          alias: cryptoutilAppsIdentityIdpServer
+        - pkg: "cryptoutil/internal/apps/identity/rs/server"
+          alias: cryptoutilAppsIdentityRsServer
+        - pkg: "cryptoutil/internal/apps/identity/spa/server"
+          alias: cryptoutilAppsIdentitySpaServer
+        - pkg: "cryptoutil/internal/apps/identity/spa/server/config"
+          alias: cryptoutilAppsIdentitySpaServerConfig
+        - pkg: "cryptoutil/internal/apps/jose/ja/domain"
+          alias: cryptoutilAppsJoseJaDomain
+        - pkg: "cryptoutil/internal/apps/template/service/client"
+          alias: cryptoutilAppsTemplateServiceClient
+        - pkg: "cryptoutil/internal/apps/template/service/config"
+          alias: cryptoutilAppsTemplateServiceConfig
+        - pkg: "cryptoutil/internal/apps/template/service/config/tls_generator"
+          alias: cryptoutilAppsTemplateServiceConfigTlsGenerator
+        - pkg: "cryptoutil/internal/apps/template/service/server/apis"
+          alias: cryptoutilAppsTemplateServiceServerApis
+        - pkg: "cryptoutil/internal/apps/template/service/server/application"
+          alias: cryptoutilAppsTemplateServiceServerApplication
+        - pkg: "cryptoutil/internal/apps/template/service/server/barrier"
+          alias: cryptoutilAppsTemplateServiceServerBarrier
+        - pkg: "cryptoutil/internal/apps/template/service/server/builder"
+          alias: cryptoutilAppsTemplateServiceServerBuilder
+        - pkg: "cryptoutil/internal/apps/template/service/server/businesslogic"
+          alias: cryptoutilAppsTemplateServiceServerBusinesslogic
+        - pkg: "cryptoutil/internal/apps/template/service/server/domain"
+          alias: cryptoutilAppsTemplateServiceServerDomain
+        - pkg: "cryptoutil/internal/apps/template/service/server/listener"
+          alias: cryptoutilAppsTemplateServiceServerListener
+        - pkg: "cryptoutil/internal/apps/template/service/server/middleware"
+          alias: cryptoutilAppsTemplateServiceServerMiddleware
+        - pkg: "cryptoutil/internal/apps/template/service/server/realms"
+          alias: cryptoutilAppsTemplateServiceServerRealms
+        - pkg: "cryptoutil/internal/apps/template/service/server/service"
+          alias: cryptoutilAppsTemplateServiceServerService
+        - pkg: "cryptoutil/internal/apps/template/service/server/testutil"
+          alias: cryptoutilAppsTemplateServiceServerTestutil
+        - pkg: "cryptoutil/internal/apps/template/service/testing/e2e"
+          alias: cryptoutilAppsTemplateServiceTestingE2e
+        - pkg: "cryptoutil/internal/apps/template/service/testing/httpservertests"
+          alias: cryptoutilAppsTemplateServiceTestingHttpservertests
+        - pkg: "cryptoutil/internal/apps/template/service/testutil"
+          alias: cryptoutilAppsTemplateServiceTestutil
+        - pkg: "cryptoutil/internal/apps/template/testing/e2e"
+          alias: cryptoutilAppsTemplateTestingE2e
         # Cryptoutil jose
         - pkg: "cryptoutil/internal/jose/domain"
           alias: cryptoutilJoseDomain
@@ -355,6 +497,10 @@ linters:
           alias: cryptoutilJoseServerMiddleware
         - pkg: "cryptoutil/internal/jose/service"
           alias: cryptoutilJoseService
+        - pkg: "cryptoutil/internal/jose/config"
+          alias: cryptoutilJoseConfig
+        - pkg: "cryptoutil/internal/jose/server"
+          alias: cryptoutilJoseServer
         # Cryptoutil identity
         - pkg: "cryptoutil/internal/identity/apperr"
           alias: cryptoutilIdentityAppErr
@@ -396,6 +542,24 @@ linters:
           alias: cryptoutilIdentityServer
         - pkg: "cryptoutil/internal/identity/cmd/main"
           alias: cryptoutilIdentityCmd
+        - pkg: "cryptoutil/internal/identity/authz/pkce"
+          alias: cryptoutilIdentityAuthzPkce
+        - pkg: "cryptoutil/internal/identity/authz/server"
+          alias: cryptoutilIdentityAuthzServer
+        - pkg: "cryptoutil/internal/identity/email"
+          alias: cryptoutilIdentityEmail
+        - pkg: "cryptoutil/internal/identity/idp/server"
+          alias: cryptoutilIdentityIdpServer
+        - pkg: "cryptoutil/internal/identity/mfa"
+          alias: cryptoutilIdentityMfa
+        - pkg: "cryptoutil/internal/identity/notifications"
+          alias: cryptoutilIdentityNotifications
+        - pkg: "cryptoutil/internal/identity/ratelimit"
+          alias: cryptoutilIdentityRatelimit
+        - pkg: "cryptoutil/internal/identity/rs"
+          alias: cryptoutilIdentityRs
+        - pkg: "cryptoutil/internal/identity/rs/server"
+          alias: cryptoutilIdentityRsServer
         # Crypto packages
         - { pkg: "crypto/aes", alias: aes }
         - { pkg: "crypto/ecdsa", alias: ecdsa }

@@ -9,7 +9,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NewTestConfig creates a ServiceTemplateServerSettings instance for testing without calling Parse().
@@ -29,9 +29,9 @@ func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *ServiceTempl
 	instanceID := googleUuid.New().String()
 
 	// Determine database URL based on dev mode.
-	dbURL := cryptoutilMagic.DefaultDatabaseURL
+	dbURL := cryptoutilSharedMagic.DefaultDatabaseURL
 	if devMode {
-		dbURL = cryptoutilMagic.SQLiteInMemoryDSN // In-memory SQLite for dev/test mode.
+		dbURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // In-memory SQLite for dev/test mode.
 	}
 
 	s := &ServiceTemplateServerSettings{

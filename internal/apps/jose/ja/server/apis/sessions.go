@@ -6,25 +6,25 @@
 package apis
 
 import (
-	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerApis "cryptoutil/internal/apps/template/service/server/apis"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 )
 
 // SessionHandler is an alias to the template's SessionHandler.
-type SessionHandler = cryptoutilTemplateAPIs.SessionHandler
+type SessionHandler = cryptoutilAppsTemplateServiceServerApis.SessionHandler
 
 // NewSessionHandler creates a new SessionHandler instance.
-func NewSessionHandler(sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService) *SessionHandler {
-	return cryptoutilTemplateAPIs.NewSessionHandler(sessionManager)
+func NewSessionHandler(sessionManager *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService) *SessionHandler {
+	return cryptoutilAppsTemplateServiceServerApis.NewSessionHandler(sessionManager)
 }
 
 type (
 	// SessionIssueRequest represents a session issue request.
-	SessionIssueRequest = cryptoutilTemplateAPIs.SessionIssueRequest
+	SessionIssueRequest = cryptoutilAppsTemplateServiceServerApis.SessionIssueRequest
 	// SessionIssueResponse represents a session issue response.
-	SessionIssueResponse = cryptoutilTemplateAPIs.SessionIssueResponse
+	SessionIssueResponse = cryptoutilAppsTemplateServiceServerApis.SessionIssueResponse
 	// SessionValidateRequest represents a session validate request.
-	SessionValidateRequest = cryptoutilTemplateAPIs.SessionValidateRequest
+	SessionValidateRequest = cryptoutilAppsTemplateServiceServerApis.SessionValidateRequest
 	// SessionValidateResponse represents a session validate response.
-	SessionValidateResponse = cryptoutilTemplateAPIs.SessionValidateResponse
+	SessionValidateResponse = cryptoutilAppsTemplateServiceServerApis.SessionValidateResponse
 )

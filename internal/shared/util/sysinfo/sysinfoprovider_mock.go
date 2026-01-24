@@ -5,24 +5,24 @@
 package sysinfo
 
 import (
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
 	// Mock values for testing.
-	mockNumCPU    = cryptoutilMagic.MockCPUCount
-	mockRAMSizeMB = cryptoutilMagic.MockRAMMB
-	mockCPUFamily = cryptoutilMagic.MockCPUFamily
-	mockCPUModel  = cryptoutilMagic.MockCPUModel
-	mockGoArch    = cryptoutilMagic.MockRuntimeGoArch
-	mockGoOS      = cryptoutilMagic.MockRuntimeGoOS
-	mockCPUVendor = cryptoutilMagic.MockCPUVendorID
-	mockCPUName   = cryptoutilMagic.MockCPUModelName
-	mockHostname  = cryptoutilMagic.MockHostname
-	mockHostID    = cryptoutilMagic.MockHostID
-	mockUserID    = cryptoutilMagic.MockUserID
-	mockGroupID   = cryptoutilMagic.MockGroupID
-	mockUsername  = cryptoutilMagic.MockUsername
+	mockNumCPU    = cryptoutilSharedMagic.MockCPUCount
+	mockRAMSizeMB = cryptoutilSharedMagic.MockRAMMB
+	mockCPUFamily = cryptoutilSharedMagic.MockCPUFamily
+	mockCPUModel  = cryptoutilSharedMagic.MockCPUModel
+	mockGoArch    = cryptoutilSharedMagic.MockRuntimeGoArch
+	mockGoOS      = cryptoutilSharedMagic.MockRuntimeGoOS
+	mockCPUVendor = cryptoutilSharedMagic.MockCPUVendorID
+	mockCPUName   = cryptoutilSharedMagic.MockCPUModelName
+	mockHostname  = cryptoutilSharedMagic.MockHostname
+	mockHostID    = cryptoutilSharedMagic.MockHostID
+	mockUserID    = cryptoutilSharedMagic.MockUserID
+	mockGroupID   = cryptoutilSharedMagic.MockGroupID
+	mockUsername  = cryptoutilSharedMagic.MockUsername
 )
 
 var mockSysInfoProvider = &MockSysInfoProvider{}

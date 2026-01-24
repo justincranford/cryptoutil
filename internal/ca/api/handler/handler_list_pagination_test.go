@@ -4,16 +4,16 @@ package handler
 
 import (
 	"context"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
 )
 
@@ -44,7 +44,7 @@ func TestListCertificates_Pagination(t *testing.T) {
 	handler := &Handler{storage: mockStorage}
 
 	app.Get("/certificates", func(c *fiber.Ctx) error {
-		params := cryptoutilCAServer.ListCertificatesParams{}
+		params := cryptoutilApiCaServer.ListCertificatesParams{}
 
 		// Parse page parameter.
 		if pageStr := c.Query("page"); pageStr != "" {
@@ -132,7 +132,7 @@ func TestListCertificates_Filtering(t *testing.T) {
 	handler := &Handler{storage: mockStorage}
 
 	app.Get("/certificates", func(c *fiber.Ctx) error {
-		params := cryptoutilCAServer.ListCertificatesParams{}
+		params := cryptoutilApiCaServer.ListCertificatesParams{}
 
 		// Parse profile parameter.
 		if profileStr := c.Query("profile"); profileStr != "" {
@@ -141,7 +141,7 @@ func TestListCertificates_Filtering(t *testing.T) {
 
 		// Parse status parameter.
 		if statusStr := c.Query("status"); statusStr != "" {
-			status := cryptoutilCAServer.CertificateStatus(statusStr)
+			status := cryptoutilApiCaServer.CertificateStatus(statusStr)
 			params.Status = &status
 		}
 

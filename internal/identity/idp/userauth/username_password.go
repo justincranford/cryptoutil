@@ -12,8 +12,8 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -166,7 +166,7 @@ func (u *UsernamePasswordAuthenticator) VerifyAuth(ctx context.Context, challeng
 	}
 
 	// Verify password.
-	match, _, err := cryptoutilPassword.VerifyPassword(password, string(passwordHash))
+	match, _, err := cryptoutilSharedCryptoPassword.VerifyPassword(password, string(passwordHash))
 	if err != nil || !match {
 		// Note: Failed attempt tracking would be implemented here if User model had those fields.
 		// For now, just return error.
@@ -201,7 +201,7 @@ func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, e
 		return nil, fmt.Errorf("password too long (maximum %d characters)", cryptoutilIdentityMagic.MaxPasswordLength)
 	}
 
-	hash, err := cryptoutilHash.HashLowEntropyNonDeterministic(password)
+	hash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -237,7 +237,7 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 	}
 
 	// Verify old password (supports legacy and PBKDF2 hashes).
-	match, _, err := cryptoutilPassword.VerifyPassword(oldPassword, string(currentHash))
+	match, _, err := cryptoutilSharedCryptoPassword.VerifyPassword(oldPassword, string(currentHash))
 	if err != nil {
 		return fmt.Errorf("password verification failed: %w", err)
 	}
@@ -247,7 +247,7 @@ func (u *UsernamePasswordAuthenticator) UpdatePassword(ctx context.Context, user
 	}
 
 	// Hash new password (always uses PBKDF2).
-	newHashStr, err := cryptoutilPassword.HashPassword(newPassword)
+	newHashStr, err := cryptoutilSharedCryptoPassword.HashPassword(newPassword)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}

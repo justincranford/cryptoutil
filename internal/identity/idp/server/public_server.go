@@ -6,9 +6,9 @@ package server
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -20,7 +20,7 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // PublicServer represents the public IdP HTTPS server.
@@ -157,13 +157,13 @@ func (s *PublicServer) PublicBaseURL() string {
 // TODO: Replace with CA-signed certificates or Docker secrets for production.
 func (s *PublicServer) generateTLSConfig() (*tls.Config, error) {
 	// Generate ECDSA P-256 private key.
-	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate private key: %w", err)
 	}
 
 	// Create self-signed certificate template.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.TLSSelfSignedCertSerialNumberBits))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -184,7 +184,7 @@ func (s *PublicServer) generateTLSConfig() (*tls.Config, error) {
 	}
 
 	// Create self-signed certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
+	certDER, err := x509.CreateCertificate(crand.Reader, &template, &template, &priv.PublicKey, priv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate: %w", err)
 	}

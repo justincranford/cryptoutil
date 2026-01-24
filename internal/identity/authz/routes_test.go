@@ -6,14 +6,14 @@ package authz_test
 
 import (
 	"context"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -30,7 +30,7 @@ func TestRegisterRoutes_HealthEndpoint(t *testing.T) {
 	repoFactory := createRoutesTestRepoFactory(t)
 	tokenSvc := createRoutesTestTokenService(config, repoFactory)
 
-	service := authz.NewService(config, repoFactory, tokenSvc)
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	service.RegisterRoutes(app)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -53,7 +53,7 @@ func TestRegisterRoutes_OAuth2Endpoints(t *testing.T) {
 	repoFactory := createRoutesTestRepoFactory(t)
 	tokenSvc := createRoutesTestTokenService(config, repoFactory)
 
-	service := authz.NewService(config, repoFactory, tokenSvc)
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	service.RegisterRoutes(app)
 
 	tests := []struct {
@@ -120,7 +120,7 @@ func TestRegisterRoutes_SwaggerEndpoint(t *testing.T) {
 	repoFactory := createRoutesTestRepoFactory(t)
 	tokenSvc := createRoutesTestTokenService(config, repoFactory)
 
-	service := authz.NewService(config, repoFactory, tokenSvc)
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	service.RegisterRoutes(app)
 
 	req := httptest.NewRequest(http.MethodGet, "/ui/swagger/doc.json", nil)

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // HashHighEntropyDeterministic hashes a high-entropy secret (e.g., API key, token) using HKDF-SHA256 with a fixed info parameter.
@@ -29,7 +29,7 @@ import (
 // Format: "hkdf-sha256-fixed-high$base64(dk)"
 // Returns: HKDF-based hash string in the format above, or error if secret is empty.
 func HashHighEntropyDeterministic(secret string) (string, error) {
-	return HashSecretHKDFFixedHigh(secret, cryptoutilMagic.HKDFFixedInfoHighEntropy)
+	return HashSecretHKDFFixedHigh(secret, cryptoutilSharedMagic.HKDFFixedInfoHighEntropy)
 }
 
 // HashSecretHKDFFixedHigh performs HKDF-SHA256 key derivation with a fixed info parameter (deterministic, high-entropy variant).
@@ -49,14 +49,14 @@ func HashSecretHKDFFixedHigh(secret string, fixedInfo []byte) (string, error) {
 		return "", errors.New("secret cannot be empty")
 	}
 
-	algorithm := cryptoutilMagic.HKDFFixedHighHashName
+	algorithm := cryptoutilSharedMagic.HKDFFixedHighHashName
 
-	const dkLength = cryptoutilMagic.PBKDF2DerivedKeyLength // 32 bytes
+	const dkLength = cryptoutilSharedMagic.PBKDF2DerivedKeyLength // 32 bytes
 
 	// Use HKDF with no salt (nil), fixed info parameter for deterministic output.
 	secretBytes := []byte(secret)
 
-	dk, err := cryptoutilDigests.HKDF(cryptoutilMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
+	dk, err := cryptoutilSharedCryptoDigests.HKDF(cryptoutilSharedMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF key derivation failed: %w", err)
 	}
@@ -64,7 +64,7 @@ func HashSecretHKDFFixedHigh(secret string, fixedInfo []byte) (string, error) {
 	// Format: hkdf-sha256-fixed-high$base64(dk)
 	dkBase64 := base64.StdEncoding.EncodeToString(dk)
 
-	return fmt.Sprintf("%s%s%s", algorithm, cryptoutilMagic.HKDFDelimiter, dkBase64), nil
+	return fmt.Sprintf("%s%s%s", algorithm, cryptoutilSharedMagic.HKDFDelimiter, dkBase64), nil
 }
 
 // VerifySecretHKDFFixedHigh verifies a secret against a stored HKDF-fixed-high hash.
@@ -105,7 +105,7 @@ func VerifySecretHKDFFixedHigh(storedHash, providedSecret string) (bool, error) 
 	}
 
 	// Re-derive the key using the same fixed info parameter.
-	providedHash, err := HashSecretHKDFFixedHigh(providedSecret, cryptoutilMagic.HKDFFixedInfoHighEntropy)
+	providedHash, err := HashSecretHKDFFixedHigh(providedSecret, cryptoutilSharedMagic.HKDFFixedInfoHighEntropy)
 	if err != nil {
 		return false, fmt.Errorf("failed to hash provided secret: %w", err)
 	}
@@ -131,7 +131,7 @@ func VerifySecretHKDFFixedHigh(storedHash, providedSecret string) (bool, error) 
 func splitHKDFFixedHighParts(hash string) []string {
 	parts := make([]string, 0, 2)
 
-	delimiter := cryptoutilMagic.HKDFDelimiter[0] // Use magic constant delimiter.
+	delimiter := cryptoutilSharedMagic.HKDFDelimiter[0] // Use magic constant delimiter.
 
 	start := 0
 

@@ -8,12 +8,12 @@ package e2e
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"os/exec"
 	"time"
 
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 )
 
 // ComposeManager orchestrates docker compose lifecycle for E2E tests.
@@ -26,7 +26,7 @@ type ComposeManager struct {
 func NewComposeManager(composeFile string) *ComposeManager {
 	return &ComposeManager{
 		ComposeFile: composeFile,
-		HTTPClient:  cryptoutilTLS.NewClientForTest(),
+		HTTPClient:  cryptoutilSharedCryptoTls.NewClientForTest(),
 	}
 }
 

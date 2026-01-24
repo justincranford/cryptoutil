@@ -9,15 +9,15 @@ import (
 
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/identity/idp/server/config"
+	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity/idp/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // IDPServer represents the identity-idp service application.
@@ -27,14 +27,14 @@ type IDPServer struct {
 	db  *gorm.DB
 
 	// IDP configuration.
-	cfg *config.IdentityIDPServerSettings
+	cfg *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings
 
 	// Template services.
-	telemetryService      *cryptoutilTelemetry.TelemetryService
-	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.Service
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService          cryptoutilTemplateService.RealmService
+	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
 
 	// Template repositories.
 	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
@@ -46,7 +46,7 @@ type IDPServer struct {
 
 // NewFromConfig creates a new identity-idp server from IdentityIDPServerSettings.
 // Uses service-template builder for infrastructure initialization.
-func NewFromConfig(ctx context.Context, cfg *config.IdentityIDPServerSettings) (*IDPServer, error) {
+func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings) (*IDPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
@@ -55,12 +55,12 @@ func NewFromConfig(ctx context.Context, cfg *config.IdentityIDPServerSettings) (
 
 	// Create server builder with template config.
 	// Note: IDP uses template database for sessions/barrier but has no domain-specific migrations yet.
-	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
 	// Register identity-idp specific public routes.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		_ *cryptoutilTemplateBuilder.ServiceResources,
+		_ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 	) error {
 		// Create public server with idp handlers.
 		publicServer := NewPublicServer(base, cfg)
@@ -126,7 +126,7 @@ func (s *IDPServer) Shutdown(ctx context.Context) error {
 }
 
 // Config returns the server configuration (for tests).
-func (s *IDPServer) Config() *config.IdentityIDPServerSettings {
+func (s *IDPServer) Config() *cryptoutilAppsIdentityIdpServerConfig.IdentityIDPServerSettings {
 	return s.cfg
 }
 
@@ -141,17 +141,17 @@ func (s *IDPServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 }
 
 // JWKGen returns the JWK generation service (for tests).
-func (s *IDPServer) JWKGen() *cryptoutilJose.JWKGenService {
+func (s *IDPServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return s.jwkGenService
 }
 
 // Telemetry returns the telemetry service (for tests).
-func (s *IDPServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (s *IDPServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *IDPServer) Barrier() *cryptoutilTemplateBarrier.Service {
+func (s *IDPServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	return s.barrierService
 }
 

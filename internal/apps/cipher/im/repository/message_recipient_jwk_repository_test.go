@@ -11,8 +11,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
 func TestMessageRecipientJWKRepository_Create(t *testing.T) {
@@ -22,12 +22,12 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		jwk     *domain.MessageRecipientJWK
+		jwk     *cryptoutilAppsCipherImDomain.MessageRecipientJWK
 		wantErr bool
 	}{
 		{
 			name: "valid JWK creation",
-			jwk: &domain.MessageRecipientJWK{
+			jwk: &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 				ID:           *testJWKGenService.GenerateUUIDv7(),
 				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 				MessageID:    *testJWKGenService.GenerateUUIDv7(),
@@ -37,7 +37,7 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 		},
 		{
 			name: "empty JWK field",
-			jwk: &domain.MessageRecipientJWK{
+			jwk: &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 				ID:           *testJWKGenService.GenerateUUIDv7(),
 				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 				MessageID:    *testJWKGenService.GenerateUUIDv7(),
@@ -47,7 +47,7 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 		},
 		{
 			name: "large JWK payload",
-			jwk: &domain.MessageRecipientJWK{
+			jwk: &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 				ID:           *testJWKGenService.GenerateUUIDv7(),
 				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 				MessageID:    *testJWKGenService.GenerateUUIDv7(),
@@ -62,7 +62,7 @@ func TestMessageRecipientJWKRepository_Create(t *testing.T) {
 			t.Parallel()
 
 			// Create unique copy of JWK for this test to avoid shared mutations
-			testJWK := &domain.MessageRecipientJWK{
+			testJWK := &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 				ID:           tt.jwk.ID,
 				RecipientID:  tt.jwk.RecipientID,
 				MessageID:    tt.jwk.MessageID,
@@ -102,14 +102,14 @@ func TestMessageRecipientJWKRepository_FindByRecipientAndMessage(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		setupJWK    *domain.MessageRecipientJWK // If non-nil, create this before test
+		setupJWK    *cryptoutilAppsCipherImDomain.MessageRecipientJWK // If non-nil, create this before test
 		recipientID googleUuid.UUID
 		messageID   googleUuid.UUID
 		wantErr     bool
 	}{
 		{
 			name: "found existing JWK",
-			setupJWK: &domain.MessageRecipientJWK{
+			setupJWK: &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 				ID:           *testJWKGenService.GenerateUUIDv7(),
 				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 				MessageID:    *testJWKGenService.GenerateUUIDv7(),
@@ -199,11 +199,11 @@ func TestMessageRecipientJWKRepository_FindByMessageID(t *testing.T) {
 			t.Parallel()
 
 			// Create test JWKs for this specific test case
-			var createdJWKs []*domain.MessageRecipientJWK
+			var createdJWKs []*cryptoutilAppsCipherImDomain.MessageRecipientJWK
 
 			if tt.wantCount > 0 {
 				for i := 0; i < tt.wantCount; i++ {
-					jwk := &domain.MessageRecipientJWK{
+					jwk := &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 						ID:           *testJWKGenService.GenerateUUIDv7(),
 						RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 						MessageID:    tt.messageID,
@@ -254,7 +254,7 @@ func TestMessageRecipientJWKRepository_Delete(t *testing.T) {
 	repo := NewMessageRecipientJWKRepository(testDB, testBarrierService)
 
 	// Create test JWK
-	jwk := &domain.MessageRecipientJWK{
+	jwk := &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 		ID:           *testJWKGenService.GenerateUUIDv7(),
 		RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 		MessageID:    *testJWKGenService.GenerateUUIDv7(),
@@ -311,7 +311,7 @@ func TestMessageRecipientJWKRepository_DeleteByMessageID(t *testing.T) {
 	messageID := *testJWKGenService.GenerateUUIDv7()
 
 	// Create multiple JWKs for same message
-	jwks := []*domain.MessageRecipientJWK{
+	jwks := []*cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 		{
 			ID:           *testJWKGenService.GenerateUUIDv7(),
 			RecipientID:  *testJWKGenService.GenerateUUIDv7(),
@@ -407,7 +407,7 @@ func TestMessageRecipientJWKRepository_BarrierEncryption_RoundTrip(t *testing.T)
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			jwk := &domain.MessageRecipientJWK{
+			jwk := &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 				ID:           *testJWKGenService.GenerateUUIDv7(),
 				RecipientID:  *testJWKGenService.GenerateUUIDv7(),
 				MessageID:    *testJWKGenService.GenerateUUIDv7(),
@@ -434,7 +434,7 @@ func generateTestJWK(t *testing.T) string {
 	t.Helper()
 
 	// Generate a symmetric key JWK for barrier encryption testing
-	_, _, _, jwkJSON, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	_, _, _, jwkJSON, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 	require.NoError(t, err)
 
 	return string(jwkJSON)

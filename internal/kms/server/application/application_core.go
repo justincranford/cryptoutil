@@ -8,9 +8,9 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
-	cryptoutilDemo "cryptoutil/internal/kms/server/demo"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/kms/server/businesslogic"
+	cryptoutilKmsServerDemo "cryptoutil/internal/kms/server/demo"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
@@ -22,12 +22,12 @@ type ServerApplicationCore struct {
 	SQLRepository          *cryptoutilSQLRepository.SQLRepository
 	OrmRepository          *cryptoutilOrmRepository.OrmRepository
 	BarrierService         *cryptoutilBarrierService.BarrierService
-	BusinessLogicService   *cryptoutilBusinessLogic.BusinessLogicService
-	Settings               *cryptoutilConfig.ServiceTemplateServerSettings
+	BusinessLogicService   *cryptoutilKmsServerBusinesslogic.BusinessLogicService
+	Settings               *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 }
 
 // StartServerApplicationCore initializes and starts a core server application with all essential services.
-func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ServerApplicationCore, error) {
+func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*ServerApplicationCore, error) {
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start basic server application: %w", err)
@@ -69,7 +69,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 
 	serverApplicationCore.BarrierService = barrierService
 
-	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, barrierService)
+	businessLogicService, err := cryptoutilKmsServerBusinesslogic.NewBusinessLogicService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, barrierService)
 	if err != nil {
 		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
 		serverApplicationCore.Shutdown()
@@ -83,7 +83,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	if settings.DemoMode {
 		serverApplicationBasic.TelemetryService.Slogger.Info("Demo mode enabled, seeding demo data")
 
-		err = cryptoutilDemo.SeedDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
+		err = cryptoutilKmsServerDemo.SeedDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
 		if err != nil {
 			serverApplicationBasic.TelemetryService.Slogger.Error("failed to seed demo data", "error", err)
 			serverApplicationCore.Shutdown()
@@ -93,7 +93,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	} else if settings.ResetDemoMode {
 		serverApplicationBasic.TelemetryService.Slogger.Info("Reset demo mode enabled, resetting demo data")
 
-		err = cryptoutilDemo.ResetDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
+		err = cryptoutilKmsServerDemo.ResetDemoData(ctx, serverApplicationBasic.TelemetryService, businessLogicService)
 		if err != nil {
 			serverApplicationBasic.TelemetryService.Slogger.Error("failed to reset demo data", "error", err)
 			serverApplicationCore.Shutdown()

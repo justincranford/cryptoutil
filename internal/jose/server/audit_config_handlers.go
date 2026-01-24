@@ -5,9 +5,9 @@
 package server
 
 import (
-	"cryptoutil/internal/jose/service"
+	cryptoutilJoseService "cryptoutil/internal/jose/service"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 )
 
@@ -33,11 +33,11 @@ type AuditConfigListResponse struct {
 
 // auditConfigHandlers provides audit config route handlers.
 type auditConfigHandlers struct {
-	auditConfigService *service.AuditConfigService
+	auditConfigService *cryptoutilJoseService.AuditConfigService
 }
 
 // newAuditConfigHandlers creates a new audit config handlers instance.
-func newAuditConfigHandlers(auditConfigService *service.AuditConfigService) *auditConfigHandlers {
+func newAuditConfigHandlers(auditConfigService *cryptoutilJoseService.AuditConfigService) *auditConfigHandlers {
 	return &auditConfigHandlers{
 		auditConfigService: auditConfigService,
 	}

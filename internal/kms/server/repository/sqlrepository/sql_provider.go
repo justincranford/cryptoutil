@@ -6,7 +6,7 @@ package sqlrepository
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -16,10 +16,10 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilContainer "cryptoutil/internal/shared/container"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver registration
 )
@@ -43,17 +43,17 @@ const (
 	// ContainerModeRequired requires testcontainer mode.
 	ContainerModeRequired ContainerMode = "required"
 
-	firstDBPingAttemptWait = cryptoutilMagic.DBPingFirstAttemptWait
-	maxDBPingAttempts      = cryptoutilMagic.DBMaxPingAttempts
-	nextDBPingAttemptWait  = cryptoutilMagic.DBPingNextAttemptWait
-	sqliteBusyTimeout      = cryptoutilMagic.DBSQLiteBusyTimeout
+	firstDBPingAttemptWait = cryptoutilSharedMagic.DBPingFirstAttemptWait
+	maxDBPingAttempts      = cryptoutilSharedMagic.DBMaxPingAttempts
+	nextDBPingAttemptWait  = cryptoutilSharedMagic.DBPingNextAttemptWait
+	sqliteBusyTimeout      = cryptoutilSharedMagic.DBSQLiteBusyTimeout
 	// Local constants for this provider.
-	sqliteMaxOpenConnections = cryptoutilMagic.SQLiteMaxOpenConnections
+	sqliteMaxOpenConnections = cryptoutilSharedMagic.SQLiteMaxOpenConnections
 )
 
 // SQLRepository provides database operations using database/sql.
 type SQLRepository struct {
-	telemetryService    *cryptoutilTelemetry.TelemetryService
+	telemetryService    *cryptoutilSharedTelemetry.TelemetryService
 	dbType              SupportedDBType // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	sqlDB               *sql.DB
 	containerMode       ContainerMode
@@ -76,7 +76,7 @@ func (s *SQLRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	}
 
 	// Ping with timeout
-	pingCtx, cancel := context.WithTimeout(ctx, cryptoutilMagic.DBPingTimeout)
+	pingCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DBPingTimeout)
 	defer cancel()
 
 	err := s.sqlDB.PingContext(pingCtx)
@@ -124,7 +124,7 @@ func extractSchemaFromURL(databaseURL string) string {
 
 var (
 	postgresContainerRandSuffix = func() string {
-		postgresContainerRandSuffix, err := rand.Int(rand.Reader, big.NewInt(cryptoutilMagic.DBContainerRandSuffixMax))
+		postgresContainerRandSuffix, err := crand.Int(crand.Reader, big.NewInt(cryptoutilSharedMagic.DBContainerRandSuffixMax))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random database name: %v", err))
 		}
@@ -154,7 +154,7 @@ var (
 )
 
 // NewSQLRepository creates a new SQLRepository with the given configuration.
-func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*SQLRepository, error) {
+func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*SQLRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
@@ -186,7 +186,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		case DBTypeSQLite:
 			return nil, ErrContainerOptionNotExist
 		case DBTypePostgres:
-			containerDatabaseURL, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, telemetryService, postgresContainerDBName, postgresContainerDBUsername, postgresContainerDBPassword)
+			containerDatabaseURL, shutdownDBContainer, err = cryptoutilSharedContainer.StartPostgres(ctx, telemetryService, postgresContainerDBName, postgresContainerDBUsername, postgresContainerDBPassword)
 		default:
 			return nil, fmt.Errorf("%w: %s", ErrUnsupportedDBType, dbType)
 		}

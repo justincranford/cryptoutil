@@ -13,7 +13,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ScheduledRotationConfig holds configuration for scheduled rotation.
@@ -25,8 +25,8 @@ type ScheduledRotationConfig struct {
 // DefaultScheduledRotationConfig returns default configuration.
 func DefaultScheduledRotationConfig() *ScheduledRotationConfig {
 	return &ScheduledRotationConfig{
-		ExpirationThreshold: cryptoutilMagic.SecretRotationExpirationThreshold,
-		CheckInterval:       cryptoutilMagic.SecretRotationCheckInterval,
+		ExpirationThreshold: cryptoutilSharedMagic.SecretRotationExpirationThreshold,
+		CheckInterval:       cryptoutilSharedMagic.SecretRotationCheckInterval,
 	}
 }
 
@@ -99,7 +99,7 @@ func ScheduledRotation(ctx context.Context, db *gorm.DB, config *ScheduledRotati
 			ctx,
 			secret.ClientID,
 			gracePeriod,
-			cryptoutilMagic.SystemInitiatorName,
+			cryptoutilSharedMagic.SystemInitiatorName,
 			fmt.Sprintf("Automatic rotation (expiring in %s)", gracePeriod),
 		)
 		if err != nil {

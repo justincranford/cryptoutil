@@ -6,7 +6,7 @@ package authz_test
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"net/http/httptest"
 	"net/url"
@@ -14,11 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -41,7 +41,7 @@ func TestMultiTenantTokenIsolation(t *testing.T) {
 	tokenA := createMultiTenantTestToken(t, repoFactory, clientA.ID, "token-for-client-a")
 	tokenB := createMultiTenantTestToken(t, repoFactory, clientB.ID, "token-for-client-b")
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -120,7 +120,7 @@ func TestMultiTenantTokenRevocationIsolation(t *testing.T) {
 	tokenA := createMultiTenantTestToken(t, repoFactory, clientA.ID, "revoke-token-a")
 	tokenB := createMultiTenantTestToken(t, repoFactory, clientB.ID, "revoke-token-b")
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -170,7 +170,7 @@ func TestMultiTenantScopeIsolation(t *testing.T) {
 	limitedToken := createMultiTenantTestTokenWithScopes(t, repoFactory, limitedClient.ID, "limited-token", []string{"openid"})
 	fullToken := createMultiTenantTestTokenWithScopes(t, repoFactory, fullClient.ID, "full-token", []string{"openid", "profile", "email", "api:admin"})
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

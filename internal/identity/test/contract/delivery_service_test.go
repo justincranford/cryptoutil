@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/idp/userauth"
-	"cryptoutil/internal/identity/idp/userauth/mocks"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauthMocks "cryptoutil/internal/identity/idp/userauth/mocks"
 )
 
 // contextKey is a custom type for context keys to avoid collisions.
@@ -23,7 +23,7 @@ const contextKeyTimestamp contextKey = "timestamp"
 // DeliveryServiceContractTests defines standard test scenarios that any DeliveryService implementation must pass.
 // This contract test suite validates interface compliance for both SMS and email delivery providers.
 type DeliveryServiceContractTests struct {
-	NewProvider func() userauth.DeliveryService
+	NewProvider func() cryptoutilIdentityIdpUserauth.DeliveryService
 }
 
 // TestDeliverySMSSuccess validates successful SMS sending.
@@ -141,7 +141,7 @@ func (c *DeliveryServiceContractTests) TestDeliveryNilContext(t *testing.T) {
 }
 
 // RunDeliveryServiceContractTests runs all contract tests for a DeliveryService implementation.
-func RunDeliveryServiceContractTests(t *testing.T, providerType string, newProvider func() userauth.DeliveryService) {
+func RunDeliveryServiceContractTests(t *testing.T, providerType string, newProvider func() cryptoutilIdentityIdpUserauth.DeliveryService) {
 	t.Helper()
 
 	tests := &DeliveryServiceContractTests{NewProvider: newProvider}
@@ -167,8 +167,8 @@ func RunDeliveryServiceContractTests(t *testing.T, providerType string, newProvi
 func TestSMSProviderContract(t *testing.T) {
 	t.Parallel()
 
-	RunDeliveryServiceContractTests(t, "sms", func() userauth.DeliveryService {
-		return mocks.NewSMSProvider()
+	RunDeliveryServiceContractTests(t, "sms", func() cryptoutilIdentityIdpUserauth.DeliveryService {
+		return cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 	})
 }
 
@@ -176,7 +176,7 @@ func TestSMSProviderContract(t *testing.T) {
 func TestEmailProviderContract(t *testing.T) {
 	t.Parallel()
 
-	RunDeliveryServiceContractTests(t, "email", func() userauth.DeliveryService {
-		return mocks.NewEmailProvider()
+	RunDeliveryServiceContractTests(t, "email", func() cryptoutilIdentityIdpUserauth.DeliveryService {
+		return cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	})
 }

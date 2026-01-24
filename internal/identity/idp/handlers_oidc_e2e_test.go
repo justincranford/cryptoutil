@@ -7,14 +7,14 @@ package idp_test
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
@@ -24,7 +24,7 @@ import (
 	cryptoutilIdentityIdp "cryptoutil/internal/identity/idp"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 const (
@@ -150,7 +150,7 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 
 	// Create test user with hashed password.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
-	testPasswordHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(testPassword)
+	testPasswordHash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(testPassword)
 	require.NoError(t, err, "Failed to hash password")
 
 	testUser := &cryptoutilIdentityDomain.User{

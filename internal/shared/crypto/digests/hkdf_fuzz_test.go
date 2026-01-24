@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // IMPORTANT: All Fuzz* test function names MUST be unique and MUST NOT be substrings of any other fuzz test names.
@@ -20,10 +20,10 @@ import (
 // FuzzHKDFAllVariants tests HKDF function with various inputs to ensure it doesn't crash.
 func FuzzHKDFAllVariants(f *testing.F) {
 	// Add seed corpus with valid inputs
-	f.Add("SHA256", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA256OutputLength)
-	f.Add("SHA384", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA384OutputLength)
-	f.Add("SHA512", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA512OutputLength)
-	f.Add("SHA224", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA224OutputLength)
+	f.Add("SHA256", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA256OutputLength)
+	f.Add("SHA384", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA384OutputLength)
+	f.Add("SHA512", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA512OutputLength)
+	f.Add("SHA224", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA224OutputLength)
 
 	f.Fuzz(func(t *testing.T, digestName string, secret, salt, info []byte, outputLength int) {
 		// Skip invalid digest names
@@ -32,7 +32,7 @@ func FuzzHKDFAllVariants(f *testing.F) {
 		}
 
 		// Skip invalid output lengths
-		if outputLength <= 0 || outputLength > cryptoutilMagic.HKDFSHA512MaxLength { // Max for SHA512
+		if outputLength <= 0 || outputLength > cryptoutilSharedMagic.HKDFSHA512MaxLength { // Max for SHA512
 			t.Skip("Skipping invalid output length for fuzzing")
 		}
 
@@ -61,11 +61,11 @@ func FuzzHKDFAllVariants(f *testing.F) {
 
 // FuzzHKDFwithSHA256 tests HKDF-SHA256 with various inputs.
 func FuzzHKDFwithSHA256(f *testing.F) {
-	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA256OutputLength)
+	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA256OutputLength)
 
 	f.Fuzz(func(t *testing.T, secret, salt, info []byte, outputLength int) {
 		// Skip invalid output lengths for SHA256 (max 255*32 = 8160)
-		if outputLength <= 0 || outputLength > cryptoutilMagic.HKDFSHA256MaxLength {
+		if outputLength <= 0 || outputLength > cryptoutilSharedMagic.HKDFSHA256MaxLength {
 			t.Skip("Skipping invalid output length for fuzzing")
 		}
 
@@ -91,11 +91,11 @@ func FuzzHKDFwithSHA256(f *testing.F) {
 
 // FuzzHKDFwithSHA384 tests HKDF-SHA384 with various inputs.
 func FuzzHKDFwithSHA384(f *testing.F) {
-	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA384OutputLength)
+	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA384OutputLength)
 
 	f.Fuzz(func(t *testing.T, secret, salt, info []byte, outputLength int) {
 		// Skip invalid output lengths for SHA384 (max 255*48 = 12240)
-		if outputLength <= 0 || outputLength > cryptoutilMagic.HKDFSHA384MaxLength {
+		if outputLength <= 0 || outputLength > cryptoutilSharedMagic.HKDFSHA384MaxLength {
 			t.Skip("Skipping invalid output length for fuzzing")
 		}
 
@@ -121,11 +121,11 @@ func FuzzHKDFwithSHA384(f *testing.F) {
 
 // FuzzHKDFwithSHA512 tests HKDF-SHA512 with various inputs.
 func FuzzHKDFwithSHA512(f *testing.F) {
-	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA512OutputLength)
+	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA512OutputLength)
 
 	f.Fuzz(func(t *testing.T, secret, salt, info []byte, outputLength int) {
 		// Skip invalid output lengths for SHA512 (max 255*64 = 16320)
-		if outputLength <= 0 || outputLength > cryptoutilMagic.HKDFSHA512MaxLength {
+		if outputLength <= 0 || outputLength > cryptoutilSharedMagic.HKDFSHA512MaxLength {
 			t.Skip("Skipping invalid output length for fuzzing")
 		}
 
@@ -151,11 +151,11 @@ func FuzzHKDFwithSHA512(f *testing.F) {
 
 // FuzzHKDFwithSHA224 tests HKDF-SHA224 with various inputs.
 func FuzzHKDFwithSHA224(f *testing.F) {
-	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA224OutputLength)
+	f.Add([]byte("secret"), []byte("salt"), []byte("info"), cryptoutilSharedMagic.HKDFSHA224OutputLength)
 
 	f.Fuzz(func(t *testing.T, secret, salt, info []byte, outputLength int) {
 		// Skip invalid output lengths for SHA224 (max 255*28 = 7140)
-		if outputLength <= 0 || outputLength > cryptoutilMagic.HKDFSHA224MaxLength {
+		if outputLength <= 0 || outputLength > cryptoutilSharedMagic.HKDFSHA224MaxLength {
 			t.Skip("Skipping invalid output length for fuzzing")
 		}
 

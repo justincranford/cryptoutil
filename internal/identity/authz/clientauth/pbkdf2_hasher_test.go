@@ -5,13 +5,13 @@
 package clientauth_test
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base64"
 	"strings"
 	"testing"
 
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -86,9 +86,9 @@ func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 
 				// Verify hash format: cryptoutilMagic.PBKDF2DefaultHashName$iterations$base64(salt)$base64(hash).
 				parts := strings.Split(hash, "$")
-				testify.Len(t, parts, 5, "Hash should have 5 parts: empty$$"+cryptoutilMagic.PBKDF2DefaultHashName+"$iterations$salt$hash")
+				testify.Len(t, parts, 5, "Hash should have 5 parts: empty$$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$iterations$salt$hash")
 				testify.Equal(t, "", parts[0], "First part should be empty (leading $)")
-				testify.Equal(t, cryptoutilMagic.PBKDF2DefaultHashName, parts[1], "Second part should be 'pbkdf2-sha256'")
+				testify.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultHashName, parts[1], "Second part should be 'pbkdf2-sha256'")
 				testify.Equal(t, "100000", parts[2], "Iterations should be 100000")
 
 				// Verify salt is base64-encoded 16 bytes (128 bits).
@@ -286,7 +286,7 @@ func TestPBKDF2Hasher_FIPS140_3Compliance(t *testing.T) {
 	testify.Len(t, parts, 5, "Hash should have 5 parts")
 
 	// Verify PBKDF2 algorithm identifier.
-	testify.Equal(t, cryptoutilMagic.PBKDF2DefaultHashName, parts[1], "Algorithm should be PBKDF2-SHA256")
+	testify.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultHashName, parts[1], "Algorithm should be PBKDF2-SHA256")
 
 	// Verify iteration count (FIPS 140-3 recommends ≥100,000 for PBKDF2).
 	testify.Equal(t, "100000", parts[2], "Iteration count should be 100,000")
@@ -397,7 +397,7 @@ func TestPBKDF2Hasher_CompareSecret_VectorTests(t *testing.T) {
 	// Generate known test vector: hash password "TestVector123" with known salt.
 	password := "TestVector123"
 	knownSalt := make([]byte, 16)
-	_, err := rand.Read(knownSalt)
+	_, err := crand.Read(knownSalt)
 	testify.NoError(t, err, "Should generate random salt")
 
 	// Hash password using PBKDF2Hasher (uses random salt).

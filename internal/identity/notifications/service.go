@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NotificationChannel defines the delivery method for notifications.
@@ -111,7 +111,7 @@ func (s *NotificationService) CheckExpiringSecrets(ctx context.Context) (int, er
 	for _, threshold := range s.config.Thresholds {
 		// Calculate time window for this threshold (e.g., 7 days ± 1 hour).
 		expirationStart := now.Add(time.Duration(threshold) * 24 * time.Hour)
-		expirationEnd := expirationStart.Add(cryptoutilMagic.SecretRotationCheckInterval)
+		expirationEnd := expirationStart.Add(cryptoutilSharedMagic.SecretRotationCheckInterval)
 
 		// Find active secrets expiring within this threshold window.
 		var secrets []cryptoutilIdentityDomain.ClientSecretVersion

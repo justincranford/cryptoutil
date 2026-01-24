@@ -5,9 +5,9 @@ package cli
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"os"

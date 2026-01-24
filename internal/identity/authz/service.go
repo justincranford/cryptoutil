@@ -8,12 +8,12 @@ import (
 	"context"
 	"fmt"
 
-	"cryptoutil/internal/identity/authz/clientauth"
+	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityEmail "cryptoutil/internal/identity/email"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )
@@ -23,9 +23,9 @@ type Service struct {
 	config          *cryptoutilIdentityConfig.Config
 	repoFactory     *cryptoutilIdentityRepository.RepositoryFactory
 	tokenSvc        *cryptoutilIdentityIssuer.TokenService
-	clientAuth      *clientauth.Registry
+	clientAuth      *cryptoutilIdentityClientAuth.Registry
 	authReqStore    AuthorizationRequestStore
-	emailOTPService *cryptoutilIdentityMFA.EmailOTPService
+	emailOTPService *cryptoutilIdentityMfa.EmailOTPService
 }
 
 // NewService creates a new authorization server service.
@@ -41,7 +41,7 @@ func NewService(
 	emailService := cryptoutilIdentityEmail.NewMockEmailService()
 
 	// Create email OTP service.
-	emailOTPService := cryptoutilIdentityMFA.NewEmailOTPService(
+	emailOTPService := cryptoutilIdentityMfa.NewEmailOTPService(
 		repoFactory.EmailOTPRepository(),
 		emailService,
 	)
@@ -50,7 +50,7 @@ func NewService(
 		config:          config,
 		repoFactory:     repoFactory,
 		tokenSvc:        tokenSvc,
-		clientAuth:      clientauth.NewRegistry(repoFactory, config, rotationService),
+		clientAuth:      cryptoutilIdentityClientAuth.NewRegistry(repoFactory, config, rotationService),
 		authReqStore:    NewInMemoryAuthorizationRequestStore(),
 		emailOTPService: emailOTPService,
 	}

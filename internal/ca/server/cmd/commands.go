@@ -6,16 +6,16 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/spf13/cobra"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilCAServer "cryptoutil/internal/ca/server"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NewStartCommand creates the start command for the CA server.
@@ -59,7 +59,7 @@ Examples:
 			}()
 
 			// Load configuration.
-			var settings *cryptoutilConfig.ServiceTemplateServerSettings
+			var settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 			var err error
 
@@ -70,13 +70,13 @@ Examples:
 					parseArgs = append(parseArgs, "--config", cf)
 				}
 
-				settings, err = cryptoutilConfig.Parse(parseArgs, false)
+				settings, err = cryptoutilAppsTemplateServiceConfig.Parse(parseArgs, false)
 				if err != nil {
 					return fmt.Errorf("failed to load config files: %w", err)
 				}
 			} else {
 				// Use default settings for CA server.
-				settings = cryptoutilConfig.NewForCAServer(bindAddr, bindPort, devMode)
+				settings = cryptoutilAppsTemplateServiceConfig.NewForCAServer(bindAddr, bindPort, devMode)
 			}
 
 			// Create and start the server.
@@ -103,8 +103,8 @@ Examples:
 	}
 
 	cmd.Flags().StringSliceVarP(&configFiles, "config", "c", nil, "Path to configuration file (can be specified multiple times)")
-	cmd.Flags().StringVarP(&bindAddr, "bind", "b", cryptoutilMagic.IPv4Loopback, "Bind address")
-	cmd.Flags().Uint16VarP(&bindPort, "port", "p", cryptoutilMagic.DefaultPublicPortCAServer, "Bind port")
+	cmd.Flags().StringVarP(&bindAddr, "bind", "b", cryptoutilSharedMagic.IPv4Loopback, "Bind address")
+	cmd.Flags().Uint16VarP(&bindPort, "port", "p", cryptoutilSharedMagic.DefaultPublicPortCAServer, "Bind port")
 	cmd.Flags().BoolVar(&devMode, "dev", false, "Enable development mode (relaxed security)")
 
 	return cmd

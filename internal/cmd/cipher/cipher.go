@@ -8,7 +8,7 @@ package cipher
 import (
 	"io"
 
-	"cryptoutil/internal/apps/cipher"
+	cryptoutilAppsCipher "cryptoutil/internal/apps/cipher"
 )
 
 // Cipher is the thin entry point that delegates to internalCipher for testability.
@@ -21,5 +21,5 @@ func Cipher(args []string) int {
 // Parameters follow the standard pattern: args, stdin, stdout, stderr.
 // Currently stdin/stdout/stderr are unused but reserved for future use.
 func internalCipher(args []string, _ io.Reader, _ io.Writer, _ io.Writer) int {
-	return cipher.Cipher(args)
+	return cryptoutilAppsCipher.Cipher(args)
 }

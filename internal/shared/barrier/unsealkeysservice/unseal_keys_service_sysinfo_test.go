@@ -5,8 +5,8 @@ package unsealkeysservice
 import (
 	"testing"
 
-	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedUtilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 
 	"github.com/stretchr/testify/require"
 )
@@ -14,14 +14,14 @@ import (
 func TestNewUnsealKeysServiceFromSysInfo_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	mockProvider := &cryptoutilSysinfo.MockSysInfoProvider{}
+	mockProvider := &cryptoutilSharedUtilSysinfo.MockSysInfoProvider{}
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(mockProvider)
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysService)
 
 	// Verify the service can encrypt and decrypt keys.
-	testKey, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	testKey, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	encrypted, err := unsealKeysService.EncryptKey(testKey[0])
@@ -36,7 +36,7 @@ func TestNewUnsealKeysServiceFromSysInfo_HappyPath(t *testing.T) {
 func TestNewUnsealKeysServiceFromSysInfo_EncryptDecryptData(t *testing.T) {
 	t.Parallel()
 
-	mockProvider := &cryptoutilSysinfo.MockSysInfoProvider{}
+	mockProvider := &cryptoutilSharedUtilSysinfo.MockSysInfoProvider{}
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(mockProvider)
 	require.NoError(t, err)
@@ -56,7 +56,7 @@ func TestNewUnsealKeysServiceFromSysInfo_EncryptDecryptData(t *testing.T) {
 func TestNewUnsealKeysServiceFromSysInfo_Shutdown(t *testing.T) {
 	t.Parallel()
 
-	mockProvider := &cryptoutilSysinfo.MockSysInfoProvider{}
+	mockProvider := &cryptoutilSharedUtilSysinfo.MockSysInfoProvider{}
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(mockProvider)
 	require.NoError(t, err)

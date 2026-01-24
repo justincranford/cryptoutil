@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // IdentityRPServerSettings contains identity-rp specific configuration.
 type IdentityRPServerSettings struct {
-	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// OAuth 2.1 Provider settings.
 	AuthzServerURL string // URL of the OAuth 2.1 authorization server.
@@ -40,46 +40,46 @@ const (
 	defaultSessionSecret  = ""                        // Must be configured via Docker secret.
 )
 
-var allIdentityRPServerRegisteredSettings []*cryptoutilTemplateConfig.Setting //nolint:gochecknoglobals
+var allIdentityRPServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
 
 // Identity-RP specific Setting objects for parameter attributes.
 var (
-	authzServerURLSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	authzServerURLSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "authz-server-url",
 		Shorthand:   "",
 		Value:       defaultAuthzServerURL,
 		Usage:       "URL of the OAuth 2.1 authorization server",
 		Description: "AuthZ Server URL",
 	})
-	clientIDSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	clientIDSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "client-id",
 		Shorthand:   "",
 		Value:       defaultClientID,
 		Usage:       "OAuth 2.1 client ID for this relying party",
 		Description: "Client ID",
 	})
-	clientSecretSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	clientSecretSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "client-secret",
 		Shorthand:   "",
 		Value:       defaultClientSecret,
 		Usage:       "OAuth 2.1 client secret (use file:///run/secrets/client_secret)",
 		Description: "Client Secret",
 	})
-	redirectURISetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	redirectURISetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "redirect-uri",
 		Shorthand:   "",
 		Value:       defaultRedirectURI,
 		Usage:       "OAuth 2.1 redirect URI for this relying party",
 		Description: "Redirect URI",
 	})
-	spaOriginSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	spaOriginSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "spa-origin",
 		Shorthand:   "",
 		Value:       defaultSPAOrigin,
 		Usage:       "origin of the SPA frontend for CORS",
 		Description: "SPA Origin",
 	})
-	sessionSecretSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	sessionSecretSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentityRPServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "session-secret",
 		Shorthand:   "",
 		Value:       defaultSessionSecret,
@@ -91,18 +91,18 @@ var (
 // Parse parses command line arguments and returns identity-rp settings.
 func Parse(args []string, exitIfHelp bool) (*IdentityRPServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register identity-rp specific flags.
-	pflag.StringP(authzServerURLSetting.Name, authzServerURLSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(authzServerURLSetting), authzServerURLSetting.Description)
-	pflag.StringP(clientIDSetting.Name, clientIDSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(clientIDSetting), clientIDSetting.Description)
-	pflag.StringP(clientSecretSetting.Name, clientSecretSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(clientSecretSetting), clientSecretSetting.Description)
-	pflag.StringP(redirectURISetting.Name, redirectURISetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(redirectURISetting), redirectURISetting.Description)
-	pflag.StringP(spaOriginSetting.Name, spaOriginSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(spaOriginSetting), spaOriginSetting.Description)
-	pflag.StringP(sessionSecretSetting.Name, sessionSecretSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(sessionSecretSetting), sessionSecretSetting.Description)
+	pflag.StringP(authzServerURLSetting.Name, authzServerURLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(authzServerURLSetting), authzServerURLSetting.Description)
+	pflag.StringP(clientIDSetting.Name, clientIDSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(clientIDSetting), clientIDSetting.Description)
+	pflag.StringP(clientSecretSetting.Name, clientSecretSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(clientSecretSetting), clientSecretSetting.Description)
+	pflag.StringP(redirectURISetting.Name, redirectURISetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(redirectURISetting), redirectURISetting.Description)
+	pflag.StringP(spaOriginSetting.Name, spaOriginSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(spaOriginSetting), spaOriginSetting.Description)
+	pflag.StringP(sessionSecretSetting.Name, sessionSecretSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(sessionSecretSetting), sessionSecretSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()
@@ -204,7 +204,7 @@ func maskSecret(secret string) string {
 // Returns directly populated IdentityRPServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentityRPServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilTemplateConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with identity-rp specific values.
 	baseConfig.BindPublicPort = bindPort

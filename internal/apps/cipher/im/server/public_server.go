@@ -10,17 +10,17 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
-	"cryptoutil/internal/apps/cipher/im/server/apis"
+	cryptoutilAppsCipherImServerApis "cryptoutil/internal/apps/cipher/im/server/apis"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
-	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
+	cryptoutilAppsTemplateServiceServerApis "cryptoutil/internal/apps/template/service/server/apis"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
+	cryptoutilAppsTemplateServiceServerRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServer implements the cipher-im public server by embedding PublicServerBase.
@@ -29,32 +29,32 @@ type PublicServer struct {
 
 	userRepo                *cryptoutilAppsCipherImRepository.UserRepository
 	messageRepo             *cryptoutilAppsCipherImRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository // Per-recipient decryption keys
-	jwkGenService           *cryptoutilJose.JWKGenService                                   // JWK generation for message encryption
-	sessionManagerService   *cryptoutilTemplateBusinessLogic.SessionManagerService          // Session management service
-	realmService            cryptoutilTemplateService.RealmService                          // Realm management service
-	registrationService     *cryptoutilTemplateBusinessLogic.TenantRegistrationService      // Tenant registration service
+	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository             // Per-recipient decryption keys
+	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService                                   // JWK generation for message encryption
+	sessionManagerService   *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService     // Session management service
+	realmService            cryptoutilAppsTemplateServiceServerService.RealmService                     // Realm management service
+	registrationService     *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService // Tenant registration service
 
 	// Cipher-IM demo state (auto-created tenant on first registration).
 	demoTenantID *googleUuid.UUID
 
 	// Handlers (composition pattern).
-	authnHandler   *cryptoutilTemplateRealms.UserServiceImpl
-	messageHandler *apis.MessageHandler
+	authnHandler   *cryptoutilAppsTemplateServiceServerRealms.UserServiceImpl
+	messageHandler *cryptoutilAppsCipherImServerApis.MessageHandler
 }
 
 // NewPublicServer creates a new cipher-im public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
 	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService,
-	realmService cryptoutilTemplateService.RealmService,
-	registrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService,
+	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService,
+	realmService cryptoutilAppsTemplateServiceServerService.RealmService,
+	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService,
 	userRepo *cryptoutilAppsCipherImRepository.UserRepository,
 	messageRepo *cryptoutilAppsCipherImRepository.MessageRepository,
 	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository,
-	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilBarrier.Service,
+	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
+	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) (*PublicServer, error) {
 	if base == nil {
 		return nil, fmt.Errorf("public server base cannot be nil")
@@ -93,7 +93,7 @@ func NewPublicServer(
 	// Create user factory for template realms.
 	// For cipher-im demo: Creates tenant dynamically on first user registration.
 	// All subsequent users share the same demo tenant.
-	userFactory := func() cryptoutilTemplateRealms.UserModel {
+	userFactory := func() cryptoutilAppsTemplateServiceServerRealms.UserModel {
 		// Check if demo tenant already created.
 		if s.demoTenantID != nil {
 			return &cryptoutilAppsTemplateServiceServerRepository.User{
@@ -129,10 +129,10 @@ func NewPublicServer(
 	}
 
 	// Create realms handler using template service (authentication/authorization).
-	s.authnHandler = cryptoutilTemplateRealms.NewUserService(userRepoAdapter, userFactory)
+	s.authnHandler = cryptoutilAppsTemplateServiceServerRealms.NewUserService(userRepoAdapter, userFactory)
 
 	// Create message handler (business logic).
-	s.messageHandler = apis.NewMessageHandler(messageRepo, messageRecipientJWKRepo, jwkGenService, barrierService)
+	s.messageHandler = cryptoutilAppsCipherImServerApis.NewMessageHandler(messageRepo, messageRecipientJWKRepo, jwkGenService, barrierService)
 
 	return s, nil
 }
@@ -141,11 +141,11 @@ func NewPublicServer(
 // Called by ServerBuilder after NewPublicServer returns.
 func (s *PublicServer) registerRoutes() error {
 	// Create session handler.
-	sessionHandler := apis.NewSessionHandler(s.sessionManagerService)
+	sessionHandler := cryptoutilAppsCipherImServerApis.NewSessionHandler(s.sessionManagerService)
 
 	// Create session middleware for browser and service paths using template middleware directly.
-	browserSessionMiddleware := cryptoutilTemplateMiddleware.BrowserSessionMiddleware(s.sessionManagerService)
-	serviceSessionMiddleware := cryptoutilTemplateMiddleware.ServiceSessionMiddleware(s.sessionManagerService)
+	browserSessionMiddleware := cryptoutilAppsTemplateServiceServerMiddleware.BrowserSessionMiddleware(s.sessionManagerService)
+	serviceSessionMiddleware := cryptoutilAppsTemplateServiceServerMiddleware.ServiceSessionMiddleware(s.sessionManagerService)
 
 	// Get underlying Fiber app from base for route registration.
 	app := s.base.App()
@@ -172,7 +172,7 @@ func (s *PublicServer) registerRoutes() error {
 	app.Delete("/browser/api/v1/messages/:id", browserSessionMiddleware, s.messageHandler.HandleDeleteMessage())
 
 	// Register tenant registration routes (from template) with default rate limit.
-	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(app, s.registrationService, cryptoutilMagic.RateLimitDefaultRequestsPerMin)
+	cryptoutilAppsTemplateServiceServerApis.RegisterRegistrationRoutes(app, s.registrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
 
 	return nil
 }

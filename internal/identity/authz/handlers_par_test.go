@@ -6,17 +6,17 @@ package authz_test
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -32,7 +32,7 @@ func TestHandlePAR_HappyPath(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForPAR(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -100,7 +100,7 @@ func TestHandlePAR_MissingClientID(t *testing.T) {
 
 	config, repoFactory := createPARTestDependencies(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -146,7 +146,7 @@ func TestHandlePAR_MissingResponseType(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForPAR(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -192,7 +192,7 @@ func TestHandlePAR_MissingRedirectURI(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForPAR(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -238,7 +238,7 @@ func TestHandlePAR_MissingCodeChallenge(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForPAR(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -281,7 +281,7 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 
 	config, repoFactory := createPARTestDependencies(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -324,7 +324,7 @@ func TestHandlePAR_InvalidRedirectURI(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForPAR(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -371,7 +371,7 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForPAR(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -414,7 +414,7 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForPAR(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

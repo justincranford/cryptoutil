@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	"cryptoutil/internal/jose/domain"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
@@ -29,7 +29,7 @@ func NewMaterialJWKRepository(db *gorm.DB) MaterialJWKRepository {
 }
 
 // Create creates a new Material JWK.
-func (r *materialJWKGormRepository) Create(ctx context.Context, materialJWK *domain.MaterialJWK) error {
+func (r *materialJWKGormRepository) Create(ctx context.Context, materialJWK *cryptoutilJoseDomain.MaterialJWK) error {
 	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Create(materialJWK).Error; err != nil {
 		return fmt.Errorf("failed to create material JWK: %w", err)
 	}
@@ -38,8 +38,8 @@ func (r *materialJWKGormRepository) Create(ctx context.Context, materialJWK *dom
 }
 
 // GetByID retrieves a Material JWK by its UUID.
-func (r *materialJWKGormRepository) GetByID(ctx context.Context, materialJWKID googleUuid.UUID) (*domain.MaterialJWK, error) {
-	var materialJWK domain.MaterialJWK
+func (r *materialJWKGormRepository) GetByID(ctx context.Context, materialJWKID googleUuid.UUID) (*cryptoutilJoseDomain.MaterialJWK, error) {
+	var materialJWK cryptoutilJoseDomain.MaterialJWK
 
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("id = ?", materialJWKID).
@@ -57,8 +57,8 @@ func (r *materialJWKGormRepository) GetByID(ctx context.Context, materialJWKID g
 }
 
 // GetByMaterialKID retrieves a Material JWK by its material KID within an Elastic JWK.
-func (r *materialJWKGormRepository) GetByMaterialKID(ctx context.Context, elasticJWKID googleUuid.UUID, materialKID string) (*domain.MaterialJWK, error) {
-	var materialJWK domain.MaterialJWK
+func (r *materialJWKGormRepository) GetByMaterialKID(ctx context.Context, elasticJWKID googleUuid.UUID, materialKID string) (*cryptoutilJoseDomain.MaterialJWK, error) {
+	var materialJWK cryptoutilJoseDomain.MaterialJWK
 
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("elastic_jwk_id = ? AND material_kid = ?", elasticJWKID, materialKID).
@@ -77,8 +77,8 @@ func (r *materialJWKGormRepository) GetByMaterialKID(ctx context.Context, elasti
 
 // GetByMaterialKIDGlobal retrieves a Material JWK by its material KID globally.
 // The material_kid is globally unique (UUID), so no elastic_jwk_id is needed.
-func (r *materialJWKGormRepository) GetByMaterialKIDGlobal(ctx context.Context, materialKID string) (*domain.MaterialJWK, error) {
-	var materialJWK domain.MaterialJWK
+func (r *materialJWKGormRepository) GetByMaterialKIDGlobal(ctx context.Context, materialKID string) (*cryptoutilJoseDomain.MaterialJWK, error) {
+	var materialJWK cryptoutilJoseDomain.MaterialJWK
 
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("material_kid = ?", materialKID).
@@ -96,8 +96,8 @@ func (r *materialJWKGormRepository) GetByMaterialKIDGlobal(ctx context.Context, 
 }
 
 // ListByElasticJWK retrieves all Material JWKs for an Elastic JWK with pagination.
-func (r *materialJWKGormRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]domain.MaterialJWK, error) {
-	var materialJWKs []domain.MaterialJWK
+func (r *materialJWKGormRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]cryptoutilJoseDomain.MaterialJWK, error) {
+	var materialJWKs []cryptoutilJoseDomain.MaterialJWK
 
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("elastic_jwk_id = ?", elasticJWKID).
@@ -114,8 +114,8 @@ func (r *materialJWKGormRepository) ListByElasticJWK(ctx context.Context, elasti
 }
 
 // GetActiveMaterial retrieves the currently active Material JWK for an Elastic JWK.
-func (r *materialJWKGormRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*domain.MaterialJWK, error) {
-	var materialJWK domain.MaterialJWK
+func (r *materialJWKGormRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilJoseDomain.MaterialJWK, error) {
+	var materialJWK cryptoutilJoseDomain.MaterialJWK
 
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("elastic_jwk_id = ? AND active = ?", elasticJWKID, true).
@@ -133,12 +133,12 @@ func (r *materialJWKGormRepository) GetActiveMaterial(ctx context.Context, elast
 }
 
 // RotateMaterial performs key rotation atomically.
-func (r *materialJWKGormRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *domain.MaterialJWK) error {
+func (r *materialJWKGormRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilJoseDomain.MaterialJWK) error {
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Retire the currently active material.
 		now := time.Now().UnixMilli()
 
-		err := tx.Model(&domain.MaterialJWK{}).
+		err := tx.Model(&cryptoutilJoseDomain.MaterialJWK{}).
 			Where("elastic_jwk_id = ? AND active = ?", elasticJWKID, true).
 			Updates(map[string]any{
 				"active":     false,
@@ -171,7 +171,7 @@ func (r *materialJWKGormRepository) CountMaterials(ctx context.Context, elasticJ
 	var count int64
 
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
-		Model(&domain.MaterialJWK{}).
+		Model(&cryptoutilJoseDomain.MaterialJWK{}).
 		Where("elastic_jwk_id = ?", elasticJWKID).
 		Count(&count).
 		Error

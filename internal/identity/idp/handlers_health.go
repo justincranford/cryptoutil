@@ -6,7 +6,7 @@
 package idp
 
 import (
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // handleHealth handles GET /health - health check endpoint.

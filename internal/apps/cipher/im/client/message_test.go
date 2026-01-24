@@ -3,8 +3,8 @@
 package client
 
 import (
-	"encoding/json"
-	"net/http"
+	json "encoding/json"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 

@@ -6,7 +6,7 @@ package apperr
 
 import (
 	"errors"
-	"net/http"
+	http "net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"

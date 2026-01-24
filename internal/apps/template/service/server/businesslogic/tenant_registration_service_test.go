@@ -21,9 +21,9 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
@@ -107,8 +107,8 @@ func TestMain(m *testing.M) {
 			panic(fmt.Sprintf("failed to set busy timeout: %v", err))
 		}
 
-		sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-		sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+		sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+		sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 		sqlDB.SetConnMaxLifetime(0)
 
 		// Wrap with GORM using Dialector pattern.
@@ -128,7 +128,7 @@ func TestMain(m *testing.M) {
 	if err := testDB.AutoMigrate(
 		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
 		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
-		&cryptoutilTemplateDomain.TenantJoinRequest{},
+		&cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{},
 	); err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %v", err))
 	}

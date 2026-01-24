@@ -9,7 +9,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/kms/server/businesslogic"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
 	googleUuid "github.com/google/uuid"
@@ -378,7 +378,7 @@ func TestStrictServer_HandlerMethodsExist(t *testing.T) {
 	t.Parallel()
 
 	// Create server with nil service (just testing method existence)
-	mockService := &cryptoutilBusinessLogic.BusinessLogicService{}
+	mockService := &cryptoutilKmsServerBusinesslogic.BusinessLogicService{}
 	server := NewOpenapiStrictServer(mockService)
 
 	// Verify server is a valid implementation

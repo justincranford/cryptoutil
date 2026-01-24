@@ -6,7 +6,7 @@ package server
 import (
 	"context"
 	"crypto"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
@@ -15,20 +15,20 @@ import (
 
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/ca/server/config"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilCAHandler "cryptoutil/internal/ca/api/handler"
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Default validity durations for development CA.
@@ -47,11 +47,11 @@ type CAServer struct {
 	db  *gorm.DB
 
 	// Template services.
-	telemetryService      *cryptoutilTelemetry.TelemetryService
-	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.Service
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService          cryptoutilTemplateService.RealmService
+	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
 
 	// CA-specific services.
 	issuer      *cryptoutilCAServiceIssuer.Issuer
@@ -70,7 +70,7 @@ type CAServer struct {
 
 // NewFromConfig creates a new pki-ca server from CAServerSettings.
 // Uses service-template builder for infrastructure initialization.
-func NewFromConfig(ctx context.Context, cfg *config.CAServerSettings) (*CAServer, error) {
+func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsCaServerConfig.CAServerSettings) (*CAServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context is required")
 	} else if cfg == nil {
@@ -160,12 +160,12 @@ func NewFromConfig(ctx context.Context, cfg *config.CAServerSettings) (*CAServer
 
 	// Create server builder with template config.
 	// Note: CA uses in-memory certificate storage, but still uses template database for sessions/barrier.
-	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
 	// Register pki-ca specific public routes.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		_ *cryptoutilTemplateBuilder.ServiceResources,
+		_ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 	) error {
 		// Create public server with CA handlers.
 		publicServer := NewPublicServer(base, handler, crlService, ocspService, cfg)
@@ -236,17 +236,17 @@ func (s *CAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 }
 
 // JWKGen returns the JWK generation service (for tests).
-func (s *CAServer) JWKGen() *cryptoutilJose.JWKGenService {
+func (s *CAServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return s.jwkGenService
 }
 
 // Telemetry returns the telemetry service (for tests).
-func (s *CAServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (s *CAServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *CAServer) Barrier() *cryptoutilTemplateBarrier.Service {
+func (s *CAServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	return s.barrierService
 }
 
@@ -311,7 +311,7 @@ func createSelfSignedCA(provider cryptoutilCACrypto.Provider) (*x509.Certificate
 	}
 
 	// Generate serial number.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBitSize))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBitSize))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -349,7 +349,7 @@ func createSelfSignedCA(provider cryptoutilCACrypto.Provider) (*x509.Certificate
 	template.SignatureAlgorithm = sigAlg
 
 	// Self-sign the certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, signer.Public(), signer)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, signer.Public(), signer)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create CA certificate: %w", err)
 	}

@@ -5,9 +5,9 @@ package crypto
 import (
 	"crypto"
 	"crypto/ed25519"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
+	sha256 "crypto/sha256"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -93,7 +93,7 @@ func TestVerifyEdDSAFailures(t *testing.T) {
 	digest := sha256.Sum256([]byte("test message"))
 	invalidSignature := make([]byte, ed25519.SignatureSize)
 
-	_, err = rand.Read(invalidSignature)
+	_, err = crand.Read(invalidSignature)
 	require.NoError(t, err)
 
 	err = provider.verifyEdDSA(pub, digest[:], invalidSignature)
@@ -118,7 +118,7 @@ func TestVerifyRSAFailures(t *testing.T) {
 	digest := sha256.Sum256([]byte("test message"))
 	invalidSignature := make([]byte, 256)
 
-	_, err = rand.Read(invalidSignature)
+	_, err = crand.Read(invalidSignature)
 	require.NoError(t, err)
 
 	err = provider.verifyRSA(&priv.PublicKey, digest[:], invalidSignature, crypto.SHA256)
@@ -126,7 +126,7 @@ func TestVerifyRSAFailures(t *testing.T) {
 	require.Contains(t, err.Error(), "RSA signature verification failed")
 
 	// Test verification with zero hash function
-	validSignature, err := rsa.SignPKCS1v15(rand.Reader, priv, crypto.SHA256, digest[:])
+	validSignature, err := rsa.SignPKCS1v15(crand.Reader, priv, crypto.SHA256, digest[:])
 	require.NoError(t, err)
 
 	err = provider.verifyRSA(&priv.PublicKey, digest[:], validSignature, crypto.Hash(0))

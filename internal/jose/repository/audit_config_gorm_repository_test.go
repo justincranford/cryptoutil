@@ -9,8 +9,8 @@ import (
 	"database/sql"
 	"testing"
 
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
@@ -57,7 +57,7 @@ func setupAuditConfigTestDB(t *testing.T) *gorm.DB {
 	// Auto-migrate required tables.
 	err = db.AutoMigrate(
 		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
-		&domain.AuditConfig{},
+		&cryptoutilJoseDomain.AuditConfig{},
 	)
 	require.NoError(t, err)
 
@@ -67,14 +67,14 @@ func setupAuditConfigTestDB(t *testing.T) *gorm.DB {
 func TestAuditConfigGormRepository_Get(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
 	operation := testOpEncrypt
 
 	// Create config.
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -95,7 +95,7 @@ func TestAuditConfigGormRepository_Get(t *testing.T) {
 func TestAuditConfigGormRepository_Get_NotFound(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -109,7 +109,7 @@ func TestAuditConfigGormRepository_Get_NotFound(t *testing.T) {
 func TestAuditConfigGormRepository_GetAll(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -117,7 +117,7 @@ func TestAuditConfigGormRepository_GetAll(t *testing.T) {
 	// Create multiple configs.
 	operations := []string{"encrypt", "decrypt", "sign", "verify"}
 	for _, op := range operations {
-		config := &domain.AuditConfig{
+		config := &cryptoutilJoseDomain.AuditConfig{
 			TenantID:     tenantID,
 			Operation:    op,
 			Enabled:      true,
@@ -136,7 +136,7 @@ func TestAuditConfigGormRepository_GetAll(t *testing.T) {
 func TestAuditConfigGormRepository_GetAll_Empty(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -149,13 +149,13 @@ func TestAuditConfigGormRepository_GetAll_Empty(t *testing.T) {
 func TestAuditConfigGormRepository_Upsert_Create(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
 	operation := testOpKeygen
 
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      false,
@@ -175,14 +175,14 @@ func TestAuditConfigGormRepository_Upsert_Create(t *testing.T) {
 func TestAuditConfigGormRepository_Upsert_Update(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
 	operation := testOpRotate
 
 	// Create config.
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -207,14 +207,14 @@ func TestAuditConfigGormRepository_Upsert_Update(t *testing.T) {
 func TestAuditConfigGormRepository_Delete(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
 	operation := "decrypt"
 
 	// Create config.
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -236,7 +236,7 @@ func TestAuditConfigGormRepository_Delete(t *testing.T) {
 func TestAuditConfigGormRepository_Delete_NotFound(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -249,14 +249,14 @@ func TestAuditConfigGormRepository_Delete_NotFound(t *testing.T) {
 func TestAuditConfigGormRepository_IsEnabled_Enabled(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
 	operation := "sign"
 
 	// Create enabled config.
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -274,14 +274,14 @@ func TestAuditConfigGormRepository_IsEnabled_Enabled(t *testing.T) {
 func TestAuditConfigGormRepository_IsEnabled_Disabled(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
 	operation := "verify"
 
 	// Create disabled config.
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      false,
@@ -299,7 +299,7 @@ func TestAuditConfigGormRepository_IsEnabled_Disabled(t *testing.T) {
 func TestAuditConfigGormRepository_IsEnabled_NoConfig(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -314,7 +314,7 @@ func TestAuditConfigGormRepository_IsEnabled_NoConfig(t *testing.T) {
 func TestAuditConfigGormRepository_TenantIsolation(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenant1 := googleUuid.New()
@@ -322,7 +322,7 @@ func TestAuditConfigGormRepository_TenantIsolation(t *testing.T) {
 	operation := testOpEncrypt
 
 	// Create config for tenant1.
-	config1 := &domain.AuditConfig{
+	config1 := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenant1,
 		Operation:    operation,
 		Enabled:      true,
@@ -332,7 +332,7 @@ func TestAuditConfigGormRepository_TenantIsolation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create config for tenant2 with different settings.
-	config2 := &domain.AuditConfig{
+	config2 := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenant2,
 		Operation:    operation,
 		Enabled:      false,
@@ -366,7 +366,7 @@ func TestAuditConfigGormRepository_TenantIsolation(t *testing.T) {
 func TestAuditConfigGormRepository_WithTransaction(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -378,7 +378,7 @@ func TestAuditConfigGormRepository_WithTransaction(t *testing.T) {
 
 	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -400,7 +400,7 @@ func TestAuditConfigGormRepository_WithTransaction(t *testing.T) {
 func TestAuditConfigGormRepository_WithTransaction_Rollback(t *testing.T) {
 	t.Parallel()
 	db := setupAuditConfigTestDB(t)
-	repo := repository.NewAuditConfigGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -412,7 +412,7 @@ func TestAuditConfigGormRepository_WithTransaction_Rollback(t *testing.T) {
 
 	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	config := &domain.AuditConfig{
+	config := &cryptoutilJoseDomain.AuditConfig{
 		TenantID:     tenantID,
 		Operation:    operation,
 		Enabled:      true,

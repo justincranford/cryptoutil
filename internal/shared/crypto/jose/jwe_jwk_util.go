@@ -6,18 +6,18 @@ package crypto
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rsa"
-	"encoding/json"
+	rsa "crypto/rsa"
+	json "encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/cloudflare/circl/sign/ed448"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtil "cryptoutil/internal/shared/util"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
@@ -45,7 +45,7 @@ func GenerateJWEJWKForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *jo
 }
 
 // CreateJWEJWKFromKey creates a JWE JWK from an existing cryptographic key.
-func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilSharedCryptoKeygen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	now := time.Now().UTC().Unix()
 
 	_, err := validateJWEJWKHeaders(kid, enc, alg, key, false)
@@ -56,7 +56,7 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	var nonPublicJWK joseJwk.Key
 
 	switch typedKey := key.(type) {
-	case cryptoutilKeyGen.SecretKey: // AES, AES-HS, HMAC
+	case cryptoutilSharedCryptoKeygen.SecretKey: // AES, AES-HS, HMAC
 		if nonPublicJWK, err = joseJwk.Import([]byte(typedKey)); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key material into JWE JWK: %w", err)
 		}
@@ -64,7 +64,7 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 		if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyOCT); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'oct' in JWE JWK: %w", err)
 		}
-	case *cryptoutilKeyGen.KeyPair: // RSA, EC, ED
+	case *cryptoutilSharedCryptoKeygen.KeyPair: // RSA, EC, ED
 		if nonPublicJWK, err = joseJwk.Import(typedKey.Private); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key pair into JWE JWK: %w", err)
 		}
@@ -122,7 +122,7 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 
 	var clearPublicJWKBytes []byte
 
-	if _, ok := key.(*cryptoutilKeyGen.KeyPair); ok { // RSA, EC, ED
+	if _, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair); ok { // RSA, EC, ED
 		publicJWK, err = nonPublicJWK.PublicKey()
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to get public JWE JWK from private JWE JWK: %w", err)
@@ -141,7 +141,7 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	return kid, nonPublicJWK, publicJWK, clearNonPublicJWKBytes, clearPublicJWKBytes, nil
 }
 
-func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
+func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilSharedCryptoKeygen.Key, isNilRawKeyOk bool) (cryptoutilSharedCryptoKeygen.Key, error) {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, &ErrInvalidJWEJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWE JWK kid must be valid: %w", err)
 	} else if alg == nil {
@@ -162,22 +162,22 @@ func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 		return validateOrGenerateJWEAESJWK(key, enc, alg, encKeyBitsLength, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgA256KW, AlgA256GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEA256KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilSharedMagic.JWEA256KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA192KW, AlgA192GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEA192KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilSharedMagic.JWEA192KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA128KW, AlgA128GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEA128KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilSharedMagic.JWEA128KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgRSAOAEP512:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilMagic.RSAKeySize4096, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilSharedMagic.RSAKeySize4096, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP384:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilMagic.RSAKeySize3072, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilSharedMagic.RSAKeySize3072, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP256:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilMagic.RSAKeySize2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilSharedMagic.RSAKeySize2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilMagic.RSAKeySize2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilSharedMagic.RSAKeySize2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSA15:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilMagic.RSAKeySize2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilSharedMagic.RSAKeySize2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgECDHES, AlgECDHESA256KW:
 		return validateOrGenerateJWEEcdhJWK(key, enc, alg, ecdh.P521(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
@@ -191,26 +191,26 @@ func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 	}
 }
 
-func validateOrGenerateJWEAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (cryptoutilKeyGen.SecretKey, error) {
+func validateOrGenerateJWEAESJWK(key cryptoutilSharedCryptoKeygen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (cryptoutilSharedCryptoKeygen.SecretKey, error) {
 	if !cryptoutilSharedUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	}
 
 	if key == nil {
-		var keyBytes cryptoutilKeyGen.SecretKey
+		var keyBytes cryptoutilSharedCryptoKeygen.SecretKey
 
 		var err error
 
 		switch *alg {
 		case AlgA256KW, AlgA256GCMKW, AlgA192KW, AlgA192GCMKW, AlgA128KW, AlgA128GCMKW:
-			keyBytes, err = cryptoutilKeyGen.GenerateAESKey(keyBitsLength)
+			keyBytes, err = cryptoutilSharedCryptoKeygen.GenerateAESKey(keyBitsLength)
 
 		case AlgDir:
 			switch *enc {
 			case EncA256GCM, EncA192GCM, EncA128GCM:
-				keyBytes, err = cryptoutilKeyGen.GenerateAESKey(keyBitsLength)
+				keyBytes, err = cryptoutilSharedCryptoKeygen.GenerateAESKey(keyBitsLength)
 			case EncA256CBCHS512, EncA192CBCHS384, EncA128CBCHS256:
-				keyBytes, err = cryptoutilKeyGen.GenerateAESHSKey(keyBitsLength)
+				keyBytes, err = cryptoutilSharedCryptoKeygen.GenerateAESHSKey(keyBitsLength)
 			default:
 				return nil, fmt.Errorf("valid JWE JWK alg %s, but invalid enc %s", *enc, *alg)
 			}
@@ -223,7 +223,7 @@ func validateOrGenerateJWEAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 		return keyBytes, nil
 	}
 
-	keyBytes, ok := key.(cryptoutilKeyGen.SecretKey)
+	keyBytes, ok := key.(cryptoutilSharedCryptoKeygen.SecretKey)
 	if !ok {
 		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use []byte", *enc, *alg, key)
 	}
@@ -239,13 +239,13 @@ func validateOrGenerateJWEAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 	return keyBytes, nil
 }
 
-func validateOrGenerateJWERSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJWERSAJWK(key cryptoutilSharedCryptoKeygen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if !cryptoutilSharedUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	}
 
 	if key == nil {
-		generatedKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(keyBitsLength)
+		generatedKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate RSA %d key: %w", *enc, *alg, keyBitsLength, err)
 		}
@@ -253,7 +253,7 @@ func validateOrGenerateJWERSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 		return generatedKeyPair, nil
 	}
 
-	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	keyPair, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair)
 	if !ok {
 		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *cryptoutilKeyGen.Key", *enc, *alg, key)
 	}
@@ -279,13 +279,13 @@ func validateOrGenerateJWERSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 	return keyPair, nil
 }
 
-func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, ecdhCurve ecdh.Curve, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJWEEcdhJWK(key cryptoutilSharedCryptoKeygen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, ecdhCurve ecdh.Curve, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
 	if !cryptoutilSharedUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	}
 
 	if key == nil {
-		generatedKeyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdhCurve)
+		generatedKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDHKeyPair(ecdhCurve)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate ECDH %s key: %w", *enc, *alg, ecdhCurve, err)
 		}
@@ -293,7 +293,7 @@ func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.Content
 		return generatedKeyPair, nil
 	}
 
-	keyPair, ok := key.(*cryptoutilKeyGen.KeyPair)
+	keyPair, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair)
 	if !ok {
 		return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *cryptoutilKeyGen.Key", *enc, *alg, key)
 	}
@@ -323,17 +323,17 @@ func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.Content
 func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	switch *enc {
 	case EncA256GCM:
-		return cryptoutilMagic.JWEA256KeySize, nil
+		return cryptoutilSharedMagic.JWEA256KeySize, nil
 	case EncA192GCM:
-		return cryptoutilMagic.JWEA192KeySize, nil
+		return cryptoutilSharedMagic.JWEA192KeySize, nil
 	case EncA128GCM:
-		return cryptoutilMagic.JWEA128KeySize, nil
+		return cryptoutilSharedMagic.JWEA128KeySize, nil
 	case EncA256CBCHS512:
-		return cryptoutilMagic.JWEA512KeySize, nil
+		return cryptoutilSharedMagic.JWEA512KeySize, nil
 	case EncA192CBCHS384:
-		return cryptoutilMagic.JWEA384KeySize, nil
+		return cryptoutilSharedMagic.JWEA384KeySize, nil
 	case EncA128CBCHS256:
-		return cryptoutilMagic.JWEA256KeySize, nil
+		return cryptoutilSharedMagic.JWEA256KeySize, nil
 	default:
 		return 0, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
 	}

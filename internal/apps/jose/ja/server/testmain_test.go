@@ -7,12 +7,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"testing"
 	"time"
 
-	"cryptoutil/internal/apps/jose/ja/server/config"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
 )
 
 var (
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create test configuration.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsJoseJaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 
 	// Create server.
 	var err error

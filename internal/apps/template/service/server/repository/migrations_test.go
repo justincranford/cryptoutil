@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 //go:embed test_migrations/*.sql
@@ -22,7 +22,7 @@ var testMigrationsFS embed.FS
 func TestNewMigrationRunner(t *testing.T) {
 	t.Parallel()
 
-	runner := repository.NewMigrationRunner(testMigrationsFS, "test_migrations")
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(testMigrationsFS, "test_migrations")
 
 	require.NotNil(t, runner)
 }
@@ -36,8 +36,8 @@ func TestMigrationRunner_Apply_SQLite(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	runner := repository.NewMigrationRunner(testMigrationsFS, "test_migrations")
-	err = runner.Apply(db, repository.DatabaseTypeSQLite)
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(testMigrationsFS, "test_migrations")
+	err = runner.Apply(db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 
 	require.NoError(t, err)
 
@@ -57,8 +57,8 @@ func TestMigrationRunner_Apply_InvalidPath(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	runner := repository.NewMigrationRunner(testMigrationsFS, "nonexistent")
-	err = runner.Apply(db, repository.DatabaseTypeSQLite)
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(testMigrationsFS, "nonexistent")
+	err = runner.Apply(db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create iofs source driver")
@@ -73,8 +73,8 @@ func TestMigrationRunner_Apply_UnsupportedDatabaseType(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	runner := repository.NewMigrationRunner(testMigrationsFS, "test_migrations")
-	err = runner.Apply(db, repository.DatabaseType("unsupported"))
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(testMigrationsFS, "test_migrations")
+	err = runner.Apply(db, cryptoutilAppsTemplateServiceServerRepository.DatabaseType("unsupported"))
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unsupported database type")
@@ -89,14 +89,14 @@ func TestMigrationRunner_Apply_NoChanges(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	runner := repository.NewMigrationRunner(testMigrationsFS, "test_migrations")
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(testMigrationsFS, "test_migrations")
 
 	// Apply migrations first time.
-	err = runner.Apply(db, repository.DatabaseTypeSQLite)
+	err = runner.Apply(db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 
 	// Apply again - should succeed with no changes.
-	err = runner.Apply(db, repository.DatabaseTypeSQLite)
+	err = runner.Apply(db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 }
 
@@ -109,7 +109,7 @@ func TestApplyMigrationsFromFS_SQLite(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	err = repository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "sqlite")
+	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "sqlite")
 	require.NoError(t, err)
 }
 
@@ -122,7 +122,7 @@ func TestApplyMigrationsFromFS_Sqlite3(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	err = repository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "sqlite3")
+	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "sqlite3")
 	require.NoError(t, err)
 }
 
@@ -135,7 +135,7 @@ func TestApplyMigrationsFromFS_UnsupportedType(t *testing.T) {
 
 	defer func() { _ = db.Close() }()
 
-	err = repository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "mysql")
+	err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(db, testMigrationsFS, "test_migrations", "mysql")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unsupported database type")
 }

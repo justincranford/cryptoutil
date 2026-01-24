@@ -5,17 +5,17 @@ package contentkeysservice
 import (
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/shared/barrier/intermediatekeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Helper functions for validation tests - allow passing nil values.
-func toTelemetryService(v any) *cryptoutilTelemetry.TelemetryService {
+func toTelemetryService(v any) *cryptoutilSharedTelemetry.TelemetryService {
 	if v == nil {
 		return nil
 	}
 
-	service, ok := v.(*cryptoutilTelemetry.TelemetryService)
+	service, ok := v.(*cryptoutilSharedTelemetry.TelemetryService)
 	if !ok {
 		return nil
 	}
@@ -23,12 +23,12 @@ func toTelemetryService(v any) *cryptoutilTelemetry.TelemetryService {
 	return service
 }
 
-func toJWKGenService(v any) *cryptoutilJose.JWKGenService {
+func toJWKGenService(v any) *cryptoutilSharedCryptoJose.JWKGenService {
 	if v == nil {
 		return nil
 	}
 
-	service, ok := v.(*cryptoutilJose.JWKGenService)
+	service, ok := v.(*cryptoutilSharedCryptoJose.JWKGenService)
 	if !ok {
 		return nil
 	}

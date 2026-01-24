@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -29,7 +29,7 @@ func TestAuditConfigRepository_Get(t *testing.T) {
 	// Create config.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := "test-operation"
-	config := &cryptoutilJoseJADomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -66,7 +66,7 @@ func TestAuditConfigRepository_GetAllForTenant(t *testing.T) {
 	operations := []string{"sign", "verify", "encrypt"}
 
 	for _, op := range operations {
-		config := &cryptoutilJoseJADomain.AuditConfig{
+		config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 			TenantID:     *tenantID,
 			Operation:    op,
 			Enabled:      true,
@@ -101,7 +101,7 @@ func TestAuditConfigRepository_Upsert(t *testing.T) {
 	operation := "test-upsert"
 
 	// Test create (insert).
-	config := &cryptoutilJoseJADomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -141,7 +141,7 @@ func TestAuditConfigRepository_Delete(t *testing.T) {
 	// Create config to delete.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := "test-delete"
-	config := &cryptoutilJoseJADomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -172,7 +172,7 @@ func TestAuditConfigRepository_ShouldAudit(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create config with enabled=true and sampling=1.0 (always audit).
-	config := &cryptoutilJoseJADomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
 		Enabled:      true,
@@ -223,7 +223,7 @@ func TestAuditLogRepository_Create(t *testing.T) {
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	entry := &cryptoutilJoseJADomain.AuditLogEntry{
+	entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 		ID:        *id,
 		TenantID:  *tenantID,
 		Operation: "sign",
@@ -255,7 +255,7 @@ func TestAuditLogRepository_List(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-		entry := &cryptoutilJoseJADomain.AuditLogEntry{
+		entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
 			Operation: "verify",
@@ -299,7 +299,7 @@ func TestAuditLogRepository_ListByElasticJWK(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-		entry := &cryptoutilJoseJADomain.AuditLogEntry{
+		entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 			ID:           *id,
 			TenantID:     *tenantID,
 			ElasticJWKID: elasticJWKID,
@@ -338,7 +338,7 @@ func TestAuditLogRepository_ListByOperation(t *testing.T) {
 	for i, op := range operations {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-		entry := &cryptoutilJoseJADomain.AuditLogEntry{
+		entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
 			Operation: op,
@@ -378,7 +378,7 @@ func TestAuditLogRepository_GetByRequestID(t *testing.T) {
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	entry := &cryptoutilJoseJADomain.AuditLogEntry{
+	entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 		ID:        *id,
 		TenantID:  *tenantID,
 		Operation: "encrypt",
@@ -412,7 +412,7 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-		entry := &cryptoutilJoseJADomain.AuditLogEntry{
+		entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
 			Operation: "sign",

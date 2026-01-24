@@ -6,11 +6,11 @@ package service
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"time"
 
-	"cryptoutil/internal/jose/domain"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -21,7 +21,7 @@ const MaxMaterialsPerElasticJWK = 1000
 
 // MaterialRotationResponse holds the result of a material rotation.
 type MaterialRotationResponse struct {
-	MaterialJWK *domain.MaterialJWK
+	MaterialJWK *cryptoutilJoseDomain.MaterialJWK
 	PublicJWK   joseJwk.Key
 }
 
@@ -88,7 +88,7 @@ func (s *ElasticJWKService) RotateMaterial(ctx context.Context, tenantID, realmI
 	materialID := googleUuid.New()
 	materialKID := googleUuid.New().String()
 
-	newMaterial := &domain.MaterialJWK{
+	newMaterial := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             materialID,
 		ElasticJWKID:   elasticJWKID,
 		MaterialKID:    materialKID,

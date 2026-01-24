@@ -6,13 +6,13 @@ package server
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/jose/ja/server/config"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
 )
 
 func TestJoseJAServer_Lifecycle(t *testing.T) {
@@ -107,7 +107,7 @@ func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration with different ports.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsJoseJaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 
 	// Create separate server instance.
 	server, err := NewFromConfig(ctx, cfg)

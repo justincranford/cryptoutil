@@ -21,10 +21,10 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ========================================
@@ -153,7 +153,7 @@ func TestMainBefore(m *testing.M) {
 //nolint:unused // Example variables for documentation
 var (
 	// Single listener encapsulates ALL infrastructure (telemetry, JWK gen, DB, servers).
-	_testListener *cryptoutilTemplateServerListener.ApplicationListener
+	_testListener *cryptoutilAppsTemplateServiceServerListener.ApplicationListener
 	_baseURL      string
 	_adminURL     string
 )
@@ -176,8 +176,8 @@ func _testMainAfter(m *testing.M) {
 	// }
 
 	// Configure application (product-specific settings injected here).
-	cfg := &cryptoutilTemplateServerListener.ApplicationConfig{
-		ServiceTemplateServerSettings: cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true),
+	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
+		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true),
 		DB:                            db,
 		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
 		// PublicHandlers: registerCipherIMHandlers, // Inject product-specific routes
@@ -185,15 +185,15 @@ func _testMainAfter(m *testing.M) {
 	}
 
 	// Start application (ONE LINE - encapsulates 150+ lines of boilerplate!).
-	_testListener, err = cryptoutilTemplateServerListener.StartApplicationListener(ctx, cfg)
+	_testListener, err = cryptoutilAppsTemplateServiceServerListener.StartApplicationListener(ctx, cfg)
 	if err != nil {
 		panic("failed to start application: " + err.Error())
 	}
 	defer _testListener.Shutdown()
 
 	// Extract URLs for tests (automatic port allocation).
-	_baseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, _testListener.ActualPublicPort())
-	_adminURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, _testListener.ActualPrivatePort())
+	_baseURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, _testListener.ActualPublicPort())
+	_adminURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, _testListener.ActualPrivatePort())
 
 	os.Exit(m.Run())
 }
@@ -231,8 +231,8 @@ func _createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 		return nil, nil, fmt.Errorf("failed to set busy timeout: %w", err)
 	}
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.
@@ -256,7 +256,7 @@ func _createInMemoryDB(ctx context.Context) (*gorm.DB, *sql.DB, error) {
 func _exampleHealthChecks() {
 	// Assuming _testListener is initialized in TestMain.
 	// Liveness check (lightweight - process alive?).
-	liveResult, err := cryptoutilTemplateServerListener.SendLivenessCheck(_testListener.Config())
+	liveResult, err := cryptoutilAppsTemplateServiceServerListener.SendLivenessCheck(_testListener.Config())
 	if err != nil {
 		fmt.Printf("Liveness check failed: %v\n", err)
 	} else {
@@ -264,7 +264,7 @@ func _exampleHealthChecks() {
 	}
 
 	// Readiness check (heavyweight - dependencies healthy?).
-	readyResult, err := cryptoutilTemplateServerListener.SendReadinessCheck(_testListener.Config())
+	readyResult, err := cryptoutilAppsTemplateServiceServerListener.SendReadinessCheck(_testListener.Config())
 	if err != nil {
 		fmt.Printf("Readiness check failed: %v\n", err)
 	} else {
@@ -272,7 +272,7 @@ func _exampleHealthChecks() {
 	}
 
 	// Graceful shutdown via API.
-	err = cryptoutilTemplateServerListener.SendShutdownRequest(_testListener.Config())
+	err = cryptoutilAppsTemplateServiceServerListener.SendShutdownRequest(_testListener.Config())
 	if err != nil {
 		fmt.Printf("Shutdown request failed: %v\n", err)
 	} else {

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func mustNewUUID() googleUuid.UUID {
@@ -63,7 +63,7 @@ func TestPBKDF2Hasher_HashLowEntropyNonDeterministic(t *testing.T) {
 
 			require.NoError(t, err)
 			require.NotEmpty(t, hashed)
-			require.True(t, strings.HasPrefix(hashed, "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"), "Hash should have PBKDF2 format")
+			require.True(t, strings.HasPrefix(hashed, "$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$"), "Hash should have PBKDF2 format")
 			require.NotEqual(t, tc.plaintext, hashed, "Hash should differ from plaintext")
 		})
 	}
@@ -291,11 +291,11 @@ func TestSecretBasedAuthenticator_MigrateSecrets(t *testing.T) {
 	// Verify both clients now have hashed secrets by checking the updated clients in the repository.
 	updatedClient1, err := mockRepo.GetByClientID(ctx, "client1")
 	require.NoError(t, err)
-	require.True(t, strings.HasPrefix(updatedClient1.ClientSecret, "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"), "client1 secret should be hashed")
+	require.True(t, strings.HasPrefix(updatedClient1.ClientSecret, "$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$"), "client1 secret should be hashed")
 
 	updatedClient2, err := mockRepo.GetByClientID(ctx, "client2")
 	require.NoError(t, err)
-	require.True(t, strings.HasPrefix(updatedClient2.ClientSecret, "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"), "client2 secret should be hashed")
+	require.True(t, strings.HasPrefix(updatedClient2.ClientSecret, "$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$"), "client2 secret should be hashed")
 }
 
 func TestSecretBasedAuthenticator_AuthenticateBasic(t *testing.T) {

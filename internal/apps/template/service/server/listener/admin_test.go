@@ -7,18 +7,18 @@ package listener_test
 import (
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"sync"
 	"testing"
 	"time"
 
-	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
-	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
-	cryptoutilTemplateServiceTesting "cryptoutil/internal/apps/template/service/testing/httpservertests"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerListener "cryptoutil/internal/apps/template/service/server/listener"
+	cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilAppsTemplateServiceTestingHttpservertests "cryptoutil/internal/apps/template/service/testing/httpservertests"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,8 +28,8 @@ import (
 func TestNewAdminHTTPServer_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 
 	require.NoError(t, err)
 	require.NotNil(t, server)
@@ -40,8 +40,8 @@ func TestNewAdminHTTPServer_NilContext(t *testing.T) {
 	t.Parallel()
 
 	// Use shared TestMain-generated fixture for private TLS settings.
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(nil, cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context handling.
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(nil, cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "context cannot be nil")
@@ -52,8 +52,8 @@ func TestNewAdminHTTPServer_NilContext(t *testing.T) {
 func TestNewAdminHTTPServer_NilSettings(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), nil, tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), nil, tlsCfg)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "settings cannot be nil")
@@ -64,7 +64,7 @@ func TestNewAdminHTTPServer_NilSettings(t *testing.T) {
 func TestNewAdminHTTPServer_NilTLSCfg(t *testing.T) {
 	t.Parallel()
 
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), nil)
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), nil)
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "TLS configuration cannot be nil")
@@ -75,8 +75,8 @@ func TestNewAdminHTTPServer_NilTLSCfg(t *testing.T) {
 func TestAdminServer_Start_Success(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
 	// Use shared TestMain-generated fixture for private TLS settings.
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -133,8 +133,8 @@ func TestAdminServer_Start_Success(t *testing.T) {
 
 // TestAdminServer_Readyz_NotReady tests that readyz returns 503 when server not marked ready.
 func TestAdminServer_Readyz_NotReady(t *testing.T) {
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -171,7 +171,7 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
 
@@ -208,8 +208,8 @@ func TestAdminServer_Readyz_NotReady(t *testing.T) {
 
 // TestAdminServer_HealthChecks_DuringShutdown tests livez and readyz return 503 during shutdown.
 func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -249,7 +249,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	reqCtx1, reqCancel1 := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel1()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
 	req1, err := http.NewRequestWithContext(reqCtx1, http.MethodGet, url, nil)
 	require.NoError(t, err)
 
@@ -275,7 +275,7 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 	reqCtx2, reqCancel2 := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel2()
 
-	livezURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+	livezURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
 	req2, err := http.NewRequestWithContext(reqCtx2, http.MethodGet, livezURL, nil)
 	require.NoError(t, err)
 
@@ -310,24 +310,24 @@ func TestAdminServer_HealthChecks_DuringShutdown(t *testing.T) {
 func TestAdminServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
 
-	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+	createServer := func(t *testing.T) cryptoutilAppsTemplateServiceTestingHttpservertests.HTTPServer {
 		t.Helper()
 
-		tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-		server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+		server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
 
 		return server
 	}
 
-	cryptoutilTemplateServiceTesting.TestStartNilContext(t, createServer)
+	cryptoutilAppsTemplateServiceTestingHttpservertests.TestStartNilContext(t, createServer)
 }
 
 // TestAdminServer_Livez_Alive tests /admin/api/v1/livez endpoint when server is alive.
 func TestAdminServer_Livez_Alive(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -361,7 +361,7 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
@@ -401,8 +401,8 @@ func TestAdminServer_Livez_Alive(t *testing.T) {
 // TestAdminServer_Readyz_Ready tests /admin/api/v1/readyz endpoint when server is ready.
 func TestAdminServer_Readyz_Ready(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -439,7 +439,7 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/readyz", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 	require.NoError(t, err)
@@ -479,8 +479,8 @@ func TestAdminServer_Readyz_Ready(t *testing.T) {
 // TestAdminServer_Shutdown_Endpoint tests POST /admin/api/v1/shutdown triggers graceful shutdown.
 func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -514,7 +514,7 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 	reqCtx, reqCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer reqCancel()
 
-	url := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilMagic.IPv4Loopback, port)
+	url := fmt.Sprintf("https://%s:%d/admin/api/v1/shutdown", cryptoutilSharedMagic.IPv4Loopback, port)
 
 	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, url, nil)
 	require.NoError(t, err)
@@ -552,17 +552,17 @@ func TestAdminServer_Shutdown_Endpoint(t *testing.T) {
 // TestAdminServer_Shutdown_NilContext tests Shutdown accepts nil context and uses Background().
 func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	// NOT parallel - all admin server tests compete for port 9090.
-	createServer := func(t *testing.T) cryptoutilTemplateServiceTesting.HTTPServer {
+	createServer := func(t *testing.T) cryptoutilAppsTemplateServiceTestingHttpservertests.HTTPServer {
 		t.Helper()
 
-		tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-		server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+		tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+		server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 		require.NoError(t, err)
 
 		return server
 	}
 
-	cryptoutilTemplateServiceTesting.TestShutdownNilContext(t, createServer)
+	cryptoutilAppsTemplateServiceTestingHttpservertests.TestShutdownNilContext(t, createServer)
 
 	// Wait for OS socket cleanup (TCP TIME_WAIT state).
 	// Windows needs longer for socket release - ConcurrentRequests runs next.
@@ -573,8 +573,8 @@ func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 func TestAdminServer_ActualPort_BeforeStart(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	port := server.ActualPort()
@@ -588,8 +588,8 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 	// Wait for port to be fully released from previous test.
 	time.Sleep(2 * time.Second)
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -634,7 +634,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 		if port > 0 {
 			healthCtx, healthCancel := context.WithTimeout(context.Background(), 2*time.Second)
 
-			healthURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+			healthURL := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
 
 			healthReq, _ := http.NewRequestWithContext(healthCtx, http.MethodGet, healthURL, nil)
 
@@ -683,7 +683,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 			reqCtx, reqCancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer reqCancel()
 
-			url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilMagic.IPv4Loopback, port)
+			url := fmt.Sprintf("https://%s:%d/admin/api/v1/livez", cryptoutilSharedMagic.IPv4Loopback, port)
 
 			req, reqErr := http.NewRequestWithContext(reqCtx, http.MethodGet, url, nil)
 			if reqErr != nil {
@@ -737,8 +737,8 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	// Start server in background.
@@ -769,7 +769,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	// Make request to verify timeouts are working.
 	port := server.ActualPort()
 
-	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
+	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 	url := fmt.Sprintf("%s/admin/api/v1/readyz", baseURL)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
@@ -806,8 +806,8 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 func TestAdminServer_AdminBaseURL(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -840,7 +840,7 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 
 	// Test AdminBaseURL returns correct format.
 	baseURL := server.AdminBaseURL()
-	expectedURL := fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, port)
+	expectedURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 	assert.Equal(t, expectedURL, baseURL)
 
 	// Shutdown server.
@@ -860,8 +860,8 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 func TestAdminServer_App(t *testing.T) {
 	t.Parallel()
 
-	tlsCfg := cryptoutilTemplateServerTestutil.PrivateTLS()
-	server, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
 
 	// App should return the underlying fiber.App.

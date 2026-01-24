@@ -10,14 +10,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TestBrowserSessionJWK_TableName tests BrowserSessionJWK table name.
 func TestBrowserSessionJWK_TableName(t *testing.T) {
 	t.Parallel()
 
-	jwk := repository.BrowserSessionJWK{}
+	jwk := cryptoutilAppsTemplateServiceServerRepository.BrowserSessionJWK{}
 	require.Equal(t, "browser_session_jwks", jwk.TableName())
 }
 
@@ -25,7 +25,7 @@ func TestBrowserSessionJWK_TableName(t *testing.T) {
 func TestServiceSessionJWK_TableName(t *testing.T) {
 	t.Parallel()
 
-	jwk := repository.ServiceSessionJWK{}
+	jwk := cryptoutilAppsTemplateServiceServerRepository.ServiceSessionJWK{}
 	require.Equal(t, "service_session_jwks", jwk.TableName())
 }
 
@@ -33,7 +33,7 @@ func TestServiceSessionJWK_TableName(t *testing.T) {
 func TestBrowserSession_TableName(t *testing.T) {
 	t.Parallel()
 
-	session := repository.BrowserSession{}
+	session := cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}
 	require.Equal(t, "browser_sessions", session.TableName())
 }
 
@@ -41,7 +41,7 @@ func TestBrowserSession_TableName(t *testing.T) {
 func TestServiceSession_TableName(t *testing.T) {
 	t.Parallel()
 
-	session := repository.ServiceSession{}
+	session := cryptoutilAppsTemplateServiceServerRepository.ServiceSession{}
 	require.Equal(t, "service_sessions", session.TableName())
 }
 
@@ -62,13 +62,13 @@ func TestSession_IsExpired(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			browserSession := &repository.BrowserSession{
-				Session: repository.Session{Expiration: tt.expiration},
+			browserSession := &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
+				Session: cryptoutilAppsTemplateServiceServerRepository.Session{Expiration: tt.expiration},
 			}
 			require.Equal(t, tt.expected, browserSession.IsExpired())
 
-			serviceSession := &repository.ServiceSession{
-				Session: repository.Session{Expiration: tt.expiration},
+			serviceSession := &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
+				Session: cryptoutilAppsTemplateServiceServerRepository.Session{Expiration: tt.expiration},
 			}
 			require.Equal(t, tt.expected, serviceSession.IsExpired())
 		})
@@ -79,14 +79,14 @@ func TestSession_IsExpired(t *testing.T) {
 func TestSession_UpdateLastActivity(t *testing.T) {
 	t.Parallel()
 
-	browserSession := &repository.BrowserSession{}
+	browserSession := &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}
 	require.Nil(t, browserSession.LastActivity)
 
 	browserSession.UpdateLastActivity()
 	require.NotNil(t, browserSession.LastActivity)
 	require.True(t, time.Since(*browserSession.LastActivity) < time.Second)
 
-	serviceSession := &repository.ServiceSession{}
+	serviceSession := &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{}
 	require.Nil(t, serviceSession.LastActivity)
 
 	serviceSession.UpdateLastActivity()

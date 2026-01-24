@@ -8,13 +8,13 @@ package apis
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"testing"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

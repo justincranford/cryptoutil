@@ -15,20 +15,20 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
 	testDB             *gorm.DB
 	testSQLDB          *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection
-	testJWKGenService  *cryptoutilJose.JWKGenService
-	testBarrierService *cryptoutilTemplateBarrier.Service
+	testJWKGenService  *cryptoutilSharedCryptoJose.JWKGenService
+	testBarrierService *cryptoutilAppsTemplateServiceServerBarrier.Service
 )
 
 func TestMain(m *testing.M) {
@@ -63,8 +63,8 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to set busy timeout: " + err.Error())
 	}
 
-	testSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	testSQLDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.
@@ -81,16 +81,16 @@ func TestMain(m *testing.M) {
 	}
 
 	// Initialize telemetry.
-	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	telemetrySettings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	testTelemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	testTelemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, telemetrySettings)
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
 	defer testTelemetryService.Shutdown()
 
 	// Initialize JWK Generation Service.
-	testJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
+	testJWKGenService, err = cryptoutilSharedCryptoJose.NewJWKGenService(ctx, testTelemetryService, false)
 	if err != nil {
 		panic("TestMain: failed to create JWK service: " + err.Error())
 	}
@@ -98,7 +98,7 @@ func TestMain(m *testing.M) {
 
 	// Initialize Barrier Service.
 	// Generate a simple test unseal key using JWE with A256GCM encryption and A256KW key wrapping.
-	_, testUnsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, testUnsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	if err != nil {
 		panic("TestMain: failed to generate test unseal JWK: " + err.Error())
 	}
@@ -109,13 +109,13 @@ func TestMain(m *testing.M) {
 	}
 	defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
-	testBarrierService, err = cryptoutilTemplateBarrier.NewService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
+	testBarrierService, err = cryptoutilAppsTemplateServiceServerBarrier.NewService(ctx, testTelemetryService, testJWKGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}

@@ -8,13 +8,13 @@ import (
 	"context"
 	"testing"
 
-	"cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestNewSQLRepository_NilTelemetryService tests nil telemetry service error.
@@ -24,9 +24,9 @@ func TestNewSQLRepository_NilTelemetryService(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_NilTelemetryService_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	sqlRepo, err := sqlrepository.NewSQLRepository(ctx, nil, testSettings)
+	sqlRepo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, nil, testSettings)
 
 	testify.Error(t, err)
 	testify.Nil(t, sqlRepo)
@@ -40,12 +40,12 @@ func TestNewSQLRepository_NilSettings(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_NilSettings_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo, err := sqlrepository.NewSQLRepository(ctx, telemetryService, nil)
+	sqlRepo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, nil)
 
 	testify.Error(t, err)
 	testify.Nil(t, sqlRepo)
@@ -59,15 +59,15 @@ func TestNewSQLRepository_ContainerModeInvalid(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_ContainerModeInvalid_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
 	// Set invalid container mode.
 	testSettings.DatabaseContainer = "invalid-mode"
 
-	sqlRepo, err := sqlrepository.NewSQLRepository(ctx, telemetryService, testSettings)
+	sqlRepo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, testSettings)
 
 	testify.Error(t, err)
 	testify.Nil(t, sqlRepo)
@@ -81,12 +81,12 @@ func TestHealthCheck(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestHealthCheck_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Test health check passes.
@@ -104,12 +104,12 @@ func TestHealthCheck_AfterShutdown(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestHealthCheck_AfterShutdown_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 
 	// Shutdown the repository.
 	sqlRepo.Shutdown()

@@ -18,20 +18,20 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 var (
 	testDB               *gorm.DB
 	testSQLDB            *sql.DB // Keep reference to prevent GC - in-memory SQLite requires open connection
-	testService   *cryptoutilTemplateBarrier.Service
-	testJWKGenService    *cryptoutilJose.JWKGenService
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testService          *cryptoutilAppsTemplateServiceServerBarrier.Service
+	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 )
 
 func TestMain(m *testing.M) {
@@ -57,8 +57,8 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to set busy timeout: " + err.Error())
 	}
 
-	testSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	testSQLDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.
@@ -75,21 +75,21 @@ func TestMain(m *testing.M) {
 	}
 
 	// Initialize telemetry.
-	testTelemetryService, err = cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
+	testTelemetryService, err = cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
 	defer testTelemetryService.Shutdown()
 
 	// Initialize JWK gen service.
-	testJWKGenService, err = cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
+	testJWKGenService, err = cryptoutilSharedCryptoJose.NewJWKGenService(ctx, testTelemetryService, false)
 	if err != nil {
 		panic("TestMain: failed to create JWK gen service: " + err.Error())
 	}
 	defer testJWKGenService.Shutdown()
 
 	// Generate unseal JWK for testing.
-	_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	if err != nil {
 		panic("TestMain: failed to generate unseal JWK: " + err.Error())
 	}
@@ -101,14 +101,14 @@ func TestMain(m *testing.M) {
 	defer unsealService.Shutdown()
 
 	// Create barrier repository.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
 	// Create barrier service.
-	testService, err = cryptoutilTemplateBarrier.NewService(
+	testService, err = cryptoutilAppsTemplateServiceServerBarrier.NewService(
 		ctx,
 		testTelemetryService,
 		testJWKGenService,
@@ -330,8 +330,8 @@ func TestService_Shutdown(t *testing.T) {
 	_, err = shutdownSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	shutdownSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	shutdownSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	shutdownSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	shutdownSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	shutdownSQLDB.SetConnMaxLifetime(0)
 
 	shutdownDB, err := gorm.Open(sqlite.Dialector{Conn: shutdownSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
@@ -341,26 +341,26 @@ func TestService_Shutdown(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create isolated barrier service for shutdown testing.
-	telemetrySvc, err := cryptoutilTelemetry.NewTelemetryService(ctx, cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
-	jwkGenSvc, err := cryptoutilJose.NewJWKGenService(ctx, telemetrySvc, false)
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
 	require.NoError(t, err)
 	t.Cleanup(func() { jwkGenSvc.Shutdown() })
 
-	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
 	t.Cleanup(func() { unsealService.Shutdown() })
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(shutdownDB)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(shutdownDB)
 	require.NoError(t, err)
 	t.Cleanup(func() { barrierRepo.Shutdown() })
 
-	service, err := cryptoutilTemplateBarrier.NewService(
+	service, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
 		ctx,
 		telemetrySvc,
 		jwkGenSvc,
@@ -439,9 +439,9 @@ func TestNewService_ValidationErrors(t *testing.T) {
 	tests := []struct {
 		name               string
 		ctx                context.Context
-		telemetryService   *cryptoutilTelemetry.TelemetryService
-		jwkGenService      *cryptoutilJose.JWKGenService
-		repository         cryptoutilTemplateBarrier.Repository
+		telemetryService   *cryptoutilSharedTelemetry.TelemetryService
+		jwkGenService      *cryptoutilSharedCryptoJose.JWKGenService
+		repository         cryptoutilAppsTemplateServiceServerBarrier.Repository
 		unsealKeysService  cryptoutilUnsealKeysService.UnsealKeysService
 		expectedErrContain string
 	}{
@@ -487,7 +487,7 @@ func TestNewService_ValidationErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			service, err := cryptoutilTemplateBarrier.NewService(
+			service, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
 				tt.ctx,
 				tt.telemetryService,
 				tt.jwkGenService,
@@ -521,8 +521,8 @@ func TestNewService_NilUnsealService(t *testing.T) {
 	require.NoError(t, err)
 	_, err = validSQLDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
-	validSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	validSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	validSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	validSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	validSQLDB.SetConnMaxLifetime(0)
 
 	validDB, err := gorm.Open(sqlite.Dialector{Conn: validSQLDB}, &gorm.Config{SkipDefaultTransaction: true})
@@ -530,12 +530,12 @@ func TestNewService_NilUnsealService(t *testing.T) {
 
 	require.NoError(t, createBarrierTables(validSQLDB))
 
-	repo, err := cryptoutilTemplateBarrier.NewGormRepository(validDB)
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(validDB)
 	require.NoError(t, err)
 
 	defer repo.Shutdown()
 
-	service, err := cryptoutilTemplateBarrier.NewService(
+	service, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
 		ctx,
 		testTelemetryService,
 		testJWKGenService,

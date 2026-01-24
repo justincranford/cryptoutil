@@ -11,26 +11,26 @@ import (
 	"net"
 	"os"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAsn1 "cryptoutil/internal/shared/crypto/asn1"
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilDateTime "cryptoutil/internal/shared/util/datetime"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedCryptoAsn1 "cryptoutil/internal/shared/crypto/asn1"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilDatetime "cryptoutil/internal/shared/util/datetime"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 )
 
 const (
 	// TLS certificate validity and helper constants.
-	tlsCACertValidityYears   = cryptoutilMagic.TLSDefaultValidityCACertYears // years for CA certificates
-	tlsEndEntityValidityDays = 396                                           // days for server end-entity certificate (reduced from 397 to allow for randomization)
-	tlsServerKeyPairsNeeded  = 2                                             // number of keypairs requested for server TLS
+	tlsCACertValidityYears   = cryptoutilSharedMagic.TLSDefaultValidityCACertYears // years for CA certificates
+	tlsEndEntityValidityDays = 396                                                 // days for server end-entity certificate (reduced from 397 to allow for randomization)
+	tlsServerKeyPairsNeeded  = 2                                                   // number of keypairs requested for server TLS
 
 	// File mode for written PEM files.
-	defaultPEMFileMode = cryptoutilMagic.FilePermOwnerReadWriteOnly
+	defaultPEMFileMode = cryptoutilSharedMagic.FilePermOwnerReadWriteOnly
 )
 
 // ServerInit initializes the server by generating TLS certificates and other required configuration.
-func ServerInit(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
+func ServerInit(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) error {
 	ctx := context.Background()
 
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
@@ -47,7 +47,7 @@ func ServerInit(settings *cryptoutilConfig.ServiceTemplateServerSettings) error 
 	return nil
 }
 
-func generateTLSServerSubjects(settings *cryptoutilConfig.ServiceTemplateServerSettings, serverApplicationBasic *ServerApplicationBasic) (*cryptoutilCertificate.Subject, *cryptoutilCertificate.Subject, error) {
+func generateTLSServerSubjects(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, serverApplicationBasic *ServerApplicationBasic) (*cryptoutilSharedCryptoCertificate.Subject, *cryptoutilSharedCryptoCertificate.Subject, error) {
 	publicTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
@@ -71,21 +71,21 @@ func generateTLSServerSubjects(settings *cryptoutilConfig.ServiceTemplateServerS
 	return public, private, nil
 }
 
-func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, prefix string, publicTLSServerDNSNames []string, publicTLSServerIPAddresses []net.IP) (*cryptoutilCertificate.Subject, error) {
+func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, prefix string, publicTLSServerDNSNames []string, publicTLSServerIPAddresses []net.IP) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	tlsServerSubjectsKeyPairs := serverApplicationBasic.JWKGenService.ECDSAP256KeyGenPool.GetMany(tlsServerKeyPairsNeeded)
 
-	tlsServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", tlsCACertValidityYears*365*cryptoutilDateTime.Days1)
+	tlsServerCASubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", tlsCACertValidityYears*365*cryptoutilSharedUtilDatetime.Days1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create TLS server CA subjects: %w", err)
 	}
 
-	tlsServerEndEntitySubject, err := cryptoutilCertificate.CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "TLS Server", tlsEndEntityValidityDays*cryptoutilDateTime.Days1, publicTLSServerDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	tlsServerEndEntitySubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "TLS Server", tlsEndEntityValidityDays*cryptoutilSharedUtilDatetime.Days1, publicTLSServerDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create TLS server end entity subject: %w", err)
 	}
 
 	// Encode Certificates as PEM and write to files
-	tlsServerCertificateChainPEMs, err := cryptoutilAsn1.PEMEncodes(tlsServerEndEntitySubject.KeyMaterial.CertificateChain)
+	tlsServerCertificateChainPEMs, err := cryptoutilSharedCryptoAsn1.PEMEncodes(tlsServerEndEntitySubject.KeyMaterial.CertificateChain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode certificate chain as PEM: %w", err)
 	}
@@ -98,7 +98,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	}
 
 	// Encrypt private key as PEM to write to file
-	tlsPrivateKeyPEM, err := cryptoutilAsn1.PEMEncode(tlsServerEndEntitySubject.KeyMaterial.PrivateKey)
+	tlsPrivateKeyPEM, err := cryptoutilSharedCryptoAsn1.PEMEncode(tlsServerEndEntitySubject.KeyMaterial.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode private key as PEM: %w", err)
 	}

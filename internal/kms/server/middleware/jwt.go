@@ -7,20 +7,20 @@ package middleware
 import (
 	"context"
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rsa"
-	"encoding/json"
+	rsa "crypto/rsa"
+	json "encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/lestrrat-go/jwx/v3/jwa"
-	"github.com/lestrrat-go/jwx/v3/jwk"
+	fiber "github.com/gofiber/fiber/v2"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jwt"
 )
 
@@ -98,7 +98,7 @@ type JWTValidator struct {
 // jwksCache caches JWKS keys with TTL.
 type jwksCache struct {
 	sync.RWMutex
-	keySet     jwk.Set
+	keySet     joseJwk.Set
 	lastUpdate time.Time
 	ttl        time.Duration
 }
@@ -324,7 +324,7 @@ func (v *JWTValidator) hasSensitiveScope(claims *JWTClaims) bool {
 }
 
 // getJWKS retrieves JWKS from cache or fetches from URL.
-func (v *JWTValidator) getJWKS(ctx context.Context) (jwk.Set, error) {
+func (v *JWTValidator) getJWKS(ctx context.Context) (joseJwk.Set, error) {
 	v.cache.RLock()
 
 	if v.cache.keySet != nil && time.Since(v.cache.lastUpdate) < v.cache.ttl {
@@ -341,7 +341,7 @@ func (v *JWTValidator) getJWKS(ctx context.Context) (jwk.Set, error) {
 }
 
 // refreshJWKS fetches fresh JWKS from the configured URL.
-func (v *JWTValidator) refreshJWKS(ctx context.Context) (jwk.Set, error) {
+func (v *JWTValidator) refreshJWKS(ctx context.Context) (joseJwk.Set, error) {
 	v.cache.Lock()
 	defer v.cache.Unlock()
 
@@ -351,7 +351,7 @@ func (v *JWTValidator) refreshJWKS(ctx context.Context) (jwk.Set, error) {
 	}
 
 	// Fetch JWKS.
-	keySet, err := jwk.Fetch(ctx, v.config.JWKSURL, jwk.WithHTTPClient(v.httpClient))
+	keySet, err := joseJwk.Fetch(ctx, v.config.JWKSURL, joseJwk.WithHTTPClient(v.httpClient))
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch JWKS from %s: %w", v.config.JWKSURL, err)
 	}
@@ -608,23 +608,23 @@ func RequireAnyScopeMiddleware(validator *JWTValidator, requiredScopes ...string
 // DefaultAllowedAlgorithms returns FIPS-approved algorithms.
 func DefaultAllowedAlgorithms() []string {
 	return []string{
-		jwa.RS256().String(),
-		jwa.RS384().String(),
-		jwa.RS512().String(),
-		jwa.ES256().String(),
-		jwa.ES384().String(),
-		jwa.ES512().String(),
-		jwa.PS256().String(),
-		jwa.PS384().String(),
-		jwa.PS512().String(),
-		jwa.EdDSA().String(),
+		joseJwa.RS256().String(),
+		joseJwa.RS384().String(),
+		joseJwa.RS512().String(),
+		joseJwa.ES256().String(),
+		joseJwa.ES384().String(),
+		joseJwa.ES512().String(),
+		joseJwa.PS256().String(),
+		joseJwa.PS384().String(),
+		joseJwa.PS512().String(),
+		joseJwa.EdDSA().String(),
 	}
 }
 
 // PublicKeyFromJWK extracts public key from JWK.
-func PublicKeyFromJWK(key jwk.Key) (crypto.PublicKey, error) {
+func PublicKeyFromJWK(key joseJwk.Key) (crypto.PublicKey, error) {
 	var pubKey any
-	if err := jwk.Export(key, &pubKey); err != nil {
+	if err := joseJwk.Export(key, &pubKey); err != nil {
 		return nil, fmt.Errorf("failed to extract public key: %w", err)
 	}
 

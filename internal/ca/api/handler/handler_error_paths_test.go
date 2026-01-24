@@ -3,11 +3,11 @@
 package handler
 
 import (
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

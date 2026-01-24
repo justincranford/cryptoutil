@@ -4,7 +4,7 @@ package idp
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"testing"
 	"time"
 
@@ -13,7 +13,7 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	"cryptoutil/internal/identity/repository"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
 )
 
@@ -120,7 +120,7 @@ func TestUserInfoClaims(t *testing.T) {
 			ctx := context.Background()
 
 			// Create in-memory SQLite repository factory.
-			repoFactory, err := repository.NewRepositoryFactory(ctx, &cryptoutilIdentityConfig.DatabaseConfig{
+			repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, &cryptoutilIdentityConfig.DatabaseConfig{
 				Type: "sqlite",
 				DSN:  ":memory:",
 			})

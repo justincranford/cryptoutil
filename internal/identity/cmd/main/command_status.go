@@ -5,7 +5,7 @@
 package cmd
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"

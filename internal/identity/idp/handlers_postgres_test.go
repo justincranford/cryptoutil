@@ -10,7 +10,7 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	"cryptoutil/internal/identity/repository"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -32,7 +32,7 @@ func TestPostgreSQLIntegration(t *testing.T) {
 	}
 
 	// Create repository factory (skip if PostgreSQL is not available).
-	repoFactory, err := repository.NewRepositoryFactory(ctx, dbConfig)
+	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	if err != nil {
 		t.Skipf("Skipping PostgreSQL integration test: %v", err)
 	}
@@ -61,7 +61,7 @@ func TestPostgreSQLIntegration(t *testing.T) {
 	tests := []struct {
 		name        string
 		description string
-		testFunc    func(t *testing.T, repoFactory *repository.RepositoryFactory)
+		testFunc    func(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory)
 	}{
 		{
 			name:        "connection pooling",
@@ -91,7 +91,7 @@ func TestPostgreSQLIntegration(t *testing.T) {
 }
 
 // testConnectionPooling validates connection pool settings work correctly.
-func testConnectionPooling(t *testing.T, repoFactory *repository.RepositoryFactory) {
+func testConnectionPooling(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
 	t.Helper()
 
 	// Validate connection pool settings.
@@ -116,7 +116,7 @@ func testConnectionPooling(t *testing.T, repoFactory *repository.RepositoryFacto
 }
 
 // testConcurrentOperations validates concurrent user/client/token creation works without deadlocks.
-func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFactory) {
+func testConcurrentOperations(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
 	t.Helper()
 
 	ctx := context.Background()
@@ -233,7 +233,7 @@ func testConcurrentOperations(t *testing.T, repoFactory *repository.RepositoryFa
 }
 
 // testTransactionIsolation validates transaction isolation between concurrent transactions.
-func testTransactionIsolation(t *testing.T, repoFactory *repository.RepositoryFactory) {
+func testTransactionIsolation(t *testing.T, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
 	t.Helper()
 
 	ctx := context.Background()

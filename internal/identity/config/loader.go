@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"gopkg.in/yaml.v3"
 )
@@ -46,7 +46,7 @@ func SaveToFile(cfg *Config, path string) error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	if err := os.WriteFile(path, data, cryptoutilMagic.FilePermOwnerReadWriteOnly); err != nil {
+	if err := os.WriteFile(path, data, cryptoutilSharedMagic.FilePermOwnerReadWriteOnly); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 

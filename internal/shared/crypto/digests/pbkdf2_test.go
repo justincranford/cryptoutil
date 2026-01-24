@@ -3,11 +3,11 @@
 package digests
 
 import (
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"strings"
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -20,10 +20,10 @@ const (
 func FastPBKDF2ParameterSet() *PBKDF2Params {
 	return &PBKDF2Params{
 		Version:    "1",
-		HashName:   cryptoutilMagic.PBKDF2DefaultHashName,
-		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
-		SaltLength: cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		KeyLength:  cryptoutilMagic.PBKDF2DerivedKeyLength,
+		HashName:   cryptoutilSharedMagic.PBKDF2DefaultHashName,
+		Iterations: cryptoutilSharedMagic.PBKDF2DefaultIterations,
+		SaltLength: cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		KeyLength:  cryptoutilSharedMagic.PBKDF2DerivedKeyLength,
 		HashFunc:   sha256.New,
 	}
 }
@@ -75,12 +75,12 @@ func TestHashSecretPBKDF2(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, hash)
-				require.True(t, strings.HasPrefix(hash, "{1}$"+cryptoutilMagic.PBKDF2DefaultHashName+"$"))
+				require.True(t, strings.HasPrefix(hash, "{1}$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$"))
 
 				parts := strings.Split(hash, "$")
 				require.Len(t, parts, 5)
 				require.Equal(t, "{1}", parts[0])
-				require.Equal(t, cryptoutilMagic.PBKDF2DefaultHashName, parts[1])
+				require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultHashName, parts[1])
 			}
 		})
 	}
@@ -138,7 +138,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid iterations in hash - old format rejected",
 			setup: func() (string, string) {
-				return cryptoutilMagic.PBKDF2DefaultHashName + "$invalid$salt$dk", testPassword
+				return cryptoutilSharedMagic.PBKDF2DefaultHashName + "$invalid$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -147,7 +147,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "zero iterations in hash - old format rejected",
 			setup: func() (string, string) {
-				return cryptoutilMagic.PBKDF2DefaultHashName + "$0$salt$dk", testPassword
+				return cryptoutilSharedMagic.PBKDF2DefaultHashName + "$0$salt$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -156,7 +156,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid salt encoding - old format rejected",
 			setup: func() (string, string) {
-				return cryptoutilMagic.PBKDF2DefaultHashName + "$1000$!!!invalid!!!$dk", testPassword
+				return cryptoutilSharedMagic.PBKDF2DefaultHashName + "$1000$!!!invalid!!!$dk", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,
@@ -165,7 +165,7 @@ func TestVerifySecret(t *testing.T) {
 		{
 			name: "invalid dk encoding - old format rejected",
 			setup: func() (string, string) {
-				return cryptoutilMagic.PBKDF2DefaultHashName + "$1000$dGVzdA$!!!invalid!!!", testPassword
+				return cryptoutilSharedMagic.PBKDF2DefaultHashName + "$1000$dGVzdA$!!!invalid!!!", testPassword
 			},
 			wantOK:   false,
 			wantErr:  true,

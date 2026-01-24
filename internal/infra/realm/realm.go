@@ -16,7 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gopkg.in/yaml.v3"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Config holds the complete realm configuration.
@@ -155,10 +155,10 @@ func DefaultConfig() *Config {
 // Reference: Session 5 Q12 - SHA-256, 600K iterations, 32-byte salt.
 func DefaultPasswordPolicy() PasswordPolicyConfig {
 	return PasswordPolicyConfig{
-		Algorithm:  cryptoutilMagic.PBKDF2DefaultAlgorithm,
-		Iterations: cryptoutilMagic.PBKDF2DefaultIterations,
-		SaltBytes:  cryptoutilMagic.PBKDF2DefaultSaltBytes,
-		HashBytes:  cryptoutilMagic.PBKDF2DefaultHashBytes,
+		Algorithm:  cryptoutilSharedMagic.PBKDF2DefaultAlgorithm,
+		Iterations: cryptoutilSharedMagic.PBKDF2DefaultIterations,
+		SaltBytes:  cryptoutilSharedMagic.PBKDF2DefaultSaltBytes,
+		HashBytes:  cryptoutilSharedMagic.PBKDF2DefaultHashBytes,
 	}
 }
 

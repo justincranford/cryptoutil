@@ -7,35 +7,35 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"testing"
 
-	templateE2E "cryptoutil/internal/apps/template/testing/e2e"
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateTestingE2e "cryptoutil/internal/apps/template/testing/e2e"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient *http.Client
-	composeManager   *templateE2E.ComposeManager
+	composeManager   *cryptoutilAppsTemplateTestingE2e.ComposeManager
 
 	// Three cipher-im instances with different backends (actual container names).
-	sqliteContainer    = cryptoutilMagic.CipherE2ESQLiteContainer      // "cipher-im-sqlite"
-	postgres1Container = cryptoutilMagic.CipherE2EPostgreSQL1Container // "cipher-im-pg-1"
-	postgres2Container = cryptoutilMagic.CipherE2EPostgreSQL2Container // "cipher-im-pg-2"
+	sqliteContainer    = cryptoutilSharedMagic.CipherE2ESQLiteContainer      // "cipher-im-sqlite"
+	postgres1Container = cryptoutilSharedMagic.CipherE2EPostgreSQL1Container // "cipher-im-pg-1"
+	postgres2Container = cryptoutilSharedMagic.CipherE2EPostgreSQL2Container // "cipher-im-pg-2"
 
 	// Service URLs (mapped from container ports to host ports).
-	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8888"
-	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8889"
-	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.CipherE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8890"
-	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilMagic.CipherE2EGrafanaPort)            // "http://127.0.0.1:3000"
+	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8888"
+	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8889"
+	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8890"
+	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EGrafanaPort)            // "http://127.0.0.1:3000"
 
 	healthChecks = map[string]string{
-		sqliteContainer:    sqlitePublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
-		postgres1Container: postgres1PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
-		postgres2Container: postgres2PublicURL + cryptoutilMagic.CipherE2EHealthEndpoint,
+		sqliteContainer:    sqlitePublicURL + cryptoutilSharedMagic.CipherE2EHealthEndpoint,
+		postgres1Container: postgres1PublicURL + cryptoutilSharedMagic.CipherE2EHealthEndpoint,
+		postgres2Container: postgres2PublicURL + cryptoutilSharedMagic.CipherE2EHealthEndpoint,
 	}
 )
 
@@ -52,8 +52,8 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Initialize compose manager with reusable helper.
-	composeManager = templateE2E.NewComposeManager(cryptoutilMagic.CipherE2EComposeFile)
-	sharedHTTPClient = cryptoutilTLS.NewClientForTest()
+	composeManager = cryptoutilAppsTemplateTestingE2e.NewComposeManager(cryptoutilSharedMagic.CipherE2EComposeFile)
+	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
 
 	// Step 1: Start docker compose stack.
 	if err := composeManager.Start(ctx); err != nil {
@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 	// Step 2: Wait for all services to be healthy using public /health endpoint.
 	fmt.Println("Waiting for all cipher-im instances to be healthy...")
 
-	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilMagic.CipherE2EHealthTimeout); err != nil {
+	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilSharedMagic.CipherE2EHealthTimeout); err != nil {
 		fmt.Printf("Service health checks failed: %v\n", err)
 
 		_ = composeManager.Stop(ctx)

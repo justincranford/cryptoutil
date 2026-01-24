@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ProgressDisplay manages progress output during demo execution.
@@ -242,7 +242,7 @@ type Spinner struct {
 func NewSpinner() *Spinner {
 	return &Spinner{
 		frames:   []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
-		interval: cryptoutilMagic.DefaultSpinnerInterval,
+		interval: cryptoutilSharedMagic.DefaultSpinnerInterval,
 		stop:     make(chan struct{}),
 	}
 }

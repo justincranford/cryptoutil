@@ -11,8 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // StorageFormat defines the format for storing certificates and keys.
@@ -65,8 +65,8 @@ func DefaultStorageOptions(directory string) *StorageOptions {
 		CertificateFilename: "cert.pem",
 		PrivateKeyFilename:  "key.pem",
 		IncludePrivateKey:   true,
-		FileMode:            cryptoutilMagic.FilePermOwnerReadWriteOnly,
-		DirMode:             cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute,
+		FileMode:            cryptoutilSharedMagic.FilePermOwnerReadWriteOnly,
+		DirMode:             cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute,
 	}
 }
 
@@ -84,7 +84,7 @@ type StoredCertificate struct {
 }
 
 // StoreCertificate stores a certificate subject to disk in the specified format.
-func StoreCertificate(subject *cryptoutilCertificate.Subject, opts *StorageOptions) (*StoredCertificate, error) {
+func StoreCertificate(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageOptions) (*StoredCertificate, error) {
 	if subject == nil {
 		return nil, fmt.Errorf("subject cannot be nil")
 	} else if opts == nil {
@@ -109,7 +109,7 @@ func StoreCertificate(subject *cryptoutilCertificate.Subject, opts *StorageOptio
 }
 
 // storePEM stores a certificate in PEM format.
-func storePEM(subject *cryptoutilCertificate.Subject, opts *StorageOptions) (*StoredCertificate, error) {
+func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageOptions) (*StoredCertificate, error) {
 	certPath := filepath.Join(opts.Directory, opts.CertificateFilename)
 	keyPath := filepath.Join(opts.Directory, opts.PrivateKeyFilename)
 
@@ -125,7 +125,7 @@ func storePEM(subject *cryptoutilCertificate.Subject, opts *StorageOptions) (*St
 	}
 
 	// Write certificate chain.
-	if err := os.WriteFile(certPath, certChainPEM, cryptoutilMagic.FilePermOwnerReadWriteGroupRead); err != nil {
+	if err := os.WriteFile(certPath, certChainPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead); err != nil {
 		return nil, fmt.Errorf("failed to write certificate: %w", err)
 	}
 
@@ -166,7 +166,7 @@ func storePEM(subject *cryptoutilCertificate.Subject, opts *StorageOptions) (*St
 //
 // Note: PKCS#11 (HSM) and YubiKey support planned for future phases.
 // Reference: Session 4 Q2 notes.
-func storePKCS12(_ *cryptoutilCertificate.Subject, _ *StorageOptions) (*StoredCertificate, error) {
+func storePKCS12(_ *cryptoutilSharedCryptoCertificate.Subject, _ *StorageOptions) (*StoredCertificate, error) {
 	return nil, fmt.Errorf("PKCS#12 storage format not yet implemented (planned for future)")
 }
 
@@ -179,12 +179,12 @@ func storePKCS12(_ *cryptoutilCertificate.Subject, _ *StorageOptions) (*StoredCe
 //   - Parse certificate chains and private keys from PFX/P12 files
 //
 // Reference: Session 4 Q2 notes.
-func LoadCertificatePKCS12(_ string, _ string) (*cryptoutilCertificate.Subject, error) {
+func LoadCertificatePKCS12(_ string, _ string) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	return nil, fmt.Errorf("PKCS#12 loading not yet implemented (planned for future)")
 }
 
 // LoadCertificatePEM loads a certificate and private key from PEM files.
-func LoadCertificatePEM(certPath, keyPath string) (*cryptoutilCertificate.Subject, error) {
+func LoadCertificatePEM(certPath, keyPath string) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	// Read certificate file.
 	certPEM, err := os.ReadFile(certPath)
 	if err != nil {
@@ -216,12 +216,12 @@ func LoadCertificatePEM(certPath, keyPath string) (*cryptoutilCertificate.Subjec
 		return nil, fmt.Errorf("no certificates found in file")
 	}
 
-	subject := &cryptoutilCertificate.Subject{
+	subject := &cryptoutilSharedCryptoCertificate.Subject{
 		SubjectName: certs[0].Subject.CommonName,
 		IssuerName:  certs[0].Issuer.CommonName,
 		Duration:    certs[0].NotAfter.Sub(certs[0].NotBefore),
 		IsCA:        certs[0].IsCA,
-		KeyMaterial: cryptoutilCertificate.KeyMaterial{
+		KeyMaterial: cryptoutilSharedCryptoCertificate.KeyMaterial{
 			CertificateChain: certs,
 			PublicKey:        certs[0].PublicKey,
 		},

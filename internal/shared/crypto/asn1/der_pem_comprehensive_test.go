@@ -4,11 +4,11 @@
 package asn1
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"math/big"
@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,10 +26,10 @@ func TestPEMEncodes(t *testing.T) {
 	t.Parallel()
 
 	// Generate test certificates.
-	privateKey1, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey1, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	privateKey2, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey2, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -39,14 +39,14 @@ func TestPEMEncodes(t *testing.T) {
 		},
 	}
 
-	cert1DER, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey1.PublicKey, privateKey1)
+	cert1DER, err := x509.CreateCertificate(crand.Reader, template, template, &privateKey1.PublicKey, privateKey1)
 	require.NoError(t, err)
 
 	cert1, err := x509.ParseCertificate(cert1DER)
 	require.NoError(t, err)
 
 	template.SerialNumber = big.NewInt(2)
-	cert2DER, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey2.PublicKey, privateKey2)
+	cert2DER, err := x509.CreateCertificate(crand.Reader, template, template, &privateKey2.PublicKey, privateKey2)
 	require.NoError(t, err)
 
 	cert2, err := x509.ParseCertificate(cert2DER)
@@ -109,10 +109,10 @@ func TestDEREncodes(t *testing.T) {
 	t.Parallel()
 
 	// Generate test certificates.
-	privateKey1, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey1, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	privateKey2, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey2, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -122,14 +122,14 @@ func TestDEREncodes(t *testing.T) {
 		},
 	}
 
-	cert1DER, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey1.PublicKey, privateKey1)
+	cert1DER, err := x509.CreateCertificate(crand.Reader, template, template, &privateKey1.PublicKey, privateKey1)
 	require.NoError(t, err)
 
 	cert1, err := x509.ParseCertificate(cert1DER)
 	require.NoError(t, err)
 
 	template.SerialNumber = big.NewInt(2)
-	cert2DER, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey2.PublicKey, privateKey2)
+	cert2DER, err := x509.CreateCertificate(crand.Reader, template, template, &privateKey2.PublicKey, privateKey2)
 	require.NoError(t, err)
 
 	cert2, err := x509.ParseCertificate(cert2DER)
@@ -141,11 +141,11 @@ func TestDEREncodes(t *testing.T) {
 	require.Len(t, derBytesList, 2)
 
 	// Verify each DER can be decoded.
-	decoded1, err := DERDecode(derBytesList[0], cryptoutilMagic.StringPEMTypeCertificate)
+	decoded1, err := DERDecode(derBytesList[0], cryptoutilSharedMagic.StringPEMTypeCertificate)
 	require.NoError(t, err)
 	require.IsType(t, &x509.Certificate{}, decoded1)
 
-	decoded2, err := DERDecode(derBytesList[1], cryptoutilMagic.StringPEMTypeCertificate)
+	decoded2, err := DERDecode(derBytesList[1], cryptoutilSharedMagic.StringPEMTypeCertificate)
 	require.NoError(t, err)
 	require.IsType(t, &x509.Certificate{}, decoded2)
 }
@@ -199,68 +199,68 @@ func TestDEREncode_AllKeyTypes(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(rand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, 2048)
 			},
-			expectedPEMType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
 			name: "RSA public key",
 			keyGen: func() (any, error) {
-				priv, err := rsa.GenerateKey(rand.Reader, 2048)
+				priv, err := rsa.GenerateKey(crand.Reader, 2048)
 				if err != nil {
 					return nil, err
 				}
 
 				return &priv.PublicKey, nil
 			},
-			expectedPEMType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 		{
 			name: "ECDSA private key",
 			keyGen: func() (any, error) {
-				return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				return ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 			},
-			expectedPEMType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
 			name: "ECDSA public key",
 			keyGen: func() (any, error) {
-				priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
 					return nil, err
 				}
 
 				return &priv.PublicKey, nil
 			},
-			expectedPEMType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 		{
 			name: "EdDSA private key",
 			keyGen: func() (any, error) {
-				_, priv, err := ed25519.GenerateKey(rand.Reader)
+				_, priv, err := ed25519.GenerateKey(crand.Reader)
 
 				return priv, err
 			},
-			expectedPEMType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
 			name: "EdDSA public key",
 			keyGen: func() (any, error) {
-				pub, _, err := ed25519.GenerateKey(rand.Reader)
+				pub, _, err := ed25519.GenerateKey(crand.Reader)
 
 				return pub, err
 			},
-			expectedPEMType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			expectedPEMType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 		{
 			name: "byte slice (secret key)",
 			keyGen: func() (any, error) {
 				secretKey := make([]byte, 32)
-				_, err := rand.Read(secretKey)
+				_, err := crand.Read(secretKey)
 
 				return secretKey, err
 			},
-			expectedPEMType: cryptoutilMagic.StringPEMTypeSecretKey,
+			expectedPEMType: cryptoutilSharedMagic.StringPEMTypeSecretKey,
 		},
 	}
 
@@ -301,9 +301,9 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "RSA private key (PKCS8)",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(rand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, 2048)
 			},
-			pemType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 			verifyType: func(t *testing.T, key any) {
 				require.IsType(t, &rsa.PrivateKey{}, key)
 			},
@@ -311,14 +311,14 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "RSA public key (PKIX)",
 			keyGen: func() (any, error) {
-				priv, err := rsa.GenerateKey(rand.Reader, 2048)
+				priv, err := rsa.GenerateKey(crand.Reader, 2048)
 				if err != nil {
 					return nil, err
 				}
 
 				return &priv.PublicKey, nil
 			},
-			pemType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 			verifyType: func(t *testing.T, key any) {
 				require.IsType(t, &rsa.PublicKey{}, key)
 			},
@@ -326,9 +326,9 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "ECDSA private key (PKCS8)",
 			keyGen: func() (any, error) {
-				return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				return ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 			},
-			pemType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 			verifyType: func(t *testing.T, key any) {
 				require.IsType(t, &ecdsa.PrivateKey{}, key)
 			},
@@ -336,14 +336,14 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "ECDSA public key (PKIX)",
 			keyGen: func() (any, error) {
-				priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
 					return nil, err
 				}
 
 				return &priv.PublicKey, nil
 			},
-			pemType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 			verifyType: func(t *testing.T, key any) {
 				require.IsType(t, &ecdsa.PublicKey{}, key)
 			},
@@ -351,11 +351,11 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "EdDSA private key (PKCS8)",
 			keyGen: func() (any, error) {
-				_, priv, err := ed25519.GenerateKey(rand.Reader)
+				_, priv, err := ed25519.GenerateKey(crand.Reader)
 
 				return priv, err
 			},
-			pemType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 			verifyType: func(t *testing.T, key any) {
 				require.IsType(t, ed25519.PrivateKey{}, key)
 			},
@@ -363,11 +363,11 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 		{
 			name: "EdDSA public key (PKIX)",
 			keyGen: func() (any, error) {
-				pub, _, err := ed25519.GenerateKey(rand.Reader)
+				pub, _, err := ed25519.GenerateKey(crand.Reader)
 
 				return pub, err
 			},
-			pemType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 			verifyType: func(t *testing.T, key any) {
 				require.IsType(t, ed25519.PublicKey{}, key)
 			},
@@ -376,11 +376,11 @@ func TestDERDecode_AllKeyTypes(t *testing.T) {
 			name: "Secret key (byte slice)",
 			keyGen: func() (any, error) {
 				secretKey := make([]byte, 32)
-				_, err := rand.Read(secretKey)
+				_, err := crand.Read(secretKey)
 
 				return secretKey, err
 			},
-			pemType: cryptoutilMagic.StringPEMTypeSecretKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypeSecretKey,
 			verifyType: func(t *testing.T, key any) {
 				require.IsType(t, []byte{}, key)
 			},
@@ -427,17 +427,17 @@ func TestDERDecode_InvalidData(t *testing.T) {
 		{
 			name:    "invalid PKCS8 data",
 			data:    []byte("not valid DER"),
-			pemType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
 			name:    "invalid PKIX data",
 			data:    []byte("not valid DER"),
-			pemType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			pemType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 		{
 			name:    "invalid certificate data",
 			data:    []byte("not valid DER"),
-			pemType: cryptoutilMagic.StringPEMTypeCertificate,
+			pemType: cryptoutilSharedMagic.StringPEMTypeCertificate,
 		},
 	}
 
@@ -464,31 +464,31 @@ func TestDERDecodes(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(rand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, 2048)
 			},
-			expectedType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			expectedType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
 			name: "ECDSA public key",
 			keyGen: func() (any, error) {
-				priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
 					return nil, err
 				}
 
 				return &priv.PublicKey, nil
 			},
-			expectedType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			expectedType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 		{
 			name: "Secret key",
 			keyGen: func() (any, error) {
 				secretKey := make([]byte, 32)
-				_, err := rand.Read(secretKey)
+				_, err := crand.Read(secretKey)
 
 				return secretKey, err
 			},
-			expectedType: cryptoutilMagic.StringPEMTypeSecretKey,
+			expectedType: cryptoutilSharedMagic.StringPEMTypeSecretKey,
 		},
 	}
 
@@ -556,19 +556,19 @@ func TestPEMRead(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(rand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, 2048)
 			},
 		},
 		{
 			name: "ECDSA private key",
 			keyGen: func() (any, error) {
-				return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				return ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 			},
 		},
 		{
 			name: "EdDSA private key",
 			keyGen: func() (any, error) {
-				_, priv, err := ed25519.GenerateKey(rand.Reader)
+				_, priv, err := ed25519.GenerateKey(crand.Reader)
 
 				return priv, err
 			},
@@ -620,21 +620,21 @@ func TestDERRead(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(rand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, 2048)
 			},
-			expectedType: cryptoutilMagic.StringPEMTypePKCS8PrivateKey,
+			expectedType: cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey,
 		},
 		{
 			name: "ECDSA public key",
 			keyGen: func() (any, error) {
-				priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
 					return nil, err
 				}
 
 				return &priv.PublicKey, nil
 			},
-			expectedType: cryptoutilMagic.StringPEMTypePKIXPublicKey,
+			expectedType: cryptoutilSharedMagic.StringPEMTypePKIXPublicKey,
 		},
 	}
 
@@ -683,13 +683,13 @@ func TestPEMWrite(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(rand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, 2048)
 			},
 		},
 		{
 			name: "ECDSA public key",
 			keyGen: func() (any, error) {
-				priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
 					return nil, err
 				}
@@ -700,7 +700,7 @@ func TestPEMWrite(t *testing.T) {
 		{
 			name: "EdDSA private key",
 			keyGen: func() (any, error) {
-				_, priv, err := ed25519.GenerateKey(rand.Reader)
+				_, priv, err := ed25519.GenerateKey(crand.Reader)
 
 				return priv, err
 			},
@@ -759,13 +759,13 @@ func TestDERWrite(t *testing.T) {
 		{
 			name: "RSA private key",
 			keyGen: func() (any, error) {
-				return rsa.GenerateKey(rand.Reader, 2048)
+				return rsa.GenerateKey(crand.Reader, 2048)
 			},
 		},
 		{
 			name: "ECDSA public key",
 			keyGen: func() (any, error) {
-				priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+				priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				if err != nil {
 					return nil, err
 				}
@@ -776,7 +776,7 @@ func TestDERWrite(t *testing.T) {
 		{
 			name: "EdDSA private key",
 			keyGen: func() (any, error) {
-				_, priv, err := ed25519.GenerateKey(rand.Reader)
+				_, priv, err := ed25519.GenerateKey(crand.Reader)
 
 				return priv, err
 			},
@@ -829,7 +829,7 @@ func TestRoundTrip_PEMFileOperations(t *testing.T) {
 	t.Parallel()
 
 	// Generate RSA key.
-	originalKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	originalKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	// Create temporary file.
@@ -866,7 +866,7 @@ func TestRoundTrip_DERFileOperations(t *testing.T) {
 	t.Parallel()
 
 	// Generate ECDSA key.
-	originalKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	originalKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	// Create temporary file.
@@ -880,7 +880,7 @@ func TestRoundTrip_DERFileOperations(t *testing.T) {
 	// Read key from file.
 	readKey, derType, err := DERRead(filename)
 	require.NoError(t, err)
-	require.Equal(t, cryptoutilMagic.StringPEMTypePKCS8PrivateKey, derType)
+	require.Equal(t, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, derType)
 
 	// Verify key type.
 	require.IsType(t, &ecdsa.PrivateKey{}, readKey)
@@ -891,7 +891,7 @@ func TestCertificateRequest_EncodeDecode(t *testing.T) {
 	t.Parallel()
 
 	// Generate key for CSR.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	// Create CSR template.
@@ -902,7 +902,7 @@ func TestCertificateRequest_EncodeDecode(t *testing.T) {
 	}
 
 	// Create CSR.
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, privateKey)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, privateKey)
 	require.NoError(t, err)
 
 	csr, err := x509.ParseCertificateRequest(csrDER)
@@ -919,9 +919,9 @@ func TestCertificateRequest_EncodeDecode(t *testing.T) {
 	// Test DER encoding/decoding.
 	derBytes, pemType, err := DEREncode(csr)
 	require.NoError(t, err)
-	require.Equal(t, cryptoutilMagic.StringPEMTypeCSR, pemType)
+	require.Equal(t, cryptoutilSharedMagic.StringPEMTypeCSR, pemType)
 
-	decodedCSR2, err := DERDecode(derBytes, cryptoutilMagic.StringPEMTypeCSR)
+	decodedCSR2, err := DERDecode(derBytes, cryptoutilSharedMagic.StringPEMTypeCSR)
 	require.NoError(t, err)
 	require.IsType(t, &x509.CertificateRequest{}, decodedCSR2)
 }

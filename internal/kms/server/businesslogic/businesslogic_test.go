@@ -9,12 +9,12 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -31,22 +31,22 @@ func TestNewBusinessLogicService(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	settings.OTLPService = testOTLPService
 	settings.OTLPEndpoint = testOTLPEndpoint
 	settings.LogLevel = testLogLevel
 
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
 
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
 	testify.NoError(t, err)
 
 	tests := []struct {
 		name             string
 		ctx              context.Context
-		telemetryService *cryptoutilTelemetry.TelemetryService
-		jwkGenService    *cryptoutilJose.JWKGenService
+		telemetryService *cryptoutilSharedTelemetry.TelemetryService
+		jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 		ormRepository    *cryptoutilOrmRepository.OrmRepository
 		barrierService   *cryptoutilBarrierService.BarrierService
 		expectError      bool
@@ -142,11 +142,11 @@ func TestGenerateJWK(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
 
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
 	testify.NoError(t, err)
 
 	service := &BusinessLogicService{

@@ -18,7 +18,7 @@ import (
 
 	_ "modernc.org/sqlite" // Use modernc CGO-free SQLite.
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
@@ -32,8 +32,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err)
 
 	// Configure connection pool per instructions.
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 
 	// Wrap with GORM using sqlite Dialector.
 	db, err := gorm.Open(gormsqlite.Dialector{Conn: sqlDB}, &gorm.Config{

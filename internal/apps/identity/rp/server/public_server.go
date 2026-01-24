@@ -6,15 +6,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	"cryptoutil/internal/apps/identity/rp/server/config"
+	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity/rp/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
 )
 
 // AuthZ server check timeout.
@@ -24,18 +24,18 @@ const authzCheckTimeout = 5 * time.Second
 type PublicServer struct {
 	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure.
 
-	cfg            *config.IdentityRPServerSettings
-	sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService   cryptoutilTemplateService.RealmService
+	cfg            *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings
+	sessionManager *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	realmService   cryptoutilAppsTemplateServiceServerService.RealmService
 }
 
 // NewPublicServer creates a new identity-rp public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
 	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-	cfg *config.IdentityRPServerSettings,
-	sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService,
-	realmService cryptoutilTemplateService.RealmService,
+	cfg *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings,
+	sessionManager *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService,
+	realmService cryptoutilAppsTemplateServiceServerService.RealmService,
 ) *PublicServer {
 	return &PublicServer{
 		base:           base,

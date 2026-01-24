@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -30,7 +30,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New()},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -41,7 +41,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New(), googleUuid.New(), googleUuid.New()},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -52,7 +52,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -63,7 +63,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			Name:     []string{"test-key"},
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -74,7 +74,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			Name:     []string{"key1", "key2", "key3"},
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -85,7 +85,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			Algorithm: []string{"RSA-2048"},
-			PageSize:  cryptoutilMagic.DefaultPageSize,
+			PageSize:  cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -96,7 +96,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			Algorithm: []string{"RSA-2048", "RSA-4096", "ECDSA-P256"},
-			PageSize:  cryptoutilMagic.DefaultPageSize,
+			PageSize:  cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -107,7 +107,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			VersioningAllowed: boolPtr(true),
-			PageSize:          cryptoutilMagic.DefaultPageSize,
+			PageSize:          cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -118,7 +118,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			VersioningAllowed: boolPtr(false),
-			PageSize:          cryptoutilMagic.DefaultPageSize,
+			PageSize:          cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -129,7 +129,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ImportAllowed: boolPtr(true),
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -140,7 +140,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ImportAllowed: boolPtr(false),
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -151,7 +151,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ExportAllowed: boolPtr(true),
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -162,7 +162,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			ExportAllowed: boolPtr(false),
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -173,7 +173,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			Sort:     []string{"elastic_key_name ASC"},
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -184,7 +184,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			Sort:     []string{"elastic_key_name DESC"},
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -195,7 +195,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			Sort:     []string{"elastic_key_algorithm ASC", "elastic_key_name DESC"},
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -208,7 +208,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New()},
 			Name:         []string{"test"},
 			Algorithm:    []string{"RSA-2048"},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -225,7 +225,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 			ImportAllowed:     boolPtr(false),
 			ExportAllowed:     boolPtr(true),
 			Sort:              []string{"elastic_key_name ASC"},
-			PageSize:          cryptoutilMagic.DefaultPageSize,
+			PageSize:          cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -235,7 +235,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 	t.Run("No filters (minimal struct)", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -253,7 +253,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&ElasticKey{})
 		filters := &GetElasticKeysFilters{
 			PageNumber: 2,
-			PageSize:   cryptoutilMagic.DefaultPageSize,
+			PageSize:   cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -278,7 +278,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{googleUuid.New()},
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -289,7 +289,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{googleUuid.New(), googleUuid.New(), googleUuid.New()},
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -300,7 +300,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{},
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -311,7 +311,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New()},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -323,7 +323,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		minDate := time.Now().Add(-24 * time.Hour)
 		filters := &GetMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -335,7 +335,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		maxDate := time.Now()
 		filters := &GetMaterialKeysFilters{
 			MaximumGenerateDate: timePtr(maxDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -349,7 +349,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		filters := &GetMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -361,7 +361,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		filters := &GetMaterialKeysFilters{
 			MaterialKeyID: []googleUuid.UUID{googleUuid.New()},
 			ElasticKeyID:  []googleUuid.UUID{googleUuid.New()},
-			PageSize:      cryptoutilMagic.DefaultPageSize,
+			PageSize:      cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -377,7 +377,7 @@ func TestApplyKeyFilters(t *testing.T) {
 			ElasticKeyID:        []googleUuid.UUID{googleUuid.New()},
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -388,7 +388,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			Sort:     []string{"material_key_generate_date ASC"},
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -405,7 +405,7 @@ func TestApplyKeyFilters(t *testing.T) {
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
 			Sort:                []string{"material_key_generate_date DESC"},
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -415,7 +415,7 @@ func TestApplyKeyFilters(t *testing.T) {
 	t.Run("No filters (minimal struct)", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -433,7 +433,7 @@ func TestApplyKeyFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetMaterialKeysFilters{
 			PageNumber: 3,
-			PageSize:   cryptoutilMagic.DefaultPageSize,
+			PageSize:   cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyKeyFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -448,7 +448,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New()},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -459,7 +459,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{googleUuid.New(), googleUuid.New()},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -471,7 +471,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		minDate := time.Now().Add(-24 * time.Hour)
 		filters := &GetElasticKeyMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -483,7 +483,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		maxDate := time.Now()
 		filters := &GetElasticKeyMaterialKeysFilters{
 			MaximumGenerateDate: timePtr(maxDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -497,7 +497,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		filters := &GetElasticKeyMaterialKeysFilters{
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -512,7 +512,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 			ElasticKeyID:        []googleUuid.UUID{googleUuid.New()},
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -523,7 +523,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			Sort:     []string{"material_key_generate_date ASC"},
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -539,7 +539,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 			MinimumGenerateDate: timePtr(minDate),
 			MaximumGenerateDate: timePtr(maxDate),
 			Sort:                []string{"material_key_generate_date DESC"},
-			PageSize:            cryptoutilMagic.DefaultPageSize,
+			PageSize:            cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -549,7 +549,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 	t.Run("No filters (minimal struct)", func(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
-			PageSize: cryptoutilMagic.DefaultPageSize,
+			PageSize: cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -567,7 +567,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID: []googleUuid.UUID{},
-			PageSize:     cryptoutilMagic.DefaultPageSize,
+			PageSize:     cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)
@@ -578,7 +578,7 @@ func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
 		query := testOrmRepository.gormDB.Model(&MaterialKey{})
 		filters := &GetElasticKeyMaterialKeysFilters{
 			PageNumber: 1,
-			PageSize:   cryptoutilMagic.DefaultPageSize,
+			PageSize:   cryptoutilSharedMagic.DefaultPageSize,
 		}
 		filteredQuery := applyGetElasticKeyKeysFilters(query, filters)
 		require.NotNil(t, filteredQuery)

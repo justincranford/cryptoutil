@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"net/http"
+	http "net/http"
 	"sync"
 	"time"
 

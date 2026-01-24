@@ -9,7 +9,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/domain"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
 func TestToken_BeforeCreate(t *testing.T) {
@@ -17,19 +17,19 @@ func TestToken_BeforeCreate(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		token          *domain.Token
+		token          *cryptoutilIdentityDomain.Token
 		expectIDChange bool
 	}{
 		{
 			name: "generates ID when empty",
-			token: &domain.Token{
+			token: &cryptoutilIdentityDomain.Token{
 				TokenValue: "test_token",
 			},
 			expectIDChange: true,
 		},
 		{
 			name: "preserves existing ID",
-			token: &domain.Token{
+			token: &cryptoutilIdentityDomain.Token{
 				ID:         googleUuid.Must(googleUuid.NewV7()),
 				TokenValue: "test_token",
 			},
@@ -58,7 +58,7 @@ func TestToken_BeforeCreate(t *testing.T) {
 func TestToken_TableName(t *testing.T) {
 	t.Parallel()
 
-	token := domain.Token{}
+	token := cryptoutilIdentityDomain.Token{}
 	require.Equal(t, "tokens", token.TableName())
 }
 
@@ -91,7 +91,7 @@ func TestToken_IsExpired(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			token := &domain.Token{
+			token := &cryptoutilIdentityDomain.Token{
 				ExpiresAt: tc.expiresAt,
 			}
 
@@ -106,31 +106,31 @@ func TestToken_IsValid(t *testing.T) {
 	tests := []struct {
 		name      string
 		expiresAt time.Time
-		revoked   domain.IntBool
+		revoked   cryptoutilIdentityDomain.IntBool
 		valid     bool
 	}{
 		{
 			name:      "valid active token",
 			expiresAt: time.Now().Add(1 * time.Hour),
-			revoked:   domain.IntBool(false),
+			revoked:   cryptoutilIdentityDomain.IntBool(false),
 			valid:     true,
 		},
 		{
 			name:      "expired active token",
 			expiresAt: time.Now().Add(-1 * time.Hour),
-			revoked:   domain.IntBool(false),
+			revoked:   cryptoutilIdentityDomain.IntBool(false),
 			valid:     false,
 		},
 		{
 			name:      "valid revoked token",
 			expiresAt: time.Now().Add(1 * time.Hour),
-			revoked:   domain.IntBool(true),
+			revoked:   cryptoutilIdentityDomain.IntBool(true),
 			valid:     false,
 		},
 		{
 			name:      "expired revoked token",
 			expiresAt: time.Now().Add(-1 * time.Hour),
-			revoked:   domain.IntBool(true),
+			revoked:   cryptoutilIdentityDomain.IntBool(true),
 			valid:     false,
 		},
 	}
@@ -139,7 +139,7 @@ func TestToken_IsValid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			token := &domain.Token{
+			token := &cryptoutilIdentityDomain.Token{
 				ExpiresAt: tc.expiresAt,
 				Revoked:   tc.revoked,
 			}

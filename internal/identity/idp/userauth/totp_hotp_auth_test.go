@@ -11,22 +11,22 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 )
 
 func TestTOTPAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 	require.NotNil(t, auth, "NewTOTPAuthenticator should return non-nil authenticator")
 }
 
 func TestTOTPAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 	require.Equal(t, "totp", auth.Method(), "Method should return 'totp'")
 }
 
@@ -34,8 +34,8 @@ func TestTOTPAuthenticator_GenerateSecret(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	secret, err := auth.GenerateSecret(ctx)
 	require.NoError(t, err, "GenerateSecret should succeed")
@@ -52,8 +52,8 @@ func TestTOTPAuthenticator_GenerateSecretUniqueness(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	secrets := make(map[string]bool)
 
@@ -70,8 +70,8 @@ func TestTOTPAuthenticator_GenerateTOTPAndValidate(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	// Generate a secret.
 	secret, err := auth.GenerateSecret(ctx)
@@ -91,8 +91,8 @@ func TestTOTPAuthenticator_ValidateTOTPInvalidCode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	// Generate a secret.
 	secret, err := auth.GenerateSecret(ctx)
@@ -107,8 +107,8 @@ func TestTOTPAuthenticator_ValidateTOTPInvalidSecret(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	// Validate with invalid secret should fail gracefully.
 	valid := auth.ValidateTOTP(ctx, "invalid-base32!", "123456")
@@ -151,9 +151,9 @@ func (m *mockCounterStore) SetCounter(_ context.Context, userID string, counter 
 func TestHOTPAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 	require.NotNil(t, auth, "NewHOTPAuthenticator should return non-nil authenticator")
 }
 
@@ -161,9 +161,9 @@ func TestHOTPAuthenticator_NewAuthenticator(t *testing.T) {
 func TestHOTPAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 	require.Equal(t, "hotp", auth.Method(), "Method should return 'hotp'")
 }
 
@@ -172,9 +172,9 @@ func TestHOTPAuthenticator_GenerateSecret(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	secret, err := auth.GenerateSecret(ctx)
 	require.NoError(t, err, "GenerateSecret should succeed")
@@ -192,9 +192,9 @@ func TestHOTPAuthenticator_GenerateSecretUniqueness(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	secrets := make(map[string]bool)
 
@@ -211,9 +211,9 @@ func TestHOTPAuthenticator_GenerateHOTP(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	// Generate a secret.
 	secret, err := auth.GenerateSecret(ctx)
@@ -238,9 +238,9 @@ func TestHOTPAuthenticator_GenerateHOTPDeterministic(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	// Use a fixed secret for deterministic testing.
 	secret := "JBSWY3DPEHPK3PXP"
@@ -259,9 +259,9 @@ func TestHOTPAuthenticator_ValidateHOTP(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	// Generate a secret.
 	secret, err := auth.GenerateSecret(ctx)
@@ -289,9 +289,9 @@ func TestHOTPAuthenticator_ValidateHOTPInvalid(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	secret, err := auth.GenerateSecret(ctx)
 	require.NoError(t, err, "GenerateSecret should succeed")
@@ -309,9 +309,9 @@ func TestHOTPAuthenticator_ValidateHOTPLookahead(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	secret, err := auth.GenerateSecret(ctx)
 	require.NoError(t, err, "GenerateSecret should succeed")
@@ -338,9 +338,9 @@ func TestHOTPAuthenticator_InitiateAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	userID := "test-user-initiate"
 
@@ -356,8 +356,8 @@ func TestTOTPAuthenticator_InitiateAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	userID := "test-user-totp-initiate"
 
@@ -373,8 +373,8 @@ func TestTOTPAuthenticator_VerifyAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	userID := "test-user-totp-verify"
 
@@ -398,8 +398,8 @@ func TestTOTPAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
-	auth := userauth.NewTOTPAuthenticator("test-issuer", store, nil)
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	auth := cryptoutilIdentityIdpUserauth.NewTOTPAuthenticator("test-issuer", store, nil)
 
 	// Generate a valid UUID that doesn't exist as a challenge.
 	nonExistentID, err := googleUuid.NewV7()
@@ -415,9 +415,9 @@ func TestHOTPAuthenticator_VerifyAuth(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	userID := "test-user-hotp-verify"
 
@@ -437,9 +437,9 @@ func TestHOTPAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	store := userauth.NewInMemoryChallengeStore()
+	store := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	counterStore := newMockCounterStore()
-	auth := userauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
+	auth := cryptoutilIdentityIdpUserauth.NewHOTPAuthenticator("test-issuer", store, nil, counterStore)
 
 	// Generate a valid UUID that doesn't exist as a challenge.
 	nonExistentID, err := googleUuid.NewV7()

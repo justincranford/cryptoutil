@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -18,7 +18,7 @@ import (
 func TestGenerateAuthorizationCode_Success(t *testing.T) {
 	t.Parallel()
 
-	code, err := authz.GenerateAuthorizationCode()
+	code, err := cryptoutilIdentityAuthz.GenerateAuthorizationCode()
 	require.NoError(t, err, "Code generation should succeed")
 	require.NotEmpty(t, code, "Code should not be empty")
 
@@ -37,7 +37,7 @@ func TestGenerateAuthorizationCode_Uniqueness(t *testing.T) {
 	codes := make(map[string]bool, iterations)
 
 	for range iterations {
-		code, err := authz.GenerateAuthorizationCode()
+		code, err := cryptoutilIdentityAuthz.GenerateAuthorizationCode()
 		require.NoError(t, err, "Code generation should succeed")
 		require.NotContains(t, codes, code, "Code should be unique")
 		codes[code] = true
@@ -53,7 +53,7 @@ func TestGenerateAuthorizationCode_Length(t *testing.T) {
 	const iterations = 10
 
 	for range iterations {
-		code, err := authz.GenerateAuthorizationCode()
+		code, err := cryptoutilIdentityAuthz.GenerateAuthorizationCode()
 		require.NoError(t, err, "Code generation should succeed")
 
 		decoded, err := base64.RawURLEncoding.DecodeString(code)
@@ -66,7 +66,7 @@ func TestGenerateAuthorizationCode_Length(t *testing.T) {
 func TestGenerateAuthorizationCode_Format(t *testing.T) {
 	t.Parallel()
 
-	code, err := authz.GenerateAuthorizationCode()
+	code, err := cryptoutilIdentityAuthz.GenerateAuthorizationCode()
 	require.NoError(t, err, "Code generation should succeed")
 
 	// base64url should not contain + / or = characters.

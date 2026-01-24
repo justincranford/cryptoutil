@@ -5,11 +5,11 @@ package cli
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -91,7 +91,7 @@ func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *Comma
 			keySize = defaultRSAKeySize
 		}
 
-		key, err = rsa.GenerateKey(rand.Reader, keySize)
+		key, err = rsa.GenerateKey(crand.Reader, keySize)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate RSA key: %w", err)
 		}
@@ -99,13 +99,13 @@ func (c *CLI) GenerateKey(_ context.Context, opts *KeyGenOptions, cmdOpts *Comma
 	case "ECDSA", "ecdsa", "EC", "ec":
 		curve := c.getCurve(opts.Curve)
 
-		key, err = ecdsa.GenerateKey(curve, rand.Reader)
+		key, err = ecdsa.GenerateKey(curve, crand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA key: %w", err)
 		}
 
 	case "Ed25519", "ed25519", "EdDSA", "eddsa":
-		_, key, err = ed25519.GenerateKey(rand.Reader)
+		_, key, err = ed25519.GenerateKey(crand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate Ed25519 key: %w", err)
 		}
@@ -168,7 +168,7 @@ func (c *CLI) GenerateSelfSignedCA(_ context.Context, key any, opts *CertGenOpti
 
 	pubKey := publicKey(key)
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, pubKey, key)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, pubKey, key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
@@ -240,7 +240,7 @@ func (c *CLI) GenerateIntermediateCA(_ context.Context, key any, parentCert *x50
 
 	pubKey := publicKey(key)
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, parentCert, pubKey, parentKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, parentCert, pubKey, parentKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
@@ -311,7 +311,7 @@ func (c *CLI) GenerateEndEntityCert(_ context.Context, key any, caCert *x509.Cer
 
 	pubKey := publicKey(key)
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, caCert, pubKey, caKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, caCert, pubKey, caKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
@@ -451,7 +451,7 @@ const serialNumberBits = 128
 func generateSerialNumber() (*big.Int, error) {
 	serialNumber := make([]byte, serialNumberBits/8)
 
-	_, err := rand.Read(serialNumber)
+	_, err := crand.Read(serialNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}

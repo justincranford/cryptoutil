@@ -5,7 +5,7 @@ package lint_go
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,7 +14,7 @@ import (
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
@@ -30,7 +30,7 @@ type PackageInfo struct {
 func checkCircularDeps(logger *cryptoutilCmdCicdCommon.Logger) error {
 	logger.Log("Checking for circular package dependencies...")
 
-	cacheFile := cryptoutilMagic.CircularDepCacheFileName
+	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
 
 	// Check if we can use cached results.
 	goModStat, err := os.Stat("go.mod")
@@ -44,7 +44,7 @@ func checkCircularDeps(logger *cryptoutilCmdCicdCommon.Logger) error {
 	if cache, err := loadCircularDepCache(cacheFile); err == nil {
 		// Check if cache is still valid.
 		cacheAge := time.Since(cache.LastCheck)
-		isExpired := cacheAge > cryptoutilMagic.CircularDepCacheValidDuration
+		isExpired := cacheAge > cryptoutilSharedMagic.CircularDepCacheValidDuration
 		goModChanged := cache.GoModModTime.Before(goModStat.ModTime())
 
 		if !isExpired && !goModChanged {
@@ -65,7 +65,7 @@ func checkCircularDeps(logger *cryptoutilCmdCicdCommon.Logger) error {
 		}
 
 		if isExpired {
-			logger.Log(fmt.Sprintf("Cache expired (age: %.1fs > %.0fs)", cacheAge.Seconds(), cryptoutilMagic.CircularDepCacheValidDuration.Seconds()))
+			logger.Log(fmt.Sprintf("Cache expired (age: %.1fs > %.0fs)", cacheAge.Seconds(), cryptoutilSharedMagic.CircularDepCacheValidDuration.Seconds()))
 		}
 
 		if goModChanged {
@@ -91,7 +91,7 @@ func checkCircularDeps(logger *cryptoutilCmdCicdCommon.Logger) error {
 	circularDepsError := CheckDependencies(string(output))
 
 	// Save results to cache.
-	cache := cryptoutilMagic.CircularDepCache{
+	cache := cryptoutilSharedMagic.CircularDepCache{
 		LastCheck:       time.Now().UTC(),
 		GoModModTime:    goModStat.ModTime(),
 		HasCircularDeps: circularDepsError != nil,
@@ -123,13 +123,13 @@ func checkCircularDeps(logger *cryptoutilCmdCicdCommon.Logger) error {
 }
 
 // loadCircularDepCache loads circular dependency cache from the specified file.
-func loadCircularDepCache(cacheFile string) (*cryptoutilMagic.CircularDepCache, error) {
+func loadCircularDepCache(cacheFile string) (*cryptoutilSharedMagic.CircularDepCache, error) {
 	content, err := os.ReadFile(cacheFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read cache file: %w", err)
 	}
 
-	var cache cryptoutilMagic.CircularDepCache
+	var cache cryptoutilSharedMagic.CircularDepCache
 	if err := json.Unmarshal(content, &cache); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal cache JSON: %w", err)
 	}
@@ -138,7 +138,7 @@ func loadCircularDepCache(cacheFile string) (*cryptoutilMagic.CircularDepCache, 
 }
 
 // saveCircularDepCache saves circular dependency cache to the specified file.
-func saveCircularDepCache(cacheFile string, cache cryptoutilMagic.CircularDepCache) error {
+func saveCircularDepCache(cacheFile string, cache cryptoutilSharedMagic.CircularDepCache) error {
 	content, err := json.MarshalIndent(cache, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)
@@ -146,11 +146,11 @@ func saveCircularDepCache(cacheFile string, cache cryptoutilMagic.CircularDepCac
 
 	// Ensure output directory exists.
 	cacheDir := filepath.Dir(cacheFile)
-	if err := os.MkdirAll(cacheDir, cryptoutilMagic.CICDOutputDirPermissions); err != nil {
+	if err := os.MkdirAll(cacheDir, cryptoutilSharedMagic.CICDOutputDirPermissions); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	if err := cryptoutilSharedUtilFiles.WriteFile(cacheFile, string(content), cryptoutilMagic.CacheFilePermissions); err != nil {
+	if err := cryptoutilSharedUtilFiles.WriteFile(cacheFile, string(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 

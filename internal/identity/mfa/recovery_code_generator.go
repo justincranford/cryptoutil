@@ -4,7 +4,7 @@
 package mfa
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -21,7 +21,7 @@ func GenerateRecoveryCode() (string, error) {
 	)
 
 	randomBytes := make([]byte, totalChars)
-	if _, err := rand.Read(randomBytes); err != nil {
+	if _, err := crand.Read(randomBytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 

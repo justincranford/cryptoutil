@@ -4,12 +4,12 @@
 package apis
 
 import (
-	"net/http"
+	http "net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RegisterRegistrationRoutes registers tenant registration endpoints on PUBLIC server.
@@ -18,14 +18,14 @@ import (
 // requestsPerMin: Rate limit (requests per minute) per IP address (default: 10).
 func RegisterRegistrationRoutes(
 	app *fiber.App,
-	registrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService,
+	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService,
 	requestsPerMin int,
 ) {
 	// Create registration handlers.
 	handlers := NewRegistrationHandlers(registrationService)
 
 	// Create rate limiter (10 requests/min per IP, burst 5).
-	rateLimiter := NewRateLimiter(requestsPerMin, cryptoutilMagic.RateLimitDefaultBurstSize)
+	rateLimiter := NewRateLimiter(requestsPerMin, cryptoutilSharedMagic.RateLimitDefaultBurstSize)
 
 	// Rate limit middleware.
 	rateLimitMiddleware := func(c *fiber.Ctx) error {
@@ -49,7 +49,7 @@ func RegisterRegistrationRoutes(
 // Call this function from services that want to expose admin join-request management APIs.
 func RegisterJoinRequestManagementRoutes(
 	app *fiber.App,
-	registrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService,
+	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService,
 ) {
 	// Create registration handlers.
 	handlers := NewRegistrationHandlers(registrationService)

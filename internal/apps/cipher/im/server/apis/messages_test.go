@@ -6,13 +6,13 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/json"
-	"net/http"
+	json "encoding/json"
+	http "net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
@@ -23,12 +23,12 @@ import (
 
 	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
@@ -66,8 +66,8 @@ func TestMain(m *testing.M) {
 		panic("TestMain: failed to set busy timeout: " + err.Error())
 	}
 
-	testSQLDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	testSQLDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	testSQLDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	testSQLDB.SetConnMaxLifetime(0)
 
 	// Wrap with GORM.
@@ -86,23 +86,23 @@ func TestMain(m *testing.M) {
 	}
 
 	// Initialize telemetry.
-	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	telemetrySettings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	testTelemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, telemetrySettings)
+	testTelemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, telemetrySettings)
 	if err != nil {
 		panic("TestMain: failed to create telemetry: " + err.Error())
 	}
 	defer testTelemetryService.Shutdown()
 
 	// Initialize JWK generation service.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, testTelemetryService, false)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, testTelemetryService, false)
 	if err != nil {
 		panic("TestMain: failed to create JWK service: " + err.Error())
 	}
 	defer jwkGenService.Shutdown()
 
 	// Initialize Barrier Service.
-	_, testUnsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, testUnsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	if err != nil {
 		panic("TestMain: failed to generate test unseal JWK: " + err.Error())
 	}
@@ -113,13 +113,13 @@ func TestMain(m *testing.M) {
 	}
 	defer unsealKeysService.Shutdown()
 
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(db)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
 	if err != nil {
 		panic("TestMain: failed to create barrier repository: " + err.Error())
 	}
 	defer barrierRepo.Shutdown()
 
-	barrierService, err := cryptoutilTemplateBarrier.NewService(ctx, testTelemetryService, jwkGenService, barrierRepo, unsealKeysService)
+	barrierService, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(ctx, testTelemetryService, jwkGenService, barrierRepo, unsealKeysService)
 	if err != nil {
 		panic("TestMain: failed to create barrier service: " + err.Error())
 	}

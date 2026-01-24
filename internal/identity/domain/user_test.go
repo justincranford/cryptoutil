@@ -8,7 +8,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/domain"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
 func TestUser_BeforeCreate(t *testing.T) {
@@ -16,19 +16,19 @@ func TestUser_BeforeCreate(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		user           *domain.User
+		user           *cryptoutilIdentityDomain.User
 		expectIDChange bool
 	}{
 		{
 			name: "generates ID when empty",
-			user: &domain.User{
+			user: &cryptoutilIdentityDomain.User{
 				Sub: "test_user",
 			},
 			expectIDChange: true,
 		},
 		{
 			name: "preserves existing ID",
-			user: &domain.User{
+			user: &cryptoutilIdentityDomain.User{
 				ID:  googleUuid.Must(googleUuid.NewV7()),
 				Sub: "test_user",
 			},
@@ -57,6 +57,6 @@ func TestUser_BeforeCreate(t *testing.T) {
 func TestUser_TableName(t *testing.T) {
 	t.Parallel()
 
-	user := domain.User{}
+	user := cryptoutilIdentityDomain.User{}
 	require.Equal(t, "users", user.TableName())
 }

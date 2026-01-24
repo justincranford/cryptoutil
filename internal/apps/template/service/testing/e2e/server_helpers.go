@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ServerWithActualPort defines interface for servers that expose their dynamically allocated port.
@@ -63,7 +63,7 @@ func WaitForServerPort(server ServerWithActualPort, waitParams ServerWaitParams)
 		return "", fmt.Errorf("server did not bind to port after %d attempts", waitParams.MaxWaitAttempts)
 	}
 
-	baseURL := "https://" + cryptoutilMagic.IPv4Loopback + ":" + strconv.Itoa(actualPort)
+	baseURL := "https://" + cryptoutilSharedMagic.IPv4Loopback + ":" + strconv.Itoa(actualPort)
 
 	return baseURL, nil
 }

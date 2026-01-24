@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
-func mapDBTypeAndURL(telemetryService *cryptoutilTelemetry.TelemetryService, devMode bool, databaseURL string) (SupportedDBType, string, error) {
+func mapDBTypeAndURL(telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool, databaseURL string) (SupportedDBType, string, error) {
 	if devMode {
 		telemetryService.Slogger.Debug("running in dev mode, using in-memory SQLite database with shared cache")
 
@@ -25,7 +25,7 @@ func mapDBTypeAndURL(telemetryService *cryptoutilTelemetry.TelemetryService, dev
 	return "", "", fmt.Errorf("unsupported database URL format: %s", databaseURL)
 }
 
-func mapContainerMode(telemetryService *cryptoutilTelemetry.TelemetryService, containerMode string) (ContainerMode, error) {
+func mapContainerMode(telemetryService *cryptoutilSharedTelemetry.TelemetryService, containerMode string) (ContainerMode, error) {
 	switch containerMode {
 	case string(ContainerModeDisabled):
 		telemetryService.Slogger.Debug("container mode is disabled, using provided database URL")

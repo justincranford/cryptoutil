@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 
 	"github.com/stretchr/testify/require"
 )
@@ -108,13 +108,13 @@ func TestParameterSetRegistry_HashWithAllVersions(t *testing.T) {
 			params, err := registry.GetParameterSet(tt.version)
 			require.NoError(t, err, "should retrieve parameter set")
 
-			hash, err := cryptoutilDigests.PBKDF2WithParams(secret, params)
+			hash, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, params)
 			require.NoError(t, err, "should hash secret")
 			require.NotEmpty(t, hash, "hash should not be empty")
 			require.True(t, strings.HasPrefix(hash, "{"+tt.version+"}$"), "hash should have correct version prefix")
 
 			// Verify hash can be validated.
-			valid, err := cryptoutilDigests.VerifySecret(hash, secret)
+			valid, err := cryptoutilSharedCryptoDigests.VerifySecret(hash, secret)
 			require.NoError(t, err, "should verify hash")
 			require.True(t, valid, "hash should verify correctly")
 		})
@@ -129,17 +129,17 @@ func TestParameterSetRegistry_CrossVersionVerification(t *testing.T) {
 	secret := "cross-version-test"
 
 	// Generate hashes with V1, V2, V3.
-	hashV1, err := cryptoutilDigests.PBKDF2WithParams(secret, registry.GetDefaultParameterSet())
+	hashV1, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, registry.GetDefaultParameterSet())
 	require.NoError(t, err, "should hash with V1")
 
 	paramsV2, err := registry.GetParameterSet("2")
 	require.NoError(t, err, "should get V2 params")
-	hashV2, err := cryptoutilDigests.PBKDF2WithParams(secret, paramsV2)
+	hashV2, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, paramsV2)
 	require.NoError(t, err, "should hash with V2")
 
 	paramsV3, err := registry.GetParameterSet("3")
 	require.NoError(t, err, "should get V3 params")
-	hashV3, err := cryptoutilDigests.PBKDF2WithParams(secret, paramsV3)
+	hashV3, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, paramsV3)
 	require.NoError(t, err, "should hash with V3")
 
 	// All hashes should verify correctly.
@@ -156,12 +156,12 @@ func TestParameterSetRegistry_CrossVersionVerification(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			valid, err := cryptoutilDigests.VerifySecret(tt.hash, secret)
+			valid, err := cryptoutilSharedCryptoDigests.VerifySecret(tt.hash, secret)
 			require.NoError(t, err, "should verify %s", tt.name)
 			require.True(t, valid, "%s should verify correctly", tt.name)
 
 			// Wrong password should not verify.
-			invalid, err := cryptoutilDigests.VerifySecret(tt.hash, "wrong-password")
+			invalid, err := cryptoutilSharedCryptoDigests.VerifySecret(tt.hash, "wrong-password")
 			require.NoError(t, err, "should not error on wrong password")
 			require.False(t, invalid, "%s should not verify with wrong password", tt.name)
 		})

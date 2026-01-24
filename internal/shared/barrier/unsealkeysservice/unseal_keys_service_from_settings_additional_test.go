@@ -3,13 +3,13 @@
 package unsealkeysservice
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,7 @@ func TestNewUnsealKeysServiceFromSettings_MofN_FileMismatch(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-mofn-file-mismatch")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-mofn-file-mismatch")
 	settings.DevMode = false
 	settings.UnsealMode = testUnsealMode2Of3 // Expecting 3 files
 	settings.UnsealFiles = []string{secretFile}
@@ -59,7 +59,7 @@ func TestNewUnsealKeysServiceFromSettings_MofN_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-mofn-happy")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-mofn-happy")
 	settings.DevMode = false
 	settings.UnsealMode = testUnsealMode2Of3
 	settings.UnsealFiles = []string{secret1, secret2, secret3}
@@ -74,7 +74,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_HappyPath(t *testing.T) {
 	t.Parallel()
 
 	// Generate 2 JWKs for simple mode
-	jwks, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 2, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	jwks, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 2, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.Len(t, jwks, 2)
 
@@ -96,7 +96,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-simple-mode-happy")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-simple-mode-happy")
 	settings.DevMode = false
 	settings.UnsealMode = "2" // Simple mode with 2 JWK files
 	settings.UnsealFiles = []string{jwk1File, jwk2File}
@@ -118,7 +118,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_InvalidJWK(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-simple-mode-invalid-jwk")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-simple-mode-invalid-jwk")
 	settings.DevMode = false
 	settings.UnsealMode = "1" // Simple mode with 1 JWK file
 	settings.UnsealFiles = []string{badJWKFile}
@@ -134,7 +134,7 @@ func TestNewUnsealKeysServiceFromSettings_MofN_ReadFilesError(t *testing.T) {
 	t.Parallel()
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-mofn-read-error")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-mofn-read-error")
 	settings.DevMode = false
 	settings.UnsealMode = testUnsealMode2Of3
 	settings.UnsealFiles = []string{"/nonexistent/path1.bin", "/nonexistent/path2.bin", "/nonexistent/path3.bin"}
@@ -150,7 +150,7 @@ func TestNewUnsealKeysServiceFromSettings_SimpleMode_ReadFilesError(t *testing.T
 	t.Parallel()
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-simple-read-error")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-simple-read-error")
 	settings.DevMode = false
 	settings.UnsealMode = "2"
 	settings.UnsealFiles = []string{"/nonexistent/jwk1.json", "/nonexistent/jwk2.json"}
@@ -166,7 +166,7 @@ func TestUnsealKeysServiceFromSettings_InterfaceMethods(t *testing.T) {
 	t.Parallel()
 
 	ctx, telemetryService := createTestContext(t)
-	settings := cryptoutilConfig.RequireNewForTest("test-interface-methods")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-interface-methods")
 	settings.DevMode = true
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
@@ -186,7 +186,7 @@ func TestUnsealKeysServiceFromSettings_InterfaceMethods(t *testing.T) {
 	require.Equal(t, testData, decrypted)
 
 	// Test EncryptKey and DecryptKey
-	jwks, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	jwks, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.Len(t, jwks, 1)
 

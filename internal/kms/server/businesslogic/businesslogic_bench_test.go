@@ -7,7 +7,7 @@ package businesslogic_test
 import (
 	"crypto/ecdh"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"fmt"
 	"testing"
 
@@ -15,7 +15,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 )
 
 // P2.3.4: KMS Performance Baseline Benchmarks.
@@ -30,7 +30,7 @@ func BenchmarkAESKeyGeneration(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := cryptoutilKeyGen.GenerateAESKey(aes256Bits)
+		_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(aes256Bits)
 		if err != nil {
 			b.Fatalf("AES key generation failed: %v", err)
 		}
@@ -43,7 +43,7 @@ func BenchmarkECDSAKeyGeneration(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+		_, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 		if err != nil {
 			b.Fatalf("ECDSA key generation failed: %v", err)
 		}
@@ -56,7 +56,7 @@ func BenchmarkECDHKeyGeneration(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+		_, err := cryptoutilSharedCryptoKeygen.GenerateECDHKeyPair(ecdh.P256())
 		if err != nil {
 			b.Fatalf("ECDH key generation failed: %v", err)
 		}
@@ -71,7 +71,7 @@ func BenchmarkRSAKeyGeneration(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := cryptoutilKeyGen.GenerateRSAKeyPair(rsaBits)
+		_, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(rsaBits)
 		if err != nil {
 			b.Fatalf("RSA key generation failed: %v", err)
 		}
@@ -84,7 +84,7 @@ func BenchmarkEdDSAKeyGeneration(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := cryptoutilKeyGen.GenerateEDDSAKeyPair(cryptoutilKeyGen.EdCurveEd25519)
+		_, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedCryptoKeygen.EdCurveEd25519)
 		if err != nil {
 			b.Fatalf("EdDSA key generation failed: %v", err)
 		}
@@ -94,7 +94,7 @@ func BenchmarkEdDSAKeyGeneration(b *testing.B) {
 // BenchmarkJWKSign_ES256 measures JWT signing performance with ES256.
 func BenchmarkJWKSign_ES256(b *testing.B) {
 	// Generate ECDSA key for signing.
-	keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 	if err != nil {
 		b.Fatalf("failed to generate ECDSA key: %v", err)
 	}
@@ -117,7 +117,7 @@ func BenchmarkJWKSign_ES256(b *testing.B) {
 
 	payload := make([]byte, payloadSize)
 
-	if _, err := rand.Read(payload); err != nil {
+	if _, err := crand.Read(payload); err != nil {
 		b.Fatalf("failed to generate payload: %v", err)
 	}
 
@@ -135,7 +135,7 @@ func BenchmarkJWKSign_ES256(b *testing.B) {
 // BenchmarkJWKVerify_ES256 measures JWT verification performance with ES256.
 func BenchmarkJWKVerify_ES256(b *testing.B) {
 	// Generate ECDSA key for signing.
-	keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 	if err != nil {
 		b.Fatalf("failed to generate ECDSA key: %v", err)
 	}
@@ -158,7 +158,7 @@ func BenchmarkJWKVerify_ES256(b *testing.B) {
 
 	payload := make([]byte, payloadSize)
 
-	if _, err := rand.Read(payload); err != nil {
+	if _, err := crand.Read(payload); err != nil {
 		b.Fatalf("failed to generate payload: %v", err)
 	}
 
@@ -192,7 +192,7 @@ func BenchmarkHMACKeyGeneration(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		_, err := cryptoutilKeyGen.GenerateHMACKey(hmac256Bits)
+		_, err := cryptoutilSharedCryptoKeygen.GenerateHMACKey(hmac256Bits)
 		if err != nil {
 			b.Fatalf("HMAC key generation failed: %v", err)
 		}
@@ -203,7 +203,7 @@ func BenchmarkHMACKeyGeneration(b *testing.B) {
 func BenchmarkKeyGenerationParallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, err := cryptoutilKeyGen.GenerateAESKey(aes256Bits)
+			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(aes256Bits)
 			if err != nil {
 				b.Fatalf("AES key generation failed: %v", err)
 			}
@@ -218,7 +218,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilKeyGen.GenerateAESKey(128)
+			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(128)
 			if err != nil {
 				b.Fatalf("AES128 generation failed: %v", err)
 			}
@@ -230,7 +230,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilKeyGen.GenerateAESKey(192)
+			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(192)
 			if err != nil {
 				b.Fatalf("AES192 generation failed: %v", err)
 			}
@@ -242,7 +242,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilKeyGen.GenerateAESKey(256)
+			_, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(256)
 			if err != nil {
 				b.Fatalf("AES256 generation failed: %v", err)
 			}
@@ -254,7 +254,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+			_, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 			if err != nil {
 				b.Fatalf("ECDSA_P256 generation failed: %v", err)
 			}
@@ -266,7 +266,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 		b.ReportAllocs()
 
 		for i := 0; i < b.N; i++ {
-			_, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P384())
+			_, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 			if err != nil {
 				b.Fatalf("ECDSA_P384 generation failed: %v", err)
 			}
@@ -276,7 +276,7 @@ func BenchmarkPayloadSizes(b *testing.B) {
 
 // BenchmarkJWKCreation measures JWK creation performance from raw keys.
 func BenchmarkJWKCreation(b *testing.B) {
-	keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 	if err != nil {
 		b.Fatalf("failed to generate key: %v", err)
 	}

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"cryptoutil/internal/shared/util/cache"
+	cryptoutilSharedUtilCache "cryptoutil/internal/shared/util/cache"
 
 	"github.com/stretchr/testify/require"
 )
@@ -38,11 +38,11 @@ func TestGetCached(t *testing.T) {
 
 				var once sync.Once
 
-				result1 := cache.GetCached(true, &once, getter)
+				result1 := cryptoutilSharedUtilCache.GetCached(true, &once, getter)
 				require.Equal(t, testCachedValue, result1)
 				require.Equal(t, 1, callCount, "Getter should be called once")
 
-				result2 := cache.GetCached(true, &once, getter)
+				result2 := cryptoutilSharedUtilCache.GetCached(true, &once, getter)
 				require.Nil(t, result2, "Bug: Second call returns nil because sync.Once doesn't re-execute")
 				require.Equal(t, 1, callCount, "Getter should still be called only once")
 			},
@@ -59,8 +59,8 @@ func TestGetCached(t *testing.T) {
 
 				var once1, once2 sync.Once
 
-				result1 := cache.GetCached(false, &once1, getter)
-				result2 := cache.GetCached(false, &once2, getter)
+				result1 := cryptoutilSharedUtilCache.GetCached(false, &once1, getter)
+				result2 := cryptoutilSharedUtilCache.GetCached(false, &once2, getter)
 
 				require.Equal(t, 1, result1)
 				require.Equal(t, 2, result2)
@@ -76,7 +76,7 @@ func TestGetCached(t *testing.T) {
 
 				var once sync.Once
 
-				result := cache.GetCached(true, &once, getter)
+				result := cryptoutilSharedUtilCache.GetCached(true, &once, getter)
 				require.Nil(t, result, "Should handle nil return values")
 			},
 		},
@@ -94,7 +94,7 @@ func TestGetCached(t *testing.T) {
 
 				var once sync.Once
 
-				result := cache.GetCached(true, &once, getter)
+				result := cryptoutilSharedUtilCache.GetCached(true, &once, getter)
 
 				require.NotNil(t, result)
 				typed, ok := result.(*CustomStruct)
@@ -134,12 +134,12 @@ func TestGetCachedWithError(t *testing.T) {
 
 				var once sync.Once
 
-				result1, err1 := cache.GetCachedWithError(true, &once, getter)
+				result1, err1 := cryptoutilSharedUtilCache.GetCachedWithError(true, &once, getter)
 				require.NoError(t, err1)
 				require.Equal(t, "cached value", result1)
 				require.Equal(t, 1, callCount)
 
-				result2, err2 := cache.GetCachedWithError(true, &once, getter)
+				result2, err2 := cryptoutilSharedUtilCache.GetCachedWithError(true, &once, getter)
 				require.NoError(t, err2)
 				require.Nil(t, result2, "Second call returns nil because sync.Once doesn't re-execute")
 				require.Equal(t, 1, callCount, "Getter should be called only once")
@@ -161,13 +161,13 @@ func TestGetCachedWithError(t *testing.T) {
 
 				var once sync.Once
 
-				result1, err1 := cache.GetCachedWithError(true, &once, getter)
+				result1, err1 := cryptoutilSharedUtilCache.GetCachedWithError(true, &once, getter)
 				require.Error(t, err1)
 				require.Equal(t, expectedErr, err1)
 				require.Nil(t, result1)
 				require.Equal(t, 1, callCount)
 
-				result2, err2 := cache.GetCachedWithError(true, &once, getter)
+				result2, err2 := cryptoutilSharedUtilCache.GetCachedWithError(true, &once, getter)
 				require.NoError(t, err2, "Second call returns nil error because sync.Once doesn't re-execute")
 				require.Nil(t, result2)
 				require.Equal(t, 1, callCount, "Getter should be called only once")
@@ -187,8 +187,8 @@ func TestGetCachedWithError(t *testing.T) {
 
 				var once1, once2 sync.Once
 
-				result1, err1 := cache.GetCachedWithError(false, &once1, getter)
-				result2, err2 := cache.GetCachedWithError(false, &once2, getter)
+				result1, err1 := cryptoutilSharedUtilCache.GetCachedWithError(false, &once1, getter)
+				result2, err2 := cryptoutilSharedUtilCache.GetCachedWithError(false, &once2, getter)
 
 				require.NoError(t, err1)
 				require.NoError(t, err2)
@@ -211,8 +211,8 @@ func TestGetCachedWithError(t *testing.T) {
 
 				var once1, once2 sync.Once
 
-				result1, err1 := cache.GetCachedWithError(false, &once1, getter)
-				result2, err2 := cache.GetCachedWithError(false, &once2, getter)
+				result1, err1 := cryptoutilSharedUtilCache.GetCachedWithError(false, &once1, getter)
+				result2, err2 := cryptoutilSharedUtilCache.GetCachedWithError(false, &once2, getter)
 
 				require.Error(t, err1)
 				require.Error(t, err2)
@@ -232,7 +232,7 @@ func TestGetCachedWithError(t *testing.T) {
 
 				var once sync.Once
 
-				result, err := cache.GetCachedWithError(true, &once, getter)
+				result, err := cryptoutilSharedUtilCache.GetCachedWithError(true, &once, getter)
 				require.NoError(t, err)
 				require.Nil(t, result, "Should handle nil return values without error")
 			},
@@ -253,7 +253,7 @@ func TestGetCachedWithError(t *testing.T) {
 
 				var once sync.Once
 
-				result, err := cache.GetCachedWithError(true, &once, getter)
+				result, err := cryptoutilSharedUtilCache.GetCachedWithError(true, &once, getter)
 
 				require.NoError(t, err)
 				require.NotNil(t, result)

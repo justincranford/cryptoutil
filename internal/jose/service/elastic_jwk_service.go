@@ -7,14 +7,14 @@ package service
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"time"
 
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -23,19 +23,19 @@ import (
 
 // ElasticJWKService manages Elastic JWKs with multi-tenancy support.
 type ElasticJWKService struct {
-	elasticRepo  repository.ElasticJWKRepository
-	materialRepo repository.MaterialJWKRepository
-	jwkGenSvc    *cryptoutilJose.JWKGenService
-	barrierSvc   *cryptoutilBarrier.Service
+	elasticRepo  cryptoutilJoseRepository.ElasticJWKRepository
+	materialRepo cryptoutilJoseRepository.MaterialJWKRepository
+	jwkGenSvc    *cryptoutilSharedCryptoJose.JWKGenService
+	barrierSvc   *cryptoutilAppsTemplateServiceServerBarrier.Service
 	auditLogSvc  *AuditLogService // Optional: nil to disable audit logging.
 }
 
 // NewElasticJWKService creates a new ElasticJWKService.
 func NewElasticJWKService(
-	elasticRepo repository.ElasticJWKRepository,
-	materialRepo repository.MaterialJWKRepository,
-	jwkGenSvc *cryptoutilJose.JWKGenService,
-	barrierSvc *cryptoutilBarrier.Service,
+	elasticRepo cryptoutilJoseRepository.ElasticJWKRepository,
+	materialRepo cryptoutilJoseRepository.MaterialJWKRepository,
+	jwkGenSvc *cryptoutilSharedCryptoJose.JWKGenService,
+	barrierSvc *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) *ElasticJWKService {
 	return &ElasticJWKService{
 		elasticRepo:  elasticRepo,
@@ -65,8 +65,8 @@ type CreateElasticJWKRequest struct {
 
 // CreateElasticJWKResponse contains the created Elastic JWK and its first material.
 type CreateElasticJWKResponse struct {
-	ElasticJWK  *domain.ElasticJWK
-	MaterialJWK *domain.MaterialJWK
+	ElasticJWK  *cryptoutilJoseDomain.ElasticJWK
+	MaterialJWK *cryptoutilJoseDomain.MaterialJWK
 	PublicJWK   joseJwk.Key
 }
 
@@ -128,7 +128,7 @@ func (s *ElasticJWKService) CreateElasticJWK(ctx context.Context, req *CreateEla
 	}
 
 	// Create the Elastic JWK record.
-	elasticJWK := &domain.ElasticJWK{
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
 		ID:                   elasticID,
 		TenantID:             req.TenantID,
 		RealmID:              req.RealmID,
@@ -143,7 +143,7 @@ func (s *ElasticJWKService) CreateElasticJWK(ctx context.Context, req *CreateEla
 
 	// Create the first Material JWK record.
 	// BarrierVersion is tracked by the barrier service internally.
-	materialJWK := &domain.MaterialJWK{
+	materialJWK := &cryptoutilJoseDomain.MaterialJWK{
 		ID:             materialID,
 		ElasticJWKID:   elasticID,
 		MaterialKID:    materialKID,
@@ -193,7 +193,7 @@ func (s *ElasticJWKService) CreateElasticJWK(ctx context.Context, req *CreateEla
 }
 
 // GetElasticJWK retrieves an Elastic JWK by tenant, realm, and KID.
-func (s *ElasticJWKService) GetElasticJWK(ctx context.Context, tenantID, realmID googleUuid.UUID, kid string) (*domain.ElasticJWK, error) {
+func (s *ElasticJWKService) GetElasticJWK(ctx context.Context, tenantID, realmID googleUuid.UUID, kid string) (*cryptoutilJoseDomain.ElasticJWK, error) {
 	elasticJWK, err := s.elasticRepo.Get(ctx, tenantID, realmID, kid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get elastic JWK: %w", err)
@@ -203,7 +203,7 @@ func (s *ElasticJWKService) GetElasticJWK(ctx context.Context, tenantID, realmID
 }
 
 // ListElasticJWKs retrieves all Elastic JWKs for a tenant/realm.
-func (s *ElasticJWKService) ListElasticJWKs(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]domain.ElasticJWK, error) {
+func (s *ElasticJWKService) ListElasticJWKs(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]cryptoutilJoseDomain.ElasticJWK, error) {
 	elasticJWKs, err := s.elasticRepo.List(ctx, tenantID, realmID, offset, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list elastic JWKs: %w", err)
@@ -213,7 +213,7 @@ func (s *ElasticJWKService) ListElasticJWKs(ctx context.Context, tenantID, realm
 }
 
 // GetActiveMaterialJWK retrieves the active Material JWK for an Elastic JWK.
-func (s *ElasticJWKService) GetActiveMaterialJWK(ctx context.Context, elasticJWKID googleUuid.UUID) (*domain.MaterialJWK, joseJwk.Key, joseJwk.Key, error) {
+func (s *ElasticJWKService) GetActiveMaterialJWK(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilJoseDomain.MaterialJWK, joseJwk.Key, joseJwk.Key, error) {
 	materialJWK, err := s.materialRepo.GetActiveMaterial(ctx, elasticJWKID)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get active material JWK: %w", err)
@@ -229,7 +229,7 @@ func (s *ElasticJWKService) GetActiveMaterialJWK(ctx context.Context, elasticJWK
 }
 
 // GetMaterialJWKByKID retrieves a Material JWK by its material KID (for historical access).
-func (s *ElasticJWKService) GetMaterialJWKByKID(ctx context.Context, elasticJWKID googleUuid.UUID, materialKID string) (*domain.MaterialJWK, joseJwk.Key, joseJwk.Key, error) {
+func (s *ElasticJWKService) GetMaterialJWKByKID(ctx context.Context, elasticJWKID googleUuid.UUID, materialKID string) (*cryptoutilJoseDomain.MaterialJWK, joseJwk.Key, joseJwk.Key, error) {
 	materialJWK, err := s.materialRepo.GetByMaterialKID(ctx, elasticJWKID, materialKID)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get material JWK by KID: %w", err)
@@ -245,7 +245,7 @@ func (s *ElasticJWKService) GetMaterialJWKByKID(ctx context.Context, elasticJWKI
 }
 
 // decryptMaterialKeys decrypts the private and public JWKs from a Material JWK.
-func (s *ElasticJWKService) decryptMaterialKeys(ctx context.Context, materialJWK *domain.MaterialJWK) (joseJwk.Key, joseJwk.Key, error) {
+func (s *ElasticJWKService) decryptMaterialKeys(ctx context.Context, materialJWK *cryptoutilJoseDomain.MaterialJWK) (joseJwk.Key, joseJwk.Key, error) {
 	// Decrypt private JWK.
 	privateJWKJSON, err := s.barrierSvc.DecryptContentWithContext(ctx, []byte(materialJWK.PrivateJWKJWE))
 	if err != nil {
@@ -317,33 +317,33 @@ func (s *ElasticJWKService) generateEncryptionJWK(alg string) (joseJwk.Key, jose
 func mapToJWASignatureAlgorithm(alg string) (joseJwa.SignatureAlgorithm, error) {
 	switch alg {
 	case "RS256":
-		return cryptoutilJose.AlgRS256, nil
+		return cryptoutilSharedCryptoJose.AlgRS256, nil
 	case "RS384":
-		return cryptoutilJose.AlgRS384, nil
+		return cryptoutilSharedCryptoJose.AlgRS384, nil
 	case "RS512":
-		return cryptoutilJose.AlgRS512, nil
+		return cryptoutilSharedCryptoJose.AlgRS512, nil
 	case "PS256":
-		return cryptoutilJose.AlgPS256, nil
+		return cryptoutilSharedCryptoJose.AlgPS256, nil
 	case "PS384":
-		return cryptoutilJose.AlgPS384, nil
+		return cryptoutilSharedCryptoJose.AlgPS384, nil
 	case "PS512":
-		return cryptoutilJose.AlgPS512, nil
+		return cryptoutilSharedCryptoJose.AlgPS512, nil
 	case "ES256":
-		return cryptoutilJose.AlgES256, nil
+		return cryptoutilSharedCryptoJose.AlgES256, nil
 	case "ES384":
-		return cryptoutilJose.AlgES384, nil
+		return cryptoutilSharedCryptoJose.AlgES384, nil
 	case "ES512":
-		return cryptoutilJose.AlgES512, nil
+		return cryptoutilSharedCryptoJose.AlgES512, nil
 	case "EdDSA":
-		return cryptoutilJose.AlgEdDSA, nil
+		return cryptoutilSharedCryptoJose.AlgEdDSA, nil
 	case "HS256":
-		return cryptoutilJose.AlgHS256, nil
+		return cryptoutilSharedCryptoJose.AlgHS256, nil
 	case "HS384":
-		return cryptoutilJose.AlgHS384, nil
+		return cryptoutilSharedCryptoJose.AlgHS384, nil
 	case "HS512":
-		return cryptoutilJose.AlgHS512, nil
+		return cryptoutilSharedCryptoJose.AlgHS512, nil
 	default:
-		return cryptoutilJose.AlgSigInvalid, fmt.Errorf("unsupported signature algorithm: %s", alg)
+		return cryptoutilSharedCryptoJose.AlgSigInvalid, fmt.Errorf("unsupported signature algorithm: %s", alg)
 	}
 }
 
@@ -351,35 +351,35 @@ func mapToJWASignatureAlgorithm(alg string) (joseJwa.SignatureAlgorithm, error) 
 func mapToJWAEncryptionAlgorithms(alg string) (joseJwa.ContentEncryptionAlgorithm, joseJwa.KeyEncryptionAlgorithm, error) {
 	switch alg {
 	case "A128GCM":
-		return cryptoutilJose.EncA128GCM, cryptoutilJose.AlgDir, nil
+		return cryptoutilSharedCryptoJose.EncA128GCM, cryptoutilSharedCryptoJose.AlgDir, nil
 	case "A192GCM":
-		return cryptoutilJose.EncA192GCM, cryptoutilJose.AlgDir, nil
+		return cryptoutilSharedCryptoJose.EncA192GCM, cryptoutilSharedCryptoJose.AlgDir, nil
 	case "A256GCM":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgDir, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgDir, nil
 	case "A128CBC-HS256":
-		return cryptoutilJose.EncA128CBCHS256, cryptoutilJose.AlgDir, nil
+		return cryptoutilSharedCryptoJose.EncA128CBCHS256, cryptoutilSharedCryptoJose.AlgDir, nil
 	case "A192CBC-HS384":
-		return cryptoutilJose.EncA192CBCHS384, cryptoutilJose.AlgDir, nil
+		return cryptoutilSharedCryptoJose.EncA192CBCHS384, cryptoutilSharedCryptoJose.AlgDir, nil
 	case "A256CBC-HS512":
-		return cryptoutilJose.EncA256CBCHS512, cryptoutilJose.AlgDir, nil
+		return cryptoutilSharedCryptoJose.EncA256CBCHS512, cryptoutilSharedCryptoJose.AlgDir, nil
 	case "RSA-OAEP":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgRSAOAEP, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgRSAOAEP, nil
 	case "RSA-OAEP-256":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgRSAOAEP256, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgRSAOAEP256, nil
 	case "RSA-OAEP-384":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgRSAOAEP384, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgRSAOAEP384, nil
 	case "RSA-OAEP-512":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgRSAOAEP512, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgRSAOAEP512, nil
 	case "ECDH-ES":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgECDHES, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgECDHES, nil
 	case "ECDH-ES+A128KW":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgECDHESA128KW, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgECDHESA128KW, nil
 	case "ECDH-ES+A192KW":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgECDHESA192KW, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgECDHESA192KW, nil
 	case "ECDH-ES+A256KW":
-		return cryptoutilJose.EncA256GCM, cryptoutilJose.AlgECDHESA256KW, nil
+		return cryptoutilSharedCryptoJose.EncA256GCM, cryptoutilSharedCryptoJose.AlgECDHESA256KW, nil
 	default:
-		return cryptoutilJose.EncInvalid, cryptoutilJose.AlgEncInvalid, fmt.Errorf("unsupported encryption algorithm: %s", alg)
+		return cryptoutilSharedCryptoJose.EncInvalid, cryptoutilSharedCryptoJose.AlgEncInvalid, fmt.Errorf("unsupported encryption algorithm: %s", alg)
 	}
 }
 

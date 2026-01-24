@@ -8,19 +8,19 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	adminHealthPath = cryptoutilMagic.DefaultPrivateAdminAPIContextPath + "/healthz"
-	adminLivezPath  = cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath
-	adminReadyzPath = cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath
+	adminHealthPath = cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + "/healthz"
+	adminLivezPath  = cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
+	adminReadyzPath = cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath
 )
 
 // TestIM_HealthSubcommand_SlowResponse tests health check with slow server response.
@@ -109,7 +109,7 @@ func TestIM_ShutdownSubcommand_500InternalServerError(t *testing.T) {
 	// Use shared error server that returns 503 (close enough to 500 for error case).
 	var stdout, stderr bytes.Buffer
 
-	exitCode := internalIM([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath}, &stdout, &stderr)
+	exitCode := internalIM([]string{"shutdown", "--url", testMockServerError.URL + cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath}, &stdout, &stderr)
 	require.Equal(t, 1, exitCode, "Shutdown should fail with error status")
 
 	output := stdout.String() + stderr.String()

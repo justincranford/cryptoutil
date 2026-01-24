@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -17,7 +17,7 @@ import (
 
 // IdentitySPAServerSettings contains identity-spa specific configuration.
 type IdentitySPAServerSettings struct {
-	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// StaticFilesPath is the path to the static files directory.
 	// Default: "./static" (relative to working directory).
@@ -59,53 +59,53 @@ const (
 	defaultCSPDirectives   = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'"
 )
 
-var allIdentitySPAServerRegisteredSettings []*cryptoutilTemplateConfig.Setting //nolint:gochecknoglobals
+var allIdentitySPAServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
 
 // Identity-SPA specific Setting objects for parameter attributes.
 var (
-	staticFilesPathSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	staticFilesPathSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "static-files-path",
 		Shorthand:   "",
 		Value:       defaultStaticFilesPath,
 		Usage:       "path to the static files directory",
 		Description: "Static Files Path",
 	})
-	indexFileSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	indexFileSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "index-file",
 		Shorthand:   "",
 		Value:       defaultIndexFile,
 		Usage:       "default file to serve for SPA routing",
 		Description: "Index File",
 	})
-	rpOriginSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	rpOriginSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "rp-origin",
 		Shorthand:   "",
 		Value:       defaultRPOrigin,
 		Usage:       "origin of the Relying Party (BFF) for API proxying",
 		Description: "RP Origin",
 	})
-	cacheControlMaxAgeSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	cacheControlMaxAgeSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "cache-control-max-age",
 		Shorthand:   "",
 		Value:       defaultCacheMaxAge,
 		Usage:       "max-age for Cache-Control header in seconds",
 		Description: "Cache Control Max Age",
 	})
-	enableGzipSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableGzipSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-gzip",
 		Shorthand:   "",
 		Value:       defaultEnableGzip,
 		Usage:       "enable gzip compression for static files",
 		Description: "Enable Gzip",
 	})
-	enableBrotliSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	enableBrotliSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "enable-brotli",
 		Shorthand:   "",
 		Value:       defaultEnableBrotli,
 		Usage:       "enable brotli compression for static files",
 		Description: "Enable Brotli",
 	})
-	cspDirectivesSetting = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	cspDirectivesSetting = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allIdentitySPAServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "csp-directives",
 		Shorthand:   "",
 		Value:       defaultCSPDirectives,
@@ -117,19 +117,19 @@ var (
 // Parse parses command line arguments and returns identity-spa settings.
 func Parse(args []string, exitIfHelp bool) (*IdentitySPAServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register identity-spa specific flags.
-	pflag.StringP(staticFilesPathSetting.Name, staticFilesPathSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(staticFilesPathSetting), staticFilesPathSetting.Description)
-	pflag.StringP(indexFileSetting.Name, indexFileSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(indexFileSetting), indexFileSetting.Description)
-	pflag.StringP(rpOriginSetting.Name, rpOriginSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(rpOriginSetting), rpOriginSetting.Description)
-	pflag.IntP(cacheControlMaxAgeSetting.Name, cacheControlMaxAgeSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(cacheControlMaxAgeSetting), cacheControlMaxAgeSetting.Description)
-	pflag.BoolP(enableGzipSetting.Name, enableGzipSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableGzipSetting), enableGzipSetting.Description)
-	pflag.BoolP(enableBrotliSetting.Name, enableBrotliSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsBoolSetting(enableBrotliSetting), enableBrotliSetting.Description)
-	pflag.StringP(cspDirectivesSetting.Name, cspDirectivesSetting.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(cspDirectivesSetting), cspDirectivesSetting.Description)
+	pflag.StringP(staticFilesPathSetting.Name, staticFilesPathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(staticFilesPathSetting), staticFilesPathSetting.Description)
+	pflag.StringP(indexFileSetting.Name, indexFileSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(indexFileSetting), indexFileSetting.Description)
+	pflag.StringP(rpOriginSetting.Name, rpOriginSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(rpOriginSetting), rpOriginSetting.Description)
+	pflag.IntP(cacheControlMaxAgeSetting.Name, cacheControlMaxAgeSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(cacheControlMaxAgeSetting), cacheControlMaxAgeSetting.Description)
+	pflag.BoolP(enableGzipSetting.Name, enableGzipSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableGzipSetting), enableGzipSetting.Description)
+	pflag.BoolP(enableBrotliSetting.Name, enableBrotliSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableBrotliSetting), enableBrotliSetting.Description)
+	pflag.StringP(cspDirectivesSetting.Name, cspDirectivesSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(cspDirectivesSetting), cspDirectivesSetting.Description)
 
 	// Parse flags.
 	pflag.Parse()
@@ -231,7 +231,7 @@ func logIdentitySPASettings(s *IdentitySPAServerSettings) {
 // Returns directly populated IdentitySPAServerSettings matching Parse() behavior.
 func NewTestConfig(bindAddr string, bindPort uint16, devMode bool) *IdentitySPAServerSettings {
 	// Get base template config.
-	baseConfig := cryptoutilTemplateConfig.NewTestConfig(bindAddr, bindPort, devMode)
+	baseConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig(bindAddr, bindPort, devMode)
 
 	// Override template defaults with identity-spa specific values.
 	baseConfig.BindPublicPort = bindPort

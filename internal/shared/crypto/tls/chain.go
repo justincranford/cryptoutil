@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // fqdnPattern validates FQDN-style names (per Session 3 Q3).
@@ -30,8 +30,8 @@ func ValidateFQDN(name string) error {
 		return fmt.Errorf("FQDN cannot be empty")
 	}
 
-	if len(name) > cryptoutilMagic.FQDNMaxLength {
-		return fmt.Errorf("FQDN too long: %d characters (max %d)", len(name), cryptoutilMagic.FQDNMaxLength)
+	if len(name) > cryptoutilSharedMagic.FQDNMaxLength {
+		return fmt.Errorf("FQDN too long: %d characters (max %d)", len(name), cryptoutilSharedMagic.FQDNMaxLength)
 	}
 
 	if !fqdnPattern.MatchString(name) {
@@ -41,8 +41,8 @@ func ValidateFQDN(name string) error {
 	// Validate each label.
 	labels := strings.Split(name, ".")
 	for _, label := range labels {
-		if len(label) > cryptoutilMagic.FQDNLabelMaxLength {
-			return fmt.Errorf("FQDN label too long: %s (%d characters, max %d)", label, len(label), cryptoutilMagic.FQDNLabelMaxLength)
+		if len(label) > cryptoutilSharedMagic.FQDNLabelMaxLength {
+			return fmt.Errorf("FQDN label too long: %s (%d characters, max %d)", label, len(label), cryptoutilSharedMagic.FQDNLabelMaxLength)
 		}
 	}
 
@@ -185,13 +185,13 @@ func ClientEndEntityOptions(subjectName string) *EndEntityOptions {
 // CAChain represents a CA certificate chain.
 type CAChain struct {
 	// CAs is the list of CA subjects, from issuing CA (index 0) to root CA (last index).
-	CAs []*cryptoutilCertificate.Subject
+	CAs []*cryptoutilSharedCryptoCertificate.Subject
 
 	// IssuingCA is a convenience reference to CAs[0], the CA that issues end entity certs.
-	IssuingCA *cryptoutilCertificate.Subject
+	IssuingCA *cryptoutilSharedCryptoCertificate.Subject
 
 	// RootCA is a convenience reference to the last CA in the chain.
-	RootCA *cryptoutilCertificate.Subject
+	RootCA *cryptoutilSharedCryptoCertificate.Subject
 }
 
 // curveToElliptic converts ECCurve to elliptic.Curve.
@@ -232,10 +232,10 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 
 	// Generate key pairs for all CAs.
 	ellipticCurve := curveToElliptic(opts.Curve)
-	keyPairs := make([]*cryptoutilKeyGen.KeyPair, opts.ChainLength)
+	keyPairs := make([]*cryptoutilSharedCryptoKeygen.KeyPair, opts.ChainLength)
 
 	for i := range keyPairs {
-		keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(ellipticCurve)
+		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(ellipticCurve)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate key pair for CA %d: %w", i, err)
 		}
@@ -255,7 +255,7 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 		caSubjectNamePrefix = opts.CommonNamePrefix + " CA"
 	}
 
-	caSubjects, err := cryptoutilCertificate.CreateCASubjects(keyPairs, caSubjectNamePrefix, opts.Duration)
+	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(keyPairs, caSubjectNamePrefix, opts.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}
@@ -268,7 +268,7 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 }
 
 // CreateEndEntity creates an end entity certificate signed by the issuing CA.
-func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilCertificate.Subject, error) {
+func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilSharedCryptoCertificate.Subject, error) {
 	if opts == nil {
 		return nil, fmt.Errorf("options cannot be nil")
 	} else if opts.SubjectName == "" {
@@ -280,7 +280,7 @@ func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilCertificat
 	// Generate key pair for end entity.
 	ellipticCurve := curveToElliptic(opts.Curve)
 
-	keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(ellipticCurve)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(ellipticCurve)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key pair: %w", err)
 	}
@@ -290,7 +290,7 @@ func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilCertificat
 		duration = DefaultEndEntityDuration
 	}
 
-	subject, err := cryptoutilCertificate.CreateEndEntitySubject(
+	subject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(
 		c.IssuingCA,
 		keyPair,
 		opts.SubjectName,

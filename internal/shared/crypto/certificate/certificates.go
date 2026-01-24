@@ -7,19 +7,19 @@ package certificate
 
 import (
 	"crypto"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/json"
+	json "encoding/json"
 	"encoding/pem"
 	"fmt"
 	"net"
 	"net/url"
 	"time"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // KeyMaterial holds the cryptographic components for a certificate.
@@ -58,7 +58,7 @@ type Subject struct {
 }
 
 // CreateCASubjects creates a certificate chain from multiple CA key pairs.
-func CreateCASubjects(keyPairs []*cryptoutilKeyGen.KeyPair, caSubjectNamePrefix string, duration time.Duration) ([]*Subject, error) {
+func CreateCASubjects(keyPairs []*cryptoutilSharedCryptoKeygen.KeyPair, caSubjectNamePrefix string, duration time.Duration) ([]*Subject, error) {
 	subjects := make([]*Subject, len(keyPairs))
 
 	for i := len(keyPairs) - 1; i >= 0; i-- {
@@ -81,7 +81,7 @@ func CreateCASubjects(keyPairs []*cryptoutilKeyGen.KeyPair, caSubjectNamePrefix 
 }
 
 // CreateCASubject creates a single CA certificate subject with optional issuer.
-func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *cryptoutilKeyGen.KeyPair, duration time.Duration, maxPathLen int) (*Subject, error) {
+func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *cryptoutilSharedCryptoKeygen.KeyPair, duration time.Duration, maxPathLen int) (*Subject, error) {
 	if issuerSubject == nil && issuerPrivateKey != nil { // pragma: allowlist secret
 		return nil, fmt.Errorf("issuerSubject is nil but issuerPrivateKey is not nil for CA %s", subjectName)
 	} else if issuerSubject != nil && issuerPrivateKey == nil { // pragma: allowlist secret
@@ -143,7 +143,7 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 }
 
 // CreateEndEntitySubject creates an end entity certificate subject with SANs and key usage.
-func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *cryptoutilKeyGen.KeyPair, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*Subject, error) {
+func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *cryptoutilSharedCryptoKeygen.KeyPair, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*Subject, error) {
 	endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCASubject.SubjectName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, keyUsage, extKeyUsage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create end entity certificate template for %s: %w", subjectName, err)
@@ -206,7 +206,7 @@ func CertificateTemplateCA(issuerName, subjectName string, duration time.Duratio
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
@@ -232,7 +232,7 @@ func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS server: %w", err)
 	}
@@ -267,9 +267,9 @@ func SignCertificate(issuerCertificate *x509.Certificate, issuerPrivateKey crypt
 
 	var certificateDER []byte
 	if issuerCertificate == nil {
-		certificateDER, err = x509.CreateCertificate(rand.Reader, subjectCertificate, subjectCertificate, subjectPublicKey, issuerPrivateKey)
+		certificateDER, err = x509.CreateCertificate(crand.Reader, subjectCertificate, subjectCertificate, subjectPublicKey, issuerPrivateKey)
 	} else {
-		certificateDER, err = x509.CreateCertificate(rand.Reader, subjectCertificate, issuerCertificate, subjectPublicKey, issuerPrivateKey)
+		certificateDER, err = x509.CreateCertificate(crand.Reader, subjectCertificate, issuerCertificate, subjectPublicKey, issuerPrivateKey)
 	}
 
 	if err != nil {

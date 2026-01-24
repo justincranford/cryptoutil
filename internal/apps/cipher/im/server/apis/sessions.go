@@ -6,26 +6,26 @@
 package apis
 
 import (
-	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerApis "cryptoutil/internal/apps/template/service/server/apis"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 )
 
 // SessionHandler is an alias to the template's SessionHandler.
-type SessionHandler = cryptoutilTemplateAPIs.SessionHandler
+type SessionHandler = cryptoutilAppsTemplateServiceServerApis.SessionHandler
 
 // NewSessionHandler creates a new SessionHandler instance.
-func NewSessionHandler(sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService) *SessionHandler {
-	return cryptoutilTemplateAPIs.NewSessionHandler(sessionManager)
+func NewSessionHandler(sessionManager *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService) *SessionHandler {
+	return cryptoutilAppsTemplateServiceServerApis.NewSessionHandler(sessionManager)
 }
 
 // Re-exported request/response types for session management operations.
 type (
 	// SessionIssueRequest is the request for creating a new session.
-	SessionIssueRequest = cryptoutilTemplateAPIs.SessionIssueRequest
+	SessionIssueRequest = cryptoutilAppsTemplateServiceServerApis.SessionIssueRequest
 	// SessionIssueResponse is the response containing the issued session token.
-	SessionIssueResponse = cryptoutilTemplateAPIs.SessionIssueResponse
+	SessionIssueResponse = cryptoutilAppsTemplateServiceServerApis.SessionIssueResponse
 	// SessionValidateRequest is the request for validating an existing session.
-	SessionValidateRequest = cryptoutilTemplateAPIs.SessionValidateRequest
+	SessionValidateRequest = cryptoutilAppsTemplateServiceServerApis.SessionValidateRequest
 	// SessionValidateResponse is the response containing session validation results.
-	SessionValidateResponse = cryptoutilTemplateAPIs.SessionValidateResponse
+	SessionValidateResponse = cryptoutilAppsTemplateServiceServerApis.SessionValidateResponse
 )

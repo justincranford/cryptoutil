@@ -5,7 +5,7 @@
 package authz
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base64"
 	"fmt"
 
@@ -16,7 +16,7 @@ import (
 func GenerateAuthorizationCode() (string, error) {
 	bytes := make([]byte, cryptoutilIdentityMagic.DefaultAuthCodeLength)
 
-	_, err := rand.Read(bytes)
+	_, err := crand.Read(bytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate authorization code: %w", err)
 	}

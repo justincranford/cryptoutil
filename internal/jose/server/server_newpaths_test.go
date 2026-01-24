@@ -6,16 +6,16 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"sync"
 	"testing"
 	"time"
 
 	cryptoutilJoseConfig "cryptoutil/internal/jose/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -71,7 +71,7 @@ func setupJoseTestServer() error {
 		}
 
 		// Get the actual port.
-		joseTestBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilMagic.IPv4Loopback, actualPort)
+		joseTestBaseURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, actualPort)
 
 		// Create HTTP client.
 		joseTestHTTPClient = &http.Client{

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -372,12 +372,12 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 		SessionCleanupInterval:     sessionCleanupIntervalValue,
 	}
 	// Overrides for testing
-	settings.LogLevel = cryptoutilMagic.TestDefaultLogLevelAll
-	settings.DevMode = cryptoutilMagic.TestDefaultDevMode
-	settings.BrowserIPRateLimit = cryptoutilMagic.TestDefaultRateLimitBrowserIP
-	settings.ServiceIPRateLimit = cryptoutilMagic.TestDefaultRateLimitServiceIP
+	settings.LogLevel = cryptoutilSharedMagic.TestDefaultLogLevelAll
+	settings.DevMode = cryptoutilSharedMagic.TestDefaultDevMode
+	settings.BrowserIPRateLimit = cryptoutilSharedMagic.TestDefaultRateLimitBrowserIP
+	settings.ServiceIPRateLimit = cryptoutilSharedMagic.TestDefaultRateLimitServiceIP
 	settings.OTLPService = applicationName
-	settings.ServerShutdownTimeout = cryptoutilMagic.TestDefaultServerShutdownTimeout // Increase shutdown timeout for tests to allow cleanup of resources
+	settings.ServerShutdownTimeout = cryptoutilSharedMagic.TestDefaultServerShutdownTimeout // Increase shutdown timeout for tests to allow cleanup of resources
 	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")
 
 	if strings.Contains(settings.DatabaseURL, "/DB?") {

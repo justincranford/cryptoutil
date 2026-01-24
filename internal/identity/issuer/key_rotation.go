@@ -6,9 +6,9 @@ package issuer
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"encoding/base64"
 	"fmt"
 	"math/big"

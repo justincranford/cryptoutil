@@ -12,7 +12,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 )
 
 // RecoveryCodeRepository defines minimal repository interface.
@@ -50,7 +50,7 @@ func (s *RecoveryCodeService) GenerateForUser(ctx context.Context, userID google
 
 	for i, plaintext := range plaintextCodes {
 		// Hash code with PBKDF2 (FIPS-compliant).
-		hash, err := cryptoutilPassword.HashPassword(plaintext)
+		hash, err := cryptoutilSharedCryptoPassword.HashPassword(plaintext)
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash recovery code: %w", err)
 		}
@@ -89,7 +89,7 @@ func (s *RecoveryCodeService) Verify(ctx context.Context, userID googleUuid.UUID
 		}
 
 		// Compare plaintext with hash (PBKDF2-HMAC-SHA256, FIPS-compliant).
-		match, _, err := cryptoutilPassword.VerifyPassword(plaintext, code.CodeHash)
+		match, _, err := cryptoutilSharedCryptoPassword.VerifyPassword(plaintext, code.CodeHash)
 		if err == nil && match {
 			// Code matches - mark as used.
 			code.MarkAsUsed()

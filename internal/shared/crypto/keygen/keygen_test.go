@@ -5,13 +5,13 @@ package keygen
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
@@ -27,9 +27,9 @@ func TestGenerateRSAKeyPair(t *testing.T) {
 		rsaBits int
 		prob    float32
 	}{
-		{"RSA 2048", 2048, cryptoutilMagic.TestProbAlways},
-		{"RSA 3072", 3072, cryptoutilMagic.TestProbTenth},
-		{"RSA 4096", 4096, cryptoutilMagic.TestProbTenth},
+		{"RSA 2048", 2048, cryptoutilSharedMagic.TestProbAlways},
+		{"RSA 3072", 3072, cryptoutilSharedMagic.TestProbTenth},
+		{"RSA 4096", 4096, cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range testCases {
@@ -81,9 +81,9 @@ func TestGenerateECDSAKeyPair(t *testing.T) {
 		curve elliptic.Curve
 		prob  float32
 	}{
-		{"P-256", elliptic.P256(), cryptoutilMagic.TestProbAlways},
-		{"P-384", elliptic.P384(), cryptoutilMagic.TestProbTenth},
-		{"P-521", elliptic.P521(), cryptoutilMagic.TestProbTenth},
+		{"P-256", elliptic.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{"P-384", elliptic.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{"P-521", elliptic.P521(), cryptoutilSharedMagic.TestProbTenth},
 	}
 
 	for _, tc := range testCases {
@@ -134,10 +134,10 @@ func TestGenerateECDHKeyPair(t *testing.T) {
 		curve ecdh.Curve
 		prob  float32
 	}{
-		{"P-256", ecdh.P256(), cryptoutilMagic.TestProbAlways},
-		{"P-384", ecdh.P384(), cryptoutilMagic.TestProbTenth},
-		{"P-521", ecdh.P521(), cryptoutilMagic.TestProbTenth},
-		{"X25519", ecdh.X25519(), cryptoutilMagic.TestProbAlways},
+		{"P-256", ecdh.P256(), cryptoutilSharedMagic.TestProbAlways},
+		{"P-384", ecdh.P384(), cryptoutilSharedMagic.TestProbTenth},
+		{"P-521", ecdh.P521(), cryptoutilSharedMagic.TestProbTenth},
+		{"X25519", ecdh.X25519(), cryptoutilSharedMagic.TestProbAlways},
 	}
 
 	for _, tc := range testCases {
@@ -192,7 +192,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 		{
 			name:  "Ed25519",
 			curve: EdCurveEd25519,
-			prob:  cryptoutilMagic.TestProbAlways,
+			prob:  cryptoutilSharedMagic.TestProbAlways,
 			verify: func(t *testing.T, keyPair *KeyPair) {
 				privateKey, ok := keyPair.Private.(ed25519.PrivateKey)
 				require.True(t, ok, "private key should be ed25519.PrivateKey")
@@ -206,7 +206,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 		{
 			name:  "Ed448",
 			curve: EdCurveEd448,
-			prob:  cryptoutilMagic.TestProbTenth,
+			prob:  cryptoutilSharedMagic.TestProbTenth,
 			verify: func(t *testing.T, keyPair *KeyPair) {
 				privateKey, ok := keyPair.Private.(ed448.PrivateKey)
 				require.True(t, ok, "private key should be ed448.PrivateKey")
@@ -269,9 +269,9 @@ func TestGenerateAESKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"AES-128", aesKeySize128, aesKeySize128 / bitsToBytes, cryptoutilMagic.TestProbAlways},
-		{"AES-192", aesKeySize192, aesKeySize192 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
-		{"AES-256", aesKeySize256, aesKeySize256 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
+		{"AES-128", aesKeySize128, aesKeySize128 / bitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"AES-192", aesKeySize192, aesKeySize192 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"AES-256", aesKeySize256, aesKeySize256 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
@@ -333,9 +333,9 @@ func TestGenerateAESHSKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"AES-HS-256", aesHsKeySize256, aesHsKeySize256 / bitsToBytes, cryptoutilMagic.TestProbAlways},
-		{"AES-HS-384", aesHsKeySize384, aesHsKeySize384 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
-		{"AES-HS-512", aesHsKeySize512, aesHsKeySize512 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
+		{"AES-HS-256", aesHsKeySize256, aesHsKeySize256 / bitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"AES-HS-384", aesHsKeySize384, aesHsKeySize384 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"AES-HS-512", aesHsKeySize512, aesHsKeySize512 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {
@@ -397,9 +397,9 @@ func TestGenerateHMACKey(t *testing.T) {
 		expectedSize int
 		prob         float32
 	}{
-		{"HMAC 256", 256, 256 / bitsToBytes, cryptoutilMagic.TestProbAlways},
-		{"HMAC 512", 512, 512 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
-		{"HMAC 1024", 1024, 1024 / bitsToBytes, cryptoutilMagic.TestProbQuarter},
+		{"HMAC 256", 256, 256 / bitsToBytes, cryptoutilSharedMagic.TestProbAlways},
+		{"HMAC 512", 512, 512 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
+		{"HMAC 1024", 1024, 1024 / bitsToBytes, cryptoutilSharedMagic.TestProbQuarter},
 	}
 
 	for _, tc := range testCases {

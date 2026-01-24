@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 )
 
 // PublicHTTPServer implements the PublicServer interface for business logic APIs and UIs.
@@ -28,10 +28,10 @@ import (
 // Both paths serve the SAME OpenAPI specification but with different middleware stacks.
 type PublicHTTPServer struct {
 	app         *fiber.App
-	settings    *cryptoutilConfig.ServiceTemplateServerSettings
+	settings    *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	actualPort  int
 	listener    net.Listener
-	tlsMaterial *cryptoutilConfig.TLSMaterial
+	tlsMaterial *cryptoutilAppsTemplateServiceConfig.TLSMaterial
 	mu          sync.RWMutex
 	shutdown    bool
 }
@@ -49,7 +49,7 @@ type PublicHTTPServer struct {
 // Returns:
 // - *PublicHTTPServer: Server instance ready to Start()
 // - error: Non-nil if initialization fails (nil context, TLS generation failure, Fiber setup failure).
-func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
+func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, tlsCfg *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings) (*PublicHTTPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -59,7 +59,7 @@ func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilConfig.Service
 	}
 
 	// Generate TLS material based on configured mode.
-	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}

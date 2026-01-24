@@ -3,17 +3,17 @@
 package jwks
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"log/slog"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -274,7 +274,7 @@ func generateTestRSAKeyPair(t *testing.T) (string, string) {
 	alg := joseJwa.RS256()
 
 	// Generate RSA key pair using existing crypto utilities.
-	_, privateJWK, publicJWK, _, _, err := cryptoutilJose.GenerateJWSJWKForAlg(&alg)
+	_, privateJWK, publicJWK, _, _, err := cryptoutilSharedCryptoJose.GenerateJWSJWKForAlg(&alg)
 	require.NoError(t, err)
 
 	// Set kid on both keys.

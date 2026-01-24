@@ -3,9 +3,9 @@
 package revocation
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -520,7 +520,7 @@ func TestRevokedCertificate_ToEntry(t *testing.T) {
 func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 	t.Helper()
 
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -537,7 +537,7 @@ func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 		BasicConstraintsValid: true,
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey.PublicKey, privateKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &privateKey.PublicKey, privateKey)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certDER)
@@ -549,10 +549,10 @@ func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 func createTestCertificate(t *testing.T, issuer *x509.Certificate, issuerKey *ecdsa.PrivateKey) *x509.Certificate {
 	t.Helper()
 
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	serial, err := rand.Int(rand.Reader, big.NewInt(1000000))
+	serial, err := crand.Int(crand.Reader, big.NewInt(1000000))
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -568,7 +568,7 @@ func createTestCertificate(t *testing.T, issuer *x509.Certificate, issuerKey *ec
 		DNSNames:    []string{"test.example.com"},
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, issuer, &privateKey.PublicKey, issuerKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, issuer, &privateKey.PublicKey, issuerKey)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certDER)

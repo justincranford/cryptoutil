@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIdp "cryptoutil/internal/identity/idp"

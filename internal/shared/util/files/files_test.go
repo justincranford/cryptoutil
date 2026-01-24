@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/shared/util/files"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 func TestWriteFile(t *testing.T) {
@@ -77,7 +77,7 @@ func TestWriteFile(t *testing.T) {
 			tempDir := t.TempDir()
 			testFile := filepath.Join(tempDir, "test.txt")
 
-			err := files.WriteFile(testFile, tc.content, tc.permissions)
+			err := cryptoutilSharedUtilFiles.WriteFile(testFile, tc.content, tc.permissions)
 
 			if tc.wantErr {
 				require.Error(t, err, "WriteFile should return error")
@@ -210,7 +210,7 @@ func TestListAllFiles(t *testing.T) {
 			// Create files.
 			for _, file := range tc.setupFiles {
 				filePath := filepath.Join(tempDir, file)
-				err := files.WriteFile(filePath, "test content", 0o600)
+				err := cryptoutilSharedUtilFiles.WriteFile(filePath, "test content", 0o600)
 				require.NoError(t, err, "Should create test file")
 			}
 
@@ -218,7 +218,7 @@ func TestListAllFiles(t *testing.T) {
 			inclusions := []string{"txt", "go", "yml", "gitignore"}
 			exclusions := []string{}
 
-			result, err := files.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
+			result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 
 			if tc.wantErr {
 				require.Error(t, err, "ListAllFiles should return error")
@@ -256,10 +256,10 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 	require.NoError(t, err, "Should create excluded directory")
 
 	// Create files in both directories.
-	err = files.WriteFile(filepath.Join(includedDir, "included.go"), "package included", 0o600)
+	err = cryptoutilSharedUtilFiles.WriteFile(filepath.Join(includedDir, "included.go"), "package included", 0o600)
 	require.NoError(t, err, "Should create included file")
 
-	err = files.WriteFile(filepath.Join(excludedDir, "excluded.go"), "package excluded", 0o600)
+	err = cryptoutilSharedUtilFiles.WriteFile(filepath.Join(excludedDir, "excluded.go"), "package excluded", 0o600)
 	require.NoError(t, err, "Should create excluded file")
 
 	// Call function with exclusion using the normalized excluded directory path.
@@ -267,7 +267,7 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 	excludedNormalized := filepath.ToSlash(excludedDir)
 	exclusions := []string{excludedNormalized}
 
-	result, err := files.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
+	result, err := cryptoutilSharedUtilFiles.ListAllFilesWithOptions(tempDir, inclusions, exclusions)
 	require.NoError(t, err, "ListAllFilesWithOptions should succeed")
 
 	// Should only have 1 file (from included directory).
@@ -278,7 +278,7 @@ func TestListAllFilesWithOptions_DirectoryExclusions(t *testing.T) {
 func TestListAllFiles_NonExistentDirectory(t *testing.T) {
 	t.Parallel()
 
-	result, err := files.ListAllFiles("/nonexistent/directory/that/does/not/exist")
+	result, err := cryptoutilSharedUtilFiles.ListAllFiles("/nonexistent/directory/that/does/not/exist")
 	require.Error(t, err, "ListAllFiles should return error for non-existent directory")
 	require.Contains(t, err.Error(), "failed to walk directory", "Error should mention directory walk failure")
 	require.Nil(t, result, "Result should be nil on error")
@@ -299,7 +299,7 @@ func TestReadFileBytes(t *testing.T) {
 		require.NoError(t, err, "Failed to create test file")
 
 		// Read file.
-		content, err := files.ReadFileBytes(testFile)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytes(testFile)
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, testContent, content, "Content should match")
 	})
@@ -307,7 +307,7 @@ func TestReadFileBytes(t *testing.T) {
 	t.Run("file not found", func(t *testing.T) {
 		t.Parallel()
 
-		content, err := files.ReadFileBytes("/nonexistent/path/file.txt")
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytes("/nonexistent/path/file.txt")
 		require.Error(t, err, "Should return error for missing file")
 		require.Nil(t, content, "Content should be nil on error")
 		require.Contains(t, err.Error(), "failed to read file", "Error should indicate read failure")
@@ -332,7 +332,7 @@ func TestReadFilesBytes(t *testing.T) {
 		require.NoError(t, os.WriteFile(file2, content2, 0o600))
 
 		// Read files.
-		contents, err := files.ReadFilesBytes([]string{file1, file2})
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, file2})
 		require.NoError(t, err, "Failed to read files")
 		require.Len(t, contents, 2, "Should have 2 file contents")
 		require.Equal(t, content1, contents[0], "First file content should match")
@@ -342,7 +342,7 @@ func TestReadFilesBytes(t *testing.T) {
 	t.Run("no files specified", func(t *testing.T) {
 		t.Parallel()
 
-		contents, err := files.ReadFilesBytes([]string{})
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{})
 		require.Error(t, err, "Should return error for empty file list")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "no files specified", "Error should indicate no files")
@@ -351,7 +351,7 @@ func TestReadFilesBytes(t *testing.T) {
 	t.Run("nil file list", func(t *testing.T) {
 		t.Parallel()
 
-		contents, err := files.ReadFilesBytes(nil)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes(nil)
 		require.Error(t, err, "Should return error for nil file list")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "no files specified", "Error should indicate no files")
@@ -364,7 +364,7 @@ func TestReadFilesBytes(t *testing.T) {
 		file1 := filepath.Join(tmpDir, "file1.txt")
 		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
 
-		contents, err := files.ReadFilesBytes([]string{file1, ""})
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, ""})
 		require.Error(t, err, "Should return error for empty path")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "empty file path", "Error should indicate empty path")
@@ -377,7 +377,7 @@ func TestReadFilesBytes(t *testing.T) {
 		file1 := filepath.Join(tmpDir, "file1.txt")
 		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
 
-		contents, err := files.ReadFilesBytes([]string{file1, "   "})
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, "   "})
 		require.Error(t, err, "Should return error for whitespace path")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "empty file path", "Error should indicate empty path")
@@ -390,7 +390,7 @@ func TestReadFilesBytes(t *testing.T) {
 		file1 := filepath.Join(tmpDir, "file1.txt")
 		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
 
-		contents, err := files.ReadFilesBytes([]string{file1, "/nonexistent/file.txt"})
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{file1, "/nonexistent/file.txt"})
 		require.Error(t, err, "Should return error for missing file")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "failed to read file", "Error should indicate read failure")
@@ -411,7 +411,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
 
 		// Read with limit larger than file size.
-		content, err := files.ReadFileBytesLimit(testFile, 100)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 100)
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, testContent, content, "Should read entire file")
 	})
@@ -425,7 +425,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
 
 		// Read with limit equal to file size.
-		content, err := files.ReadFileBytesLimit(testFile, int64(len(testContent)))
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, int64(len(testContent)))
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, testContent, content, "Should read entire file")
 	})
@@ -439,7 +439,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
 
 		// Read first 5 bytes.
-		content, err := files.ReadFileBytesLimit(testFile, 5)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 5)
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, []byte("12345"), content, "Should read first 5 bytes")
 		require.Len(t, content, 5, "Should read exactly 5 bytes")
@@ -454,7 +454,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
 
 		// Read with limit 0 (should read entire file).
-		content, err := files.ReadFileBytesLimit(testFile, 0)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, 0)
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, testContent, content, "Should read entire file with limit 0")
 	})
@@ -468,7 +468,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 		require.NoError(t, os.WriteFile(testFile, testContent, 0o600))
 
 		// Read with negative limit (should read entire file).
-		content, err := files.ReadFileBytesLimit(testFile, -1)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit(testFile, -1)
 		require.NoError(t, err, "Failed to read file")
 		require.Equal(t, testContent, content, "Should read entire file with negative limit")
 	})
@@ -476,7 +476,7 @@ func TestReadFileBytesLimit(t *testing.T) {
 	t.Run("file not found", func(t *testing.T) {
 		t.Parallel()
 
-		content, err := files.ReadFileBytesLimit("/nonexistent/file.txt", 100)
+		content, err := cryptoutilSharedUtilFiles.ReadFileBytesLimit("/nonexistent/file.txt", 100)
 		require.Error(t, err, "Should return error for missing file")
 		require.Nil(t, content, "Content should be nil on error")
 		require.Contains(t, err.Error(), "failed to open file", "Error should indicate open failure")
@@ -501,7 +501,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 		require.NoError(t, os.WriteFile(file2, content2, 0o600))
 
 		// Read files with high limits.
-		contents, err := files.ReadFilesBytesLimit([]string{file1, file2}, 10, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, file2}, 10, 100)
 		require.NoError(t, err, "Failed to read files")
 		require.Len(t, contents, 2, "Should have 2 file contents")
 		require.Equal(t, content1, contents[0], "First file content should match")
@@ -521,7 +521,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 		require.NoError(t, os.WriteFile(file3, []byte("3"), 0o600))
 
 		// Read with maxFiles=2 but provide 3 files.
-		contents, err := files.ReadFilesBytesLimit([]string{file1, file2, file3}, 2, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, file2, file3}, 2, 100)
 		require.Error(t, err, "Should return error for too many files")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "too many files specified", "Error should indicate too many files")
@@ -537,7 +537,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 
 		// Read with maxBytesPerFile=10 (file has 100 bytes).
 		// Should succeed but only read first 10 bytes.
-		contents, err := files.ReadFilesBytesLimit([]string{file1}, 10, 10)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1}, 10, 10)
 		require.NoError(t, err, "Should read partial content")
 		require.Len(t, contents, 1, "Should have 1 file content")
 		require.Len(t, contents[0], 10, "Should read only 10 bytes")
@@ -547,7 +547,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 	t.Run("no files specified", func(t *testing.T) {
 		t.Parallel()
 
-		contents, err := files.ReadFilesBytesLimit([]string{}, 10, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{}, 10, 100)
 		require.Error(t, err, "Should return error for empty file list")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "no files specified", "Error should indicate no files")
@@ -560,7 +560,7 @@ func TestReadFilesBytesLimit(t *testing.T) {
 		file1 := filepath.Join(tmpDir, "file1.txt")
 		require.NoError(t, os.WriteFile(file1, []byte("content"), 0o600))
 
-		contents, err := files.ReadFilesBytesLimit([]string{file1, ""}, 10, 100)
+		contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit([]string{file1, ""}, 10, 100)
 		require.Error(t, err, "Should return error for empty path")
 		require.Nil(t, contents, "Contents should be nil on error")
 		require.Contains(t, err.Error(), "empty file path", "Error should indicate empty path")

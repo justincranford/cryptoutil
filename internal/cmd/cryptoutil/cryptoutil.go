@@ -9,15 +9,15 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilCipherCmd "cryptoutil/internal/cmd/cipher"
-	cryptoutilAuthzCmd "cryptoutil/internal/cmd/cryptoutil/authz"
-	cryptoutilCACmd "cryptoutil/internal/cmd/cryptoutil/ca"
-	cryptoutilIdentityCmd "cryptoutil/internal/cmd/cryptoutil/identity"
-	cryptoutilIDPCmd "cryptoutil/internal/cmd/cryptoutil/idp"
-	cryptoutilJoseCmd "cryptoutil/internal/cmd/cryptoutil/jose"
-	cryptoutilRPCmd "cryptoutil/internal/cmd/cryptoutil/rp"
-	cryptoutilRSCmd "cryptoutil/internal/cmd/cryptoutil/rs"
-	cryptoutilSPACmd "cryptoutil/internal/cmd/cryptoutil/spa"
+	cryptoutilCmdCipher "cryptoutil/internal/cmd/cipher"
+	cryptoutilCmdCryptoutilAuthz "cryptoutil/internal/cmd/cryptoutil/authz"
+	cryptoutilCmdCryptoutilCa "cryptoutil/internal/cmd/cryptoutil/ca"
+	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/cmd/cryptoutil/identity"
+	cryptoutilCmdCryptoutilIdp "cryptoutil/internal/cmd/cryptoutil/idp"
+	cryptoutilCmdCryptoutilJose "cryptoutil/internal/cmd/cryptoutil/jose"
+	cryptoutilCmdCryptoutilRp "cryptoutil/internal/cmd/cryptoutil/rp"
+	cryptoutilCmdCryptoutilRs "cryptoutil/internal/cmd/cryptoutil/rs"
+	cryptoutilCmdCryptoutilSpa "cryptoutil/internal/cmd/cryptoutil/spa"
 	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
 )
 
@@ -40,23 +40,23 @@ func Execute() {
 	case "kms":
 		cryptoutilKmsCmd.Server(parameters)
 	case "identity":
-		cryptoutilIdentityCmd.Execute(parameters)
+		cryptoutilCmdCryptoutilIdentity.Execute(parameters)
 	case "identity-authz":
-		cryptoutilAuthzCmd.Execute(parameters)
+		cryptoutilCmdCryptoutilAuthz.Execute(parameters)
 	case "identity-idp":
-		cryptoutilIDPCmd.Execute(parameters)
+		cryptoutilCmdCryptoutilIdp.Execute(parameters)
 	case "identity-rs":
-		cryptoutilRSCmd.Execute(parameters)
+		cryptoutilCmdCryptoutilRs.Execute(parameters)
 	case "identity-rp":
-		cryptoutilRPCmd.Execute(parameters)
+		cryptoutilCmdCryptoutilRp.Execute(parameters)
 	case "identity-spa":
-		cryptoutilSPACmd.Execute(parameters)
+		cryptoutilCmdCryptoutilSpa.Execute(parameters)
 	case "jose":
-		cryptoutilJoseCmd.Execute(parameters)
+		cryptoutilCmdCryptoutilJose.Execute(parameters)
 	case "ca":
-		cryptoutilCACmd.Execute(parameters)
+		cryptoutilCmdCryptoutilCa.Execute(parameters)
 	case "cipher":
-		exitCode := cryptoutilCipherCmd.Cipher(parameters)
+		exitCode := cryptoutilCmdCipher.Cipher(parameters)
 		os.Exit(exitCode)
 	case "help":
 		printUsage(executable)

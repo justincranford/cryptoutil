@@ -14,7 +14,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // mockClientRepo moved to test_helpers_test.go (shared across all clientauth test files)
@@ -40,7 +40,7 @@ func TestBasicAuthenticator_Authenticate(t *testing.T) {
 	testClientIDUUID := googleUuid.New()
 
 	// Hash the client secret for storage using PBKDF2 (format: pbkdf2$iter$salt$hash).
-	hashedSecret, err := cryptoutilHash.HashSecretPBKDF2(testClientSecret)
+	hashedSecret, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(testClientSecret)
 	require.NoError(t, err)
 
 	repo := &mockClientRepo{

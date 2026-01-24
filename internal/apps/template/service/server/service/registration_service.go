@@ -21,7 +21,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 const (
@@ -68,25 +68,25 @@ const (
 // RegistrationServiceImpl implements RegistrationService.
 type RegistrationServiceImpl struct {
 	tenantService        TenantService
-	userRepo             repository.UserRepository
-	clientRepo           repository.ClientRepository
-	unverifiedUserRepo   repository.UnverifiedUserRepository
-	unverifiedClientRepo repository.UnverifiedClientRepository
-	roleRepo             repository.RoleRepository
-	userRoleRepo         repository.UserRoleRepository
-	clientRoleRepo       repository.ClientRoleRepository
+	userRepo             cryptoutilAppsTemplateServiceServerRepository.UserRepository
+	clientRepo           cryptoutilAppsTemplateServiceServerRepository.ClientRepository
+	unverifiedUserRepo   cryptoutilAppsTemplateServiceServerRepository.UnverifiedUserRepository
+	unverifiedClientRepo cryptoutilAppsTemplateServiceServerRepository.UnverifiedClientRepository
+	roleRepo             cryptoutilAppsTemplateServiceServerRepository.RoleRepository
+	userRoleRepo         cryptoutilAppsTemplateServiceServerRepository.UserRoleRepository
+	clientRoleRepo       cryptoutilAppsTemplateServiceServerRepository.ClientRoleRepository
 }
 
 // NewRegistrationService creates a new RegistrationService instance.
 func NewRegistrationService(
 	tenantService TenantService,
-	userRepo repository.UserRepository,
-	clientRepo repository.ClientRepository,
-	unverifiedUserRepo repository.UnverifiedUserRepository,
-	unverifiedClientRepo repository.UnverifiedClientRepository,
-	roleRepo repository.RoleRepository,
-	userRoleRepo repository.UserRoleRepository,
-	clientRoleRepo repository.ClientRoleRepository,
+	userRepo cryptoutilAppsTemplateServiceServerRepository.UserRepository,
+	clientRepo cryptoutilAppsTemplateServiceServerRepository.ClientRepository,
+	unverifiedUserRepo cryptoutilAppsTemplateServiceServerRepository.UnverifiedUserRepository,
+	unverifiedClientRepo cryptoutilAppsTemplateServiceServerRepository.UnverifiedClientRepository,
+	roleRepo cryptoutilAppsTemplateServiceServerRepository.RoleRepository,
+	userRoleRepo cryptoutilAppsTemplateServiceServerRepository.UserRoleRepository,
+	clientRoleRepo cryptoutilAppsTemplateServiceServerRepository.ClientRoleRepository,
 ) RegistrationService {
 	return &RegistrationServiceImpl{
 		tenantService:        tenantService,
@@ -116,7 +116,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 		}
 
 		// Create user.
-		user := &repository.User{
+		user := &cryptoutilAppsTemplateServiceServerRepository.User{
 			ID:           googleUuid.New(),
 			TenantID:     tenant.ID,
 			Username:     username,
@@ -135,7 +135,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 			return nil, fmt.Errorf("failed to get admin role: %w", err)
 		}
 
-		userRole := &repository.UserRole{
+		userRole := &cryptoutilAppsTemplateServiceServerRepository.UserRole{
 			TenantID: tenant.ID,
 			UserID:   user.ID,
 			RoleID:   adminRole.ID,
@@ -155,7 +155,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 
 	// Case 2: Existing tenant registration (pending verification).
 	expiresAt := time.Now().Add(DefaultRegistrationExpiryHours * time.Hour)
-	unverifiedUser := &repository.UnverifiedUser{
+	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     *existingTenantID,
 		Username:     username,
@@ -192,7 +192,7 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 		}
 
 		// Create client.
-		client := &repository.Client{
+		client := &cryptoutilAppsTemplateServiceServerRepository.Client{
 			ID:               googleUuid.New(),
 			TenantID:         tenant.ID,
 			ClientID:         clientID,
@@ -210,7 +210,7 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 			return nil, fmt.Errorf("failed to get admin role: %w", err)
 		}
 
-		clientRole := &repository.ClientRole{
+		clientRole := &cryptoutilAppsTemplateServiceServerRepository.ClientRole{
 			TenantID: tenant.ID,
 			ClientID: client.ID,
 			RoleID:   adminRole.ID,
@@ -230,7 +230,7 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 
 	// Case 2: Existing tenant registration (pending verification).
 	expiresAt := time.Now().Add(DefaultRegistrationExpiryHours * time.Hour)
-	unverifiedClient := &repository.UnverifiedClient{
+	unverifiedClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 		ID:               googleUuid.New(),
 		TenantID:         *existingTenantID,
 		ClientID:         clientID,

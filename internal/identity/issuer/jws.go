@@ -7,12 +7,12 @@ package issuer
 import (
 	"context"
 	"crypto"
-	"crypto/ecdsa"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
+	ecdsa "crypto/ecdsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
+	sha256 "crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"math/big"
 	"strings"
@@ -441,7 +441,7 @@ func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
 			return "", fmt.Errorf("expected RSA private key for %s algorithm", algorithm)
 		}
 
-		signature, err := rsa.SignPKCS1v15(rand.Reader, rsaKey, crypto.SHA256, hash[:])
+		signature, err := rsa.SignPKCS1v15(crand.Reader, rsaKey, crypto.SHA256, hash[:])
 		if err != nil {
 			return "", fmt.Errorf("RSA signing failed: %w", err)
 		}
@@ -454,7 +454,7 @@ func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
 			return "", fmt.Errorf("expected ECDSA private key for %s algorithm", algorithm)
 		}
 
-		r, s, err := ecdsa.Sign(rand.Reader, ecKey, hash[:])
+		r, s, err := ecdsa.Sign(crand.Reader, ecKey, hash[:])
 		if err != nil {
 			return "", fmt.Errorf("ECDSA signing failed: %w", err)
 		}

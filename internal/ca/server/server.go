@@ -6,7 +6,7 @@ package server
 import (
 	"context"
 	"crypto"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -15,9 +15,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilCAHandler "cryptoutil/internal/ca/api/handler"
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
@@ -25,8 +26,7 @@ import (
 	cryptoutilCAServiceIssuer "cryptoutil/internal/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/ca/service/revocation"
 	cryptoutilCAStorage "cryptoutil/internal/ca/storage"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // Default validity durations for development CA.
@@ -41,8 +41,8 @@ const (
 
 // Server represents the CA Server.
 type Server struct {
-	settings         *cryptoutilConfig.ServiceTemplateServerSettings
-	telemetryService *cryptoutilTelemetry.TelemetryService
+	settings         *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService
 	issuer           *cryptoutilCAServiceIssuer.Issuer
 	storage          cryptoutilCAStorage.Store
 	crlService       *cryptoutilCAServiceRevocation.CRLService
@@ -55,12 +55,12 @@ type Server struct {
 }
 
 // New creates a new CA Server instance using context.Background().
-func New(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Server, error) {
+func New(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*Server, error) {
 	return NewServer(context.Background(), settings)
 }
 
 // NewServer creates a new CA Server instance.
-func NewServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Server, error) {
+func NewServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*Server, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -68,7 +68,7 @@ func NewServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateSe
 	}
 
 	// Initialize telemetry.
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
 	}
@@ -200,7 +200,7 @@ func (s *Server) setupRoutes() {
 
 	// Register CA API handlers with base URL.
 	// Note: EST endpoints require mTLS authentication. Use ConfigureMTLS() to enable.
-	cryptoutilCAServer.RegisterHandlersWithOptions(s.fiberApp, s.handler, cryptoutilCAServer.FiberServerOptions{
+	cryptoutilApiCaServer.RegisterHandlersWithOptions(s.fiberApp, s.handler, cryptoutilApiCaServer.FiberServerOptions{
 		BaseURL: "/api/v1/ca",
 	})
 }
@@ -392,7 +392,7 @@ func createSelfSignedCA(provider cryptoutilCACrypto.Provider) (*x509.Certificate
 	}
 
 	// Generate serial number.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBitSize))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), serialNumberBitSize))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate serial number: %w", err)
 	}
@@ -430,7 +430,7 @@ func createSelfSignedCA(provider cryptoutilCACrypto.Provider) (*x509.Certificate
 	template.SignatureAlgorithm = sigAlg
 
 	// Self-sign the certificate.
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, signer.Public(), signer)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, signer.Public(), signer)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create CA certificate: %w", err)
 	}

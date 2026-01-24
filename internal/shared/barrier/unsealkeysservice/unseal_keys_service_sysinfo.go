@@ -7,8 +7,8 @@ package unsealkeysservice
 import (
 	"fmt"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
@@ -46,8 +46,8 @@ func (u *UnsealKeysServiceFromSysInfo) Shutdown() {
 }
 
 // NewUnsealKeysServiceFromSysInfo creates a new UnsealKeysService using system information fingerprinting.
-func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealKeysService, error) {
-	sysinfos, err := cryptoutilSysinfo.GetAllInfoWithTimeout(sysInfoProvider, cryptoutilMagic.DefaultSysInfoAllTimeout)
+func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSharedUtilSysinfo.SysInfoProvider) (UnsealKeysService, error) {
+	sysinfos, err := cryptoutilSharedUtilSysinfo.GetAllInfoWithTimeout(sysInfoProvider, cryptoutilSharedMagic.DefaultSysInfoAllTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
 	}

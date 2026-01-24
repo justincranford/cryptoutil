@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RateLimitStore defines interface for persistent rate limit storage.
@@ -192,7 +192,7 @@ func (r *PerUserRateLimiter) RecordAttempt(ctx context.Context, userID googleUui
 
 // Cleanup removes expired rate limit records.
 func (r *PerUserRateLimiter) Cleanup(ctx context.Context) error {
-	retention := r.window * cryptoutilMagic.RateLimitRetentionMultiplier
+	retention := r.window * cryptoutilSharedMagic.RateLimitRetentionMultiplier
 
 	if err := r.store.CleanupExpired(ctx, retention); err != nil {
 		return fmt.Errorf("failed to cleanup expired records: %w", err)
@@ -274,7 +274,7 @@ func (r *PerIPRateLimiter) RecordAttempt(ctx context.Context, ipAddress string) 
 
 // Cleanup removes expired rate limit records.
 func (r *PerIPRateLimiter) Cleanup(ctx context.Context) error {
-	retention := r.window * cryptoutilMagic.RateLimitRetentionMultiplier
+	retention := r.window * cryptoutilSharedMagic.RateLimitRetentionMultiplier
 
 	if err := r.store.CleanupExpired(ctx, retention); err != nil {
 		return fmt.Errorf("failed to cleanup expired records: %w", err)

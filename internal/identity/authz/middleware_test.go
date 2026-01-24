@@ -6,14 +6,14 @@ package authz_test
 
 import (
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 )
 
 // TestRegisterMiddleware_RecoverPanic validates panic recovery middleware.
@@ -23,7 +23,7 @@ func TestRegisterMiddleware_RecoverPanic(t *testing.T) {
 	app := fiber.New()
 
 	// Create minimal service for middleware registration.
-	service := &authz.Service{}
+	service := &cryptoutilIdentityAuthz.Service{}
 	service.RegisterMiddleware(app)
 
 	// Add route that panics.
@@ -47,7 +47,7 @@ func TestRegisterMiddleware_RateLimiting(t *testing.T) {
 	app := fiber.New()
 
 	// Create minimal service for middleware registration.
-	service := &authz.Service{}
+	service := &cryptoutilIdentityAuthz.Service{}
 	service.RegisterMiddleware(app)
 
 	// Add test route.
@@ -83,7 +83,7 @@ func TestRegisterMiddleware_CORS(t *testing.T) {
 	app := fiber.New()
 
 	// Create minimal service for middleware registration.
-	service := &authz.Service{}
+	service := &cryptoutilIdentityAuthz.Service{}
 	service.RegisterMiddleware(app)
 
 	// Add test route.
@@ -113,7 +113,7 @@ func TestRegisterMiddleware_Logging(t *testing.T) {
 	app := fiber.New()
 
 	// Create minimal service for middleware registration.
-	service := &authz.Service{}
+	service := &cryptoutilIdentityAuthz.Service{}
 	service.RegisterMiddleware(app)
 
 	// Add test route.

@@ -5,11 +5,11 @@ package handler
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	crand "crypto/rand"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
+	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"go.mozilla.org/pkcs7"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCAMagic "cryptoutil/internal/ca/magic"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/ca/profile/subject"
@@ -51,14 +51,14 @@ type Handler struct {
 // enrollmentTracker tracks enrollment request status.
 type enrollmentTracker struct {
 	mu         sync.RWMutex
-	requests   map[uuid.UUID]*enrollmentEntry
+	requests   map[googleUuid.UUID]*enrollmentEntry
 	maxEntries int
 }
 
 // enrollmentEntry represents a tracked enrollment request.
 type enrollmentEntry struct {
-	RequestID    uuid.UUID
-	Status       cryptoutilCAServer.EnrollmentStatusResponseStatus
+	RequestID    googleUuid.UUID
+	Status       cryptoutilApiCaServer.EnrollmentStatusResponseStatus
 	SerialNumber string
 	CreatedAt    time.Time
 	CompletedAt  time.Time
@@ -67,19 +67,19 @@ type enrollmentEntry struct {
 // newEnrollmentTracker creates a new enrollment tracker with max entry limit.
 func newEnrollmentTracker(maxEntries int) *enrollmentTracker {
 	return &enrollmentTracker{
-		requests:   make(map[uuid.UUID]*enrollmentEntry),
+		requests:   make(map[googleUuid.UUID]*enrollmentEntry),
 		maxEntries: maxEntries,
 	}
 }
 
 // track records an enrollment.
-func (t *enrollmentTracker) track(requestID uuid.UUID, status cryptoutilCAServer.EnrollmentStatusResponseStatus, serialNumber string) {
+func (t *enrollmentTracker) track(requestID googleUuid.UUID, status cryptoutilApiCaServer.EnrollmentStatusResponseStatus, serialNumber string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
 	// Enforce max entries by removing oldest if needed.
 	if len(t.requests) >= t.maxEntries {
-		var oldestID uuid.UUID
+		var oldestID googleUuid.UUID
 
 		var oldestTime time.Time
 
@@ -105,7 +105,7 @@ func (t *enrollmentTracker) track(requestID uuid.UUID, status cryptoutilCAServer
 }
 
 // get retrieves an enrollment entry.
-func (t *enrollmentTracker) get(requestID uuid.UUID) (*enrollmentEntry, bool) {
+func (t *enrollmentTracker) get(requestID googleUuid.UUID) (*enrollmentEntry, bool) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
@@ -147,7 +147,7 @@ func NewHandler(issuer *cryptoutilCAServiceIssuer.Issuer, storage cryptoutilCASt
 }
 
 // ListCertificates handles GET /certificates.
-func (h *Handler) ListCertificates(c *fiber.Ctx, params cryptoutilCAServer.ListCertificatesParams) error {
+func (h *Handler) ListCertificates(c *fiber.Ctx, params cryptoutilApiCaServer.ListCertificatesParams) error {
 	// Build filter from params.
 	filter := &cryptoutilCAStorage.ListFilter{
 		Limit:  cryptoutilCAMagic.DefaultPageLimit,
@@ -178,15 +178,15 @@ func (h *Handler) ListCertificates(c *fiber.Ctx, params cryptoutilCAServer.ListC
 	}
 
 	// Build response.
-	certResponses := make([]cryptoutilCAServer.CertificateSummary, 0, len(certs))
+	certResponses := make([]cryptoutilApiCaServer.CertificateSummary, 0, len(certs))
 
 	for _, cert := range certs {
-		status := cryptoutilCAServer.CertificateStatus(cert.Status)
+		status := cryptoutilApiCaServer.CertificateStatus(cert.Status)
 		notBefore := cert.NotBefore
 		notAfter := cert.NotAfter
 		profileID := cert.ProfileID
 
-		certResponses = append(certResponses, cryptoutilCAServer.CertificateSummary{
+		certResponses = append(certResponses, cryptoutilApiCaServer.CertificateSummary{
 			SerialNumber: cert.SerialNumber,
 			SubjectCN:    extractCommonName(cert.SubjectDN),
 			NotBefore:    &notBefore,
@@ -203,7 +203,7 @@ func (h *Handler) ListCertificates(c *fiber.Ctx, params cryptoutilCAServer.ListC
 
 	pageSize := filter.Limit
 
-	if err := c.JSON(cryptoutilCAServer.CertificateListResponse{
+	if err := c.JSON(cryptoutilApiCaServer.CertificateListResponse{
 		Certificates: certResponses,
 		Total:        total,
 		Page:         page,
@@ -230,12 +230,12 @@ func (h *Handler) GetCertificate(c *fiber.Ctx, serialNumber string) error {
 		return h.errorResponse(c, fiber.StatusInternalServerError, "storage_error", err.Error())
 	}
 
-	status := cryptoutilCAServer.CertificateStatus(cert.Status)
+	status := cryptoutilApiCaServer.CertificateStatus(cert.Status)
 	notBefore := cert.NotBefore
 	notAfter := cert.NotAfter
 	profileID := cert.ProfileID
 
-	response := cryptoutilCAServer.CertificateResponse{
+	response := cryptoutilApiCaServer.CertificateResponse{
 		SerialNumber:   cert.SerialNumber,
 		Subject:        buildCertificateSubject(cert.SubjectDN),
 		Issuer:         buildCertificateSubject(cert.IssuerDN),
@@ -269,16 +269,16 @@ func (h *Handler) GetCertificateChain(c *fiber.Ctx, serialNumber string) error {
 	}
 
 	// Parse the certificate to build chain response.
-	chainCerts := make([]cryptoutilCAServer.ChainCertificate, 0, 1)
+	chainCerts := make([]cryptoutilApiCaServer.ChainCertificate, 0, 1)
 
 	// Add the certificate itself.
-	chainCerts = append(chainCerts, cryptoutilCAServer.ChainCertificate{
+	chainCerts = append(chainCerts, cryptoutilApiCaServer.ChainCertificate{
 		CertificatePEM: cert.CertificatePEM,
 		Subject:        buildCertificateSubjectValue(cert.SubjectDN),
 		Issuer:         buildCertificateSubject(cert.IssuerDN),
 	})
 
-	if err := c.JSON(cryptoutilCAServer.CertificateChainResponse{
+	if err := c.JSON(cryptoutilApiCaServer.CertificateChainResponse{
 		Certificates: chainCerts,
 	}); err != nil {
 		return fmt.Errorf("failed to send certificate chain response: %w", err)
@@ -294,7 +294,7 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 	}
 
 	// Parse request body.
-	var req cryptoutilCAServer.RevocationRequest
+	var req cryptoutilApiCaServer.RevocationRequest
 	if err := c.BodyParser(&req); err != nil {
 		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_request", "failed to parse request body")
 	}
@@ -326,9 +326,9 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 	now := time.Now().UTC()
 	message := fmt.Sprintf("Certificate %s has been revoked", serialNumber)
 
-	response := cryptoutilCAServer.RevocationResponse{
+	response := cryptoutilApiCaServer.RevocationResponse{
 		SerialNumber: serialNumber,
-		Status:       cryptoutilCAServer.RevocationResponseStatusRevoked,
+		Status:       cryptoutilApiCaServer.RevocationResponseStatusRevoked,
 		RevokedAt:    now,
 		Reason:       req.Reason,
 		Message:      &message,
@@ -342,25 +342,25 @@ func (h *Handler) RevokeCertificate(c *fiber.Ctx, serialNumber string) error {
 }
 
 // mapAPIRevocationReasonToStorage converts an API RevocationReason to storage RevocationReason.
-func mapAPIRevocationReasonToStorage(reason cryptoutilCAServer.RevocationReason) cryptoutilCAStorage.RevocationReason {
+func mapAPIRevocationReasonToStorage(reason cryptoutilApiCaServer.RevocationReason) cryptoutilCAStorage.RevocationReason {
 	switch reason {
-	case cryptoutilCAServer.KeyCompromise:
+	case cryptoutilApiCaServer.KeyCompromise:
 		return cryptoutilCAStorage.ReasonKeyCompromise
-	case cryptoutilCAServer.CACompromise:
+	case cryptoutilApiCaServer.CACompromise:
 		return cryptoutilCAStorage.ReasonCACompromise
-	case cryptoutilCAServer.AffiliationChanged:
+	case cryptoutilApiCaServer.AffiliationChanged:
 		return cryptoutilCAStorage.ReasonAffiliationChanged
-	case cryptoutilCAServer.Superseded:
+	case cryptoutilApiCaServer.Superseded:
 		return cryptoutilCAStorage.ReasonSuperseded
-	case cryptoutilCAServer.CessationOfOperation:
+	case cryptoutilApiCaServer.CessationOfOperation:
 		return cryptoutilCAStorage.ReasonCessationOfOperation
-	case cryptoutilCAServer.CertificateHold:
+	case cryptoutilApiCaServer.CertificateHold:
 		return cryptoutilCAStorage.ReasonCertificateHold
-	case cryptoutilCAServer.RemoveFromCRL:
+	case cryptoutilApiCaServer.RemoveFromCRL:
 		return cryptoutilCAStorage.ReasonRemoveFromCRL
-	case cryptoutilCAServer.PrivilegeWithdrawn:
+	case cryptoutilApiCaServer.PrivilegeWithdrawn:
 		return cryptoutilCAStorage.ReasonPrivilegeWithdrawn
-	case cryptoutilCAServer.AaCompromise:
+	case cryptoutilApiCaServer.AaCompromise:
 		return cryptoutilCAStorage.ReasonAACompromise
 	default:
 		return cryptoutilCAStorage.ReasonUnspecified
@@ -369,7 +369,7 @@ func mapAPIRevocationReasonToStorage(reason cryptoutilCAServer.RevocationReason)
 
 // SubmitEnrollment handles POST /enroll.
 func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
-	var req cryptoutilCAServer.EnrollmentRequest
+	var req cryptoutilApiCaServer.EnrollmentRequest
 	if err := c.BodyParser(&req); err != nil {
 		return h.errorResponse(c, fiber.StatusBadRequest, "invalid_request", "failed to parse request body")
 	}
@@ -414,7 +414,7 @@ func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 	resp := h.buildEnrollmentResponse(issued)
 
 	// Track the enrollment - convert status type.
-	statusForTracking := cryptoutilCAServer.EnrollmentStatusResponseStatus(resp.Status)
+	statusForTracking := cryptoutilApiCaServer.EnrollmentStatusResponseStatus(resp.Status)
 	h.enrollmentTracker.track(resp.RequestID, statusForTracking, issued.SerialNumber)
 
 	if err := c.Status(fiber.StatusCreated).JSON(resp); err != nil {
@@ -425,7 +425,7 @@ func (h *Handler) SubmitEnrollment(c *fiber.Ctx) error {
 }
 
 // GetEnrollmentStatus handles GET /enroll/{requestId}.
-func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error {
+func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID googleUuid.UUID) error {
 	// Look up the enrollment in the tracker.
 	entry, found := h.enrollmentTracker.get(requestID)
 	if !found {
@@ -436,7 +436,7 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error {
 	submittedAt := entry.CreatedAt
 	updatedAt := entry.CompletedAt
 
-	resp := cryptoutilCAServer.EnrollmentStatusResponse{
+	resp := cryptoutilApiCaServer.EnrollmentStatusResponse{
 		RequestID:   entry.RequestID,
 		Status:      entry.Status,
 		SubmittedAt: &submittedAt,
@@ -444,13 +444,13 @@ func (h *Handler) GetEnrollmentStatus(c *fiber.Ctx, requestID uuid.UUID) error {
 	}
 
 	// If issued, try to get the certificate from storage.
-	if entry.Status == cryptoutilCAServer.EnrollmentStatusResponseStatusIssued && entry.SerialNumber != "" {
+	if entry.Status == cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued && entry.SerialNumber != "" {
 		cert, err := h.storage.GetBySerialNumber(c.Context(), entry.SerialNumber)
 		if err == nil {
 			notBefore := cert.NotBefore
 			notAfter := cert.NotAfter
 
-			resp.Certificate = &cryptoutilCAServer.IssuedCertificate{
+			resp.Certificate = &cryptoutilApiCaServer.IssuedCertificate{
 				SerialNumber:   cert.SerialNumber,
 				CertificatePEM: cert.CertificatePEM,
 				NotBefore:      notBefore,
@@ -481,25 +481,25 @@ func (h *Handler) ListCAs(c *fiber.Ctx) error {
 
 	// Build summary from the issuer's CA certificate.
 	caCert := caConfig.Certificate
-	caType := cryptoutilCAServer.CASummaryTypeIntermediate
+	caType := cryptoutilApiCaServer.CASummaryTypeIntermediate
 
 	// Check if this is a self-signed (root) CA.
 	if caCert.Issuer.String() == caCert.Subject.String() {
-		caType = cryptoutilCAServer.CASummaryTypeRoot
+		caType = cryptoutilApiCaServer.CASummaryTypeRoot
 	}
 
 	validUntil := caCert.NotAfter
-	summary := cryptoutilCAServer.CASummary{
+	summary := cryptoutilApiCaServer.CASummary{
 		ID:         caConfig.Name,
 		Name:       caConfig.Name,
 		Type:       caType,
-		Status:     cryptoutilCAServer.CASummaryStatusActive,
+		Status:     cryptoutilApiCaServer.CASummaryStatusActive,
 		SubjectCN:  &caCert.Subject.CommonName,
 		ValidUntil: &validUntil,
 	}
 
-	response := cryptoutilCAServer.CAListResponse{
-		Authorities: []cryptoutilCAServer.CASummary{summary},
+	response := cryptoutilApiCaServer.CAListResponse{
+		Authorities: []cryptoutilApiCaServer.CASummary{summary},
 	}
 
 	if err := c.JSON(response); err != nil {
@@ -528,11 +528,11 @@ func (h *Handler) GetCA(c *fiber.Ctx, caID string) error {
 	}
 
 	caCert := caConfig.Certificate
-	caType := cryptoutilCAServer.CAResponseTypeIntermediate
+	caType := cryptoutilApiCaServer.CAResponseTypeIntermediate
 
 	// Check if this is a self-signed (root) CA.
 	if caCert.Issuer.String() == caCert.Subject.String() {
-		caType = cryptoutilCAServer.CAResponseTypeRoot
+		caType = cryptoutilApiCaServer.CAResponseTypeRoot
 	}
 
 	// Encode certificate to PEM.
@@ -548,11 +548,11 @@ func (h *Handler) GetCA(c *fiber.Ctx, caID string) error {
 	// Determine key algorithm and size.
 	keyAlgo, keySize := getKeyInfo(caCert)
 
-	response := cryptoutilCAServer.CAResponse{
+	response := cryptoutilApiCaServer.CAResponse{
 		ID:                    caConfig.Name,
 		Name:                  caConfig.Name,
 		Type:                  caType,
-		Status:                cryptoutilCAServer.CAResponseStatusActive,
+		Status:                cryptoutilApiCaServer.CAResponseStatusActive,
 		Subject:               buildCertificateSubject(caCert.Subject.String()),
 		Issuer:                buildCertificateSubject(caCert.Issuer.String()),
 		SerialNumber:          &serialNumber,
@@ -581,7 +581,7 @@ func (h *Handler) GetCA(c *fiber.Ctx, caID string) error {
 }
 
 // GetCRL handles GET /ca/{caId}/crl.
-func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilCAServer.GetCRLParams) error {
+func (h *Handler) GetCRL(c *fiber.Ctx, caID string, params cryptoutilApiCaServer.GetCRLParams) error {
 	// Check if CRL service is configured.
 	h.mu.RLock()
 	crlService := h.crlService
@@ -674,11 +674,11 @@ func (h *Handler) ListProfiles(c *fiber.Ctx) error {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	profiles := make([]cryptoutilCAServer.ProfileSummary, 0, len(h.profiles))
+	profiles := make([]cryptoutilApiCaServer.ProfileSummary, 0, len(h.profiles))
 
 	for _, p := range h.profiles {
 		category := h.mapCategory(p.Category)
-		profiles = append(profiles, cryptoutilCAServer.ProfileSummary{
+		profiles = append(profiles, cryptoutilApiCaServer.ProfileSummary{
 			ID:          p.ID,
 			Name:        p.Name,
 			Description: &p.Description,
@@ -686,7 +686,7 @@ func (h *Handler) ListProfiles(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := c.JSON(cryptoutilCAServer.ProfileListResponse{Profiles: profiles}); err != nil {
+	if err := c.JSON(cryptoutilApiCaServer.ProfileListResponse{Profiles: profiles}); err != nil {
 		return fmt.Errorf("failed to send profile list response: %w", err)
 	}
 
@@ -1310,7 +1310,7 @@ func (h *Handler) parseCSR(csrPEM string) (*x509.CertificateRequest, error) {
 func (h *Handler) buildIssueRequest(
 	csr *x509.CertificateRequest,
 	_ *ProfileConfig,
-	req *cryptoutilCAServer.EnrollmentRequest,
+	req *cryptoutilApiCaServer.EnrollmentRequest,
 ) (*cryptoutilCAServiceIssuer.CertificateRequest, error) {
 	// Build subject request from CSR.
 	subjectReq := &cryptoutilCAProfileSubject.Request{
@@ -1356,7 +1356,7 @@ func (h *Handler) buildIssueRequest(
 // applySubjectOverrides applies subject field overrides from the request.
 func (h *Handler) applySubjectOverrides(
 	subjectReq *cryptoutilCAProfileSubject.Request,
-	override *cryptoutilCAServer.SubjectOverride,
+	override *cryptoutilApiCaServer.SubjectOverride,
 ) {
 	if override.Organization != nil && len(*override.Organization) > 0 {
 		subjectReq.Organization = *override.Organization
@@ -1382,7 +1382,7 @@ func (h *Handler) applySubjectOverrides(
 // applySANOverrides applies SAN overrides from the request.
 func (h *Handler) applySANOverrides(
 	subjectReq *cryptoutilCAProfileSubject.Request,
-	override *cryptoutilCAServer.SANOverride,
+	override *cryptoutilApiCaServer.SANOverride,
 ) {
 	if override.DNSNames != nil && len(*override.DNSNames) > 0 {
 		subjectReq.DNSNames = *override.DNSNames
@@ -1422,7 +1422,7 @@ func (h *Handler) urisToStrings(uris []*url.URL) []string {
 }
 
 // buildEnrollmentResponse constructs the enrollment response.
-func (h *Handler) buildEnrollmentResponse(issued *cryptoutilCAServiceIssuer.IssuedCertificate) *cryptoutilCAServer.EnrollmentResponse {
+func (h *Handler) buildEnrollmentResponse(issued *cryptoutilCAServiceIssuer.IssuedCertificate) *cryptoutilApiCaServer.EnrollmentResponse {
 	certPEM := string(issued.CertificatePEM)
 	chainPEM := string(issued.ChainPEM)
 
@@ -1432,10 +1432,10 @@ func (h *Handler) buildEnrollmentResponse(issued *cryptoutilCAServiceIssuer.Issu
 
 	subject := h.certSubjectToAPI(issued.Certificate)
 
-	return &cryptoutilCAServer.EnrollmentResponse{
-		RequestID: uuid.New(),
-		Status:    cryptoutilCAServer.Issued,
-		Certificate: cryptoutilCAServer.IssuedCertificate{
+	return &cryptoutilApiCaServer.EnrollmentResponse{
+		RequestID: googleUuid.New(),
+		Status:    cryptoutilApiCaServer.Issued,
+		Certificate: cryptoutilApiCaServer.IssuedCertificate{
 			SerialNumber:      serialNumber,
 			CertificatePEM:    certPEM,
 			ChainPEM:          &chainPEM,
@@ -1448,8 +1448,8 @@ func (h *Handler) buildEnrollmentResponse(issued *cryptoutilCAServiceIssuer.Issu
 }
 
 // certSubjectToAPI converts certificate subject to API format.
-func (h *Handler) certSubjectToAPI(cert *x509.Certificate) cryptoutilCAServer.CertificateSubject {
-	return cryptoutilCAServer.CertificateSubject{
+func (h *Handler) certSubjectToAPI(cert *x509.Certificate) cryptoutilApiCaServer.CertificateSubject {
+	return cryptoutilApiCaServer.CertificateSubject{
 		CommonName:         &cert.Subject.CommonName,
 		Organization:       &cert.Subject.Organization,
 		OrganizationalUnit: &cert.Subject.OrganizationalUnit,
@@ -1468,24 +1468,24 @@ func (h *Handler) ptrSlice(s []string) *[]string {
 }
 
 // mapCategory maps category string to API enum.
-func (h *Handler) mapCategory(category string) cryptoutilCAServer.ProfileSummaryCategory {
-	categoryMap := map[string]cryptoutilCAServer.ProfileSummaryCategory{
-		"tls":              cryptoutilCAServer.TLS,
-		"email":            cryptoutilCAServer.Email,
-		"code_signing":     cryptoutilCAServer.CodeSigning,
-		"document_signing": cryptoutilCAServer.DocumentSigning,
-		"ca":               cryptoutilCAServer.CA,
+func (h *Handler) mapCategory(category string) cryptoutilApiCaServer.ProfileSummaryCategory {
+	categoryMap := map[string]cryptoutilApiCaServer.ProfileSummaryCategory{
+		"tls":              cryptoutilApiCaServer.TLS,
+		"email":            cryptoutilApiCaServer.Email,
+		"code_signing":     cryptoutilApiCaServer.CodeSigning,
+		"document_signing": cryptoutilApiCaServer.DocumentSigning,
+		"ca":               cryptoutilApiCaServer.CA,
 	}
 
 	if cat, ok := categoryMap[category]; ok {
 		return cat
 	}
 
-	return cryptoutilCAServer.Other
+	return cryptoutilApiCaServer.Other
 }
 
 // buildProfileResponse constructs a profile response.
-func (h *Handler) buildProfileResponse(profile *ProfileConfig) *cryptoutilCAServer.ProfileResponse {
+func (h *Handler) buildProfileResponse(profile *ProfileConfig) *cryptoutilApiCaServer.ProfileResponse {
 	category := profile.Category
 
 	keyUsage := h.mapKeyUsage(profile.CertificateProfile)
@@ -1501,7 +1501,7 @@ func (h *Handler) buildProfileResponse(profile *ProfileConfig) *cryptoutilCAServ
 		}
 	}
 
-	return &cryptoutilCAServer.ProfileResponse{
+	return &cryptoutilApiCaServer.ProfileResponse{
 		ID:                  profile.ID,
 		Name:                profile.Name,
 		Description:         &profile.Description,
@@ -1587,12 +1587,12 @@ func (h *Handler) mapExtKeyUsage(profile *cryptoutilCAProfileCertificate.Profile
 }
 
 // mapSubjectRequirements maps subject profile to API requirements.
-func (h *Handler) mapSubjectRequirements(profile *cryptoutilCAProfileSubject.Profile) *cryptoutilCAServer.SubjectRequirements {
+func (h *Handler) mapSubjectRequirements(profile *cryptoutilCAProfileSubject.Profile) *cryptoutilApiCaServer.SubjectRequirements {
 	if profile == nil {
 		return nil
 	}
 
-	return &cryptoutilCAServer.SubjectRequirements{
+	return &cryptoutilApiCaServer.SubjectRequirements{
 		RequireCommonName:   &profile.Constraints.RequireCommonName,
 		RequireOrganization: &profile.Constraints.RequireOrganization,
 		RequireCountry:      &profile.Constraints.RequireCountry,
@@ -1601,12 +1601,12 @@ func (h *Handler) mapSubjectRequirements(profile *cryptoutilCAProfileSubject.Pro
 }
 
 // mapSANRequirements maps subject profile SAN config to API requirements.
-func (h *Handler) mapSANRequirements(profile *cryptoutilCAProfileSubject.Profile) *cryptoutilCAServer.SANRequirements {
+func (h *Handler) mapSANRequirements(profile *cryptoutilCAProfileSubject.Profile) *cryptoutilApiCaServer.SANRequirements {
 	if profile == nil {
 		return nil
 	}
 
-	return &cryptoutilCAServer.SANRequirements{
+	return &cryptoutilApiCaServer.SANRequirements{
 		DNSNamesAllowed:       &profile.SubjectAltNames.DNSNames.Allowed,
 		DNSNamesRequired:      &profile.SubjectAltNames.DNSNames.Required,
 		IPAddressesAllowed:    &profile.SubjectAltNames.IPAddresses.Allowed,
@@ -1648,26 +1648,26 @@ func extractCommonName(dn string) string {
 }
 
 // buildCertificateSubject builds a CertificateSubject pointer from a DN string.
-func buildCertificateSubject(dn string) *cryptoutilCAServer.CertificateSubject {
+func buildCertificateSubject(dn string) *cryptoutilApiCaServer.CertificateSubject {
 	cn := extractCommonName(dn)
 
-	return &cryptoutilCAServer.CertificateSubject{
+	return &cryptoutilApiCaServer.CertificateSubject{
 		CommonName: &cn,
 	}
 }
 
 // buildCertificateSubjectValue builds a CertificateSubject value from a DN string.
-func buildCertificateSubjectValue(dn string) cryptoutilCAServer.CertificateSubject {
+func buildCertificateSubjectValue(dn string) cryptoutilApiCaServer.CertificateSubject {
 	cn := extractCommonName(dn)
 
-	return cryptoutilCAServer.CertificateSubject{
+	return cryptoutilApiCaServer.CertificateSubject{
 		CommonName: &cn,
 	}
 }
 
 // errorResponse sends an error response.
 func (h *Handler) errorResponse(c *fiber.Ctx, status int, errorCode, message string) error {
-	if err := c.Status(status).JSON(cryptoutilCAServer.ErrorResponse{
+	if err := c.Status(status).JSON(cryptoutilApiCaServer.ErrorResponse{
 		Error:   errorCode,
 		Message: &message,
 	}); err != nil {
@@ -1678,7 +1678,7 @@ func (h *Handler) errorResponse(c *fiber.Ctx, status int, errorCode, message str
 }
 
 // Verify Handler implements ServerInterface.
-var _ cryptoutilCAServer.ServerInterface = (*Handler)(nil)
+var _ cryptoutilApiCaServer.ServerInterface = (*Handler)(nil)
 
 // Constants.
 const (

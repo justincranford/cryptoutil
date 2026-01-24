@@ -7,11 +7,11 @@ package application
 import (
 	"encoding/base64"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 

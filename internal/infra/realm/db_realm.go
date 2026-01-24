@@ -7,7 +7,7 @@ package realm
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -16,7 +16,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"gorm.io/gorm"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ErrUserNotFound is returned when a user is not found in the database.
@@ -277,11 +277,11 @@ func (r *DBRealmRepository) Authenticate(ctx context.Context, realmID, username,
 // hashPassword creates a PBKDF2-SHA256 password hash.
 func (r *DBRealmRepository) hashPassword(password string) (string, error) {
 	salt := make([]byte, r.policy.SaltBytes)
-	if _, err := rand.Read(salt); err != nil {
+	if _, err := crand.Read(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
-	hashFunc := cryptoutilMagic.PBKDF2HashFunction(r.policy.Algorithm)
+	hashFunc := cryptoutilSharedMagic.PBKDF2HashFunction(r.policy.Algorithm)
 	derivedKey := pbkdf2.Key(
 		[]byte(password),
 		salt,
@@ -291,7 +291,7 @@ func (r *DBRealmRepository) hashPassword(password string) (string, error) {
 	)
 
 	return fmt.Sprintf("$%s$%d$%s$%s",
-		cryptoutilMagic.PBKDF2DefaultHashName,
+		cryptoutilSharedMagic.PBKDF2DefaultHashName,
 		r.policy.Iterations,
 		base64.StdEncoding.EncodeToString(salt),
 		base64.StdEncoding.EncodeToString(derivedKey),

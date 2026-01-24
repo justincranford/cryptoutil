@@ -13,13 +13,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	"cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 )
 
 func TestDefaultOTPGenerator_GenerateOTP(t *testing.T) {
 	t.Parallel()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	otp, err := generator.GenerateOTP(6)
 	require.NoError(t, err, "GenerateOTP should succeed")
@@ -34,7 +34,7 @@ func TestDefaultOTPGenerator_GenerateOTP(t *testing.T) {
 func TestDefaultOTPGenerator_GenerateOTPInvalidLength(t *testing.T) {
 	t.Parallel()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	_, err := generator.GenerateOTP(0)
 	require.Error(t, err, "GenerateOTP should fail with zero length")
@@ -46,7 +46,7 @@ func TestDefaultOTPGenerator_GenerateOTPInvalidLength(t *testing.T) {
 func TestDefaultOTPGenerator_GenerateOTPUniqueness(t *testing.T) {
 	t.Parallel()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	otps := make(map[string]bool)
 
 	// Generate multiple OTPs - with 6 digits, duplicates are statistically very unlikely.
@@ -64,7 +64,7 @@ func TestDefaultOTPGenerator_GenerateOTPUniqueness(t *testing.T) {
 func TestDefaultOTPGenerator_GenerateSecureToken(t *testing.T) {
 	t.Parallel()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	token, err := generator.GenerateSecureToken(16)
 	require.NoError(t, err, "GenerateSecureToken should succeed")
@@ -80,7 +80,7 @@ func TestDefaultOTPGenerator_GenerateSecureToken(t *testing.T) {
 func TestDefaultOTPGenerator_GenerateSecureTokenInvalidLength(t *testing.T) {
 	t.Parallel()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	_, err := generator.GenerateSecureToken(0)
 	require.Error(t, err, "GenerateSecureToken should fail with zero length")
@@ -92,7 +92,7 @@ func TestDefaultOTPGenerator_GenerateSecureTokenInvalidLength(t *testing.T) {
 func TestDefaultOTPGenerator_GenerateSecureTokenUniqueness(t *testing.T) {
 	t.Parallel()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	tokens := make(map[string]bool)
 
 	// Generate multiple tokens and ensure they're unique.
@@ -107,14 +107,14 @@ func TestDefaultOTPGenerator_GenerateSecureTokenUniqueness(t *testing.T) {
 func TestSMSOTPAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewSMSOTPAuthenticator(nil, nil, nil, nil, nil)
+	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(nil, nil, nil, nil, nil)
 	require.NotNil(t, auth, "NewSMSOTPAuthenticator should return non-nil authenticator")
 }
 
 func TestSMSOTPAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewSMSOTPAuthenticator(nil, nil, nil, nil, nil)
+	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(nil, nil, nil, nil, nil)
 	require.Equal(t, "sms_otp", auth.Method(), "Method should return 'sms_otp'")
 }
 
@@ -207,9 +207,9 @@ func TestSMSOTPAuthenticator_InitiateAuth(t *testing.T) {
 	ctx := context.Background()
 	userRepo := newMockSMSUserRepo()
 	delivery := newMockSMSDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -222,7 +222,7 @@ func TestSMSOTPAuthenticator_InitiateAuth(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.NoError(t, err, "InitiateAuth should succeed")
@@ -241,11 +241,11 @@ func TestSMSOTPAuthenticator_InitiateAuthUserNotFound(t *testing.T) {
 	ctx := context.Background()
 	userRepo := newMockSMSUserRepo()
 	delivery := newMockSMSDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
-	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
 
 	nonExistentID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -263,9 +263,9 @@ func TestSMSOTPAuthenticator_InitiateAuthNoPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 	userRepo := newMockSMSUserRepo()
 	delivery := newMockSMSDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -278,7 +278,7 @@ func TestSMSOTPAuthenticator_InitiateAuthNoPhoneNumber(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.Error(t, err, "InitiateAuth should fail without phone number")
@@ -293,9 +293,9 @@ func TestSMSOTPAuthenticator_VerifyAuth(t *testing.T) {
 	ctx := context.Background()
 	userRepo := newMockSMSUserRepo()
 	delivery := newMockSMSDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -308,7 +308,7 @@ func TestSMSOTPAuthenticator_VerifyAuth(t *testing.T) {
 	}
 	userRepo.AddUser(user)
 
-	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
 
 	// Initiate auth first.
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
@@ -332,11 +332,11 @@ func TestSMSOTPAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 	ctx := context.Background()
 	userRepo := newMockSMSUserRepo()
 	delivery := newMockSMSDeliveryService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
-	generator := &userauth.DefaultOTPGenerator{}
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 
-	auth := userauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo)
 
 	// Generate a valid UUID that doesn't exist as a challenge.
 	nonExistentID, err := googleUuid.NewV7()

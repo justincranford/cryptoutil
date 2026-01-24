@@ -7,10 +7,10 @@ package e2e
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"testing"
 
 	googleUuid "github.com/google/uuid"

@@ -20,25 +20,25 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TenantService defines operations for tenant management.
 type TenantService interface {
 	// CreateTenant creates a new tenant with default admin role.
-	CreateTenant(ctx context.Context, name, description string) (*repository.Tenant, error)
+	CreateTenant(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error)
 
 	// GetTenant retrieves a tenant by ID.
-	GetTenant(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error)
+	GetTenant(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error)
 
 	// GetTenantByName retrieves a tenant by name.
-	GetTenantByName(ctx context.Context, name string) (*repository.Tenant, error)
+	GetTenantByName(ctx context.Context, name string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error)
 
 	// ListTenants retrieves all tenants with optional active filtering.
-	ListTenants(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error)
+	ListTenants(ctx context.Context, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.Tenant, error)
 
 	// UpdateTenant updates tenant information.
-	UpdateTenant(ctx context.Context, id googleUuid.UUID, name, description *string, active *bool) (*repository.Tenant, error)
+	UpdateTenant(ctx context.Context, id googleUuid.UUID, name, description *string, active *bool) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error)
 
 	// DeleteTenant deletes a tenant (fails if users/clients exist).
 	DeleteTenant(ctx context.Context, id googleUuid.UUID) error
@@ -46,12 +46,12 @@ type TenantService interface {
 
 // TenantServiceImpl implements TenantService.
 type TenantServiceImpl struct {
-	tenantRepo repository.TenantRepository
-	roleRepo   repository.RoleRepository
+	tenantRepo cryptoutilAppsTemplateServiceServerRepository.TenantRepository
+	roleRepo   cryptoutilAppsTemplateServiceServerRepository.RoleRepository
 }
 
 // NewTenantService creates a new TenantService instance.
-func NewTenantService(tenantRepo repository.TenantRepository, roleRepo repository.RoleRepository) TenantService {
+func NewTenantService(tenantRepo cryptoutilAppsTemplateServiceServerRepository.TenantRepository, roleRepo cryptoutilAppsTemplateServiceServerRepository.RoleRepository) TenantService {
 	return &TenantServiceImpl{
 		tenantRepo: tenantRepo,
 		roleRepo:   roleRepo,
@@ -59,9 +59,9 @@ func NewTenantService(tenantRepo repository.TenantRepository, roleRepo repositor
 }
 
 // CreateTenant creates a new tenant with default admin role.
-func (s *TenantServiceImpl) CreateTenant(ctx context.Context, name, description string) (*repository.Tenant, error) {
+func (s *TenantServiceImpl) CreateTenant(ctx context.Context, name, description string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	// Create tenant.
-	tenant := &repository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:          googleUuid.New(),
 		Name:        name,
 		Description: description,
@@ -73,7 +73,7 @@ func (s *TenantServiceImpl) CreateTenant(ctx context.Context, name, description 
 	}
 
 	// Create default admin role for the new tenant.
-	adminRole := &repository.Role{
+	adminRole := &cryptoutilAppsTemplateServiceServerRepository.Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "admin",
@@ -90,7 +90,7 @@ func (s *TenantServiceImpl) CreateTenant(ctx context.Context, name, description 
 }
 
 // GetTenant retrieves a tenant by ID.
-func (s *TenantServiceImpl) GetTenant(ctx context.Context, id googleUuid.UUID) (*repository.Tenant, error) {
+func (s *TenantServiceImpl) GetTenant(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	tenant, err := s.tenantRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenant by ID: %w", err)
@@ -100,7 +100,7 @@ func (s *TenantServiceImpl) GetTenant(ctx context.Context, id googleUuid.UUID) (
 }
 
 // GetTenantByName retrieves a tenant by name.
-func (s *TenantServiceImpl) GetTenantByName(ctx context.Context, name string) (*repository.Tenant, error) {
+func (s *TenantServiceImpl) GetTenantByName(ctx context.Context, name string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	tenant, err := s.tenantRepo.GetByName(ctx, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tenant by name: %w", err)
@@ -110,7 +110,7 @@ func (s *TenantServiceImpl) GetTenantByName(ctx context.Context, name string) (*
 }
 
 // ListTenants retrieves all tenants with optional active filtering.
-func (s *TenantServiceImpl) ListTenants(ctx context.Context, activeOnly bool) ([]*repository.Tenant, error) {
+func (s *TenantServiceImpl) ListTenants(ctx context.Context, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	tenants, err := s.tenantRepo.List(ctx, activeOnly)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list tenants: %w", err)
@@ -120,7 +120,7 @@ func (s *TenantServiceImpl) ListTenants(ctx context.Context, activeOnly bool) ([
 }
 
 // UpdateTenant updates tenant information.
-func (s *TenantServiceImpl) UpdateTenant(ctx context.Context, id googleUuid.UUID, name, description *string, active *bool) (*repository.Tenant, error) {
+func (s *TenantServiceImpl) UpdateTenant(ctx context.Context, id googleUuid.UUID, name, description *string, active *bool) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	// Get existing tenant.
 	tenant, err := s.tenantRepo.GetByID(ctx, id)
 	if err != nil {

@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 )
 
 var testGormDB *gorm.DB
@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Initialize shared test fixtures (TLS certificates).
-	if err := cryptoutilTemplateServerTestutil.Initialize(); err != nil {
+	if err := cryptoutilAppsTemplateServiceServerTestutil.Initialize(); err != nil {
 		panic("failed to initialize test fixtures: " + err.Error())
 	}
 

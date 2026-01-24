@@ -7,14 +7,14 @@ package crypto
 
 import (
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"fmt"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 )
 
 // KeyType represents the type of cryptographic key.
@@ -92,7 +92,7 @@ func (p *SoftwareProvider) generateRSAKeyPair(bits int) (*KeyPair, error) {
 		return nil, fmt.Errorf("RSA key size must be at least %d bits, got %d", MinRSAKeyBits, bits)
 	}
 
-	keyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(bits)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(bits)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate RSA key pair: %w", err)
 	}
@@ -119,7 +119,7 @@ func (p *SoftwareProvider) generateECDSAKeyPair(curve string) (*KeyPair, error) 
 		return nil, fmt.Errorf("unsupported ECDSA curve: %s", curve)
 	}
 
-	keyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(ecCurve)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(ecCurve)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate ECDSA key pair: %w", err)
 	}
@@ -133,7 +133,7 @@ func (p *SoftwareProvider) generateECDSAKeyPair(curve string) (*KeyPair, error) 
 }
 
 func (p *SoftwareProvider) generateEdDSAKeyPair(curve string) (*KeyPair, error) {
-	keyPair, err := cryptoutilKeyGen.GenerateEDDSAKeyPair(curve)
+	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(curve)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate EdDSA key pair: %w", err)
 	}

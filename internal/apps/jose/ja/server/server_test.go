@@ -9,15 +9,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/jose/ja/server/config"
-	templateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 func TestNewFromConfig_NilContext(t *testing.T) {
 	t.Parallel()
 
 	// Create a valid config.
-	cfg := &config.JoseJAServerSettings{}
+	cfg := &cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings{}
 
 	// Call with nil context - should fail validation.
 	//nolint:staticcheck // SA1012: Intentionally passing nil context to test error handling
@@ -41,8 +41,8 @@ func TestNewFromConfig_InvalidDatabaseURL(t *testing.T) {
 	t.Parallel()
 
 	// Create config with invalid database URL to trigger builder failure.
-	cfg := &config.JoseJAServerSettings{}
-	cfg.ServiceTemplateServerSettings = &templateConfig.ServiceTemplateServerSettings{}
+	cfg := &cryptoutilAppsJoseJaServerConfig.JoseJAServerSettings{}
+	cfg.ServiceTemplateServerSettings = &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{}
 	cfg.DatabaseURL = "invalid://not-a-real-dsn"
 
 	// Call with invalid config - should fail during builder.Build().

@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // KeyStatusResponse represents the status of a specific barrier key.

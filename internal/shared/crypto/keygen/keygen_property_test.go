@@ -6,10 +6,10 @@ package keygen
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"testing"
 
 	"github.com/leanovate/gopter"

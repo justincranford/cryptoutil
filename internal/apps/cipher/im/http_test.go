@@ -8,23 +8,23 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/cipher/im/server"
-	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 // initTestConfig returns an CipherImServerSettings with all required settings for tests.
-func initTestConfig() *config.CipherImServerSettings {
-	settings := cryptoutilConfig.RequireNewForTest("cipher-im-http-test")
+func initTestConfig() *cryptoutilAppsCipherImServerConfig.CipherImServerSettings {
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("cipher-im-http-test")
 	settings.DatabaseURL = "file::memory:?cache=shared" // SQLite in-memory for fast tests.
 
-	return &config.CipherImServerSettings{
+	return &cryptoutilAppsCipherImServerConfig.CipherImServerSettings{
 		ServiceTemplateServerSettings: settings,
 	}
 }
@@ -36,7 +36,7 @@ func TestHTTPGet(t *testing.T) {
 	// Create server with dynamic ports.
 	cfg := initTestConfig()
 
-	srv, err := server.NewFromConfig(ctx, cfg)
+	srv, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
 	// Mark server as ready after successful initialization.
@@ -127,7 +127,7 @@ func TestHTTPPost(t *testing.T) {
 	// Create server with dynamic ports.
 	cfg := initTestConfig()
 
-	srv, err := server.NewFromConfig(ctx, cfg)
+	srv, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
 
 	// Start server in background with cancellable context.

@@ -5,7 +5,7 @@ package revocation
 
 import (
 	"crypto"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -201,7 +201,7 @@ func (s *CRLService) GenerateCRL() ([]byte, error) {
 	}
 
 	// Sign the CRL.
-	crlDER, err := x509.CreateRevocationList(rand.Reader, template, s.config.Issuer, s.config.PrivateKey)
+	crlDER, err := x509.CreateRevocationList(crand.Reader, template, s.config.Issuer, s.config.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CRL: %w", err)
 	}

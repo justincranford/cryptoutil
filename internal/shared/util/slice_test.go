@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/shared/util"
+	cryptoutilSharedUtil "cryptoutil/internal/shared/util"
 )
 
 func TestContains(t *testing.T) {
@@ -170,13 +170,13 @@ func TestContains(t *testing.T) {
 				require.True(t, ok, "Error asserting searchItem to *string")
 
 				//nolint:errcheck // Test cleanup - error irrelevant
-				result = util.Contains(s, searchItemType)
+				result = cryptoutilSharedUtil.Contains(s, searchItemType)
 			case []*int:
 				searchItemType, ok := searchItem.(*int)
 				require.True(t, ok, "Error asserting searchItem to *int")
 
 				//nolint:errcheck // Test cleanup - error irrelevant
-				result = util.Contains(s, searchItemType)
+				result = cryptoutilSharedUtil.Contains(s, searchItemType)
 			default:
 				require.FailNow(t, "Unsupported slice type", "%T", slice)
 			}

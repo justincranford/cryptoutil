@@ -6,23 +6,23 @@ package authz_test
 
 import (
 	"context"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleAuthorizationCodeGrant_MissingCodeVerifier validates PKCE requirement.
@@ -86,7 +86,7 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:           googleUuid.New(),
 		ClientID:     "test-client-credentials",
-		ClientSecret: "$" + cryptoutilMagic.PBKDF2DefaultHashName + "$i=100000,l=32$test-salt$test-hash", // Pre-hashed.
+		ClientSecret: "$" + cryptoutilSharedMagic.PBKDF2DefaultHashName + "$i=100000,l=32$test-salt$test-hash", // Pre-hashed.
 		Name:         "Test Client",
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -142,7 +142,7 @@ func createTokenFlowTestApp(t *testing.T) (*fiber.App, *cryptoutilIdentityReposi
 	repoFactory := createTokenFlowTestRepoFactory(t)
 	tokenSvc := createTokenFlowTestTokenService()
 
-	service := authz.NewService(config, repoFactory, tokenSvc)
+	service := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 
 	app := fiber.New()
 	service.RegisterRoutes(app)

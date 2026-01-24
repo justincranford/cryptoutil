@@ -6,12 +6,12 @@ package realms
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"io"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

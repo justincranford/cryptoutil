@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"gorm.io/gorm"
 )
@@ -309,7 +309,7 @@ func GetTenant(ctx context.Context) *TenantContext {
 // IsValidTenantID validates a tenant ID format.
 // Must be a valid UUID format (36 characters with hyphens).
 func IsValidTenantID(tenantID string) bool {
-	if len(tenantID) != cryptoutilMagic.UUIDStringLength {
+	if len(tenantID) != cryptoutilSharedMagic.UUIDStringLength {
 		return false
 	}
 

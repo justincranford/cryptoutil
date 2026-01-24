@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TestWithTransaction tests transaction context storage.
@@ -21,7 +21,7 @@ func TestWithTransaction(t *testing.T) {
 	ctx := context.Background()
 	mockTx := &gorm.DB{}
 
-	txCtx := repository.WithTransaction(ctx, mockTx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, mockTx)
 
 	require.NotNil(t, txCtx)
 	require.NotEqual(t, ctx, txCtx)
@@ -35,8 +35,8 @@ func TestGetDB_WithTransaction(t *testing.T) {
 	baseDB := &gorm.DB{}
 	mockTx := &gorm.DB{Config: &gorm.Config{}}
 
-	txCtx := repository.WithTransaction(ctx, mockTx)
-	db := repository.GetDB(txCtx, baseDB)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, mockTx)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(txCtx, baseDB)
 
 	require.Same(t, mockTx, db)
 }
@@ -48,7 +48,7 @@ func TestGetDB_WithoutTransaction(t *testing.T) {
 	ctx := context.Background()
 	baseDB := &gorm.DB{}
 
-	db := repository.GetDB(ctx, baseDB)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, baseDB)
 
 	require.Equal(t, baseDB, db)
 }
@@ -60,8 +60,8 @@ func TestGetDB_NilTransaction(t *testing.T) {
 	ctx := context.Background()
 	baseDB := &gorm.DB{}
 
-	txCtx := repository.WithTransaction(ctx, nil)
-	db := repository.GetDB(txCtx, baseDB)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, nil)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(txCtx, baseDB)
 
 	require.Equal(t, baseDB, db)
 }

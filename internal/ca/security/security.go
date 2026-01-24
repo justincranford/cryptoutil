@@ -5,9 +5,9 @@ package security
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"errors"
 	"fmt"
@@ -758,8 +758,8 @@ func (s *Scanner) validateChainLinkage(chain []*x509.Certificate, result *Valida
 
 // Report generates a comprehensive security report.
 type Report struct {
-	GeneratedAt time.Time                  `json:"generated_at"`
-	ThreatModel *ThreatModel               `json:"threat_model,omitempty"`
+	GeneratedAt time.Time          `json:"generated_at"`
+	ThreatModel *ThreatModel       `json:"threat_model,omitempty"`
 	Validations []ValidationResult `json:"validations,omitempty"`
 	Summary     Summary            `json:"summary"`
 }

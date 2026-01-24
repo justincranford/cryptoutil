@@ -3,7 +3,7 @@
 package lint_workflow
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // WorkflowActionDetails contains information about a GitHub Action used in workflows.
@@ -194,7 +194,7 @@ func validateAndParseWorkflowFile(workflowFile string) (map[string]WorkflowActio
 	matches := usesPattern.FindAllStringSubmatch(string(content), -1)
 
 	for _, match := range matches {
-		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
+		if len(match) >= cryptoutilSharedMagic.MinActionMatchGroups {
 			actionName := match[1]
 			version := match[2]
 

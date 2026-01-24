@@ -5,9 +5,9 @@ package compliance
 import (
 	"bytes"
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"math/big"
@@ -132,7 +132,7 @@ func TestChecker_CheckCertificate(t *testing.T) {
 
 	ctx := context.Background()
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -190,7 +190,7 @@ func TestChecker_CABFRequirements(t *testing.T) {
 	ctx := context.Background()
 	checker := NewChecker(FrameworkCABFBaseline)
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -257,7 +257,7 @@ func TestChecker_RFC5280Requirements(t *testing.T) {
 	ctx := context.Background()
 	checker := NewChecker(FrameworkRFC5280)
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	cert := createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour), []string{"example.com"})
@@ -290,7 +290,7 @@ func TestChecker_CACertificate(t *testing.T) {
 	ctx := context.Background()
 	checker := NewChecker(FrameworkCABFBaseline)
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	// Create CA certificate.
@@ -506,7 +506,7 @@ func createTestCert(t *testing.T, key *ecdsa.PrivateKey, isCA bool, notBefore, n
 	t.Helper()
 
 	// Use a large serial number with at least 64 bits of entropy for BR compliance.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -523,7 +523,7 @@ func createTestCert(t *testing.T, key *ecdsa.PrivateKey, isCA bool, notBefore, n
 		DNSNames:              dnsNames,
 	}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	certBytes, err := x509.CreateCertificate(crand.Reader, template, template, &key.PublicKey, key)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certBytes)
@@ -536,7 +536,7 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey) *x509.Certificate {
 	t.Helper()
 
 	// Use a large serial number with at least 64 bits of entropy for BR compliance.
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -552,7 +552,7 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey) *x509.Certificate {
 		MaxPathLen:            2,
 	}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	certBytes, err := x509.CreateCertificate(crand.Reader, template, template, &key.PublicKey, key)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certBytes)

@@ -12,13 +12,13 @@ import (
 	"io"
 	"log"
 	"net"
-	"net/http"
+	http "net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
@@ -81,7 +81,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 					default:
 						// For other errors, log and retry with backoff
 						log.Printf("error accepting connection (will retry): %v", err)
-						time.Sleep(cryptoutilMagic.TestTLSClientRetryWait) // Brief backoff on errors
+						time.Sleep(cryptoutilSharedMagic.TestTLSClientRetryWait) // Brief backoff on errors
 
 						continue
 					}
@@ -160,7 +160,7 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 		}()
 
 		// Limit request body size to prevent memory exhaustion
-		r.Body = http.MaxBytesReader(w, r.Body, cryptoutilMagic.DefaultHTTPRequestBodyLimit)
+		r.Body = http.MaxBytesReader(w, r.Body, cryptoutilSharedMagic.DefaultHTTPRequestBodyLimit)
 
 		data, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -184,9 +184,9 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 		TLSConfig:         serverTLSConfig,
 		ReadTimeout:       readTimeout,
 		WriteTimeout:      writeTimeout,
-		IdleTimeout:       cryptoutilMagic.TestDefaultServerIdleTimeout,       // Close idle connections after 30s
-		ReadHeaderTimeout: cryptoutilMagic.TestDefaultServerReadHeaderTimeout, // Timeout for reading headers (prevents slowloris)
-		MaxHeaderBytes:    cryptoutilMagic.TestDefaultServerMaxHeaderBytes,    // 1MB max header size (prevents large header attacks)
+		IdleTimeout:       cryptoutilSharedMagic.TestDefaultServerIdleTimeout,       // Close idle connections after 30s
+		ReadHeaderTimeout: cryptoutilSharedMagic.TestDefaultServerReadHeaderTimeout, // Timeout for reading headers (prevents slowloris)
+		MaxHeaderBytes:    cryptoutilSharedMagic.TestDefaultServerMaxHeaderBytes,    // 1MB max header size (prevents large header attacks)
 		ErrorLog:          log.New(os.Stderr, "https-server: ", log.LstdFlags),
 	}
 

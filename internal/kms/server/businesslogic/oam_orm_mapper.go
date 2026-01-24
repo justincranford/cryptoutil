@@ -11,7 +11,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -462,7 +462,7 @@ func (*OamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumb
 
 func (*OamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
 	if pageSize == nil {
-		return cryptoutilMagic.DefaultPageSize, nil
+		return cryptoutilSharedMagic.DefaultPageSize, nil
 	} else if *pageSize >= 1 {
 		return *pageSize, nil
 	}

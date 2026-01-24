@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +43,7 @@ func TestSysInfoAll_RealProvider(t *testing.T) {
 
 	// Test with real provider to cover defaultSysInfoProvider code paths.
 	// Use DefaultSysInfoAllTimeout (10s) which is sufficient for slow Windows CPU info collection.
-	all, err := GetAllInfoWithTimeout(defaultSysInfoProvider, cryptoutilMagic.DefaultSysInfoAllTimeout)
+	all, err := GetAllInfoWithTimeout(defaultSysInfoProvider, cryptoutilSharedMagic.DefaultSysInfoAllTimeout)
 	require.NoError(t, err)
 	require.Len(t, all, expectedSysInfos)
 

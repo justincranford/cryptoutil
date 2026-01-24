@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 )
 
 func TestMain(m *testing.M) {
 	// Initialize shared test fixtures in testutil package.
-	if err := cryptoutilTemplateServerTestutil.Initialize(); err != nil {
+	if err := cryptoutilAppsTemplateServiceServerTestutil.Initialize(); err != nil {
 		panic("failed to initialize test fixtures: " + err.Error())
 	}
 

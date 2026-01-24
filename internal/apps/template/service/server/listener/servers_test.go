@@ -6,9 +6,9 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ import (
 const testUnknownTLSMode = "unknown"
 
 func TestNewHTTPServers_AutoMode_HappyPath(t *testing.T) {
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
@@ -28,7 +28,7 @@ func TestNewHTTPServers_AutoMode_HappyPath(t *testing.T) {
 }
 
 func TestNewHTTPServers_NilContext(t *testing.T) {
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	h, err := NewHTTPServers(nil, settings) //nolint:staticcheck // Testing nil context handling.
 	require.Error(t, err)
@@ -47,17 +47,17 @@ func TestNewHTTPServers_NilSettings(t *testing.T) {
 
 func TestNewHTTPServers_StaticMode_HappyPath(t *testing.T) {
 	// Generate static certs first using auto mode.
-	staticTLS, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+	staticTLS, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost"},
-		[]string{cryptoutilMagic.IPv4Loopback},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	require.NoError(t, err)
 
 	// Create settings with static TLS mode.
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilConfig.TLSModeStatic
-	settings.TLSPrivateMode = cryptoutilConfig.TLSModeStatic
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.TLSPublicMode = cryptoutilAppsTemplateServiceConfig.TLSModeStatic
+	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSModeStatic
 	settings.TLSStaticCertPEM = staticTLS.StaticCertPEM
 	settings.TLSStaticKeyPEM = staticTLS.StaticKeyPEM
 
@@ -70,7 +70,7 @@ func TestNewHTTPServers_StaticMode_HappyPath(t *testing.T) {
 }
 
 func TestNewHTTPServers_UnknownPublicTLSMode(t *testing.T) {
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	settings.TLSPublicMode = testUnknownTLSMode
 
 	ctx := context.Background()
@@ -81,7 +81,7 @@ func TestNewHTTPServers_UnknownPublicTLSMode(t *testing.T) {
 }
 
 func TestNewHTTPServers_UnknownPrivateTLSMode(t *testing.T) {
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	settings.TLSPrivateMode = testUnknownTLSMode
 
 	ctx := context.Background()
@@ -93,19 +93,19 @@ func TestNewHTTPServers_UnknownPrivateTLSMode(t *testing.T) {
 
 func TestNewHTTPServers_MixedMode_HappyPath(t *testing.T) {
 	// First, generate a CA to use for mixed mode.
-	caCertPEM, caKeyPEM, err := cryptoutilTLSGenerator.GenerateTestCA()
+	caCertPEM, caKeyPEM, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTestCA()
 	require.NoError(t, err)
 
 	// Create settings with mixed TLS mode using the generated CA.
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilConfig.TLSModeMixed
-	settings.TLSPrivateMode = cryptoutilConfig.TLSModeMixed
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.TLSPublicMode = cryptoutilAppsTemplateServiceConfig.TLSModeMixed
+	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSModeMixed
 	settings.TLSMixedCACertPEM = caCertPEM
 	settings.TLSMixedCAKeyPEM = caKeyPEM
 	settings.TLSPublicDNSNames = []string{"localhost"}
-	settings.TLSPublicIPAddresses = []string{cryptoutilMagic.IPv4Loopback}
+	settings.TLSPublicIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 	settings.TLSPrivateDNSNames = []string{"localhost"}
-	settings.TLSPrivateIPAddresses = []string{cryptoutilMagic.IPv4Loopback}
+	settings.TLSPrivateIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
@@ -117,12 +117,12 @@ func TestNewHTTPServers_MixedMode_HappyPath(t *testing.T) {
 
 func TestNewHTTPServers_MixedMode_InvalidPublicCA(t *testing.T) {
 	// Create settings with mixed TLS mode but invalid CA cert.
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilConfig.TLSModeMixed
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.TLSPublicMode = cryptoutilAppsTemplateServiceConfig.TLSModeMixed
 	settings.TLSMixedCACertPEM = []byte("invalid-ca-cert")
 	settings.TLSMixedCAKeyPEM = []byte("invalid-ca-key")
 	settings.TLSPublicDNSNames = []string{"localhost"}
-	settings.TLSPublicIPAddresses = []string{cryptoutilMagic.IPv4Loopback}
+	settings.TLSPublicIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
@@ -133,13 +133,13 @@ func TestNewHTTPServers_MixedMode_InvalidPublicCA(t *testing.T) {
 
 func TestNewHTTPServers_MixedMode_InvalidPrivateCA(t *testing.T) {
 	// Create settings with auto for public, mixed for private with invalid CA.
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
-	settings.TLSPublicMode = cryptoutilConfig.TLSModeAuto
-	settings.TLSPrivateMode = cryptoutilConfig.TLSModeMixed
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings.TLSPublicMode = cryptoutilAppsTemplateServiceConfig.TLSModeAuto
+	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSModeMixed
 	settings.TLSMixedCACertPEM = []byte("invalid-ca-cert")
 	settings.TLSMixedCAKeyPEM = []byte("invalid-ca-key")
 	settings.TLSPrivateDNSNames = []string{"localhost"}
-	settings.TLSPrivateIPAddresses = []string{cryptoutilMagic.IPv4Loopback}
+	settings.TLSPrivateIPAddresses = []string{cryptoutilSharedMagic.IPv4Loopback}
 
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)

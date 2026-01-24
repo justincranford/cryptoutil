@@ -5,7 +5,7 @@ package lint_go_mod
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,16 +14,16 @@ import (
 	"time"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 // checkOutdatedDeps checks for outdated Go direct dependencies and fails if any are found.
 // This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
 func checkOutdatedDeps(logger *cryptoutilCmdCicdCommon.Logger) error {
-	modeName := cryptoutilMagic.ModeNameDirect
+	modeName := cryptoutilSharedMagic.ModeNameDirect
 
-	cacheFile := cryptoutilMagic.DepCacheFileName
+	cacheFile := cryptoutilSharedMagic.DepCacheFileName
 
 	// Get go.mod and go.sum file stats - needed for cache timestamp comparison.
 	goModStat, err := os.Stat("go.mod")
@@ -90,7 +90,7 @@ func checkOutdatedDeps(logger *cryptoutilCmdCicdCommon.Logger) error {
 	}
 
 	// Save results to cache.
-	cache := cryptoutilMagic.DepCache{
+	cache := cryptoutilSharedMagic.DepCache{
 		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
@@ -243,7 +243,7 @@ func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.Fil
 
 	// Check if cache is still valid.
 	cacheAge := time.Since(cache.LastCheck)
-	isExpired := cacheAge > cryptoutilMagic.DepCacheValidDuration
+	isExpired := cacheAge > cryptoutilSharedMagic.DepCacheValidDuration
 
 	if isExpired {
 		return false, "cache expired", nil
@@ -274,13 +274,13 @@ func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.Fil
 }
 
 // loadDepCache loads dependency cache from the specified file.
-func loadDepCache(cacheFile string) (*cryptoutilMagic.DepCache, error) {
+func loadDepCache(cacheFile string) (*cryptoutilSharedMagic.DepCache, error) {
 	content, err := os.ReadFile(cacheFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read cache file: %w", err)
 	}
 
-	var cache cryptoutilMagic.DepCache
+	var cache cryptoutilSharedMagic.DepCache
 	if err := json.Unmarshal(content, &cache); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal cache JSON: %w", err)
 	}
@@ -289,7 +289,7 @@ func loadDepCache(cacheFile string) (*cryptoutilMagic.DepCache, error) {
 }
 
 // saveDepCache saves dependency cache to the specified file.
-func saveDepCache(cacheFile string, cache cryptoutilMagic.DepCache) error {
+func saveDepCache(cacheFile string, cache cryptoutilSharedMagic.DepCache) error {
 	content, err := json.MarshalIndent(cache, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)
@@ -297,11 +297,11 @@ func saveDepCache(cacheFile string, cache cryptoutilMagic.DepCache) error {
 
 	// Ensure output directory exists.
 	cacheDir := filepath.Dir(cacheFile)
-	if err := os.MkdirAll(cacheDir, cryptoutilMagic.CICDOutputDirPermissions); err != nil {
+	if err := os.MkdirAll(cacheDir, cryptoutilSharedMagic.CICDOutputDirPermissions); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	if err := cryptoutilSharedUtilFiles.WriteFile(cacheFile, string(content), cryptoutilMagic.CacheFilePermissions); err != nil {
+	if err := cryptoutilSharedUtilFiles.WriteFile(cacheFile, string(content), cryptoutilSharedMagic.CacheFilePermissions); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 

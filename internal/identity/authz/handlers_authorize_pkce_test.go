@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -78,7 +78,7 @@ func TestHandleAuthorizeGET_PKCE(t *testing.T) {
 
 			testClient := createAuthorizePKCETestClient(t, repoFactory)
 
-			svc := authz.NewService(config, repoFactory, nil)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 			require.NotNil(t, svc, "Service should not be nil")
 
 			app := fiber.New()
@@ -162,7 +162,7 @@ func TestHandleAuthorizePOST_PKCE(t *testing.T) {
 
 			testClient := createAuthorizePKCETestClient(t, repoFactory)
 
-			svc := authz.NewService(config, repoFactory, nil)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 			require.NotNil(t, svc, "Service should not be nil")
 
 			app := fiber.New()
@@ -206,7 +206,7 @@ func TestHandleAuthorizeGET_ValidRequestCreatesAuthorizationRequest(t *testing.T
 
 	testClient := createAuthorizePKCETestClient(t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

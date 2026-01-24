@@ -7,7 +7,7 @@ package unsealkeysservice
 import (
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
@@ -16,7 +16,7 @@ import (
 const jwkCount = 2
 
 func TestNewUnsealKeysServiceSimple_HappyPath(t *testing.T) {
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	unsealKeysService, err := NewUnsealKeysServiceSimple(unsealKeys)
 	require.NoError(t, err)

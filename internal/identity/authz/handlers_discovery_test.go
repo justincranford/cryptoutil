@@ -6,14 +6,14 @@ package authz_test
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -91,7 +91,7 @@ func TestHandleOAuthMetadata(t *testing.T) {
 			config := createDiscoveryTestConfig(t, tc.issuer)
 			repoFactory := createDiscoveryTestRepoFactory(t, config)
 
-			svc := authz.NewService(config, repoFactory, nil)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 			require.NotNil(t, svc, "Service should not be nil")
 
 			app := fiber.New()
@@ -201,7 +201,7 @@ func TestHandleOIDCDiscovery(t *testing.T) {
 			config := createDiscoveryTestConfig(t, tc.issuer)
 			repoFactory := createDiscoveryTestRepoFactory(t, config)
 
-			svc := authz.NewService(config, repoFactory, nil)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 			require.NotNil(t, svc, "Service should not be nil")
 
 			app := fiber.New()
@@ -277,7 +277,7 @@ func TestHandleJWKS(t *testing.T) {
 			config := createDiscoveryTestConfig(t, "https://jwks.example.com")
 			repoFactory := createDiscoveryTestRepoFactory(t, config)
 
-			svc := authz.NewService(config, repoFactory, nil)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 			require.NotNil(t, svc, "Service should not be nil")
 
 			app := fiber.New()

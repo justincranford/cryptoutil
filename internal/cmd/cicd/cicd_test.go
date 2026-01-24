@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 )
 
 func TestRunUsage(t *testing.T) {
@@ -253,7 +253,7 @@ func TestValidateCommands_EdgeCases(t *testing.T) {
 func TestCommandResult(t *testing.T) {
 	t.Parallel()
 
-	result := common.CommandResult{
+	result := cryptoutilCmdCicdCommon.CommandResult{
 		Command:  "lint-text",
 		Duration: 100 * time.Millisecond,
 		Error:    fmt.Errorf("test error"),
@@ -266,7 +266,7 @@ func TestCommandResult(t *testing.T) {
 func TestCommandResultSuccess(t *testing.T) {
 	t.Parallel()
 
-	result := common.CommandResult{
+	result := cryptoutilCmdCicdCommon.CommandResult{
 		Command:  "lint-workflow",
 		Duration: 50 * time.Millisecond,
 		Error:    nil,
@@ -279,14 +279,14 @@ func TestCommandResultSuccess(t *testing.T) {
 func TestGetFailedCommands(t *testing.T) {
 	t.Parallel()
 
-	results := []common.CommandResult{
+	results := []cryptoutilCmdCicdCommon.CommandResult{
 		{Command: "lint-text", Duration: 100 * time.Millisecond, Error: nil},
 		{Command: "lint-go", Duration: 200 * time.Millisecond, Error: fmt.Errorf("error1")},
 		{Command: "format-go", Duration: 150 * time.Millisecond, Error: nil},
 		{Command: "lint-workflow", Duration: 50 * time.Millisecond, Error: fmt.Errorf("error2")},
 	}
 
-	failed := common.GetFailedCommands(results)
+	failed := cryptoutilCmdCicdCommon.GetFailedCommands(results)
 	require.Len(t, failed, 2)
 	require.Contains(t, failed, "lint-go")
 	require.Contains(t, failed, "lint-workflow")
@@ -295,11 +295,11 @@ func TestGetFailedCommands(t *testing.T) {
 func TestGetFailedCommands_NoFailures(t *testing.T) {
 	t.Parallel()
 
-	results := []common.CommandResult{
+	results := []cryptoutilCmdCicdCommon.CommandResult{
 		{Command: "lint-text", Duration: 100 * time.Millisecond, Error: nil},
 		{Command: "lint-go", Duration: 200 * time.Millisecond, Error: nil},
 	}
 
-	failed := common.GetFailedCommands(results)
+	failed := cryptoutilCmdCicdCommon.GetFailedCommands(results)
 	require.Empty(t, failed)
 }

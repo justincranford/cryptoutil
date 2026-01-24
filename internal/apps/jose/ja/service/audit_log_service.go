@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 
 	googleUuid "github.com/google/uuid"
@@ -21,19 +21,19 @@ type AuditLogService interface {
 	LogOperation(ctx context.Context, tenantID googleUuid.UUID, elasticJWKID *googleUuid.UUID, operation, requestID string, success bool, errorMessage *string) error
 
 	// ListAuditLogs lists audit logs for a tenant with pagination.
-	ListAuditLogs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error)
+	ListAuditLogs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error)
 
 	// ListAuditLogsByElasticJWK lists audit logs for a specific elastic JWK.
-	ListAuditLogsByElasticJWK(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error)
+	ListAuditLogsByElasticJWK(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error)
 
 	// ListAuditLogsByOperation lists audit logs by operation type.
-	ListAuditLogsByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error)
+	ListAuditLogsByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error)
 
 	// GetAuditConfig gets the audit configuration for a tenant.
-	GetAuditConfig(ctx context.Context, tenantID googleUuid.UUID) (*joseJADomain.AuditConfig, error)
+	GetAuditConfig(ctx context.Context, tenantID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.AuditConfig, error)
 
 	// UpdateAuditConfig updates the audit configuration for a tenant.
-	UpdateAuditConfig(ctx context.Context, tenantID googleUuid.UUID, config *joseJADomain.AuditConfig) error
+	UpdateAuditConfig(ctx context.Context, tenantID googleUuid.UUID, config *cryptoutilAppsJoseJaDomain.AuditConfig) error
 
 	// CleanupOldLogs removes audit logs older than the specified number of days.
 	CleanupOldLogs(ctx context.Context, tenantID googleUuid.UUID, days int) (int64, error)
@@ -73,7 +73,7 @@ func (s *auditLogServiceImpl) LogOperation(ctx context.Context, tenantID googleU
 	}
 
 	// Create audit log entry.
-	entry := &joseJADomain.AuditLogEntry{
+	entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 		ID:           googleUuid.New(),
 		TenantID:     tenantID,
 		ElasticJWKID: elasticJWKID,
@@ -93,7 +93,7 @@ func (s *auditLogServiceImpl) LogOperation(ctx context.Context, tenantID googleU
 }
 
 // ListAuditLogs lists audit logs for a tenant with pagination.
-func (s *auditLogServiceImpl) ListAuditLogs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
+func (s *auditLogServiceImpl) ListAuditLogs(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	entries, total, err := s.auditLogRepo.List(ctx, tenantID, offset, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list audit logs: %w", err)
@@ -103,7 +103,7 @@ func (s *auditLogServiceImpl) ListAuditLogs(ctx context.Context, tenantID google
 }
 
 // ListAuditLogsByElasticJWK lists audit logs for a specific elastic JWK.
-func (s *auditLogServiceImpl) ListAuditLogsByElasticJWK(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
+func (s *auditLogServiceImpl) ListAuditLogsByElasticJWK(ctx context.Context, tenantID, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	// Verify tenant ownership.
 	elasticJWK, err := s.elasticRepo.GetByID(ctx, elasticJWKID)
 	if err != nil {
@@ -123,7 +123,7 @@ func (s *auditLogServiceImpl) ListAuditLogsByElasticJWK(ctx context.Context, ten
 }
 
 // ListAuditLogsByOperation lists audit logs by operation type.
-func (s *auditLogServiceImpl) ListAuditLogsByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
+func (s *auditLogServiceImpl) ListAuditLogsByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	entries, total, err := s.auditLogRepo.ListByOperation(ctx, tenantID, operation, offset, limit)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list audit logs by operation: %w", err)
@@ -133,7 +133,7 @@ func (s *auditLogServiceImpl) ListAuditLogsByOperation(ctx context.Context, tena
 }
 
 // GetAuditConfig gets the audit configuration for a tenant.
-func (s *auditLogServiceImpl) GetAuditConfig(ctx context.Context, tenantID googleUuid.UUID) (*joseJADomain.AuditConfig, error) {
+func (s *auditLogServiceImpl) GetAuditConfig(ctx context.Context, tenantID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.AuditConfig, error) {
 	configs, err := s.auditConfigRepo.GetAllForTenant(ctx, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get audit configs: %w", err)
@@ -145,16 +145,16 @@ func (s *auditLogServiceImpl) GetAuditConfig(ctx context.Context, tenantID googl
 	}
 
 	// Return a default config.
-	return &joseJADomain.AuditConfig{
+	return &cryptoutilAppsJoseJaDomain.AuditConfig{
 		TenantID:     tenantID,
-		Operation:    joseJADomain.OperationGenerate, // Default operation.
+		Operation:    cryptoutilAppsJoseJaDomain.OperationGenerate, // Default operation.
 		Enabled:      true,
 		SamplingRate: 1.0, // 100% sampling by default.
 	}, nil
 }
 
 // UpdateAuditConfig updates the audit configuration for a tenant.
-func (s *auditLogServiceImpl) UpdateAuditConfig(ctx context.Context, tenantID googleUuid.UUID, config *joseJADomain.AuditConfig) error {
+func (s *auditLogServiceImpl) UpdateAuditConfig(ctx context.Context, tenantID googleUuid.UUID, config *cryptoutilAppsJoseJaDomain.AuditConfig) error {
 	// Ensure tenant ID is set.
 	config.TenantID = tenantID
 

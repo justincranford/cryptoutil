@@ -5,14 +5,14 @@
 package server
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -78,7 +78,7 @@ func (s *Server) handleJWKGenerate(c *fiber.Ctx) error {
 	)
 
 	// Generate JWK based on use (signing vs encryption).
-	if req.Use == cryptoutilMagic.JoseKeyUseEnc {
+	if req.Use == cryptoutilSharedMagic.JoseKeyUseEnc {
 		// Map GenerateAlgorithm to JWE encryption parameters.
 		enc, keyAlg := mapToEncryptionAlgorithms(alg)
 
@@ -281,7 +281,7 @@ func (s *Server) handleJWSSign(c *fiber.Ctx) error {
 	}
 
 	// Sign the payload.
-	_, jwsBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{key.PrivateJWK}, []byte(req.Payload))
+	_, jwsBytes, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{key.PrivateJWK}, []byte(req.Payload))
 	if err != nil {
 		s.telemetryService.Slogger.Error("Failed to sign payload", "error", err)
 
@@ -358,7 +358,7 @@ func (s *Server) handleJWSVerify(c *fiber.Ctx) error {
 				tryKey = storedKey.PrivateJWK
 			}
 
-			payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{tryKey}, []byte(req.JWS))
+			payload, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{tryKey}, []byte(req.JWS))
 			if err == nil {
 				return c.JSON(JWSVerifyResponse{
 					Valid:   true,
@@ -375,7 +375,7 @@ func (s *Server) handleJWSVerify(c *fiber.Ctx) error {
 	}
 
 	// Verify with specific key.
-	payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWS))
+	payload, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWS))
 	if err != nil {
 		return c.JSON(JWSVerifyResponse{
 			Valid: false,
@@ -437,7 +437,7 @@ func (s *Server) handleJWEEncrypt(c *fiber.Ctx) error {
 	}
 
 	// Encrypt the plaintext.
-	_, jweBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{encryptKey}, []byte(req.Plaintext))
+	_, jweBytes, err := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{encryptKey}, []byte(req.Plaintext))
 	if err != nil {
 		s.telemetryService.Slogger.Error("Failed to encrypt plaintext", "error", err)
 
@@ -492,7 +492,7 @@ func (s *Server) handleJWEDecrypt(c *fiber.Ctx) error {
 	}
 
 	// Use private key for decryption.
-	plaintext, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{key.PrivateJWK}, []byte(req.JWE))
+	plaintext, err := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{key.PrivateJWK}, []byte(req.JWE))
 	if err != nil {
 		return c.JSON(JWEDecryptResponse{
 			Error: err.Error(),
@@ -554,7 +554,7 @@ func (s *Server) handleJWTCreate(c *fiber.Ctx) error {
 	}
 
 	// Sign the claims as a JWT (JWS with JSON payload).
-	_, jwtBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{key.PrivateJWK}, claimsJSON)
+	_, jwtBytes, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{key.PrivateJWK}, claimsJSON)
 	if err != nil {
 		s.telemetryService.Slogger.Error("Failed to create JWT", "error", err)
 
@@ -631,7 +631,7 @@ func (s *Server) handleJWTVerify(c *fiber.Ctx) error {
 				tryKey = storedKey.PrivateJWK
 			}
 
-			payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{tryKey}, []byte(req.JWT))
+			payload, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{tryKey}, []byte(req.JWT))
 			if err == nil {
 				var claims map[string]any
 				if jsonErr := json.Unmarshal(payload, &claims); jsonErr != nil {
@@ -656,7 +656,7 @@ func (s *Server) handleJWTVerify(c *fiber.Ctx) error {
 	}
 
 	// Verify with specific key.
-	payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWT))
+	payload, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWT))
 	if err != nil {
 		return c.JSON(JWTVerifyResponse{
 			Valid: false,

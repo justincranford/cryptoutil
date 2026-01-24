@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/stretchr/testify/require"
@@ -29,14 +29,14 @@ type TestCase struct {
 }
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("pool_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("pool_test")
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 
 	happyPathWorkers             = []uint32{1, 3, 10}
 	happyPathSize                = []uint32{1, 4, 20}
-	happyPathMaxLifetimeValues   = []uint64{1, 50, cryptoutilMagic.MaxPoolLifetimeValues}
-	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilMagic.MaxPoolLifetimeDuration}
+	happyPathMaxLifetimeValues   = []uint64{1, 50, cryptoutilSharedMagic.MaxPoolLifetimeValues}
+	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilSharedMagic.MaxPoolLifetimeDuration}
 	happyPathGets                = []uint64{0, 1, 4, 50}
 
 	happyPathTestCases = func() []*TestCase {
@@ -71,7 +71,7 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown() // this needs to run before os.Exit
 
 		rc = m.Run()

@@ -4,13 +4,13 @@ package clientauth
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"math/big"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -24,7 +24,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 	t.Helper()
 
 	// Create CA certificate.
-	caPrivKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	caPrivKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	caTemplate := &x509.Certificate{
@@ -40,14 +40,14 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 		IsCA:                  true,
 	}
 
-	caCertDER, err := x509.CreateCertificate(rand.Reader, caTemplate, caTemplate, &caPrivKey.PublicKey, caPrivKey)
+	caCertDER, err := x509.CreateCertificate(crand.Reader, caTemplate, caTemplate, &caPrivKey.PublicKey, caPrivKey)
 	require.NoError(t, err)
 
 	caCert, err := x509.ParseCertificate(caCertDER)
 	require.NoError(t, err)
 
 	// Create client certificate.
-	clientPrivKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	clientPrivKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	clientTemplate := &x509.Certificate{
@@ -71,7 +71,7 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 		clientTemplate.OCSPServer = []string{"http://127.0.0.1:9998/ocsp"}
 	}
 
-	clientCertDER, err := x509.CreateCertificate(rand.Reader, clientTemplate, caCert, &clientPrivKey.PublicKey, caPrivKey)
+	clientCertDER, err := x509.CreateCertificate(crand.Reader, clientTemplate, caCert, &clientPrivKey.PublicKey, caPrivKey)
 	require.NoError(t, err)
 
 	clientCert, err := x509.ParseCertificate(clientCertDER)
@@ -112,7 +112,7 @@ func createTestCRL(t *testing.T, issuer *x509.Certificate, issuerKey *rsa.Privat
 		}(),
 	}
 
-	crlDER, err := x509.CreateRevocationList(rand.Reader, revocationList, issuer, issuerKey)
+	crlDER, err := x509.CreateRevocationList(crand.Reader, revocationList, issuer, issuerKey)
 	require.NoError(t, err)
 
 	return crlDER

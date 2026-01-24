@@ -11,13 +11,13 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	cryptoutilPBKDF2 "cryptoutil/internal/shared/crypto/pbkdf2"
+	cryptoutilSharedCryptoPbkdf2 "cryptoutil/internal/shared/crypto/pbkdf2"
 )
 
 // HashPassword generates a FIPS-compliant PBKDF2-HMAC-SHA256 hash.
 // Always use this for new passwords.
 func HashPassword(password string) (string, error) {
-	hash, err := cryptoutilPBKDF2.HashPassword(password)
+	hash, err := cryptoutilSharedCryptoPbkdf2.HashPassword(password)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -41,7 +41,7 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 		return false, false, fmt.Errorf("stored hash cannot be empty")
 	}
 
-	hashType := cryptoutilPBKDF2.DetectHashType(storedHash)
+	hashType := cryptoutilSharedCryptoPbkdf2.DetectHashType(storedHash)
 
 	switch hashType {
 	case "bcrypt":
@@ -59,7 +59,7 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 
 	case "pbkdf2":
 		// Modern FIPS-compliant PBKDF2.
-		match, err := cryptoutilPBKDF2.VerifyPassword(password, storedHash)
+		match, err := cryptoutilSharedCryptoPbkdf2.VerifyPassword(password, storedHash)
 		if err != nil {
 			return false, false, fmt.Errorf("pbkdf2 verification failed: %w", err)
 		}
@@ -74,5 +74,5 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 // DetectHashType returns the hash algorithm type from the hash string.
 // Supports: "bcrypt", "pbkdf2", "unknown".
 func DetectHashType(hash string) string {
-	return cryptoutilPBKDF2.DetectHashType(hash)
+	return cryptoutilSharedCryptoPbkdf2.DetectHashType(hash)
 }

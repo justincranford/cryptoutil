@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"cryptoutil/internal/apps/identity/rs/server/config"
+	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity/rs/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create test configuration with dynamic port allocation.
-	cfg := config.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	cfg := cryptoutilAppsIdentityRsServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	testServer, testErr = NewFromConfig(ctx, cfg)
 	if testErr != nil {

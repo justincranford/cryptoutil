@@ -5,10 +5,10 @@
 package issuer_test
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"testing"
 	"time"
 
@@ -23,7 +23,7 @@ import (
 func TestNewJWSIssuerLegacy_Success(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	issuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
@@ -42,7 +42,7 @@ func TestNewJWSIssuerLegacy_Success(t *testing.T) {
 func TestNewJWSIssuerLegacy_EmptyIssuer(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	_, err = cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
@@ -61,7 +61,7 @@ func TestNewJWSIssuerLegacy_EmptyIssuer(t *testing.T) {
 func TestNewJWSIssuerLegacy_EmptySigningAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	_, err = cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
@@ -96,7 +96,7 @@ func TestNewJWSIssuerLegacy_NilSigningKey(t *testing.T) {
 func TestNewJWSIssuerLegacy_ECDSAKey(t *testing.T) {
 	t.Parallel()
 
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	issuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
@@ -117,7 +117,7 @@ func TestNewJWEIssuerLegacy_Success(t *testing.T) {
 
 	// AES-256 requires 32 bytes.
 	encryptionKey := make([]byte, cryptoutilIdentityMagic.AES256KeySize)
-	_, err := rand.Read(encryptionKey)
+	_, err := crand.Read(encryptionKey)
 	require.NoError(t, err)
 
 	issuer, err := cryptoutilIdentityIssuer.NewJWEIssuerLegacy(encryptionKey)
@@ -168,7 +168,7 @@ func TestNewJWEIssuerLegacy_InvalidKeySize(t *testing.T) {
 
 			encryptionKey := make([]byte, tc.keySize)
 			if tc.keySize > 0 {
-				_, err := rand.Read(encryptionKey)
+				_, err := crand.Read(encryptionKey)
 				require.NoError(t, err)
 			}
 

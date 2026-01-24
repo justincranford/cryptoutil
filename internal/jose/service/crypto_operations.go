@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
@@ -47,7 +47,7 @@ func (s *ElasticJWKService) Sign(ctx context.Context, req *SignRequest) (*SignRe
 	}
 
 	// Verify this is a signing key.
-	if elasticJWK.USE != cryptoutilMagic.JoseKeyUseSig {
+	if elasticJWK.USE != cryptoutilSharedMagic.JoseKeyUseSig {
 		return nil, fmt.Errorf("elastic JWK is not a signing key (use=%s)", elasticJWK.USE)
 	}
 
@@ -75,7 +75,7 @@ func (s *ElasticJWKService) Sign(ctx context.Context, req *SignRequest) (*SignRe
 	}
 
 	// Sign using the shared crypto utility.
-	jwsMessage, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{privateJWK}, req.Payload)
+	jwsMessage, jwsMessageBytes, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{privateJWK}, req.Payload)
 	if err != nil {
 		s.logAuditFailure(ctx, req.TenantID, req.RealmID, AuditOperationSign, "elastic_jwk", elasticJWK.KID, err, map[string]any{
 			"elastic_jwk_id": req.ElasticJWKID.String(),
@@ -128,7 +128,7 @@ func (s *ElasticJWKService) Encrypt(ctx context.Context, req *EncryptRequest) (*
 	}
 
 	// Verify this is an encryption key.
-	if elasticJWK.USE != cryptoutilMagic.JoseKeyUseEnc {
+	if elasticJWK.USE != cryptoutilSharedMagic.JoseKeyUseEnc {
 		return nil, fmt.Errorf("elastic JWK is not an encryption key (use=%s)", elasticJWK.USE)
 	}
 
@@ -157,7 +157,7 @@ func (s *ElasticJWKService) Encrypt(ctx context.Context, req *EncryptRequest) (*
 	}
 
 	// Encrypt using the shared crypto utility.
-	jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{publicJWK}, req.Plaintext)
+	jweMessage, jweMessageBytes, err := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{publicJWK}, req.Plaintext)
 	if err != nil {
 		s.logAuditFailure(ctx, req.TenantID, req.RealmID, AuditOperationEncrypt, "elastic_jwk", elasticJWK.KID, err, map[string]any{
 			"elastic_jwk_id": req.ElasticJWKID.String(),
@@ -202,7 +202,7 @@ func (s *ElasticJWKService) Verify(ctx context.Context, req *VerifyRequest) (*Ve
 	}
 
 	// Extract the kid (material_kid) from the JWS header.
-	materialKID, _, err := cryptoutilJose.ExtractKidAlgFromJWSMessage(jwsMessage)
+	materialKID, _, err := cryptoutilSharedCryptoJose.ExtractKidAlgFromJWSMessage(jwsMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract kid from JWS header: %w", err)
 	}
@@ -242,7 +242,7 @@ func (s *ElasticJWKService) Verify(ctx context.Context, req *VerifyRequest) (*Ve
 	}
 
 	// Verify using the shared crypto utility.
-	payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{publicJWK}, req.JWSMessageBytes)
+	payload, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, req.JWSMessageBytes)
 	if err != nil {
 		s.logAuditFailure(ctx, req.TenantID, elasticJWK.RealmID, AuditOperationVerify, "elastic_jwk", elasticJWK.KID, err, map[string]any{
 			"elastic_jwk_id": elasticJWK.ID.String(),
@@ -286,7 +286,7 @@ func (s *ElasticJWKService) Decrypt(ctx context.Context, req *DecryptRequest) (*
 	}
 
 	// Extract the kid (material_kid) from the JWE header.
-	materialKID, err := cryptoutilJose.ExtractKidFromJWEMessage(jweMessage)
+	materialKID, err := cryptoutilSharedCryptoJose.ExtractKidFromJWEMessage(jweMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract kid from JWE header: %w", err)
 	}
@@ -326,7 +326,7 @@ func (s *ElasticJWKService) Decrypt(ctx context.Context, req *DecryptRequest) (*
 	}
 
 	// Decrypt using the shared crypto utility.
-	plaintext, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{privateJWK}, req.JWEMessageBytes)
+	plaintext, err := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{privateJWK}, req.JWEMessageBytes)
 	if err != nil {
 		s.logAuditFailure(ctx, req.TenantID, elasticJWK.RealmID, AuditOperationDecrypt, "elastic_jwk", elasticJWK.KID, err, map[string]any{
 			"elastic_jwk_id": elasticJWK.ID.String(),

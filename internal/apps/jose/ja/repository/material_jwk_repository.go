@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,22 +18,22 @@ import (
 // MaterialJWKRepository defines the interface for Material JWK persistence.
 type MaterialJWKRepository interface {
 	// Create stores a new Material JWK.
-	Create(ctx context.Context, materialJWK *cryptoutilJoseJADomain.MaterialJWK) error
+	Create(ctx context.Context, materialJWK *cryptoutilAppsJoseJaDomain.MaterialJWK) error
 
 	// GetByMaterialKID retrieves a Material JWK by its material KID.
-	GetByMaterialKID(ctx context.Context, materialKID string) (*cryptoutilJoseJADomain.MaterialJWK, error)
+	GetByMaterialKID(ctx context.Context, materialKID string) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error)
 
 	// GetByID retrieves a Material JWK by its UUID.
-	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilJoseJADomain.MaterialJWK, error)
+	GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error)
 
 	// GetActiveMaterial retrieves the active Material JWK for an Elastic JWK.
-	GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilJoseJADomain.MaterialJWK, error)
+	GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error)
 
 	// ListByElasticJWK retrieves all Material JWKs for an Elastic JWK.
-	ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.MaterialJWK, int64, error)
+	ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.MaterialJWK, int64, error)
 
 	// RotateMaterial atomically retires the current active material and activates a new one.
-	RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilJoseJADomain.MaterialJWK) error
+	RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilAppsJoseJaDomain.MaterialJWK) error
 
 	// RetireMaterial marks a material as retired.
 	RetireMaterial(ctx context.Context, id googleUuid.UUID) error
@@ -56,7 +56,7 @@ func NewMaterialJWKRepository(db *gorm.DB) MaterialJWKRepository {
 }
 
 // Create stores a new Material JWK.
-func (r *gormMaterialJWKRepository) Create(ctx context.Context, materialJWK *cryptoutilJoseJADomain.MaterialJWK) error {
+func (r *gormMaterialJWKRepository) Create(ctx context.Context, materialJWK *cryptoutilAppsJoseJaDomain.MaterialJWK) error {
 	if err := r.db.WithContext(ctx).Create(materialJWK).Error; err != nil {
 		return fmt.Errorf("failed to create material JWK: %w", err)
 	}
@@ -65,8 +65,8 @@ func (r *gormMaterialJWKRepository) Create(ctx context.Context, materialJWK *cry
 }
 
 // GetByMaterialKID retrieves a Material JWK by its material KID.
-func (r *gormMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materialKID string) (*cryptoutilJoseJADomain.MaterialJWK, error) {
-	var materialJWK cryptoutilJoseJADomain.MaterialJWK
+func (r *gormMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materialKID string) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+	var materialJWK cryptoutilAppsJoseJaDomain.MaterialJWK
 	if err := r.db.WithContext(ctx).
 		Where("material_kid = ?", materialKID).
 		First(&materialJWK).Error; err != nil {
@@ -77,8 +77,8 @@ func (r *gormMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materi
 }
 
 // GetByID retrieves a Material JWK by its UUID.
-func (r *gormMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilJoseJADomain.MaterialJWK, error) {
-	var materialJWK cryptoutilJoseJADomain.MaterialJWK
+func (r *gormMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+	var materialJWK cryptoutilAppsJoseJaDomain.MaterialJWK
 	if err := r.db.WithContext(ctx).
 		Where("id = ?", id.String()).
 		First(&materialJWK).Error; err != nil {
@@ -89,8 +89,8 @@ func (r *gormMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.U
 }
 
 // GetActiveMaterial retrieves the active Material JWK for an Elastic JWK.
-func (r *gormMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilJoseJADomain.MaterialJWK, error) {
-	var materialJWK cryptoutilJoseJADomain.MaterialJWK
+func (r *gormMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
+	var materialJWK cryptoutilAppsJoseJaDomain.MaterialJWK
 	if err := r.db.WithContext(ctx).
 		Where("elastic_jwk_id = ? AND active = ?", elasticJWKID.String(), true).
 		First(&materialJWK).Error; err != nil {
@@ -101,16 +101,16 @@ func (r *gormMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elast
 }
 
 // ListByElasticJWK retrieves all Material JWKs for an Elastic JWK.
-func (r *gormMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.MaterialJWK, int64, error) {
+func (r *gormMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.MaterialJWK, int64, error) {
 	var (
-		materialJWKs []*cryptoutilJoseJADomain.MaterialJWK
+		materialJWKs []*cryptoutilAppsJoseJaDomain.MaterialJWK
 		total        int64
 	)
 
 	// Count total.
 
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.MaterialJWK{}).
+		Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 		Where("elastic_jwk_id = ?", elasticJWKID.String()).
 		Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count material JWKs: %w", err)
@@ -130,11 +130,11 @@ func (r *gormMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasti
 }
 
 // RotateMaterial atomically retires the current active material and activates a new one.
-func (r *gormMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilJoseJADomain.MaterialJWK) error {
+func (r *gormMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilAppsJoseJaDomain.MaterialJWK) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Retire current active material.
 		now := time.Now()
-		if err := tx.Model(&cryptoutilJoseJADomain.MaterialJWK{}).
+		if err := tx.Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 			Where("elastic_jwk_id = ? AND active = ?", elasticJWKID.String(), true).
 			Updates(map[string]interface{}{
 				"active":     false,
@@ -162,7 +162,7 @@ func (r *gormMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJ
 func (r *gormMaterialJWKRepository) RetireMaterial(ctx context.Context, id googleUuid.UUID) error {
 	now := time.Now()
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.MaterialJWK{}).
+		Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 		Where("id = ?", id.String()).
 		Updates(map[string]interface{}{
 			"active":     false,
@@ -178,7 +178,7 @@ func (r *gormMaterialJWKRepository) RetireMaterial(ctx context.Context, id googl
 func (r *gormMaterialJWKRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
 	if err := r.db.WithContext(ctx).
 		Where("id = ?", id.String()).
-		Delete(&cryptoutilJoseJADomain.MaterialJWK{}).Error; err != nil {
+		Delete(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).Error; err != nil {
 		return fmt.Errorf("failed to delete material JWK: %w", err)
 	}
 
@@ -189,7 +189,7 @@ func (r *gormMaterialJWKRepository) Delete(ctx context.Context, id googleUuid.UU
 func (r *gormMaterialJWKRepository) CountMaterials(ctx context.Context, elasticJWKID googleUuid.UUID) (int64, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.MaterialJWK{}).
+		Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 		Where("elastic_jwk_id = ?", elasticJWKID.String()).
 		Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("failed to count material JWKs: %w", err)

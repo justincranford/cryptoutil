@@ -7,12 +7,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 )
 
 // GenerateRecoveryCodesRequest represents request to generate recovery codes.
@@ -88,7 +88,7 @@ func (s *Service) handleGenerateRecoveryCodes(c *fiber.Ctx) error {
 	}
 
 	// Generate recovery codes.
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 
 	codes, err := service.GenerateForUser(c.Context(), userID, cryptoutilIdentityMagic.DefaultRecoveryCodeCount)
 	if err != nil {
@@ -127,7 +127,7 @@ func (s *Service) handleGetRecoveryCodeCount(c *fiber.Ctx) error {
 	}
 
 	// Get remaining count.
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 
 	remaining, err := service.GetRemainingCount(c.Context(), userID)
 	if err != nil {
@@ -188,7 +188,7 @@ func (s *Service) handleRegenerateRecoveryCodes(c *fiber.Ctx) error {
 	}
 
 	// Regenerate recovery codes.
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 
 	codes, err := service.RegenerateForUser(c.Context(), userID, cryptoutilIdentityMagic.DefaultRecoveryCodeCount)
 	if err != nil {
@@ -246,7 +246,7 @@ func (s *Service) handleVerifyRecoveryCode(c *fiber.Ctx) error {
 	}
 
 	// Verify recovery code.
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 
 	err = service.Verify(c.Context(), userID, req.Code)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"sync"
 	"testing"
 	"time"
@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
-	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerListener "cryptoutil/internal/apps/template/service/server/listener"
+	cryptoutilAppsTemplateServiceServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestPublicHTTPServer_TableDriven_HappyPath tests successful public server operations.
@@ -37,9 +37,9 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 			testFunc: func(t *testing.T, _ cryptoutilAppsTemplateServiceServer.IPublicServer) {
 				t.Helper()
 
-				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+				tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+				server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 				require.NotNil(t, server)
 			},
@@ -112,7 +112,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 					Timeout: 5 * time.Second,
 				}
 
-				url := fmt.Sprintf("https://%s:%d/service/api/v1/health", cryptoutilMagic.IPv4Loopback, port)
+				url := fmt.Sprintf("https://%s:%d/service/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				require.NoError(t, err)
 				resp, err := client.Do(req)
@@ -170,7 +170,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 					Timeout: 5 * time.Second,
 				}
 
-				url := fmt.Sprintf("https://%s:%d/browser/api/v1/health", cryptoutilMagic.IPv4Loopback, port)
+				url := fmt.Sprintf("https://%s:%d/browser/api/v1/health", cryptoutilSharedMagic.IPv4Loopback, port)
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				require.NoError(t, err)
 				resp, err := client.Do(req)
@@ -232,8 +232,8 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 			t.Parallel()
 
 			// Create fresh server for each test.
-			tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
-			server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+			tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
+			server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 			require.NoError(t, err)
 
 			// Run test function.
@@ -258,9 +258,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+				tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
 
-				return cryptoutilTemplateServerListener.NewPublicHTTPServer(nil, cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context.
+				return cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(nil, cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context.
 			},
 			expectedError: "context cannot be nil",
 		},
@@ -270,9 +270,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+				tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+				server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				err = server.Start(nil) //nolint:staticcheck // Testing nil context.
@@ -287,9 +287,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+				tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+				server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				ctx, cancel := context.WithCancel(context.Background())
@@ -326,9 +326,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
-				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
+				tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
 
-				server, err := cryptoutilTemplateServerListener.NewPublicHTTPServer(context.Background(), cryptoutilTemplateServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+				server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 				require.NoError(t, err)
 
 				port := server.ActualPort()

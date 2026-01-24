@@ -6,21 +6,21 @@ package authz_test
 
 import (
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 )
 
 // TestServeOpenAPISpec_Success validates successful OpenAPI spec serving.
 func TestServeOpenAPISpec_Success(t *testing.T) {
 	t.Parallel()
 
-	handler, err := authz.ServeOpenAPISpec()
+	handler, err := cryptoutilIdentityAuthz.ServeOpenAPISpec()
 	require.NoError(t, err, "ServeOpenAPISpec should succeed")
 	require.NotNil(t, handler, "Handler should not be nil")
 
@@ -51,7 +51,7 @@ func TestServeOpenAPISpec_Success(t *testing.T) {
 func TestServeOpenAPISpec_HandlerInvocation(t *testing.T) {
 	t.Parallel()
 
-	handler, err := authz.ServeOpenAPISpec()
+	handler, err := cryptoutilIdentityAuthz.ServeOpenAPISpec()
 	require.NoError(t, err, "ServeOpenAPISpec should succeed")
 
 	app := fiber.New()

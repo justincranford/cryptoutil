@@ -11,37 +11,37 @@ import (
 	"fmt"
 	"net"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJoseServerMiddleware "cryptoutil/internal/jose/server/middleware"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // Server represents the JOSE Authority Server.
 type Server struct {
-	settings         *cryptoutilConfig.ServiceTemplateServerSettings
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JWKGenService
+	settings         *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	keyStore         *KeyStore
 	fiberApp         *fiber.App
 	listener         net.Listener
 	actualPort       int // Actual port after dynamic allocation.
 	apiKeyMiddleware *cryptoutilJoseServerMiddleware.APIKeyMiddleware
-	tlsMaterial      *cryptoutilConfig.TLSMaterial
+	tlsMaterial      *cryptoutilAppsTemplateServiceConfig.TLSMaterial
 }
 
 // New creates a new JOSE Authority Server instance using context.Background().
 // Deprecated: Use NewServer with explicit TLSConfig instead.
-func New(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Server, error) {
+func New(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*Server, error) {
 	// Create default TLS config for backward compatibility.
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+	tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost", "jose-server"},
 		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate default TLS config: %w", err)
@@ -51,7 +51,7 @@ func New(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Server, err
 }
 
 // NewServer creates a new JOSE Authority Server instance.
-func NewServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings, tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings) (*Server, error) {
+func NewServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, tlsCfg *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings) (*Server, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if settings == nil {
@@ -61,19 +61,19 @@ func NewServer(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateSe
 	}
 
 	// Generate TLS material.
-	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}
 
 	// Initialize telemetry.
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
 	}
 
 	// Initialize JWK generation service.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
 	if err != nil {
 		telemetryService.Shutdown()
 

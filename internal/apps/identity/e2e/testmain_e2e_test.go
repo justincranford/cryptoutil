@@ -5,40 +5,40 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"testing"
 
-	templateE2E "cryptoutil/internal/apps/template/testing/e2e"
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateTestingE2e "cryptoutil/internal/apps/template/testing/e2e"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient *http.Client
-	composeManager   *templateE2E.ComposeManager
+	composeManager   *cryptoutilAppsTemplateTestingE2e.ComposeManager
 
 	// Five identity service instances (actual container names).
-	authzContainer = cryptoutilMagic.IdentityE2EAuthzContainer // "identity-authz-e2e"
-	idpContainer   = cryptoutilMagic.IdentityE2EIDPContainer   // "identity-idp-e2e"
-	rsContainer    = cryptoutilMagic.IdentityE2ERSContainer    // "identity-rs-e2e"
-	rpContainer    = cryptoutilMagic.IdentityE2ERPContainer    // "identity-rp-e2e"
-	spaContainer   = cryptoutilMagic.IdentityE2ESPAContainer   // "identity-spa-e2e"
+	authzContainer = cryptoutilSharedMagic.IdentityE2EAuthzContainer // "identity-authz-e2e"
+	idpContainer   = cryptoutilSharedMagic.IdentityE2EIDPContainer   // "identity-idp-e2e"
+	rsContainer    = cryptoutilSharedMagic.IdentityE2ERSContainer    // "identity-rs-e2e"
+	rpContainer    = cryptoutilSharedMagic.IdentityE2ERPContainer    // "identity-rp-e2e"
+	spaContainer   = cryptoutilSharedMagic.IdentityE2ESPAContainer   // "identity-spa-e2e"
 
 	// Service URLs (mapped from container ports to host ports).
-	authzPublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.IdentityE2EAuthzPublicPort) // "https://127.0.0.1:18000"
-	idpPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.IdentityE2EIDPPublicPort)   // "https://127.0.0.1:18100"
-	rsPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.IdentityE2ERSPublicPort)    // "https://127.0.0.1:18200"
-	rpPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.IdentityE2ERPPublicPort)    // "https://127.0.0.1:18300"
-	spaPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilMagic.IdentityE2ESPAPublicPort)   // "https://127.0.0.1:18400"
+	authzPublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2EAuthzPublicPort) // "https://127.0.0.1:18000"
+	idpPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2EIDPPublicPort)   // "https://127.0.0.1:18100"
+	rsPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ERSPublicPort)    // "https://127.0.0.1:18200"
+	rpPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ERPPublicPort)    // "https://127.0.0.1:18300"
+	spaPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ESPAPublicPort)   // "https://127.0.0.1:18400"
 
 	healthChecks = map[string]string{
-		authzContainer: authzPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint,
-		idpContainer:   idpPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint,
-		rsContainer:    rsPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint,
-		rpContainer:    rpPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint,
-		spaContainer:   spaPublicURL + cryptoutilMagic.IdentityE2EHealthEndpoint,
+		authzContainer: authzPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint,
+		idpContainer:   idpPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint,
+		rsContainer:    rsPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint,
+		rpContainer:    rpPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint,
+		spaContainer:   spaPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint,
 	}
 )
 
@@ -54,8 +54,8 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Initialize compose manager with reusable helper.
-	composeManager = templateE2E.NewComposeManager(cryptoutilMagic.IdentityE2EComposeFile)
-	sharedHTTPClient = cryptoutilTLS.NewClientForTest()
+	composeManager = cryptoutilAppsTemplateTestingE2e.NewComposeManager(cryptoutilSharedMagic.IdentityE2EComposeFile)
+	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
 
 	// Step 1: Start docker compose stack.
 	if err := composeManager.Start(ctx); err != nil {
@@ -66,7 +66,7 @@ func TestMain(m *testing.M) {
 	// Step 2: Wait for all services to be healthy using public /health endpoint.
 	fmt.Println("Waiting for all identity service instances to be healthy...")
 
-	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilMagic.IdentityE2EHealthTimeout); err != nil {
+	if err := composeManager.WaitForMultipleServices(healthChecks, cryptoutilSharedMagic.IdentityE2EHealthTimeout); err != nil {
 		fmt.Printf("Service health checks failed: %v\n", err)
 
 		_ = composeManager.Stop(ctx)

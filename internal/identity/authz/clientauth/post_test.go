@@ -14,7 +14,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 func TestPostAuthenticator_MethodName(t *testing.T) {
@@ -33,7 +33,7 @@ func TestPostAuthenticator_Authenticate(t *testing.T) {
 	testClientIDUUID := googleUuid.New()
 
 	// Hash the client secret for storage using PBKDF2 (format: pbkdf2$iter$salt$hash).
-	hashedSecret, err := cryptoutilHash.HashSecretPBKDF2(testClientSecret)
+	hashedSecret, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(testClientSecret)
 	require.NoError(t, err)
 
 	repo := &mockClientRepo{

@@ -13,8 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 const (
@@ -72,7 +72,7 @@ func startService(parameters []string) {
 	// Load configuration from YAML file
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}

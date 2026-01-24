@@ -6,9 +6,9 @@ package clientauth
 
 import (
 	"context"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"database/sql"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -23,9 +23,9 @@ import (
 	"gorm.io/gorm/logger"
 	_ "modernc.org/sqlite"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 )
 
 // setupPrivateKeyTestDB creates an in-memory SQLite database for testing (using modernc.org/sqlite).
@@ -75,7 +75,7 @@ func TestPrivateKeyJWTValidator_JTIReplayProtection(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -144,7 +144,7 @@ func TestPrivateKeyJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -221,7 +221,7 @@ func TestPrivateKeyJWTValidator_MissingJTI(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)

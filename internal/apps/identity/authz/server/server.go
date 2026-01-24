@@ -9,15 +9,15 @@ import (
 
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/identity/authz/server/config"
+	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity/authz/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // AuthzServer represents the identity-authz service application.
@@ -27,14 +27,14 @@ type AuthzServer struct {
 	db  *gorm.DB
 
 	// Authz configuration.
-	cfg *config.IdentityAuthzServerSettings
+	cfg *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings
 
 	// Template services.
-	telemetryService      *cryptoutilTelemetry.TelemetryService
-	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.Service
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService          cryptoutilTemplateService.RealmService
+	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
 
 	// Template repositories.
 	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
@@ -46,7 +46,7 @@ type AuthzServer struct {
 
 // NewFromConfig creates a new identity-authz server from IdentityAuthzServerSettings.
 // Uses service-template builder for infrastructure initialization.
-func NewFromConfig(ctx context.Context, cfg *config.IdentityAuthzServerSettings) (*AuthzServer, error) {
+func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings) (*AuthzServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
@@ -55,12 +55,12 @@ func NewFromConfig(ctx context.Context, cfg *config.IdentityAuthzServerSettings)
 
 	// Create server builder with template config.
 	// Note: Authz uses template database for sessions/barrier but has no domain-specific migrations yet.
-	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
 	// Register identity-authz specific public routes.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		_ *cryptoutilTemplateBuilder.ServiceResources,
+		_ *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 	) error {
 		// Create public server with authz handlers.
 		publicServer := NewPublicServer(base, cfg)
@@ -126,7 +126,7 @@ func (s *AuthzServer) Shutdown(ctx context.Context) error {
 }
 
 // Config returns the server configuration (for tests).
-func (s *AuthzServer) Config() *config.IdentityAuthzServerSettings {
+func (s *AuthzServer) Config() *cryptoutilAppsIdentityAuthzServerConfig.IdentityAuthzServerSettings {
 	return s.cfg
 }
 
@@ -141,17 +141,17 @@ func (s *AuthzServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 }
 
 // JWKGen returns the JWK generation service (for tests).
-func (s *AuthzServer) JWKGen() *cryptoutilJose.JWKGenService {
+func (s *AuthzServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return s.jwkGenService
 }
 
 // Telemetry returns the telemetry service (for tests).
-func (s *AuthzServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (s *AuthzServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *AuthzServer) Barrier() *cryptoutilTemplateBarrier.Service {
+func (s *AuthzServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	return s.barrierService
 }
 

@@ -13,13 +13,13 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilContainer "cryptoutil/internal/shared/container"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Core extends Basic with database infrastructure.
@@ -28,13 +28,13 @@ type Core struct {
 	Basic               *Basic
 	DB                  *gorm.DB
 	ShutdownDBContainer func()
-	Settings            *cryptoutilConfig.ServiceTemplateServerSettings
+	Settings            *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 }
 
 // StartCoreWithServices initializes core application infrastructure AND all business services.
 // This is the proper place for service bootstrap logic (not in ServerBuilder).
 // Phase W: Moved from ServerBuilder.Build() to encapsulate bootstrap logic in application layer.
-func StartCoreWithServices(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*CoreWithServices, error) {
+func StartCoreWithServices(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*CoreWithServices, error) {
 	// Start core infrastructure (telemetry, JWK gen, unseal, database).
 	core, err := StartCore(ctx, settings)
 	if err != nil {
@@ -50,7 +50,7 @@ func StartCoreWithServices(ctx context.Context, settings *cryptoutilConfig.Servi
 // - SQLite in-memory: DatabaseURL="file::memory:?cache=shared"
 // - PostgreSQL testcontainer: DatabaseURL empty + DatabaseContainer="required"/"preferred"
 // - External DB: DatabaseURL with postgres:// or file:// scheme.
-func StartCore(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*Core, error) {
+func StartCore(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*Core, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx cannot be nil")
 	} else if settings == nil {
@@ -90,19 +90,19 @@ type CoreWithServices struct {
 	Core *Core
 
 	// Repositories.
-	Repository     *cryptoutilBarrier.GormRepository
+	Repository            *cryptoutilAppsTemplateServiceServerBarrier.GormRepository
 	RealmRepository       cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 	TenantRepository      cryptoutilAppsTemplateServiceServerRepository.TenantRepository
 	UserRepository        cryptoutilAppsTemplateServiceServerRepository.UserRepository
 	JoinRequestRepository cryptoutilAppsTemplateServiceServerRepository.TenantJoinRequestRepository
 
 	// Services.
-	BarrierService      *cryptoutilBarrier.Service
-	RealmService        cryptoutilTemplateService.RealmService
-	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
-	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
-	RotationService     *cryptoutilBarrier.RotationService
-	StatusService       *cryptoutilBarrier.StatusService
+	BarrierService      *cryptoutilAppsTemplateServiceServerBarrier.Service
+	RealmService        cryptoutilAppsTemplateServiceServerService.RealmService
+	SessionManager      *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	RegistrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
+	RotationService     *cryptoutilAppsTemplateServiceServerBarrier.RotationService
+	StatusService       *cryptoutilAppsTemplateServiceServerBarrier.StatusService
 }
 
 // InitializeServicesOnCore initializes all business logic services on an existing Core.
@@ -110,14 +110,14 @@ type CoreWithServices struct {
 func InitializeServicesOnCore(
 	ctx context.Context,
 	core *Core,
-	settings *cryptoutilConfig.ServiceTemplateServerSettings,
+	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
 ) (*CoreWithServices, error) {
 	services := &CoreWithServices{
 		Core: core,
 	}
 
 	// Create barrier repository and service.
-	barrierRepo, err := cryptoutilBarrier.NewGormRepository(core.DB)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(core.DB)
 	if err != nil {
 		core.Shutdown()
 
@@ -126,7 +126,7 @@ func InitializeServicesOnCore(
 
 	services.Repository = barrierRepo
 
-	barrierService, err := cryptoutilBarrier.NewService(
+	barrierService, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
 		ctx,
 		core.Basic.TelemetryService,
 		core.Basic.JWKGenService,
@@ -145,11 +145,11 @@ func InitializeServicesOnCore(
 	realmRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRealmRepository(core.DB)
 	services.RealmRepository = realmRepo
 
-	realmService := cryptoutilTemplateService.NewRealmService(realmRepo)
+	realmService := cryptoutilAppsTemplateServiceServerService.NewRealmService(realmRepo)
 	services.RealmService = realmService
 
 	// Create session manager service.
-	sessionManager, err := cryptoutilTemplateBusinessLogic.NewSessionManagerService(
+	sessionManager, err := cryptoutilAppsTemplateServiceServerBusinesslogic.NewSessionManagerService(
 		ctx,
 		core.DB,
 		core.Basic.TelemetryService,
@@ -175,7 +175,7 @@ func InitializeServicesOnCore(
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(core.DB)
 	services.JoinRequestRepository = joinRequestRepo
 
-	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
 		core.DB,
 		tenantRepo,
 		userRepo,
@@ -184,7 +184,7 @@ func InitializeServicesOnCore(
 	services.RegistrationService = registrationService
 
 	// Create barrier rotation service.
-	rotationService, err := cryptoutilBarrier.NewRotationService(
+	rotationService, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(
 		core.Basic.JWKGenService,
 		barrierRepo,
 		core.Basic.UnsealKeysService,
@@ -198,7 +198,7 @@ func InitializeServicesOnCore(
 	services.RotationService = rotationService
 
 	// Create barrier status service.
-	statusService, err := cryptoutilBarrier.NewStatusService(barrierRepo)
+	statusService, err := cryptoutilAppsTemplateServiceServerBarrier.NewStatusService(barrierRepo)
 	if err != nil {
 		core.Shutdown()
 
@@ -239,7 +239,7 @@ func (a *Core) Shutdown() {
 // 1. Internal managed SQLite instance (file::memory:?cache=shared)
 // 2. Internal managed PostgreSQL testcontainer (DatabaseContainer=required/preferred)
 // 3. External DB connection (postgres:// or file:// scheme).
-func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*gorm.DB, func(), error) {
+func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*gorm.DB, func(), error) {
 	databaseURL := settings.DatabaseURL
 	containerMode := settings.DatabaseContainer
 
@@ -250,9 +250,9 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilCo
 
 	var isPostgres bool
 
-	if databaseURL == "" || databaseURL == cryptoutilMagic.SQLiteInMemoryDSN || databaseURL == cryptoutilMagic.SQLiteMemoryPlaceholder {
+	if databaseURL == "" || databaseURL == cryptoutilSharedMagic.SQLiteInMemoryDSN || databaseURL == cryptoutilSharedMagic.SQLiteMemoryPlaceholder {
 		isSQLite = true
-		databaseURL = cryptoutilMagic.SQLiteInMemoryDSN // Normalize SQLite in-memory URL.
+		databaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // Normalize SQLite in-memory URL.
 	} else if len(databaseURL) >= 9 && databaseURL[:9] == "postgres:" {
 		isPostgres = true
 	} else if len(databaseURL) >= 7 && databaseURL[:7] == "file://" {
@@ -265,7 +265,7 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilCo
 	if isPostgres && containerMode != "" && containerMode != "disabled" {
 		basic.TelemetryService.Slogger.Debug("attempting to start PostgreSQL testcontainer", "containerMode", containerMode)
 
-		containerURL, cleanup, err := cryptoutilContainer.StartPostgres(
+		containerURL, cleanup, err := cryptoutilSharedContainer.StartPostgres(
 			ctx,
 			basic.TelemetryService,
 			"test_db",
@@ -343,7 +343,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
-		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilMagic.GormLogModeInfo)
+		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
 	}
 
 	db, err := gorm.Open(dialector, gormConfig)
@@ -359,8 +359,8 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetConnMaxLifetime(0) // In-memory: never close connections.
 
 	return db, nil
@@ -370,7 +370,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
-		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilMagic.GormLogModeInfo)
+		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
 	}
 
 	db, err := gorm.Open(postgres.Open(databaseURL), gormConfig)
@@ -384,8 +384,8 @@ func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool) (*gor
 		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.PostgreSQLMaxOpenConns)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.PostgreSQLMaxIdleConns)
 
 	return db, nil
 }

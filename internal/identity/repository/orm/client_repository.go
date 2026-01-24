@@ -6,7 +6,7 @@ package orm
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -17,8 +17,8 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ClientRepositoryGORM implements the ClientRepository interface using GORM.
@@ -44,12 +44,12 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 		secretHash := client.ClientSecret
 		if secretHash == "" {
 			// Generate and hash new secret if none provided.
-			initialSecret, err := generateRandomSecret(cryptoutilMagic.SecretGenerationDefaultByteLength)
+			initialSecret, err := generateRandomSecret(cryptoutilSharedMagic.SecretGenerationDefaultByteLength)
 			if err != nil {
 				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrKeyGenerationFailed, fmt.Errorf("failed to generate initial secret: %w", err))
 			}
 
-			secretHash, err = cryptoutilHash.HashLowEntropyNonDeterministic(initialSecret)
+			secretHash, err = cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(initialSecret)
 			if err != nil {
 				return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrPasswordHashFailed, fmt.Errorf("failed to hash initial secret: %w", err))
 			}
@@ -104,7 +104,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 // generateRandomSecret generates a cryptographically secure random secret.
 func generateRandomSecret(length int) (string, error) {
 	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
+	if _, err := crand.Read(bytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 

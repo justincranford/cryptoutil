@@ -11,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -26,7 +26,7 @@ func TestHandleIntrospect_MissingToken(t *testing.T) {
 	config := createIntrospectTestConfig(t)
 	repoFactory := createIntrospectTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -51,7 +51,7 @@ func TestHandleIntrospect_MissingClient(t *testing.T) {
 	config := createIntrospectTestConfig(t)
 	repoFactory := createIntrospectTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -78,7 +78,7 @@ func TestHandleRevoke_MissingToken(t *testing.T) {
 	config := createIntrospectTestConfig(t)
 	repoFactory := createIntrospectTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -103,7 +103,7 @@ func TestHandleRevoke_MissingClient(t *testing.T) {
 	config := createIntrospectTestConfig(t)
 	repoFactory := createIntrospectTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

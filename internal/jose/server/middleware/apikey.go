@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 )
 
 // APIKeyConfig configures API key authentication middleware.

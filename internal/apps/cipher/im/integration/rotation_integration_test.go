@@ -7,13 +7,13 @@ package integration
 import (
 	"bytes"
 	"context"
-	"encoding/json"
-	"net/http"
+	json "encoding/json"
+	http "net/http"
 	"testing"
 
-	cipherClient "cryptoutil/internal/apps/cipher/im/client"
-	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsCipherImClient "cryptoutil/internal/apps/cipher/im/client"
+	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/stretchr/testify/require"
@@ -24,12 +24,12 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before root key rotation"
 
-	messageID1, err := cipherClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := cryptoutilAppsCipherImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
@@ -43,7 +43,7 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 3: Rotate root key via admin API.
 	rotationReason := "E2E test: manual root key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -71,12 +71,12 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	// Step 5: Send new message after rotation (uses new root key chain).
 	plaintext2 := "Message after root key rotation"
 
-	messageID2, err := cipherClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := cryptoutilAppsCipherImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify user2 can decrypt BOTH old and new messages (backward compatibility).
-	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := cryptoutilAppsCipherImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
@@ -105,12 +105,12 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before intermediate key rotation"
 
-	messageID1, err := cipherClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := cryptoutilAppsCipherImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
@@ -124,7 +124,7 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 3: Rotate intermediate key via admin API.
 	rotationReason := "E2E test: manual intermediate key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/intermediate", rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/intermediate", rotationReason)
 
 	oldKeyUUID, ok := rotateResponse["old_key_uuid"].(string)
 	require.True(t, ok, "old_key_uuid should be string")
@@ -144,12 +144,12 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	// Step 5: Send new message after rotation.
 	plaintext2 := "Message after intermediate key rotation"
 
-	messageID2, err := cipherClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := cryptoutilAppsCipherImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 6: Verify backward compatibility.
-	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := cryptoutilAppsCipherImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
@@ -177,19 +177,19 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message (creates first content key).
-	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before content key rotation"
 
-	messageID1, err := cipherClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
+	messageID1, err := cryptoutilAppsCipherImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext1, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID1, "baseline message ID should not be empty")
 
 	// Step 2: Rotate content key (elastic rotation - creates new key, keeps old).
 	rotationReason := "E2E test: manual content key rotation"
 
-	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/content", rotationReason)
+	rotateResponse := rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/content", rotationReason)
 
 	// Content key rotation returns new_key_uuid only (no old_key_uuid - elastic rotation).
 	newKeyUUID, ok := rotateResponse["new_key_uuid"].(string)
@@ -206,12 +206,12 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	// Step 3: Send new message after rotation (uses new content key).
 	plaintext2 := "Message after content key rotation"
 
-	messageID2, err := cipherClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
+	messageID2, err := cryptoutilAppsCipherImClient.SendMessage(sharedHTTPClient, publicBaseURL, plaintext2, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID2, "post-rotation message ID should not be empty")
 
 	// Step 4: Verify both messages decrypt correctly (elastic rotation preserves old keys).
-	messages, err := cipherClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := cryptoutilAppsCipherImClient.ReceiveMessagesService(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(messages), 2, "user2 should have at least 2 messages")
 
@@ -270,7 +270,7 @@ func TestE2E_GetBarrierKeysStatus(t *testing.T) {
 	require.Greater(t, intermediateKeyCreatedAt, float64(0), "intermediate_key created_at should be positive timestamp")
 
 	// Step 2: Rotate root key.
-	rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", "E2E test: verify status update after rotation")
+	rotateKey(t, sharedHTTPClient, adminBaseURL, cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/rotate/root", "E2E test: verify status update after rotation")
 
 	// Step 3: Get updated status.
 	updatedStatus := getBarrierKeysStatus(t, sharedHTTPClient, adminBaseURL)
@@ -325,7 +325,7 @@ func rotateKey(t *testing.T, client *http.Client, adminURL, endpoint, reason str
 func getBarrierKeysStatus(t *testing.T, client *http.Client, adminURL string) map[string]any {
 	t.Helper()
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, adminURL+cryptoutilMagic.DefaultPrivateAdminAPIContextPath+"/barrier/keys/status", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, adminURL+cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath+"/barrier/keys/status", nil)
 	require.NoError(t, err, "failed to create status request")
 
 	resp, err := client.Do(req)

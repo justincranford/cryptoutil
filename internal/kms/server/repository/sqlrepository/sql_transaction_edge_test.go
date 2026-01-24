@@ -9,13 +9,13 @@ import (
 	"errors"
 	"testing"
 
-	"cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestWithTransaction_Success tests successful transaction execution.
@@ -25,17 +25,17 @@ func TestWithTransaction_Success(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_Success_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Execute transaction successfully.
 	executedCommit := false
-	err := sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 		executedCommit = true
 
 		return nil
@@ -52,17 +52,17 @@ func TestWithTransaction_Rollback(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_Rollback_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Execute transaction with intentional error to trigger rollback.
 	expectedErr := errors.New("intentional test error")
-	err := sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 		return expectedErr
 	})
 
@@ -77,17 +77,17 @@ func TestWithTransaction_Panic(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_Panic_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Execute transaction with panic to trigger recovery and re-panic.
 	testify.Panics(t, func() {
-		_ = sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error { //nolint:errcheck // Test expects panic
+		_ = sqlRepo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error { //nolint:errcheck // Test expects panic
 			panic("intentional test panic")
 		})
 	})
@@ -100,12 +100,12 @@ func TestWithTransaction_ContextCancelled(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_ContextCancelled_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Create cancelled context.
@@ -113,7 +113,7 @@ func TestWithTransaction_ContextCancelled(t *testing.T) {
 	cancel() // Cancel immediately.
 
 	// Execute transaction with cancelled context.
-	err := sqlRepo.WithTransaction(cancelledCtx, false, func(_ *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(cancelledCtx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 		// Transaction should handle cancellation.
 		return nil
 	})
@@ -130,19 +130,19 @@ func TestWithTransaction_CommitError(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_CommitError_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Force shutdown to close database connection.
 	sqlRepo.Shutdown()
 
 	// Attempt transaction after shutdown (will fail).
-	err := sqlRepo.WithTransaction(ctx, false, func(_ *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(ctx, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error {
 		return nil
 	})
 

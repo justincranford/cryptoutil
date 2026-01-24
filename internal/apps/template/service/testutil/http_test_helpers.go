@@ -7,7 +7,7 @@ package testutil
 
 import (
 	"crypto/tls"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"time"
 )

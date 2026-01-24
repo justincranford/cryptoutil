@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"testing"
 
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -62,7 +62,7 @@ func setupAuditLogTestDB(t *testing.T) *gorm.DB {
 	require.NoError(t, err, "failed to create tenant_realms table")
 
 	// Auto-migrate audit tables.
-	err = db.AutoMigrate(&domain.AuditConfig{}, &domain.AuditLogEntry{})
+	err = db.AutoMigrate(&cryptoutilJoseDomain.AuditConfig{}, &cryptoutilJoseDomain.AuditLogEntry{})
 	require.NoError(t, err, "failed to auto-migrate audit tables")
 
 	t.Cleanup(func() {
@@ -85,9 +85,9 @@ func createTestTenantRealm(t *testing.T, db *gorm.DB, tenantID, realmID googleUu
 
 func TestNewAuditLogService(t *testing.T) {
 	db := setupAuditLogTestDB(t)
-	configRepo := repository.NewAuditConfigGormRepository(db)
+	configRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	configService := NewAuditConfigService(configRepo)
-	logRepo := repository.NewAuditLogGormRepository(db)
+	logRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 
 	service := NewAuditLogService(configService, logRepo)
 	require.NotNil(t, service)
@@ -101,9 +101,9 @@ func TestAuditLogService_Log_WhenEnabled(t *testing.T) {
 	realmID := googleUuid.New()
 	createTestTenantRealm(t, db, tenantID, realmID)
 
-	configRepo := repository.NewAuditConfigGormRepository(db)
+	configRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	configService := NewAuditConfigService(configRepo)
-	logRepo := repository.NewAuditLogGormRepository(db)
+	logRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	service := NewAuditLogService(configService, logRepo)
 
 	// Initialize defaults (enabled=true, samplingRate=100% for deterministic test).
@@ -145,9 +145,9 @@ func TestAuditLogService_Log_WhenDisabled(t *testing.T) {
 	realmID := googleUuid.New()
 	createTestTenantRealm(t, db, tenantID, realmID)
 
-	configRepo := repository.NewAuditConfigGormRepository(db)
+	configRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	configService := NewAuditConfigService(configRepo)
-	logRepo := repository.NewAuditLogGormRepository(db)
+	logRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	service := NewAuditLogService(configService, logRepo)
 
 	// Disable audit logging for this operation.
@@ -181,9 +181,9 @@ func TestAuditLogService_Log_WithSampling(t *testing.T) {
 
 	createTestTenantRealm(t, db, tenantID, realmID)
 
-	configRepo := repository.NewAuditConfigGormRepository(db)
+	configRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	configService := NewAuditConfigService(configRepo)
-	logRepo := repository.NewAuditLogGormRepository(db)
+	logRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	service := NewAuditLogService(configService, logRepo)
 
 	// Set sampling rate to 50%.
@@ -223,9 +223,9 @@ func TestAuditLogService_LogSuccess(t *testing.T) {
 	realmID := googleUuid.New()
 	createTestTenantRealm(t, db, tenantID, realmID)
 
-	configRepo := repository.NewAuditConfigGormRepository(db)
+	configRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	configService := NewAuditConfigService(configRepo)
-	logRepo := repository.NewAuditLogGormRepository(db)
+	logRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	service := NewAuditLogService(configService, logRepo)
 
 	// Enable with 100% sampling.
@@ -255,9 +255,9 @@ func TestAuditLogService_LogFailure(t *testing.T) {
 	realmID := googleUuid.New()
 	createTestTenantRealm(t, db, tenantID, realmID)
 
-	configRepo := repository.NewAuditConfigGormRepository(db)
+	configRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	configService := NewAuditConfigService(configRepo)
-	logRepo := repository.NewAuditLogGormRepository(db)
+	logRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	service := NewAuditLogService(configService, logRepo)
 
 	// Enable with 100% sampling.
@@ -290,9 +290,9 @@ func TestAuditLogService_WithUserAndSessionFromContext(t *testing.T) {
 
 	createTestTenantRealm(t, db, tenantID, realmID)
 
-	configRepo := repository.NewAuditConfigGormRepository(db)
+	configRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(db)
 	configService := NewAuditConfigService(configRepo)
-	logRepo := repository.NewAuditLogGormRepository(db)
+	logRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	service := NewAuditLogService(configService, logRepo)
 
 	// Enable with 100% sampling.

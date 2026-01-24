@@ -7,7 +7,7 @@ package issuer
 
 import (
 	"context"
-	"crypto/aes"
+	aes "crypto/aes"
 	"crypto/cipher"
 	crand "crypto/rand"
 	"encoding/base64"

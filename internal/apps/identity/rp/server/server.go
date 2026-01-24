@@ -9,15 +9,15 @@ import (
 
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/apps/identity/rp/server/config"
+	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity/rp/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // RPServer represents the identity-rp service application.
@@ -27,14 +27,14 @@ type RPServer struct {
 	db  *gorm.DB
 
 	// RP configuration.
-	cfg *config.IdentityRPServerSettings
+	cfg *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings
 
 	// Template services.
-	telemetryService      *cryptoutilTelemetry.TelemetryService
-	jwkGenService         *cryptoutilJose.JWKGenService
-	barrierService        *cryptoutilTemplateBarrier.Service
-	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
-	realmService          cryptoutilTemplateService.RealmService
+	telemetryService      *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService         *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService        *cryptoutilAppsTemplateServiceServerBarrier.Service
+	sessionManagerService *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	realmService          cryptoutilAppsTemplateServiceServerService.RealmService
 
 	// Template repositories.
 	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
@@ -46,7 +46,7 @@ type RPServer struct {
 
 // NewFromConfig creates a new identity-rp server from IdentityRPServerSettings.
 // Uses service-template builder for infrastructure initialization.
-func NewFromConfig(ctx context.Context, cfg *config.IdentityRPServerSettings) (*RPServer, error) {
+func NewFromConfig(ctx context.Context, cfg *cryptoutilAppsIdentityRpServerConfig.IdentityRPServerSettings) (*RPServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	} else if cfg == nil {
@@ -55,12 +55,12 @@ func NewFromConfig(ctx context.Context, cfg *config.IdentityRPServerSettings) (*
 
 	// Create server builder with template config.
 	// Note: RP uses template database for sessions/barrier but has no domain-specific migrations.
-	builder := cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)
 
 	// Register identity-rp specific public routes.
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
-		res *cryptoutilTemplateBuilder.ServiceResources,
+		res *cryptoutilAppsTemplateServiceServerBuilder.ServiceResources,
 	) error {
 		// Create public server with BFF handlers.
 		publicServer := NewPublicServer(base, cfg, res.SessionManager, res.RealmService)
@@ -136,17 +136,17 @@ func (s *RPServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 }
 
 // JWKGen returns the JWK generation service (for tests).
-func (s *RPServer) JWKGen() *cryptoutilJose.JWKGenService {
+func (s *RPServer) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return s.jwkGenService
 }
 
 // Telemetry returns the telemetry service (for tests).
-func (s *RPServer) Telemetry() *cryptoutilTelemetry.TelemetryService {
+func (s *RPServer) Telemetry() *cryptoutilSharedTelemetry.TelemetryService {
 	return s.telemetryService
 }
 
 // Barrier returns the barrier service (for tests).
-func (s *RPServer) Barrier() *cryptoutilTemplateBarrier.Service {
+func (s *RPServer) Barrier() *cryptoutilAppsTemplateServiceServerBarrier.Service {
 	return s.barrierService
 }
 

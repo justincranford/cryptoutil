@@ -11,11 +11,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // handleClientSecretRotation handles POST /oauth2/v1/clients/{id}/rotate-secret.
@@ -74,7 +74,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	newSecretPlaintext := base64.URLEncoding.EncodeToString(secretBytes)
 
 	// Hash the new secret using PBKDF2-HMAC-SHA256 (FIPS-approved).
-	hashedSecret, err := cryptoutilHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
+	hashedSecret, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,

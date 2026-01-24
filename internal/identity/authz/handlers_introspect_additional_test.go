@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -24,7 +24,7 @@ func TestHandleIntrospect_TokenTypeHint(t *testing.T) {
 	config := createIntrospectTestConfig(t)
 	repoFactory := createIntrospectTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc)
 
 	app := fiber.New()
@@ -54,7 +54,7 @@ func TestHandleRevoke_InvalidToken(t *testing.T) {
 	config := createIntrospectTestConfig(t)
 	repoFactory := createIntrospectTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc)
 
 	app := fiber.New()

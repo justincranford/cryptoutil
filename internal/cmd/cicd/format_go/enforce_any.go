@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
@@ -123,7 +123,7 @@ func processGoFile(filePath string) (int, error) {
 
 	// Only write if there were changes.
 	if replacements > 0 {
-		err = cryptoutilSharedUtilFiles.WriteFile(filePath, modifiedContent, cryptoutilMagic.FilePermissionsDefault)
+		err = cryptoutilSharedUtilFiles.WriteFile(filePath, modifiedContent, cryptoutilSharedMagic.FilePermissionsDefault)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}

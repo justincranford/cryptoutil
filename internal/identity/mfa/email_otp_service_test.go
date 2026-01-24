@@ -11,7 +11,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/identity/email"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -56,7 +56,7 @@ func TestEmailOTPService_SendOTP(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -91,7 +91,7 @@ func TestEmailOTPService_VerifyOTP_Success(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -122,7 +122,7 @@ func TestEmailOTPService_VerifyOTP_InvalidCode(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -143,7 +143,7 @@ func TestEmailOTPService_VerifyOTP_AlreadyUsed(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -173,7 +173,7 @@ func TestEmailOTPService_VerifyOTP_Expired(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -207,7 +207,7 @@ func TestEmailOTPService_RateLimit(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()

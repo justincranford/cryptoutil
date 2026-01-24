@@ -6,8 +6,8 @@ package integration
 import (
 	"testing"
 
-	cipherClient "cryptoutil/internal/apps/cipher/im/client"
-	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilAppsCipherImClient "cryptoutil/internal/apps/cipher/im/client"
+	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
 
 	"github.com/stretchr/testify/require"
 )
@@ -18,18 +18,18 @@ func TestE2E_BrowserFullEncryptionFlow(t *testing.T) {
 	t.Parallel()
 
 	// Register users via browser endpoints.
-	user1 := cryptoutilE2E.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilE2E.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends encrypted message to user2 via browser endpoint.
 	plaintext := "Hello " + user2.Username + ", this is a browser message from " + user1.Username + "!"
 
-	messageID, err := cipherClient.SendMessageBrowser(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := cryptoutilAppsCipherImClient.SendMessageBrowser(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives messages via browser endpoint.
-	messages, err := cipherClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages, err := cryptoutilAppsCipherImClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.Len(t, messages, 1, "%s should have 1 message", user2.Username)
 
@@ -51,18 +51,18 @@ func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 	t.Parallel()
 
 	// Register users via browser endpoints.
-	user1 := cryptoutilE2E.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilE2E.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user3 := cryptoutilE2E.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user3 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends to both user2 and user3 via browser endpoint.
 	plaintext := "Group message from " + user1.Username + " to multiple recipients!"
-	messageID, err := cipherClient.SendMessageBrowser(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID, user3.ID)
+	messageID, err := cryptoutilAppsCipherImClient.SendMessageBrowser(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID, user3.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives message.
-	messages2, err := cipherClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
+	messages2, err := cryptoutilAppsCipherImClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.Len(t, messages2, 1, "%s should have 1 message", user2.Username)
 
@@ -71,7 +71,7 @@ func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 	require.Equal(t, plaintext, decrypted2, "user2 message should match original")
 
 	// user3 receives same message.
-	messages3, err := cipherClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user3.Token)
+	messages3, err := cryptoutilAppsCipherImClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user3.Token)
 	require.NoError(t, err)
 	require.Len(t, messages3, 1, "%s should have 1 message", user3.Username)
 
@@ -87,26 +87,26 @@ func TestE2E_BrowserMessageDeletion(t *testing.T) {
 	t.Parallel()
 
 	// Register users via browser endpoints.
-	user1 := cryptoutilE2E.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilE2E.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends message to user2 via browser endpoint.
 	plaintext := testMessageDeletion
-	messageID, err := cipherClient.SendMessageBrowser(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
+	messageID, err := cryptoutilAppsCipherImClient.SendMessageBrowser(sharedHTTPClient, publicBaseURL, plaintext, user1.Token, user2.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, messageID, "message ID should not be empty")
 
 	// user2 receives message.
-	messagesBefore, err := cipherClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
+	messagesBefore, err := cryptoutilAppsCipherImClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.Len(t, messagesBefore, 1, "%s should have 1 message before deletion", user2.Username)
 
 	// user1 (sender) deletes message via browser endpoint.
-	err = cipherClient.DeleteMessageBrowser(sharedHTTPClient, publicBaseURL, messageID, user1.Token)
+	err = cryptoutilAppsCipherImClient.DeleteMessageBrowser(sharedHTTPClient, publicBaseURL, messageID, user1.Token)
 	require.NoError(t, err)
 
 	// user2 confirms message deleted.
-	messagesAfter, err := cipherClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
+	messagesAfter, err := cryptoutilAppsCipherImClient.ReceiveMessagesBrowser(sharedHTTPClient, publicBaseURL, user2.Token)
 	require.NoError(t, err)
 	require.Len(t, messagesAfter, 0, "%s should have 0 messages after deletion", user2.Username)
 }

@@ -6,17 +6,17 @@ package authz_test
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -32,7 +32,7 @@ func TestHandleDeviceAuthorization_HappyPath(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForDevice(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -111,7 +111,7 @@ func TestHandleDeviceAuthorization_MissingClientID(t *testing.T) {
 
 	config, repoFactory := createDeviceAuthTestDependencies(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -146,7 +146,7 @@ func TestHandleDeviceAuthorization_InvalidClientID(t *testing.T) {
 
 	config, repoFactory := createDeviceAuthTestDependencies(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -184,7 +184,7 @@ func TestHandleDeviceAuthorization_OptionalScope(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClientForDevice(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

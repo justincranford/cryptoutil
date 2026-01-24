@@ -5,15 +5,15 @@
 package apis
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"time"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 )
 
@@ -23,8 +23,8 @@ type JWKHandler struct {
 	materialJWKRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository
 	auditLogRepo    cryptoutilAppsJoseJaRepository.AuditLogRepository
-	jwkGenService   *cryptoutilJose.JWKGenService
-	barrierService  *cryptoutilBarrier.Service
+	jwkGenService   *cryptoutilSharedCryptoJose.JWKGenService
+	barrierService  *cryptoutilAppsTemplateServiceServerBarrier.Service
 }
 
 // NewJWKHandler creates a new JWK handler.
@@ -33,8 +33,8 @@ func NewJWKHandler(
 	materialJWKRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository,
 	auditLogRepo cryptoutilAppsJoseJaRepository.AuditLogRepository,
-	jwkGenService *cryptoutilJose.JWKGenService,
-	barrierService *cryptoutilBarrier.Service,
+	jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
+	barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) *JWKHandler {
 	return &JWKHandler{
 		elasticJWKRepo:  elasticJWKRepo,
@@ -131,7 +131,7 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 		kid := googleUuid.New()
 
 		// Create elastic JWK record.
-		elasticJWK := &joseJADomain.ElasticJWK{
+		elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 			ID:                   kid,
 			TenantID:             tenantUUID,
 			KID:                  kid.String(),
@@ -359,7 +359,7 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 
 		// TODO: Implement actual JWK generation based on elastic JWK algorithm.
 		// For now, create placeholder material with string JWE placeholders.
-		material := &joseJADomain.MaterialJWK{
+		material := &cryptoutilAppsJoseJaDomain.MaterialJWK{
 			ID:             materialKID,
 			ElasticJWKID:   elasticJWK.ID,
 			MaterialKID:    materialKID.String(),
@@ -561,7 +561,7 @@ func (h *JWKHandler) HandleRotateMaterialJWK() fiber.Handler {
 
 		// Create new material key.
 		newMaterialKID := googleUuid.New()
-		newMaterial := &joseJADomain.MaterialJWK{
+		newMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
 			ID:             newMaterialKID,
 			ElasticJWKID:   elasticJWK.ID,
 			MaterialKID:    newMaterialKID.String(),
@@ -651,13 +651,13 @@ func (h *JWKHandler) HandleDecrypt() fiber.Handler {
 func mapAlgorithmToKeyType(algorithm string) string {
 	switch algorithm {
 	case "RSA/2048", "RSA/3072", "RSA/4096":
-		return joseJADomain.KeyTypeRSA
+		return cryptoutilAppsJoseJaDomain.KeyTypeRSA
 	case "EC/P256", "EC/P384", "EC/P521":
-		return joseJADomain.KeyTypeEC
+		return cryptoutilAppsJoseJaDomain.KeyTypeEC
 	case "OKP/Ed25519", "OKP/Ed448":
-		return joseJADomain.KeyTypeOKP
+		return cryptoutilAppsJoseJaDomain.KeyTypeOKP
 	case "oct/256", "oct/384", "oct/512":
-		return joseJADomain.KeyTypeOct
+		return cryptoutilAppsJoseJaDomain.KeyTypeOct
 	default:
 		return ""
 	}

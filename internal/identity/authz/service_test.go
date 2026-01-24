@@ -11,12 +11,12 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestService_Creation(t *testing.T) {
@@ -28,7 +28,7 @@ func TestService_Creation(t *testing.T) {
 		setupRepo   func(*testing.T) *cryptoutilIdentityRepository.RepositoryFactory
 		setupToken  func(*testing.T) *cryptoutilIdentityIssuer.TokenService
 		wantErr     bool
-		validate    func(*testing.T, *authz.Service)
+		validate    func(*testing.T, *cryptoutilIdentityAuthz.Service)
 	}{
 		{
 			name: "valid service creation",
@@ -42,7 +42,7 @@ func TestService_Creation(t *testing.T) {
 				return createServiceTestTokenService(t)
 			},
 			wantErr: false,
-			validate: func(t *testing.T, svc *authz.Service) {
+			validate: func(t *testing.T, svc *cryptoutilIdentityAuthz.Service) {
 				require.NotNil(t, svc, "Service should not be nil")
 			},
 		},
@@ -56,7 +56,7 @@ func TestService_Creation(t *testing.T) {
 			repoFactory := tc.setupRepo(t)
 			tokenSvc := tc.setupToken(t)
 
-			svc := authz.NewService(config, repoFactory, tokenSvc)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 
 			if tc.wantErr {
 				require.Nil(t, svc, "Service should be nil on error")
@@ -94,7 +94,7 @@ func TestService_StartStop(t *testing.T) {
 			repoFactory := tc.setupRepo(t)
 			tokenSvc := createServiceTestTokenService(t)
 
-			svc := authz.NewService(config, repoFactory, tokenSvc)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 			require.NotNil(t, svc, "Service should not be nil")
 
 			ctx := context.Background()
@@ -195,7 +195,7 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 			}
 
 			// Create service and migrate.
-			svc := authz.NewService(config, repoFactory, tokenSvc)
+			svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 			require.NotNil(t, svc, "Service should not be nil")
 
 			ctx := context.Background()
@@ -220,7 +220,7 @@ func TestService_MigrateClientSecrets(t *testing.T) {
 
 						// Verify secret is now hashed (PBKDF2 format: $pbkdf2-sha256$...).
 						require.NotEqual(t, testSecret, updatedClient.ClientSecret, "Secret should be hashed")
-						require.Contains(t, updatedClient.ClientSecret, "$"+cryptoutilMagic.PBKDF2DefaultHashName+"$", "Secret should use PBKDF2 format")
+						require.Contains(t, updatedClient.ClientSecret, "$"+cryptoutilSharedMagic.PBKDF2DefaultHashName+"$", "Secret should use PBKDF2 format")
 					}
 				}
 			}

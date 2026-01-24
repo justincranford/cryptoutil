@@ -5,10 +5,10 @@
 package clientauth_test
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -18,7 +18,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz/clientauth"
+	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"
 )
 
 // TestCACertificateValidator_ValidCertificate validates successful certificate validation.
@@ -33,7 +33,7 @@ func TestCACertificateValidator_ValidCertificate(t *testing.T) {
 	caPool := x509.NewCertPool()
 	caPool.AddCert(caCert)
 
-	validator := clientauth.NewCACertificateValidator(caPool, nil)
+	validator := cryptoutilIdentityClientAuth.NewCACertificateValidator(caPool, nil)
 	validator.SetValidationOptions(false, false) // Disable subject/fingerprint validation.
 
 	// Validate client certificate.
@@ -53,7 +53,7 @@ func TestCACertificateValidator_ExpiredCertificate(t *testing.T) {
 	caPool := x509.NewCertPool()
 	caPool.AddCert(caCert)
 
-	validator := clientauth.NewCACertificateValidator(caPool, nil)
+	validator := cryptoutilIdentityClientAuth.NewCACertificateValidator(caPool, nil)
 
 	// Validate expired client certificate.
 	err := validator.ValidateCertificate(clientCert, [][]byte{clientCert.Raw})
@@ -76,7 +76,7 @@ func TestCACertificateValidator_UntrustedCA(t *testing.T) {
 	caPool := x509.NewCertPool()
 	caPool.AddCert(trustedCA)
 
-	validator := clientauth.NewCACertificateValidator(caPool, nil)
+	validator := cryptoutilIdentityClientAuth.NewCACertificateValidator(caPool, nil)
 
 	// Validate client certificate signed by untrusted CA.
 	err := validator.ValidateCertificate(clientCert, [][]byte{clientCert.Raw})
@@ -88,7 +88,7 @@ func TestCACertificateValidator_NilCertificate(t *testing.T) {
 	t.Parallel()
 
 	caPool := x509.NewCertPool()
-	validator := clientauth.NewCACertificateValidator(caPool, nil)
+	validator := cryptoutilIdentityClientAuth.NewCACertificateValidator(caPool, nil)
 
 	err := validator.ValidateCertificate(nil, nil)
 	require.Error(t, err, "Nil certificate should fail validation")
@@ -98,7 +98,7 @@ func TestCACertificateValidator_NilCertificate(t *testing.T) {
 func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 	t.Helper()
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err, "CA key generation should succeed")
 
 	template := &x509.Certificate{
@@ -113,7 +113,7 @@ func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 		IsCA:                  true,
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &key.PublicKey, key)
 	require.NoError(t, err, "CA certificate creation should succeed")
 
 	cert, err := x509.ParseCertificate(certDER)
@@ -126,7 +126,7 @@ func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 func createTestClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecdsa.PrivateKey) *x509.Certificate {
 	t.Helper()
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err, "Client key generation should succeed")
 
 	template := &x509.Certificate{
@@ -139,7 +139,7 @@ func createTestClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecdsa.P
 		KeyUsage:  x509.KeyUsageDigitalSignature,
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, caCert, &key.PublicKey, caKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, caCert, &key.PublicKey, caKey)
 	require.NoError(t, err, "Client certificate creation should succeed")
 
 	cert, err := x509.ParseCertificate(certDER)
@@ -152,7 +152,7 @@ func createTestClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecdsa.P
 func createExpiredClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecdsa.PrivateKey) *x509.Certificate {
 	t.Helper()
 
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err, "Client key generation should succeed")
 
 	template := &x509.Certificate{
@@ -166,7 +166,7 @@ func createExpiredClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecds
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, caCert, &key.PublicKey, caKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, caCert, &key.PublicKey, caKey)
 	require.NoError(t, err, "Expired certificate creation should succeed")
 
 	cert, err := x509.ParseCertificate(certDER)
@@ -179,7 +179,7 @@ func createExpiredClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecds
 func TestCACertificateValidator_IsRevoked_Deprecated(t *testing.T) {
 	t.Parallel()
 
-	validator := clientauth.NewCACertificateValidator(nil, nil)
+	validator := cryptoutilIdentityClientAuth.NewCACertificateValidator(nil, nil)
 
 	// Deprecated method always returns false.
 	isRevoked := validator.IsRevoked(big.NewInt(42))
@@ -191,7 +191,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 	t.Parallel()
 
 	// Create test self-signed certificate.
-	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	certTemplate := &x509.Certificate{
@@ -207,7 +207,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 		BasicConstraintsValid: true,
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, certTemplate, certTemplate, &privKey.PublicKey, privKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, certTemplate, certTemplate, &privKey.PublicKey, privKey)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certDER)
@@ -227,7 +227,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 		BasicConstraintsValid: true,
 	}
 
-	expiredCertDER, err := x509.CreateCertificate(rand.Reader, expiredTemplate, expiredTemplate, &privKey.PublicKey, privKey)
+	expiredCertDER, err := x509.CreateCertificate(crand.Reader, expiredTemplate, expiredTemplate, &privKey.PublicKey, privKey)
 	require.NoError(t, err)
 
 	expiredCert, err := x509.ParseCertificate(expiredCertDER)
@@ -247,7 +247,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 		BasicConstraintsValid: true,
 	}
 
-	futureCertDER, err := x509.CreateCertificate(rand.Reader, futureTemplate, futureTemplate, &privKey.PublicKey, privKey)
+	futureCertDER, err := x509.CreateCertificate(crand.Reader, futureTemplate, futureTemplate, &privKey.PublicKey, privKey)
 	require.NoError(t, err)
 
 	futureCert, err := x509.ParseCertificate(futureCertDER)
@@ -304,7 +304,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			validator := clientauth.NewSelfSignedCertificateValidator(tc.pinnedCerts)
+			validator := cryptoutilIdentityClientAuth.NewSelfSignedCertificateValidator(tc.pinnedCerts)
 			err := validator.ValidateCertificate(tc.clientCert, nil)
 
 			if tc.wantErr {
@@ -321,7 +321,7 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 func TestSelfSignedCertificateValidator_IsRevoked(t *testing.T) {
 	t.Parallel()
 
-	validator := clientauth.NewSelfSignedCertificateValidator(nil)
+	validator := cryptoutilIdentityClientAuth.NewSelfSignedCertificateValidator(nil)
 
 	// IsRevoked always returns false for self-signed certificates.
 	isRevoked := validator.IsRevoked(big.NewInt(42))
@@ -333,7 +333,7 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 	t.Parallel()
 
 	// Create test certificate.
-	privKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -345,7 +345,7 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 		NotAfter:  time.Now().Add(24 * time.Hour),
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &privKey.PublicKey, privKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &privKey.PublicKey, privKey)
 	require.NoError(t, err)
 
 	// Encode as PEM.
@@ -382,7 +382,7 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 		},
 	}
 
-	parser := &clientauth.CertificateParser{}
+	parser := &cryptoutilIdentityClientAuth.CertificateParser{}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

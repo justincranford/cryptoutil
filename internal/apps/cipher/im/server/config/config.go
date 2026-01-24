@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/spf13/pflag"
@@ -16,7 +16,7 @@ import (
 
 // CipherImServerSettings defines configuration settings for the Cipher-IM server.
 type CipherImServerSettings struct {
-	*cryptoutilTemplateConfig.ServiceTemplateServerSettings
+	*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// Message encryption settings.
 	MessageJWEAlgorithm string
@@ -37,39 +37,39 @@ const (
 	defaultRecipientsMaxCount  = cryptoutilSharedMagic.CipherRecipientsMaxCount
 )
 
-var allCipherIMServerRegisteredSettings []*cryptoutilTemplateConfig.Setting
+var allCipherIMServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting
 
 // Cipher-IM specific Setting objects for parameter attributes.
 var (
-	messageJWEAlgorithm = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	messageJWEAlgorithm = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "message-jwe-algorithm",
 		Shorthand:   "",
 		Value:       defaultMessageJWEAlgorithm,
 		Usage:       "JWE algorithm for message encryption (e.g., dir+A256GCM)",
 		Description: "Message JWE Algorithm",
 	})
-	messageMinLength = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	messageMinLength = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "message-min-length",
 		Shorthand:   "",
 		Value:       defaultMessageMinLength,
 		Usage:       "minimum message length in characters",
 		Description: "Message Min Length",
 	})
-	messageMaxLength = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	messageMaxLength = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "message-max-length",
 		Shorthand:   "",
 		Value:       defaultMessageMaxLength,
 		Usage:       "maximum message length in characters",
 		Description: "Message Max Length",
 	})
-	recipientsMinCount = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	recipientsMinCount = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "recipients-min-count",
 		Shorthand:   "",
 		Value:       defaultRecipientsMinCount,
 		Usage:       "minimum recipients per message",
 		Description: "Recipients Min Count",
 	})
-	recipientsMaxCount = cryptoutilTemplateConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilTemplateConfig.Setting{
+	recipientsMaxCount = cryptoutilAppsTemplateServiceConfig.SetEnvAndRegisterSetting(allCipherIMServerRegisteredSettings, &cryptoutilAppsTemplateServiceConfig.Setting{
 		Name:        "recipients-max-count",
 		Shorthand:   "",
 		Value:       defaultRecipientsMaxCount,
@@ -81,17 +81,17 @@ var (
 // Parse parses command-line arguments and returns the Cipher-IM server settings.
 func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	// Parse base template settings first.
-	baseSettings, err := cryptoutilTemplateConfig.Parse(args, exitIfHelp)
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
 	// Register cipher-im specific flags.
-	pflag.StringP(messageJWEAlgorithm.Name, messageJWEAlgorithm.Shorthand, cryptoutilTemplateConfig.RegisterAsStringSetting(messageJWEAlgorithm), messageJWEAlgorithm.Description)
-	pflag.IntP(messageMinLength.Name, messageMinLength.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(messageMinLength), messageMinLength.Description)
-	pflag.IntP(messageMaxLength.Name, messageMaxLength.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(messageMaxLength), messageMaxLength.Description)
-	pflag.IntP(recipientsMinCount.Name, recipientsMinCount.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(recipientsMinCount), recipientsMinCount.Description)
-	pflag.IntP(recipientsMaxCount.Name, recipientsMaxCount.Shorthand, cryptoutilTemplateConfig.RegisterAsIntSetting(recipientsMaxCount), recipientsMaxCount.Description)
+	pflag.StringP(messageJWEAlgorithm.Name, messageJWEAlgorithm.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(messageJWEAlgorithm), messageJWEAlgorithm.Description)
+	pflag.IntP(messageMinLength.Name, messageMinLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMinLength), messageMinLength.Description)
+	pflag.IntP(messageMaxLength.Name, messageMaxLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMaxLength), messageMaxLength.Description)
+	pflag.IntP(recipientsMinCount.Name, recipientsMinCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMinCount), recipientsMinCount.Description)
+	pflag.IntP(recipientsMaxCount.Name, recipientsMaxCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMaxCount), recipientsMaxCount.Description)
 
 	// Parse flags.
 	pflag.Parse()

@@ -7,7 +7,7 @@ package demo
 import (
 	"testing"
 
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +21,7 @@ func TestGetDemoCA(t *testing.T) {
 	require.NotNil(t, ca.Chain)
 	require.NotNil(t, ca.Chain.RootCA)
 	require.NotNil(t, ca.Chain.IssuingCA)
-	require.Len(t, ca.Chain.CAs, cryptoutilTLS.DefaultCAChainLength)
+	require.Len(t, ca.Chain.CAs, cryptoutilSharedCryptoTls.DefaultCAChainLength)
 
 	// Second call should return same instance.
 	ca2, err := GetDemoCA()
@@ -48,7 +48,7 @@ func TestCreateDemoCAWithOptions(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		opts        *cryptoutilTLS.CAChainOptions
+		opts        *cryptoutilSharedCryptoTls.CAChainOptions
 		expectError bool
 	}{
 		{
@@ -58,23 +58,23 @@ func TestCreateDemoCAWithOptions(t *testing.T) {
 		},
 		{
 			name: "custom valid options",
-			opts: &cryptoutilTLS.CAChainOptions{
+			opts: &cryptoutilSharedCryptoTls.CAChainOptions{
 				ChainLength:      2,
 				CommonNamePrefix: "custom.demo.local",
-				CNStyle:          cryptoutilTLS.CNStyleFQDN,
-				Duration:         cryptoutilTLS.DefaultCADuration,
-				Curve:            cryptoutilTLS.DefaultECCurve,
+				CNStyle:          cryptoutilSharedCryptoTls.CNStyleFQDN,
+				Duration:         cryptoutilSharedCryptoTls.DefaultCADuration,
+				Curve:            cryptoutilSharedCryptoTls.DefaultECCurve,
 			},
 			expectError: false,
 		},
 		{
 			name: "descriptive style",
-			opts: &cryptoutilTLS.CAChainOptions{
+			opts: &cryptoutilSharedCryptoTls.CAChainOptions{
 				ChainLength:      1,
 				CommonNamePrefix: "Custom Demo CA",
-				CNStyle:          cryptoutilTLS.CNStyleDescriptive,
-				Duration:         cryptoutilTLS.DefaultCADuration,
-				Curve:            cryptoutilTLS.DefaultECCurve,
+				CNStyle:          cryptoutilSharedCryptoTls.CNStyleDescriptive,
+				Duration:         cryptoutilSharedCryptoTls.DefaultCADuration,
+				Curve:            cryptoutilSharedCryptoTls.DefaultECCurve,
 			},
 			expectError: false,
 		},
@@ -229,7 +229,7 @@ func TestCreateDemoCAChainValidation(t *testing.T) {
 	require.NotNil(t, ca.Chain)
 	require.NotNil(t, ca.Chain.RootCA)
 	require.NotNil(t, ca.Chain.IssuingCA)
-	require.Len(t, ca.Chain.CAs, cryptoutilTLS.DefaultCAChainLength)
+	require.Len(t, ca.Chain.CAs, cryptoutilSharedCryptoTls.DefaultCAChainLength)
 	require.NotEmpty(t, ca.Chain.RootCA.KeyMaterial.CertificateChain)
 	require.NotEmpty(t, ca.Chain.IssuingCA.KeyMaterial.CertificateChain)
 }
@@ -241,7 +241,7 @@ func TestCreateDemoCAWithOptionsDefaultsWhenNil(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, ca)
 	require.NotNil(t, ca.Chain)
-	require.Len(t, ca.Chain.CAs, cryptoutilTLS.DefaultCAChainLength)
+	require.Len(t, ca.Chain.CAs, cryptoutilSharedCryptoTls.DefaultCAChainLength)
 }
 
 func TestCreateServerCertificateFullPath(t *testing.T) {

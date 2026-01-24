@@ -6,11 +6,11 @@ package intermediate
 
 import (
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
+	sha256 "crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -177,7 +177,7 @@ func (p *Provisioner) Provision(config *IntermediateCAConfig) (*IntermediateCA, 
 	template.SignatureAlgorithm = sigAlg
 
 	// Sign the certificate with issuer's key.
-	certDER, err := x509.CreateCertificate(rand.Reader, template, config.IssuerCertificate, keyPair.PublicKey, config.IssuerPrivateKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, config.IssuerCertificate, keyPair.PublicKey, config.IssuerPrivateKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
@@ -300,7 +300,7 @@ func resolveSubjectDN(config *IntermediateCAConfig) (pkix.Name, error) {
 func generateSerialNumber() (*big.Int, error) {
 	// Generate 20 bytes (160 bits) of randomness per CA/Browser Forum requirements.
 	serialBytes := make([]byte, cryptoutilCAMagic.SerialNumberLength)
-	if _, err := rand.Read(serialBytes); err != nil {
+	if _, err := crand.Read(serialBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 

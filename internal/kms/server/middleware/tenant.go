@@ -9,9 +9,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TenantContextKey is the context key for tenant ID.
@@ -73,7 +73,7 @@ func RequireTenantMiddleware() fiber.Handler {
 
 // isValidUUID validates UUID format (8-4-4-4-12 with hyphens).
 func isValidUUID(s string) bool {
-	if len(s) != cryptoutilMagic.UUIDStringLength {
+	if len(s) != cryptoutilSharedMagic.UUIDStringLength {
 		return false
 	}
 

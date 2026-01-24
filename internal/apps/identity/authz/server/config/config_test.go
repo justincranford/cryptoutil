@@ -5,7 +5,7 @@ package config
 import (
 	"testing"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -13,10 +13,10 @@ import (
 func TestNewTestConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	require.NotNil(t, cfg)
-	require.Equal(t, cryptoutilMagic.OTLPServiceIdentityAuthz, cfg.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceIdentityAuthz, cfg.OTLPService)
 	require.True(t, cfg.DevMode)
 	require.Equal(t, defaultIssuer, cfg.Issuer)
 	require.Equal(t, defaultTokenLifetime, cfg.TokenLifetime)
@@ -32,7 +32,7 @@ func TestDefaultTestConfig(t *testing.T) {
 	cfg := DefaultTestConfig()
 
 	require.NotNil(t, cfg)
-	require.Equal(t, cryptoutilMagic.IPv4Loopback, cfg.BindPublicAddress)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, cfg.BindPublicAddress)
 	require.Equal(t, uint16(0), cfg.BindPublicPort, "Should use dynamic port allocation")
 	require.True(t, cfg.DevMode, "Should be in dev mode")
 }
@@ -40,7 +40,7 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 18000, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 18000, false)
 
 	require.NotNil(t, cfg)
 	require.Equal(t, uint16(18000), cfg.BindPublicPort)
@@ -50,11 +50,11 @@ func TestNewTestConfig_ProductionMode(t *testing.T) {
 func TestIdentityAuthzServerSettings_FullConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// Verify embedded template config is populated.
 	require.NotNil(t, cfg.ServiceTemplateServerSettings)
-	require.Equal(t, cryptoutilMagic.IPv4Loopback, cfg.BindPublicAddress)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, cfg.BindPublicAddress)
 
 	// Verify authz-specific settings.
 	require.Equal(t, defaultIssuer, cfg.Issuer)
@@ -82,7 +82,7 @@ func TestValidateIdentityAuthzSettings_IssuerFormat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 			cfg.Issuer = tt.issuer
 
 			err := validateIdentityAuthzSettings(cfg)
@@ -116,7 +116,7 @@ func TestValidateIdentityAuthzSettings_TokenLifetimes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 			cfg.TokenLifetime = tt.tokenLifetime
 			cfg.RefreshTokenLifetime = tt.refreshTokenLifetime
 			cfg.AuthorizationCodeTTL = tt.authCodeTTL

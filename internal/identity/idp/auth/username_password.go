@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
@@ -61,7 +61,7 @@ func (p *UsernamePasswordProfile) Authenticate(ctx context.Context, credentials 
 	}
 
 	// Validate password hash using configured crypto wrapper (PBKDF2 default). Supports legacy hashes.
-	ok, verr := cryptoutilDigests.VerifySecret(user.PasswordHash, password)
+	ok, verr := cryptoutilSharedCryptoDigests.VerifySecret(user.PasswordHash, password)
 	if verr != nil {
 		return nil, fmt.Errorf("%w: password verification error: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, verr)
 	}

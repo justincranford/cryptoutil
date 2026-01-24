@@ -5,9 +5,9 @@ package idp
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 	"time"

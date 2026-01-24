@@ -8,9 +8,9 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -25,12 +25,12 @@ func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("postgres_container_required")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("postgres_container_required")
 	settings.DevMode = false
 	settings.DatabaseURL = getTestPostgresURL()
 	settings.DatabaseContainer = containerModeRequired // Will start container when Docker available
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -53,12 +53,12 @@ func TestNewSQLRepository_PostgreSQL_ContainerPreferred(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("postgres_container_preferred")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("postgres_container_preferred")
 	settings.DevMode = false
 	settings.DatabaseURL = getTestPostgresURL()
 	settings.DatabaseContainer = containerModePreferred // Will start container when Docker available
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -77,12 +77,12 @@ func TestNewSQLRepository_UnsupportedDBType(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("unsupported_db_type")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("unsupported_db_type")
 	settings.DevMode = false
 	settings.DatabaseURL = "mysql://user:pass@localhost:3306/testdb" // MySQL not supported
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -112,11 +112,11 @@ func TestSQLRepository_GetDBType_AllTypes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseContainer = containerModeDisabled
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -136,11 +136,11 @@ func TestHealthCheck_ContextTimeout(t *testing.T) {
 
 	baseCtx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("healthcheck_timeout")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("healthcheck_timeout")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(baseCtx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(baseCtx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(baseCtx, telemetryService, settings)
@@ -193,12 +193,12 @@ func TestNewSQLRepository_InvalidDatabaseURL_Formats(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			settings := cryptoutilConfig.RequireNewForTest(tc.name)
+			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = containerModeDisabled
 
-			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+			telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)

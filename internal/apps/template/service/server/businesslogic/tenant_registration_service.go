@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
@@ -80,11 +80,11 @@ func (s *TenantRegistrationService) RegisterClientWithTenant(
 	}
 
 	// Create join request for client
-	joinRequest := &cryptoutilTemplateDomain.TenantJoinRequest{
+	joinRequest := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.New(),
 		ClientID:    &clientID,
 		TenantID:    tenantID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now().UTC(),
 	}
 
@@ -109,7 +109,7 @@ func (s *TenantRegistrationService) AuthorizeJoinRequest(
 	}
 
 	// Verify request is pending
-	if joinRequest.Status != cryptoutilTemplateDomain.JoinRequestStatusPending {
+	if joinRequest.Status != cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending {
 		return fmt.Errorf("join request is not pending (status: %s)", joinRequest.Status)
 	}
 
@@ -121,10 +121,10 @@ func (s *TenantRegistrationService) AuthorizeJoinRequest(
 	joinRequest.ProcessedBy = &adminUserID
 
 	if approved {
-		joinRequest.Status = cryptoutilTemplateDomain.JoinRequestStatusApproved
+		joinRequest.Status = cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved
 		// TODO: Assign user/client to tenant with appropriate role
 	} else {
-		joinRequest.Status = cryptoutilTemplateDomain.JoinRequestStatusRejected
+		joinRequest.Status = cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusRejected
 	}
 
 	if err := s.joinRequestRepo.Update(ctx, joinRequest); err != nil {
@@ -138,7 +138,7 @@ func (s *TenantRegistrationService) AuthorizeJoinRequest(
 func (s *TenantRegistrationService) ListJoinRequests(
 	ctx context.Context,
 	tenantID googleUuid.UUID,
-) ([]*cryptoutilTemplateDomain.TenantJoinRequest, error) {
+) ([]*cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest, error) {
 	// TODO: Verify caller has admin permission for this tenant
 	requests, err := s.joinRequestRepo.ListByTenant(ctx, tenantID)
 	if err != nil {

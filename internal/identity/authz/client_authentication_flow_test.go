@@ -12,17 +12,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // TestAuthenticateClient_BasicAuthSuccess validates HTTP Basic authentication success.
@@ -37,7 +37,7 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 	// Create token service using ProductionKeyGenerator with RS256 signing.
 	tokenSvc := createClientAuthFlowTestTokenService(t, config)
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err := svc.Start(context.Background())
@@ -100,7 +100,7 @@ func TestAuthenticateClient_PostAuthSuccess(t *testing.T) {
 	// Create token service using ProductionKeyGenerator with RS256 signing.
 	tokenSvc := createClientAuthFlowTestTokenService(t, config)
 
-	svc := authz.NewService(config, repoFactory, tokenSvc)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, tokenSvc)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err := svc.Start(context.Background())
@@ -139,7 +139,7 @@ func TestAuthenticateClient_NoCredentialsFailure(t *testing.T) {
 	config := createClientAuthFlowTestConfig(t)
 	repoFactory := createClientAuthFlowTestRepoFactory(t, config)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	err := svc.Start(context.Background())
@@ -228,7 +228,7 @@ func createClientAuthFlowTestClient(
 
 	// Generate proper PBKDF2 hash for "test-secret" using cryptoutilCrypto.HashSecretPBKDF2
 	// Format: $pbkdf2-sha256$iterations$base64(salt)$base64(hash)
-	hashedSecret, err := cryptoutilHash.HashSecretPBKDF2("test-secret")
+	hashedSecret, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2("test-secret")
 	require.NoError(t, err, "Failed to hash client secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{

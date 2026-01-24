@@ -6,13 +6,13 @@ package authz
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +23,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // TestClientSecretRotation_EndToEnd validates complete rotation flow.
@@ -62,7 +62,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	// Client.Create() will use the provided hash to create ClientSecretVersion.
 	// Create test client with known secret.
 	originalSecret := "original-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
-	hashedSecret, err := cryptoutilHash.HashLowEntropyNonDeterministic(originalSecret)
+	hashedSecret, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(originalSecret)
 	require.NoError(t, err)
 
 	client := &cryptoutilIdentityDomain.Client{
@@ -220,7 +220,7 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 
 	// Create auth client for authentication.
 	authSecret := "auth-secret-" + googleUuid.Must(googleUuid.NewV7()).String()
-	authHashed, err := cryptoutilHash.HashLowEntropyNonDeterministic(authSecret)
+	authHashed, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(authSecret)
 	require.NoError(t, err)
 
 	authClient := &cryptoutilIdentityDomain.Client{

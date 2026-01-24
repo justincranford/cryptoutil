@@ -13,33 +13,33 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
-	cryptoutilTemplateApplication "cryptoutil/internal/apps/template/service/server/application"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
+	cryptoutilAppsTemplateServiceServerApis "cryptoutil/internal/apps/template/service/server/apis"
+	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // ServiceResources contains all initialized service resources available to domain-specific code.
 type ServiceResources struct {
 	// Infrastructure.
 	DB                  *gorm.DB
-	TelemetryService    *cryptoutilTelemetry.TelemetryService
-	JWKGenService       *cryptoutilJose.JWKGenService
+	TelemetryService    *cryptoutilSharedTelemetry.TelemetryService
+	JWKGenService       *cryptoutilSharedCryptoJose.JWKGenService
 	UnsealKeysService   cryptoutilUnsealKeysService.UnsealKeysService
-	BarrierService      *cryptoutilBarrier.Service
-	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
-	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
-	RealmService        cryptoutilTemplateService.RealmService
+	BarrierService      *cryptoutilAppsTemplateServiceServerBarrier.Service
+	SessionManager      *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
+	RegistrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
+	RealmService        cryptoutilAppsTemplateServiceServerService.RealmService
 	RealmRepository     cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 
 	// Application wrapper.
@@ -54,7 +54,7 @@ type ServiceResources struct {
 // Handles ALL common initialization: TLS, admin/public servers, database, migrations, sessions, barrier.
 type ServerBuilder struct {
 	ctx                 context.Context
-	config              *cryptoutilConfig.ServiceTemplateServerSettings
+	config              *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	migrationFS         fs.FS
 	migrationsPath      string
 	publicRouteRegister func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error
@@ -62,7 +62,7 @@ type ServerBuilder struct {
 }
 
 // NewServerBuilder creates a new server builder with base configuration.
-func NewServerBuilder(ctx context.Context, config *cryptoutilConfig.ServiceTemplateServerSettings) *ServerBuilder {
+func NewServerBuilder(ctx context.Context, config *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) *ServerBuilder {
 	if ctx == nil {
 		return &ServerBuilder{err: fmt.Errorf("context cannot be nil")}
 	} else if config == nil {
@@ -142,14 +142,14 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create admin server.
-	adminServer, err := cryptoutilTemplateServerListener.NewAdminHTTPServer(b.ctx, b.config, adminTLSCfg)
+	adminServer, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(b.ctx, b.config, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
 	// Phase W.1: Initialize application core WITHOUT services (DB + telemetry only).
 	// CRITICAL: Must run migrations BEFORE initializing services (BarrierService needs barrier_root_keys table).
-	applicationCore, err := cryptoutilTemplateApplication.StartCore(b.ctx, b.config)
+	applicationCore, err := cryptoutilAppsTemplateServiceServerApplication.StartCore(b.ctx, b.config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
@@ -170,7 +170,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Phase W.3: Initialize services now that migrations have created required tables.
-	services, err := cryptoutilTemplateApplication.InitializeServicesOnCore(
+	services, err := cryptoutilAppsTemplateServiceServerApplication.InitializeServicesOnCore(
 		b.ctx,
 		applicationCore,
 		b.config,
@@ -199,7 +199,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Generate TLS material for public server.
-	publicTLSMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(publicTLSCfg)
+	publicTLSMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(publicTLSCfg)
 	if err != nil {
 		services.Core.Shutdown()
 
@@ -244,15 +244,15 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 
 	// Register tenant registration routes on PUBLIC server (unauthenticated user registration).
 	// Default rate limit configured via magic constant.
-	cryptoutilTemplateAPIs.RegisterRegistrationRoutes(publicServerBase.App(), services.RegistrationService, cryptoutilMagic.RateLimitDefaultRequestsPerMin)
+	cryptoutilAppsTemplateServiceServerApis.RegisterRegistrationRoutes(publicServerBase.App(), services.RegistrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
 
 	// Register join request management routes on ADMIN server (authenticated admin operations).
-	cryptoutilTemplateAPIs.RegisterJoinRequestManagementRoutes(adminServer.App(), services.RegistrationService)
+	cryptoutilAppsTemplateServiceServerApis.RegisterJoinRequestManagementRoutes(adminServer.App(), services.RegistrationService)
 
 	// Register barrier admin endpoints (key rotation, status) on ADMIN server.
-	cryptoutilBarrier.RegisterRotationRoutes(adminServer.App(), services.RotationService)
+	cryptoutilAppsTemplateServiceServerBarrier.RegisterRotationRoutes(adminServer.App(), services.RotationService)
 
-	cryptoutilBarrier.RegisterStatusRoutes(adminServer.App(), services.StatusService)
+	cryptoutilAppsTemplateServiceServerBarrier.RegisterStatusRoutes(adminServer.App(), services.StatusService)
 
 	// Create application wrapper with both servers.
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(b.ctx, publicServerBase, adminServer)
@@ -270,7 +270,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 // generateTLSConfig handles TLS configuration generation for admin or public server.
 // Supports three modes: static (pre-provided certs), mixed (generate from CA), auto (fully auto-generate).
 func (b *ServerBuilder) generateTLSConfig(
-	mode cryptoutilConfig.TLSMode,
+	mode cryptoutilAppsTemplateServiceConfig.TLSMode,
 	staticCertPEM []byte,
 	staticKeyPEM []byte,
 	mixedCACertPEM []byte,
@@ -278,26 +278,26 @@ func (b *ServerBuilder) generateTLSConfig(
 	dnsNames []string,
 	ipAddresses []string,
 	serverType string,
-) (*cryptoutilTLSGenerator.TLSGeneratedSettings, error) {
+) (*cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings, error) {
 	// Default to auto mode if not specified.
 	if mode == "" {
-		mode = cryptoutilConfig.TLSModeAuto
+		mode = cryptoutilAppsTemplateServiceConfig.TLSModeAuto
 	}
 
 	switch mode {
-	case cryptoutilConfig.TLSModeStatic:
-		return &cryptoutilTLSGenerator.TLSGeneratedSettings{
+	case cryptoutilAppsTemplateServiceConfig.TLSModeStatic:
+		return &cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings{
 			StaticCertPEM: staticCertPEM,
 			StaticKeyPEM:  staticKeyPEM,
 		}, nil
 
-	case cryptoutilConfig.TLSModeMixed:
-		tlsCfg, err := cryptoutilTLSGenerator.GenerateServerCertFromCA(
+	case cryptoutilAppsTemplateServiceConfig.TLSModeMixed:
+		tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateServerCertFromCA(
 			mixedCACertPEM,
 			mixedCAKeyPEM,
 			dnsNames,
 			ipAddresses,
-			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+			cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate %s TLS config (mixed mode): %w", serverType, err)
@@ -305,11 +305,11 @@ func (b *ServerBuilder) generateTLSConfig(
 
 		return tlsCfg, nil
 
-	case cryptoutilConfig.TLSModeAuto:
-		tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+	case cryptoutilAppsTemplateServiceConfig.TLSModeAuto:
+		tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 			dnsNames,
 			ipAddresses,
-			cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+			cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate %s TLS config (auto mode): %w", serverType, err)

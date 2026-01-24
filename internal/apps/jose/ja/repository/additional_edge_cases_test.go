@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
@@ -86,11 +86,11 @@ func TestElasticJWKRepository_GetWithSpecialCharactersInKID(t *testing.T) {
 			id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 			tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-			jwk := &cryptoutilJoseJADomain.ElasticJWK{
+			jwk := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 				ID:           *id,
 				TenantID:     *tenantID,
 				KID:          tt.kid + "-" + id.String()[:8], // Make unique per test run.
-				KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+				KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 				Algorithm:    "RS256",
 				Use:          "sig",
 				MaxMaterials: 10,
@@ -140,11 +140,11 @@ func TestElasticJWKRepository_UpdateNonExistentJWK(t *testing.T) {
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-	nonExistentJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	nonExistentJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
 		KID:          "non-existent-" + id.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -176,11 +176,11 @@ func TestElasticJWKRepository_DeleteAlreadyDeleted(t *testing.T) {
 	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-	jwk := &cryptoutilJoseJADomain.ElasticJWK{
+	jwk := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
 		KID:          "test-double-delete-" + id.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -241,11 +241,11 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 	// Create parent elastic JWK.
 	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	parentJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	parentJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *elasticID,
 		TenantID:     *tenantID,
 		KID:          "parent-" + elasticID.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -282,7 +282,7 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 			materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 			// Use sample encrypted JWK data.
-			material := &cryptoutilJoseJADomain.MaterialJWK{
+			material := &cryptoutilAppsJoseJaDomain.MaterialJWK{
 				ID:            *materialID,
 				ElasticJWKID:  parentJWK.ID,
 				MaterialKID:   tt.materialKID + "-" + materialID.String()[:8], // Make unique.
@@ -320,11 +320,11 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 	// Create parent elastic JWK.
 	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	parentJWK := &cryptoutilJoseJADomain.ElasticJWK{
+	parentJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:           *elasticID,
 		TenantID:     *tenantID,
 		KID:          "parent-no-active-" + elasticID.String()[:8],
-		KeyType:      cryptoutilJoseJADomain.KeyTypeRSA,
+		KeyType:      cryptoutilAppsJoseJaDomain.KeyTypeRSA,
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
@@ -338,7 +338,7 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 
 	// Create material but mark it as inactive.
 	materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	material := &cryptoutilJoseJADomain.MaterialJWK{
+	material := &cryptoutilAppsJoseJaDomain.MaterialJWK{
 		ID:            *materialID,
 		ElasticJWKID:  parentJWK.ID,
 		MaterialKID:   "inactive-material-" + materialID.String()[:8],
@@ -367,7 +367,7 @@ func TestAuditConfigRepository_UpsertMultipleTimes(t *testing.T) {
 
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-	config := &cryptoutilJoseJADomain.AuditConfig{
+	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    "test-upsert-multi",
 		Enabled:      true,
@@ -420,7 +420,7 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 	// Create many audit log entries.
 	for i := 0; i < numEntries; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-		entry := &cryptoutilJoseJADomain.AuditLogEntry{
+		entry := &cryptoutilAppsJoseJaDomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
 			Operation: "bulk-test",

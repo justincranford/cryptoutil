@@ -6,8 +6,8 @@ package clientauth
 
 import (
 	"context"
-	"crypto/rsa"
-	"encoding/json"
+	rsa "crypto/rsa"
+	json "encoding/json"
 	"testing"
 	"time"
 
@@ -17,8 +17,8 @@ import (
 	joseJwt "github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 )
 
 // Test constants.
@@ -36,7 +36,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 
 	// Generate RSA key pair for testing.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	// Extract *rsa.PrivateKey from KeyPair.
@@ -131,7 +131,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 
 	// Generate RSA key pair for signing.
 	keyID := googleUuid.NewString()
-	rsaKeyPair1, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair1, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey1, ok := rsaKeyPair1.Private.(*rsa.PrivateKey)
@@ -143,7 +143,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	require.NoError(t, privateJWK.Set(joseJwk.AlgorithmKey, joseJwa.RS256()))
 
 	// Generate DIFFERENT RSA key pair for client's public key.
-	rsaKeyPair2, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair2, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey2, ok := rsaKeyPair2.Private.(*rsa.PrivateKey)
@@ -194,7 +194,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -246,7 +246,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)
@@ -298,7 +298,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience(t *testing.T) {
 
 	// Generate RSA key pair.
 	keyID := googleUuid.NewString()
-	rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+	rsaKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(2048)
 	require.NoError(t, err)
 
 	rsaPrivateKey, ok := rsaKeyPair.Private.(*rsa.PrivateKey)

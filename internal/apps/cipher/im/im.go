@@ -11,7 +11,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -20,9 +20,9 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	"cryptoutil/internal/apps/cipher/im/server"
-	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -128,14 +128,14 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
-	cfg, err := config.Parse(argsWithSubcommand, true)
+	cfg, err := cryptoutilAppsCipherImServerConfig.Parse(argsWithSubcommand, true)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 
 		return 1
 	}
 
-	srv, err := server.NewFromConfig(ctx, cfg)
+	srv, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, cfg)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
 
@@ -289,7 +289,7 @@ func imServiceLivez(args []string, stdout, stderr io.Writer) int {
 			if i+1 < len(args) && url == defaultLivezURL { // Only set if not already set
 				baseURL := args[i+1]
 
-				livezPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminLivezRequestPath
+				livezPath := cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
 				if !strings.HasSuffix(baseURL, livezPath) {
 					url = baseURL + livezPath
 				} else {
@@ -354,7 +354,7 @@ func imServiceReadyz(args []string, stdout, stderr io.Writer) int {
 			if i+1 < len(args) && url == defaultReadyzURL { // Only set if not already set
 				baseURL := args[i+1]
 
-				readyzPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminReadyzRequestPath
+				readyzPath := cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminReadyzRequestPath
 				if !strings.HasSuffix(baseURL, readyzPath) {
 					url = baseURL + readyzPath
 				} else {
@@ -419,7 +419,7 @@ func imServiceShutdown(args []string, stdout, stderr io.Writer) int {
 			if i+1 < len(args) && url == defaultShutdownURL { // Only set if not already set
 				baseURL := args[i+1]
 
-				shutdownPath := cryptoutilMagic.DefaultPrivateAdminAPIContextPath + cryptoutilMagic.PrivateAdminShutdownRequestPath
+				shutdownPath := cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminShutdownRequestPath
 				if !strings.HasSuffix(baseURL, shutdownPath) {
 					url = baseURL + shutdownPath
 				} else {

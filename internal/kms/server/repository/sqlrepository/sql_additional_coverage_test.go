@@ -9,8 +9,8 @@ import (
 	"database/sql"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"
 )
@@ -66,8 +66,8 @@ func TestNewSQLRepository_NilChecks(t *testing.T) {
 	tests := []struct {
 		name      string
 		ctx       context.Context
-		telemetry *cryptoutilTelemetry.TelemetryService
-		settings  *cryptoutilConfig.ServiceTemplateServerSettings
+		telemetry *cryptoutilSharedTelemetry.TelemetryService
+		settings  *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 		errorMsg  string
 	}{
 		{

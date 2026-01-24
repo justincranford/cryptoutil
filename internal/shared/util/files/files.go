@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // WriteFile writes content to a file with the specified permissions.
@@ -47,7 +47,7 @@ func WriteFile(filePath string, bytesOrString any, permissions os.FileMode) erro
 // Paths are normalized to use forward slashes for cross-platform compatibility.
 // Excluded directories are skipped entirely.
 func ListAllFiles(startDirectory string) (map[string][]string, error) {
-	return ListAllFilesWithOptions(startDirectory, cryptoutilMagic.TextFilenameExtensionInclusions, cryptoutilMagic.DirectoryNameExclusions)
+	return ListAllFilesWithOptions(startDirectory, cryptoutilSharedMagic.TextFilenameExtensionInclusions, cryptoutilSharedMagic.DirectoryNameExclusions)
 }
 
 // ListAllFilesWithOptions walks the directory tree starting from startDirectory and returns files grouped by extension.

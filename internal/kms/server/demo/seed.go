@@ -12,8 +12,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
+	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/kms/server/businesslogic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // DemoTenantConfig holds demo tenant configuration.
@@ -79,7 +79,7 @@ func DefaultDemoKeys() []DemoKeyConfig {
 
 // SeedDemoData creates demo keys in the KMS database.
 // This function is idempotent - it skips keys that already exist by name.
-func SeedDemoData(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, businessLogicService *cryptoutilBusinessLogic.BusinessLogicService) error {
+func SeedDemoData(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, businessLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService) error {
 	telemetryService.Slogger.Info("Starting demo data seeding")
 
 	keys := DefaultDemoKeys()
@@ -137,7 +137,7 @@ func SeedDemoData(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 
 // ResetDemoData clears all existing demo keys and re-seeds them.
 // This function disables all keys with names matching the default demo keys and then re-seeds.
-func ResetDemoData(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, businessLogicService *cryptoutilBusinessLogic.BusinessLogicService) error {
+func ResetDemoData(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, businessLogicService *cryptoutilKmsServerBusinesslogic.BusinessLogicService) error {
 	telemetryService.Slogger.Info("Starting demo data reset")
 
 	keys := DefaultDemoKeys()

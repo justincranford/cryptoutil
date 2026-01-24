@@ -10,8 +10,8 @@ import (
 	"fmt"
 
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	jose "github.com/go-jose/go-jose/v4"
 	googleUuid "github.com/google/uuid"
@@ -33,14 +33,14 @@ type JWKSService interface {
 type jwksServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilBarrier.Service
+	barrierSvc   *cryptoutilAppsTemplateServiceServerBarrier.Service
 }
 
 // NewJWKSService creates a new JWKSService.
 func NewJWKSService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilBarrier.Service,
+	barrierSvc *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) JWKSService {
 	return &jwksServiceImpl{
 		elasticRepo:  elasticRepo,
@@ -56,7 +56,7 @@ func (s *jwksServiceImpl) GetJWKS(ctx context.Context, tenantID googleUuid.UUID)
 	}
 
 	// List all elastic JWKs for tenant.
-	elasticJWKs, _, err := s.elasticRepo.List(ctx, tenantID, 0, cryptoutilMagic.JoseJADefaultListLimit)
+	elasticJWKs, _, err := s.elasticRepo.List(ctx, tenantID, 0, cryptoutilSharedMagic.JoseJADefaultListLimit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list elastic JWKs: %w", err)
 	}
@@ -115,7 +115,7 @@ func (s *jwksServiceImpl) GetJWKSForElasticKey(ctx context.Context, tenantID, el
 	}
 
 	// List all materials for this elastic JWK.
-	materials, _, err := s.materialRepo.ListByElasticJWK(ctx, elasticJWKID, 0, cryptoutilMagic.JoseJADefaultListLimit)
+	materials, _, err := s.materialRepo.ListByElasticJWK(ctx, elasticJWKID, 0, cryptoutilSharedMagic.JoseJADefaultListLimit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list materials: %w", err)
 	}

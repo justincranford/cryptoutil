@@ -21,7 +21,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/elliptic"
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -31,14 +31,14 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilJOSE "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilKeygen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Session validation error messages.
@@ -88,15 +88,15 @@ const (
 //	err := manager.CleanupExpiredSessions(ctx)
 type SessionManager struct {
 	db      *gorm.DB
-	barrier *cryptoutilBarrier.Service
-	config  *cryptoutilConfig.ServiceTemplateServerSettings
+	barrier *cryptoutilAppsTemplateServiceServerBarrier.Service
+	config  *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 
 	// Runtime state for browser sessions
-	browserAlgorithm cryptoutilMagic.SessionAlgorithmType
+	browserAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
 	browserJWKID     *googleUuid.UUID // Active JWK ID for JWS/JWE, nil for OPAQUE
 
 	// Runtime state for service sessions
-	serviceAlgorithm cryptoutilMagic.SessionAlgorithmType
+	serviceAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
 	serviceJWKID     *googleUuid.UUID // Active JWK ID for JWS/JWE, nil for OPAQUE
 }
 
@@ -108,7 +108,7 @@ type SessionManager struct {
 //   - config: Service configuration with session settings
 //
 // Returns configured SessionManager (call Initialize before use).
-func NewSessionManager(db *gorm.DB, barrier *cryptoutilBarrier.Service, config *cryptoutilConfig.ServiceTemplateServerSettings) *SessionManager {
+func NewSessionManager(db *gorm.DB, barrier *cryptoutilAppsTemplateServiceServerBarrier.Service, config *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) *SessionManager {
 	return &SessionManager{
 		db:      db,
 		barrier: barrier,
@@ -131,23 +131,23 @@ func NewSessionManager(db *gorm.DB, barrier *cryptoutilBarrier.Service, config *
 // MUST be called before issuing or validating sessions.
 func (sm *SessionManager) Initialize(ctx context.Context) error {
 	// Parse browser session algorithm
-	browserAlg := cryptoutilMagic.SessionAlgorithmType(sm.config.BrowserSessionAlgorithm)
+	browserAlg := cryptoutilSharedMagic.SessionAlgorithmType(sm.config.BrowserSessionAlgorithm)
 	if browserAlg == "" {
-		browserAlg = cryptoutilMagic.DefaultBrowserSessionAlgorithm
+		browserAlg = cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm
 	}
 
 	sm.browserAlgorithm = browserAlg
 
 	// Parse service session algorithm
-	serviceAlg := cryptoutilMagic.SessionAlgorithmType(sm.config.ServiceSessionAlgorithm)
+	serviceAlg := cryptoutilSharedMagic.SessionAlgorithmType(sm.config.ServiceSessionAlgorithm)
 	if serviceAlg == "" {
-		serviceAlg = cryptoutilMagic.DefaultServiceSessionAlgorithm
+		serviceAlg = cryptoutilSharedMagic.DefaultServiceSessionAlgorithm
 	}
 
 	sm.serviceAlgorithm = serviceAlg
 
 	// Initialize browser session JWKs if using JWS/JWE
-	if browserAlg == cryptoutilMagic.SessionAlgorithmJWS || browserAlg == cryptoutilMagic.SessionAlgorithmJWE {
+	if browserAlg == cryptoutilSharedMagic.SessionAlgorithmJWS || browserAlg == cryptoutilSharedMagic.SessionAlgorithmJWE {
 		jwkID, err := sm.initializeSessionJWK(ctx, true, browserAlg)
 		if err != nil {
 			return fmt.Errorf("failed to initialize browser session JWK: %w", err)
@@ -157,7 +157,7 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 	}
 
 	// Initialize service session JWKs if using JWS/JWE
-	if serviceAlg == cryptoutilMagic.SessionAlgorithmJWS || serviceAlg == cryptoutilMagic.SessionAlgorithmJWE {
+	if serviceAlg == cryptoutilSharedMagic.SessionAlgorithmJWS || serviceAlg == cryptoutilSharedMagic.SessionAlgorithmJWE {
 		jwkID, err := sm.initializeSessionJWK(ctx, false, serviceAlg)
 		if err != nil {
 			return fmt.Errorf("failed to initialize service session JWK: %w", err)
@@ -177,7 +177,7 @@ func (sm *SessionManager) Initialize(ctx context.Context) error {
 //   - algorithm: Session algorithm type (JWS or JWE)
 //
 // Returns active JWK ID for session issuance.
-func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bool, algorithm cryptoutilMagic.SessionAlgorithmType) (googleUuid.UUID, error) {
+func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bool, algorithm cryptoutilSharedMagic.SessionAlgorithmType) (googleUuid.UUID, error) {
 	// Determine table name
 	var tableName string
 	if isBrowser {
@@ -214,7 +214,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	algIdentifier := sm.getAlgorithmIdentifier(isBrowser, algorithm)
 
 	switch algorithm {
-	case cryptoutilMagic.SessionAlgorithmJWS:
+	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		// Generate signing JWK based on algorithm
 		switch algIdentifier {
 		case algIdentifierHS256, algIdentifierHS384, algIdentifierHS512:
@@ -226,17 +226,17 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 
 			switch algIdentifier {
 			case algIdentifierHS256:
-				hmacBits = cryptoutilMagic.HMACKeySize256
+				hmacBits = cryptoutilSharedMagic.HMACKeySize256
 				algValue = joseJwa.HS256()
 			case algIdentifierHS384:
-				hmacBits = cryptoutilMagic.HMACKeySize384
+				hmacBits = cryptoutilSharedMagic.HMACKeySize384
 				algValue = joseJwa.HS384()
 			case algIdentifierHS512:
-				hmacBits = cryptoutilMagic.HMACKeySize512
+				hmacBits = cryptoutilSharedMagic.HMACKeySize512
 				algValue = joseJwa.HS512()
 			}
 
-			jwk, genErr = cryptoutilJOSE.GenerateHMACJWK(hmacBits)
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateHMACJWK(hmacBits)
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
 				if genErr == nil {
@@ -244,7 +244,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierRS256, algIdentifierRS384, algIdentifierRS512:
-			jwk, genErr = cryptoutilJOSE.GenerateRSAJWK(cryptoutilMagic.RSAKeySize2048)
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateRSAJWK(cryptoutilSharedMagic.RSAKeySize2048)
 			if genErr == nil {
 				// Set 'alg' attribute for signing
 				var algValue joseJwa.SignatureAlgorithm
@@ -264,7 +264,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierES256:
-			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P256())
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateECDSAJWK(elliptic.P256())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES256())
 				if genErr == nil {
@@ -272,7 +272,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierES384:
-			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P384())
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateECDSAJWK(elliptic.P384())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES384())
 				if genErr == nil {
@@ -280,7 +280,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierES512:
-			jwk, genErr = cryptoutilJOSE.GenerateECDSAJWK(elliptic.P521())
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateECDSAJWK(elliptic.P521())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES512())
 				if genErr == nil {
@@ -288,7 +288,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierEdDSA:
-			jwk, genErr = cryptoutilJOSE.GenerateEDDSAJWK("Ed25519")
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateEDDSAJWK("Ed25519")
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())
 				if genErr == nil {
@@ -298,11 +298,11 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		default:
 			return googleUuid.UUID{}, fmt.Errorf("unsupported JWS algorithm: %s", algIdentifier)
 		}
-	case cryptoutilMagic.SessionAlgorithmJWE:
+	case cryptoutilSharedMagic.SessionAlgorithmJWE:
 		// Generate encryption JWK based on algorithm
 		switch algIdentifier {
-		case cryptoutilMagic.SessionJWEAlgorithmDirA256GCM:
-			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(cryptoutilMagic.AESKeySize256)
+		case cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM:
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateAESJWK(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
 				// Set 'enc' and 'alg' attributes for encryption
 				genErr = jwk.Set("enc", joseJwa.A256GCM())
@@ -310,8 +310,8 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.DIRECT())
 				}
 			}
-		case cryptoutilMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
-			jwk, genErr = cryptoutilJOSE.GenerateAESJWK(cryptoutilMagic.AESKeySize256)
+		case cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
+			jwk, genErr = cryptoutilSharedCryptoJose.GenerateAESJWK(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
 				genErr = jwk.Set("enc", joseJwa.A256GCM())
 				if genErr == nil {
@@ -400,7 +400,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 // For JWE: Generates symmetric encryption key (AES)
 //
 // Returns crypto.PrivateKey that can be converted to JWK.
-func (sm *SessionManager) generateSessionJWK(isBrowser bool, algorithm cryptoutilMagic.SessionAlgorithmType) (crypto.PrivateKey, error) {
+func (sm *SessionManager) generateSessionJWK(isBrowser bool, algorithm cryptoutilSharedMagic.SessionAlgorithmType) (crypto.PrivateKey, error) {
 	var algIdentifier string
 	if isBrowser {
 		algIdentifier = sm.getAlgorithmIdentifier(isBrowser, algorithm)
@@ -409,10 +409,10 @@ func (sm *SessionManager) generateSessionJWK(isBrowser bool, algorithm cryptouti
 	}
 
 	switch algorithm {
-	case cryptoutilMagic.SessionAlgorithmJWS:
+	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		// Generate asymmetric key for JWS signature
 		return sm.generateJWSKey(algIdentifier)
-	case cryptoutilMagic.SessionAlgorithmJWE:
+	case cryptoutilSharedMagic.SessionAlgorithmJWE:
 		// Generate symmetric key for JWE encryption
 		return sm.generateJWEKey(algIdentifier)
 	default:
@@ -423,43 +423,43 @@ func (sm *SessionManager) generateSessionJWK(isBrowser bool, algorithm cryptouti
 // generateJWSKey generates an asymmetric signing key for JWS tokens.
 func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, error) {
 	switch algorithm {
-	case cryptoutilMagic.SessionJWSAlgorithmRS256,
-		cryptoutilMagic.SessionJWSAlgorithmRS384,
-		cryptoutilMagic.SessionJWSAlgorithmRS512:
+	case cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
+		cryptoutilSharedMagic.SessionJWSAlgorithmRS384,
+		cryptoutilSharedMagic.SessionJWSAlgorithmRS512:
 		// RSA key generation
-		keyPair, err := cryptoutilKeygen.GenerateRSAKeyPair(cryptoutilMagic.RSAKeySize2048)
+		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(cryptoutilSharedMagic.RSAKeySize2048)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate RSA key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
-	case cryptoutilMagic.SessionJWSAlgorithmES256:
+	case cryptoutilSharedMagic.SessionJWSAlgorithmES256:
 		// ECDSA P-256
-		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P256())
+		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P256())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA P-256 key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
-	case cryptoutilMagic.SessionJWSAlgorithmES384:
+	case cryptoutilSharedMagic.SessionJWSAlgorithmES384:
 		// ECDSA P-384
-		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P384())
+		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA P-384 key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
-	case cryptoutilMagic.SessionJWSAlgorithmES512:
+	case cryptoutilSharedMagic.SessionJWSAlgorithmES512:
 		// ECDSA P-521
-		keyPair, err := cryptoutilKeygen.GenerateECDSAKeyPair(elliptic.P521())
+		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P521())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ECDSA P-521 key pair: %w", err)
 		}
 
 		return keyPair.Private, nil
-	case cryptoutilMagic.SessionJWSAlgorithmEdDSA:
+	case cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA:
 		// Ed25519
-		keyPair, err := cryptoutilKeygen.GenerateEDDSAKeyPair(cryptoutilKeygen.EdCurveEd25519)
+		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair(cryptoutilSharedCryptoKeygen.EdCurveEd25519)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate EdDSA key pair: %w", err)
 		}
@@ -473,10 +473,10 @@ func (sm *SessionManager) generateJWSKey(algorithm string) (crypto.PrivateKey, e
 // generateJWEKey generates a symmetric encryption key for JWE tokens.
 func (sm *SessionManager) generateJWEKey(algorithm string) (crypto.PrivateKey, error) {
 	switch algorithm {
-	case cryptoutilMagic.SessionJWEAlgorithmDirA256GCM,
-		cryptoutilMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
+	case cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM,
+		cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
 		// AES-256 key generation (32 bytes)
-		key, err := cryptoutilKeygen.GenerateAESKey(cryptoutilMagic.AESKeySize256)
+		key, err := cryptoutilSharedCryptoKeygen.GenerateAESKey(cryptoutilSharedMagic.AESKeySize256)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate AES key: %w", err)
 		}
@@ -488,15 +488,15 @@ func (sm *SessionManager) generateJWEKey(algorithm string) (crypto.PrivateKey, e
 }
 
 // getAlgorithmIdentifier returns the specific algorithm identifier for session tokens.
-func (sm *SessionManager) getAlgorithmIdentifier(isBrowser bool, sessionAlgorithm cryptoutilMagic.SessionAlgorithmType) string {
+func (sm *SessionManager) getAlgorithmIdentifier(isBrowser bool, sessionAlgorithm cryptoutilSharedMagic.SessionAlgorithmType) string {
 	switch sessionAlgorithm {
-	case cryptoutilMagic.SessionAlgorithmJWS:
+	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		if isBrowser {
 			return sm.config.BrowserSessionJWSAlgorithm
 		}
 
 		return sm.config.ServiceSessionJWSAlgorithm
-	case cryptoutilMagic.SessionAlgorithmJWE:
+	case cryptoutilSharedMagic.SessionAlgorithmJWE:
 		if isBrowser {
 			return sm.config.BrowserSessionJWEAlgorithm
 		}
@@ -521,11 +521,11 @@ func (sm *SessionManager) getAlgorithmIdentifier(isBrowser bool, sessionAlgorith
 // Returns session token string for client.
 func (sm *SessionManager) IssueBrowserSession(ctx context.Context, userID string, tenantID, realmID googleUuid.UUID) (string, error) {
 	switch sm.browserAlgorithm {
-	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+	case cryptoutilSharedMagic.SessionAlgorithmOPAQUE:
 		return sm.issueOPAQUESession(ctx, true, userID, tenantID, realmID)
-	case cryptoutilMagic.SessionAlgorithmJWS:
+	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		return sm.issueJWSSession(ctx, true, userID, tenantID, realmID)
-	case cryptoutilMagic.SessionAlgorithmJWE:
+	case cryptoutilSharedMagic.SessionAlgorithmJWE:
 		return sm.issueJWESession(ctx, true, userID, tenantID, realmID)
 	default:
 		return "", fmt.Errorf("unsupported browser session algorithm: %s", sm.browserAlgorithm)
@@ -549,11 +549,11 @@ func (sm *SessionManager) ValidateBrowserSession(ctx context.Context, token stri
 	)
 
 	switch sm.browserAlgorithm {
-	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+	case cryptoutilSharedMagic.SessionAlgorithmOPAQUE:
 		result, err = sm.validateOPAQUESession(ctx, true, token)
-	case cryptoutilMagic.SessionAlgorithmJWS:
+	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		result, err = sm.validateJWSSession(ctx, true, token)
-	case cryptoutilMagic.SessionAlgorithmJWE:
+	case cryptoutilSharedMagic.SessionAlgorithmJWE:
 		result, err = sm.validateJWESession(ctx, true, token)
 	default:
 		return nil, fmt.Errorf("unsupported browser session algorithm: %s", sm.browserAlgorithm)
@@ -576,11 +576,11 @@ func (sm *SessionManager) ValidateBrowserSession(ctx context.Context, token stri
 // Similar to IssueBrowserSession but for service-to-service authentication.
 func (sm *SessionManager) IssueServiceSession(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error) {
 	switch sm.serviceAlgorithm {
-	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+	case cryptoutilSharedMagic.SessionAlgorithmOPAQUE:
 		return sm.issueOPAQUESession(ctx, false, clientID, tenantID, realmID)
-	case cryptoutilMagic.SessionAlgorithmJWS:
+	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		return sm.issueJWSSession(ctx, false, clientID, tenantID, realmID)
-	case cryptoutilMagic.SessionAlgorithmJWE:
+	case cryptoutilSharedMagic.SessionAlgorithmJWE:
 		return sm.issueJWESession(ctx, false, clientID, tenantID, realmID)
 	default:
 		return "", fmt.Errorf("unsupported service session algorithm: %s", sm.serviceAlgorithm)
@@ -596,11 +596,11 @@ func (sm *SessionManager) ValidateServiceSession(ctx context.Context, token stri
 	)
 
 	switch sm.serviceAlgorithm {
-	case cryptoutilMagic.SessionAlgorithmOPAQUE:
+	case cryptoutilSharedMagic.SessionAlgorithmOPAQUE:
 		result, err = sm.validateOPAQUESession(ctx, false, token)
-	case cryptoutilMagic.SessionAlgorithmJWS:
+	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		result, err = sm.validateJWSSession(ctx, false, token)
-	case cryptoutilMagic.SessionAlgorithmJWE:
+	case cryptoutilSharedMagic.SessionAlgorithmJWE:
 		result, err = sm.validateJWESession(ctx, false, token)
 	default:
 		return nil, fmt.Errorf("unsupported service session algorithm: %s", sm.serviceAlgorithm)
@@ -686,7 +686,7 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 	token := tokenID.String()
 
 	// Hash token for database storage using HighEntropyDeterministic
-	tokenHash, err := cryptoutilHash.HashHighEntropyDeterministic(token)
+	tokenHash, err := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(token)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash session token: %w", err)
 	}
@@ -738,7 +738,7 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 // validateOPAQUESession validates an OPAQUE session token.
 func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser bool, token string) (any, error) {
 	// Hash token for database lookup
-	tokenHash, err := cryptoutilHash.HashHighEntropyDeterministic(token)
+	tokenHash, err := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash session token: %w", err)
 	}
@@ -867,13 +867,13 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	}
 
 	// Sign JWT
-	_, jwsBytes, err := cryptoutilJOSE.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+	_, jwsBytes, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign JWT: %w", err)
 	}
 
 	// Store session metadata in database (for revocation)
-	tokenHash, err := cryptoutilHash.HashHighEntropyDeterministic(jti.String())
+	tokenHash, err := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(jti.String())
 	if err != nil {
 		return "", fmt.Errorf("failed to hash jti: %w", err)
 	}
@@ -984,7 +984,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	// No normalization required; verification utilities will validate algorithm type.
 
 	// Verify JWT signature
-	claimsBytes, err := cryptoutilJOSE.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
 	if err != nil {
 		summary := "Invalid JWT signature"
 
@@ -1030,7 +1030,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Hash jti for database lookup
-	tokenHash, err := cryptoutilHash.HashHighEntropyDeterministic(jti.String())
+	tokenHash, err := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(jti.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash jti: %w", err)
 	}
@@ -1165,13 +1165,13 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	}
 
 	// Encrypt JWT claims with JWK
-	_, jweBytes, encryptErr := cryptoutilJOSE.EncryptBytes([]joseJwk.Key{jwk}, claimsBytes)
+	_, jweBytes, encryptErr := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{jwk}, claimsBytes)
 	if encryptErr != nil {
 		return "", fmt.Errorf("failed to encrypt JWT: %w", encryptErr)
 	}
 
 	// Hash jti for database storage (enables revocation)
-	tokenHash, hashErr := cryptoutilHash.HashHighEntropyDeterministic(jti.String())
+	tokenHash, hashErr := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(jti.String())
 	if hashErr != nil {
 		return "", fmt.Errorf("failed to hash jti: %w", hashErr)
 	}
@@ -1274,7 +1274,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	// Decrypt and verify JWT
-	claimsBytes, verifyErr := cryptoutilJOSE.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	claimsBytes, verifyErr := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
 	if verifyErr != nil {
 		summary := errMsgInvalidSessionToken
 

@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // KMS demo step counts.
@@ -125,7 +125,7 @@ func runKMSDemo(ctx context.Context, config *Config) int {
 }
 
 // parseKMSConfig creates settings for KMS demo.
-func parseKMSConfig() (*cryptoutilConfig.ServiceTemplateServerSettings, error) {
+func parseKMSConfig() (*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, error) {
 	// Use dev profile with demo mode enabled.
 	args := []string{
 		"start",
@@ -136,7 +136,7 @@ func parseKMSConfig() (*cryptoutilConfig.ServiceTemplateServerSettings, error) {
 		"--bind-private-port", "0",
 	}
 
-	settings, err := cryptoutilConfig.Parse(args, true)
+	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
@@ -145,7 +145,7 @@ func parseKMSConfig() (*cryptoutilConfig.ServiceTemplateServerSettings, error) {
 }
 
 // startKMSServer starts the KMS server.
-func startKMSServer(_ context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*cryptoutilServerApplication.ServerApplicationListener, error) {
+func startKMSServer(_ context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilServerApplication.ServerApplicationListener, error) {
 	server, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start server: %w", err)
@@ -155,13 +155,13 @@ func startKMSServer(_ context.Context, settings *cryptoutilConfig.ServiceTemplat
 	go server.StartFunction()
 
 	// Give server time to start.
-	time.Sleep(cryptoutilMagic.DefaultServerStartupDelay)
+	time.Sleep(cryptoutilSharedMagic.DefaultServerStartupDelay)
 
 	return server, nil
 }
 
 // waitForKMSHealth waits for KMS health checks to pass.
-func waitForKMSHealth(ctx context.Context, settings *cryptoutilConfig.ServiceTemplateServerSettings, timeout time.Duration) error {
+func waitForKMSHealth(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 
 	for time.Now().Before(deadline) {
@@ -176,7 +176,7 @@ func waitForKMSHealth(ctx context.Context, settings *cryptoutilConfig.ServiceTem
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("health check interrupted: %w", ctx.Err())
-		case <-time.After(cryptoutilMagic.DefaultHealthCheckInterval):
+		case <-time.After(cryptoutilSharedMagic.DefaultHealthCheckInterval):
 			// Continue polling.
 		}
 	}
@@ -185,7 +185,7 @@ func waitForKMSHealth(ctx context.Context, settings *cryptoutilConfig.ServiceTem
 }
 
 // demonstrateKMSOperations demonstrates KMS cryptographic operations.
-func demonstrateKMSOperations(_ context.Context, _ *cryptoutilConfig.ServiceTemplateServerSettings, progress *ProgressDisplay) error {
+func demonstrateKMSOperations(_ context.Context, _ *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, progress *ProgressDisplay) error {
 	progress.Debug("Demo mode enabled - server seeded demo keys automatically")
 	progress.Debug("Available demo keys: demo-encryption-aes256, demo-signing-rsa2048, demo-signing-ec256, demo-wrapping-aes256kw")
 

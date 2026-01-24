@@ -12,7 +12,7 @@ import (
 	"os/user"
 	"runtime"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
@@ -21,12 +21,12 @@ import (
 
 const (
 	// EmptyString is a constant for an empty string.
-	EmptyString = cryptoutilMagic.EmptyString
+	EmptyString = cryptoutilSharedMagic.EmptyString
 
 	// Timeouts for system info queries to prevent hanging.
-	cpuInfoTimeout = cryptoutilMagic.DefaultSysInfoCPUTimeout
-	memoryTimeout  = cryptoutilMagic.DefaultSysInfoMemoryTimeout
-	hostIDTimeout  = cryptoutilMagic.DefaultSysInfoHostTimeout
+	cpuInfoTimeout = cryptoutilSharedMagic.DefaultSysInfoCPUTimeout
+	memoryTimeout  = cryptoutilSharedMagic.DefaultSysInfoMemoryTimeout
+	hostIDTimeout  = cryptoutilSharedMagic.DefaultSysInfoHostTimeout
 )
 
 // RuntimeGoArch returns the GOARCH runtime architecture.

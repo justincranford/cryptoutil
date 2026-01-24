@@ -4,10 +4,10 @@ package timestamp
 
 import (
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/sha256"
+	crand "crypto/rand"
+	sha256 "crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -635,7 +635,7 @@ func TestOidToHashAlgorithm(t *testing.T) {
 func createTSACert(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 	t.Helper()
 
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -651,7 +651,7 @@ func createTSACert(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 		BasicConstraintsValid: true,
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &privateKey.PublicKey, privateKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &privateKey.PublicKey, privateKey)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certDER)

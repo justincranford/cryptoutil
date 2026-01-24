@@ -6,10 +6,10 @@ import (
 	"bytes"
 	"context"
 	"crypto"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/base64"
@@ -17,17 +17,17 @@ import (
 	"io"
 	"math/big"
 	"net"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilCAServer "cryptoutil/api/ca/server"
+	cryptoutilApiCaServer "cryptoutil/api/ca/server"
 	cryptoutilCABootstrap "cryptoutil/internal/ca/bootstrap"
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
 	cryptoutilCAIntermediate "cryptoutil/internal/ca/intermediate"
@@ -107,16 +107,16 @@ func TestMapCategory(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected cryptoutilCAServer.ProfileSummaryCategory
+		expected cryptoutilApiCaServer.ProfileSummaryCategory
 	}{
-		{"tls", "tls", cryptoutilCAServer.TLS},
-		{"email", "email", cryptoutilCAServer.Email},
-		{"code_signing", "code_signing", cryptoutilCAServer.CodeSigning},
-		{"document_signing", "document_signing", cryptoutilCAServer.DocumentSigning},
-		{"ca", "ca", cryptoutilCAServer.CA},
-		{"unknown_returns_other", "unknown", cryptoutilCAServer.Other},
-		{"empty_returns_other", "", cryptoutilCAServer.Other},
-		{"random_returns_other", "random_category", cryptoutilCAServer.Other},
+		{"tls", "tls", cryptoutilApiCaServer.TLS},
+		{"email", "email", cryptoutilApiCaServer.Email},
+		{"code_signing", "code_signing", cryptoutilApiCaServer.CodeSigning},
+		{"document_signing", "document_signing", cryptoutilApiCaServer.DocumentSigning},
+		{"ca", "ca", cryptoutilApiCaServer.CA},
+		{"unknown_returns_other", "unknown", cryptoutilApiCaServer.Other},
+		{"empty_returns_other", "", cryptoutilApiCaServer.Other},
+		{"random_returns_other", "random_category", cryptoutilApiCaServer.Other},
 	}
 
 	for _, tc := range tests {
@@ -482,7 +482,7 @@ func TestApplySubjectOverrides(t *testing.T) {
 	tests := []struct {
 		name           string
 		initial        *cryptoutilCAProfileSubject.Request
-		override       *cryptoutilCAServer.SubjectOverride
+		override       *cryptoutilApiCaServer.SubjectOverride
 		expectedOrg    []string
 		expectedOU     []string
 		expectedCounty []string
@@ -494,7 +494,7 @@ func TestApplySubjectOverrides(t *testing.T) {
 			initial: &cryptoutilCAProfileSubject.Request{
 				Organization: []string{"Original"},
 			},
-			override: &cryptoutilCAServer.SubjectOverride{
+			override: &cryptoutilApiCaServer.SubjectOverride{
 				Organization: &[]string{"Override Inc."},
 			},
 			expectedOrg: []string{"Override Inc."},
@@ -508,7 +508,7 @@ func TestApplySubjectOverrides(t *testing.T) {
 				State:              []string{"California"},
 				Locality:           []string{"San Francisco"},
 			},
-			override: &cryptoutilCAServer.SubjectOverride{
+			override: &cryptoutilApiCaServer.SubjectOverride{
 				Organization:       &[]string{"New Org"},
 				OrganizationalUnit: &[]string{"New OU"},
 				Country:            &[]string{"CA"},
@@ -526,7 +526,7 @@ func TestApplySubjectOverrides(t *testing.T) {
 			initial: &cryptoutilCAProfileSubject.Request{
 				Organization: []string{"Keep Me"},
 			},
-			override: &cryptoutilCAServer.SubjectOverride{
+			override: &cryptoutilApiCaServer.SubjectOverride{
 				Organization: &[]string{}, // Empty slice should not override.
 			},
 			expectedOrg: []string{"Keep Me"},
@@ -578,7 +578,7 @@ func TestApplySANOverrides(t *testing.T) {
 	tests := []struct {
 		name           string
 		initial        *cryptoutilCAProfileSubject.Request
-		override       *cryptoutilCAServer.SANOverride
+		override       *cryptoutilApiCaServer.SANOverride
 		expectedDNS    []string
 		expectedIPs    []string
 		expectedEmails []string
@@ -589,7 +589,7 @@ func TestApplySANOverrides(t *testing.T) {
 			initial: &cryptoutilCAProfileSubject.Request{
 				DNSNames: []string{"original.example.com"},
 			},
-			override: &cryptoutilCAServer.SANOverride{
+			override: &cryptoutilApiCaServer.SANOverride{
 				DNSNames: &[]string{"override.example.com"},
 			},
 			expectedDNS: []string{"override.example.com"},
@@ -602,7 +602,7 @@ func TestApplySANOverrides(t *testing.T) {
 				EmailAddresses: []string{"original@example.com"},
 				URIs:           []string{"https://original.example.com"},
 			},
-			override: &cryptoutilCAServer.SANOverride{
+			override: &cryptoutilApiCaServer.SANOverride{
 				DNSNames:       &[]string{"new.example.com"},
 				IPAddresses:    &[]string{"10.0.0.1"},
 				EmailAddresses: &[]string{"new@example.com"},
@@ -653,7 +653,7 @@ func TestParseCSR(t *testing.T) {
 	handler := &Handler{}
 
 	// Generate a test key.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	// Create a valid CSR.
@@ -665,7 +665,7 @@ func TestParseCSR(t *testing.T) {
 		DNSNames: []string{"test.example.com", "www.test.example.com"},
 	}
 
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, privateKey)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, privateKey)
 	require.NoError(t, err)
 
 	csrPEM := pem.EncodeToMemory(&pem.Block{
@@ -733,7 +733,7 @@ func TestBuildEnrollmentResponse(t *testing.T) {
 	handler := &Handler{}
 
 	// Generate a test certificate.
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	certTemplate := &x509.Certificate{
@@ -750,7 +750,7 @@ func TestBuildEnrollmentResponse(t *testing.T) {
 		IPAddresses: []net.IP{net.ParseIP("192.168.1.1")},
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, certTemplate, certTemplate, &privateKey.PublicKey, privateKey)
+	certDER, err := x509.CreateCertificate(crand.Reader, certTemplate, certTemplate, &privateKey.PublicKey, privateKey)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certDER)
@@ -771,7 +771,7 @@ func TestBuildEnrollmentResponse(t *testing.T) {
 
 	result := handler.buildEnrollmentResponse(issued)
 	require.NotNil(t, result)
-	require.Equal(t, cryptoutilCAServer.Issued, result.Status)
+	require.Equal(t, cryptoutilApiCaServer.Issued, result.Status)
 	require.Equal(t, "01", result.Certificate.SerialNumber)
 	require.NotNil(t, result.Certificate.FingerprintSha256)
 	require.Equal(t, "abc123", *result.Certificate.FingerprintSha256)
@@ -1086,7 +1086,7 @@ func TestGetCRL(t *testing.T) {
 	}
 
 	app.Get("/ca/:caId/crl", func(c *fiber.Ctx) error {
-		return handler.GetCRL(c, c.Params("caId"), cryptoutilCAServer.GetCRLParams{})
+		return handler.GetCRL(c, c.Params("caId"), cryptoutilApiCaServer.GetCRLParams{})
 	})
 
 	t.Run("CRL_no_service_configured", func(t *testing.T) {
@@ -1199,7 +1199,7 @@ func TestGetKeyInfoWithRSA4096(t *testing.T) {
 	t.Parallel()
 
 	// Test RSA 4096 key.
-	key, err := rsa.GenerateKey(rand.Reader, 4096)
+	key, err := rsa.GenerateKey(crand.Reader, 4096)
 	require.NoError(t, err)
 
 	cert := &x509.Certificate{PublicKey: &key.PublicKey}
@@ -1227,7 +1227,7 @@ func TestEnrollmentTracker(t *testing.T) {
 		tracker := newEnrollmentTracker(100)
 
 		requestID := googleUuid.New()
-		status := cryptoutilCAServer.EnrollmentStatusResponseStatusIssued
+		status := cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued
 		serialNumber := "ABC123"
 
 		tracker.track(requestID, status, serialNumber)
@@ -1260,13 +1260,13 @@ func TestEnrollmentTracker(t *testing.T) {
 		ids := make([]googleUuid.UUID, maxEntries+1)
 		for i := 0; i < maxEntries; i++ {
 			ids[i] = googleUuid.New()
-			tracker.track(ids[i], cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, "serial")
+			tracker.track(ids[i], cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, "serial")
 			time.Sleep(time.Millisecond) // Ensure different timestamps.
 		}
 
 		// Add one more (should evict oldest).
 		ids[maxEntries] = googleUuid.New()
-		tracker.track(ids[maxEntries], cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, "serial")
+		tracker.track(ids[maxEntries], cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, "serial")
 
 		// First entry should be evicted.
 		_, found := tracker.get(ids[0])
@@ -1287,7 +1287,7 @@ func TestParseESTCSR(t *testing.T) {
 		t.Parallel()
 
 		// Generate a test CSR.
-		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 		require.NoError(t, err)
 
 		template := &x509.CertificateRequest{
@@ -1295,7 +1295,7 @@ func TestParseESTCSR(t *testing.T) {
 				CommonName: "test.example.com",
 			},
 		}
-		csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+		csrDER, err := x509.CreateCertificateRequest(crand.Reader, template, key)
 		require.NoError(t, err)
 
 		csrPEM := pem.EncodeToMemory(&pem.Block{
@@ -1313,7 +1313,7 @@ func TestParseESTCSR(t *testing.T) {
 		t.Parallel()
 
 		// Generate a test CSR.
-		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 		require.NoError(t, err)
 
 		template := &x509.CertificateRequest{
@@ -1321,7 +1321,7 @@ func TestParseESTCSR(t *testing.T) {
 				CommonName: "test.example.com",
 			},
 		}
-		csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+		csrDER, err := x509.CreateCertificateRequest(crand.Reader, template, key)
 		require.NoError(t, err)
 
 		csr, err := handler.parseESTCSR(csrDER)
@@ -1345,7 +1345,7 @@ func TestBuildESTIssueRequest(t *testing.T) {
 	handler := &Handler{}
 
 	// Generate a test CSR.
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	template := &x509.CertificateRequest{
@@ -1355,7 +1355,7 @@ func TestBuildESTIssueRequest(t *testing.T) {
 		},
 		DNSNames: []string{"test.example.com", "www.test.example.com"},
 	}
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, template, key)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, template, key)
 	require.NoError(t, err)
 
 	csr, err := x509.ParseCertificateRequest(csrDER)
@@ -1412,7 +1412,7 @@ func TestListCertificates(t *testing.T) {
 	handler := &Handler{storage: mockStorage}
 
 	app.Get("/certificates", func(c *fiber.Ctx) error {
-		params := cryptoutilCAServer.ListCertificatesParams{}
+		params := cryptoutilApiCaServer.ListCertificatesParams{}
 
 		return handler.ListCertificates(c, params)
 	})
@@ -1598,7 +1598,7 @@ func TestGetEnrollmentStatusHandler(t *testing.T) {
 
 	tracker := newEnrollmentTracker(100)
 	requestID := googleUuid.New()
-	tracker.track(requestID, cryptoutilCAServer.EnrollmentStatusResponseStatusIssued, "ISSUED123")
+	tracker.track(requestID, cryptoutilApiCaServer.EnrollmentStatusResponseStatusIssued, "ISSUED123")
 
 	handler := &Handler{
 		storage:           mockStorage,
@@ -1854,7 +1854,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 	})
 
 	// Generate a test CSR.
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	csrTemplate := &x509.CertificateRequest{
@@ -1864,7 +1864,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		},
 		DNSNames: []string{"test.example.com"},
 	}
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, key)
 	require.NoError(t, err)
 
 	csrPEM := pem.EncodeToMemory(&pem.Block{
@@ -1972,7 +1972,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 	})
 
 	// Generate a test CSR.
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	csrTemplate := &x509.CertificateRequest{
@@ -1982,7 +1982,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		},
 		DNSNames: []string{"test.example.com"},
 	}
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, key)
 	require.NoError(t, err)
 
 	t.Run("SuccessfulEnrollmentWithDER", func(t *testing.T) {
@@ -2072,7 +2072,7 @@ func TestEstSimpleEnrollNoProfile(t *testing.T) {
 	})
 
 	// Generate a test CSR.
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	csrTemplate := &x509.CertificateRequest{
@@ -2080,7 +2080,7 @@ func TestEstSimpleEnrollNoProfile(t *testing.T) {
 			CommonName: "test.example.com",
 		},
 	}
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, key)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrDER))
@@ -2123,7 +2123,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 	})
 
 	// Generate a test CSR template (server will replace the key).
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	csrTemplate := &x509.CertificateRequest{
@@ -2133,7 +2133,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 		},
 		DNSNames: []string{"serverkeygen.example.com"},
 	}
-	csrDER, err := x509.CreateCertificateRequest(rand.Reader, csrTemplate, key)
+	csrDER, err := x509.CreateCertificateRequest(crand.Reader, csrTemplate, key)
 	require.NoError(t, err)
 
 	t.Run("SuccessfulServerKeyGenWithDER", func(t *testing.T) {
@@ -2272,9 +2272,9 @@ func TestGetCRLWithService(t *testing.T) {
 	app.Get("/ca/:caId/crl", func(c *fiber.Ctx) error {
 		caID := c.Params("caId")
 		formatParam := c.Query("format", "der")
-		format := cryptoutilCAServer.GetCRLParamsFormat(formatParam)
+		format := cryptoutilApiCaServer.GetCRLParamsFormat(formatParam)
 
-		return handler.GetCRL(c, caID, cryptoutilCAServer.GetCRLParams{Format: &format})
+		return handler.GetCRL(c, caID, cryptoutilApiCaServer.GetCRLParams{Format: &format})
 	})
 
 	t.Run("CANotFound", func(t *testing.T) {
@@ -2480,7 +2480,7 @@ func TestLookupCertificateBySerialWithCert(t *testing.T) {
 	}
 
 	// Generate a test certificate.
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	serialNumber := big.NewInt(12345)
@@ -2495,7 +2495,7 @@ func TestLookupCertificateBySerialWithCert(t *testing.T) {
 	}
 
 	// Self-sign for testing.
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &key.PublicKey, key)
 	require.NoError(t, err)
 
 	certPEM := pem.EncodeToMemory(&pem.Block{

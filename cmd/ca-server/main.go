@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	cryptoutilCACmd "cryptoutil/internal/cmd/cryptoutil/ca"
+	cryptoutilCmdCryptoutilCa "cryptoutil/internal/cmd/cryptoutil/ca"
 )
 
 func main() {
@@ -15,5 +15,5 @@ func main() {
 		args = []string{"start"}
 	}
 
-	cryptoutilCACmd.Execute(args)
+	cryptoutilCmdCryptoutilCa.Execute(args)
 }

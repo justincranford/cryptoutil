@@ -15,7 +15,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Default test timeout for integration tests (configurable via TestTimeoutOverride).
@@ -59,7 +59,7 @@ func WriteTempFile(t *testing.T, tempDir, filename, content string) string {
 func WriteTestFile(t *testing.T, filePath, content string) {
 	t.Helper()
 
-	err := os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions)
+	err := os.WriteFile(filePath, []byte(content), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 }
 

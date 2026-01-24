@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	json "encoding/json"
 	"io"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/ca/server/config"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
 )
 
 // TestCAServer_HandleOCSP tests the OCSP endpoint.
@@ -20,7 +20,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -72,7 +72,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -124,7 +124,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	t.Parallel()
 
 	// Create and start test server.
-	cfg := config.NewTestConfig("127.0.0.1", 0, true)
+	cfg := cryptoutilAppsCaServerConfig.NewTestConfig("127.0.0.1", 0, true)
 	ctx := context.Background()
 	server, err := NewFromConfig(ctx, cfg)
 	require.NoError(t, err)

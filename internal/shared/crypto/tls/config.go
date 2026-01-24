@@ -12,7 +12,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 )
 
 // MinTLSVersion is the minimum TLS version allowed (TLS 1.3 only per Session 4 Q5).
@@ -29,7 +29,7 @@ type Config struct {
 // ServerConfigOptions holds options for creating a server TLS configuration.
 type ServerConfigOptions struct {
 	// Subject contains the certificate chain and key material.
-	Subject *cryptoutilCertificate.Subject
+	Subject *cryptoutilSharedCryptoCertificate.Subject
 
 	// ClientAuth specifies the client authentication mode.
 	// Use tls.NoClientCert for server-only TLS, tls.RequireAndVerifyClientCert for mTLS.
@@ -48,7 +48,7 @@ type ServerConfigOptions struct {
 type ClientConfigOptions struct {
 	// ClientSubject contains the client certificate chain and key material (for mTLS).
 	// If nil, no client certificate will be presented.
-	ClientSubject *cryptoutilCertificate.Subject
+	ClientSubject *cryptoutilSharedCryptoCertificate.Subject
 
 	// RootCAs is the pool of root CAs to verify server certificates.
 	RootCAs *x509.CertPool
@@ -71,7 +71,7 @@ func NewServerConfig(opts *ServerConfigOptions) (*Config, error) {
 		return nil, fmt.Errorf("subject cannot be nil")
 	}
 
-	tlsCert, rootCAsPool, intermediateCAsPool, err := cryptoutilCertificate.BuildTLSCertificate(opts.Subject)
+	tlsCert, rootCAsPool, intermediateCAsPool, err := cryptoutilSharedCryptoCertificate.BuildTLSCertificate(opts.Subject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
@@ -129,7 +129,7 @@ func NewClientConfig(opts *ClientConfigOptions) (*Config, error) {
 	if opts.ClientSubject != nil {
 		var err error
 
-		tlsCert, rootCAsPool, intermediateCAsPool, err = cryptoutilCertificate.BuildTLSCertificate(opts.ClientSubject)
+		tlsCert, rootCAsPool, intermediateCAsPool, err = cryptoutilSharedCryptoCertificate.BuildTLSCertificate(opts.ClientSubject)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build client TLS certificate: %w", err)
 		}

@@ -8,13 +8,13 @@ import (
 	"context"
 	"testing"
 
-	"cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestNewSQLRepository_ErrorPaths tests various error conditions during repository creation.
@@ -25,14 +25,14 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		setupConfig func() *cryptoutilConfig.ServiceTemplateServerSettings
+		setupConfig func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 		expectError bool
 		errorText   string
 	}{
 		{
 			name: "Nil context",
-			setupConfig: func() *cryptoutilConfig.ServiceTemplateServerSettings {
-				settings := cryptoutilConfig.RequireNewForTest("nil_ctx_test")
+			setupConfig: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
+				settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("nil_ctx_test")
 				settings.DevMode = true
 				settings.DatabaseContainer = containerModeDisabled
 
@@ -43,8 +43,8 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "Nil telemetry service",
-			setupConfig: func() *cryptoutilConfig.ServiceTemplateServerSettings {
-				settings := cryptoutilConfig.RequireNewForTest("nil_telemetry_test")
+			setupConfig: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
+				settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("nil_telemetry_test")
 				settings.DevMode = true
 				settings.DatabaseContainer = containerModeDisabled
 
@@ -55,7 +55,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "Nil settings",
-			setupConfig: func() *cryptoutilConfig.ServiceTemplateServerSettings {
+			setupConfig: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
 				return nil
 			},
 			expectError: true,
@@ -63,8 +63,8 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 		},
 		{
 			name: "Empty database URL (non-dev mode)",
-			setupConfig: func() *cryptoutilConfig.ServiceTemplateServerSettings {
-				settings := cryptoutilConfig.RequireNewForTest("empty_url_test")
+			setupConfig: func() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
+				settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("empty_url_test")
 				settings.DevMode = false // Production mode
 				settings.DatabaseURL = ""
 				settings.DatabaseContainer = containerModeDisabled
@@ -80,31 +80,31 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			settings := tc.setupConfig()
 
-			var repo *sqlrepository.SQLRepository
+			var repo *cryptoutilSQLRepository.SQLRepository
 
 			var err error
 
 			if settings == nil {
 				// Test nil settings
-				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, cryptoutilConfig.RequireNewForTest("temp"))
+				telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, cryptoutilAppsTemplateServiceConfig.RequireNewForTest("temp"))
 				defer telemetryService.Shutdown()
 
-				repo, err = sqlrepository.NewSQLRepository(ctx, telemetryService, nil)
+				repo, err = cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, nil)
 			} else if tc.name == "Nil context" {
 				// Test nil context
-				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+				telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
 
-				repo, err = sqlrepository.NewSQLRepository(nil, telemetryService, settings) //nolint:staticcheck // Testing nil context error handling
+				repo, err = cryptoutilSQLRepository.NewSQLRepository(nil, telemetryService, settings) //nolint:staticcheck // Testing nil context error handling
 			} else if tc.name == "Nil telemetry service" {
 				// Test nil telemetry service
-				repo, err = sqlrepository.NewSQLRepository(ctx, nil, settings)
+				repo, err = cryptoutilSQLRepository.NewSQLRepository(ctx, nil, settings)
 			} else {
 				// Normal test
-				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+				telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
 
-				repo, err = sqlrepository.NewSQLRepository(ctx, telemetryService, settings)
+				repo, err = cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			}
 
 			if tc.expectError {
@@ -130,16 +130,16 @@ func TestSQLRepository_WithTransaction_NilContext(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_NilContext_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Test with nil context.
-	err := sqlRepo.WithTransaction(nil, false, func(_ *sqlrepository.SQLTransaction) error { //nolint:staticcheck // Testing nil context error handling
+	err := sqlRepo.WithTransaction(nil, false, func(_ *cryptoutilSQLRepository.SQLTransaction) error { //nolint:staticcheck // Testing nil context error handling
 		return nil
 	})
 
@@ -154,12 +154,12 @@ func TestSQLRepository_WithTransaction_NilFunction(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_NilFunction_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Test with nil function.
@@ -176,16 +176,16 @@ func TestSQLTransaction_PublicMethods(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestSQLTransaction_PublicMethods_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
 	// Test all public methods.
-	err := sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
 		// Test TransactionID().
 		txID := tx.TransactionID()
 		testify.NotNil(t, txID)
@@ -207,7 +207,7 @@ func TestSQLTransaction_PublicMethods(t *testing.T) {
 	// Test read-only transaction IsReadOnly() returns true (if supported).
 	// Note: SQLite doesn't support read-only transactions, so this will fail.
 	// This test is here to demonstrate the code path.
-	err = sqlRepo.WithTransaction(ctx, true, func(tx *sqlrepository.SQLTransaction) error {
+	err = sqlRepo.WithTransaction(ctx, true, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
 		isReadOnly := tx.IsReadOnly()
 		testify.True(t, isReadOnly)
 
@@ -226,12 +226,12 @@ func TestSQLRepository_Shutdown_MultipleCallsSafe(t *testing.T) {
 	ctx := context.Background()
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestShutdown_MultipleCalls_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 
 	// Call shutdown multiple times (should be safe).
 	sqlRepo.Shutdown()
@@ -249,17 +249,17 @@ func TestSQLRepository_GetDBType_SQLiteOnly(t *testing.T) {
 	// Test SQLite.
 	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestGetDBType_SQLite_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
+	testSettings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest(testName)
 	testSettings.DevMode = true
 	testSettings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()
 
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
+	sqlRepo := cryptoutilSQLRepository.RequireNewForTest(ctx, telemetryService, testSettings)
 	defer sqlRepo.Shutdown()
 
-	testify.Equal(t, sqlrepository.DBTypeSQLite, sqlRepo.GetDBType())
+	testify.Equal(t, cryptoutilSQLRepository.DBTypeSQLite, sqlRepo.GetDBType())
 	// PostgreSQL test would require actual PostgreSQL instance, so skip it.
 	// The code path is covered by sql_postgres_coverage_test.go (CI/CD only).
 }

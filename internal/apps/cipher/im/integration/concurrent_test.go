@@ -7,7 +7,7 @@ package integration
 import (
 	"crypto/tls"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"sync"
 	"testing"
 	"time"
@@ -15,8 +15,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cipherClient "cryptoutil/internal/apps/cipher/im/client"
-	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilAppsCipherImClient "cryptoutil/internal/apps/cipher/im/client"
+	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
@@ -117,13 +117,13 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 }
 
 // createTestUsersAPI creates N test users via API calls using the reusable helper.
-func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*cryptoutilE2E.TestUser {
+func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*cryptoutilAppsTemplateServiceTestingE2e.TestUser {
 	t.Helper()
 
-	users := make([]*cryptoutilE2E.TestUser, numUsers)
+	users := make([]*cryptoutilAppsTemplateServiceTestingE2e.TestUser, numUsers)
 
 	for i := 0; i < numUsers; i++ {
-		users[i] = cryptoutilE2E.RegisterTestUserService(t, client, baseURL)
+		users[i] = cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserService(t, client, baseURL)
 	}
 
 	return users
@@ -133,7 +133,7 @@ func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUs
 func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, recipientIDs []googleUuid.UUID, content string, token string) {
 	t.Helper()
 
-	_, err := cipherClient.SendMessage(client, baseURL, content, token, recipientIDs...)
+	_, err := cryptoutilAppsCipherImClient.SendMessage(client, baseURL, content, token, recipientIDs...)
 	require.NoError(t, err, "Failed to send message")
 }
 
@@ -141,15 +141,15 @@ func sendMessageAPI(t *testing.T, client *http.Client, baseURL string, recipient
 func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, _ googleUuid.UUID, token string) []map[string]any {
 	t.Helper()
 
-	messages, err := cipherClient.ReceiveMessagesService(client, baseURL, token)
+	messages, err := cryptoutilAppsCipherImClient.ReceiveMessagesService(client, baseURL, token)
 	require.NoError(t, err, "Failed to get messages")
 
 	return messages
 }
 
 // selectRecipients selects N random recipients (excluding sender).
-func selectRecipients(users []*cryptoutilE2E.TestUser, senderID googleUuid.UUID, count int) []*cryptoutilE2E.TestUser {
-	recipients := make([]*cryptoutilE2E.TestUser, 0, count)
+func selectRecipients(users []*cryptoutilAppsTemplateServiceTestingE2e.TestUser, senderID googleUuid.UUID, count int) []*cryptoutilAppsTemplateServiceTestingE2e.TestUser {
+	recipients := make([]*cryptoutilAppsTemplateServiceTestingE2e.TestUser, 0, count)
 
 	for _, user := range users {
 		if user.ID != senderID && len(recipients) < count {

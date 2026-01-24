@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
 )
 
 // TestPublicServer_PublicBaseURL tests the PublicBaseURL accessor method.
@@ -28,7 +28,7 @@ func TestPublicServer_PublicBaseURL(t *testing.T) {
 func TestNewPublicServer_NilBase(t *testing.T) {
 	t.Parallel()
 
-	_, err := server.NewPublicServer(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "public server base cannot be nil")
 }
@@ -40,7 +40,7 @@ func TestNewPublicServer_NilSessionManager(t *testing.T) {
 	// Get working base from the test server.
 	base := testCipherIMServer.PublicServerBase()
 
-	_, err := server.NewPublicServer(base, nil, nil, nil, nil, nil, nil, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "session manager service cannot be nil")
 }
@@ -52,7 +52,7 @@ func TestNewPublicServer_NilRealmService(t *testing.T) {
 	base := testCipherIMServer.PublicServerBase()
 	sessionMgr := testCipherIMServer.SessionManager()
 
-	_, err := server.NewPublicServer(base, sessionMgr, nil, nil, nil, nil, nil, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, sessionMgr, nil, nil, nil, nil, nil, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "realm service cannot be nil")
 }
@@ -65,7 +65,7 @@ func TestNewPublicServer_NilRegistrationService(t *testing.T) {
 	sessionMgr := testCipherIMServer.SessionManager()
 	realmSvc := testCipherIMServer.RealmService()
 
-	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, nil, nil, nil, nil, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, sessionMgr, realmSvc, nil, nil, nil, nil, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "registration service cannot be nil")
 }
@@ -79,7 +79,7 @@ func TestNewPublicServer_NilUserRepo(t *testing.T) {
 	realmSvc := testCipherIMServer.RealmService()
 	regSvc := testCipherIMServer.RegistrationService()
 
-	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, nil, nil, nil, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, nil, nil, nil, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "user repository cannot be nil")
 }
@@ -94,7 +94,7 @@ func TestNewPublicServer_NilMessageRepo(t *testing.T) {
 	regSvc := testCipherIMServer.RegistrationService()
 	userRepo := testCipherIMServer.UserRepo()
 
-	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, nil, nil, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, nil, nil, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message repository cannot be nil")
 }
@@ -110,7 +110,7 @@ func TestNewPublicServer_NilMessageRecipientJWKRepo(t *testing.T) {
 	userRepo := testCipherIMServer.UserRepo()
 	msgRepo := testCipherIMServer.MessageRepo()
 
-	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, nil, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, nil, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "message recipient JWK repository cannot be nil")
 }
@@ -127,7 +127,7 @@ func TestNewPublicServer_NilJWKGenService(t *testing.T) {
 	msgRepo := testCipherIMServer.MessageRepo()
 	jwkRepo := testCipherIMServer.MessageRecipientJWKRepo()
 
-	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, nil, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "JWK generation service cannot be nil")
 }
@@ -145,7 +145,7 @@ func TestNewPublicServer_NilBarrierService(t *testing.T) {
 	jwkRepo := testCipherIMServer.MessageRecipientJWKRepo()
 	jwkGenSvc := testCipherIMServer.JWKGen()
 
-	_, err := server.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, jwkGenSvc, nil)
+	_, err := cryptoutilAppsCipherImServer.NewPublicServer(base, sessionMgr, realmSvc, regSvc, userRepo, msgRepo, jwkRepo, jwkGenSvc, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "barrier service cannot be nil")
 }

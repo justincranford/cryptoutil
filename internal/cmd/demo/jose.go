@@ -5,17 +5,17 @@ package demo
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"os"
 	"time"
 
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // JOSE demo step counts.
@@ -36,17 +36,17 @@ func runJOSEDemo(ctx context.Context, config *Config) int {
 	// Step 1: Start JOSE Authority Server.
 	progress.StartStep("Starting JOSE Authority Server")
 
-	settings := cryptoutilConfig.NewForJOSEServer(
-		cryptoutilMagic.IPv4Loopback,
+	settings := cryptoutilAppsTemplateServiceConfig.NewForJOSEServer(
+		cryptoutilSharedMagic.IPv4Loopback,
 		0, // Dynamic port.
 		true,
 	)
 
 	// Create TLS configuration for JOSE server.
-	tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+	tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 		[]string{"localhost", "jose-server"},
 		[]string{"127.0.0.1", "::1"},
-		cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 	)
 	if err != nil {
 		progress.FailStep("Generating TLS config", fmt.Errorf("TLS generation failed: %w", err))
@@ -77,10 +77,10 @@ func runJOSEDemo(ctx context.Context, config *Config) int {
 	}()
 
 	// Wait for server to be ready.
-	time.Sleep(cryptoutilMagic.ServerStartupWait)
+	time.Sleep(cryptoutilSharedMagic.ServerStartupWait)
 
-	baseURL := fmt.Sprintf("http://%s:%d", cryptoutilMagic.IPv4Loopback, server.ActualPort())
-	client := &http.Client{Timeout: cryptoutilMagic.DefaultDemoTimeout}
+	baseURL := fmt.Sprintf("http://%s:%d", cryptoutilSharedMagic.IPv4Loopback, server.ActualPort())
+	client := &http.Client{Timeout: cryptoutilSharedMagic.DefaultDemoTimeout}
 
 	progress.CompleteStep(fmt.Sprintf("Server started at %s", baseURL))
 

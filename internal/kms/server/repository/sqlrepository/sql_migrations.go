@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -29,12 +29,12 @@ var (
 )
 
 // ApplyEmbeddedSQLMigrations applies embedded SQL migrations using default migration files.
-func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType) error {
+func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilSharedTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType) error {
 	return ApplyEmbeddedSQLMigrationsForService(telemetryService, db, dbType, postgresMigrationsFS, sqliteMigrationsFS)
 }
 
 // ApplyEmbeddedSQLMigrationsForService applies embedded SQL migrations using custom migration files.
-func ApplyEmbeddedSQLMigrationsForService(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType, postgresMigrationsFS embed.FS, sqliteMigrationsFS embed.FS) error {
+func ApplyEmbeddedSQLMigrationsForService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType, postgresMigrationsFS embed.FS, sqliteMigrationsFS embed.FS) error {
 	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", dbType)
 
 	var sourceDriver source.Driver

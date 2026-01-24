@@ -4,14 +4,14 @@ package apperr_test
 
 import (
 	"errors"
-	"net/http"
+	http "net/http"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 func TestHTTPErrorConstructors(t *testing.T) {
@@ -19,7 +19,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		constructor    func(summary *string, err error) *apperr.Error
+		constructor    func(summary *string, err error) *cryptoutilSharedApperr.Error
 		wantStatusCode int
 		summary        string
 		baseErr        error
@@ -27,7 +27,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 	}{
 		{
 			name:           "http400_bad_request",
-			constructor:    apperr.NewHTTP400BadRequest,
+			constructor:    cryptoutilSharedApperr.NewHTTP400BadRequest,
 			wantStatusCode: http.StatusBadRequest,
 			summary:        "Invalid request parameter",
 			baseErr:        errors.New("field 'name' is required"),
@@ -35,7 +35,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 		},
 		{
 			name:           "http401_unauthorized",
-			constructor:    apperr.NewHTTP401Unauthorized,
+			constructor:    cryptoutilSharedApperr.NewHTTP401Unauthorized,
 			wantStatusCode: http.StatusUnauthorized,
 			summary:        "Authentication required",
 			baseErr:        errors.New("missing authorization header"),
@@ -43,7 +43,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 		},
 		{
 			name:           "http403_forbidden_no_base_error",
-			constructor:    apperr.NewHTTP403Forbidden,
+			constructor:    cryptoutilSharedApperr.NewHTTP403Forbidden,
 			wantStatusCode: http.StatusForbidden,
 			summary:        "Access denied",
 			baseErr:        nil,
@@ -51,7 +51,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 		},
 		{
 			name:           "http404_not_found",
-			constructor:    apperr.NewHTTP404NotFound,
+			constructor:    cryptoutilSharedApperr.NewHTTP404NotFound,
 			wantStatusCode: http.StatusNotFound,
 			summary:        "Resource not found",
 			baseErr:        errors.New("user with ID 123 does not exist"),
@@ -59,7 +59,7 @@ func TestHTTPErrorConstructors(t *testing.T) {
 		},
 		{
 			name:           "http500_internal_server_error",
-			constructor:    apperr.NewHTTP500InternalServerError,
+			constructor:    cryptoutilSharedApperr.NewHTTP500InternalServerError,
 			wantStatusCode: http.StatusInternalServerError,
 			summary:        "Internal server error",
 			baseErr:        errors.New("database connection failed"),
@@ -98,11 +98,11 @@ func TestHTTPErrorConstructors(t *testing.T) {
 func TestError_CustomError(t *testing.T) {
 	t.Parallel()
 
-	statusLineAndCode := &apperr.HTTP418StatusLineAndCodeTeapot
+	statusLineAndCode := &cryptoutilSharedApperr.HTTP418StatusLineAndCodeTeapot
 	summary := "I'm a teapot"
 	baseErr := errors.New("coffee brewing not supported")
 
-	appErr := apperr.New(statusLineAndCode, &summary, baseErr)
+	appErr := cryptoutilSharedApperr.New(statusLineAndCode, &summary, baseErr)
 
 	require.NotNil(t, appErr)
 	require.Equal(t, http.StatusTeapot, int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode))
@@ -115,10 +115,10 @@ func TestError_CustomError(t *testing.T) {
 func TestNewHTTPStatusLineAndCode(t *testing.T) {
 	t.Parallel()
 
-	statusCode := apperr.HTTPStatusCode(http.StatusOK)
-	appCode := apperr.NewCode("CUSTOM_CODE")
+	statusCode := cryptoutilSharedApperr.HTTPStatusCode(http.StatusOK)
+	appCode := cryptoutilSharedApperr.NewCode("CUSTOM_CODE")
 
-	result := apperr.NewHTTPStatusLineAndCode(statusCode, &appCode)
+	result := cryptoutilSharedApperr.NewHTTPStatusLineAndCode(statusCode, &appCode)
 
 	require.Equal(t, statusCode, result.StatusLine.StatusCode)
 	require.Equal(t, appCode, result.Code)
@@ -127,10 +127,10 @@ func TestNewHTTPStatusLineAndCode(t *testing.T) {
 func TestNewHTTPStatusLine(t *testing.T) {
 	t.Parallel()
 
-	statusCode := apperr.HTTPStatusCode(http.StatusCreated)
-	reasonPhrase := apperr.HTTPReasonPhrase("Created")
+	statusCode := cryptoutilSharedApperr.HTTPStatusCode(http.StatusCreated)
+	reasonPhrase := cryptoutilSharedApperr.HTTPReasonPhrase("Created")
 
-	result := apperr.NewHTTPStatusLine(statusCode, reasonPhrase)
+	result := cryptoutilSharedApperr.NewHTTPStatusLine(statusCode, reasonPhrase)
 
 	require.Equal(t, statusCode, result.StatusCode)
 	require.Equal(t, reasonPhrase, result.ReasonPhrase)
@@ -141,9 +141,9 @@ func TestNewCode(t *testing.T) {
 
 	message := "VALIDATION_ERROR"
 
-	code := apperr.NewCode(message)
+	code := cryptoutilSharedApperr.NewCode(message)
 
-	require.Equal(t, apperr.ProprietaryAppCode(message), code)
+	require.Equal(t, cryptoutilSharedApperr.ProprietaryAppCode(message), code)
 }
 
 func TestError_ErrorMethod_Format(t *testing.T) {
@@ -152,7 +152,7 @@ func TestError_ErrorMethod_Format(t *testing.T) {
 	summary := "Test error"
 	baseErr := errors.New("underlying cause")
 
-	appErr := apperr.NewHTTP400BadRequest(&summary, baseErr)
+	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, baseErr)
 	errorString := appErr.Error()
 
 	// Should contain timestamp in RFC3339Nano format

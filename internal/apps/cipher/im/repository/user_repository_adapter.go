@@ -9,7 +9,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
+	cryptoutilAppsTemplateServiceServerRealms "cryptoutil/internal/apps/template/service/server/realms"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
@@ -27,7 +27,7 @@ func NewUserRepositoryAdapter(repo *UserRepository) *UserRepositoryAdapter {
 
 // Create creates a new user in the database.
 // Adapts realms.UserModel interface to concrete template repository.User.
-func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilTemplateRealms.UserModel) error {
+func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilAppsTemplateServiceServerRealms.UserModel) error {
 	// Type assertion: UserModel -> *repository.User
 	concreteUser, ok := user.(*cryptoutilAppsTemplateServiceServerRepository.User)
 	if !ok {
@@ -40,7 +40,7 @@ func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilTempl
 
 // FindByUsername finds a user by username.
 // Adapts realms.UserModel interface to concrete template repository.User.
-func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username string) (cryptoutilTemplateRealms.UserModel, error) {
+func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username string) (cryptoutilAppsTemplateServiceServerRealms.UserModel, error) {
 	user, err := a.repo.FindByUsername(ctx, username)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (a *UserRepositoryAdapter) FindByUsername(ctx context.Context, username str
 
 // FindByID finds a user by ID.
 // Adapts realms.UserModel interface to concrete template repository.User.
-func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID) (cryptoutilTemplateRealms.UserModel, error) {
+func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID) (cryptoutilAppsTemplateServiceServerRealms.UserModel, error) {
 	user, err := a.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -61,4 +61,4 @@ func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id googleUuid.UUID
 }
 
 // Compile-time check that UserRepositoryAdapter implements realms.UserRepository interface.
-var _ cryptoutilTemplateRealms.UserRepository = (*UserRepositoryAdapter)(nil)
+var _ cryptoutilAppsTemplateServiceServerRealms.UserRepository = (*UserRepositoryAdapter)(nil)

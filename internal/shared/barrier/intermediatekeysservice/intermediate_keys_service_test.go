@@ -9,14 +9,14 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -24,10 +24,10 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("intermediate_keys_service_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("intermediate_keys_service_test")
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testJWKGenService    *cryptoutilJose.JWKGenService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
+	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	testSQLRepository    *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testRootKeysService  *cryptoutilRootKeysService.RootKeysService
@@ -37,10 +37,10 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testJWKGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		testJWKGenService = cryptoutilSharedCryptoJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJWKGenService.Shutdown()
 
 		testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
 		defer testOrmRepository.Shutdown()
 
-		_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+		_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 		cryptoutilSharedApperr.RequireNoError(err, "failed to generate unseal JWK for test")
 
 		unsealKeysService := cryptoutilUnsealKeysService.RequireNewSimpleForTest([]joseJwk.Key{unsealJWK})
@@ -70,7 +70,7 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 
 	defer intermediateKeysService.Shutdown()
 
-	_, clearContentKey, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	_, clearContentKey, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 	require.NoError(t, err)
 	require.NotNil(t, clearContentKey)
 

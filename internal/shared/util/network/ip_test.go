@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/shared/util/network"
+	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 )
 
 func TestParseIPAddresses(t *testing.T) {
@@ -77,7 +77,7 @@ func TestParseIPAddresses(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := network.ParseIPAddresses(tc.input)
+			result, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(tc.input)
 
 			if tc.wantErr {
 				require.Error(t, err, "ParseIPAddresses should return error")
@@ -156,7 +156,7 @@ func TestNormalizeIPv4Addresses(t *testing.T) {
 			}
 
 			// Call the function
-			result := network.NormalizeIPv4Addresses(inputIPs)
+			result := cryptoutilSharedUtilNetwork.NormalizeIPv4Addresses(inputIPs)
 
 			// Verify results
 			require.Len(t, result, len(tc.expected), "Normalized IP count should match")
@@ -172,6 +172,6 @@ func TestNormalizeIPv4Addresses_NilInput(t *testing.T) {
 	t.Parallel()
 
 	// Test with nil slice
-	result := network.NormalizeIPv4Addresses(nil)
+	result := cryptoutilSharedUtilNetwork.NormalizeIPv4Addresses(nil)
 	require.Empty(t, result, "Nil input should return empty slice")
 }

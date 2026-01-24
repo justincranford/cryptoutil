@@ -9,9 +9,9 @@ import (
 	"database/sql"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -22,11 +22,11 @@ func TestApplyEmbeddedSQLMigrations_SQLite(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("migrations_sqlite")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("migrations_sqlite")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -45,12 +45,12 @@ func TestLogSchema_SQLite(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("log_schema_sqlite")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("log_schema_sqlite")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 	settings.VerboseMode = true // Enable verbose logging
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -81,11 +81,11 @@ func TestSQLRepository_WithTransaction_RollbackOnError(t *testing.T) {
 
 	ctx := context.Background()
 
-	settings := cryptoutilConfig.RequireNewForTest("rollback_error_test")
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("rollback_error_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = containerModeDisabled
 
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)

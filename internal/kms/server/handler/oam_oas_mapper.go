@@ -7,7 +7,7 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"net/http"
+	http "net/http"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOpenapiServer "cryptoutil/api/server"

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilJoseCmd "cryptoutil/internal/cmd/cryptoutil/jose"
+	cryptoutilCmdCryptoutilJose "cryptoutil/internal/cmd/cryptoutil/jose"
 )
 
 func main() {
@@ -20,5 +20,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	cryptoutilJoseCmd.Execute(args)
+	cryptoutilCmdCryptoutilJose.Execute(args)
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -43,9 +43,9 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS)
 		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.PostgreSQLMaxOpenConns)       // 25
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.PostgreSQLMaxIdleConns)       // 10
-	sqlDB.SetConnMaxLifetime(cryptoutilMagic.PostgreSQLConnMaxLifetime) // 1 hour
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.PostgreSQLMaxOpenConns)       // 25
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.PostgreSQLMaxIdleConns)       // 10
+	sqlDB.SetConnMaxLifetime(cryptoutilSharedMagic.PostgreSQLConnMaxLifetime) // 1 hour
 
 	// Run migrations.
 	if err := ApplyMigrations(sqlDB, DatabaseTypePostgreSQL, migrationsFS); err != nil {
@@ -89,9 +89,9 @@ func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*g
 		return nil, fmt.Errorf("failed to get database instance: %w", err)
 	}
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections) // 5
-	sqlDB.SetConnMaxLifetime(0)                                     // In-memory: never close
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections) // 5
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections) // 5
+	sqlDB.SetConnMaxLifetime(0)                                           // In-memory: never close
 
 	// Run migrations.
 	if err := ApplyMigrations(sqlDB, DatabaseTypeSQLite, migrationsFS); err != nil {

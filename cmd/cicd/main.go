@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"cryptoutil/internal/cmd/cicd"
+	cryptoutilCmdCicd "cryptoutil/internal/cmd/cicd"
 )
 
 // getUsage returns the usage information for the cicd command.
@@ -27,7 +27,7 @@ func main() {
 	commands := os.Args[1:]
 
 	// Run the CI/CD checks
-	if err := cicd.Run(commands); err != nil {
+	if err := cryptoutilCmdCicd.Run(commands); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

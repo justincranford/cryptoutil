@@ -6,20 +6,20 @@ package server
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
-	"cryptoutil/internal/jose/service"
+	cryptoutilJoseService "cryptoutil/internal/jose/service"
 )
 
 // Default tenant and realm IDs for JWKS endpoint.
@@ -33,9 +33,9 @@ var (
 // joseHandlerAdapter provides JOSE-specific route handlers using the existing KeyStore.
 // This adapter wraps the handler logic to work with both the legacy Server and new JoseServer.
 type joseHandlerAdapter struct {
-	telemetryService  *cryptoutilTelemetry.TelemetryService
-	jwkGenService     *cryptoutilJose.JWKGenService
-	elasticJWKService *service.ElasticJWKService
+	telemetryService  *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
+	elasticJWKService *cryptoutilJoseService.ElasticJWKService
 	keyStore          *KeyStore
 }
 
@@ -66,7 +66,7 @@ func (h *joseHandlerAdapter) handleJWKGenerate(c *fiber.Ctx) error {
 		err        error
 	)
 
-	if req.Use == cryptoutilMagic.JoseKeyUseEnc {
+	if req.Use == cryptoutilSharedMagic.JoseKeyUseEnc {
 		enc, keyAlg := mapToEncryptionAlgorithms(alg)
 
 		kid, privateJWK, publicJWK, _, _, err = h.jwkGenService.GenerateJWEJWK(&enc, &keyAlg)
@@ -265,7 +265,7 @@ func (h *joseHandlerAdapter) handleJWSSign(c *fiber.Ctx) error {
 		})
 	}
 
-	_, signed, err := cryptoutilJose.SignBytes([]joseJwk.Key{storedKey.PrivateJWK}, []byte(req.Payload))
+	_, signed, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{storedKey.PrivateJWK}, []byte(req.Payload))
 	if err != nil {
 		h.telemetryService.Slogger.Error("Failed to sign JWS", "error", err)
 
@@ -310,7 +310,7 @@ func (h *joseHandlerAdapter) handleJWSVerify(c *fiber.Ctx) error {
 		}
 	}
 
-	payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWS))
+	payload, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWS))
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "Signature verification failed",
@@ -365,7 +365,7 @@ func (h *joseHandlerAdapter) handleJWEEncrypt(c *fiber.Ctx) error {
 		}
 	}
 
-	_, encrypted, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{encryptKey}, []byte(req.Plaintext))
+	_, encrypted, err := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{encryptKey}, []byte(req.Plaintext))
 	if err != nil {
 		h.telemetryService.Slogger.Error("Failed to encrypt JWE", "error", err)
 
@@ -398,7 +398,7 @@ func (h *joseHandlerAdapter) handleJWEDecrypt(c *fiber.Ctx) error {
 		})
 	}
 
-	decrypted, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{storedKey.PrivateJWK}, []byte(req.JWE))
+	decrypted, err := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{storedKey.PrivateJWK}, []byte(req.JWE))
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "Decryption failed",
@@ -442,7 +442,7 @@ func (h *joseHandlerAdapter) handleJWTSign(c *fiber.Ctx) error {
 
 	claimsJSON, _ := json.Marshal(req.Claims)
 
-	_, signed, err := cryptoutilJose.SignBytes([]joseJwk.Key{storedKey.PrivateJWK}, claimsJSON)
+	_, signed, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{storedKey.PrivateJWK}, claimsJSON)
 	if err != nil {
 		h.telemetryService.Slogger.Error("Failed to sign JWT", "error", err)
 
@@ -487,7 +487,7 @@ func (h *joseHandlerAdapter) handleJWTVerify(c *fiber.Ctx) error {
 		}
 	}
 
-	payload, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWT))
+	payload, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{verifyKey}, []byte(req.JWT))
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "JWT verification failed",

@@ -4,11 +4,11 @@ package server
 
 import (
 	"fmt"
-	"net/http"
+	http "net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
+	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity/spa/server/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 )
 
@@ -16,11 +16,11 @@ import (
 // SPA serves static files and handles SPA routing (all routes return index.html).
 type PublicServer struct {
 	base *cryptoutilAppsTemplateServiceServer.PublicServerBase
-	cfg  *cryptoutilSPAConfig.IdentitySPAServerSettings
+	cfg  *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings
 }
 
 // NewPublicServer creates a new SPA public server.
-func NewPublicServer(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, cfg *cryptoutilSPAConfig.IdentitySPAServerSettings) *PublicServer {
+func NewPublicServer(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, cfg *cryptoutilAppsIdentitySpaServerConfig.IdentitySPAServerSettings) *PublicServer {
 	return &PublicServer{
 		base: base,
 		cfg:  cfg,

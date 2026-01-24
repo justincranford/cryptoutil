@@ -8,10 +8,10 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"gorm.io/gorm"
 
@@ -21,15 +21,15 @@ import (
 
 // OrmRepository provides GORM-based database operations for the KMS server.
 type OrmRepository struct {
-	telemetryService *cryptoutilTelemetry.TelemetryService
+	telemetryService *cryptoutilSharedTelemetry.TelemetryService
 	sqlRepository    *cryptoutilSQLRepository.SQLRepository
-	jwkGenService    *cryptoutilJose.JWKGenService
+	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	verboseMode      bool
 	gormDB           *gorm.DB
 }
 
 // NewOrmRepository creates a new OrmRepository with the provided dependencies.
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JWKGenService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*OrmRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {

@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"math/rand"
 
-	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -21,13 +21,13 @@ import (
 // AuditConfigRepository defines the interface for audit configuration persistence.
 type AuditConfigRepository interface {
 	// Get retrieves audit config for a tenant and operation.
-	Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilJoseJADomain.AuditConfig, error)
+	Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilAppsJoseJaDomain.AuditConfig, error)
 
 	// GetAllForTenant retrieves all audit configs for a tenant.
-	GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilJoseJADomain.AuditConfig, error)
+	GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsJoseJaDomain.AuditConfig, error)
 
 	// Upsert creates or updates audit config for a tenant and operation.
-	Upsert(ctx context.Context, config *cryptoutilJoseJADomain.AuditConfig) error
+	Upsert(ctx context.Context, config *cryptoutilAppsJoseJaDomain.AuditConfig) error
 
 	// Delete removes audit config for a tenant and operation.
 	Delete(ctx context.Context, tenantID googleUuid.UUID, operation string) error
@@ -47,8 +47,8 @@ func NewAuditConfigRepository(db *gorm.DB) AuditConfigRepository {
 }
 
 // Get retrieves audit config for a tenant and operation.
-func (r *gormAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilJoseJADomain.AuditConfig, error) {
-	var config cryptoutilJoseJADomain.AuditConfig
+func (r *gormAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilAppsJoseJaDomain.AuditConfig, error) {
+	var config cryptoutilAppsJoseJaDomain.AuditConfig
 	if err := r.db.WithContext(ctx).
 		Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).
 		First(&config).Error; err != nil {
@@ -59,8 +59,8 @@ func (r *gormAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid
 }
 
 // GetAllForTenant retrieves all audit configs for a tenant.
-func (r *gormAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilJoseJADomain.AuditConfig, error) {
-	var configs []*cryptoutilJoseJADomain.AuditConfig
+func (r *gormAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsJoseJaDomain.AuditConfig, error) {
+	var configs []*cryptoutilAppsJoseJaDomain.AuditConfig
 	if err := r.db.WithContext(ctx).
 		Where("tenant_id = ?", tenantID.String()).
 		Find(&configs).Error; err != nil {
@@ -71,7 +71,7 @@ func (r *gormAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantI
 }
 
 // Upsert creates or updates audit config for a tenant and operation.
-func (r *gormAuditConfigRepository) Upsert(ctx context.Context, config *cryptoutilJoseJADomain.AuditConfig) error {
+func (r *gormAuditConfigRepository) Upsert(ctx context.Context, config *cryptoutilAppsJoseJaDomain.AuditConfig) error {
 	// Use Save which does upsert for GORM.
 	if err := r.db.WithContext(ctx).Save(config).Error; err != nil {
 		return fmt.Errorf("failed to upsert audit config: %w", err)
@@ -84,7 +84,7 @@ func (r *gormAuditConfigRepository) Upsert(ctx context.Context, config *cryptout
 func (r *gormAuditConfigRepository) Delete(ctx context.Context, tenantID googleUuid.UUID, operation string) error {
 	if err := r.db.WithContext(ctx).
 		Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).
-		Delete(&cryptoutilJoseJADomain.AuditConfig{}).Error; err != nil {
+		Delete(&cryptoutilAppsJoseJaDomain.AuditConfig{}).Error; err != nil {
 		return fmt.Errorf("failed to delete audit config: %w", err)
 	}
 
@@ -98,7 +98,7 @@ func (r *gormAuditConfigRepository) ShouldAudit(ctx context.Context, tenantID go
 		// If record not found, default to auditing with fallback sampling rate.
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			//nolint:gosec // Not cryptographic - only for sampling decision.
-			return rand.Float64() < cryptoutilMagic.JoseJAAuditFallbackSamplingRate, nil
+			return rand.Float64() < cryptoutilSharedMagic.JoseJAAuditFallbackSamplingRate, nil
 		}
 		// For other errors, return the error.
 		return false, fmt.Errorf("failed to check audit config: %w", err)
@@ -115,19 +115,19 @@ func (r *gormAuditConfigRepository) ShouldAudit(ctx context.Context, tenantID go
 // AuditLogRepository defines the interface for audit log persistence.
 type AuditLogRepository interface {
 	// Create stores a new audit log entry.
-	Create(ctx context.Context, entry *cryptoutilJoseJADomain.AuditLogEntry) error
+	Create(ctx context.Context, entry *cryptoutilAppsJoseJaDomain.AuditLogEntry) error
 
 	// List retrieves audit log entries for a tenant with pagination.
-	List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.AuditLogEntry, int64, error)
+	List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error)
 
 	// ListByElasticJWK retrieves audit log entries for an Elastic JWK.
-	ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.AuditLogEntry, int64, error)
+	ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error)
 
 	// ListByOperation retrieves audit log entries by operation type.
-	ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilJoseJADomain.AuditLogEntry, int64, error)
+	ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error)
 
 	// GetByRequestID retrieves an audit log entry by request ID.
-	GetByRequestID(ctx context.Context, requestID string) (*cryptoutilJoseJADomain.AuditLogEntry, error)
+	GetByRequestID(ctx context.Context, requestID string) (*cryptoutilAppsJoseJaDomain.AuditLogEntry, error)
 
 	// DeleteOlderThan removes audit log entries older than the specified time.
 	DeleteOlderThan(ctx context.Context, tenantID googleUuid.UUID, days int) (int64, error)
@@ -144,7 +144,7 @@ func NewAuditLogRepository(db *gorm.DB) AuditLogRepository {
 }
 
 // Create stores a new audit log entry.
-func (r *gormAuditLogRepository) Create(ctx context.Context, entry *cryptoutilJoseJADomain.AuditLogEntry) error {
+func (r *gormAuditLogRepository) Create(ctx context.Context, entry *cryptoutilAppsJoseJaDomain.AuditLogEntry) error {
 	if err := r.db.WithContext(ctx).Create(entry).Error; err != nil {
 		return fmt.Errorf("failed to create audit log entry: %w", err)
 	}
@@ -153,16 +153,16 @@ func (r *gormAuditLogRepository) Create(ctx context.Context, entry *cryptoutilJo
 }
 
 // List retrieves audit log entries for a tenant with pagination.
-func (r *gormAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.AuditLogEntry, int64, error) {
+func (r *gormAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	var (
-		entries []*cryptoutilJoseJADomain.AuditLogEntry
+		entries []*cryptoutilAppsJoseJaDomain.AuditLogEntry
 		total   int64
 	)
 
 	// Count total.
 
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.AuditLogEntry{}).
+		Model(&cryptoutilAppsJoseJaDomain.AuditLogEntry{}).
 		Where("tenant_id = ?", tenantID.String()).
 		Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count audit log entries: %w", err)
@@ -182,16 +182,16 @@ func (r *gormAuditLogRepository) List(ctx context.Context, tenantID googleUuid.U
 }
 
 // ListByElasticJWK retrieves audit log entries for an Elastic JWK.
-func (r *gormAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilJoseJADomain.AuditLogEntry, int64, error) {
+func (r *gormAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	var (
-		entries []*cryptoutilJoseJADomain.AuditLogEntry
+		entries []*cryptoutilAppsJoseJaDomain.AuditLogEntry
 		total   int64
 	)
 
 	// Count total.
 
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.AuditLogEntry{}).
+		Model(&cryptoutilAppsJoseJaDomain.AuditLogEntry{}).
 		Where("elastic_jwk_id = ?", elasticJWKID.String()).
 		Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count audit log entries: %w", err)
@@ -211,16 +211,16 @@ func (r *gormAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJW
 }
 
 // ListByOperation retrieves audit log entries by operation type.
-func (r *gormAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilJoseJADomain.AuditLogEntry, int64, error) {
+func (r *gormAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	var (
-		entries []*cryptoutilJoseJADomain.AuditLogEntry
+		entries []*cryptoutilAppsJoseJaDomain.AuditLogEntry
 		total   int64
 	)
 
 	// Count total.
 
 	if err := r.db.WithContext(ctx).
-		Model(&cryptoutilJoseJADomain.AuditLogEntry{}).
+		Model(&cryptoutilAppsJoseJaDomain.AuditLogEntry{}).
 		Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).
 		Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count audit log entries: %w", err)
@@ -240,8 +240,8 @@ func (r *gormAuditLogRepository) ListByOperation(ctx context.Context, tenantID g
 }
 
 // GetByRequestID retrieves an audit log entry by request ID.
-func (r *gormAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*cryptoutilJoseJADomain.AuditLogEntry, error) {
-	var entry cryptoutilJoseJADomain.AuditLogEntry
+func (r *gormAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*cryptoutilAppsJoseJaDomain.AuditLogEntry, error) {
+	var entry cryptoutilAppsJoseJaDomain.AuditLogEntry
 	if err := r.db.WithContext(ctx).
 		Where("request_id = ?", requestID).
 		First(&entry).Error; err != nil {
@@ -255,7 +255,7 @@ func (r *gormAuditLogRepository) GetByRequestID(ctx context.Context, requestID s
 func (r *gormAuditLogRepository) DeleteOlderThan(ctx context.Context, tenantID googleUuid.UUID, days int) (int64, error) {
 	result := r.db.WithContext(ctx).
 		Where("tenant_id = ? AND created_at < datetime('now', ?)", tenantID.String(), fmt.Sprintf("-%d days", days)).
-		Delete(&cryptoutilJoseJADomain.AuditLogEntry{})
+		Delete(&cryptoutilAppsJoseJaDomain.AuditLogEntry{})
 	if result.Error != nil {
 		return 0, fmt.Errorf("failed to delete old audit log entries: %w", result.Error)
 	}

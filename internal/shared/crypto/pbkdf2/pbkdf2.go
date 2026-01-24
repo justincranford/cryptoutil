@@ -5,7 +5,7 @@
 package pbkdf2
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
@@ -50,7 +50,7 @@ func HashPasswordWithIterations(password string, iterations int) (string, error)
 
 	// Generate cryptographically secure random salt.
 	salt := make([]byte, SaltLength32)
-	if _, err := rand.Read(salt); err != nil {
+	if _, err := crand.Read(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 

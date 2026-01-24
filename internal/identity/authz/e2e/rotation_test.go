@@ -17,9 +17,9 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"cryptoutil/internal/identity/domain"
-	"cryptoutil/internal/identity/jobs"
-	"cryptoutil/internal/identity/rotation"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityJobs "cryptoutil/internal/identity/jobs"
+	cryptoutilIdentityRotation "cryptoutil/internal/identity/rotation"
 )
 
 // TestCompleteRotationLifecycle verifies end-to-end rotation flow:
@@ -39,7 +39,7 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 
 	ctx := context.Background()
 	db := setupTestDB(t)
-	rotationService := rotation.NewSecretRotationService(db)
+	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
 	gracePeriod := 24 * time.Hour
 
 	// Step 1: Create client with version 1 secret
@@ -66,7 +66,7 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 
 	// Step 3: Simulate expiration by setting version 1 expires_at in past
 	// Re-query secret1 to get current database state before updating
-	var secret1Fresh domain.ClientSecretVersion
+	var secret1Fresh cryptoutilIdentityDomain.ClientSecretVersion
 
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&secret1Fresh).Error
 	require.NoError(t, err)
@@ -76,7 +76,7 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run cleanup job (should revoke version 1)
-	revokedCount, err := jobs.CleanupExpiredSecrets(ctx, db)
+	revokedCount, err := cryptoutilIdentityJobs.CleanupExpiredSecrets(ctx, db)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, revokedCount)
 
@@ -87,11 +87,11 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 	require.Equal(t, 2, activeSecrets[0].Version)
 
 	// Verify version 1 status is expired (not revoked - cleanup marks as expired)
-	var expiredSecret domain.ClientSecretVersion
+	var expiredSecret cryptoutilIdentityDomain.ClientSecretVersion
 
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&expiredSecret).Error
 	require.NoError(t, err)
-	require.Equal(t, domain.SecretStatusExpired, expiredSecret.Status)
+	require.Equal(t, cryptoutilIdentityDomain.SecretStatusExpired, expiredSecret.Status)
 
 	// Step 4: Rotate to version 3 (24h grace period)
 	result, err = rotationService.RotateClientSecret(ctx, client.ID, gracePeriod, "admin", "second rotation")
@@ -122,12 +122,12 @@ func TestMultiClientConcurrentRotation(t *testing.T) {
 
 	ctx := context.Background()
 	db := setupTestDB(t)
-	rotationService := rotation.NewSecretRotationService(db)
+	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
 	gracePeriod := 24 * time.Hour
 	clientCount := 5
 
 	// Step 1: Create 5 clients concurrently
-	clients := make([]*domain.Client, clientCount)
+	clients := make([]*cryptoutilIdentityDomain.Client, clientCount)
 	for i := 0; i < clientCount; i++ {
 		clients[i] = createTestClient(t, db, googleUuid.NewString())
 		createTestSecret(t, db, clients[i].ID, 1, time.Now().Add(48*time.Hour))
@@ -171,7 +171,7 @@ func TestGracePeriodOverlap(t *testing.T) {
 
 	ctx := context.Background()
 	db := setupTestDB(t)
-	rotationService := rotation.NewSecretRotationService(db)
+	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
 	gracePeriod := 24 * time.Hour
 
 	// Step 1: Create client with version 1 secret
@@ -188,7 +188,7 @@ func TestGracePeriodOverlap(t *testing.T) {
 	require.Len(t, activeSecrets, 2)
 
 	// Step 2: Simulate 12 hours later by adjusting version 1 expiration
-	var secret1 domain.ClientSecretVersion
+	var secret1 cryptoutilIdentityDomain.ClientSecretVersion
 
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&secret1).Error
 	require.NoError(t, err)
@@ -215,7 +215,7 @@ func TestGracePeriodOverlap(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run cleanup (should revoke version 1)
-	revokedCount, err := jobs.CleanupExpiredSecrets(ctx, db)
+	revokedCount, err := cryptoutilIdentityJobs.CleanupExpiredSecrets(ctx, db)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, revokedCount)
 
@@ -269,9 +269,9 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// Apply migrations
 	err = db.AutoMigrate(
-		&domain.Client{},
-		&domain.ClientSecretVersion{},
-		&domain.KeyRotationEvent{},
+		&cryptoutilIdentityDomain.Client{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 	)
 	require.NoError(t, err)
 
@@ -283,10 +283,10 @@ func setupTestDB(t *testing.T) *gorm.DB {
 }
 
 // createTestClient creates test client with unique ClientID.
-func createTestClient(t *testing.T, db *gorm.DB, name string) *domain.Client {
+func createTestClient(t *testing.T, db *gorm.DB, name string) *cryptoutilIdentityDomain.Client {
 	t.Helper()
 
-	client := &domain.Client{
+	client := &cryptoutilIdentityDomain.Client{
 		ID:            googleUuid.New(),
 		ClientID:      googleUuid.NewString(),
 		Name:          name,
@@ -300,15 +300,15 @@ func createTestClient(t *testing.T, db *gorm.DB, name string) *domain.Client {
 }
 
 // createTestSecret creates test secret version for client.
-func createTestSecret(t *testing.T, db *gorm.DB, clientID googleUuid.UUID, version int, expiresAt time.Time) *domain.ClientSecretVersion {
+func createTestSecret(t *testing.T, db *gorm.DB, clientID googleUuid.UUID, version int, expiresAt time.Time) *cryptoutilIdentityDomain.ClientSecretVersion {
 	t.Helper()
 
-	secret := &domain.ClientSecretVersion{
+	secret := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ID:         googleUuid.New(),
 		ClientID:   clientID,
 		Version:    version,
 		SecretHash: "$2a$10$...", // Placeholder hash (not validated in E2E tests)
-		Status:     domain.SecretStatusActive,
+		Status:     cryptoutilIdentityDomain.SecretStatusActive,
 		ExpiresAt:  &expiresAt,
 	}
 

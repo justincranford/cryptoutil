@@ -17,7 +17,7 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // Import modernc.org/sqlite driver.
 
-	"cryptoutil/internal/identity/domain"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
@@ -55,8 +55,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// Auto-migrate domain models.
 	migrateErr := db.AutoMigrate(
-		&domain.ClientSecretVersion{},
-		&domain.KeyRotationEvent{},
+		&cryptoutilIdentityDomain.ClientSecretVersion{},
+		&cryptoutilIdentityDomain.KeyRotationEvent{},
 	)
 	require.NoError(t, migrateErr, "Failed to run migrations")
 
@@ -125,14 +125,14 @@ func TestRotateClientSecret_SubsequentRotation(t *testing.T) {
 	require.NotEmpty(t, result2.NewSecretPlaintext)
 
 	// Verify old version has expiration set.
-	var oldVersion domain.ClientSecretVersion
+	var oldVersion cryptoutilIdentityDomain.ClientSecretVersion
 
 	err := db.Where("client_id = ? AND version = ?", clientID, 1).
 		First(&oldVersion).Error
 
 	require.NoError(t, err)
 	require.NotNil(t, oldVersion.ExpiresAt, "Old version should have expiration")
-	require.Equal(t, domain.SecretStatusActive, oldVersion.Status, "Old version should still be active during grace period")
+	require.Equal(t, cryptoutilIdentityDomain.SecretStatusActive, oldVersion.Status, "Old version should still be active during grace period")
 }
 
 func TestGetActiveSecretVersion(t *testing.T) {
@@ -251,25 +251,25 @@ func TestRevokeSecretVersion(t *testing.T) {
 	require.NoError(t, revokeErr)
 
 	// Verify version 1 is revoked.
-	var version domain.ClientSecretVersion
+	var version cryptoutilIdentityDomain.ClientSecretVersion
 
 	err := db.Where("client_id = ? AND version = ?", clientID, result.NewVersion).
 		First(&version).Error
 
 	require.NoError(t, err)
-	require.Equal(t, domain.SecretStatusRevoked, version.Status)
+	require.Equal(t, cryptoutilIdentityDomain.SecretStatusRevoked, version.Status)
 	require.NotNil(t, version.RevokedAt)
 	require.Equal(t, "admin-user", version.RevokedBy)
 
 	// Verify revocation event was created.
-	var event domain.KeyRotationEvent
+	var event cryptoutilIdentityDomain.KeyRotationEvent
 
-	eventErr := db.Where("event_type = ? AND key_id = ?", domain.EventTypeRevocation, clientID.String()).
+	eventErr := db.Where("event_type = ? AND key_id = ?", cryptoutilIdentityDomain.EventTypeRevocation, clientID.String()).
 		Order("timestamp DESC").
 		First(&event).Error
 
 	require.NoError(t, eventErr)
-	require.Equal(t, domain.EventTypeRevocation, event.EventType)
+	require.Equal(t, cryptoutilIdentityDomain.EventTypeRevocation, event.EventType)
 	require.Equal(t, "security incident", event.Reason)
 }
 
@@ -386,7 +386,7 @@ func TestGetActiveSecretVersions(t *testing.T) {
 			// Verify versions are in DESC order.
 			for i, version := range versions {
 				require.Equal(t, tc.expectedVersions[i], version.Version, "Version mismatch at index %d", i)
-				require.Equal(t, domain.SecretStatusActive, version.Status, "All returned versions should be active")
+				require.Equal(t, cryptoutilIdentityDomain.SecretStatusActive, version.Status, "All returned versions should be active")
 			}
 		})
 	}
@@ -492,29 +492,29 @@ func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create multiple secret versions with different statuses.
-	activeVersion1 := &domain.ClientSecretVersion{
+	activeVersion1 := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ID:        googleUuid.New(),
 		ClientID:  clientID,
 		Version:   1,
-		Status:    domain.SecretStatusActive,
+		Status:    cryptoutilIdentityDomain.SecretStatusActive,
 		CreatedAt: time.Now().Add(-48 * time.Hour),
 	}
 
-	activeVersion2 := &domain.ClientSecretVersion{
+	activeVersion2 := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ID:        googleUuid.New(),
 		ClientID:  clientID,
 		Version:   2,
-		Status:    domain.SecretStatusActive,
+		Status:    cryptoutilIdentityDomain.SecretStatusActive,
 		CreatedAt: time.Now().Add(-24 * time.Hour),
 	}
 
 	revokedAt := time.Now().Add(-6 * time.Hour)
 
-	revokedVersion := &domain.ClientSecretVersion{
+	revokedVersion := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ID:        googleUuid.New(),
 		ClientID:  clientID,
 		Version:   3,
-		Status:    domain.SecretStatusRevoked,
+		Status:    cryptoutilIdentityDomain.SecretStatusRevoked,
 		CreatedAt: time.Now().Add(-12 * time.Hour),
 		RevokedAt: &revokedAt,
 	}
@@ -532,6 +532,6 @@ func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
 	// Verify order (DESC by version).
 	require.Equal(t, 2, activeVersions[0].Version, "First version should be 2")
 	require.Equal(t, 1, activeVersions[1].Version, "Second version should be 1")
-	require.Equal(t, domain.SecretStatusActive, activeVersions[0].Status)
-	require.Equal(t, domain.SecretStatusActive, activeVersions[1].Status)
+	require.Equal(t, cryptoutilIdentityDomain.SecretStatusActive, activeVersions[0].Status)
+	require.Equal(t, cryptoutilIdentityDomain.SecretStatusActive, activeVersions[1].Status)
 }

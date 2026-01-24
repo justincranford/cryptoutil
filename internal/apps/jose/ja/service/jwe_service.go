@@ -9,10 +9,10 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	jose "github.com/go-jose/go-jose/v4"
 	googleUuid "github.com/google/uuid"
@@ -34,14 +34,14 @@ type JWEService interface {
 type jweServiceImpl struct {
 	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
-	barrierSvc   *cryptoutilBarrier.Service
+	barrierSvc   *cryptoutilAppsTemplateServiceServerBarrier.Service
 }
 
 // NewJWEService creates a new JWEService.
 func NewJWEService(
 	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
-	barrierSvc *cryptoutilBarrier.Service,
+	barrierSvc *cryptoutilAppsTemplateServiceServerBarrier.Service,
 ) JWEService {
 	return &jweServiceImpl{
 		elasticRepo:  elasticRepo,
@@ -64,7 +64,7 @@ func (s *jweServiceImpl) Encrypt(ctx context.Context, tenantID, elasticJWKID goo
 	}
 
 	// Verify key use is for encryption.
-	if elasticJWK.Use != joseJADomain.KeyUseEnc {
+	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseEnc {
 		return "", fmt.Errorf("elastic JWK is not configured for encryption (use=%s)", elasticJWK.Use)
 	}
 
@@ -139,7 +139,7 @@ func (s *jweServiceImpl) Decrypt(ctx context.Context, tenantID, elasticJWKID goo
 	}
 
 	// Try to decrypt with all available materials.
-	materials, _, err := s.materialRepo.ListByElasticJWK(ctx, elasticJWKID, 0, cryptoutilMagic.JoseJADefaultListLimit)
+	materials, _, err := s.materialRepo.ListByElasticJWK(ctx, elasticJWKID, 0, cryptoutilSharedMagic.JoseJADefaultListLimit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list materials: %w", err)
 	}
@@ -168,7 +168,7 @@ func (s *jweServiceImpl) EncryptWithKID(ctx context.Context, tenantID, elasticJW
 	}
 
 	// Verify key use is for encryption.
-	if elasticJWK.Use != joseJADomain.KeyUseEnc {
+	if elasticJWK.Use != cryptoutilAppsJoseJaDomain.KeyUseEnc {
 		return "", fmt.Errorf("elastic JWK is not configured for encryption (use=%s)", elasticJWK.Use)
 	}
 
@@ -229,7 +229,7 @@ func (s *jweServiceImpl) EncryptWithKID(ctx context.Context, tenantID, elasticJW
 }
 
 // decryptWithMaterial attempts to decrypt a JWE with a specific material key.
-func (s *jweServiceImpl) decryptWithMaterial(ctx context.Context, jweObject *jose.JSONWebEncryption, material *joseJADomain.MaterialJWK) ([]byte, error) {
+func (s *jweServiceImpl) decryptWithMaterial(ctx context.Context, jweObject *jose.JSONWebEncryption, material *cryptoutilAppsJoseJaDomain.MaterialJWK) ([]byte, error) {
 	// Decode base64 encoded JWE string.
 	privateJWKEncrypted, err := base64.StdEncoding.DecodeString(material.PrivateJWKJWE)
 	if err != nil {
@@ -260,11 +260,11 @@ func (s *jweServiceImpl) decryptWithMaterial(ctx context.Context, jweObject *jos
 // mapToJWEAlgorithms maps algorithm string to JWE key algorithm and content encryption.
 func mapToJWEAlgorithms(algorithm string) (jose.KeyAlgorithm, jose.ContentEncryption) {
 	switch algorithm {
-	case cryptoutilMagic.JoseKeyTypeRSA2048, cryptoutilMagic.JoseKeyTypeRSA3072, cryptoutilMagic.JoseKeyTypeRSA4096,
-		cryptoutilMagic.JoseAlgRSAOAEP, cryptoutilMagic.JoseAlgRSAOAEP256:
+	case cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilSharedMagic.JoseKeyTypeRSA4096,
+		cryptoutilSharedMagic.JoseAlgRSAOAEP, cryptoutilSharedMagic.JoseAlgRSAOAEP256:
 		return jose.RSA_OAEP_256, jose.A256GCM
-	case cryptoutilMagic.JoseKeyTypeECP256, cryptoutilMagic.JoseKeyTypeECP384, cryptoutilMagic.JoseKeyTypeECP521,
-		cryptoutilMagic.JoseAlgECDHES:
+	case cryptoutilSharedMagic.JoseKeyTypeECP256, cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilSharedMagic.JoseKeyTypeECP521,
+		cryptoutilSharedMagic.JoseAlgECDHES:
 		return jose.ECDH_ES_A256KW, jose.A256GCM
 	case "A128KW":
 		return jose.A128KW, jose.A128GCM
@@ -278,11 +278,11 @@ func mapToJWEAlgorithms(algorithm string) (jose.KeyAlgorithm, jose.ContentEncryp
 		return jose.A192GCMKW, jose.A192GCM
 	case "A256GCMKW":
 		return jose.A256GCMKW, jose.A256GCM
-	case cryptoutilMagic.JoseAlgDir, cryptoutilMagic.JoseKeyTypeOct128:
+	case cryptoutilSharedMagic.JoseAlgDir, cryptoutilSharedMagic.JoseKeyTypeOct128:
 		return jose.DIRECT, jose.A128GCM
-	case cryptoutilMagic.JoseKeyTypeOct192:
+	case cryptoutilSharedMagic.JoseKeyTypeOct192:
 		return jose.DIRECT, jose.A192GCM
-	case cryptoutilMagic.JoseKeyTypeOct256:
+	case cryptoutilSharedMagic.JoseKeyTypeOct256:
 		return jose.DIRECT, jose.A256GCM
 	default:
 		return "", ""

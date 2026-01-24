@@ -18,11 +18,11 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver registration
 	_ "modernc.org/sqlite"             // SQLite driver registration (CGO-free)
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	gormLoggerSlowThreshold             = cryptoutilMagic.DBLoggerSlowThreshold
+	gormLoggerSlowThreshold             = cryptoutilSharedMagic.DBLoggerSlowThreshold
 	gormLoggerLogLevel                  = logger.Warn // Changed from logger.Info to reduce verbosity.
 	gormLoggerIgnoreRecordNotFoundError = false
 	gormLoggerColorful                  = true

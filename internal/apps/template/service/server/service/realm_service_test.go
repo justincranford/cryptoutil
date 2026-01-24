@@ -27,8 +27,8 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	"cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilPwdGen "cryptoutil/internal/shared/pwdgen"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedPwdgen "cryptoutil/internal/shared/pwdgen"
 )
 
 // setupRealmTestDB creates an in-memory SQLite database for testing realm service.
@@ -62,8 +62,8 @@ func setupRealmTestDB(t *testing.T) *gorm.DB {
 
 	// Auto-migrate all required tables.
 	err = db.AutoMigrate(
-		&repository.Tenant{},
-		&repository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
+		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
 	)
 	require.NoError(t, err)
 
@@ -75,17 +75,17 @@ func setupRealmService(t *testing.T) (RealmService, *gorm.DB) {
 	t.Helper()
 
 	db := setupRealmTestDB(t)
-	realmRepo := repository.NewTenantRealmRepository(db)
+	realmRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRealmRepository(db)
 	svc := NewRealmService(realmRepo)
 
 	return svc, db
 }
 
 // createRealmTestTenant creates a tenant for testing realms.
-func createRealmTestTenant(t *testing.T, db *gorm.DB, tenantName string) *repository.Tenant {
+func createRealmTestTenant(t *testing.T, db *gorm.DB, tenantName string) *cryptoutilAppsTemplateServiceServerRepository.Tenant {
 	t.Helper()
 
-	tenant := &repository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:          googleUuid.New(),
 		Name:        tenantName,
 		Description: "Test tenant for realm testing",
@@ -132,7 +132,7 @@ func TestRealmService_CreateRealm_LDAP(t *testing.T) {
 
 	tenant := createRealmTestTenant(t, db, "realm-ldap-"+googleUuid.NewString()[:8])
 
-	pwdGen, err := cryptoutilPwdGen.NewPasswordGenerator(cryptoutilPwdGen.BasicPolicy)
+	pwdGen, err := cryptoutilSharedPwdgen.NewPasswordGenerator(cryptoutilSharedPwdgen.BasicPolicy)
 	require.NoError(t, err)
 	bindPassword, err := pwdGen.Generate()
 	require.NoError(t, err)
@@ -163,7 +163,7 @@ func TestRealmService_CreateRealm_OAuth2(t *testing.T) {
 
 	tenant := createRealmTestTenant(t, db, "realm-oauth2-"+googleUuid.NewString()[:8])
 
-	pwdGen, err := cryptoutilPwdGen.NewPasswordGenerator(cryptoutilPwdGen.StrongPolicy)
+	pwdGen, err := cryptoutilSharedPwdgen.NewPasswordGenerator(cryptoutilSharedPwdgen.StrongPolicy)
 	require.NoError(t, err)
 	clientSecret, err := pwdGen.Generate()
 	require.NoError(t, err)

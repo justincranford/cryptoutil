@@ -21,18 +21,18 @@ import (
 	"time"
 
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilOpenapiHandler "cryptoutil/internal/kms/server/handler"
-	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilKmsServerHandler "cryptoutil/internal/kms/server/handler"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
 	"go.opentelemetry.io/otel/metric"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gofiber/contrib/otelfiber"
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
@@ -72,8 +72,8 @@ type TLSServerConfig struct {
 }
 
 // SendServerListenerLivenessCheck sends a liveness probe to the server's private admin endpoint.
-func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
+func SendServerListenerLivenessCheck(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
 	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
@@ -85,8 +85,8 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServiceTemplateS
 }
 
 // SendServerListenerReadinessCheck sends a readiness probe to the server's private admin endpoint.
-func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
+func SendServerListenerReadinessCheck(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
 	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
@@ -98,8 +98,8 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServiceTemplate
 }
 
 // SendServerListenerShutdownRequest sends a shutdown request to the server's private admin endpoint.
-func SendServerListenerShutdownRequest(settings *cryptoutilConfig.ServiceTemplateServerSettings) error {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
+func SendServerListenerShutdownRequest(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) error {
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
 	_, _, _, err := cryptoutilSharedUtilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
@@ -111,15 +111,15 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.ServiceTemplat
 }
 
 // StartServerListenerApplication creates and starts a new server application listener.
-func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateServerSettings) (*ServerApplicationListener, error) {
+func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*ServerApplicationListener, error) {
 	ctx := context.Background()
 
 	serverApplicationCore, err := StartServerApplicationCore(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize server application: %w", err)
-	} else if settings.BindPublicProtocol != cryptoutilMagic.ProtocolHTTP && settings.BindPublicProtocol != cryptoutilMagic.ProtocolHTTPS {
+	} else if settings.BindPublicProtocol != cryptoutilSharedMagic.ProtocolHTTP && settings.BindPublicProtocol != cryptoutilSharedMagic.ProtocolHTTPS {
 		return nil, fmt.Errorf("invalid public protocol: expected 'http' or 'https', got '%s'", settings.BindPublicProtocol)
-	} else if settings.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTP && settings.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTPS {
+	} else if settings.BindPrivateProtocol != cryptoutilSharedMagic.ProtocolHTTP && settings.BindPrivateProtocol != cryptoutilSharedMagic.ProtocolHTTPS {
 		return nil, fmt.Errorf("invalid private protocol: expected 'http' or 'https', got '%s'", settings.BindPrivateProtocol)
 	}
 
@@ -129,7 +129,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateSe
 	}
 
 	// Public server: TLS 1.3 only, no client certificate required (browser access).
-	publicTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
+	publicTLSConfig, err := cryptoutilSharedCryptoTls.NewServerConfig(&cryptoutilSharedCryptoTls.ServerConfigOptions{
 		Subject:    publicTLSServerSubject,
 		ClientAuth: tls.NoClientCert,
 	})
@@ -152,7 +152,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateSe
 		privateClientAuth = tls.NoClientCert
 	}
 
-	privateTLSConfig, err := cryptoutilTLS.NewServerConfig(&cryptoutilTLS.ServerConfigOptions{
+	privateTLSConfig, err := cryptoutilSharedCryptoTls.NewServerConfig(&cryptoutilSharedCryptoTls.ServerConfigOptions{
 		Subject:    privateTLSServerSubject,
 		ClientAuth: privateClientAuth,
 	})
@@ -213,12 +213,12 @@ func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateSe
 	var shutdownServerFunction func()
 
 	// Private APIs - add admin context path prefix
-	privateFiberApp.Post(settings.PrivateAdminAPIContextPath+cryptoutilMagic.PrivateAdminShutdownRequestPath, func(c *fiber.Ctx) error {
+	privateFiberApp.Post(settings.PrivateAdminAPIContextPath+cryptoutilSharedMagic.PrivateAdminShutdownRequestPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 
 		if shutdownServerFunction != nil {
 			defer func() {
-				time.Sleep(cryptoutilMagic.WaitBeforeShutdownDuration) // allow server small amount of time to finish sending response to client
+				time.Sleep(cryptoutilSharedMagic.WaitBeforeShutdownDuration) // allow server small amount of time to finish sending response to client
 				shutdownServerFunction()
 			}()
 		}
@@ -284,7 +284,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateSe
 	})
 
 	// Swagger APIs, will be double exposed on publicFiberApp, but with different security middlewares (i.e. browser user vs machine client)
-	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
+	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
 	commonOapiMiddlewareFiberRequestValidators := []cryptoutilOpenapiServer.MiddlewareFunc{
 		fibermiddleware.OapiRequestValidatorWithOptions(swaggerAPI, &fibermiddleware.Options{}),
@@ -370,7 +370,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.ServiceTemplateSe
 	}, nil
 }
 
-func startServerFuncWithListeners(publicListener, privateListener net.Listener, publicFiberApp, privateFiberApp *fiber.App, publicProtocol, privateProtocol string, publicTLSConfig, privateTLSConfig *tls.Config, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
+func startServerFuncWithListeners(publicListener, privateListener net.Listener, publicFiberApp, privateFiberApp *fiber.App, publicProtocol, privateProtocol string, publicTLSConfig, privateTLSConfig *tls.Config, telemetryService *cryptoutilSharedTelemetry.TelemetryService) func() {
 	return func() {
 		telemetryService.Slogger.Debug("starting fiber listeners with pre-created listeners")
 
@@ -382,7 +382,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 
 			var err error
 
-			if privateProtocol == cryptoutilMagic.ProtocolHTTPS && privateTLSConfig != nil {
+			if privateProtocol == cryptoutilSharedMagic.ProtocolHTTPS && privateTLSConfig != nil {
 				// Wrap the listener with TLS
 				tlsListener := tls.NewListener(privateListener, privateTLSConfig)
 				telemetryService.Slogger.Info("private server listening with TLS", "addr", privateListener.Addr().String())
@@ -405,7 +405,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 
 		var err error
 
-		if publicProtocol == cryptoutilMagic.ProtocolHTTPS && publicTLSConfig != nil {
+		if publicProtocol == cryptoutilSharedMagic.ProtocolHTTPS && publicTLSConfig != nil {
 			// Wrap the listener with TLS
 			tlsListener := tls.NewListener(publicListener, publicTLSConfig)
 			telemetryService.Slogger.Info("public server listening with TLS", "addr", publicListener.Addr().String())
@@ -425,7 +425,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 	}
 }
 
-func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp, privateFiberApp *fiber.App, publicListener, privateListener net.Listener, settings *cryptoutilConfig.ServiceTemplateServerSettings) func() {
+func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp, privateFiberApp *fiber.App, publicListener, privateListener net.Listener, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) func() {
 	return func() {
 		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
@@ -467,7 +467,7 @@ func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, p
 	}
 }
 
-func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService, stopServerFunc func()) func() {
+func stopServerSignalFunc(telemetryService *cryptoutilSharedTelemetry.TelemetryService, stopServerFunc func()) func() {
 	return func() {
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 		defer stop()
@@ -478,7 +478,7 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 	}
 }
 
-func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
+func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilSharedTelemetry.TelemetryService, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) fiber.Handler {
 	return otelfiber.Middleware(
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
@@ -488,7 +488,7 @@ func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Te
 	)
 }
 
-func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) func(c *fiber.Ctx) error {
+func commonIPFilterMiddleware(telemetryService *cryptoutilSharedTelemetry.TelemetryService, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
 
 	if len(settings.AllowedIPs) > 0 {
@@ -524,7 +524,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 	}
 
 	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
-		switch c.Locals(cryptoutilMagic.FiberAppIDRequestAttribute) {
+		switch c.Locals(cryptoutilSharedMagic.FiberAppIDRequestAttribute) {
 		case string(fiberAppIDPublic): // Apply IP/CIDR filtering for public app requests
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
@@ -557,14 +557,14 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 		case string(fiberAppIDPrivate): // Skip IP/CIDR filtering for private app requests
 			return c.Next()
 		default:
-			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(cryptoutilMagic.FiberAppIDRequestAttribute))
+			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(cryptoutilSharedMagic.FiberAppIDRequestAttribute))
 
 			return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 		}
 	}
 }
 
-func commonIPRateLimiterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, ipRateLimit int) fiber.Handler {
+func commonIPRateLimiterMiddleware(telemetryService *cryptoutilSharedTelemetry.TelemetryService, ipRateLimit int) fiber.Handler {
 	return limiter.New(limiter.Config{ // Mitigate DOS by throttling clients
 		Max:        ipRateLimit,
 		Expiration: time.Second,
@@ -597,7 +597,7 @@ func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[strin
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.DatabaseHealthCheckTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DatabaseHealthCheckTimeout)
 	defer cancel()
 
 	health, err := serverApplicationCore.SQLRepository.HealthCheck(ctx)
@@ -629,7 +629,7 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.OtelCollectorHealthCheckTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.OtelCollectorHealthCheckTimeout)
 	defer cancel()
 
 	// Check sidecar connectivity using the telemetry service method
@@ -659,7 +659,7 @@ func checkDependenciesHealth(_ *ServerApplicationCore) map[string]any {
 	}
 }
 
-func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
+func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		method := c.Method()
 		for _, supported := range settings.CORSAllowedMethods {
@@ -723,8 +723,8 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 		// Check if this is a liveness or readiness probe
 		path := c.Path()
 		adminContextPath := serverApplicationCore.Settings.PrivateAdminAPIContextPath
-		isReadiness := strings.HasSuffix(path, adminContextPath+cryptoutilMagic.PrivateAdminReadyzRequestPath)
-		isLiveness := strings.HasSuffix(path, adminContextPath+cryptoutilMagic.PrivateAdminLivezRequestPath)
+		isReadiness := strings.HasSuffix(path, adminContextPath+cryptoutilSharedMagic.PrivateAdminReadyzRequestPath)
+		isLiveness := strings.HasSuffix(path, adminContextPath+cryptoutilSharedMagic.PrivateAdminLivezRequestPath)
 
 		// If not a health check path, continue to next middleware
 		if !isReadiness && !isLiveness {
@@ -732,11 +732,11 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 		}
 
 		healthStatus := map[string]any{
-			cryptoutilMagic.StringStatus: "ok",
-			"timestamp":                  time.Now().UTC().Format(time.RFC3339),
-			"service":                    "cryptoutil",
-			"version":                    cryptoutilMagic.ServiceVersion,
-			"probe":                      "liveness",
+			cryptoutilSharedMagic.StringStatus: "ok",
+			"timestamp":                        time.Now().UTC().Format(time.RFC3339),
+			"service":                          "cryptoutil",
+			"version":                          cryptoutilSharedMagic.ServiceVersion,
+			"probe":                            "liveness",
 		}
 
 		if isReadiness {
@@ -754,26 +754,26 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 
 			// Check if any component is unhealthy for readiness
 			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
-				if status, ok := dbStatus[cryptoutilMagic.StringStatus].(string); ok && status != cryptoutilMagic.StringStatusOK {
-					healthStatus[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringStatusDegraded
+				if status, ok := dbStatus[cryptoutilSharedMagic.StringStatus].(string); ok && status != cryptoutilSharedMagic.StringStatusOK {
+					healthStatus[cryptoutilSharedMagic.StringStatus] = cryptoutilSharedMagic.StringStatusDegraded
 				}
 			}
 
 			if depsStatus, ok := healthStatus["dependencies"].(map[string]any); ok {
-				if status, ok := depsStatus[cryptoutilMagic.StringStatus].(string); ok && status != cryptoutilMagic.StringStatusOK {
-					healthStatus[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringStatusDegraded
+				if status, ok := depsStatus[cryptoutilSharedMagic.StringStatus].(string); ok && status != cryptoutilSharedMagic.StringStatusOK {
+					healthStatus[cryptoutilSharedMagic.StringStatus] = cryptoutilSharedMagic.StringStatusDegraded
 				}
 			}
 
 			if sidecarStatus, ok := healthStatus["sidecar"].(map[string]any); ok {
-				if status, ok := sidecarStatus[cryptoutilMagic.StringStatus].(string); ok && status == "error" {
-					healthStatus[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringStatusDegraded
+				if status, ok := sidecarStatus[cryptoutilSharedMagic.StringStatus].(string); ok && status == "error" {
+					healthStatus[cryptoutilSharedMagic.StringStatus] = cryptoutilSharedMagic.StringStatusDegraded
 				}
 			}
 		}
 
 		statusCode := fiber.StatusOK
-		if healthStatus[cryptoutilMagic.StringStatus] != cryptoutilMagic.StringStatusOK {
+		if healthStatus[cryptoutilSharedMagic.StringStatus] != cryptoutilSharedMagic.StringStatusOK {
 			statusCode = fiber.StatusServiceUnavailable
 		}
 
@@ -839,13 +839,13 @@ func performConcurrentReadinessChecks(serverApplicationCore *ServerApplicationCo
 
 func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		c.Locals(cryptoutilMagic.FiberAppIDRequestAttribute, string(fiberAppIDValue))
+		c.Locals(cryptoutilSharedMagic.FiberAppIDRequestAttribute, string(fiberAppIDValue))
 
 		return c.Next()
 	}
 }
 
-func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
+func publicBrowserCORSMiddlewareFunction(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) fiber.Handler {
 	return cors.New(cors.Config{ // Cross-Origin Resource Sharing (CORS)
 		AllowOrigins: strings.Join(settings.CORSAllowedOrigins, ","), // cryptoutilConfig.defaultAllowedCORSOrigins
 		AllowMethods: strings.Join(settings.CORSAllowedMethods, ","), // cryptoutilConfig.defaultAllowedCORSMethods
@@ -855,7 +855,7 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.ServiceTempl
 	})
 }
 
-func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
+func publicBrowserXSSMiddlewareFunction(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) fiber.Handler {
 	// Content Security Policy for enhanced XSS protection
 	// This CSP is specifically designed to work with Swagger UI while maintaining security
 	csp := buildContentSecurityPolicy(settings)
@@ -876,7 +876,7 @@ func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.ServiceTempla
 }
 
 // buildContentSecurityPolicy creates a CSP tailored for the cryptoutil application.
-func buildContentSecurityPolicy(settings *cryptoutilConfig.ServiceTemplateServerSettings) string {
+func buildContentSecurityPolicy(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) string {
 	// Base CSP - very restrictive
 	csp := "default-src 'none';"
 
@@ -934,31 +934,31 @@ func buildContentSecurityPolicy(settings *cryptoutilConfig.ServiceTemplateServer
 
 // Security header policy constants - Last reviewed: 2025-10-01.
 const (
-	hstsMaxAge                    = cryptoutilMagic.HSTSMaxAge
-	hstsMaxAgeDev                 = cryptoutilMagic.HSTSMaxAgeDev
-	referrerPolicy                = cryptoutilMagic.ReferrerPolicy
-	permissionsPolicy             = cryptoutilMagic.PermissionsPolicy
-	crossOriginOpenerPolicy       = cryptoutilMagic.CrossOriginOpenerPolicy
-	crossOriginEmbedderPolicy     = cryptoutilMagic.CrossOriginEmbedderPolicy
-	crossOriginResourcePolicy     = cryptoutilMagic.CrossOriginResourcePolicy
-	xPermittedCrossDomainPolicies = cryptoutilMagic.XPermittedCrossDomainPolicies
-	contentTypeOptions            = cryptoutilMagic.ContentTypeOptions
-	clearSiteDataLogout           = cryptoutilMagic.ClearSiteDataLogout
+	hstsMaxAge                    = cryptoutilSharedMagic.HSTSMaxAge
+	hstsMaxAgeDev                 = cryptoutilSharedMagic.HSTSMaxAgeDev
+	referrerPolicy                = cryptoutilSharedMagic.ReferrerPolicy
+	permissionsPolicy             = cryptoutilSharedMagic.PermissionsPolicy
+	crossOriginOpenerPolicy       = cryptoutilSharedMagic.CrossOriginOpenerPolicy
+	crossOriginEmbedderPolicy     = cryptoutilSharedMagic.CrossOriginEmbedderPolicy
+	crossOriginResourcePolicy     = cryptoutilSharedMagic.CrossOriginResourcePolicy
+	xPermittedCrossDomainPolicies = cryptoutilSharedMagic.XPermittedCrossDomainPolicies
+	contentTypeOptions            = cryptoutilSharedMagic.ContentTypeOptions
+	clearSiteDataLogout           = cryptoutilSharedMagic.ClearSiteDataLogout
 )
 
 // Expected browser security headers for runtime validation.
 var expectedBrowserHeaders = map[string]string{
-	"X-Content-Type-Options":            cryptoutilMagic.ContentTypeOptions,
-	"Referrer-Policy":                   cryptoutilMagic.ReferrerPolicy,
-	"Permissions-Policy":                cryptoutilMagic.PermissionsPolicy,
-	"Cross-Origin-Opener-Policy":        cryptoutilMagic.CrossOriginOpenerPolicy,
-	"Cross-Origin-Embedder-Policy":      cryptoutilMagic.CrossOriginEmbedderPolicy,
-	"Cross-Origin-Resource-Policy":      cryptoutilMagic.CrossOriginResourcePolicy,
-	"X-Permitted-Cross-Domain-Policies": cryptoutilMagic.XPermittedCrossDomainPolicies,
+	"X-Content-Type-Options":            cryptoutilSharedMagic.ContentTypeOptions,
+	"Referrer-Policy":                   cryptoutilSharedMagic.ReferrerPolicy,
+	"Permissions-Policy":                cryptoutilSharedMagic.PermissionsPolicy,
+	"Cross-Origin-Opener-Policy":        cryptoutilSharedMagic.CrossOriginOpenerPolicy,
+	"Cross-Origin-Embedder-Policy":      cryptoutilSharedMagic.CrossOriginEmbedderPolicy,
+	"Cross-Origin-Resource-Policy":      cryptoutilSharedMagic.CrossOriginResourcePolicy,
+	"X-Permitted-Cross-Domain-Policies": cryptoutilSharedMagic.XPermittedCrossDomainPolicies,
 }
 
 // publicBrowserAdditionalSecurityHeadersMiddleware adds security headers not covered by Helmet.
-func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
+func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptoutilSharedTelemetry.TelemetryService, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) fiber.Handler {
 	// Setup metrics for header validation
 	meter := telemetryService.MetricsProvider.Meter("security-headers")
 
@@ -986,7 +986,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 		c.Set("X-Content-Type-Options", contentTypeOptions)
 		c.Set("Referrer-Policy", referrerPolicy)
 
-		if c.Protocol() == cryptoutilMagic.ProtocolHTTPS {
+		if c.Protocol() == cryptoutilSharedMagic.ProtocolHTTPS {
 			if settings.DevMode {
 				c.Set("Strict-Transport-Security", hstsMaxAgeDev)
 			} else {
@@ -1045,7 +1045,7 @@ func validateSecurityHeaders(c *fiber.Ctx) []string {
 	}
 
 	// Check HSTS is present if HTTPS
-	if c.Protocol() == cryptoutilMagic.ProtocolHTTPS {
+	if c.Protocol() == cryptoutilSharedMagic.ProtocolHTTPS {
 		if hsts := c.Get("Strict-Transport-Security"); hsts == "" {
 			missing = append(missing, "Strict-Transport-Security")
 		}
@@ -1054,7 +1054,7 @@ func validateSecurityHeaders(c *fiber.Ctx) []string {
 	return missing
 }
 
-func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.ServiceTemplateServerSettings) fiber.Handler {
+func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) fiber.Handler {
 	csrfConfig := csrf.Config{
 		CookieName:        settings.CSRFTokenName,
 		CookieSameSite:    settings.CSRFTokenSameSite,
@@ -1106,7 +1106,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.ServiceTempl
 // TRUE  => Skip CSRF check for /oauth2/v1/* and /openid/v1/* OAuth 2.1 endpoints (machine-to-machine, never browser-based)
 // FALSE => Enforce CSRF check for /browser/api/v1/* requests by browser clients (e.g. web apps, Swagger UI)
 // ASSUME: UI Authentication only authorizes browser users to access /browser/api/v1/*.
-func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.ServiceTemplateServerSettings) func(c *fiber.Ctx) bool {
+func isNonBrowserUserAPIRequestFunc(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) func(c *fiber.Ctx) bool {
 	return func(c *fiber.Ctx) bool {
 		url := c.OriginalURL()
 

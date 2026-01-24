@@ -10,8 +10,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestJWEService_Encrypt(t *testing.T) {
@@ -25,23 +25,23 @@ func TestJWEService_Encrypt(t *testing.T) {
 	}{
 		{
 			name:      "RSA-2048 encryption",
-			algorithm: cryptoutilMagic.JoseKeyTypeRSA2048,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA2048,
 		},
 		{
 			name:      "RSA-3072 encryption",
-			algorithm: cryptoutilMagic.JoseKeyTypeRSA3072,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA3072,
 		},
 		{
 			name:      "Oct-128 direct encryption",
-			algorithm: cryptoutilMagic.JoseKeyTypeOct128,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeOct128,
 		},
 		{
 			name:      "Oct-256 direct encryption",
-			algorithm: cryptoutilMagic.JoseKeyTypeOct256,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeOct256,
 		},
 		{
 			name:      "ECP-256 encryption",
-			algorithm: cryptoutilMagic.JoseKeyTypeECP256,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeECP256,
 		},
 	}
 
@@ -54,7 +54,7 @@ func TestJWEService_Encrypt(t *testing.T) {
 			tenantID := googleUuid.New()
 
 			// Create encryption key.
-			elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, tt.algorithm, joseJADomain.KeyUseEnc, 10)
+			elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, tt.algorithm, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 			require.NoError(t, err)
 
 			// Encrypt plaintext.
@@ -76,7 +76,7 @@ func TestJWEService_Encrypt_InvalidKeyUse(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create signing key (not encryption).
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
 	require.NoError(t, err)
 
 	// Try to encrypt with signing key - should fail.
@@ -95,7 +95,7 @@ func TestJWEService_Encrypt_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Try to encrypt with wrong tenant - should fail.
@@ -129,23 +129,23 @@ func TestJWEService_Decrypt(t *testing.T) {
 	}{
 		{
 			name:      "RSA-2048 roundtrip",
-			algorithm: cryptoutilMagic.JoseKeyTypeRSA2048,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA2048,
 		},
 		{
 			name:      "RSA-3072 roundtrip",
-			algorithm: cryptoutilMagic.JoseKeyTypeRSA3072,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeRSA3072,
 		},
 		{
 			name:      "Oct-128 roundtrip",
-			algorithm: cryptoutilMagic.JoseKeyTypeOct128,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeOct128,
 		},
 		{
 			name:      "Oct-256 roundtrip",
-			algorithm: cryptoutilMagic.JoseKeyTypeOct256,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeOct256,
 		},
 		{
 			name:      "ECP-256 roundtrip",
-			algorithm: cryptoutilMagic.JoseKeyTypeECP256,
+			algorithm: cryptoutilSharedMagic.JoseKeyTypeECP256,
 		},
 	}
 
@@ -158,7 +158,7 @@ func TestJWEService_Decrypt(t *testing.T) {
 			tenantID := googleUuid.New()
 
 			// Create encryption key.
-			elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, tt.algorithm, joseJADomain.KeyUseEnc, 10)
+			elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, tt.algorithm, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 			require.NoError(t, err)
 
 			// Encrypt plaintext.
@@ -184,7 +184,7 @@ func TestJWEService_Decrypt_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Encrypt plaintext.
@@ -208,7 +208,7 @@ func TestJWEService_Decrypt_InvalidJWE(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Try to decrypt invalid JWE - should fail.
@@ -226,7 +226,7 @@ func TestJWEService_EncryptWithKID(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key.
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Encrypt with specific KID.
@@ -251,7 +251,7 @@ func TestJWEService_EncryptWithKID_InvalidKeyUse(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create signing key.
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 10)
 	require.NoError(t, err)
 
 	// Try to encrypt with signing key - should fail.
@@ -270,7 +270,7 @@ func TestJWEService_EncryptWithKID_InvalidKID(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Try to encrypt with invalid KID - should fail.
@@ -301,7 +301,7 @@ func TestJWEService_EncryptWithKID_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key.
-	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK, material, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Try to encrypt with wrong tenant - should fail.
@@ -321,9 +321,9 @@ func TestJWEService_EncryptWithKID_MaterialBelongsToOtherKey(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create two encryption keys.
-	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
-	elasticJWK2, material2, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK2, material2, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 	require.NotEqual(t, elasticJWK1.ID, elasticJWK2.ID)
 
@@ -343,9 +343,9 @@ func TestJWEService_Decrypt_NoMatchingKey(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create two separate encryption keys.
-	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
-	elasticJWK2, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK2, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Encrypt with elasticJWK1.
@@ -368,7 +368,7 @@ func TestJWEService_Decrypt_NonExistentKey(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create encryption key.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseKeyTypeRSA2048, joseJADomain.KeyUseEnc, 10)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseKeyTypeRSA2048, cryptoutilAppsJoseJaDomain.KeyUseEnc, 10)
 	require.NoError(t, err)
 
 	// Encrypt plaintext.

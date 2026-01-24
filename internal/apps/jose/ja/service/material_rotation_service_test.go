@@ -10,8 +10,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestMaterialRotationService_RotateMaterial(t *testing.T) {
@@ -24,7 +24,7 @@ func TestMaterialRotationService_RotateMaterial(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK with max 5 materials.
-	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Rotate material.
@@ -45,7 +45,7 @@ func TestMaterialRotationService_RotateMaterial_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Try to rotate with wrong tenant - should fail.
@@ -65,7 +65,7 @@ func TestMaterialRotationService_RotateMaterial_MaxReached(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK with max 2 materials.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 2)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 2)
 	require.NoError(t, err)
 
 	// Rotate once - should succeed (now 2 materials).
@@ -88,7 +88,7 @@ func TestMaterialRotationService_RetireMaterial(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK with max 3 materials.
-	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 3)
+	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 3)
 	require.NoError(t, err)
 
 	// Rotate to create second material.
@@ -110,7 +110,7 @@ func TestMaterialRotationService_RetireMaterial_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 3)
+	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 3)
 	require.NoError(t, err)
 
 	// Try to retire with wrong tenant - should fail.
@@ -130,7 +130,7 @@ func TestMaterialRotationService_ListMaterials(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK with max 5 materials.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Rotate twice.
@@ -155,7 +155,7 @@ func TestMaterialRotationService_ListMaterials_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Try to list with wrong tenant - should fail.
@@ -175,7 +175,7 @@ func TestMaterialRotationService_GetActiveMaterial(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Get active material - should return initial.
@@ -204,7 +204,7 @@ func TestMaterialRotationService_GetActiveMaterial_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Try to get with wrong tenant - should fail.
@@ -224,7 +224,7 @@ func TestMaterialRotationService_GetMaterialByKID(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Get material by KID.
@@ -243,7 +243,7 @@ func TestMaterialRotationService_GetMaterialByKID_WrongTenant(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, initialMaterial, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Try to get with wrong tenant - should fail.
@@ -263,7 +263,7 @@ func TestMaterialRotationService_GetMaterialByKID_InvalidKID(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Try to get with invalid KID - should fail.
@@ -294,10 +294,10 @@ func TestMaterialRotationService_RetireMaterial_WrongElasticJWK(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Create two elastic JWKs.
-	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 3)
+	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 3)
 	require.NoError(t, err)
 
-	elasticJWK2, material2, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 3)
+	elasticJWK2, material2, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 3)
 	require.NoError(t, err)
 
 	// Try to retire material2 using elasticJWK1 - should fail.
@@ -320,10 +320,10 @@ func TestMaterialRotationService_GetMaterialByKID_WrongElasticJWK(t *testing.T) 
 	tenantID := googleUuid.New()
 
 	// Create two elastic JWKs.
-	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK1, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
-	_, material2, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	_, material2, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Try to get material2 using elasticJWK1 - should fail.
@@ -342,18 +342,18 @@ func TestMaterialRotationService_RotateMaterial_AllAlgorithms(t *testing.T) {
 		algorithm string
 		keyUse    string
 	}{
-		{"RS384", cryptoutilMagic.JoseAlgRS384, joseJADomain.KeyUseSig},
-		{"RS512", cryptoutilMagic.JoseAlgRS512, joseJADomain.KeyUseSig},
-		{"PS256", cryptoutilMagic.JoseAlgPS256, joseJADomain.KeyUseSig},
-		{"PS384", cryptoutilMagic.JoseAlgPS384, joseJADomain.KeyUseSig},
-		{"PS512", cryptoutilMagic.JoseAlgPS512, joseJADomain.KeyUseSig},
-		{"ES384", cryptoutilMagic.JoseAlgES384, joseJADomain.KeyUseSig},
-		{"ES512", cryptoutilMagic.JoseAlgES512, joseJADomain.KeyUseSig},
-		{"RSA3072Enc", cryptoutilMagic.JoseKeyTypeRSA3072, joseJADomain.KeyUseEnc},
-		{"RSA4096Enc", cryptoutilMagic.JoseKeyTypeRSA4096, joseJADomain.KeyUseEnc},
-		{"ECP384Enc", cryptoutilMagic.JoseKeyTypeECP384, joseJADomain.KeyUseEnc},
-		{"ECP521Enc", cryptoutilMagic.JoseKeyTypeECP521, joseJADomain.KeyUseEnc},
-		{"Oct192Enc", cryptoutilMagic.JoseKeyTypeOct192, joseJADomain.KeyUseEnc},
+		{"RS384", cryptoutilSharedMagic.JoseAlgRS384, cryptoutilAppsJoseJaDomain.KeyUseSig},
+		{"RS512", cryptoutilSharedMagic.JoseAlgRS512, cryptoutilAppsJoseJaDomain.KeyUseSig},
+		{"PS256", cryptoutilSharedMagic.JoseAlgPS256, cryptoutilAppsJoseJaDomain.KeyUseSig},
+		{"PS384", cryptoutilSharedMagic.JoseAlgPS384, cryptoutilAppsJoseJaDomain.KeyUseSig},
+		{"PS512", cryptoutilSharedMagic.JoseAlgPS512, cryptoutilAppsJoseJaDomain.KeyUseSig},
+		{"ES384", cryptoutilSharedMagic.JoseAlgES384, cryptoutilAppsJoseJaDomain.KeyUseSig},
+		{"ES512", cryptoutilSharedMagic.JoseAlgES512, cryptoutilAppsJoseJaDomain.KeyUseSig},
+		{"RSA3072Enc", cryptoutilSharedMagic.JoseKeyTypeRSA3072, cryptoutilAppsJoseJaDomain.KeyUseEnc},
+		{"RSA4096Enc", cryptoutilSharedMagic.JoseKeyTypeRSA4096, cryptoutilAppsJoseJaDomain.KeyUseEnc},
+		{"ECP384Enc", cryptoutilSharedMagic.JoseKeyTypeECP384, cryptoutilAppsJoseJaDomain.KeyUseEnc},
+		{"ECP521Enc", cryptoutilSharedMagic.JoseKeyTypeECP521, cryptoutilAppsJoseJaDomain.KeyUseEnc},
+		{"Oct192Enc", cryptoutilSharedMagic.JoseKeyTypeOct192, cryptoutilAppsJoseJaDomain.KeyUseEnc},
 	}
 
 	for _, tt := range tests {
@@ -385,7 +385,7 @@ func TestMaterialRotationService_RetireMaterial_NonExistentMaterial(t *testing.T
 	tenantID := googleUuid.New()
 
 	// Create elastic JWK.
-	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilMagic.JoseAlgRS256, joseJADomain.KeyUseSig, 5)
+	elasticJWK, _, err := elasticSvc.CreateElasticJWK(ctx, tenantID, cryptoutilSharedMagic.JoseAlgRS256, cryptoutilAppsJoseJaDomain.KeyUseSig, 5)
 	require.NoError(t, err)
 
 	// Try to retire non-existent material - should fail.

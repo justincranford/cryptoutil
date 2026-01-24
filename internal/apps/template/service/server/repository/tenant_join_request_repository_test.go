@@ -15,7 +15,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
 )
 
 // setupJoinRequestTestDB creates an isolated in-memory SQLite database for join request tests.
@@ -45,7 +45,7 @@ func setupJoinRequestTestDB(t *testing.T) *gorm.DB {
 	sqlDB.SetConnMaxLifetime(0)
 
 	// Run migrations for all required tables.
-	err = db.AutoMigrate(&Tenant{}, &User{}, &cryptoutilTemplateDomain.TenantJoinRequest{})
+	err = db.AutoMigrate(&Tenant{}, &User{}, &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{})
 	require.NoError(t, err)
 
 	return db
@@ -92,11 +92,11 @@ func TestTenantJoinRequestRepository_Create(t *testing.T) {
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	request := &cryptoutilTemplateDomain.TenantJoinRequest{
+	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		UserID:      &user.ID,
 		TenantID:    tenant.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 	}
 
@@ -144,18 +144,18 @@ func TestTenantJoinRequestRepository_Update(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create initial request.
-	request := &cryptoutilTemplateDomain.TenantJoinRequest{
+	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		UserID:      &user.ID,
 		TenantID:    tenant.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 	}
 	err = repo.Create(ctx, request)
 	require.NoError(t, err)
 
 	// Update request.
-	request.Status = cryptoutilTemplateDomain.JoinRequestStatusApproved
+	request.Status = cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved
 	processedAt := time.Now()
 	request.ProcessedAt = &processedAt
 	request.ProcessedBy = &user.ID
@@ -166,7 +166,7 @@ func TestTenantJoinRequestRepository_Update(t *testing.T) {
 	// Verify update.
 	retrieved, err := repo.GetByID(ctx, request.ID)
 	require.NoError(t, err)
-	require.Equal(t, cryptoutilTemplateDomain.JoinRequestStatusApproved, retrieved.Status)
+	require.Equal(t, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved, retrieved.Status)
 	require.NotNil(t, retrieved.ProcessedAt)
 }
 
@@ -218,11 +218,11 @@ func TestTenantJoinRequestRepository_ListByTenant(t *testing.T) {
 
 	// Create multiple requests for the tenant.
 	for i := 0; i < 3; i++ {
-		request := &cryptoutilTemplateDomain.TenantJoinRequest{
+		request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 			ID:          googleUuid.Must(googleUuid.NewV7()),
 			UserID:      &user.ID,
 			TenantID:    tenant.ID,
-			Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+			Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 			RequestedAt: time.Now().Add(time.Duration(i) * time.Second),
 		}
 		err = repo.Create(ctx, request)
@@ -269,13 +269,13 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 
 	// Create requests with different statuses.
 	statuses := []string{
-		cryptoutilTemplateDomain.JoinRequestStatusPending,
-		cryptoutilTemplateDomain.JoinRequestStatusApproved,
-		cryptoutilTemplateDomain.JoinRequestStatusPending,
-		cryptoutilTemplateDomain.JoinRequestStatusRejected,
+		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
+		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusRejected,
 	}
 	for _, status := range statuses {
-		request := &cryptoutilTemplateDomain.TenantJoinRequest{
+		request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 			ID:          googleUuid.Must(googleUuid.NewV7()),
 			UserID:      &user.ID,
 			TenantID:    tenant.ID,
@@ -287,16 +287,16 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 	}
 
 	// List pending requests.
-	pendingResults, err := repo.ListByStatus(ctx, cryptoutilTemplateDomain.JoinRequestStatusPending)
+	pendingResults, err := repo.ListByStatus(ctx, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending)
 	require.NoError(t, err)
 	require.Len(t, pendingResults, 2)
 
 	for _, r := range pendingResults {
-		require.Equal(t, cryptoutilTemplateDomain.JoinRequestStatusPending, r.Status)
+		require.Equal(t, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending, r.Status)
 	}
 
 	// List approved requests.
-	approvedResults, err := repo.ListByStatus(ctx, cryptoutilTemplateDomain.JoinRequestStatusApproved)
+	approvedResults, err := repo.ListByStatus(ctx, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved)
 	require.NoError(t, err)
 	require.Len(t, approvedResults, 1)
 }
@@ -358,55 +358,55 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 
 	// Create requests for tenant 1: 2 pending, 1 approved.
 	for i := 0; i < 2; i++ {
-		request := &cryptoutilTemplateDomain.TenantJoinRequest{
+		request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 			ID:          googleUuid.Must(googleUuid.NewV7()),
 			UserID:      &user1.ID,
 			TenantID:    tenant1.ID,
-			Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+			Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 			RequestedAt: time.Now(),
 		}
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
 	}
 
-	approvedRequest := &cryptoutilTemplateDomain.TenantJoinRequest{
+	approvedRequest := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		UserID:      &user1.ID,
 		TenantID:    tenant1.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusApproved,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
 		RequestedAt: time.Now(),
 	}
 	err = repo.Create(ctx, approvedRequest)
 	require.NoError(t, err)
 
 	// Create request for tenant 2: 1 pending.
-	tenant2Request := &cryptoutilTemplateDomain.TenantJoinRequest{
+	tenant2Request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		UserID:      &user2.ID,
 		TenantID:    tenant2.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 	}
 	err = repo.Create(ctx, tenant2Request)
 	require.NoError(t, err)
 
 	// List tenant 1 pending requests.
-	results, err := repo.ListByTenantAndStatus(ctx, tenant1.ID, cryptoutilTemplateDomain.JoinRequestStatusPending)
+	results, err := repo.ListByTenantAndStatus(ctx, tenant1.ID, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
 
 	for _, r := range results {
 		require.Equal(t, tenant1.ID, r.TenantID)
-		require.Equal(t, cryptoutilTemplateDomain.JoinRequestStatusPending, r.Status)
+		require.Equal(t, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending, r.Status)
 	}
 
 	// List tenant 1 approved requests.
-	approvedResults, err := repo.ListByTenantAndStatus(ctx, tenant1.ID, cryptoutilTemplateDomain.JoinRequestStatusApproved)
+	approvedResults, err := repo.ListByTenantAndStatus(ctx, tenant1.ID, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved)
 	require.NoError(t, err)
 	require.Len(t, approvedResults, 1)
 
 	// List tenant 2 pending requests.
-	tenant2Results, err := repo.ListByTenantAndStatus(ctx, tenant2.ID, cryptoutilTemplateDomain.JoinRequestStatusPending)
+	tenant2Results, err := repo.ListByTenantAndStatus(ctx, tenant2.ID, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending)
 	require.NoError(t, err)
 	require.Len(t, tenant2Results, 1)
 }
@@ -431,11 +431,11 @@ func TestTenantJoinRequestRepository_CreateWithClientID(t *testing.T) {
 	require.NoError(t, err)
 
 	clientID := googleUuid.Must(googleUuid.NewV7())
-	request := &cryptoutilTemplateDomain.TenantJoinRequest{
+	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		ClientID:    &clientID,
 		TenantID:    tenant.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 	}
 
@@ -483,7 +483,7 @@ func TestTenantJoinRequestRepository_ListByStatus_Empty(t *testing.T) {
 	ctx := context.Background()
 
 	// List rejected status (none exist).
-	results, err := repo.ListByStatus(ctx, cryptoutilTemplateDomain.JoinRequestStatusRejected)
+	results, err := repo.ListByStatus(ctx, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusRejected)
 	require.NoError(t, err)
 	require.Empty(t, results)
 }
@@ -508,7 +508,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus_Empty(t *testing.T) {
 	require.NoError(t, err)
 
 	// List by tenant and status (none exist).
-	results, err := repo.ListByTenantAndStatus(ctx, tenant.ID, cryptoutilTemplateDomain.JoinRequestStatusApproved)
+	results, err := repo.ListByTenantAndStatus(ctx, tenant.ID, cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved)
 	require.NoError(t, err)
 	require.Empty(t, results)
 }
@@ -546,11 +546,11 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 	require.NoError(t, err)
 
 	requestID := googleUuid.Must(googleUuid.NewV7())
-	request1 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	request1 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          requestID,
 		UserID:      &user.ID,
 		TenantID:    tenant.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 	}
 
@@ -558,11 +558,11 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 	require.NoError(t, err)
 
 	// Try to create another request with same ID.
-	request2 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	request2 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          requestID,
 		UserID:      &user.ID,
 		TenantID:    tenant.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusPending,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
 		RequestedAt: time.Now(),
 	}
 
@@ -592,11 +592,11 @@ func TestTenantJoinRequestRepository_Update_NonExistent(t *testing.T) {
 
 	// Try to update non-existent request - GORM Save creates if not exists.
 	userID := googleUuid.Must(googleUuid.NewV7())
-	request := &cryptoutilTemplateDomain.TenantJoinRequest{
+	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.Must(googleUuid.NewV7()),
 		UserID:      &userID,
 		TenantID:    tenant.ID,
-		Status:      cryptoutilTemplateDomain.JoinRequestStatusApproved,
+		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
 		RequestedAt: time.Now(),
 	}
 

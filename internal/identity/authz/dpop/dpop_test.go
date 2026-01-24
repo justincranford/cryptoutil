@@ -3,14 +3,14 @@
 package dpop
 
 import (
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"strings"
 	"testing"
 	"time"
 
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -24,7 +24,7 @@ func TestValidateProof(t *testing.T) {
 
 	// Generate test key (ES256).
 	alg := joseJwa.ES256()
-	_, privateKey, publicKey, _, _, err := cryptoutilJose.GenerateJWSJWKForAlg(&alg)
+	_, privateKey, publicKey, _, _, err := cryptoutilSharedCryptoJose.GenerateJWSJWKForAlg(&alg)
 	require.NoError(t, err)
 
 	// Compute JWK thumbprint (same way as dpop.go does).
@@ -250,7 +250,7 @@ func buildAccessTokenWithCnf(t *testing.T, jkt string) string {
 	t.Helper()
 
 	alg := joseJwa.ES256()
-	_, privateKey, _, _, _, err := cryptoutilJose.GenerateJWSJWKForAlg(&alg)
+	_, privateKey, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWSJWKForAlg(&alg)
 	require.NoError(t, err)
 
 	token := joseJwt.New()
@@ -267,7 +267,7 @@ func buildAccessTokenWithoutCnf(t *testing.T) string {
 	t.Helper()
 
 	alg := joseJwa.ES256()
-	_, privateKey, _, _, _, err := cryptoutilJose.GenerateJWSJWKForAlg(&alg)
+	_, privateKey, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWSJWKForAlg(&alg)
 	require.NoError(t, err)
 
 	token := joseJwt.New()

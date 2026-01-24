@@ -7,16 +7,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestNewTestConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	require.NotNil(t, cfg)
-	require.Equal(t, cryptoutilMagic.OTLPServiceIdentitySPA, cfg.OTLPService)
+	require.Equal(t, cryptoutilSharedMagic.OTLPServiceIdentitySPA, cfg.OTLPService)
 	require.Equal(t, defaultStaticFilesPath, cfg.StaticFilesPath)
 	require.Equal(t, defaultIndexFile, cfg.IndexFile)
 	require.Equal(t, defaultCacheMaxAgeDev, cfg.CacheControlMaxAge)
@@ -38,7 +38,7 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, false)
 
 	require.NotNil(t, cfg)
 	require.False(t, cfg.DevMode)
@@ -47,7 +47,7 @@ func TestNewTestConfig_ProductionMode(t *testing.T) {
 func TestIdentitySPAServerSettings_FullConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// Verify all fields have expected values.
 	require.NotEmpty(t, cfg.StaticFilesPath)
@@ -76,7 +76,7 @@ func TestValidateIdentitySPASettings_RPOriginFormat(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 			cfg.RPOrigin = tt.rpOrigin
 
 			err := validateIdentitySPASettings(cfg)
@@ -124,7 +124,7 @@ func TestValidateIdentitySPASettings_RequiredFields(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg := NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+			cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 			tt.modifyFunc(cfg)
 
 			err := validateIdentitySPASettings(cfg)

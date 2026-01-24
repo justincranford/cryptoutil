@@ -9,14 +9,14 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	cryptoutilSPAServer "cryptoutil/internal/apps/identity/spa/server"
-	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
+	cryptoutilAppsIdentitySpaServer "cryptoutil/internal/apps/identity/spa/server"
+	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity/spa/server/config"
 )
 
 const (
@@ -75,7 +75,7 @@ func startService(parameters []string) {
 	// Load SPA-specific configuration from YAML file.
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilSPAConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilAppsIdentitySpaServerConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}
@@ -84,7 +84,7 @@ func startService(parameters []string) {
 	ctx := context.Background()
 
 	// Create SPA server using template-based implementation.
-	server, err := cryptoutilSPAServer.NewFromConfig(ctx, settings)
+	server, err := cryptoutilAppsIdentitySpaServer.NewFromConfig(ctx, settings)
 	if err != nil {
 		log.Fatalf("Failed to create SPA server: %v", err)
 	}

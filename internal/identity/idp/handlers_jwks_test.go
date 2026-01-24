@@ -4,11 +4,11 @@ package idp
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"

@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -99,7 +99,7 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 	}
 
 	// Hash password with PBKDF2-HMAC-SHA256 (LowEntropyRandom, FIPS-approved).
-	passwordHash, err := cryptoutilHash.HashSecretPBKDF2(password)
+	passwordHash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -159,7 +159,7 @@ func (s *UserServiceImpl) AuthenticateUser(ctx context.Context, username, passwo
 	}
 
 	// Verify password using PBKDF2 (supports versioned hash format).
-	valid, err := cryptoutilDigests.VerifySecret(user.GetPasswordHash(), password)
+	valid, err := cryptoutilSharedCryptoDigests.VerifySecret(user.GetPasswordHash(), password)
 	if err != nil || !valid {
 		// Return generic error (prevent timing attacks).
 		return nil, fmt.Errorf("invalid credentials")

@@ -3,9 +3,9 @@
 package middleware
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"math/big"
@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,10 +21,10 @@ import (
 func generateTestCertificate(t *testing.T, cn string, ous []string, dnsNames []string, emails []string, extKeyUsages []x509.ExtKeyUsage) (*x509.Certificate, *ecdsa.PrivateKey) {
 	t.Helper()
 
-	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	serialNumber, err := crand.Int(crand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	require.NoError(t, err)
 
 	template := &x509.Certificate{
@@ -42,7 +42,7 @@ func generateTestCertificate(t *testing.T, cn string, ous []string, dnsNames []s
 		BasicConstraintsValid: true,
 	}
 
-	certDER, err := x509.CreateCertificate(rand.Reader, template, template, &priv.PublicKey, priv)
+	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &priv.PublicKey, priv)
 	require.NoError(t, err)
 
 	cert, err := x509.ParseCertificate(certDER)

@@ -6,7 +6,7 @@
 package demo
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
 	"strings"

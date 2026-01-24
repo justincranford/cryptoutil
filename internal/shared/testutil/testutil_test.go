@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/shared/testutil"
+	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
 func TestWriteTempFile(t *testing.T) {
@@ -56,7 +56,7 @@ func TestWriteTempFile(t *testing.T) {
 			tempDir := t.TempDir()
 
 			// Act: Write temporary file
-			filePath := testutil.WriteTempFile(t, tempDir, tc.filename, tc.content)
+			filePath := cryptoutilSharedTestutil.WriteTempFile(t, tempDir, tc.filename, tc.content)
 
 			// Assert: File exists at expected path
 			expectedPath := filepath.Join(tempDir, tc.filename)
@@ -83,7 +83,7 @@ func TestWriteTempFile_NestedDirectory(t *testing.T) {
 	require.NoError(t, err)
 
 	// Act: Write file in nested directory
-	filePath := testutil.WriteTempFile(t, nestedDir, "nested.txt", "nested content")
+	filePath := cryptoutilSharedTestutil.WriteTempFile(t, nestedDir, "nested.txt", "nested content")
 
 	// Assert: File exists in nested directory
 	expectedPath := filepath.Join(nestedDir, "nested.txt")
@@ -132,7 +132,7 @@ func TestWriteTestFile(t *testing.T) {
 			filePath := filepath.Join(tempDir, tc.filename)
 
 			// Act: Write test file
-			testutil.WriteTestFile(t, filePath, tc.content)
+			cryptoutilSharedTestutil.WriteTestFile(t, filePath, tc.content)
 
 			// Assert: File exists
 			_, err := os.Stat(filePath)
@@ -161,7 +161,7 @@ func TestWriteTestFile_CreateDirectories(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now WriteTestFile should succeed
-	testutil.WriteTestFile(t, nestedPath, "nested file content")
+	cryptoutilSharedTestutil.WriteTestFile(t, nestedPath, "nested file content")
 
 	actualContent, err := os.ReadFile(nestedPath)
 	require.NoError(t, err)
@@ -209,7 +209,7 @@ func TestReadTestFile(t *testing.T) {
 			require.NoError(t, err)
 
 			// Act: Read test file
-			actualContent := testutil.ReadTestFile(t, filePath)
+			actualContent := cryptoutilSharedTestutil.ReadTestFile(t, filePath)
 
 			// Assert: Content matches
 			require.Equal(t, []byte(tc.content), actualContent, "File content should match")
@@ -225,10 +225,10 @@ func TestReadTestFile_Integration(t *testing.T) {
 
 	// Write using WriteTestFile
 	filePath := filepath.Join(tempDir, "integration.txt")
-	testutil.WriteTestFile(t, filePath, content)
+	cryptoutilSharedTestutil.WriteTestFile(t, filePath, content)
 
 	// Read using ReadTestFile
-	actualContent := testutil.ReadTestFile(t, filePath)
+	actualContent := cryptoutilSharedTestutil.ReadTestFile(t, filePath)
 
 	// Assert: Round-trip succeeds
 	require.Equal(t, []byte(content), actualContent, "Round-trip content should match")
@@ -258,10 +258,10 @@ func TestWriteAndRead_Roundtrip(t *testing.T) {
 			tempDir := t.TempDir()
 
 			// Write using WriteTempFile
-			filePath := testutil.WriteTempFile(t, tempDir, "roundtrip.txt", tc.content)
+			filePath := cryptoutilSharedTestutil.WriteTempFile(t, tempDir, "roundtrip.txt", tc.content)
 
 			// Read using ReadTestFile
-			actualContent := testutil.ReadTestFile(t, filePath)
+			actualContent := cryptoutilSharedTestutil.ReadTestFile(t, filePath)
 
 			// Assert: Round-trip matches
 			require.Equal(t, []byte(tc.content), actualContent)
@@ -275,15 +275,15 @@ func TestIntegrationTimeout(t *testing.T) {
 	t.Run("default timeout", func(t *testing.T) {
 		t.Parallel()
 
-		timeout := testutil.IntegrationTimeout()
-		require.Equal(t, testutil.DefaultIntegrationTimeout, timeout)
+		timeout := cryptoutilSharedTestutil.IntegrationTimeout()
+		require.Equal(t, cryptoutilSharedTestutil.DefaultIntegrationTimeout, timeout)
 	})
 }
 
 func TestIntegrationContext(t *testing.T) {
 	t.Parallel()
 
-	ctx := testutil.IntegrationContext(t)
+	ctx := cryptoutilSharedTestutil.IntegrationContext(t)
 	require.NotNil(t, ctx)
 
 	// Context should have deadline.
@@ -297,7 +297,7 @@ func TestTestID(t *testing.T) {
 	t.Run("without prefix", func(t *testing.T) {
 		t.Parallel()
 
-		id := testutil.TestID("")
+		id := cryptoutilSharedTestutil.TestID("")
 		require.NotEmpty(t, id)
 		require.Len(t, id, 36) // UUID format: 8-4-4-4-12
 	})
@@ -305,7 +305,7 @@ func TestTestID(t *testing.T) {
 	t.Run("with prefix", func(t *testing.T) {
 		t.Parallel()
 
-		id := testutil.TestID("test")
+		id := cryptoutilSharedTestutil.TestID("test")
 		require.NotEmpty(t, id)
 		require.Contains(t, id, "test-")
 	})
@@ -313,8 +313,8 @@ func TestTestID(t *testing.T) {
 	t.Run("unique IDs", func(t *testing.T) {
 		t.Parallel()
 
-		id1 := testutil.TestID("test")
-		id2 := testutil.TestID("test")
+		id1 := cryptoutilSharedTestutil.TestID("test")
+		id2 := cryptoutilSharedTestutil.TestID("test")
 		require.NotEqual(t, id1, id2, "IDs should be unique")
 	})
 }
@@ -322,7 +322,7 @@ func TestTestID(t *testing.T) {
 func TestTestUserFactory(t *testing.T) {
 	t.Parallel()
 
-	factory := testutil.NewTestUserFactory("user-test")
+	factory := cryptoutilSharedTestutil.NewTestUserFactory("user-test")
 
 	t.Run("creates user with unique ID", func(t *testing.T) {
 		t.Parallel()
@@ -348,7 +348,7 @@ func TestTestUserFactory(t *testing.T) {
 func TestTestClientFactory(t *testing.T) {
 	t.Parallel()
 
-	factory := testutil.NewTestClientFactory("client-test")
+	factory := cryptoutilSharedTestutil.NewTestClientFactory("client-test")
 
 	t.Run("creates confidential client", func(t *testing.T) {
 		t.Parallel()
@@ -378,7 +378,7 @@ func TestTestClientFactory(t *testing.T) {
 func TestTestTenantFactory(t *testing.T) {
 	t.Parallel()
 
-	factory := testutil.NewTestTenantFactory("tenant-test")
+	factory := cryptoutilSharedTestutil.NewTestTenantFactory("tenant-test")
 
 	t.Run("creates tenant with UUIDv4", func(t *testing.T) {
 		t.Parallel()

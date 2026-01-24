@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	"cryptoutil/internal/jose/domain"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
@@ -32,10 +32,10 @@ func NewAuditConfigGormRepository(db *gorm.DB) *AuditConfigGormRepository {
 }
 
 // Get retrieves audit config for a tenant and operation.
-func (r *AuditConfigGormRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*domain.AuditConfig, error) {
+func (r *AuditConfigGormRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilJoseDomain.AuditConfig, error) {
 	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
-	var config domain.AuditConfig
+	var config cryptoutilJoseDomain.AuditConfig
 
 	err := db.WithContext(ctx).Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).First(&config).Error
 	if err != nil {
@@ -50,10 +50,10 @@ func (r *AuditConfigGormRepository) Get(ctx context.Context, tenantID googleUuid
 }
 
 // GetAll retrieves all audit configs for a tenant.
-func (r *AuditConfigGormRepository) GetAll(ctx context.Context, tenantID googleUuid.UUID) ([]domain.AuditConfig, error) {
+func (r *AuditConfigGormRepository) GetAll(ctx context.Context, tenantID googleUuid.UUID) ([]cryptoutilJoseDomain.AuditConfig, error) {
 	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
-	var configs []domain.AuditConfig
+	var configs []cryptoutilJoseDomain.AuditConfig
 
 	err := db.WithContext(ctx).Where("tenant_id = ?", tenantID.String()).Find(&configs).Error
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *AuditConfigGormRepository) GetAll(ctx context.Context, tenantID googleU
 }
 
 // Upsert creates or updates audit config for a tenant and operation.
-func (r *AuditConfigGormRepository) Upsert(ctx context.Context, config *domain.AuditConfig) error {
+func (r *AuditConfigGormRepository) Upsert(ctx context.Context, config *cryptoutilJoseDomain.AuditConfig) error {
 	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	// Use Save which does upsert based on primary key (tenant_id + operation).
@@ -80,7 +80,7 @@ func (r *AuditConfigGormRepository) Upsert(ctx context.Context, config *domain.A
 func (r *AuditConfigGormRepository) Delete(ctx context.Context, tenantID googleUuid.UUID, operation string) error {
 	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
-	result := db.WithContext(ctx).Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).Delete(&domain.AuditConfig{})
+	result := db.WithContext(ctx).Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).Delete(&cryptoutilJoseDomain.AuditConfig{})
 	if result.Error != nil {
 		return fmt.Errorf("failed to delete audit config: %w", result.Error)
 	}

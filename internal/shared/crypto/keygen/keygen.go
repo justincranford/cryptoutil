@@ -7,15 +7,15 @@ package keygen
 import (
 	"crypto"
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"errors"
 	"fmt"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
@@ -41,31 +41,31 @@ func (s SecretKey) isKey() {}
 // Elliptic curve and key size constants.
 const (
 	// EdCurveEd448 is the Ed448 elliptic curve identifier.
-	EdCurveEd448 = cryptoutilMagic.EdCurveEd448
+	EdCurveEd448 = cryptoutilSharedMagic.EdCurveEd448
 	// EdCurveEd25519 is the Ed25519 elliptic curve identifier.
-	EdCurveEd25519 = cryptoutilMagic.EdCurveEd25519
+	EdCurveEd25519 = cryptoutilSharedMagic.EdCurveEd25519
 	// ECCurveP256 is the P-256 elliptic curve identifier.
-	ECCurveP256 = cryptoutilMagic.ECCurveP256
+	ECCurveP256 = cryptoutilSharedMagic.ECCurveP256
 	// ECCurveP384 is the P-384 elliptic curve identifier.
-	ECCurveP384 = cryptoutilMagic.ECCurveP384
+	ECCurveP384 = cryptoutilSharedMagic.ECCurveP384
 	// ECCurveP521 is the P-521 elliptic curve identifier.
-	ECCurveP521 = cryptoutilMagic.ECCurveP521
+	ECCurveP521 = cryptoutilSharedMagic.ECCurveP521
 
 	// AES key sizes in bits.
-	aesKeySize128 = cryptoutilMagic.AESKeySize128
-	aesKeySize192 = cryptoutilMagic.AESKeySize192
-	aesKeySize256 = cryptoutilMagic.AESKeySize256
+	aesKeySize128 = cryptoutilSharedMagic.AESKeySize128
+	aesKeySize192 = cryptoutilSharedMagic.AESKeySize192
+	aesKeySize256 = cryptoutilSharedMagic.AESKeySize256
 
 	// AES HMAC-SHA2 key sizes in bits.
-	aesHsKeySize256 = cryptoutilMagic.AESHSKeySize256
-	aesHsKeySize384 = cryptoutilMagic.AESHSKeySize384
-	aesHsKeySize512 = cryptoutilMagic.AESHSKeySize512
+	aesHsKeySize256 = cryptoutilSharedMagic.AESHSKeySize256
+	aesHsKeySize384 = cryptoutilSharedMagic.AESHSKeySize384
+	aesHsKeySize512 = cryptoutilSharedMagic.AESHSKeySize512
 
 	// Minimum HMAC key size in bits.
-	minHMACKeySize = cryptoutilMagic.MinHMACKeySize
+	minHMACKeySize = cryptoutilSharedMagic.MinHMACKeySize
 
 	// Bits to bytes conversion factor.
-	bitsToBytes = cryptoutilMagic.BitsToBytes
+	bitsToBytes = cryptoutilSharedMagic.BitsToBytes
 )
 
 // GenerateRSAKeyPairFunction returns a function that generates an RSA key pair with the specified bit size.
@@ -75,7 +75,7 @@ func GenerateRSAKeyPairFunction(rsaBits int) func() (*KeyPair, error) {
 
 // GenerateRSAKeyPair generates an RSA key pair with the specified bit size.
 func GenerateRSAKeyPair(rsaBits int) (*KeyPair, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, rsaBits)
+	privateKey, err := rsa.GenerateKey(crand.Reader, rsaBits)
 	if err != nil {
 		return nil, fmt.Errorf("generate RSA key pair failed: %w", err)
 	}
@@ -90,7 +90,7 @@ func GenerateECDSAKeyPairFunction(ecdsaCurve elliptic.Curve) func() (*KeyPair, e
 
 // GenerateECDSAKeyPair generates an ECDSA key pair with the specified curve.
 func GenerateECDSAKeyPair(ecdsaCurve elliptic.Curve) (*KeyPair, error) {
-	privateKey, err := ecdsa.GenerateKey(ecdsaCurve, rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(ecdsaCurve, crand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("generate ECDSA key pair failed: %w", err)
 	}
@@ -105,7 +105,7 @@ func GenerateECDHKeyPairFunction(ecdhCurve ecdh.Curve) func() (*KeyPair, error) 
 
 // GenerateECDHKeyPair generates an ECDH key pair with the specified curve.
 func GenerateECDHKeyPair(ecdhCurve ecdh.Curve) (*KeyPair, error) {
-	privateKey, err := ecdhCurve.GenerateKey(rand.Reader)
+	privateKey, err := ecdhCurve.GenerateKey(crand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("generate ECDH key pair failed: %w", err)
 	}
@@ -122,14 +122,14 @@ func GenerateEDDSAKeyPairFunction(edCurve string) func() (*KeyPair, error) {
 func GenerateEDDSAKeyPair(edCurve string) (*KeyPair, error) {
 	switch edCurve {
 	case EdCurveEd448:
-		publicKey, privateKey, err := ed448.GenerateKey(rand.Reader)
+		publicKey, privateKey, err := ed448.GenerateKey(crand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed448 key pair failed: %w", err)
 		}
 
 		return &KeyPair{Private: privateKey, Public: publicKey}, nil
 	case EdCurveEd25519:
-		publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+		publicKey, privateKey, err := ed25519.GenerateKey(crand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed25519 key pair failed: %w", err)
 		}

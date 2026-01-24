@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TLSMode defines the three supported TLS certificate provisioning modes.
@@ -57,69 +57,69 @@ type TLSMaterial struct {
 }
 
 const (
-	defaultLogLevel                    = cryptoutilMagic.DefaultLogLevelInfo                // Balanced verbosity: shows important events without being overwhelming
-	defaultBindPublicProtocol          = cryptoutilMagic.DefaultPublicProtocolCryptoutil    // HTTPS by default for security in production environments
-	defaultBindPublicAddress           = cryptoutilMagic.DefaultPublicAddressCryptoutil     // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
-	defaultBindPublicPort              = cryptoutilMagic.DefaultPublicPortCryptoutil        // Standard HTTP/HTTPS port, well-known and commonly available
-	defaultBindPrivateProtocol         = cryptoutilMagic.DefaultPrivateProtocolCryptoutil   // HTTPS for private API security, even in service-to-service communication
-	defaultBindPrivateAddress          = cryptoutilMagic.DefaultPrivateAddressCryptoutil    // IPv4 loopback for private API, only accessible from same machine
-	defaultBindPrivatePort             = cryptoutilMagic.DefaultPrivatePortCryptoutil       // Non-standard port to avoid conflicts with other services
-	defaultPublicBrowserAPIContextPath = cryptoutilMagic.DefaultPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
-	defaultPublicServiceAPIContextPath = cryptoutilMagic.DefaultPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
-	defaultAdminServerAPIContextPath   = cryptoutilMagic.DefaultPrivateAdminAPIContextPath  // RESTful API versioning for admin API
-	defaultCORSMaxAge                  = cryptoutilMagic.DefaultCORSMaxAge                  // 1 hour cache for CORS preflight requests, balances performance and freshness
-	defaultCSRFTokenName               = cryptoutilMagic.DefaultCSRFTokenName               // Standard CSRF token name, widely recognized by frameworks
-	defaultCSRFTokenSameSite           = cryptoutilMagic.DefaultCSRFTokenSameSiteStrict     // Strict SameSite prevents CSRF while maintaining usability
-	defaultCSRFTokenMaxAge             = cryptoutilMagic.DefaultCSRFTokenMaxAge             // 1 hour expiration balances security and user experience
-	defaultCSRFTokenCookieSecure       = cryptoutilMagic.DefaultCSRFTokenCookieSecure       // Secure cookies in production prevent MITM attacks
-	defaultCSRFTokenCookieHTTPOnly     = cryptoutilMagic.DefaultCSRFTokenCookieHTTPOnly     // False allows JavaScript access for form submissions (Swagger UI workaround)
-	defaultCSRFTokenCookieSessionOnly  = cryptoutilMagic.DefaultCSRFTokenCookieSessionOnly  // Session-only prevents persistent tracking while maintaining security
-	defaultCSRFTokenSingleUseToken     = cryptoutilMagic.DefaultCSRFTokenSingleUseToken     // Reusable tokens for better UX, can be changed for high-security needs
-	defaultRequestBodyLimit            = cryptoutilMagic.DefaultHTTPRequestBodyLimit        // 2MB limit prevents large payload attacks while allowing reasonable API usage
-	defaultBrowserIPRateLimit          = cryptoutilMagic.DefaultPublicBrowserAPIIPRateLimit // More lenient rate limit for browser APIs (user interactions)
-	defaultServiceIPRateLimit          = cryptoutilMagic.DefaultPublicServiceAPIIPRateLimit // More restrictive rate limit for service APIs (automated systems)
-	defaultDatabaseContainer           = cryptoutilMagic.DefaultDatabaseContainerDisabled   // Disabled by default to avoid unexpected container dependencies
-	defaultDatabaseURL                 = cryptoutilMagic.DefaultDatabaseURL                 // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
-	defaultDatabaseInitTotalTimeout    = cryptoutilMagic.DefaultDatabaseInitTotalTimeout    // 5 minutes allows for container startup while preventing indefinite waits
-	defaultDatabaseInitRetryWait       = cryptoutilMagic.DefaultDataInitRetryWait           // 1 second retry interval balances responsiveness and resource usage
-	defaultServerShutdownTimeout       = cryptoutilMagic.DefaultDataServerShutdownTimeout   // 5 seconds allows graceful shutdown while preventing indefinite waits
-	defaultHelp                        = cryptoutilMagic.DefaultHelp
-	defaultVerboseMode                 = cryptoutilMagic.DefaultVerboseMode
-	defaultDevMode                     = cryptoutilMagic.DefaultDevMode
-	defaultDemoMode                    = cryptoutilMagic.DefaultDemoMode
-	defaultResetDemoMode               = cryptoutilMagic.DefaultResetDemoMode
-	defaultDryRun                      = cryptoutilMagic.DefaultDryRun
-	defaultProfile                     = cryptoutilMagic.DefaultProfile
-	defaultOTLPEnabled                 = cryptoutilMagic.DefaultOTLPEnabled
-	defaultOTLPConsole                 = cryptoutilMagic.DefaultOTLPConsole
-	defaultOTLPService                 = cryptoutilMagic.DefaultOTLPServiceDefault
-	defaultOTLPVersion                 = cryptoutilMagic.DefaultOTLPVersionDefault
-	defaultOTLPEnvironment             = cryptoutilMagic.DefaultOTLPEnvironmentDefault
-	defaultOTLPHostname                = cryptoutilMagic.DefaultOTLPHostnameDefault
-	defaultOTLPEndpoint                = cryptoutilMagic.DefaultOTLPEndpointDefault
-	defaultUnsealMode                  = cryptoutilMagic.DefaultUnsealModeSysInfo
-	defaultTLSPublicMode               = TLSMode(cryptoutilMagic.DefaultTLSPublicMode)
-	defaultTLSPrivateMode              = TLSMode(cryptoutilMagic.DefaultTLSPrivateMode)
-	defaultBrowserSessionCookie        = cryptoutilMagic.DefaultBrowserSessionCookie
-	defaultBrowserSessionAlgorithm     = cryptoutilMagic.DefaultBrowserSessionAlgorithm
-	defaultBrowserSessionJWSAlgorithm  = cryptoutilMagic.DefaultBrowserSessionJWSAlgorithm
-	defaultBrowserSessionJWEAlgorithm  = cryptoutilMagic.DefaultBrowserSessionJWEAlgorithm
-	defaultBrowserSessionExpiration    = cryptoutilMagic.DefaultBrowserSessionExpiration
-	defaultServiceSessionAlgorithm     = cryptoutilMagic.DefaultServiceSessionAlgorithm
-	defaultServiceSessionJWSAlgorithm  = cryptoutilMagic.DefaultServiceSessionJWSAlgorithm
-	defaultServiceSessionJWEAlgorithm  = cryptoutilMagic.DefaultServiceSessionJWEAlgorithm
-	defaultServiceSessionExpiration    = cryptoutilMagic.DefaultServiceSessionExpiration
-	defaultSessionIdleTimeout          = cryptoutilMagic.DefaultSessionIdleTimeout
-	defaultSessionCleanupInterval      = cryptoutilMagic.DefaultSessionCleanupInterval
+	defaultLogLevel                    = cryptoutilSharedMagic.DefaultLogLevelInfo                // Balanced verbosity: shows important events without being overwhelming
+	defaultBindPublicProtocol          = cryptoutilSharedMagic.DefaultPublicProtocolCryptoutil    // HTTPS by default for security in production environments
+	defaultBindPublicAddress           = cryptoutilSharedMagic.DefaultPublicAddressCryptoutil     // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
+	defaultBindPublicPort              = cryptoutilSharedMagic.DefaultPublicPortCryptoutil        // Standard HTTP/HTTPS port, well-known and commonly available
+	defaultBindPrivateProtocol         = cryptoutilSharedMagic.DefaultPrivateProtocolCryptoutil   // HTTPS for private API security, even in service-to-service communication
+	defaultBindPrivateAddress          = cryptoutilSharedMagic.DefaultPrivateAddressCryptoutil    // IPv4 loopback for private API, only accessible from same machine
+	defaultBindPrivatePort             = cryptoutilSharedMagic.DefaultPrivatePortCryptoutil       // Non-standard port to avoid conflicts with other services
+	defaultPublicBrowserAPIContextPath = cryptoutilSharedMagic.DefaultPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
+	defaultPublicServiceAPIContextPath = cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
+	defaultAdminServerAPIContextPath   = cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath  // RESTful API versioning for admin API
+	defaultCORSMaxAge                  = cryptoutilSharedMagic.DefaultCORSMaxAge                  // 1 hour cache for CORS preflight requests, balances performance and freshness
+	defaultCSRFTokenName               = cryptoutilSharedMagic.DefaultCSRFTokenName               // Standard CSRF token name, widely recognized by frameworks
+	defaultCSRFTokenSameSite           = cryptoutilSharedMagic.DefaultCSRFTokenSameSiteStrict     // Strict SameSite prevents CSRF while maintaining usability
+	defaultCSRFTokenMaxAge             = cryptoutilSharedMagic.DefaultCSRFTokenMaxAge             // 1 hour expiration balances security and user experience
+	defaultCSRFTokenCookieSecure       = cryptoutilSharedMagic.DefaultCSRFTokenCookieSecure       // Secure cookies in production prevent MITM attacks
+	defaultCSRFTokenCookieHTTPOnly     = cryptoutilSharedMagic.DefaultCSRFTokenCookieHTTPOnly     // False allows JavaScript access for form submissions (Swagger UI workaround)
+	defaultCSRFTokenCookieSessionOnly  = cryptoutilSharedMagic.DefaultCSRFTokenCookieSessionOnly  // Session-only prevents persistent tracking while maintaining security
+	defaultCSRFTokenSingleUseToken     = cryptoutilSharedMagic.DefaultCSRFTokenSingleUseToken     // Reusable tokens for better UX, can be changed for high-security needs
+	defaultRequestBodyLimit            = cryptoutilSharedMagic.DefaultHTTPRequestBodyLimit        // 2MB limit prevents large payload attacks while allowing reasonable API usage
+	defaultBrowserIPRateLimit          = cryptoutilSharedMagic.DefaultPublicBrowserAPIIPRateLimit // More lenient rate limit for browser APIs (user interactions)
+	defaultServiceIPRateLimit          = cryptoutilSharedMagic.DefaultPublicServiceAPIIPRateLimit // More restrictive rate limit for service APIs (automated systems)
+	defaultDatabaseContainer           = cryptoutilSharedMagic.DefaultDatabaseContainerDisabled   // Disabled by default to avoid unexpected container dependencies
+	defaultDatabaseURL                 = cryptoutilSharedMagic.DefaultDatabaseURL                 // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
+	defaultDatabaseInitTotalTimeout    = cryptoutilSharedMagic.DefaultDatabaseInitTotalTimeout    // 5 minutes allows for container startup while preventing indefinite waits
+	defaultDatabaseInitRetryWait       = cryptoutilSharedMagic.DefaultDataInitRetryWait           // 1 second retry interval balances responsiveness and resource usage
+	defaultServerShutdownTimeout       = cryptoutilSharedMagic.DefaultDataServerShutdownTimeout   // 5 seconds allows graceful shutdown while preventing indefinite waits
+	defaultHelp                        = cryptoutilSharedMagic.DefaultHelp
+	defaultVerboseMode                 = cryptoutilSharedMagic.DefaultVerboseMode
+	defaultDevMode                     = cryptoutilSharedMagic.DefaultDevMode
+	defaultDemoMode                    = cryptoutilSharedMagic.DefaultDemoMode
+	defaultResetDemoMode               = cryptoutilSharedMagic.DefaultResetDemoMode
+	defaultDryRun                      = cryptoutilSharedMagic.DefaultDryRun
+	defaultProfile                     = cryptoutilSharedMagic.DefaultProfile
+	defaultOTLPEnabled                 = cryptoutilSharedMagic.DefaultOTLPEnabled
+	defaultOTLPConsole                 = cryptoutilSharedMagic.DefaultOTLPConsole
+	defaultOTLPService                 = cryptoutilSharedMagic.DefaultOTLPServiceDefault
+	defaultOTLPVersion                 = cryptoutilSharedMagic.DefaultOTLPVersionDefault
+	defaultOTLPEnvironment             = cryptoutilSharedMagic.DefaultOTLPEnvironmentDefault
+	defaultOTLPHostname                = cryptoutilSharedMagic.DefaultOTLPHostnameDefault
+	defaultOTLPEndpoint                = cryptoutilSharedMagic.DefaultOTLPEndpointDefault
+	defaultUnsealMode                  = cryptoutilSharedMagic.DefaultUnsealModeSysInfo
+	defaultTLSPublicMode               = TLSMode(cryptoutilSharedMagic.DefaultTLSPublicMode)
+	defaultTLSPrivateMode              = TLSMode(cryptoutilSharedMagic.DefaultTLSPrivateMode)
+	defaultBrowserSessionCookie        = cryptoutilSharedMagic.DefaultBrowserSessionCookie
+	defaultBrowserSessionAlgorithm     = cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm
+	defaultBrowserSessionJWSAlgorithm  = cryptoutilSharedMagic.DefaultBrowserSessionJWSAlgorithm
+	defaultBrowserSessionJWEAlgorithm  = cryptoutilSharedMagic.DefaultBrowserSessionJWEAlgorithm
+	defaultBrowserSessionExpiration    = cryptoutilSharedMagic.DefaultBrowserSessionExpiration
+	defaultServiceSessionAlgorithm     = cryptoutilSharedMagic.DefaultServiceSessionAlgorithm
+	defaultServiceSessionJWSAlgorithm  = cryptoutilSharedMagic.DefaultServiceSessionJWSAlgorithm
+	defaultServiceSessionJWEAlgorithm  = cryptoutilSharedMagic.DefaultServiceSessionJWEAlgorithm
+	defaultServiceSessionExpiration    = cryptoutilSharedMagic.DefaultServiceSessionExpiration
+	defaultSessionIdleTimeout          = cryptoutilSharedMagic.DefaultSessionIdleTimeout
+	defaultSessionCleanupInterval      = cryptoutilSharedMagic.DefaultSessionCleanupInterval
 )
 
 var (
-	defaultTLSStaticCertPEM  = cryptoutilMagic.DefaultTLSStaticCertPEM
-	defaultTLSStaticKeyPEM   = cryptoutilMagic.DefaultTLSStaticKeyPEM
-	defaultTLSMixedCACertPEM = cryptoutilMagic.DefaultTLSMixedCACertPEM
-	defaultTLSMixedCAKeyPEM  = cryptoutilMagic.DefaultTLSMixedCAKeyPEM
-	defaultBrowserRealms     = cryptoutilMagic.DefaultBrowserRealms
-	defaultServiceRealms     = cryptoutilMagic.DefaultServiceRealms
+	defaultTLSStaticCertPEM  = cryptoutilSharedMagic.DefaultTLSStaticCertPEM
+	defaultTLSStaticKeyPEM   = cryptoutilSharedMagic.DefaultTLSStaticKeyPEM
+	defaultTLSMixedCACertPEM = cryptoutilSharedMagic.DefaultTLSMixedCACertPEM
+	defaultTLSMixedCAKeyPEM  = cryptoutilSharedMagic.DefaultTLSMixedCAKeyPEM
+	defaultBrowserRealms     = cryptoutilSharedMagic.DefaultBrowserRealms
+	defaultServiceRealms     = cryptoutilSharedMagic.DefaultServiceRealms
 )
 
 // Configuration profiles for common deployment scenarios.
@@ -189,34 +189,34 @@ var profiles = map[string]map[string]any{
 	},
 }
 
-var defaultCORSAllowedOrigins = cryptoutilMagic.DefaultCORSAllowedOrigins
+var defaultCORSAllowedOrigins = cryptoutilSharedMagic.DefaultCORSAllowedOrigins
 
-var defaultAllowedIps = cryptoutilMagic.DefaultIPFilterAllowedIPs
+var defaultAllowedIps = cryptoutilSharedMagic.DefaultIPFilterAllowedIPs
 
-var defaultTLSPublicDNSNames = cryptoutilMagic.DefaultTLSPublicDNSNames
+var defaultTLSPublicDNSNames = cryptoutilSharedMagic.DefaultTLSPublicDNSNames
 
-var defaultTLSPublicIPAddresses = cryptoutilMagic.DefaultTLSPublicIPAddresses
+var defaultTLSPublicIPAddresses = cryptoutilSharedMagic.DefaultTLSPublicIPAddresses
 
-var defaultTLSPrivateDNSNames = cryptoutilMagic.DefaultTLSPrivateDNSNames
+var defaultTLSPrivateDNSNames = cryptoutilSharedMagic.DefaultTLSPrivateDNSNames
 
-var defaultTLSPrivateIPAddresses = cryptoutilMagic.DefaultTLSPrivateIPAddresses
+var defaultTLSPrivateIPAddresses = cryptoutilSharedMagic.DefaultTLSPrivateIPAddresses
 
-var defaultAllowedCIDRs = cryptoutilMagic.DefaultIPFilterAllowedCIDRs
+var defaultAllowedCIDRs = cryptoutilSharedMagic.DefaultIPFilterAllowedCIDRs
 
 var defaultSwaggerUIUsername = ""
 
 var defaultSwaggerUIPassword = ""
 
-var defaultCORSAllowedMethods = cryptoutilMagic.DefaultCORSAllowedMethods
+var defaultCORSAllowedMethods = cryptoutilSharedMagic.DefaultCORSAllowedMethods
 
-var defaultCORSAllowedHeaders = cryptoutilMagic.DefaultCORSAllowedHeaders
+var defaultCORSAllowedHeaders = cryptoutilSharedMagic.DefaultCORSAllowedHeaders
 
 var defaultOTLPInstance = func() string {
 	return googleUuid.Must(googleUuid.NewV7()).String()
 }()
-var defaultUnsealFiles = cryptoutilMagic.DefaultUnsealFiles
+var defaultUnsealFiles = cryptoutilSharedMagic.DefaultUnsealFiles
 
-var defaultConfigFiles = cryptoutilMagic.DefaultConfigFiles
+var defaultConfigFiles = cryptoutilSharedMagic.DefaultConfigFiles
 
 // set of valid subcommands.
 var subcommands = map[string]struct{}{
@@ -534,7 +534,7 @@ var (
 	privateAdminAPIContextPath = *SetEnvAndRegisterSetting(allServeiceTemplateServerRegisteredSettings, &Setting{
 		Name:        "admin-api-context-path",
 		Shorthand:   "",
-		Value:       cryptoutilMagic.DefaultPrivateAdminAPIContextPath,
+		Value:       cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath,
 		Usage:       "context path for Private Admin API",
 		Description: "Private Admin API Context Path",
 	})
@@ -1484,20 +1484,20 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 
 	// CRITICAL: In test/dev environments, reject 0.0.0.0 to prevent Windows Firewall prompts.
 	// Production containers may use 0.0.0.0 for external access (isolated network namespace).
-	if s.DevMode && s.BindPublicAddress == cryptoutilMagic.IPv4AnyAddress {
+	if s.DevMode && s.BindPublicAddress == cryptoutilSharedMagic.IPv4AnyAddress {
 		errors = append(errors, "CRITICAL: bind public address cannot be 0.0.0.0 in test/dev mode (triggers Windows Firewall prompts): use '127.0.0.1' for localhost")
 	}
 
-	if s.DevMode && s.BindPrivateAddress == cryptoutilMagic.IPv4AnyAddress {
+	if s.DevMode && s.BindPrivateAddress == cryptoutilSharedMagic.IPv4AnyAddress {
 		errors = append(errors, "CRITICAL: bind private address cannot be 0.0.0.0 in test/dev mode (triggers Windows Firewall prompts): use '127.0.0.1' for localhost")
 	}
 
 	// Validate port ranges (port 0 is valid - OS assigns dynamic port).
-	if s.BindPublicPort > cryptoutilMagic.MaxPortNumber {
+	if s.BindPublicPort > cryptoutilSharedMagic.MaxPortNumber {
 		errors = append(errors, fmt.Sprintf("invalid public port %d: must be between 0 and 65535", s.BindPublicPort))
 	}
 
-	if s.BindPrivatePort > cryptoutilMagic.MaxPortNumber {
+	if s.BindPrivatePort > cryptoutilSharedMagic.MaxPortNumber {
 		errors = append(errors, fmt.Sprintf("invalid private port %d: must be between 0 and 65535", s.BindPrivatePort))
 	}
 
@@ -1507,16 +1507,16 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 	}
 
 	// Validate protocols
-	if s.BindPublicProtocol != cryptoutilMagic.ProtocolHTTP && s.BindPublicProtocol != cryptoutilMagic.ProtocolHTTPS {
-		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be '%s' or '%s'", s.BindPublicProtocol, cryptoutilMagic.ProtocolHTTP, cryptoutilMagic.ProtocolHTTPS))
+	if s.BindPublicProtocol != cryptoutilSharedMagic.ProtocolHTTP && s.BindPublicProtocol != cryptoutilSharedMagic.ProtocolHTTPS {
+		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be '%s' or '%s'", s.BindPublicProtocol, cryptoutilSharedMagic.ProtocolHTTP, cryptoutilSharedMagic.ProtocolHTTPS))
 	}
 
-	if s.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTP && s.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTPS {
-		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be '%s' or '%s'", s.BindPrivateProtocol, cryptoutilMagic.ProtocolHTTP, cryptoutilMagic.ProtocolHTTPS))
+	if s.BindPrivateProtocol != cryptoutilSharedMagic.ProtocolHTTP && s.BindPrivateProtocol != cryptoutilSharedMagic.ProtocolHTTPS {
+		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be '%s' or '%s'", s.BindPrivateProtocol, cryptoutilSharedMagic.ProtocolHTTP, cryptoutilSharedMagic.ProtocolHTTPS))
 	}
 
 	// Validate HTTPS requirements
-	if s.BindPublicProtocol == cryptoutilMagic.ProtocolHTTPS && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
+	if s.BindPublicProtocol == cryptoutilSharedMagic.ProtocolHTTPS && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
 		errors = append(errors, "HTTPS public protocol requires TLS DNS names or IP addresses to be configured")
 	}
 
@@ -1560,14 +1560,14 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 	// Validate rate limits
 	if s.BrowserIPRateLimit == 0 {
 		errors = append(errors, "browser rate limit cannot be 0 (would block all browser requests)")
-	} else if s.BrowserIPRateLimit > cryptoutilMagic.MaxIPRateLimit {
-		errors = append(errors, fmt.Sprintf("browser rate limit %d is very high (>%d), may impact performance", s.BrowserIPRateLimit, cryptoutilMagic.MaxIPRateLimit))
+	} else if s.BrowserIPRateLimit > cryptoutilSharedMagic.MaxIPRateLimit {
+		errors = append(errors, fmt.Sprintf("browser rate limit %d is very high (>%d), may impact performance", s.BrowserIPRateLimit, cryptoutilSharedMagic.MaxIPRateLimit))
 	}
 
 	if s.ServiceIPRateLimit == 0 {
 		errors = append(errors, "service rate limit cannot be 0 (would block all service requests)")
-	} else if s.ServiceIPRateLimit > cryptoutilMagic.MaxIPRateLimit {
-		errors = append(errors, fmt.Sprintf("service rate limit %d is very high (>%d), may impact performance", s.ServiceIPRateLimit, cryptoutilMagic.MaxIPRateLimit))
+	} else if s.ServiceIPRateLimit > cryptoutilSharedMagic.MaxIPRateLimit {
+		errors = append(errors, fmt.Sprintf("service rate limit %d is very high (>%d), may impact performance", s.ServiceIPRateLimit, cryptoutilSharedMagic.MaxIPRateLimit))
 	}
 
 	// Validate OTLP endpoint format

@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/cipher/im/server"
-	"cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
+	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
 )
 
 // TestServer_AccessorMethods tests all server accessor methods (delegation to Application).
@@ -154,10 +154,10 @@ func TestServer_Shutdown(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration.
-	cfg := config.DefaultTestConfig()
+	cfg := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
 	// Create new server instance (separate from TestMain's testCipherIMServer).
-	testServer, err := server.NewFromConfig(ctx, cfg)
+	testServer, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, cfg)
 	require.NoError(t, err, "Failed to create test server")
 	require.NotNil(t, testServer, "Server should not be nil")
 
@@ -203,10 +203,10 @@ func TestServer_Start_WithInvalidContext(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration.
-	cfg := config.DefaultTestConfig()
+	cfg := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
 	// Create new server instance.
-	testServer, err := server.NewFromConfig(ctx, cfg)
+	testServer, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, cfg)
 	require.NoError(t, err, "Failed to create test server")
 	require.NotNil(t, testServer, "Server should not be nil")
 
@@ -226,9 +226,9 @@ func TestServer_Start_WithInvalidContext(t *testing.T) {
 func TestNewFromConfig_WithNilContext(t *testing.T) {
 	t.Parallel()
 
-	cfg := config.DefaultTestConfig()
+	cfg := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
-	testServer, err := server.NewFromConfig(nil, cfg) //nolint:staticcheck // SA1012: Intentionally testing nil context handling
+	testServer, err := cryptoutilAppsCipherImServer.NewFromConfig(nil, cfg) //nolint:staticcheck // SA1012: Intentionally testing nil context handling
 	require.Error(t, err, "NewFromConfig should error with nil context")
 	require.Nil(t, testServer, "Server should be nil on error")
 	require.Contains(t, err.Error(), "context cannot be nil", "Error should mention nil context")
@@ -240,7 +240,7 @@ func TestNewFromConfig_WithNilConfig(t *testing.T) {
 
 	ctx := context.Background()
 
-	testServer, err := server.NewFromConfig(ctx, nil)
+	testServer, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, nil)
 	require.Error(t, err, "NewFromConfig should error with nil config")
 	require.Nil(t, testServer, "Server should be nil on error")
 	require.Contains(t, err.Error(), "config cannot be nil", "Error should mention nil config")
@@ -251,9 +251,9 @@ func TestNewFromConfig_SuccessfulCreation(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	cfg := config.DefaultTestConfig()
+	cfg := cryptoutilAppsCipherImServerConfig.DefaultTestConfig()
 
-	testServer, err := server.NewFromConfig(ctx, cfg)
+	testServer, err := cryptoutilAppsCipherImServer.NewFromConfig(ctx, cfg)
 	require.NoError(t, err, "NewFromConfig should succeed with valid config")
 	require.NotNil(t, testServer, "Server should not be nil")
 

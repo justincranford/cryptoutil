@@ -5,17 +5,17 @@ package authz_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/apperr"
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -71,7 +71,7 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -116,7 +116,7 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 
 	config, repoFactory := createMFAAdminTestDependencies(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -154,7 +154,7 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 
 	config, repoFactory := createMFAAdminTestDependencies(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -201,7 +201,7 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -285,7 +285,7 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 	}
 	require.NoError(t, mfaFactorRepo.Create(ctx, factor2))
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -341,7 +341,7 @@ func TestHandleListMFAFactors_NoFactors(t *testing.T) {
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -371,7 +371,7 @@ func TestHandleListMFAFactors_InvalidUserID(t *testing.T) {
 
 	config, repoFactory := createMFAAdminTestDependencies(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -434,7 +434,7 @@ func TestHandleDeleteMFAFactor_HappyPath(t *testing.T) {
 	}
 	require.NoError(t, mfaFactorRepo.Create(ctx, factor))
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -452,7 +452,7 @@ func TestHandleDeleteMFAFactor_HappyPath(t *testing.T) {
 	// Verify factor is soft-deleted (should return error).
 	deletedFactor, err := mfaFactorRepo.GetByID(ctx, factor.ID)
 	require.Error(t, err, "Should error when getting deleted factor")
-	require.ErrorIs(t, err, apperr.ErrMFAFactorNotFound)
+	require.ErrorIs(t, err, cryptoutilIdentityAppErr.ErrMFAFactorNotFound)
 	require.Nil(t, deletedFactor, "Deleted factor should be nil")
 }
 
@@ -472,7 +472,7 @@ func TestHandleDeleteMFAFactor_FactorNotFound(t *testing.T) {
 	}
 	require.NoError(t, userRepo.Create(ctx, user))
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
@@ -546,7 +546,7 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 	}
 	require.NoError(t, mfaFactorRepo.Create(ctx, factor))
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 

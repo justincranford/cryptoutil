@@ -8,7 +8,7 @@ import (
 	"time"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RequireNewForTest creates a new identity config for testing.
@@ -16,53 +16,53 @@ func RequireNewForTest(_ string) *Config {
 	return &Config{
 		AuthZ: &ServerConfig{
 			Name:             "authz",
-			BindAddress:      cryptoutilMagic.IPv4Loopback,
-			Port:             int(cryptoutilMagic.DefaultPublicPortCryptoutil),
+			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+			Port:             int(cryptoutilSharedMagic.DefaultPublicPortCryptoutil),
 			TLSEnabled:       true,
 			TLSCertFile:      "",
 			TLSKeyFile:       "",
-			ReadTimeout:      cryptoutilMagic.TestTimeoutCryptoutilReady,
-			WriteTimeout:     cryptoutilMagic.TestTimeoutCryptoutilReady,
-			IdleTimeout:      cryptoutilMagic.TimeoutTestServerReady,
+			ReadTimeout:      cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
+			WriteTimeout:     cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
+			IdleTimeout:      cryptoutilSharedMagic.TimeoutTestServerReady,
 			AdminEnabled:     true,
-			AdminBindAddress: cryptoutilMagic.IPv4Loopback,
-			AdminPort:        int(cryptoutilMagic.DefaultPrivatePortCryptoutil),
+			AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			AdminPort:        int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil),
 		},
 		IDP: &ServerConfig{
 			Name:             "idp",
-			BindAddress:      cryptoutilMagic.IPv4Loopback,
-			Port:             int(cryptoutilMagic.DefaultPublicPortCryptoutilCompose1),
+			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+			Port:             int(cryptoutilSharedMagic.DefaultPublicPortCryptoutilCompose1),
 			TLSEnabled:       true,
 			TLSCertFile:      "",
 			TLSKeyFile:       "",
-			ReadTimeout:      cryptoutilMagic.TestTimeoutCryptoutilReady,
-			WriteTimeout:     cryptoutilMagic.TestTimeoutCryptoutilReady,
-			IdleTimeout:      cryptoutilMagic.TimeoutTestServerReady,
+			ReadTimeout:      cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
+			WriteTimeout:     cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
+			IdleTimeout:      cryptoutilSharedMagic.TimeoutTestServerReady,
 			AdminEnabled:     true,
-			AdminBindAddress: cryptoutilMagic.IPv4Loopback,
-			AdminPort:        int(cryptoutilMagic.DefaultPrivatePortCryptoutil) + 1,
+			AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			AdminPort:        int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil) + 1,
 		},
 		RS: &ServerConfig{
 			Name:             "rs",
-			BindAddress:      cryptoutilMagic.IPv4Loopback,
-			Port:             int(cryptoutilMagic.DefaultPublicPortCryptoutilCompose2),
+			BindAddress:      cryptoutilSharedMagic.IPv4Loopback,
+			Port:             int(cryptoutilSharedMagic.DefaultPublicPortCryptoutilCompose2),
 			TLSEnabled:       true,
 			TLSCertFile:      "",
 			TLSKeyFile:       "",
-			ReadTimeout:      cryptoutilMagic.TestTimeoutCryptoutilReady,
-			WriteTimeout:     cryptoutilMagic.TestTimeoutCryptoutilReady,
-			IdleTimeout:      cryptoutilMagic.TimeoutTestServerReady,
+			ReadTimeout:      cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
+			WriteTimeout:     cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
+			IdleTimeout:      cryptoutilSharedMagic.TimeoutTestServerReady,
 			AdminEnabled:     true,
-			AdminBindAddress: cryptoutilMagic.IPv4Loopback,
-			AdminPort:        int(cryptoutilMagic.DefaultPrivatePortCryptoutil) + 2,
+			AdminBindAddress: cryptoutilSharedMagic.IPv4Loopback,
+			AdminPort:        int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil) + 2,
 		},
 		Database: &DatabaseConfig{
 			Type:         "sqlite",
 			DSN:          ":memory:",
-			MaxOpenConns: cryptoutilMagic.SQLiteMaxOpenConnections,
+			MaxOpenConns: cryptoutilSharedMagic.SQLiteMaxOpenConnections,
 		},
 		Tokens: &TokenConfig{
-			AccessTokenLifetime:  cryptoutilMagic.TestTimeoutCryptoutilReady,
+			AccessTokenLifetime:  cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
 			RefreshTokenLifetime: cryptoutilIdentityMagic.TestRefreshTokenLifetime,
 			Issuer:               "test-issuer",
 		},
@@ -75,7 +75,7 @@ func RequireNewForTest(_ string) *Config {
 		Security: &SecurityConfig{
 			CORSAllowedOrigins: []string{"*"},
 			RateLimitEnabled:   false,
-			RateLimitRequests:  int(cryptoutilMagic.DefaultPublicBrowserAPIIPRateLimit),
+			RateLimitRequests:  int(cryptoutilSharedMagic.DefaultPublicBrowserAPIIPRateLimit),
 			RateLimitWindow:    time.Minute,
 		},
 		Observability: &ObservabilityConfig{

@@ -9,13 +9,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	cryptoutilAuthzServer "cryptoutil/internal/apps/identity/authz/server"
+	cryptoutilAppsIdentityAuthzServer "cryptoutil/internal/apps/identity/authz/server"
 	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity/authz/server/config"
 )
 
@@ -84,7 +84,7 @@ func startService(parameters []string) {
 	ctx := context.Background()
 
 	// Create Authz server using template-based implementation.
-	server, err := cryptoutilAuthzServer.NewFromConfig(ctx, settings)
+	server, err := cryptoutilAppsIdentityAuthzServer.NewFromConfig(ctx, settings)
 	if err != nil {
 		log.Fatalf("Failed to create Authz server: %v", err)
 	}

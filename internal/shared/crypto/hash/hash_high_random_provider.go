@@ -5,15 +5,15 @@
 package hash
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"strings"
 
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // HashHighEntropyNonDeterministic hashes a high-entropy secret (e.g., API key, token) using a random salt.
@@ -38,22 +38,22 @@ func HashSecretHKDFRandom(secret string) (string, error) {
 	}
 
 	// Generate random salt.
-	salt := make([]byte, cryptoutilMagic.PBKDF2DefaultSaltBytes)
-	if _, err := rand.Read(salt); err != nil {
+	salt := make([]byte, cryptoutilSharedMagic.PBKDF2DefaultSaltBytes)
+	if _, err := crand.Read(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
 	// Derive key using HKDF-SHA256.
-	dk, err := cryptoutilDigests.HKDF(cryptoutilMagic.SHA256, []byte(secret), salt, nil, cryptoutilMagic.PBKDF2DerivedKeyLength)
+	dk, err := cryptoutilSharedCryptoDigests.HKDF(cryptoutilSharedMagic.SHA256, []byte(secret), salt, nil, cryptoutilSharedMagic.PBKDF2DerivedKeyLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF failed: %w", err)
 	}
 
 	return fmt.Sprintf("%s%s%s%s%s",
-		cryptoutilMagic.HKDFHashName,
-		cryptoutilMagic.HKDFDelimiter,
+		cryptoutilSharedMagic.HKDFHashName,
+		cryptoutilSharedMagic.HKDFDelimiter,
 		base64.RawStdEncoding.EncodeToString(salt),
-		cryptoutilMagic.HKDFDelimiter,
+		cryptoutilSharedMagic.HKDFDelimiter,
 		base64.RawStdEncoding.EncodeToString(dk)), nil
 }
 
@@ -78,8 +78,8 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 	}
 
 	hashName := parts[0]
-	if hashName != cryptoutilMagic.HKDFHashName {
-		return false, fmt.Errorf("unsupported hash algorithm: %s (expected: %s)", hashName, cryptoutilMagic.HKDFHashName)
+	if hashName != cryptoutilSharedMagic.HKDFHashName {
+		return false, fmt.Errorf("unsupported hash algorithm: %s (expected: %s)", hashName, cryptoutilSharedMagic.HKDFHashName)
 	}
 
 	salt, err := base64.RawStdEncoding.DecodeString(parts[1])
@@ -93,7 +93,7 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 	}
 
 	// Derive key from provided secret using HKDF-SHA256.
-	providedDK, err := cryptoutilDigests.HKDF(cryptoutilMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
+	providedDK, err := cryptoutilSharedCryptoDigests.HKDF(cryptoutilSharedMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
 	if err != nil {
 		return false, fmt.Errorf("HKDF failed: %w", err)
 	}

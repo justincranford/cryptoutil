@@ -12,29 +12,29 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for JOSE Authority service.
 type AdminServer struct {
-	settings    *cryptoutilConfig.ServiceTemplateServerSettings
+	settings    *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	app         *fiber.App
 	listener    net.Listener
 	mu          sync.RWMutex
 	ready       bool
 	shutdown    bool
-	tlsMaterial *cryptoutilConfig.TLSMaterial
+	tlsMaterial *cryptoutilAppsTemplateServiceConfig.TLSMaterial
 }
 
 // NewAdminHTTPServer creates a new admin server instance for private administrative operations.
 func NewAdminHTTPServer(
 	ctx context.Context,
-	settings *cryptoutilConfig.ServiceTemplateServerSettings,
-	tlsCfg *cryptoutilTLSGenerator.TLSGeneratedSettings,
+	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
+	tlsCfg *cryptoutilAppsTemplateServiceConfigTlsGenerator.TLSGeneratedSettings,
 ) (*AdminServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -45,7 +45,7 @@ func NewAdminHTTPServer(
 	}
 
 	// Generate TLS material using centralized infrastructure.
-	tlsMaterial, err := cryptoutilTLSGenerator.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}
@@ -183,7 +183,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	// Bind to localhost only (127.0.0.1 explicit, not localhost due to IPv6 issues).
 	const defaultAdminPort = 9090
 
-	addr := fmt.Sprintf("%s:%d", cryptoutilMagic.IPv4Loopback, defaultAdminPort)
+	addr := fmt.Sprintf("%s:%d", cryptoutilSharedMagic.IPv4Loopback, defaultAdminPort)
 
 	// Create listener.
 	var lc net.ListenConfig

@@ -28,7 +28,7 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	"cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // setupVerificationTestDB creates an in-memory SQLite database for testing verification service.
@@ -62,14 +62,14 @@ func setupVerificationTestDB(t *testing.T) *gorm.DB {
 
 	// Auto-migrate all required tables.
 	err = db.AutoMigrate(
-		&repository.Tenant{},
-		&repository.User{},
-		&repository.Client{},
-		&repository.UnverifiedUser{},
-		&repository.UnverifiedClient{},
-		&repository.Role{},
-		&repository.UserRole{},
-		&repository.ClientRole{},
+		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
+		&cryptoutilAppsTemplateServiceServerRepository.User{},
+		&cryptoutilAppsTemplateServiceServerRepository.Client{},
+		&cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{},
+		&cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{},
+		&cryptoutilAppsTemplateServiceServerRepository.Role{},
+		&cryptoutilAppsTemplateServiceServerRepository.UserRole{},
+		&cryptoutilAppsTemplateServiceServerRepository.ClientRole{},
 	)
 	require.NoError(t, err)
 
@@ -82,13 +82,13 @@ func setupVerificationService(t *testing.T) (VerificationService, *gorm.DB) {
 
 	db := setupVerificationTestDB(t)
 
-	userRepo := repository.NewUserRepository(db)
-	clientRepo := repository.NewClientRepository(db)
-	unverifiedUserRepo := repository.NewUnverifiedUserRepository(db)
-	unverifiedClientRepo := repository.NewUnverifiedClientRepository(db)
-	roleRepo := repository.NewRoleRepository(db)
-	userRoleRepo := repository.NewUserRoleRepository(db)
-	clientRoleRepo := repository.NewClientRoleRepository(db)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
+	clientRepo := cryptoutilAppsTemplateServiceServerRepository.NewClientRepository(db)
+	unverifiedUserRepo := cryptoutilAppsTemplateServiceServerRepository.NewUnverifiedUserRepository(db)
+	unverifiedClientRepo := cryptoutilAppsTemplateServiceServerRepository.NewUnverifiedClientRepository(db)
+	roleRepo := cryptoutilAppsTemplateServiceServerRepository.NewRoleRepository(db)
+	userRoleRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRoleRepository(db)
+	clientRoleRepo := cryptoutilAppsTemplateServiceServerRepository.NewClientRoleRepository(db)
 
 	svc := NewVerificationService(
 		userRepo,
@@ -104,10 +104,10 @@ func setupVerificationService(t *testing.T) (VerificationService, *gorm.DB) {
 }
 
 // createTestTenantAndRole creates a tenant and role for testing.
-func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*repository.Tenant, *repository.Role) {
+func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, *cryptoutilAppsTemplateServiceServerRepository.Role) {
 	t.Helper()
 
-	tenant := &repository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:          googleUuid.New(),
 		Name:        tenantName,
 		Description: "Test tenant",
@@ -115,7 +115,7 @@ func createTestTenantAndRole(t *testing.T, db *gorm.DB, tenantName string) (*rep
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
-	role := &repository.Role{
+	role := &cryptoutilAppsTemplateServiceServerRepository.Role{
 		ID:          googleUuid.New(),
 		TenantID:    tenant.ID,
 		Name:        "user_" + googleUuid.NewString()[:8],
@@ -137,7 +137,7 @@ func TestVerificationService_ListPendingUsers(t *testing.T) {
 
 	// Create pending users.
 	for i := 0; i < 3; i++ {
-		unverifiedUser := &repository.UnverifiedUser{
+		unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 			ID:           googleUuid.New(),
 			TenantID:     tenant.ID,
 			Username:     "user" + googleUuid.NewString()[:8],
@@ -165,7 +165,7 @@ func TestVerificationService_ListPendingClients(t *testing.T) {
 
 	// Create pending clients.
 	for i := 0; i < 2; i++ {
-		unverifiedClient := &repository.UnverifiedClient{
+		unverifiedClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:               googleUuid.New(),
 			TenantID:         tenant.ID,
 			ClientID:         "client" + googleUuid.NewString()[:8],
@@ -191,7 +191,7 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 	tenant, role := createTestTenantAndRole(t, db, "approve-user-"+googleUuid.NewString()[:8])
 
 	// Create unverified user.
-	unverifiedUser := &repository.UnverifiedUser{
+	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		Username:     "pendinguser" + googleUuid.NewString()[:8],
@@ -213,11 +213,11 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 	// Verify unverified user was deleted.
 	var count int64
 
-	db.Model(&repository.UnverifiedUser{}).Where("id = ?", unverifiedUser.ID).Count(&count)
+	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{}).Where("id = ?", unverifiedUser.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 
 	// Verify role was assigned.
-	var userRole repository.UserRole
+	var userRole cryptoutilAppsTemplateServiceServerRepository.UserRole
 
 	err = db.Where("user_id = ? AND role_id = ?", user.ID, role.ID).First(&userRole).Error
 	require.NoError(t, err)
@@ -233,7 +233,7 @@ func TestVerificationService_ApproveUser_ExpiredRegistration(t *testing.T) {
 	tenant, role := createTestTenantAndRole(t, db, "approve-expired-"+googleUuid.NewString()[:8])
 
 	// Create expired unverified user.
-	unverifiedUser := &repository.UnverifiedUser{
+	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		Username:     "expireduser" + googleUuid.NewString()[:8],
@@ -260,7 +260,7 @@ func TestVerificationService_ApproveUser_WrongTenant(t *testing.T) {
 	tenant2, _ := createTestTenantAndRole(t, db, "tenant2-"+googleUuid.NewString()[:8])
 
 	// Create unverified user in tenant1.
-	unverifiedUser := &repository.UnverifiedUser{
+	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant1.ID,
 		Username:     "wrongtenantuser" + googleUuid.NewString()[:8],
@@ -286,7 +286,7 @@ func TestVerificationService_ApproveUser_NoRoles(t *testing.T) {
 	tenant, _ := createTestTenantAndRole(t, db, "no-roles-"+googleUuid.NewString()[:8])
 
 	// Create unverified user.
-	unverifiedUser := &repository.UnverifiedUser{
+	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		Username:     "norolesuser" + googleUuid.NewString()[:8],
@@ -312,7 +312,7 @@ func TestVerificationService_ApproveClient_Success(t *testing.T) {
 	tenant, role := createTestTenantAndRole(t, db, "approve-client-"+googleUuid.NewString()[:8])
 
 	// Create unverified client.
-	unverifiedClient := &repository.UnverifiedClient{
+	unverifiedClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         "pendingclient" + googleUuid.NewString()[:8],
@@ -332,7 +332,7 @@ func TestVerificationService_ApproveClient_Success(t *testing.T) {
 	// Verify unverified client was deleted.
 	var count int64
 
-	db.Model(&repository.UnverifiedClient{}).Where("id = ?", unverifiedClient.ID).Count(&count)
+	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{}).Where("id = ?", unverifiedClient.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
 
@@ -346,7 +346,7 @@ func TestVerificationService_RejectUser(t *testing.T) {
 	tenant, _ := createTestTenantAndRole(t, db, "reject-user-"+googleUuid.NewString()[:8])
 
 	// Create unverified user.
-	unverifiedUser := &repository.UnverifiedUser{
+	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		Username:     "rejectuser" + googleUuid.NewString()[:8],
@@ -363,7 +363,7 @@ func TestVerificationService_RejectUser(t *testing.T) {
 	// Verify unverified user was deleted.
 	var count int64
 
-	db.Model(&repository.UnverifiedUser{}).Where("id = ?", unverifiedUser.ID).Count(&count)
+	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{}).Where("id = ?", unverifiedUser.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
 
@@ -377,7 +377,7 @@ func TestVerificationService_RejectClient(t *testing.T) {
 	tenant, _ := createTestTenantAndRole(t, db, "reject-client-"+googleUuid.NewString()[:8])
 
 	// Create unverified client.
-	unverifiedClient := &repository.UnverifiedClient{
+	unverifiedClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         "rejectclient" + googleUuid.NewString()[:8],
@@ -393,7 +393,7 @@ func TestVerificationService_RejectClient(t *testing.T) {
 	// Verify unverified client was deleted.
 	var count int64
 
-	db.Model(&repository.UnverifiedClient{}).Where("id = ?", unverifiedClient.ID).Count(&count)
+	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{}).Where("id = ?", unverifiedClient.ID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
 
@@ -407,7 +407,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 	tenant, _ := createTestTenantAndRole(t, db, "cleanup-"+googleUuid.NewString()[:8])
 
 	// Create expired and non-expired users.
-	expiredUser := &repository.UnverifiedUser{
+	expiredUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		Username:     "expireduser" + googleUuid.NewString()[:8],
@@ -417,7 +417,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 	}
 	require.NoError(t, db.Create(expiredUser).Error)
 
-	validUser := &repository.UnverifiedUser{
+	validUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     tenant.ID,
 		Username:     "validuser" + googleUuid.NewString()[:8],
@@ -428,7 +428,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 	require.NoError(t, db.Create(validUser).Error)
 
 	// Create expired client.
-	expiredClient := &repository.UnverifiedClient{
+	expiredClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 		ID:               googleUuid.New(),
 		TenantID:         tenant.ID,
 		ClientID:         "expiredclient" + googleUuid.NewString()[:8],
@@ -444,17 +444,17 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 	// Verify expired records were deleted.
 	var expiredUserCount int64
 
-	db.Model(&repository.UnverifiedUser{}).Where("id = ?", expiredUser.ID).Count(&expiredUserCount)
+	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{}).Where("id = ?", expiredUser.ID).Count(&expiredUserCount)
 	require.Equal(t, int64(0), expiredUserCount)
 
 	var expiredClientCount int64
 
-	db.Model(&repository.UnverifiedClient{}).Where("id = ?", expiredClient.ID).Count(&expiredClientCount)
+	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{}).Where("id = ?", expiredClient.ID).Count(&expiredClientCount)
 	require.Equal(t, int64(0), expiredClientCount)
 
 	// Verify valid user still exists.
 	var validUserCount int64
 
-	db.Model(&repository.UnverifiedUser{}).Where("id = ?", validUser.ID).Count(&validUserCount)
+	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{}).Where("id = ?", validUser.ID).Count(&validUserCount)
 	require.Equal(t, int64(1), validUserCount)
 }

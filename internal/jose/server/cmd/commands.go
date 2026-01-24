@@ -14,10 +14,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilJoseServer "cryptoutil/internal/jose/server"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NewStartCommand creates the start command for the JOSE server.
@@ -62,7 +62,7 @@ Examples:
 
 			// Load configuration - avoid config.Parse() to prevent CLI flag conflicts.
 			// JOSE uses simple settings without full config parsing.
-			settings := cryptoutilConfig.NewForJOSEServer(bindAddr, bindPort, devMode)
+			settings := cryptoutilAppsTemplateServiceConfig.NewForJOSEServer(bindAddr, bindPort, devMode)
 
 			// Override with config files if provided.
 			if len(configFiles) > 0 {
@@ -72,7 +72,7 @@ Examples:
 					parseArgs = append(parseArgs, "--config", cf)
 				}
 
-				loadedSettings, err := cryptoutilConfig.Parse(parseArgs, false)
+				loadedSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(parseArgs, false)
 				if err != nil {
 					return fmt.Errorf("failed to load config files: %w", err)
 				}
@@ -82,10 +82,10 @@ Examples:
 			}
 
 			// Create TLS config for JOSE server.
-			tlsCfg, err := cryptoutilTLSGenerator.GenerateAutoTLSGeneratedSettings(
+			tlsCfg, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
 				[]string{},
 				[]string{"127.0.0.1", "::1"},
-				cryptoutilMagic.TLSTestEndEntityCertValidity1Year,
+				cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
 			)
 			if err != nil {
 				return fmt.Errorf("failed to generate TLS config: %w", err)
@@ -110,8 +110,8 @@ Examples:
 	}
 
 	cmd.Flags().StringSliceVarP(&configFiles, "config", "c", nil, "Path to configuration file (can be specified multiple times)")
-	cmd.Flags().StringVarP(&bindAddr, "bind", "b", cryptoutilMagic.IPv4Loopback, "Bind address")
-	cmd.Flags().Uint16VarP(&bindPort, "port", "p", cryptoutilMagic.DefaultPublicPortJOSEServer, "Bind port")
+	cmd.Flags().StringVarP(&bindAddr, "bind", "b", cryptoutilSharedMagic.IPv4Loopback, "Bind address")
+	cmd.Flags().Uint16VarP(&bindPort, "port", "p", cryptoutilSharedMagic.DefaultPublicPortJOSEServer, "Bind port")
 	cmd.Flags().BoolVar(&devMode, "dev", false, "Enable development mode (relaxed security)")
 
 	return cmd

@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
@@ -51,15 +51,15 @@ func setupAuditLogTestDB(t *testing.T) *gorm.DB {
 	// Auto-migrate required tables.
 	err = db.AutoMigrate(
 		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
-		&domain.AuditLogEntry{},
+		&cryptoutilJoseDomain.AuditLogEntry{},
 	)
 	require.NoError(t, err)
 
 	return db
 }
 
-func createTestAuditLogEntry(tenantID, realmID googleUuid.UUID, operation string) *domain.AuditLogEntry {
-	return &domain.AuditLogEntry{
+func createTestAuditLogEntry(tenantID, realmID googleUuid.UUID, operation string) *cryptoutilJoseDomain.AuditLogEntry {
+	return &cryptoutilJoseDomain.AuditLogEntry{
 		ID:           googleUuid.New(),
 		TenantID:     tenantID,
 		RealmID:      realmID,
@@ -76,7 +76,7 @@ func createTestAuditLogEntry(tenantID, realmID googleUuid.UUID, operation string
 func TestAuditLogGormRepository_Create(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -99,13 +99,13 @@ func TestAuditLogGormRepository_Create(t *testing.T) {
 func TestAuditLogGormRepository_Create_AutoGenerateID(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
 	realmID := googleUuid.New()
 
-	entry := &domain.AuditLogEntry{
+	entry := &cryptoutilJoseDomain.AuditLogEntry{
 		ID:           googleUuid.Nil, // Should auto-generate.
 		TenantID:     tenantID,
 		RealmID:      realmID,
@@ -123,7 +123,7 @@ func TestAuditLogGormRepository_Create_AutoGenerateID(t *testing.T) {
 func TestAuditLogGormRepository_GetByID(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -142,7 +142,7 @@ func TestAuditLogGormRepository_GetByID(t *testing.T) {
 func TestAuditLogGormRepository_GetByID_NotFound(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	result, err := repo.GetByID(ctx, googleUuid.New())
@@ -154,7 +154,7 @@ func TestAuditLogGormRepository_GetByID_NotFound(t *testing.T) {
 func TestAuditLogGormRepository_ListByTenantRealm(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -187,7 +187,7 @@ func TestAuditLogGormRepository_ListByTenantRealm(t *testing.T) {
 func TestAuditLogGormRepository_ListByTenantRealm_Empty(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -201,7 +201,7 @@ func TestAuditLogGormRepository_ListByTenantRealm_Empty(t *testing.T) {
 func TestAuditLogGormRepository_ListByOperation(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -228,7 +228,7 @@ func TestAuditLogGormRepository_ListByOperation(t *testing.T) {
 func TestAuditLogGormRepository_ListByResource(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -237,7 +237,7 @@ func TestAuditLogGormRepository_ListByResource(t *testing.T) {
 
 	// Create entries for same resource.
 	for i := 0; i < 3; i++ {
-		entry := &domain.AuditLogEntry{
+		entry := &cryptoutilJoseDomain.AuditLogEntry{
 			ID:           googleUuid.New(),
 			TenantID:     tenantID,
 			RealmID:      realmID,
@@ -264,7 +264,7 @@ func TestAuditLogGormRepository_ListByResource(t *testing.T) {
 func TestAuditLogGormRepository_ListByTimeRange(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -300,7 +300,7 @@ func TestAuditLogGormRepository_ListByTimeRange(t *testing.T) {
 func TestAuditLogGormRepository_Count(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -321,7 +321,7 @@ func TestAuditLogGormRepository_Count(t *testing.T) {
 func TestAuditLogGormRepository_Count_Isolation(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenant1 := googleUuid.New()
@@ -355,7 +355,7 @@ func TestAuditLogGormRepository_Count_Isolation(t *testing.T) {
 func TestAuditLogGormRepository_DeleteOlderThan(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -386,7 +386,7 @@ func TestAuditLogGormRepository_DeleteOlderThan(t *testing.T) {
 func TestAuditLogGormRepository_DeleteOlderThan_Partial(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -427,7 +427,7 @@ func TestAuditLogGormRepository_DeleteOlderThan_Partial(t *testing.T) {
 func TestAuditLogGormRepository_CreateWithSampling_Always(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -448,7 +448,7 @@ func TestAuditLogGormRepository_CreateWithSampling_Always(t *testing.T) {
 func TestAuditLogGormRepository_CreateWithSampling_Never(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -469,7 +469,7 @@ func TestAuditLogGormRepository_CreateWithSampling_Never(t *testing.T) {
 func TestAuditLogGormRepository_CreateWithSampling_Probabilistic(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -501,7 +501,7 @@ func TestAuditLogGormRepository_CreateWithSampling_Probabilistic(t *testing.T) {
 func TestAuditLogGormRepository_WithOptionalFields(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -510,7 +510,7 @@ func TestAuditLogGormRepository_WithOptionalFields(t *testing.T) {
 	errorMsg := "operation failed"
 	metadata := `{"key": "value"}`
 
-	entry := &domain.AuditLogEntry{
+	entry := &cryptoutilJoseDomain.AuditLogEntry{
 		ID:           googleUuid.New(),
 		TenantID:     tenantID,
 		RealmID:      realmID,
@@ -539,7 +539,7 @@ func TestAuditLogGormRepository_WithOptionalFields(t *testing.T) {
 func TestAuditLogGormRepository_WithTransaction(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()
@@ -568,7 +568,7 @@ func TestAuditLogGormRepository_WithTransaction(t *testing.T) {
 func TestAuditLogGormRepository_WithTransaction_Rollback(t *testing.T) {
 	t.Parallel()
 	db := setupAuditLogTestDB(t)
-	repo := repository.NewAuditLogGormRepository(db)
+	repo := cryptoutilJoseRepository.NewAuditLogGormRepository(db)
 	ctx := context.Background()
 
 	tenantID := googleUuid.New()

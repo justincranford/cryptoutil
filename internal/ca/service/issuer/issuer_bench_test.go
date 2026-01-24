@@ -3,10 +3,10 @@
 package issuer
 
 import (
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"math/big"
@@ -22,7 +22,7 @@ import (
 // BenchmarkCertificateIssuance_ECDSA measures end-entity certificate issuance with ECDSA keys.
 func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 	// Setup issuing CA.
-	caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	caKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(b, err)
 
 	caCert := &x509.Certificate{
@@ -38,7 +38,7 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 	}
 
-	caCertDER, err := x509.CreateCertificate(rand.Reader, caCert, caCert, &caKey.PublicKey, caKey)
+	caCertDER, err := x509.CreateCertificate(crand.Reader, caCert, caCert, &caKey.PublicKey, caKey)
 	require.NoError(b, err)
 
 	caCert, err = x509.ParseCertificate(caCertDER)
@@ -55,7 +55,7 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 	require.NoError(b, err)
 
 	// Generate end-entity key once.
-	eeKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	eeKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(b, err)
 
 	req := &CertificateRequest{
@@ -82,7 +82,7 @@ func BenchmarkCertificateIssuance_ECDSA(b *testing.B) {
 // BenchmarkCertificateIssuance_RSA measures end-entity certificate issuance with RSA keys.
 func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 	// Setup issuing CA with RSA key.
-	caKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	caKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(b, err)
 
 	caCert := &x509.Certificate{
@@ -98,7 +98,7 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 	}
 
-	caCertDER, err := x509.CreateCertificate(rand.Reader, caCert, caCert, &caKey.PublicKey, caKey)
+	caCertDER, err := x509.CreateCertificate(crand.Reader, caCert, caCert, &caKey.PublicKey, caKey)
 	require.NoError(b, err)
 
 	caCert, err = x509.ParseCertificate(caCertDER)
@@ -115,7 +115,7 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 	require.NoError(b, err)
 
 	// Generate end-entity RSA key once.
-	eeKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	eeKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(b, err)
 
 	req := &CertificateRequest{
@@ -142,7 +142,7 @@ func BenchmarkCertificateIssuance_RSA(b *testing.B) {
 // BenchmarkCertificateIssuance_Parallel measures concurrent certificate issuance.
 func BenchmarkCertificateIssuance_Parallel(b *testing.B) {
 	// Setup issuing CA.
-	caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	caKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(b, err)
 
 	caCert := &x509.Certificate{
@@ -158,7 +158,7 @@ func BenchmarkCertificateIssuance_Parallel(b *testing.B) {
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 	}
 
-	caCertDER, err := x509.CreateCertificate(rand.Reader, caCert, caCert, &caKey.PublicKey, caKey)
+	caCertDER, err := x509.CreateCertificate(crand.Reader, caCert, caCert, &caKey.PublicKey, caKey)
 	require.NoError(b, err)
 
 	caCert, err = x509.ParseCertificate(caCertDER)
@@ -178,7 +178,7 @@ func BenchmarkCertificateIssuance_Parallel(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		// Each goroutine generates its own key.
-		eeKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		eeKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 		require.NoError(b, err)
 
 		req := &CertificateRequest{

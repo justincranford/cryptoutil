@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // enforceTestPatterns enforces test patterns including UUIDv7 usage and testify assertions.
@@ -92,7 +92,7 @@ func checkTestFile(filePath string) []string {
 	}
 
 	// Pattern 2: Check for hardcoded UUIDs (basic pattern).
-	uuidPattern := regexp.MustCompile(cryptoutilMagic.StringUUIDRegexPattern)
+	uuidPattern := regexp.MustCompile(cryptoutilSharedMagic.StringUUIDRegexPattern)
 	if uuidPattern.MatchString(contentStr) {
 		issues = append(issues, "Found hardcoded UUID - consider using uuid.NewV7() for test data")
 	}
@@ -100,13 +100,13 @@ func checkTestFile(filePath string) []string {
 	// Pattern 3: Check for testify usage patterns.
 	// Look for t.Errorf/t.Fatalf that should use require/assert.
 	// Use a more sophisticated pattern to avoid matching string literals.
-	if cryptoutilMagic.TestErrorfPattern.MatchString(contentStr) {
-		matches := cryptoutilMagic.TestErrorfPattern.FindAllString(contentStr, -1)
+	if cryptoutilSharedMagic.TestErrorfPattern.MatchString(contentStr) {
+		matches := cryptoutilSharedMagic.TestErrorfPattern.FindAllString(contentStr, -1)
 		issues = append(issues, fmt.Sprintf("Found %d instances of t.Errorf() - should use require.Errorf() or assert.Errorf()", len(matches)))
 	}
 
-	if cryptoutilMagic.TestFatalfPattern.MatchString(contentStr) {
-		matches := cryptoutilMagic.TestFatalfPattern.FindAllString(contentStr, -1)
+	if cryptoutilSharedMagic.TestFatalfPattern.MatchString(contentStr) {
+		matches := cryptoutilSharedMagic.TestFatalfPattern.FindAllString(contentStr, -1)
 		issues = append(issues, fmt.Sprintf("Found %d instances of t.Fatalf() - should use require.Fatalf() or assert.Fatalf()", len(matches)))
 	}
 

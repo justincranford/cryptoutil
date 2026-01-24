@@ -12,8 +12,8 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/identity/email"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityRateLimit "cryptoutil/internal/identity/ratelimit"
-	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilIdentityRatelimit "cryptoutil/internal/identity/ratelimit"
+	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -22,7 +22,7 @@ import (
 type EmailOTPService struct {
 	emailOTPRepo EmailOTPRepository
 	emailService cryptoutilIdentityEmail.EmailService
-	rateLimiter  *cryptoutilIdentityRateLimit.RateLimiter
+	rateLimiter  *cryptoutilIdentityRatelimit.RateLimiter
 }
 
 // EmailOTPRepository defines minimal repository interface needed by EmailOTPService.
@@ -40,7 +40,7 @@ func NewEmailOTPService(
 	return &EmailOTPService{
 		emailOTPRepo: emailOTPRepo,
 		emailService: emailService,
-		rateLimiter: cryptoutilIdentityRateLimit.NewRateLimiter(
+		rateLimiter: cryptoutilIdentityRatelimit.NewRateLimiter(
 			cryptoutilIdentityMagic.DefaultEmailOTPRateLimit,
 			cryptoutilIdentityMagic.DefaultEmailOTPRateLimitWindow,
 		),
@@ -61,7 +61,7 @@ func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, e
 	}
 
 	// Hash OTP with PBKDF2 (FIPS-compliant).
-	hashedOTP, err := cryptoutilPassword.HashPassword(plainOTP)
+	hashedOTP, err := cryptoutilSharedCryptoPassword.HashPassword(plainOTP)
 	if err != nil {
 		return fmt.Errorf("failed to hash OTP: %w", err)
 	}
@@ -110,7 +110,7 @@ func (s *EmailOTPService) VerifyOTP(ctx context.Context, userID googleUuid.UUID,
 	}
 
 	// Verify OTP code (PBKDF2-HMAC-SHA256, FIPS-compliant).
-	match, _, err := cryptoutilPassword.VerifyPassword(code, otp.CodeHash)
+	match, _, err := cryptoutilSharedCryptoPassword.VerifyPassword(code, otp.CodeHash)
 	if err != nil {
 		return fmt.Errorf("%w: verification failed", cryptoutilIdentityAppErr.ErrInvalidOTP)
 	}

@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/identity/authz"
+	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -35,7 +35,7 @@ func TestHandleAuthorizeGET_HappyPath(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClient(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -69,7 +69,7 @@ func TestHandleAuthorizeGET_InvalidClientID(t *testing.T) {
 	config := createAuthorizeComprehensiveTestConfig(t)
 	repoFactory := createAuthorizeComprehensiveTestRepoFactory(t)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -106,7 +106,7 @@ func TestHandleAuthorizeGET_InvalidRedirectURI(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClient(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -145,7 +145,7 @@ func TestHandleAuthorizeGET_UnsupportedResponseType(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClient(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -184,7 +184,7 @@ func TestHandleAuthorizeGET_MissingCodeChallenge(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClient(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -221,7 +221,7 @@ func TestHandleAuthorizeGET_InvalidCodeChallengeMethod(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClient(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -260,7 +260,7 @@ func TestHandleAuthorizePOST_HappyPath(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClient(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()
@@ -299,7 +299,7 @@ func TestHandleAuthorizePOST_MissingPKCE(t *testing.T) {
 	ctx := context.Background()
 	testClient := createTestClient(ctx, t, repoFactory)
 
-	svc := authz.NewService(config, repoFactory, nil)
+	svc := cryptoutilIdentityAuthz.NewService(config, repoFactory, nil)
 	require.NotNil(t, svc, "Service should not be nil")
 
 	app := fiber.New()

@@ -7,7 +7,7 @@ package apperr
 
 import (
 	"fmt"
-	"net/http"
+	http "net/http"
 )
 
 // IdentityError represents an identity module-specific error.

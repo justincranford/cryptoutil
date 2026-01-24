@@ -17,7 +17,7 @@ import (
 
 	"golang.org/x/crypto/pbkdf2"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Authenticator provides authentication for realm users.
@@ -262,7 +262,7 @@ func (a *Authenticator) verifyPassword(password, hashStr string, policy *Passwor
 	}
 
 	// Verify algorithm matches.
-	if parts[1] != cryptoutilMagic.PBKDF2DefaultHashName {
+	if parts[1] != cryptoutilSharedMagic.PBKDF2DefaultHashName {
 		return fmt.Errorf("unsupported hash algorithm: %s", parts[1])
 	}
 
@@ -285,7 +285,7 @@ func (a *Authenticator) verifyPassword(password, hashStr string, policy *Passwor
 	}
 
 	// Compute hash with same parameters.
-	hashFunc := cryptoutilMagic.PBKDF2HashFunction(policy.Algorithm)
+	hashFunc := cryptoutilSharedMagic.PBKDF2HashFunction(policy.Algorithm)
 	computedHash := pbkdf2.Key([]byte(password), salt, iterations, len(expectedHash), hashFunc)
 
 	// Constant-time comparison.

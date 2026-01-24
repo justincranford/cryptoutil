@@ -18,7 +18,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
 )
 
@@ -47,7 +47,7 @@ func TestRecoveryCodeService_GenerateForUser(t *testing.T) {
 
 	db := createTestDB(t)
 	repo := cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
 	count := 10
@@ -82,7 +82,7 @@ func TestRecoveryCodeService_Verify_Success(t *testing.T) {
 
 	db := createTestDB(t)
 	repo := cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
 
@@ -117,7 +117,7 @@ func TestRecoveryCodeService_Verify_InvalidCode(t *testing.T) {
 
 	db := createTestDB(t)
 	repo := cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
 
@@ -135,7 +135,7 @@ func TestRecoveryCodeService_Verify_AlreadyUsed(t *testing.T) {
 
 	db := createTestDB(t)
 	repo := cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
 
@@ -157,7 +157,7 @@ func TestRecoveryCodeService_Verify_Expired(t *testing.T) {
 
 	db := createTestDB(t)
 	repo := cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
 
@@ -189,7 +189,7 @@ func TestRecoveryCodeService_RegenerateForUser(t *testing.T) {
 
 	db := createTestDB(t)
 	repo := cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
 
@@ -219,7 +219,7 @@ func TestRecoveryCodeService_GetRemainingCount(t *testing.T) {
 
 	db := createTestDB(t)
 	repo := cryptoutilIdentityORM.NewRecoveryCodeRepository(db)
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	userID := googleUuid.New()
 

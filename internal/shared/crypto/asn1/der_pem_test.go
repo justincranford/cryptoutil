@@ -7,33 +7,33 @@ package asn1
 import (
 	"context"
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509"
 	"math/big"
 	"os"
 	"testing"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("der_pem_test")
+	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("der_pem_test")
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 )
 
 func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()
@@ -44,7 +44,7 @@ func TestMain(m *testing.M) {
 func TestPEMEncodeDecodeRSA(t *testing.T) {
 	t.Parallel()
 
-	keyPairOriginal, err := rsa.GenerateKey(rand.Reader, 2048)
+	keyPairOriginal, err := rsa.GenerateKey(crand.Reader, 2048)
 	require.NoError(t, err)
 
 	privateKeyOriginal := keyPairOriginal
@@ -81,7 +81,7 @@ func TestPEMEncodeDecodeRSA(t *testing.T) {
 func TestPEMEncodeDecodeECDSA(t *testing.T) {
 	t.Parallel()
 
-	keyPairOriginal, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	keyPairOriginal, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	privateKeyOriginal := keyPairOriginal
@@ -118,7 +118,7 @@ func TestPEMEncodeDecodeECDSA(t *testing.T) {
 func TestPEMEncodeDecodeECDH(t *testing.T) {
 	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
 
-	keyPairOriginal, err := ecdh.P256().GenerateKey(rand.Reader)
+	keyPairOriginal, err := ecdh.P256().GenerateKey(crand.Reader)
 	require.NoError(t, err)
 
 	privateKeyOriginal := keyPairOriginal
@@ -155,7 +155,7 @@ func TestPEMEncodeDecodeECDH(t *testing.T) {
 func TestPEMEncodeDecodeEdDSA(t *testing.T) {
 	t.Parallel()
 
-	publicKeyOriginal, privateKeyOriginal, err := ed25519.GenerateKey(rand.Reader)
+	publicKeyOriginal, privateKeyOriginal, err := ed25519.GenerateKey(crand.Reader)
 	require.NoError(t, err)
 	require.IsType(t, ed25519.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, ed25519.PublicKey{}, publicKeyOriginal)
@@ -186,14 +186,14 @@ func TestPEMEncodeDecodeEdDSA(t *testing.T) {
 }
 
 func TestPEMEncodeDecodeCertificate(t *testing.T) {
-	privateKeyOriginal, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	privateKeyOriginal, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
 	certificateTemplate := &x509.Certificate{
 		SerialNumber: big.NewInt(1),
 	}
 
-	certificateDERBytes, err := x509.CreateCertificate(rand.Reader, certificateTemplate, certificateTemplate, &privateKeyOriginal.PublicKey, privateKeyOriginal)
+	certificateDERBytes, err := x509.CreateCertificate(crand.Reader, certificateTemplate, certificateTemplate, &privateKeyOriginal.PublicKey, privateKeyOriginal)
 	require.NoError(t, err)
 
 	certificateOriginal, err := x509.ParseCertificate(certificateDERBytes)

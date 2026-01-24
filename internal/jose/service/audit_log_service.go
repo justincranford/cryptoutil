@@ -6,10 +6,10 @@ package service
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 
-	"cryptoutil/internal/jose/domain"
-	"cryptoutil/internal/jose/repository"
+	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
+	cryptoutilJoseRepository "cryptoutil/internal/jose/repository"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -53,11 +53,11 @@ func SessionFromContext(ctx context.Context) *googleUuid.UUID {
 // AuditLogService handles audit logging for cryptographic operations.
 type AuditLogService struct {
 	configService *AuditConfigService
-	logRepo       repository.AuditLogRepository
+	logRepo       cryptoutilJoseRepository.AuditLogRepository
 }
 
 // NewAuditLogService creates a new audit log service.
-func NewAuditLogService(configService *AuditConfigService, logRepo repository.AuditLogRepository) *AuditLogService {
+func NewAuditLogService(configService *AuditConfigService, logRepo cryptoutilJoseRepository.AuditLogRepository) *AuditLogService {
 	return &AuditLogService{
 		configService: configService,
 		logRepo:       logRepo,
@@ -93,7 +93,7 @@ func (s *AuditLogService) Log(ctx context.Context, params AuditLogParams) (bool,
 	}
 
 	// Build the audit log entry.
-	entry := &domain.AuditLogEntry{
+	entry := &cryptoutilJoseDomain.AuditLogEntry{
 		ID:           googleUuid.New(),
 		TenantID:     params.TenantID,
 		RealmID:      params.RealmID,

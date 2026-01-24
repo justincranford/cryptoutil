@@ -11,14 +11,14 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"cryptoutil/internal/apps/cipher/im/domain"
+	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestMessageRecipientJWK_TableName(t *testing.T) {
 	t.Parallel()
 
-	mrj := domain.MessageRecipientJWK{}
+	mrj := cryptoutilAppsCipherImDomain.MessageRecipientJWK{}
 	require.Equal(t, "messages_recipient_jwks", mrj.TableName())
 }
 
@@ -31,7 +31,7 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 	encryptedJWK := `{"protected":"eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0","iv":"test","ciphertext":"test","tag":"test"}`
 	createdAt := time.Now()
 
-	mrj := domain.MessageRecipientJWK{
+	mrj := cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 		ID:           id,
 		RecipientID:  recipientID,
 		MessageID:    messageID,
@@ -41,7 +41,7 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 			ID:       recipientID,
 			Username: "recipient",
 		},
-		Message: domain.Message{
+		Message: cryptoutilAppsCipherImDomain.Message{
 			ID:       messageID,
 			SenderID: googleUuid.New(),
 			JWE:      "test-message-jwe",
@@ -62,7 +62,7 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 func TestMessageRecipientJWK_ZeroValue(t *testing.T) {
 	t.Parallel()
 
-	var mrj domain.MessageRecipientJWK
+	var mrj cryptoutilAppsCipherImDomain.MessageRecipientJWK
 
 	require.Equal(t, googleUuid.Nil, mrj.ID)
 	require.Equal(t, googleUuid.Nil, mrj.RecipientID)
@@ -84,9 +84,9 @@ func TestMessageRecipientJWK_MultiRecipientScenario(t *testing.T) {
 		googleUuid.New(),
 	}
 
-	jwks := make([]domain.MessageRecipientJWK, len(recipients))
+	jwks := make([]cryptoutilAppsCipherImDomain.MessageRecipientJWK, len(recipients))
 	for i, recipID := range recipients {
-		jwks[i] = domain.MessageRecipientJWK{
+		jwks[i] = cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 			ID:           googleUuid.New(),
 			RecipientID:  recipID,
 			MessageID:    messageID,

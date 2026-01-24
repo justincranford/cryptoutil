@@ -11,7 +11,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/identity/email"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -69,7 +69,7 @@ func TestEmailOTPService_SendOTP_CreateError(t *testing.T) {
 		createError: errors.New("database connection failed"),
 	}
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -88,7 +88,7 @@ func TestEmailOTPService_SendOTP_EmailSendError(t *testing.T) {
 	failEmail := &failingEmailService{
 		sendError: errors.New("SMTP server unavailable"),
 	}
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, failEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, failEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -105,7 +105,7 @@ func TestEmailOTPService_VerifyOTP_NotFound(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New() // User with no OTP.
@@ -121,7 +121,7 @@ func TestEmailOTPService_VerifyOTP_UpdateError(t *testing.T) {
 
 	repo := newMockEmailOTPRepository()
 	mockEmail := cryptoutilIdentityEmail.NewMockEmailService()
-	service := cryptoutilIdentityMFA.NewEmailOTPService(repo, mockEmail)
+	service := cryptoutilIdentityMfa.NewEmailOTPService(repo, mockEmail)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -148,7 +148,7 @@ func TestEmailOTPService_VerifyOTP_UpdateError(t *testing.T) {
 	}
 
 	// Create service with wrapper repo.
-	serviceWithFailRepo := cryptoutilIdentityMFA.NewEmailOTPService(wrapperRepo, mockEmail)
+	serviceWithFailRepo := cryptoutilIdentityMfa.NewEmailOTPService(wrapperRepo, mockEmail)
 
 	// Verify OTP (should fail on update).
 	err = serviceWithFailRepo.VerifyOTP(ctx, userID, otpCode)
@@ -184,7 +184,7 @@ func TestRecoveryCodeService_Verify_AllCodesUsed(t *testing.T) {
 	t.Parallel()
 
 	repo := newMockRecoveryCodeRepository()
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	ctx := context.Background()
 	userID := googleUuid.New()
@@ -211,7 +211,7 @@ func TestRecoveryCodeService_Verify_AllCodesExpired(t *testing.T) {
 	t.Parallel()
 
 	repo := newMockRecoveryCodeRepository()
-	service := cryptoutilIdentityMFA.NewRecoveryCodeService(repo)
+	service := cryptoutilIdentityMfa.NewRecoveryCodeService(repo)
 
 	ctx := context.Background()
 	userID := googleUuid.New()

@@ -8,20 +8,20 @@ package elastickeytest
 import (
 	"context"
 	"crypto/ecdh"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rsa"
+	rsa "crypto/rsa"
 	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilPool "cryptoutil/internal/shared/pool"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedPool "cryptoutil/internal/shared/pool"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -39,13 +39,13 @@ type TestCase struct {
 }
 
 var (
-	testSettings                 = cryptoutilConfig.RequireNewForTest("keygenpool_test")
+	testSettings                 = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("keygenpool_test")
 	testCtx                      = context.Background()
-	testTelemetryService         *cryptoutilTelemetry.TelemetryService
+	testTelemetryService         *cryptoutilSharedTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
 	happyPathSize                = []uint32{1, 3}
-	happyPathMaxLifetimeKeys     = []uint64{1, cryptoutilMagic.MaxPoolLifetimeValues}
-	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilMagic.MaxPoolLifetimeDuration}
+	happyPathMaxLifetimeKeys     = []uint64{1, cryptoutilSharedMagic.MaxPoolLifetimeValues}
+	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilSharedMagic.MaxPoolLifetimeDuration}
 	happyPathGets                = []uint64{0, 1, 3}
 	happyPathTestCases           = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
@@ -79,7 +79,7 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()
@@ -94,7 +94,7 @@ func TestPoolRSA(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(2048), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateRSAKeyPairFunction(2048), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -112,7 +112,7 @@ func TestPoolRSA(t *testing.T) {
 func TestPoolECDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -130,7 +130,7 @@ func TestPoolECDSA(t *testing.T) {
 func TestPoolECDH(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256()), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateECDHKeyPairFunction(ecdh.P256()), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -148,7 +148,7 @@ func TestPoolECDH(t *testing.T) {
 func TestPoolEdDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519"), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPairFunction("Ed25519"), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -166,7 +166,7 @@ func TestPoolEdDSA(t *testing.T) {
 func TestPoolAES(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(128), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESKeyFunction(128), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -174,7 +174,7 @@ func TestPoolAES(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				secretKey := keyGenPool.Get()
-				require.IsType(t, cryptoutilKeyGen.SecretKey{}, secretKey)
+				require.IsType(t, cryptoutilSharedCryptoKeygen.SecretKey{}, secretKey)
 				require.IsType(t, []byte{}, []byte(secretKey))
 			}
 		})
@@ -184,7 +184,7 @@ func TestPoolAES(t *testing.T) {
 func TestPoolAESHS(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(256), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateAESHSKeyFunction(256), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -192,7 +192,7 @@ func TestPoolAESHS(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				secretKey := keyGenPool.Get()
-				require.IsType(t, cryptoutilKeyGen.SecretKey{}, secretKey)
+				require.IsType(t, cryptoutilSharedCryptoKeygen.SecretKey{}, secretKey)
 				require.IsType(t, []byte{}, []byte(secretKey))
 			}
 		})
@@ -202,7 +202,7 @@ func TestPoolAESHS(t *testing.T) {
 func TestPoolHMAC(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(256), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedCryptoKeygen.GenerateHMACKeyFunction(256), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 
@@ -210,7 +210,7 @@ func TestPoolHMAC(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				secretKey := keyGenPool.Get()
-				require.IsType(t, cryptoutilKeyGen.SecretKey{}, secretKey)
+				require.IsType(t, cryptoutilSharedCryptoKeygen.SecretKey{}, secretKey)
 				require.IsType(t, []byte{}, []byte(secretKey))
 			}
 		})
@@ -220,7 +220,7 @@ func TestPoolHMAC(t *testing.T) {
 func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
+			keyGenPool, err := cryptoutilSharedPool.NewValueGenPool(cryptoutilSharedPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 

@@ -5,8 +5,8 @@
 package magic
 
 import (
-	"crypto/sha256"
-	"crypto/sha512"
+	sha256 "crypto/sha256"
+	sha512 "crypto/sha512"
 	"hash"
 	"time"
 )

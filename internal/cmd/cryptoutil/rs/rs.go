@@ -9,13 +9,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	cryptoutilRSServer "cryptoutil/internal/apps/identity/rs/server"
+	cryptoutilAppsIdentityRsServer "cryptoutil/internal/apps/identity/rs/server"
 	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity/rs/server/config"
 )
 
@@ -84,7 +84,7 @@ func startService(parameters []string) {
 	ctx := context.Background()
 
 	// Create RS server using template-based implementation.
-	server, err := cryptoutilRSServer.NewFromConfig(ctx, settings)
+	server, err := cryptoutilAppsIdentityRsServer.NewFromConfig(ctx, settings)
 	if err != nil {
 		log.Fatalf("Failed to create RS server: %v", err)
 	}

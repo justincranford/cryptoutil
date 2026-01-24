@@ -18,9 +18,9 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // setupTestDB creates an in-memory SQLite database for testing.
@@ -72,12 +72,12 @@ func setupTestDB(t *testing.T) *gorm.DB {
 }
 
 // setupSessionManager creates a SessionManager with test configuration.
-func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilMagic.SessionAlgorithmType) *SessionManager {
+func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilSharedMagic.SessionAlgorithmType) *SessionManager {
 	t.Helper()
 
 	db := setupTestDB(t)
 
-	config := &cryptoutilConfig.ServiceTemplateServerSettings{
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		BrowserSessionAlgorithm:    string(browserAlg),
 		ServiceSessionAlgorithm:    string(serviceAlg),
 		BrowserSessionExpiration:   24 * time.Hour,
@@ -101,9 +101,9 @@ func setupSessionManager(t *testing.T, browserAlg, serviceAlg cryptoutilMagic.Se
 
 func TestSessionManager_NewSessionManager(t *testing.T) {
 	db := setupTestDB(t)
-	config := &cryptoutilConfig.ServiceTemplateServerSettings{
-		BrowserSessionAlgorithm: string(cryptoutilMagic.SessionAlgorithmOPAQUE),
-		ServiceSessionAlgorithm: string(cryptoutilMagic.SessionAlgorithmJWS),
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm: string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		ServiceSessionAlgorithm: string(cryptoutilSharedMagic.SessionAlgorithmJWS),
 	}
 
 	// Use nil barrier service for tests (enables plain text JWK storage for testing)
@@ -114,14 +114,14 @@ func TestSessionManager_NewSessionManager(t *testing.T) {
 }
 
 func TestSessionManager_Initialize_OPAQUE(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
-	require.Equal(t, cryptoutilMagic.SessionAlgorithmOPAQUE, sm.browserAlgorithm)
-	require.Equal(t, cryptoutilMagic.SessionAlgorithmOPAQUE, sm.serviceAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, sm.browserAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, sm.serviceAlgorithm)
 }
 
 func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -150,7 +150,7 @@ func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_OPAQUE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -172,7 +172,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateBrowserSession_OPAQUE_InvalidToken(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	// Validate with non-existent token
@@ -183,7 +183,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_InvalidToken(t *testing.T)
 }
 
 func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -211,7 +211,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.
 }
 
 func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -240,7 +240,7 @@ func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_ValidateServiceSession_OPAQUE_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -262,7 +262,7 @@ func TestSessionManager_ValidateServiceSession_OPAQUE_Success(t *testing.T) {
 }
 
 func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	// Create expired session
@@ -298,7 +298,7 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 }
 
 func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	// Create session
@@ -330,7 +330,7 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 }
 
 func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -365,29 +365,29 @@ func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
 
 // TestSessionManager_GenerateSessionJWK tests JWK generation.
 func TestSessionManager_GenerateSessionJWK(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	// Test browser JWK generation for JWS
-	browserJWK, err := sm.generateSessionJWK(true, cryptoutilMagic.SessionAlgorithmJWS)
+	browserJWK, err := sm.generateSessionJWK(true, cryptoutilSharedMagic.SessionAlgorithmJWS)
 	require.NoError(t, err)
 	require.NotNil(t, browserJWK)
 
 	// Test service JWK generation for JWE
-	serviceJWK, err := sm.generateSessionJWK(false, cryptoutilMagic.SessionAlgorithmJWE)
+	serviceJWK, err := sm.generateSessionJWK(false, cryptoutilSharedMagic.SessionAlgorithmJWE)
 	require.NoError(t, err)
 	require.NotNil(t, serviceJWK)
 
 	// Test error case: unsupported algorithm (cast to SessionAlgorithmType)
-	_, err = sm.generateSessionJWK(true, cryptoutilMagic.SessionAlgorithmType("invalid-algorithm"))
+	_, err = sm.generateSessionJWK(true, cryptoutilSharedMagic.SessionAlgorithmType("invalid-algorithm"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unsupported session algorithm")
 }
 
 // TestSessionManager_GenerateJWSKey tests JWS key generation.
 func TestSessionManager_GenerateJWSKey(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
-	privateKey, err := sm.generateJWSKey(cryptoutilMagic.SessionJWSAlgorithmRS256)
+	privateKey, err := sm.generateJWSKey(cryptoutilSharedMagic.SessionJWSAlgorithmRS256)
 	require.NoError(t, err)
 	require.NotNil(t, privateKey)
 
@@ -401,19 +401,19 @@ func TestSessionManager_GenerateJWSKey(t *testing.T) {
 func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
 	t.Parallel()
 
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	tests := []struct {
 		name      string
 		algorithm string
 	}{
-		{"RS256", cryptoutilMagic.SessionJWSAlgorithmRS256},
-		{"RS384", cryptoutilMagic.SessionJWSAlgorithmRS384},
-		{"RS512", cryptoutilMagic.SessionJWSAlgorithmRS512},
-		{"ES256", cryptoutilMagic.SessionJWSAlgorithmES256},
-		{"ES384", cryptoutilMagic.SessionJWSAlgorithmES384},
-		{"ES512", cryptoutilMagic.SessionJWSAlgorithmES512},
-		{"EdDSA", cryptoutilMagic.SessionJWSAlgorithmEdDSA},
+		{"RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+		{"RS384", cryptoutilSharedMagic.SessionJWSAlgorithmRS384},
+		{"RS512", cryptoutilSharedMagic.SessionJWSAlgorithmRS512},
+		{"ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256},
+		{"ES384", cryptoutilSharedMagic.SessionJWSAlgorithmES384},
+		{"ES512", cryptoutilSharedMagic.SessionJWSAlgorithmES512},
+		{"EdDSA", cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
 	}
 
 	for _, tt := range tests {
@@ -429,14 +429,14 @@ func TestSessionManager_GenerateJWSKey_AllAlgorithms(t *testing.T) {
 func TestSessionManager_GenerateJWEKey_AllAlgorithms(t *testing.T) {
 	t.Parallel()
 
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	tests := []struct {
 		name      string
 		algorithm string
 	}{
-		{"DirA256GCM", cryptoutilMagic.SessionJWEAlgorithmDirA256GCM},
-		{"A256GCMKWA256GCM", cryptoutilMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
+		{"DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+		{"A256GCMKWA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
 	}
 
 	for _, tt := range tests {
@@ -450,9 +450,9 @@ func TestSessionManager_GenerateJWEKey_AllAlgorithms(t *testing.T) {
 
 // TestSessionManager_GenerateJWEKey tests JWE key generation.
 func TestSessionManager_GenerateJWEKey(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
-	privateKey, err := sm.generateJWEKey(cryptoutilMagic.SessionJWEAlgorithmDirA256GCM)
+	privateKey, err := sm.generateJWEKey(cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM)
 	require.NoError(t, err)
 	require.NotNil(t, privateKey)
 
@@ -464,7 +464,7 @@ func TestSessionManager_GenerateJWEKey(t *testing.T) {
 
 // TestSessionManager_StartCleanupTask tests the cleanup task startup.
 func TestSessionManager_StartCleanupTask(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 
 	// Create a context that we can cancel to stop the cleanup task
 	ctx, cancel := context.WithCancel(context.Background())
@@ -495,7 +495,7 @@ func TestSessionManager_StartCleanupTask(t *testing.T) {
 
 // TestSessionManager_ErrorCases tests various error scenarios for better coverage.
 func TestSessionManager_ErrorCases(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilMagic.SessionAlgorithmOPAQUE, cryptoutilMagic.SessionAlgorithmOPAQUE)
+	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()
 
 	// Test validation with empty token (will fail in hash function)

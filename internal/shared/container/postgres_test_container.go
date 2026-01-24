@@ -9,7 +9,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NewPostgresTestContainer creates and starts a new PostgreSQL test container.
@@ -26,7 +26,7 @@ func NewPostgresTestContainer(ctx context.Context) (*postgres.PostgresContainer,
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
-				WithStartupTimeout(cryptoutilMagic.DBPostgresContainerStartupTimeout),
+				WithStartupTimeout(cryptoutilSharedMagic.DBPostgresContainerStartupTimeout),
 		),
 	)
 	if err != nil {

@@ -8,14 +8,14 @@ package idp_test
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
@@ -25,7 +25,7 @@ import (
 	cryptoutilIdentityIdp "cryptoutil/internal/identity/idp"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 )
 
 // TestSecurityValidation_InputSanitization validates that malicious input is properly sanitized.
@@ -151,7 +151,7 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 	// Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
 	testPassword := "TestPassword123!" // pragma: allowlist secret
-	testPasswordHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(testPassword)
+	testPasswordHash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(testPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -445,7 +445,7 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 	// Create test user.
 	testUsername := "testuser-" + googleUuid.Must(googleUuid.NewV7()).String()
 	testPassword := "TestPassword123!" // pragma: allowlist secret
-	testPasswordHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(testPassword)
+	testPasswordHash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(testPassword)
 	require.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{

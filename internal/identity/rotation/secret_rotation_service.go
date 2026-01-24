@@ -7,7 +7,7 @@ package rotation
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -16,10 +16,10 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"cryptoutil/internal/identity/domain"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
-	cryptoutilHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // SecretRotationService handles client secret rotation operations.
@@ -54,22 +54,22 @@ func (s *SecretRotationService) RotateClientSecret(
 	var result RotateClientSecretResult
 
 	// Generate new secret.
-	newSecretPlaintext, err := generateRandomSecret(cryptoutilMagic.SecretGenerationDefaultByteLength)
+	newSecretPlaintext, err := generateRandomSecret(cryptoutilSharedMagic.SecretGenerationDefaultByteLength)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate new secret: %w", err)
 	}
 
 	// Hash new secret.
-	newSecretHash, err := cryptoutilHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
+	newSecretHash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash new secret: %w", err)
 	} // Execute rotation in transaction.
 
 	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Get current active secret version.
-		var currentVersion domain.ClientSecretVersion
+		var currentVersion cryptoutilIdentityDomain.ClientSecretVersion
 
-		err := tx.Where("client_id = ? AND status = ?", clientID, domain.SecretStatusActive).
+		err := tx.Where("client_id = ? AND status = ?", clientID, cryptoutilIdentityDomain.SecretStatusActive).
 			Order("version DESC").
 			First(&currentVersion).Error
 
@@ -94,11 +94,11 @@ func (s *SecretRotationService) RotateClientSecret(
 		}
 
 		// Create new secret version.
-		newVersion := &domain.ClientSecretVersion{
+		newVersion := &cryptoutilIdentityDomain.ClientSecretVersion{
 			ClientID:   clientID,
 			Version:    newVersionNum,
 			SecretHash: newSecretHash,
-			Status:     domain.SecretStatusActive,
+			Status:     cryptoutilIdentityDomain.SecretStatusActive,
 		}
 
 		if createErr := tx.Create(newVersion).Error; createErr != nil {
@@ -119,9 +119,9 @@ func (s *SecretRotationService) RotateClientSecret(
 
 		gracePeriodStr := gracePeriodDuration.String()
 
-		event := &domain.KeyRotationEvent{
-			EventType:     domain.EventTypeRotation,
-			KeyType:       domain.KeyTypeClientSecret,
+		event := &cryptoutilIdentityDomain.KeyRotationEvent{
+			EventType:     cryptoutilIdentityDomain.EventTypeRotation,
+			KeyType:       cryptoutilIdentityDomain.KeyTypeClientSecret,
 			KeyID:         clientID.String(),
 			Initiator:     initiator,
 			OldKeyVersion: oldVersionPtr,
@@ -150,11 +150,11 @@ func (s *SecretRotationService) RotateClientSecret(
 func (s *SecretRotationService) GetActiveSecretVersion(
 	ctx context.Context,
 	clientID googleUuid.UUID,
-) (*domain.ClientSecretVersion, error) {
-	var version domain.ClientSecretVersion
+) (*cryptoutilIdentityDomain.ClientSecretVersion, error) {
+	var version cryptoutilIdentityDomain.ClientSecretVersion
 
 	err := s.db.WithContext(ctx).
-		Where("client_id = ? AND status = ?", clientID, domain.SecretStatusActive).
+		Where("client_id = ? AND status = ?", clientID, cryptoutilIdentityDomain.SecretStatusActive).
 		Order("version DESC").
 		First(&version).Error
 	if err != nil {
@@ -198,11 +198,11 @@ func (s *SecretRotationService) ValidateSecretDuringGracePeriod(
 func (s *SecretRotationService) GetActiveSecretVersions(
 	ctx context.Context,
 	clientID googleUuid.UUID,
-) ([]*domain.ClientSecretVersion, error) {
-	var versions []*domain.ClientSecretVersion
+) ([]*cryptoutilIdentityDomain.ClientSecretVersion, error) {
+	var versions []*cryptoutilIdentityDomain.ClientSecretVersion
 
 	err := s.db.WithContext(ctx).
-		Where("client_id = ? AND status = ?", clientID, domain.SecretStatusActive).
+		Where("client_id = ? AND status = ?", clientID, cryptoutilIdentityDomain.SecretStatusActive).
 		Order("version DESC").
 		Find(&versions).Error
 	if err != nil {
@@ -222,7 +222,7 @@ func (s *SecretRotationService) RevokeSecretVersion(
 ) error {
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Find and revoke the version.
-		var secretVersion domain.ClientSecretVersion
+		var secretVersion cryptoutilIdentityDomain.ClientSecretVersion
 
 		err := tx.Where("client_id = ? AND version = ?", clientID, version).
 			First(&secretVersion).Error
@@ -244,9 +244,9 @@ func (s *SecretRotationService) RevokeSecretVersion(
 		versionPtr := &version
 		success := true
 
-		event := &domain.KeyRotationEvent{
-			EventType:     domain.EventTypeRevocation,
-			KeyType:       domain.KeyTypeClientSecret,
+		event := &cryptoutilIdentityDomain.KeyRotationEvent{
+			EventType:     cryptoutilIdentityDomain.EventTypeRevocation,
+			KeyType:       cryptoutilIdentityDomain.KeyTypeClientSecret,
 			KeyID:         clientID.String(),
 			Initiator:     revokerID,
 			OldKeyVersion: versionPtr,
@@ -270,7 +270,7 @@ func (s *SecretRotationService) RevokeSecretVersion(
 // generateRandomSecret generates a cryptographically secure random secret.
 func generateRandomSecret(length int) (string, error) {
 	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
+	if _, err := crand.Read(bytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 
@@ -279,7 +279,7 @@ func generateRandomSecret(length int) (string, error) {
 
 // compareSecret compares a plaintext secret against a stored hash using PBKDF2.
 func compareSecret(plaintext, hash string) bool {
-	match, err := cryptoutilDigests.VerifySecret(hash, plaintext)
+	match, err := cryptoutilSharedCryptoDigests.VerifySecret(hash, plaintext)
 
 	return err == nil && match
 }

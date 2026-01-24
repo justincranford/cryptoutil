@@ -6,7 +6,7 @@ package apis
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
 	"net/http/httptest"
@@ -14,11 +14,11 @@ import (
 	"testing"
 	"time"
 
-	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -29,40 +29,40 @@ type MockElasticJWKRepository struct {
 	mock.Mock
 }
 
-func (m *MockElasticJWKRepository) Create(ctx context.Context, jwk *joseJADomain.ElasticJWK) error {
+func (m *MockElasticJWKRepository) Create(ctx context.Context, jwk *cryptoutilAppsJoseJaDomain.ElasticJWK) error {
 	args := m.Called(ctx, jwk)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
-func (m *MockElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*joseJADomain.ElasticJWK, error) {
+func (m *MockElasticJWKRepository) Get(ctx context.Context, tenantID googleUuid.UUID, kid string) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error) {
 	args := m.Called(ctx, tenantID, kid)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*joseJADomain.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaDomain.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*joseJADomain.ElasticJWK, error) {
+func (m *MockElasticJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.ElasticJWK, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*joseJADomain.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaDomain.ElasticJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*joseJADomain.ElasticJWK, int64, error) {
+func (m *MockElasticJWKRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.ElasticJWK, int64, error) {
 	args := m.Called(ctx, tenantID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*joseJADomain.ElasticJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.ElasticJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockElasticJWKRepository) Update(ctx context.Context, jwk *joseJADomain.ElasticJWK) error {
+func (m *MockElasticJWKRepository) Update(ctx context.Context, jwk *cryptoutilAppsJoseJaDomain.ElasticJWK) error {
 	args := m.Called(ctx, jwk)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
@@ -91,49 +91,49 @@ type MockMaterialJWKRepository struct {
 	mock.Mock
 }
 
-func (m *MockMaterialJWKRepository) Create(ctx context.Context, jwk *joseJADomain.MaterialJWK) error {
+func (m *MockMaterialJWKRepository) Create(ctx context.Context, jwk *cryptoutilAppsJoseJaDomain.MaterialJWK) error {
 	args := m.Called(ctx, jwk)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
-func (m *MockMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materialKID string) (*joseJADomain.MaterialJWK, error) {
+func (m *MockMaterialJWKRepository) GetByMaterialKID(ctx context.Context, materialKID string) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
 	args := m.Called(ctx, materialKID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*joseJADomain.MaterialJWK, error) {
+func (m *MockMaterialJWKRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*joseJADomain.MaterialJWK, error) {
+func (m *MockMaterialJWKRepository) GetActiveMaterial(ctx context.Context, elasticJWKID googleUuid.UUID) (*cryptoutilAppsJoseJaDomain.MaterialJWK, error) {
 	args := m.Called(ctx, elasticJWKID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*joseJADomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*joseJADomain.MaterialJWK, int64, error) {
+func (m *MockMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.MaterialJWK, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*joseJADomain.MaterialJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.MaterialJWK), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *joseJADomain.MaterialJWK) error {
+func (m *MockMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilAppsJoseJaDomain.MaterialJWK) error {
 	args := m.Called(ctx, elasticJWKID, newMaterial)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
@@ -162,25 +162,25 @@ type MockAuditConfigRepository struct {
 	mock.Mock
 }
 
-func (m *MockAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*joseJADomain.AuditConfig, error) {
+func (m *MockAuditConfigRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*cryptoutilAppsJoseJaDomain.AuditConfig, error) {
 	args := m.Called(ctx, tenantID, operation)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*joseJADomain.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaDomain.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*joseJADomain.AuditConfig, error) {
+func (m *MockAuditConfigRepository) GetAllForTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsJoseJaDomain.AuditConfig, error) {
 	args := m.Called(ctx, tenantID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).([]*joseJADomain.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditConfig), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditConfigRepository) Upsert(ctx context.Context, config *joseJADomain.AuditConfig) error {
+func (m *MockAuditConfigRepository) Upsert(ctx context.Context, config *cryptoutilAppsJoseJaDomain.AuditConfig) error {
 	args := m.Called(ctx, config)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
@@ -203,46 +203,46 @@ type MockAuditLogRepository struct {
 	mock.Mock
 }
 
-func (m *MockAuditLogRepository) Create(ctx context.Context, entry *joseJADomain.AuditLogEntry) error {
+func (m *MockAuditLogRepository) Create(ctx context.Context, entry *cryptoutilAppsJoseJaDomain.AuditLogEntry) error {
 	args := m.Called(ctx, entry)
 
 	return args.Error(0) //nolint:wrapcheck // Mock returns test-controlled error
 }
 
-func (m *MockAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
+func (m *MockAuditLogRepository) List(ctx context.Context, tenantID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
+func (m *MockAuditLogRepository) ListByElasticJWK(ctx context.Context, elasticJWKID googleUuid.UUID, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, elasticJWKID, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*joseJADomain.AuditLogEntry, int64, error) {
+func (m *MockAuditLogRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]*cryptoutilAppsJoseJaDomain.AuditLogEntry, int64, error) {
 	args := m.Called(ctx, tenantID, operation, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 	}
 
-	return args.Get(0).([]*joseJADomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).([]*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Get(1).(int64), args.Error(2) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
-func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*joseJADomain.AuditLogEntry, error) {
+func (m *MockAuditLogRepository) GetByRequestID(ctx context.Context, requestID string) (*cryptoutilAppsJoseJaDomain.AuditLogEntry, error) {
 	args := m.Called(ctx, requestID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1) //nolint:wrapcheck // Mock returns test-controlled error
 	}
 
-	return args.Get(0).(*joseJADomain.AuditLogEntry), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
+	return args.Get(0).(*cryptoutilAppsJoseJaDomain.AuditLogEntry), args.Error(1) //nolint:errcheck,wrapcheck // Mock type assertion and error controlled by test
 }
 
 func (m *MockAuditLogRepository) DeleteOlderThan(ctx context.Context, tenantID googleUuid.UUID, days int) (int64, error) {
@@ -266,10 +266,10 @@ func setupTestHandler() (*JWKHandler, *MockElasticJWKRepository, *MockMaterialJW
 	auditLogRepo := new(MockAuditLogRepository)
 
 	// Create minimal JWKGenService for testing.
-	jwkGenService := &cryptoutilJose.JWKGenService{}
+	jwkGenService := &cryptoutilSharedCryptoJose.JWKGenService{}
 
 	// Create minimal BarrierService for testing.
-	barrierService := &cryptoutilBarrier.Service{}
+	barrierService := &cryptoutilAppsTemplateServiceServerBarrier.Service{}
 
 	handler := NewJWKHandler(
 		elasticRepo,
@@ -303,8 +303,8 @@ func TestNewJWKHandler(t *testing.T) {
 	materialRepo := new(MockMaterialJWKRepository)
 	auditConfigRepo := new(MockAuditConfigRepository)
 	auditLogRepo := new(MockAuditLogRepository)
-	jwkGenService := &cryptoutilJose.JWKGenService{}
-	barrierService := &cryptoutilBarrier.Service{}
+	jwkGenService := &cryptoutilSharedCryptoJose.JWKGenService{}
+	barrierService := &cryptoutilAppsTemplateServiceServerBarrier.Service{}
 
 	handler := NewJWKHandler(
 		elasticRepo,
@@ -475,7 +475,7 @@ func TestHandleGetElasticJWK_Success(t *testing.T) {
 	kid := googleUuid.New()
 
 	// Mock repository.
-	expectedJWK := &joseJADomain.ElasticJWK{
+	expectedJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   kid,
 		TenantID:             tenantID,
 		KID:                  kid.String(),
@@ -547,7 +547,7 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Mock repository.
-	expectedJWKs := []*joseJADomain.ElasticJWK{
+	expectedJWKs := []*cryptoutilAppsJoseJaDomain.ElasticJWK{
 		{
 			ID:                   googleUuid.New(),
 			TenantID:             tenantID,
@@ -604,7 +604,7 @@ func TestHandleDeleteElasticJWK_Success(t *testing.T) {
 	kid := googleUuid.New()
 
 	// Mock repository.
-	existingJWK := &joseJADomain.ElasticJWK{
+	existingJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:       kid,
 		TenantID: tenantID,
 		KID:      kid.String(),
@@ -640,7 +640,7 @@ func TestHandleCreateMaterialJWK_Success(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := testElasticKID
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -677,7 +677,7 @@ func TestHandleCreateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := testElasticKID
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -712,13 +712,13 @@ func TestHandleListMaterialJWKs_Success(t *testing.T) {
 	kid := testElasticKID
 	elasticID := googleUuid.New()
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:       elasticID,
 		TenantID: tenantID,
 		KID:      kid,
 	}
 
-	materials := []*joseJADomain.MaterialJWK{
+	materials := []*cryptoutilAppsJoseJaDomain.MaterialJWK{
 		{
 			ID:           googleUuid.New(),
 			ElasticJWKID: elasticID,
@@ -757,13 +757,13 @@ func TestHandleGetActiveMaterialJWK_Success(t *testing.T) {
 	kid := testElasticKID
 	elasticID := googleUuid.New()
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:       elasticID,
 		TenantID: tenantID,
 		KID:      kid,
 	}
 
-	activeMaterial := &joseJADomain.MaterialJWK{
+	activeMaterial := &cryptoutilAppsJoseJaDomain.MaterialJWK{
 		ID:           googleUuid.New(),
 		ElasticJWKID: elasticID,
 		MaterialKID:  "active-material",
@@ -800,7 +800,7 @@ func TestHandleRotateMaterialJWK_Success(t *testing.T) {
 	kid := testElasticKID
 	elasticID := googleUuid.New()
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   elasticID,
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -837,7 +837,7 @@ func TestHandleRotateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := testElasticKID
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -972,7 +972,7 @@ func TestHandleDeleteElasticJWK_RepositoryDeleteError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-delete-error"
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:       googleUuid.New(),
 		TenantID: tenantID,
 		KID:      kid,
@@ -1005,7 +1005,7 @@ func TestHandleCreateMaterialJWK_CreateRepositoryError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-create-error"
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -1041,7 +1041,7 @@ func TestHandleCreateMaterialJWK_IncrementCountError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := testIncrementError
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -1078,7 +1078,7 @@ func TestHandleListMaterialJWKs_RepositoryError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-list-error"
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:       googleUuid.New(),
 		TenantID: tenantID,
 		KID:      kid,
@@ -1112,7 +1112,7 @@ func TestHandleGetActiveMaterialJWK_NoActiveMaterial(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-no-active"
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:       googleUuid.New(),
 		TenantID: tenantID,
 		KID:      kid,
@@ -1146,7 +1146,7 @@ func TestHandleRotateMaterialJWK_RotateRepositoryError(t *testing.T) {
 	tenantID := googleUuid.New()
 	kid := "test-rotate-error"
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   googleUuid.New(),
 		TenantID:             tenantID,
 		KID:                  kid,
@@ -1181,17 +1181,17 @@ func TestMapAlgorithmToKeyType(t *testing.T) {
 		algorithm string
 		expected  string
 	}{
-		{"RSA 2048", "RSA/2048", joseJADomain.KeyTypeRSA},
-		{"RSA 3072", "RSA/3072", joseJADomain.KeyTypeRSA},
-		{"RSA 4096", "RSA/4096", joseJADomain.KeyTypeRSA},
-		{"EC P256", "EC/P256", joseJADomain.KeyTypeEC},
-		{"EC P384", "EC/P384", joseJADomain.KeyTypeEC},
-		{"EC P521", "EC/P521", joseJADomain.KeyTypeEC},
-		{"OKP Ed25519", "OKP/Ed25519", joseJADomain.KeyTypeOKP},
-		{"OKP Ed448", "OKP/Ed448", joseJADomain.KeyTypeOKP},
-		{"oct 256", "oct/256", joseJADomain.KeyTypeOct},
-		{"oct 384", "oct/384", joseJADomain.KeyTypeOct},
-		{"oct 512", "oct/512", joseJADomain.KeyTypeOct},
+		{"RSA 2048", "RSA/2048", cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{"RSA 3072", "RSA/3072", cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{"RSA 4096", "RSA/4096", cryptoutilAppsJoseJaDomain.KeyTypeRSA},
+		{"EC P256", "EC/P256", cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{"EC P384", "EC/P384", cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{"EC P521", "EC/P521", cryptoutilAppsJoseJaDomain.KeyTypeEC},
+		{"OKP Ed25519", "OKP/Ed25519", cryptoutilAppsJoseJaDomain.KeyTypeOKP},
+		{"OKP Ed448", "OKP/Ed448", cryptoutilAppsJoseJaDomain.KeyTypeOKP},
+		{"oct 256", "oct/256", cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{"oct 384", "oct/384", cryptoutilAppsJoseJaDomain.KeyTypeOct},
+		{"oct 512", "oct/512", cryptoutilAppsJoseJaDomain.KeyTypeOct},
 		{"unknown", "unknown", ""},
 		{"empty", "", ""},
 	}
@@ -1659,14 +1659,14 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 	kid := "test-retired-material"
 	elasticID := googleUuid.New()
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:       elasticID,
 		TenantID: tenantID,
 		KID:      kid,
 	}
 
 	retiredAt := time.Now().Add(-24 * time.Hour)
-	materials := []*joseJADomain.MaterialJWK{
+	materials := []*cryptoutilAppsJoseJaDomain.MaterialJWK{
 		{
 			ID:           googleUuid.New(),
 			ElasticJWKID: elasticID,
@@ -1710,7 +1710,7 @@ func TestHandleRotateMaterialJWK_IncrementCountError(t *testing.T) {
 	kid := testIncrementError
 	elasticID := googleUuid.New()
 
-	elasticJWK := &joseJADomain.ElasticJWK{
+	elasticJWK := &cryptoutilAppsJoseJaDomain.ElasticJWK{
 		ID:                   elasticID,
 		TenantID:             tenantID,
 		KID:                  kid,

@@ -5,7 +5,7 @@ package timestamp
 
 import (
 	"crypto"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/x509"
 	"encoding/asn1"
 	"fmt"
@@ -423,7 +423,7 @@ func (s *TSAService) generateSerialNumber() *big.Int {
 	counter := s.serialCounter.Add(1)
 
 	randomBytes := make([]byte, serialRandomBytes)
-	_, _ = rand.Read(randomBytes)
+	_, _ = crand.Read(randomBytes)
 
 	serial := new(big.Int).SetUint64(counter)
 	serial.Lsh(serial, serialRandomBits)

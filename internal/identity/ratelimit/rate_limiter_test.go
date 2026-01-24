@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilIdentityRateLimit "cryptoutil/internal/identity/ratelimit"
+	cryptoutilIdentityRatelimit "cryptoutil/internal/identity/ratelimit"
 
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ import (
 func TestRateLimiter_Allow(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRateLimit.NewRateLimiter(3, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(3, 100*time.Millisecond)
 
 	// First 3 requests should succeed.
 	for i := 0; i < 3; i++ {
@@ -31,7 +31,7 @@ func TestRateLimiter_Allow(t *testing.T) {
 func TestRateLimiter_Allow_DifferentKeys(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRateLimit.NewRateLimiter(2, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, 100*time.Millisecond)
 
 	// User1: 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -57,7 +57,7 @@ func TestRateLimiter_Allow_DifferentKeys(t *testing.T) {
 func TestRateLimiter_WindowExpiration(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRateLimit.NewRateLimiter(2, 50*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, 50*time.Millisecond)
 
 	// Make 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -80,7 +80,7 @@ func TestRateLimiter_WindowExpiration(t *testing.T) {
 func TestRateLimiter_Reset(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRateLimit.NewRateLimiter(2, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(2, 100*time.Millisecond)
 
 	// Make 2 requests (at limit).
 	err := rl.Allow("user1")
@@ -103,7 +103,7 @@ func TestRateLimiter_Reset(t *testing.T) {
 func TestRateLimiter_GetCount(t *testing.T) {
 	t.Parallel()
 
-	rl := cryptoutilIdentityRateLimit.NewRateLimiter(5, 100*time.Millisecond)
+	rl := cryptoutilIdentityRatelimit.NewRateLimiter(5, 100*time.Millisecond)
 
 	// No requests yet.
 	count := rl.GetCount("user1")

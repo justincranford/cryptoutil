@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Test UUIDs generated once per test run for consistency.
@@ -29,10 +29,10 @@ func TestDefaultConfig(t *testing.T) {
 	require.NotNil(t, config)
 	require.Equal(t, "1.0", config.Version)
 	require.Empty(t, config.Realms)
-	require.Equal(t, cryptoutilMagic.PBKDF2DefaultAlgorithm, config.Defaults.PasswordPolicy.Algorithm)
-	require.Equal(t, cryptoutilMagic.PBKDF2DefaultIterations, config.Defaults.PasswordPolicy.Iterations)
-	require.Equal(t, cryptoutilMagic.PBKDF2DefaultSaltBytes, config.Defaults.PasswordPolicy.SaltBytes)
-	require.Equal(t, cryptoutilMagic.PBKDF2DefaultHashBytes, config.Defaults.PasswordPolicy.HashBytes)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultAlgorithm, config.Defaults.PasswordPolicy.Algorithm)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultIterations, config.Defaults.PasswordPolicy.Iterations)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultSaltBytes, config.Defaults.PasswordPolicy.SaltBytes)
+	require.Equal(t, cryptoutilSharedMagic.PBKDF2DefaultHashBytes, config.Defaults.PasswordPolicy.HashBytes)
 }
 
 func TestDefaultPasswordPolicy(t *testing.T) {
@@ -249,7 +249,7 @@ realms:
     users:
       - id: "` + userTestID1 + `"
         username: "admin"
-        password_hash: "$` + cryptoutilMagic.PBKDF2DefaultHashName + `$600000$salt$hash"
+        password_hash: "$` + cryptoutilSharedMagic.PBKDF2DefaultHashName + `$600000$salt$hash"
         email: "admin@example.com"
         roles: ["admin"]
         enabled: true

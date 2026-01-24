@@ -5,7 +5,7 @@
 package random
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -54,7 +54,7 @@ func GenerateString(length int) (string, error) {
 func GenerateBytes(lengthBytes int) ([]byte, error) {
 	bytes := make([]byte, lengthBytes)
 
-	_, err := rand.Read(bytes)
+	_, err := crand.Read(bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate %d bytes: %w", lengthBytes, err)
 	}
@@ -72,7 +72,7 @@ func GenerateMultipleBytes(count, lengthBytes int) ([][]byte, error) {
 
 	concatSharedSecrets := make([]byte, count*lengthBytes) // max 255 * 64
 
-	_, err := rand.Read(concatSharedSecrets)
+	_, err := crand.Read(concatSharedSecrets)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate consecutive byte slices: %w", err)
 	}

@@ -10,16 +10,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 // PublicServerBase provides reusable public server infrastructure.
 type PublicServerBase struct {
 	bindAddress string
 	port        int
-	tlsMaterial *cryptoutilConfig.TLSMaterial
+	tlsMaterial *cryptoutilAppsTemplateServiceConfig.TLSMaterial
 	app         *fiber.App
 	mu          sync.RWMutex
 	shutdown    bool
@@ -32,7 +32,7 @@ type PublicServerBase struct {
 type PublicServerConfig struct {
 	BindAddress string
 	Port        int
-	TLSMaterial *cryptoutilConfig.TLSMaterial
+	TLSMaterial *cryptoutilAppsTemplateServiceConfig.TLSMaterial
 }
 
 // NewPublicServerBase creates a new PublicServerBase.

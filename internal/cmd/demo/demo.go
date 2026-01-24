@@ -22,7 +22,7 @@ import (
 	"os"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Exit codes following Session 5 Q1 decision: simple 0/1/2 pattern.
@@ -48,7 +48,7 @@ const (
 )
 
 // DefaultHealthTimeout is the default timeout for health checks (Session 3 Q14).
-var DefaultHealthTimeout = cryptoutilMagic.DefaultDemoTimeout
+var DefaultHealthTimeout = cryptoutilSharedMagic.DefaultDemoTimeout
 
 // Config holds the demo CLI configuration.
 type Config struct {
@@ -83,8 +83,8 @@ func DefaultConfig() *Config {
 		OutputFormat:    OutputHuman,
 		HealthTimeout:   DefaultHealthTimeout,
 		ContinueOnError: true,
-		RetryCount:      cryptoutilMagic.DefaultDemoRetryCount,
-		RetryDelay:      cryptoutilMagic.DefaultDemoRetryDelay,
+		RetryCount:      cryptoutilSharedMagic.DefaultDemoRetryCount,
+		RetryDelay:      cryptoutilSharedMagic.DefaultDemoRetryDelay,
 		Verbose:         false,
 		NoColor:         detectNoColor(),
 		Quiet:           false,
@@ -120,7 +120,7 @@ func Execute() {
 	args := os.Args[2:]
 	config := parseArgs(args)
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.DefaultDemoTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDemoTimeout)
 	defer cancel()
 
 	exitCode := ExitSuccess

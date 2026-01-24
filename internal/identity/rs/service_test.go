@@ -6,10 +6,10 @@ package rs_test
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"io"
 	"log/slog"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -18,7 +18,7 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityRS "cryptoutil/internal/identity/rs"
+	cryptoutilIdentityRs "cryptoutil/internal/identity/rs"
 
 	fiber "github.com/gofiber/fiber/v2"
 	testify "github.com/stretchr/testify/require"
@@ -72,7 +72,7 @@ func setupTestService(t *testing.T) (*fiber.App, *mockTokenService) {
 	tokenSvc := &mockTokenService{}
 
 	// Create resource server service.
-	service := cryptoutilIdentityRS.NewService(config, logger, tokenSvc)
+	service := cryptoutilIdentityRs.NewService(config, logger, tokenSvc)
 
 	// Create Fiber app and register routes.
 	app := fiber.New()
@@ -400,7 +400,7 @@ func TestService_Start(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	tokenSvc := &mockTokenService{}
 
-	service := cryptoutilIdentityRS.NewService(config, logger, tokenSvc)
+	service := cryptoutilIdentityRs.NewService(config, logger, tokenSvc)
 
 	ctx := context.Background()
 
@@ -422,7 +422,7 @@ func TestService_Stop(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	tokenSvc := &mockTokenService{}
 
-	service := cryptoutilIdentityRS.NewService(config, logger, tokenSvc)
+	service := cryptoutilIdentityRs.NewService(config, logger, tokenSvc)
 
 	ctx := context.Background()
 

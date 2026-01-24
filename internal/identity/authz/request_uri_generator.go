@@ -5,7 +5,7 @@
 package authz
 
 import (
-	"crypto/rand"
+	crand "crypto/rand"
 	"encoding/base64"
 	"fmt"
 
@@ -19,7 +19,7 @@ import (
 // server-side rather than exposing them in browser URLs.
 func GenerateRequestURI() (string, error) {
 	randomBytes := make([]byte, cryptoutilIdentityMagic.DefaultRequestURILength)
-	if _, err := rand.Read(randomBytes); err != nil {
+	if _, err := crand.Read(randomBytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes for request_uri: %w", err)
 	}
 

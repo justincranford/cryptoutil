@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )

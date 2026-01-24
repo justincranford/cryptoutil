@@ -5,8 +5,8 @@
 package digests
 
 import (
-	"crypto/sha256"
-	"crypto/sha512"
+	sha256 "crypto/sha256"
+	sha512 "crypto/sha512"
 )
 
 // SHA512 computes the SHA-512 hash of the input bytes.

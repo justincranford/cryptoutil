@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilTemplateConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -15,7 +15,7 @@ import (
 
 func TestValidateJoseJASettings_HappyPath(t *testing.T) {
 	settings := &JoseJAServerSettings{
-		ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 		DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
 		AuditEnabled:                  true,
 		AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate,
@@ -27,7 +27,7 @@ func TestValidateJoseJASettings_HappyPath(t *testing.T) {
 func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMinMaterials, // 1
 			AuditSamplingRate:             50,
 		}
@@ -37,7 +37,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 
 	t.Run("at_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMaxMaterials, // 100
 			AuditSamplingRate:             50,
 		}
@@ -47,7 +47,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 
 	t.Run("below_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMinMaterials - 1, // 0
 			AuditSamplingRate:             50,
 		}
@@ -58,7 +58,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 
 	t.Run("above_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJAMaxMaterials + 1, // 101
 			AuditSamplingRate:             50,
 		}
@@ -71,7 +71,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           10,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMinSamplingRate, // 0
 		}
@@ -81,7 +81,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 
 	t.Run("at_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           10,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate, // 100
 		}
@@ -91,7 +91,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 
 	t.Run("below_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           10,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMinSamplingRate - 1, // -1
 		}
@@ -102,7 +102,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 
 	t.Run("above_maximum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
-			ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 			DefaultMaxMaterials:           10,
 			AuditSamplingRate:             cryptoutilSharedMagic.JoseJAAuditMaxSamplingRate + 1, // 101
 		}
@@ -114,7 +114,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 
 func TestValidateJoseJASettings_MultipleErrors(t *testing.T) {
 	settings := &JoseJAServerSettings{
-		ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{},
+		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 		DefaultMaxMaterials:           0,   // Invalid: below minimum
 		AuditSamplingRate:             101, // Invalid: above maximum
 	}
@@ -131,7 +131,7 @@ func TestLogJoseJASettings(t *testing.T) {
 	os.Stderr = w
 
 	settings := &JoseJAServerSettings{
-		ServiceTemplateServerSettings: &cryptoutilTemplateConfig.ServiceTemplateServerSettings{
+		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 			BindPublicProtocol:  "https",
 			BindPublicAddress:   "127.0.0.1",
 			BindPublicPort:      9443,

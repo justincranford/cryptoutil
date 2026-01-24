@@ -6,7 +6,7 @@ package unsealkeysservice
 import (
 	"testing"
 
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/stretchr/testify/require"
@@ -17,7 +17,7 @@ func TestUnsealKeysServiceSimple_EncryptDecryptKey(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -26,7 +26,7 @@ func TestUnsealKeysServiceSimple_EncryptDecryptKey(t *testing.T) {
 	require.NotNil(t, service)
 
 	// Generate a test key to encrypt
-	testKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	testKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.Len(t, testKeys, 1)
 	clearKey := testKeys[0]
@@ -52,7 +52,7 @@ func TestUnsealKeysServiceSimple_EncryptDecryptData(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -86,7 +86,7 @@ func TestUnsealKeysServiceSimple_DecryptKey_InvalidData(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -105,7 +105,7 @@ func TestUnsealKeysServiceSimple_DecryptData_InvalidData(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -124,7 +124,7 @@ func TestUnsealKeysServiceSimple_EncryptData_EmptyData(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -143,7 +143,7 @@ func TestUnsealKeysServiceSimple_Shutdown(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -162,7 +162,7 @@ func TestUnsealKeysServiceSimple_MultipleEncryptDecryptRounds(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -198,7 +198,7 @@ func TestUnsealKeysServiceSimple_LargeData(t *testing.T) {
 	t.Parallel()
 
 	// Create unseal keys
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create service
@@ -235,9 +235,9 @@ func TestUnsealKeysServiceSimple_DifferentKeySizes(t *testing.T) {
 		enc      *joseJwa.ContentEncryptionAlgorithm
 		alg      *joseJwa.KeyEncryptionAlgorithm
 	}{
-		{"Single Key", 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW},
-		{"Two Keys", 2, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW},
-		{"Three Keys", 3, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW},
+		{"Single Key", 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW},
+		{"Two Keys", 2, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW},
+		{"Three Keys", 3, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW},
 	}
 
 	for _, tc := range testCases {
@@ -245,7 +245,7 @@ func TestUnsealKeysServiceSimple_DifferentKeySizes(t *testing.T) {
 			t.Parallel()
 
 			// Create unseal keys
-			unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, tc.keyCount, tc.enc, tc.alg)
+			unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, tc.keyCount, tc.enc, tc.alg)
 			require.NoError(t, err)
 
 			// Create service
@@ -274,11 +274,11 @@ func TestUnsealKeysServiceSimple_MultipleKeys_SameData(t *testing.T) {
 	clearData := []byte("same data for both services")
 
 	// Create first set of unseal keys
-	unsealKeys1, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys1, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create second set of unseal keys
-	unsealKeys2, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys2, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	// Create first service
@@ -343,7 +343,7 @@ func TestUnsealKeysServiceSharedSecrets_EncryptDecryptKey(t *testing.T) {
 	defer service.Shutdown()
 
 	// Generate a test key to encrypt
-	testKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	testKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, 1, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	require.Len(t, testKeys, 1)
 	clearKey := testKeys[0]
@@ -522,7 +522,7 @@ func TestUnsealKeysServiceSharedSecrets_DecryptInvalidData(t *testing.T) {
 func TestUnsealKeysServiceSimple_NilKey(t *testing.T) {
 	t.Parallel()
 
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	service, err := NewUnsealKeysServiceSimple(unsealKeys)
@@ -541,7 +541,7 @@ func TestUnsealKeysServiceSimple_NilKey(t *testing.T) {
 func TestUnsealKeysServiceSimple_DecryptKey_EmptyBytes(t *testing.T) {
 	t.Parallel()
 
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	service, err := NewUnsealKeysServiceSimple(unsealKeys)
@@ -557,7 +557,7 @@ func TestUnsealKeysServiceSimple_DecryptKey_EmptyBytes(t *testing.T) {
 func TestUnsealKeysServiceSimple_DecryptData_EmptyBytes(t *testing.T) {
 	t.Parallel()
 
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	service, err := NewUnsealKeysServiceSimple(unsealKeys)
@@ -573,7 +573,7 @@ func TestUnsealKeysServiceSimple_DecryptData_EmptyBytes(t *testing.T) {
 func TestUnsealKeysServiceSimple_EncryptData_NilData(t *testing.T) {
 	t.Parallel()
 
-	unsealKeys, _, err := cryptoutilJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	service, err := NewUnsealKeysServiceSimple(unsealKeys)

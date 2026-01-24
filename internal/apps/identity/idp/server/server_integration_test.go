@@ -6,7 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"io"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 

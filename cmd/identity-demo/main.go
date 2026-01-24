@@ -8,19 +8,19 @@ package main
 import (
 	"context"
 	crand "crypto/rand"
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
@@ -29,7 +29,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 )
 
 const (
@@ -269,7 +269,7 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 
 func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) error {
 	// Hash the client secret with PBKDF2 (FIPS-compliant).
-	hashedSecret, err := cryptoutilPassword.HashPassword(demoClientSecret)
+	hashedSecret, err := cryptoutilSharedCryptoPassword.HashPassword(demoClientSecret)
 	if err != nil {
 		return fmt.Errorf("failed to hash client secret: %w", err)
 	}

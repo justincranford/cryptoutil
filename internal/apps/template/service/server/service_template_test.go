@@ -16,9 +16,9 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // initTestDB creates a test database for ServiceTemplate tests.
@@ -43,8 +43,8 @@ func initTestDB(t *testing.T) *gorm.DB {
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	sqlDB.SetMaxOpenConns(cryptoutilMagic.SQLiteMaxOpenConnections)
-	sqlDB.SetMaxIdleConns(cryptoutilMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxOpenConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
+	sqlDB.SetMaxIdleConns(cryptoutilSharedMagic.SQLiteMaxOpenConnections)
 	sqlDB.SetConnMaxLifetime(0) // In-memory: keep connections alive.
 
 	// Wrap with GORM.
@@ -57,8 +57,8 @@ func initTestDB(t *testing.T) *gorm.DB {
 }
 
 // defaultTestConfig creates minimal valid ServiceTemplateServerSettings for tests.
-func defaultTestConfig() *cryptoutilConfig.ServiceTemplateServerSettings {
-	return cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+func defaultTestConfig() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
+	return cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 }
 
 // TestNewServiceTemplate_HappyPath tests successful ServiceTemplate creation.
@@ -245,7 +245,7 @@ func TestStartApplicationCore_PassThrough(t *testing.T) {
 	ctx := context.Background()
 
 	// Use minimal test config.
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	// StartApplicationCore should pass through to application.StartApplicationCore.
 	core, err := StartApplicationCore(ctx, settings)
@@ -264,7 +264,7 @@ func TestStartApplicationCore_PassThrough(t *testing.T) {
 func TestStartApplicationCore_NilContext(t *testing.T) {
 	t.Parallel()
 
-	settings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	//nolint:staticcheck // Testing nil context validation.
 	_, err := StartApplicationCore(nil, settings)

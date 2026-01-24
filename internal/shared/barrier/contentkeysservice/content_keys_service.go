@@ -10,8 +10,8 @@ import (
 
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/shared/barrier/intermediatekeysservice"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	googleUuid "github.com/google/uuid"
 
@@ -21,14 +21,14 @@ import (
 
 // ContentKeysService manages content encryption keys in the barrier hierarchy.
 type ContentKeysService struct {
-	telemetryService        *cryptoutilTelemetry.TelemetryService
-	jwkGenService           *cryptoutilJose.JWKGenService
+	telemetryService        *cryptoutilSharedTelemetry.TelemetryService
+	jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 }
 
 // NewContentKeysService creates a new ContentKeysService with the specified dependencies.
-func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService) (*ContentKeysService, error) {
+func NewContentKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -44,12 +44,12 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 
 // EncryptContent encrypts content bytes with a newly generated content key.
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
 
-	_, encryptedContentJWEMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{clearContentKey}, clearContentBytes)
+	_, encryptedContentJWEMessageBytes, err := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{clearContentKey}, clearContentBytes)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content with JWK: %w", err)
 	}
@@ -96,7 +96,7 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmReposit
 		return nil, fmt.Errorf("failed to decrypt content key: %w", err)
 	}
 
-	decryptedBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedContentKey}, encryptedContentJWEMessageBytes)
+	decryptedBytes, err := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{decryptedContentKey}, encryptedContentJWEMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt content with content key: %w", err)
 	}

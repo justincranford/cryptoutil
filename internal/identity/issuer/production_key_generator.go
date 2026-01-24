@@ -6,10 +6,10 @@ package issuer
 
 import (
 	"context"
-	"crypto/ecdsa"
+	ecdsa "crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"fmt"
 	"time"
 
@@ -48,7 +48,7 @@ func (g *ProductionKeyGenerator) GenerateSigningKey(ctx context.Context, algorit
 func (g *ProductionKeyGenerator) GenerateEncryptionKey(_ context.Context) (*EncryptionKey, error) {
 	keyBytes := make([]byte, cryptoutilIdentityMagic.AES256KeySize)
 
-	if _, err := rand.Read(keyBytes); err != nil {
+	if _, err := crand.Read(keyBytes); err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrKeyGenerationFailed,
 			fmt.Errorf("failed to generate AES-256 key: %w", err),
@@ -85,7 +85,7 @@ func (g *ProductionKeyGenerator) generateRSASigningKey(_ context.Context, algori
 		)
 	}
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, keySize)
+	privateKey, err := rsa.GenerateKey(crand.Reader, keySize)
 	if err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrKeyGenerationFailed,
@@ -124,7 +124,7 @@ func (g *ProductionKeyGenerator) generateECDSASigningKey(_ context.Context, algo
 		)
 	}
 
-	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader)
+	privateKey, err := ecdsa.GenerateKey(curve, crand.Reader)
 	if err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrKeyGenerationFailed,
@@ -165,7 +165,7 @@ func (g *ProductionKeyGenerator) generateHMACSigningKey(_ context.Context, algor
 
 	keyBytes := make([]byte, keySize)
 
-	if _, err := rand.Read(keyBytes); err != nil {
+	if _, err := crand.Read(keyBytes); err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrKeyGenerationFailed,
 			fmt.Errorf("failed to generate HMAC key: %w", err),
