@@ -2,6 +2,7 @@
 
 //go:build !windows
 
+// Package process provides process management functionality for Unix-based systems.
 package process
 
 import (
@@ -78,7 +79,7 @@ func (m *Manager) Start(ctx context.Context, serviceName string, binary string, 
 }
 
 // Stop terminates a running service process.
-func (m *Manager) Stop(serviceName string, force bool, timeout time.Duration) error {
+func (m *Manager) Stop(serviceName string, force bool, _ time.Duration) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
