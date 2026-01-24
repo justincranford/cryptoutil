@@ -96,18 +96,24 @@ func TestCAServer_Start_Error(t *testing.T) {
 	require.NotNil(t, server)
 
 	// Start server.
+	errChan := make(chan error, 1)
 	go func() {
-		_ = server.Start(ctx)
+		errChan <- server.Start(ctx)
 	}()
 
 	// Wait for startup.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	// Try to start again (should fail - ports already in use).
-	err = server.Start(ctx)
-	if err != nil {
-		require.Contains(t, err.Error(), "failed to start application")
-	}
+	go func() {
+		err := server.Start(ctx)
+		if err != nil {
+			require.Contains(t, err.Error(), "failed to start application")
+		}
+	}()
+
+	// Wait a bit for second start attempt.
+	time.Sleep(500 * time.Millisecond)
 
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

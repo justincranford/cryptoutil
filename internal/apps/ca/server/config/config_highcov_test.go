@@ -26,9 +26,9 @@ func TestParse_HappyPath(t *testing.T) {
 	// Verify CA-specific defaults.
 	require.Empty(t, settings.CAConfigPath)
 	require.Empty(t, settings.ProfilesPath)
-	require.True(t, settings.EnableEST)         // Default is true.
-	require.True(t, settings.EnableOCSP)        // Default is true.
-	require.True(t, settings.EnableCRL)         // Default is true.
+	require.True(t, settings.EnableEST)        // Default is true.
+	require.True(t, settings.EnableOCSP)       // Default is true.
+	require.True(t, settings.EnableCRL)        // Default is true.
 	require.False(t, settings.EnableTimestamp) // Default is false.
 }
 
