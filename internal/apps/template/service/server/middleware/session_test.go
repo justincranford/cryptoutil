@@ -156,9 +156,9 @@ func TestSessionMiddleware_BrowserSession_Success(t *testing.T) {
 	}
 
 	var (
-		capturedUserID   interface{}
-		capturedTenantID interface{}
-		capturedRealmID  interface{}
+		capturedUserID   any
+		capturedTenantID any
+		capturedRealmID  any
 	)
 
 	app := createTestApp()
@@ -201,7 +201,7 @@ func TestSessionMiddleware_BrowserSession_NilUserID(t *testing.T) {
 		},
 	}
 
-	var capturedSession interface{}
+	var capturedSession any
 
 	app := createTestApp()
 
@@ -264,8 +264,8 @@ func TestSessionMiddleware_ServiceSession_Success(t *testing.T) {
 	}
 
 	var (
-		capturedClientID interface{}
-		capturedTenantID interface{}
+		capturedClientID any
+		capturedTenantID any
 	)
 
 	app := createTestApp()
@@ -306,7 +306,7 @@ func TestSessionMiddleware_ServiceSession_NilClientID(t *testing.T) {
 		},
 	}
 
-	var capturedSession interface{}
+	var capturedSession any
 
 	app := createTestApp()
 

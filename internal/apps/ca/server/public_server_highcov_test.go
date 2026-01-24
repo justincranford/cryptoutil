@@ -169,7 +169,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 		require.NotEmpty(t, body)
 	} else {
 		// Error response should have JSON error.
-		var errResp map[string]interface{}
+		var errResp map[string]any
 
 		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		require.NoError(t, err)

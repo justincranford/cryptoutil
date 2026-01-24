@@ -394,7 +394,7 @@ func TestJWTService_CreateJWT_WithCustomClaims(t *testing.T) {
 		ExpiresAt: &exp,
 		IssuedAt:  &iat,
 		JTI:       googleUuid.New().String(),
-		Custom: map[string]interface{}{
+		Custom: map[string]any{
 			"role":        "admin",
 			"permissions": []string{"read", "write"},
 		},

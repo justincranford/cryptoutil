@@ -79,7 +79,7 @@ type MaterialJWKResponse struct {
 
 // ListResponse represents a paginated list response.
 type ListResponse struct {
-	Items interface{} `json:"items"`
+	Items any `json:"items"`
 	Total int64       `json:"total"`
 }
 
@@ -602,7 +602,7 @@ func (h *JWKHandler) HandleGetJWKS() fiber.Handler {
 		// JWKS endpoint is typically public - return all active public keys.
 		// In production, this would filter by tenant or return only public keys.
 		return c.JSON(fiber.Map{
-			"keys": []interface{}{},
+			"keys": []any{},
 		})
 	}
 }

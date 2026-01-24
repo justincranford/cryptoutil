@@ -29,7 +29,7 @@ type JWTClaims struct {
 	NotBefore *time.Time             `json:"nbf,omitempty"`
 	IssuedAt  *time.Time             `json:"iat,omitempty"`
 	JTI       string                 `json:"jti,omitempty"`
-	Custom    map[string]interface{} `json:"-"` // Additional custom claims.
+	Custom    map[string]any `json:"-"` // Additional custom claims.
 }
 
 // JWTService provides business logic for JWT operations.
@@ -196,7 +196,7 @@ func (s *jwtServiceImpl) ValidateJWT(ctx context.Context, tenantID, elasticJWKID
 	}
 
 	// Verify and extract claims.
-	var claimsMap map[string]interface{}
+	var claimsMap map[string]any
 	if err := parsedJWT.Claims(publicJWK, &claimsMap); err != nil {
 		return nil, fmt.Errorf("JWT validation failed: %w", err)
 	}
@@ -295,8 +295,8 @@ func (s *jwtServiceImpl) CreateEncryptedJWT(ctx context.Context, tenantID, signi
 }
 
 // buildClaimsMap converts JWTClaims to a map for JWT creation.
-func (s *jwtServiceImpl) buildClaimsMap(claims *JWTClaims) map[string]interface{} {
-	claimsMap := make(map[string]interface{})
+func (s *jwtServiceImpl) buildClaimsMap(claims *JWTClaims) map[string]any {
+	claimsMap := make(map[string]any)
 
 	if claims.Issuer != "" {
 		claimsMap["iss"] = claims.Issuer
@@ -339,9 +339,9 @@ func (s *jwtServiceImpl) buildClaimsMap(claims *JWTClaims) map[string]interface{
 }
 
 // parseClaimsMap converts a claims map back to JWTClaims.
-func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]interface{}) *JWTClaims {
+func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]any) *JWTClaims {
 	claims := &JWTClaims{
-		Custom: make(map[string]interface{}),
+		Custom: make(map[string]any),
 	}
 
 	for k, v := range claimsMap {
@@ -358,7 +358,7 @@ func (s *jwtServiceImpl) parseClaimsMap(claimsMap map[string]interface{}) *JWTCl
 			switch a := v.(type) {
 			case string:
 				claims.Audience = []string{a}
-			case []interface{}:
+			case []any:
 				for _, item := range a {
 					if str, ok := item.(string); ok {
 						claims.Audience = append(claims.Audience, str)

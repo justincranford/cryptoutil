@@ -37,7 +37,7 @@ func TestSessionMiddleware_BrowserSession_InvalidUserIDFormat(t *testing.T) {
 		},
 	}
 
-	var capturedUserID interface{}
+	var capturedUserID any
 
 	app := createTestApp()
 
@@ -81,8 +81,8 @@ func TestSessionMiddleware_ServiceSession_InvalidClientIDFormat(t *testing.T) {
 	}
 
 	var (
-		capturedUserID   interface{}
-		capturedClientID interface{}
+		capturedUserID   any
+		capturedClientID any
 	)
 
 	app := createTestApp()

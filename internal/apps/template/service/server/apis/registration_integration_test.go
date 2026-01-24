@@ -256,7 +256,7 @@ func TestIntegration_RegisterUser_CreateTenant(t *testing.T) {
 
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "tenant_id")
 	require.Contains(t, result, "user_id")
@@ -316,7 +316,7 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.Unmarshal(bodyBytes, &result))
 	require.Contains(t, result, "message")
 	require.Contains(t, result["message"], "pending")
@@ -419,11 +419,11 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "requests")
 
-	requests := result["requests"].([]interface{})
+	requests := result["requests"].([]any)
 	require.GreaterOrEqual(t, len(requests), 2, "Should have at least 2 join requests")
 }
 
@@ -629,7 +629,7 @@ func TestIntegration_RegisterUser_InvalidJSON(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "error")
 	require.Contains(t, result["error"], "Invalid request body")
@@ -676,11 +676,11 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "requests")
 
-	requests, ok := result["requests"].([]interface{})
+	requests, ok := result["requests"].([]any)
 	require.True(t, ok)
 	require.Equal(t, 0, len(requests))
 }
@@ -725,11 +725,11 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	t.Logf("Response body: %s", string(bodyBytes))
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.Unmarshal(bodyBytes, &result))
 	require.Contains(t, result, "requests")
 
-	requests, ok := result["requests"].([]interface{})
+	requests, ok := result["requests"].([]any)
 	require.True(t, ok)
 	t.Logf("Returned requests count: %d", len(requests))
 	// Note: There might be multiple requests from parallel tests, so just check >= 1
@@ -738,7 +738,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 	// Find our specific request in the list
 	foundOurRequest := false
 	for _, reqItem := range requests {
-		reqMap, ok := reqItem.(map[string]interface{})
+		reqMap, ok := reqItem.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -792,19 +792,19 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	require.NoError(t, json.Unmarshal(bodyBytes, &result))
 	require.Contains(t, result, "requests")
 
-	requests, ok := result["requests"].([]interface{})
+	requests, ok := result["requests"].([]any)
 	require.True(t, ok)
 	require.GreaterOrEqual(t, len(requests), 1)
 
 	// Find our specific request and verify optional fields are included.
 	foundOurRequest := false
 	for _, reqItem := range requests {
-		reqMap, ok := reqItem.(map[string]interface{})
+		reqMap, ok := reqItem.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -842,7 +842,7 @@ func TestIntegration_ProcessJoinRequest_InvalidID(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "error")
 	require.Equal(t, "Invalid request ID", result["error"])
@@ -862,7 +862,7 @@ func TestIntegration_ProcessJoinRequest_InvalidJSON(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	var result map[string]interface{}
+	var result map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "error")
 	require.Equal(t, "Invalid request body", result["error"])

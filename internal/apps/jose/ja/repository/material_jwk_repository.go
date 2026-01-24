@@ -136,7 +136,7 @@ func (r *gormMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJ
 		now := time.Now()
 		if err := tx.Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 			Where("elastic_jwk_id = ? AND active = ?", elasticJWKID.String(), true).
-			Updates(map[string]interface{}{
+			Updates(map[string]any{
 				"active":     false,
 				"retired_at": now,
 			}).Error; err != nil {
@@ -164,7 +164,7 @@ func (r *gormMaterialJWKRepository) RetireMaterial(ctx context.Context, id googl
 	if err := r.db.WithContext(ctx).
 		Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 		Where("id = ?", id.String()).
-		Updates(map[string]interface{}{
+		Updates(map[string]any{
 			"active":     false,
 			"retired_at": now,
 		}).Error; err != nil {

@@ -244,7 +244,7 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	var response map[string]interface{}
+	var response map[string]any
 
 	err = json.Unmarshal(body, &response)
 	require.NoError(t, err)

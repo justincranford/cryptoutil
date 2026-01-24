@@ -390,94 +390,94 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 	// These tests exercise the type assertion branches.
 	tests := []struct {
 		name      string
-		claimsMap map[string]interface{}
-		verify    func(t *testing.T, result map[string]interface{})
+		claimsMap map[string]any
+		verify    func(t *testing.T, result map[string]any)
 	}{
 		{
 			name: "iss as non-string (int) - type assertion fails",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"iss": 12345, // Not a string.
 				"sub": "test-subject",
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				// iss should be empty since type assertion failed.
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "sub as non-string (bool) - type assertion fails",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"iss": "test-issuer",
 				"sub": true, // Not a string.
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "aud as neither string nor array",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"iss": "test-issuer",
 				"aud": 12345, // Neither string nor array.
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "aud as array with non-string items",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"iss": "test-issuer",
-				"aud": []interface{}{123, "valid-aud", true}, // Mixed types.
+				"aud": []any{123, "valid-aud", true}, // Mixed types.
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "exp as non-numeric value",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"exp": "not-a-number", // Should be float64 or json.Number.
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "nbf as non-numeric value",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"nbf": true, // Should be float64 or json.Number.
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "iat as non-numeric value",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"iat": []string{"array"}, // Should be float64 or json.Number.
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "jti as non-string",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"jti": 12345, // Not a string.
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
 		{
 			name: "custom claims are preserved",
-			claimsMap: map[string]interface{}{
+			claimsMap: map[string]any{
 				"custom_string": "value",
 				"custom_int":    42,
 				"custom_bool":   true,
 			},
-			verify: func(t *testing.T, result map[string]interface{}) {
+			verify: func(t *testing.T, result map[string]any) {
 				require.NotNil(t, result)
 			},
 		},
