@@ -63,6 +63,15 @@ local-scripts/
 **/test_*.db-shm
 **/test_*.db-wal
 
+# Coverage files in root directory
+/cov
+/cov_*
+/v8
+/cipher_im_server_baseline
+/$coverageFile
+/$outFile
+/$outPath
+
 # Output of test or workflow reports
 **/dast-reports/
 **/e2e-reports/

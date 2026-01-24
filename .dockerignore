@@ -42,6 +42,10 @@ dist/
 **/*_test.go
 **/*_test_util.go
 **/coverage.*
+/cov
+/cov_*
+/v8
+/cipher_im_server_baseline
 
 # Report Directories
 **/dast-reports/
