@@ -312,6 +312,13 @@ jobs:
 
         if [ "$READY" != "true" ]; then
           echo "❌ Application failed to become ready within timeout"
+          echo ""
+          echo "=== Application STDERR (last 100 lines) ==="
+          tail -100 workflow-reports/dast/cryptoutil.stderr 2>/dev/null || echo "(no stderr file found)"
+          echo ""
+          echo "=== Application STDOUT (last 50 lines) ==="
+          tail -50 workflow-reports/dast/cryptoutil.stdout 2>/dev/null || echo "(no stdout file found)"
+          echo ""
           exit 1
         fi
 
@@ -772,7 +779,7 @@ jobs:
         retention-days: 1
 
     - name: GitHub Workflow artifacts
-      if: ${{ github.actor != 'nektos/act' }}
+      if: ${{ always() && github.actor != 'nektos/act' }}
       # https://github.com/actions/upload-artifact/releases (v5.0.0, 2025-04-21)
       uses: actions/upload-artifact@v5.0.0
       with:
