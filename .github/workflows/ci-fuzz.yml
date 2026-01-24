@@ -238,7 +238,7 @@ jobs:
           go-mod-verify: true
           go-mod-tidy: true
 
-      - name: RSA Keygen Fuzz Test
+      - name: HKDF All Variants Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFAllVariants

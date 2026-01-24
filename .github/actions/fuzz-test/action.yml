@@ -36,7 +36,9 @@ runs:
         TIMEOUT="${{ inputs.timeout_seconds }}s"
         GOMAXPROCS="${{ inputs.gomaxprocs }}"
         echo "⏱️ Configured: fuzztime=${FUZZTIME}, timeout=${TIMEOUT}, gomaxprocs=${GOMAXPROCS}"
-        GOMAXPROCS=${GOMAXPROCS} go test -tags=fuzz -fuzz=${{ inputs.fuzz_function_name }} -fuzztime=${FUZZTIME} -timeout=${TIMEOUT} ${{ inputs.package_path }}
+        # Use -run=^$ to skip regular tests (unit, property) and only run the fuzz target
+        # This prevents property tests from consuming timeout budget before fuzzing starts
+        GOMAXPROCS=${GOMAXPROCS} go test -tags=fuzz -run='^$' -fuzz=${{ inputs.fuzz_function_name }} -fuzztime=${FUZZTIME} -timeout=${TIMEOUT} ${{ inputs.package_path }}
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
