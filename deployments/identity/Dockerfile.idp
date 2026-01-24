@@ -151,7 +151,7 @@ LABEL org.opencontainers.image.created="${BUILD_DATE}"
 EXPOSE 18100
 
 # Healthcheck available with Alpine base image.
-HEALTHCHECK --interval=30s --timeout=10s --start_period=30s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:18100/health || exit 1
 
 # Use tini for proper signal handling and zombie process reaping.

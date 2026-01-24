@@ -63,8 +63,10 @@ func (r *ConsentDecisionRepository) GetByID(ctx context.Context, id googleUuid.U
 func (r *ConsentDecisionRepository) GetByUserClientScope(ctx context.Context, userID googleUuid.UUID, clientID, scope string) (*cryptoutilIdentityDomain.ConsentDecision, error) {
 	var consent cryptoutilIdentityDomain.ConsentDecision
 
+	now := time.Now().UTC()
+
 	if err := getDB(ctx, r.db).WithContext(ctx).
-		Where("user_id = ? AND client_id = ? AND scope = ? AND revoked_at IS NULL AND expires_at > ?", userID, clientID, scope, time.Now()).
+		Where("user_id = ? AND client_id = ? AND scope = ? AND revoked_at IS NULL AND expires_at > ?", userID, clientID, scope, now).
 		First(&consent).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrConsentNotFound
