@@ -52,8 +52,19 @@
   "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
   "files.exclude": {
     // Git internal files
-    "**/.git/logs/**": true,
-    "**/.git/lost-found/**": true,
+    "**/.git": false,
+    "**/.git/COMMIT_EDITMSG": true,
+    "**/.git/description": true,
+    "**/.git/info": true,
+    "**/.git/index": true,
+    "**/.git/refs": true,
+    "**/.git/packed-refs": true,
+    "**/.git/logs": true,
+    "**/.git/lost-found": true,
+    "**/.git/objects": true,
+    "**/.git/FETCH_HEAD": true,
+    "**/.git/ORIG_HEAD": true,
+    "**/.git/HEAD": true,
 
     // System/OS files
     "**/.DS_Store": true,
