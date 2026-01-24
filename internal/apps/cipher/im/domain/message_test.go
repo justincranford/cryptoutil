@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestMessage_TableName(t *testing.T) {
@@ -37,7 +37,7 @@ func TestMessage_FieldTypes(t *testing.T) {
 		JWE:       jwe,
 		CreatedAt: createdAt,
 		ReadAt:    &readAt,
-		Sender: cryptoutilTemplateRepository.User{
+		Sender: cryptoutilAppsTemplateServiceServerRepository.User{
 			ID:       senderID,
 			Username: "testuser",
 		},

@@ -12,7 +12,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -96,7 +96,7 @@ func (s *SessionManagerService) IssueBrowserSessionWithTenant(
 func (s *SessionManagerService) ValidateBrowserSession(
 	ctx context.Context,
 	token string,
-) (*cryptoutilTemplateRepository.BrowserSession, error) {
+) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}
@@ -130,7 +130,7 @@ func (s *SessionManagerService) IssueServiceSessionWithTenant(
 func (s *SessionManagerService) ValidateServiceSession(
 	ctx context.Context,
 	token string,
-) (*cryptoutilTemplateRepository.ServiceSession, error) {
+) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
 	}

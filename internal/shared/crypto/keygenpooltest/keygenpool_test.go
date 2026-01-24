@@ -22,7 +22,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilPool "cryptoutil/internal/shared/pool"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 
@@ -220,7 +220,7 @@ func TestPoolHMAC(t *testing.T) {
 func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilRandom.GenerateUUIDv7Function(), false))
+			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 

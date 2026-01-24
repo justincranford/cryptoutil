@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 const (
@@ -173,5 +173,5 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 		return nil, fmt.Errorf("failed to collect system information: %w", errors.Join(errs...))
 	}
 
-	return cryptoutilRandom.StringPointersToBytes(&hostID, &userID, &groupID, &runtimeGoArch, &runtimeGoOS, &runtimeNumCPU, &cpuVendorID, &cpuFamily, &cpuPhysicalID, &cpuModelName, &ramSize, &osHostname, &username), nil
+	return cryptoutilSharedUtilRandom.StringPointersToBytes(&hostID, &userID, &groupID, &runtimeGoArch, &runtimeGoOS, &runtimeNumCPU, &cpuVendorID, &cpuFamily, &cpuPhysicalID, &cpuModelName, &ramSize, &osHostname, &username), nil
 }

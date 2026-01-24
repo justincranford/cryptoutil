@@ -6,9 +6,9 @@ package server
 import (
 	"fmt"
 
-	joseJARepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	"cryptoutil/internal/apps/jose/ja/server/apis"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
@@ -18,12 +18,12 @@ import (
 
 // PublicServer implements the jose-ja public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilTemplateServer.PublicServerBase // Reusable server infrastructure
+	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure
 
-	elasticJWKRepo        joseJARepository.ElasticJWKRepository
-	materialJWKRepo       joseJARepository.MaterialJWKRepository
-	auditConfigRepo       joseJARepository.AuditConfigRepository
-	auditLogRepo          joseJARepository.AuditLogRepository
+	elasticJWKRepo        cryptoutilAppsJoseJaRepository.ElasticJWKRepository
+	materialJWKRepo       cryptoutilAppsJoseJaRepository.MaterialJWKRepository
+	auditConfigRepo       cryptoutilAppsJoseJaRepository.AuditConfigRepository
+	auditLogRepo          cryptoutilAppsJoseJaRepository.AuditLogRepository
 	jwkGenService         *cryptoutilJose.JWKGenService
 	barrierService        *cryptoutilBarrier.BarrierService
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService
@@ -36,13 +36,13 @@ type PublicServer struct {
 // NewPublicServer creates a new jose-ja public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
-	base *cryptoutilTemplateServer.PublicServerBase,
+	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 	sessionManagerService *cryptoutilTemplateBusinessLogic.SessionManagerService,
 	realmService cryptoutilTemplateService.RealmService,
-	elasticJWKRepo joseJARepository.ElasticJWKRepository,
-	materialJWKRepo joseJARepository.MaterialJWKRepository,
-	auditConfigRepo joseJARepository.AuditConfigRepository,
-	auditLogRepo joseJARepository.AuditLogRepository,
+	elasticJWKRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
+	materialJWKRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
+	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository,
+	auditLogRepo cryptoutilAppsJoseJaRepository.AuditLogRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilBarrier.BarrierService,
 ) (*PublicServer, error) {

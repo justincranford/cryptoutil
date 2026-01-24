@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -20,13 +20,13 @@ import (
 // SignBytes signs bytes using the provided JWKs and returns a JWS message.
 func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte, error) {
 	if jwks == nil {
-		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
-		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	} else if clearBytes == nil {
-		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(clearBytes) == 0 {
-		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	}
 
 	for _, jwk := range jwks {
@@ -34,7 +34,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		if err != nil {
 			return nil, nil, fmt.Errorf("invalid JWK: %w", err)
 		} else if !isSignJWK {
-			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeSignJWK)
+			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilSharedApperr.ErrJWKMustBeSignJWK)
 		}
 	}
 
@@ -95,13 +95,13 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 // VerifyBytes verifies a JWS message using the provided JWKs.
 func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 	if jwks == nil {
-		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
-		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	} else if jwsMessageBytes == nil {
-		return nil, fmt.Errorf("invalid jwsMessageBytes: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid jwsMessageBytes: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jwsMessageBytes) == 0 {
-		return nil, fmt.Errorf("invalid jwsMessageBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, fmt.Errorf("invalid jwsMessageBytes: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	}
 
 	for _, jwk := range jwks {
@@ -109,7 +109,7 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid JWK: %w", err)
 		} else if !isVerifyJWK {
-			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeVerifyJWK)
+			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilSharedApperr.ErrJWKMustBeVerifyJWK)
 		}
 	}
 

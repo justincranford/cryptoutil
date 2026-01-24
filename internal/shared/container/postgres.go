@@ -19,7 +19,7 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // StartPostgres starts a PostgreSQL test container and returns the DSN connection string.
@@ -59,7 +59,7 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Te
 // across all integration tests instead of per-test.
 func SetupSharedPostgresContainer(ctx context.Context) (*postgres.PostgresContainer, string, error) {
 	// Generate random database password.
-	dbPassword, err := cryptoutilRandom.GeneratePasswordSimple()
+	dbPassword, err := cryptoutilSharedUtilRandom.GeneratePasswordSimple()
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate database password: %w", err)
 	}

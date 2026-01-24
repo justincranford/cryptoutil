@@ -16,11 +16,11 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
+	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -244,11 +244,11 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			// Base algorithms (<1.5s): TestProbAlways (100% execution)
 			switch testCase.algorithm {
 			case "A128CBC-HS256/RSA1_5", "A128CBC-HS256/RSA-OAEP", "A128CBC-HS256/dir", "A128GCM/A128KW", "A128CBC-HS256/ECDH-ES", "A128CBC-HS256/ECDH-ES+A128KW", "A128CBC-HS256/RSA-OAEP-256":
-				cryptoutilRandom.SkipByProbability(t, cryptoutilMagic.TestProbTenth) // 10% execution for >3.0s tests
+				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilMagic.TestProbTenth) // 10% execution for >3.0s tests
 			case "A128CBC-HS256/A128GCMKW", "A128GCM/ECDH-ES", "A128CBC-HS256/A128KW", "A128GCM/ECDH-ES+A128KW", "A128GCM/RSA-OAEP", "A128GCM/RSA1_5", "A128GCM/A128GCMKW", "A128GCM/RSA-OAEP-256":
-				cryptoutilRandom.SkipByProbability(t, cryptoutilMagic.TestProbQuarter) // 25% execution for 1.5-3.0s tests
+				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilMagic.TestProbQuarter) // 25% execution for 1.5-3.0s tests
 			default:
-				cryptoutilRandom.SkipByProbability(t, cryptoutilMagic.TestProbAlways) // 100% execution for <1.5s tests (base algorithms)
+				cryptoutilSharedUtilRandom.SkipByProbability(t, cryptoutilMagic.TestProbAlways) // 100% execution for <1.5s tests (base algorithms)
 			}
 
 			// Generate unique names per subtest to avoid UNIQUE constraint violations in concurrent tests

@@ -11,8 +11,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 // Constants for repeated strings.
@@ -26,8 +26,8 @@ const (
 type SessionManager interface {
 	IssueBrowserSessionWithTenant(ctx context.Context, userID string, tenantID, realmID googleUuid.UUID) (string, error)
 	IssueServiceSessionWithTenant(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error)
-	ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.BrowserSession, error)
-	ValidateServiceSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.ServiceSession, error)
+	ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error)
+	ValidateServiceSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error)
 }
 
 // SessionHandler handles session management endpoints.
@@ -78,7 +78,7 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		summary := errInvalidRequestBody
 
-		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, err)
 	}
 
 	// Parse tenant and realm IDs.
@@ -86,14 +86,14 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	if err != nil {
 		summary := "Invalid tenant_id format"
 
-		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, err)
 	}
 
 	realmID, err := googleUuid.Parse(req.RealmID)
 	if err != nil {
 		summary := "Invalid realm_id format"
 
-		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, err)
 	}
 
 	// Create context from request context.
@@ -110,7 +110,7 @@ func (h *SessionHandler) IssueSession(c *fiber.Ctx) error {
 	if err != nil {
 		summary := "Failed to issue session token"
 
-		return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, err)
+		return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, err)
 	}
 
 	// Format response.
@@ -131,7 +131,7 @@ func (h *SessionHandler) ValidateSession(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		summary := errInvalidRequestBody
 
-		return cryptoutilAppErr.NewHTTP400BadRequest(&summary, err)
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, err)
 	}
 
 	// Create context from request context.

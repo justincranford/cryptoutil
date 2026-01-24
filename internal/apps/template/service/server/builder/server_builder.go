@@ -15,13 +15,13 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateAPIs "cryptoutil/internal/apps/template/service/server/apis"
 	cryptoutilTemplateApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -40,10 +40,10 @@ type ServiceResources struct {
 	SessionManager      *cryptoutilTemplateBusinessLogic.SessionManagerService
 	RegistrationService *cryptoutilTemplateBusinessLogic.TenantRegistrationService
 	RealmService        cryptoutilTemplateService.RealmService
-	RealmRepository     cryptoutilTemplateRepository.TenantRealmRepository
+	RealmRepository     cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 
 	// Application wrapper.
-	Application *cryptoutilTemplateServer.Application
+	Application *cryptoutilAppsTemplateServiceServer.Application
 
 	// Shutdown functions.
 	ShutdownCore      func()
@@ -57,7 +57,7 @@ type ServerBuilder struct {
 	config              *cryptoutilConfig.ServiceTemplateServerSettings
 	migrationFS         fs.FS
 	migrationsPath      string
-	publicRouteRegister func(*cryptoutilTemplateServer.PublicServerBase, *ServiceResources) error
+	publicRouteRegister func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error
 	err                 error // Accumulates errors during fluent chain.
 }
 
@@ -103,7 +103,7 @@ func (b *ServerBuilder) WithDomainMigrations(migrationFS fs.FS, migrationsPath s
 
 // WithPublicRouteRegistration provides callback for domain-specific route registration.
 // Callback receives initialized PublicServerBase and ServiceResources for handler creation.
-func (b *ServerBuilder) WithPublicRouteRegistration(registerFunc func(*cryptoutilTemplateServer.PublicServerBase, *ServiceResources) error) *ServerBuilder {
+func (b *ServerBuilder) WithPublicRouteRegistration(registerFunc func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error) *ServerBuilder {
 	if b.err != nil {
 		return b
 	}
@@ -207,7 +207,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create public server base.
-	publicServerBase, err := cryptoutilTemplateServer.NewPublicServerBase(&cryptoutilTemplateServer.PublicServerConfig{
+	publicServerBase, err := cryptoutilAppsTemplateServiceServer.NewPublicServerBase(&cryptoutilAppsTemplateServiceServer.PublicServerConfig{
 		BindAddress: b.config.BindPublicAddress,
 		Port:        int(b.config.BindPublicPort),
 		TLSMaterial: publicTLSMaterial,
@@ -255,7 +255,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	cryptoutilBarrier.RegisterStatusRoutes(adminServer.App(), services.StatusService)
 
 	// Create application wrapper with both servers.
-	app, err := cryptoutilTemplateServer.NewApplication(b.ctx, publicServerBase, adminServer)
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(b.ctx, publicServerBase, adminServer)
 	if err != nil {
 		services.Core.Shutdown()
 
@@ -333,14 +333,14 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	}
 
 	// Merge template migrations with domain migrations (if provided).
-	var migrationsFS fs.FS = cryptoutilTemplateRepository.MigrationsFS
+	var migrationsFS fs.FS = cryptoutilAppsTemplateServiceServerRepository.MigrationsFS
 
 	migrationsPath := "migrations"
 
 	if b.migrationFS != nil {
 		// Create merged FS combining template + domain migrations.
 		migrationsFS = &mergedMigrations{
-			templateFS:   cryptoutilTemplateRepository.MigrationsFS,
+			templateFS:   cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
 			templatePath: "migrations",
 			domainFS:     b.migrationFS,
 			domainPath:   b.migrationsPath,
@@ -349,7 +349,7 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	}
 
 	// Apply migrations using merged FS.
-	if err := cryptoutilTemplateRepository.ApplyMigrationsFromFS(sqlDB, migrationsFS, migrationsPath, databaseType); err != nil {
+	if err := cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(sqlDB, migrationsFS, migrationsPath, databaseType); err != nil {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 

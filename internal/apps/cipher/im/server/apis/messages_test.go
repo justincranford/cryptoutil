@@ -21,28 +21,28 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
-	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
+	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
+	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
 	testMessageHandler *MessageHandler
-	testMessageRepo    *cryptoutilCipherRepository.MessageRepository
-	testRecipientRepo  *cryptoutilCipherRepository.MessageRecipientJWKRepository
+	testMessageRepo    *cryptoutilAppsCipherImRepository.MessageRepository
+	testRecipientRepo  *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository
 )
 
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create in-memory SQLite database (avoid Docker requirement).
-	dbID, _ := cryptoutilRandom.GenerateUUIDv7()
+	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
 	var (
@@ -81,7 +81,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Apply Cipher-IM migrations.
-	if err := cryptoutilCipherRepository.ApplyCipherIMMigrations(testSQLDB, cryptoutilCipherRepository.DatabaseTypeSQLite); err != nil {
+	if err := cryptoutilAppsCipherImRepository.ApplyCipherIMMigrations(testSQLDB, cryptoutilAppsCipherImRepository.DatabaseTypeSQLite); err != nil {
 		panic("TestMain: failed to apply migrations: " + err.Error())
 	}
 
@@ -126,8 +126,8 @@ func TestMain(m *testing.M) {
 	defer barrierService.Shutdown()
 
 	// Initialize repositories.
-	testMessageRepo = cryptoutilCipherRepository.NewMessageRepository(db)
-	testRecipientRepo = cryptoutilCipherRepository.NewMessageRecipientJWKRepository(db, barrierService)
+	testMessageRepo = cryptoutilAppsCipherImRepository.NewMessageRepository(db)
+	testRecipientRepo = cryptoutilAppsCipherImRepository.NewMessageRecipientJWKRepository(db, barrierService)
 
 	// Initialize handler.
 	testMessageHandler = NewMessageHandler(
@@ -279,7 +279,7 @@ func TestHandleDeleteMessage_HappyPath(t *testing.T) {
 	// Create a message first
 	senderID := googleUuid.New()
 	messageID := googleUuid.New()
-	message := &cryptoutilCipherDomain.Message{
+	message := &cryptoutilAppsCipherImDomain.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "test-jwe-content",
@@ -508,7 +508,7 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 	receiverID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilCipherDomain.Message{
+	message := &cryptoutilAppsCipherImDomain.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "corrupted-jwe-content-not-valid",
@@ -516,7 +516,7 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 	require.NoError(t, testMessageRepo.Create(ctx, message))
 
 	// Create corrupted recipient JWK record.
-	recipientJWK := &cryptoutilCipherDomain.MessageRecipientJWK{
+	recipientJWK := &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 		ID:           googleUuid.New(),
 		MessageID:    messageID,
 		RecipientID:  receiverID,
@@ -558,7 +558,7 @@ func TestHandleReceiveMessages_NoJWKForRecipient(t *testing.T) {
 	receiverID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilCipherDomain.Message{
+	message := &cryptoutilAppsCipherImDomain.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "some-jwe-content",
@@ -601,7 +601,7 @@ func TestHandleDeleteMessage_ForbiddenNotOwner(t *testing.T) {
 	otherUserID := googleUuid.New()
 	messageID := googleUuid.New()
 
-	message := &cryptoutilCipherDomain.Message{
+	message := &cryptoutilAppsCipherImDomain.Message{
 		ID:       messageID,
 		SenderID: senderID,
 		JWE:      "test-jwe-content",

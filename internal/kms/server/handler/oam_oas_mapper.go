@@ -11,7 +11,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 // OamOasMapper maps between OpenAPI Model and OpenAPI Server types.
@@ -24,7 +24,7 @@ func NewOasOamMapper() *OamOasMapper {
 
 func (m *OamOasMapper) toOasPostKeyResponse(err error, addedElasticKey *cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.PostElastickeyResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -44,7 +44,7 @@ func (m *OamOasMapper) toOasPostKeyResponse(err error, addedElasticKey *cryptout
 
 func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDResponse(err error, elasticKey *cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -64,7 +64,7 @@ func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDResponse(err error, elastic
 
 func (m *OamOasMapper) toOasPostDecryptResponse(err error, decryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -97,7 +97,7 @@ func (m *OamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJW
 	_ = clearPublicJWKBytes
 
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -125,7 +125,7 @@ func (m *OamOasMapper) toOamPostEncryptQueryParams(openapiParams *cryptoutilOpen
 
 func (m *OamOasMapper) toOasPostEncryptResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -145,7 +145,7 @@ func (m *OamOasMapper) toOasPostEncryptResponse(err error, encryptedBytes []byte
 
 func (m *OamOasMapper) toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err error, generateKeyInElasticKeyResponse *cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -165,7 +165,7 @@ func (m *OamOasMapper) toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err er
 
 func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err error, key *cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -198,7 +198,7 @@ func (m *OamOasMapper) toOamGetElasticKeyMaterialKeysQueryParams(openapiParams *
 
 func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err error, keys []cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -218,7 +218,7 @@ func (m *OamOasMapper) toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err er
 
 func (m *OamOasMapper) toOasPostSignResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -238,7 +238,7 @@ func (m *OamOasMapper) toOasPostSignResponse(err error, encryptedBytes []byte) (
 
 func (m *OamOasMapper) toOasPostVerifyResponse(err error) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -275,7 +275,7 @@ func (m *OamOasMapper) toOamGetElasticKeyQueryParams(openapiParams *cryptoutilOp
 
 func (m *OamOasMapper) toOasGetElastickeysResponse(err error, elasticKeys []cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeysResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -309,7 +309,7 @@ func (m *OamOasMapper) toOamGetMaterialKeysQueryParams(openapiParams *cryptoutil
 
 func (m *OamOasMapper) toOasGetMaterialKeysResponse(err error, keys []cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.GetMaterialkeysResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -329,7 +329,7 @@ func (m *OamOasMapper) toOasGetMaterialKeysResponse(err error, keys []cryptoutil
 
 func (m *OamOasMapper) toOasPutElastickeyElasticKeyIDResponse(err error, updatedElasticKey *cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.PutElastickeyElasticKeyIDResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -351,7 +351,7 @@ func (m *OamOasMapper) toOasPutElastickeyElasticKeyIDResponse(err error, updated
 
 func (m *OamOasMapper) toOasDeleteElastickeyElasticKeyIDResponse(err error) (cryptoutilOpenapiServer.DeleteElastickeyElasticKeyIDResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -371,7 +371,7 @@ func (m *OamOasMapper) toOasDeleteElastickeyElasticKeyIDResponse(err error) (cry
 
 func (m *OamOasMapper) toOasPostElastickeyElasticKeyIDImportResponse(err error, importedMaterialKey *cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDImportResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -391,7 +391,7 @@ func (m *OamOasMapper) toOasPostElastickeyElasticKeyIDImportResponse(err error, 
 
 func (m *OamOasMapper) toOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponse(err error) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeResponseObject, error) {
 	if err != nil {
-		var appErr *cryptoutilAppErr.Error
+		var appErr *cryptoutilSharedApperr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
@@ -411,23 +411,23 @@ func (m *OamOasMapper) toOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRe
 
 // Helper methods
 
-func (m *OamOasMapper) toOasHTTP400Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP400BadRequest {
+func (m *OamOasMapper) toOasHTTP400Response(appErr *cryptoutilSharedApperr.Error) cryptoutilOpenapiModel.HTTP400BadRequest {
 	return cryptoutilOpenapiModel.HTTP400BadRequest(m.toOasHTTPErrorResponse(appErr))
 }
 
-func (m *OamOasMapper) toOasHTTP404Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP404NotFound {
+func (m *OamOasMapper) toOasHTTP404Response(appErr *cryptoutilSharedApperr.Error) cryptoutilOpenapiModel.HTTP404NotFound {
 	return cryptoutilOpenapiModel.HTTP404NotFound(m.toOasHTTPErrorResponse(appErr))
 }
 
-func (m *OamOasMapper) toOasHTTP409Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP409Conflict {
+func (m *OamOasMapper) toOasHTTP409Response(appErr *cryptoutilSharedApperr.Error) cryptoutilOpenapiModel.HTTP409Conflict {
 	return cryptoutilOpenapiModel.HTTP409Conflict(m.toOasHTTPErrorResponse(appErr))
 }
 
-func (m *OamOasMapper) toOasHTTP500Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP500InternalServerError {
+func (m *OamOasMapper) toOasHTTP500Response(appErr *cryptoutilSharedApperr.Error) cryptoutilOpenapiModel.HTTP500InternalServerError {
 	return cryptoutilOpenapiModel.HTTP500InternalServerError(m.toOasHTTPErrorResponse(appErr))
 }
 
-func (*OamOasMapper) toOasHTTPErrorResponse(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTPError {
+func (*OamOasMapper) toOasHTTPErrorResponse(appErr *cryptoutilSharedApperr.Error) cryptoutilOpenapiModel.HTTPError {
 	return cryptoutilOpenapiModel.HTTPError{
 		Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
 		Message: appErr.Error(),

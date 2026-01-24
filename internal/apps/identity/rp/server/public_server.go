@@ -12,7 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"cryptoutil/internal/apps/identity/rp/server/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 )
@@ -22,7 +22,7 @@ const authzCheckTimeout = 5 * time.Second
 
 // PublicServer implements the identity-rp public server by embedding PublicServerBase.
 type PublicServer struct {
-	base *cryptoutilTemplateServer.PublicServerBase // Reusable server infrastructure.
+	base *cryptoutilAppsTemplateServiceServer.PublicServerBase // Reusable server infrastructure.
 
 	cfg            *config.IdentityRPServerSettings
 	sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService
@@ -32,7 +32,7 @@ type PublicServer struct {
 // NewPublicServer creates a new identity-rp public server using builder-provided infrastructure.
 // Used by ServerBuilder during route registration.
 func NewPublicServer(
-	base *cryptoutilTemplateServer.PublicServerBase,
+	base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 	cfg *config.IdentityRPServerSettings,
 	sessionManager *cryptoutilTemplateBusinessLogic.SessionManagerService,
 	realmService cryptoutilTemplateService.RealmService,

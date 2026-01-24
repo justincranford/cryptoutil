@@ -12,7 +12,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	joseJARepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -40,16 +40,16 @@ type MaterialRotationService interface {
 
 // materialRotationServiceImpl implements MaterialRotationService.
 type materialRotationServiceImpl struct {
-	elasticRepo  joseJARepository.ElasticJWKRepository
-	materialRepo joseJARepository.MaterialJWKRepository
+	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
+	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	jwkGenSvc    *cryptoutilJose.JWKGenService
 	barrierSvc   *cryptoutilBarrier.BarrierService
 }
 
 // NewMaterialRotationService creates a new MaterialRotationService.
 func NewMaterialRotationService(
-	elasticRepo joseJARepository.ElasticJWKRepository,
-	materialRepo joseJARepository.MaterialJWKRepository,
+	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
+	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	jwkGenSvc *cryptoutilJose.JWKGenService,
 	barrierSvc *cryptoutilBarrier.BarrierService,
 ) MaterialRotationService {

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilRPServer "cryptoutil/internal/apps/identity/rp/server"
-	cryptoutilRPConfig "cryptoutil/internal/apps/identity/rp/server/config"
+	cryptoutilAppsIdentityRpServer "cryptoutil/internal/apps/identity/rp/server"
+	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity/rp/server/config"
 )
 
 const (
@@ -75,7 +75,7 @@ func startService(parameters []string) {
 	// Load RP-specific configuration from YAML file.
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilRPConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilAppsIdentityRpServerConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}
@@ -84,7 +84,7 @@ func startService(parameters []string) {
 	ctx := context.Background()
 
 	// Create RP server using template-based implementation.
-	server, err := cryptoutilRPServer.NewFromConfig(ctx, settings)
+	server, err := cryptoutilAppsIdentityRpServer.NewFromConfig(ctx, settings)
 	if err != nil {
 		log.Fatalf("Failed to create RP server: %v", err)
 	}

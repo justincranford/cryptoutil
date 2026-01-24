@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	userauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -105,14 +105,14 @@ func (m *mockPhoneCallUserRepo) Count(_ context.Context) (int64, error) {
 func TestPhoneCallOTPAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewPhoneCallOTPAuthenticator(nil, nil, nil, nil, nil)
+	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(nil, nil, nil, nil, nil)
 	require.NotNil(t, auth, "NewPhoneCallOTPAuthenticator should return non-nil authenticator")
 }
 
 func TestPhoneCallOTPAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewPhoneCallOTPAuthenticator(nil, nil, nil, nil, nil)
+	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(nil, nil, nil, nil, nil)
 	require.Equal(t, "phone_call_otp", auth.Method())
 }
 
@@ -122,10 +122,10 @@ func TestPhoneCallOTPAuthenticator_InitiateAuth(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPhone := newMockPhoneCallService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPhoneCallUserRepo()
 
 	// Create test user with phone number.
@@ -139,7 +139,7 @@ func TestPhoneCallOTPAuthenticator_InitiateAuth(t *testing.T) {
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	auth := userauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
 
 	// Initiate phone call OTP authentication.
 	beforeInitiate := time.Now()
@@ -164,13 +164,13 @@ func TestPhoneCallOTPAuthenticator_InitiateAuthUserNotFound(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPhone := newMockPhoneCallService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPhoneCallUserRepo()
 
-	auth := userauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
 
 	// Initiate with non-existent user.
 	_, err := auth.InitiateAuth(ctx, userID)
@@ -184,10 +184,10 @@ func TestPhoneCallOTPAuthenticator_InitiateAuthNoPhoneNumber(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPhone := newMockPhoneCallService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPhoneCallUserRepo()
 
 	// Create user without phone number.
@@ -201,7 +201,7 @@ func TestPhoneCallOTPAuthenticator_InitiateAuthNoPhoneNumber(t *testing.T) {
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	auth := userauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
 
 	// Initiate with user that has no phone number.
 	_, err = auth.InitiateAuth(ctx, userID)
@@ -215,10 +215,10 @@ func TestPhoneCallOTPAuthenticator_VerifyAuth(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPhone := newMockPhoneCallService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPhoneCallUserRepo()
 
 	// Create test user.
@@ -232,7 +232,7 @@ func TestPhoneCallOTPAuthenticator_VerifyAuth(t *testing.T) {
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	auth := userauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
 
 	// Initiate authentication.
 	challenge, err := auth.InitiateAuth(ctx, userID)
@@ -263,13 +263,13 @@ func TestPhoneCallOTPAuthenticator_VerifyAuthChallengeNotFound(t *testing.T) {
 
 	ctx := context.Background()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPhone := newMockPhoneCallService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPhoneCallUserRepo()
 
-	auth := userauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
 
 	// Verify with non-existent challenge.
 	challengeID := googleUuid.New().String()

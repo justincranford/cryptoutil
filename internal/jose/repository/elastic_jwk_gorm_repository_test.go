@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	"cryptoutil/internal/jose/domain"
 	"cryptoutil/internal/jose/repository"
 
@@ -52,8 +52,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	// AutoMigrate creates tables based on GORM model struct tags.
 	err = db.AutoMigrate(
 		// Template models needed for tenant/realm foreign key support.
-		&cryptoutilTemplateRepository.Tenant{},
-		&cryptoutilTemplateRepository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
+		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
 		// JOSE domain models.
 		&domain.ElasticJWK{},
 		&domain.MaterialJWK{},
@@ -72,7 +72,7 @@ func createTestTenantAndRealm(t *testing.T, db *gorm.DB) (tenantID, realmID goog
 	realmID = googleUuid.New()
 
 	// Create tenant using GORM model.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:          tenantID,
 		Name:        "Test Tenant " + tenantID.String(),
 		Description: "Test tenant for repository tests",
@@ -83,7 +83,7 @@ func createTestTenantAndRealm(t *testing.T, db *gorm.DB) (tenantID, realmID goog
 	require.NoError(t, db.Create(tenant).Error)
 
 	// Create tenant_realm using GORM model.
-	tenantRealm := &cryptoutilTemplateRepository.TenantRealm{
+	tenantRealm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 		ID:        googleUuid.New(),
 		TenantID:  tenantID,
 		RealmID:   realmID,
@@ -391,7 +391,7 @@ func TestElasticJWKGormRepository_WithTransaction(t *testing.T) {
 	tx := db.Begin()
 	require.NoError(t, tx.Error)
 
-	txCtx := cryptoutilTemplateRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	// Create within transaction.
 	elasticJWK := &domain.ElasticJWK{
@@ -427,7 +427,7 @@ func TestElasticJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 	tx := db.Begin()
 	require.NoError(t, tx.Error)
 
-	txCtx := cryptoutilTemplateRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	// Create within transaction.
 	elasticJWK := &domain.ElasticJWK{

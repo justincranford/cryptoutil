@@ -12,7 +12,7 @@ import (
 
 	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func TestElasticJWKService_CreateElasticJWK(t *testing.T) {
@@ -85,7 +85,7 @@ func TestElasticJWKService_CreateElasticJWK(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tenantID, err := cryptoutilRandom.GenerateUUIDv7()
+			tenantID, err := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 			require.NoError(t, err)
 
 			svc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
@@ -140,7 +140,7 @@ func TestElasticJWKService_GetElasticJWK(t *testing.T) {
 	svc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 
 	// Create a test elastic JWK.
-	tenantID, err := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, err := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	require.NoError(t, err)
 
 	elasticJWK, _, err := svc.CreateElasticJWK(ctx, *tenantID, "RS256", "sig", 10)
@@ -209,7 +209,7 @@ func TestElasticJWKService_ListElasticJWKs(t *testing.T) {
 	svc := NewElasticJWKService(testElasticRepo, testMaterialRepo, testJWKGenService, testBarrierService)
 
 	// Create a unique tenant for this test.
-	tenantID, err := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, err := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	require.NoError(t, err)
 
 	// Create multiple elastic JWKs.
@@ -309,7 +309,7 @@ func TestElasticJWKService_DeleteElasticJWK(t *testing.T) {
 		{
 			name: "delete existing JWK",
 			setup: func() (tenantID, id googleUuid.UUID) {
-				tid, _ := cryptoutilRandom.GenerateUUIDv7()
+				tid, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 				elasticJWK, _, _ := svc.CreateElasticJWK(ctx, *tid, "RS256", "sig", 10)
 
 				return *tid, elasticJWK.ID
@@ -319,7 +319,7 @@ func TestElasticJWKService_DeleteElasticJWK(t *testing.T) {
 		{
 			name: "delete non-existent JWK",
 			setup: func() (tenantID, id googleUuid.UUID) {
-				tid, _ := cryptoutilRandom.GenerateUUIDv7()
+				tid, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 				return *tid, googleUuid.New()
 			},
@@ -329,7 +329,7 @@ func TestElasticJWKService_DeleteElasticJWK(t *testing.T) {
 		{
 			name: "delete with wrong tenant",
 			setup: func() (tenantID, id googleUuid.UUID) {
-				tid, _ := cryptoutilRandom.GenerateUUIDv7()
+				tid, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 				elasticJWK, _, _ := svc.CreateElasticJWK(ctx, *tid, "RS256", "sig", 10)
 				wrongTenant := googleUuid.New()
 

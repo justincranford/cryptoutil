@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 // Test error summary constants.
@@ -180,7 +180,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 			setupMocks: func(tenantRepo *mockTenantRepository, _ *mockRoleRepository) {
 				summary := "duplicate key violation"
 				tenantRepo.createFn = func(_ context.Context, _ *repository.Tenant) error {
-					return cryptoutilAppErr.NewHTTP409Conflict(&summary, errors.New("UNIQUE constraint failed"))
+					return cryptoutilSharedApperr.NewHTTP409Conflict(&summary, errors.New("UNIQUE constraint failed"))
 				}
 			},
 			wantErr:     true,
@@ -196,7 +196,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 				}
 				summary := "database error"
 				roleRepo.createFn = func(_ context.Context, _ *repository.Role) error {
-					return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, errors.New("database error"))
+					return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, errors.New("database error"))
 				}
 			},
 			wantErr:     true,
@@ -259,7 +259,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByIDFn = func(_ context.Context, _ googleUuid.UUID) (*repository.Tenant, error) {
-					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
+					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
 			},
 			wantErr:     true,
@@ -357,7 +357,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByIDFn = func(_ context.Context, _ googleUuid.UUID) (*repository.Tenant, error) {
-					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
+					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
 			},
 			wantErr:     true,
@@ -433,7 +433,7 @@ func TestTenantService_DeleteTenant(t *testing.T) {
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := "cannot delete tenant: has 1 users and 0 clients"
 				tenantRepo.deleteFn = func(_ context.Context, _ googleUuid.UUID) error {
-					return cryptoutilAppErr.NewHTTP409Conflict(&summary, errors.New("tenant has users"))
+					return cryptoutilSharedApperr.NewHTTP409Conflict(&summary, errors.New("tenant has users"))
 				}
 			},
 			wantErr:     true,
@@ -606,7 +606,7 @@ func TestTenantService_GetTenantByName(t *testing.T) {
 			setupMocks: func(tenantRepo *mockTenantRepository) {
 				summary := testErrSummaryTenantNotFound
 				tenantRepo.getByNameFn = func(_ context.Context, _ string) (*repository.Tenant, error) {
-					return nil, cryptoutilAppErr.NewHTTP404NotFound(&summary, errors.New("not found"))
+					return nil, cryptoutilSharedApperr.NewHTTP404NotFound(&summary, errors.New("not found"))
 				}
 			},
 			wantErr: true,

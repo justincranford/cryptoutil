@@ -17,7 +17,7 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -69,14 +69,14 @@ func TestNewServiceTemplate_HappyPath(t *testing.T) {
 	db := initTestDB(t)
 	cfg := defaultTestConfig()
 
-	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite)
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 	require.NotNil(t, st)
 
 	// Verify accessors.
 	require.Equal(t, cfg, st.Config())
 	require.Equal(t, db, st.DB())
-	require.Equal(t, cryptoutilTemplateServerRepository.DatabaseTypeSQLite, st.DBType())
+	require.Equal(t, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, st.DBType())
 	require.NotNil(t, st.Telemetry())
 	require.NotNil(t, st.JWKGen())
 	require.Nil(t, st.Barrier()) // No barrier option provided.
@@ -95,7 +95,7 @@ func TestNewServiceTemplate_NilContext(t *testing.T) {
 	cfg := defaultTestConfig()
 
 	//nolint:staticcheck // Testing nil context validation.
-	_, err := NewServiceTemplate(nil, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite)
+	_, err := NewServiceTemplate(nil, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -107,7 +107,7 @@ func TestNewServiceTemplate_NilConfig(t *testing.T) {
 	ctx := context.Background()
 	db := initTestDB(t)
 
-	_, err := NewServiceTemplate(ctx, nil, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite)
+	_, err := NewServiceTemplate(ctx, nil, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "config cannot be nil")
 }
@@ -119,7 +119,7 @@ func TestNewServiceTemplate_NilDatabase(t *testing.T) {
 	ctx := context.Background()
 	cfg := defaultTestConfig()
 
-	_, err := NewServiceTemplate(ctx, cfg, nil, cryptoutilTemplateServerRepository.DatabaseTypeSQLite)
+	_, err := NewServiceTemplate(ctx, cfg, nil, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "database cannot be nil")
 }
@@ -132,7 +132,7 @@ func TestNewServiceTemplate_InvalidDatabaseType(t *testing.T) {
 	db := initTestDB(t)
 	cfg := defaultTestConfig()
 
-	_, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseType("invalid"))
+	_, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseType("invalid"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid database type")
 }
@@ -145,10 +145,10 @@ func TestNewServiceTemplate_PostgreSQLDatabaseType(t *testing.T) {
 	db := initTestDB(t)
 	cfg := defaultTestConfig()
 
-	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL)
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL)
 	require.NoError(t, err)
 	require.NotNil(t, st)
-	require.Equal(t, cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL, st.DBType())
+	require.Equal(t, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL, st.DBType())
 }
 
 // TestNewServiceTemplate_WithBarrierOption tests WithBarrier functional option.
@@ -163,7 +163,7 @@ func TestNewServiceTemplate_WithBarrierOption(t *testing.T) {
 	// For this test, we verify the option mechanism works (barrier will be nil until Phase 5b).
 	// Phase 5b will add actual barrier service initialization.
 
-	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite, WithBarrier(nil))
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, WithBarrier(nil))
 	require.NoError(t, err)
 	require.NotNil(t, st)
 
@@ -179,7 +179,7 @@ func TestServiceTemplate_Shutdown(t *testing.T) {
 	db := initTestDB(t)
 	cfg := defaultTestConfig()
 
-	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite)
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
 	require.NoError(t, err)
 	require.NotNil(t, st)
 
@@ -204,7 +204,7 @@ func TestServiceTemplate_Shutdown_WithBarrier(t *testing.T) {
 	cfg := defaultTestConfig()
 
 	// NOTE: Using nil barrier for now (Phase 5b will add proper barrier initialization).
-	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite, WithBarrier(nil))
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, WithBarrier(nil))
 	require.NoError(t, err)
 	require.NotNil(t, st)
 

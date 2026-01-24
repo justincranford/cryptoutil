@@ -15,7 +15,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -121,7 +121,7 @@ func TestNewServiceTemplate_OptionError(t *testing.T) {
 		return fmt.Errorf("intentional option failure")
 	}
 
-	_, err = NewServiceTemplate(ctx, config, db, cryptoutilTemplateServerRepository.DatabaseTypeSQLite, failingOption)
+	_, err = NewServiceTemplate(ctx, config, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, failingOption)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to apply option")
 	require.Contains(t, err.Error(), "intentional option failure")

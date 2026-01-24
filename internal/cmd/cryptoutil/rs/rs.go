@@ -16,7 +16,7 @@ import (
 	"time"
 
 	cryptoutilRSServer "cryptoutil/internal/apps/identity/rs/server"
-	cryptoutilRSConfig "cryptoutil/internal/apps/identity/rs/server/config"
+	cryptoutilAppsIdentityRsServerConfig "cryptoutil/internal/apps/identity/rs/server/config"
 )
 
 const (
@@ -75,7 +75,7 @@ func startService(parameters []string) {
 	// Load RS-specific configuration from YAML file.
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilRSConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilAppsIdentityRsServerConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}

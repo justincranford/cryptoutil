@@ -9,18 +9,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 )
 
 // PublicServer implements SPA-specific public endpoints.
 // SPA serves static files and handles SPA routing (all routes return index.html).
 type PublicServer struct {
-	base *cryptoutilTemplateServer.PublicServerBase
+	base *cryptoutilAppsTemplateServiceServer.PublicServerBase
 	cfg  *cryptoutilSPAConfig.IdentitySPAServerSettings
 }
 
 // NewPublicServer creates a new SPA public server.
-func NewPublicServer(base *cryptoutilTemplateServer.PublicServerBase, cfg *cryptoutilSPAConfig.IdentitySPAServerSettings) *PublicServer {
+func NewPublicServer(base *cryptoutilAppsTemplateServiceServer.PublicServerBase, cfg *cryptoutilSPAConfig.IdentitySPAServerSettings) *PublicServer {
 	return &PublicServer{
 		base: base,
 		cfg:  cfg,

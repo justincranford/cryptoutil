@@ -16,7 +16,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilContainer "cryptoutil/internal/shared/container"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -91,10 +91,10 @@ type ApplicationCoreWithServices struct {
 
 	// Repositories.
 	BarrierRepository     *cryptoutilBarrier.GormBarrierRepository
-	RealmRepository       cryptoutilTemplateRepository.TenantRealmRepository
-	TenantRepository      cryptoutilTemplateRepository.TenantRepository
-	UserRepository        cryptoutilTemplateRepository.UserRepository
-	JoinRequestRepository cryptoutilTemplateRepository.TenantJoinRequestRepository
+	RealmRepository       cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
+	TenantRepository      cryptoutilAppsTemplateServiceServerRepository.TenantRepository
+	UserRepository        cryptoutilAppsTemplateServiceServerRepository.UserRepository
+	JoinRequestRepository cryptoutilAppsTemplateServiceServerRepository.TenantJoinRequestRepository
 
 	// Services.
 	BarrierService      *cryptoutilBarrier.BarrierService
@@ -142,7 +142,7 @@ func InitializeServicesOnCore(
 	services.BarrierService = barrierService
 
 	// Create realm repository and service.
-	realmRepo := cryptoutilTemplateRepository.NewTenantRealmRepository(core.DB)
+	realmRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRealmRepository(core.DB)
 	services.RealmRepository = realmRepo
 
 	realmService := cryptoutilTemplateService.NewRealmService(realmRepo)
@@ -166,13 +166,13 @@ func InitializeServicesOnCore(
 	services.SessionManager = sessionManager
 
 	// Create tenant registration service and dependencies.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(core.DB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(core.DB)
 	services.TenantRepository = tenantRepo
 
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(core.DB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(core.DB)
 	services.UserRepository = userRepo
 
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(core.DB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(core.DB)
 	services.JoinRequestRepository = joinRequestRepo
 
 	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(

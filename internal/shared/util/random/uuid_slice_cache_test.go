@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	cryptoutilUtil "cryptoutil/internal/shared/util"
-	cryptoutilCache "cryptoutil/internal/shared/util/cache"
+	cryptoutilSharedUtil "cryptoutil/internal/shared/util"
+	cryptoutilSharedUtilCache "cryptoutil/internal/shared/util/cache"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -186,9 +186,9 @@ func TestContains(t *testing.T) {
 	str3 := "cherry"
 	slice := []*string{&str1, &str2}
 
-	require.True(t, cryptoutilUtil.Contains(slice, &str1), "Should find 'apple' in slice")
-	require.True(t, cryptoutilUtil.Contains(slice, &str2), "Should find 'banana' in slice")
-	require.False(t, cryptoutilUtil.Contains(slice, &str3), "Should not find 'cherry' in slice")
+	require.True(t, cryptoutilSharedUtil.Contains(slice, &str1), "Should find 'apple' in slice")
+	require.True(t, cryptoutilSharedUtil.Contains(slice, &str2), "Should find 'banana' in slice")
+	require.False(t, cryptoutilSharedUtil.Contains(slice, &str3), "Should not find 'cherry' in slice")
 
 	// Test with integers.
 	int1 := 1
@@ -196,8 +196,8 @@ func TestContains(t *testing.T) {
 	int3 := 3
 	intSlice := []*int{&int1, &int2}
 
-	require.True(t, cryptoutilUtil.Contains(intSlice, &int1), "Should find 1 in slice")
-	require.False(t, cryptoutilUtil.Contains(intSlice, &int3), "Should not find 3 in slice")
+	require.True(t, cryptoutilSharedUtil.Contains(intSlice, &int1), "Should find 1 in slice")
+	require.False(t, cryptoutilSharedUtil.Contains(intSlice, &int3), "Should not find 3 in slice")
 }
 
 // TestGetCached tests the caching behavior of GetCached.
@@ -217,13 +217,13 @@ func TestGetCached(t *testing.T) {
 		syncOnce := &sync.Once{}
 
 		// First call should execute getter and return value.
-		result1 := cryptoutilCache.GetCached(true, syncOnce, getter)
+		result1 := cryptoutilSharedUtilCache.GetCached(true, syncOnce, getter)
 		require.Equal(t, testStringValue, result1, "First call should return value")
 		require.Equal(t, 1, callCount, "Getter should be called once")
 
 		// Second call with same sync.Once should not call getter again,
 		// but returns nil because value variable is local to each call.
-		result2 := cryptoutilCache.GetCached(true, syncOnce, getter)
+		result2 := cryptoutilSharedUtilCache.GetCached(true, syncOnce, getter)
 		require.Nil(t, result2, "Second call returns nil (sync.Once blocks re-execution)")
 		require.Equal(t, 1, callCount, "Getter should not be called again")
 	})
@@ -241,12 +241,12 @@ func TestGetCached(t *testing.T) {
 		syncOnce := &sync.Once{}
 
 		// First call executes getter.
-		result1 := cryptoutilCache.GetCached(false, syncOnce, getter)
+		result1 := cryptoutilSharedUtilCache.GetCached(false, syncOnce, getter)
 		require.Equal(t, testStringValue, result1, "First call should return value")
 		require.Equal(t, 1, callCount, "Getter should be called once")
 
 		// Second call doesn't execute getter (sync.Once).
-		result2 := cryptoutilCache.GetCached(false, syncOnce, getter)
+		result2 := cryptoutilSharedUtilCache.GetCached(false, syncOnce, getter)
 		require.Nil(t, result2, "Second call returns nil")
 		require.Equal(t, 1, callCount, "Getter not called again")
 	})
@@ -269,13 +269,13 @@ func TestGetCachedWithError(t *testing.T) {
 		syncOnce := &sync.Once{}
 
 		// First call executes getter and returns value.
-		result, err := cryptoutilCache.GetCachedWithError(true, syncOnce, getter)
+		result, err := cryptoutilSharedUtilCache.GetCachedWithError(true, syncOnce, getter)
 		require.NoError(t, err, "Should not return error")
 		require.Equal(t, testStringValue, result, "Should return value")
 		require.Equal(t, 1, callCount, "Getter should be called once")
 
 		// Second call doesn't execute getter, returns nil.
-		result2, err2 := cryptoutilCache.GetCachedWithError(true, syncOnce, getter)
+		result2, err2 := cryptoutilSharedUtilCache.GetCachedWithError(true, syncOnce, getter)
 		require.NoError(t, err2, "Should not return error")
 		require.Nil(t, result2, "Second call returns nil")
 		require.Equal(t, 1, callCount, "Getter not called again")
@@ -295,7 +295,7 @@ func TestGetCachedWithError(t *testing.T) {
 		syncOnce := &sync.Once{}
 
 		// First call executes getter and returns error.
-		result, err := cryptoutilCache.GetCachedWithError(false, syncOnce, getter)
+		result, err := cryptoutilSharedUtilCache.GetCachedWithError(false, syncOnce, getter)
 		require.Error(t, err, "Should return error")
 		require.ErrorIs(t, err, testErr, "Should return test error")
 		require.Nil(t, result, "Should return nil value on error")

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestMessageRecipientJWK_TableName(t *testing.T) {
@@ -37,7 +37,7 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 		MessageID:    messageID,
 		EncryptedJWK: encryptedJWK,
 		CreatedAt:    createdAt,
-		Recipient: cryptoutilTemplateRepository.User{
+		Recipient: cryptoutilAppsTemplateServiceServerRepository.User{
 			ID:       recipientID,
 			Username: "recipient",
 		},

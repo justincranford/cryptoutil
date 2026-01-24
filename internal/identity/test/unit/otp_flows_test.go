@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityUserAuth "cryptoutil/internal/identity/idp/userauth"
-	cryptoutilIdentityMocks "cryptoutil/internal/identity/idp/userauth/mocks"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauthMocks "cryptoutil/internal/identity/idp/userauth/mocks"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -27,7 +27,7 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 	ctx := context.Background()
 
 	// Setup mock delivery service.
-	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
+	mockSMS := cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 
 	// Setup mock challenge store.
 	challengeStore := newMockChallengeStore()
@@ -48,8 +48,8 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create SMS OTP authenticator.
-	generator := &cryptoutilIdentityUserAuth.DefaultOTPGenerator{}
-	authenticator := cryptoutilIdentityUserAuth.NewSMSOTPAuthenticator(
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
+	authenticator := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(
 		generator,
 		mockSMS,
 		challengeStore,
@@ -96,7 +96,7 @@ func TestSMSOTPInvalidToken(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
+	mockSMS := cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -109,8 +109,8 @@ func TestSMSOTPInvalidToken(t *testing.T) {
 	err := userRepo.Create(ctx, testUser)
 	require.NoError(t, err)
 
-	generator := &cryptoutilIdentityUserAuth.DefaultOTPGenerator{}
-	authenticator := cryptoutilIdentityUserAuth.NewSMSOTPAuthenticator(
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
+	authenticator := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(
 		generator, mockSMS, challengeStore, rateLimiter, userRepo,
 	)
 
@@ -132,7 +132,7 @@ func TestSMSOTPExpiredChallenge(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
+	mockSMS := cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -145,8 +145,8 @@ func TestSMSOTPExpiredChallenge(t *testing.T) {
 	err := userRepo.Create(ctx, testUser)
 	require.NoError(t, err)
 
-	generator := &cryptoutilIdentityUserAuth.DefaultOTPGenerator{}
-	authenticator := cryptoutilIdentityUserAuth.NewSMSOTPAuthenticator(
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
+	authenticator := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(
 		generator, mockSMS, challengeStore, rateLimiter, userRepo,
 	)
 
@@ -175,7 +175,7 @@ func TestSMSOTPRateLimitEnforcement(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockSMS := cryptoutilIdentityMocks.NewSMSProvider()
+	mockSMS := cryptoutilIdentityIdpUserauthMocks.NewSMSProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(3, 1*time.Minute) // Only 3 attempts per minute
 	userRepo := newMockUserRepository()
@@ -188,8 +188,8 @@ func TestSMSOTPRateLimitEnforcement(t *testing.T) {
 	err := userRepo.Create(ctx, testUser)
 	require.NoError(t, err)
 
-	generator := &cryptoutilIdentityUserAuth.DefaultOTPGenerator{}
-	authenticator := cryptoutilIdentityUserAuth.NewSMSOTPAuthenticator(
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
+	authenticator := cryptoutilIdentityIdpUserauth.NewSMSOTPAuthenticator(
 		generator, mockSMS, challengeStore, rateLimiter, userRepo,
 	)
 
@@ -211,7 +211,7 @@ func TestEmailMagicLinkCompleteFlow(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockEmail := cryptoutilIdentityMocks.NewEmailProvider()
+	mockEmail := cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -225,8 +225,8 @@ func TestEmailMagicLinkCompleteFlow(t *testing.T) {
 	err := userRepo.Create(ctx, testUser)
 	require.NoError(t, err)
 
-	generator := &cryptoutilIdentityUserAuth.DefaultOTPGenerator{}
-	authenticator := cryptoutilIdentityUserAuth.NewMagicLinkAuthenticator(
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
+	authenticator := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(
 		generator, mockEmail, challengeStore, rateLimiter, userRepo,
 		"https://example.com", // base URL
 	)
@@ -280,7 +280,7 @@ func TestMagicLinkInvalidToken(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockEmail := cryptoutilIdentityMocks.NewEmailProvider()
+	mockEmail := cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(100, 5*time.Minute)
 	userRepo := newMockUserRepository()
@@ -293,8 +293,8 @@ func TestMagicLinkInvalidToken(t *testing.T) {
 	err := userRepo.Create(ctx, testUser)
 	require.NoError(t, err)
 
-	generator := &cryptoutilIdentityUserAuth.DefaultOTPGenerator{}
-	authenticator := cryptoutilIdentityUserAuth.NewMagicLinkAuthenticator(
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
+	authenticator := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(
 		generator, mockEmail, challengeStore, rateLimiter, userRepo,
 		"https://example.com",
 	)
@@ -317,7 +317,7 @@ func TestMagicLinkRateLimitEnforcement(t *testing.T) {
 
 	ctx := context.Background()
 
-	mockEmail := cryptoutilIdentityMocks.NewEmailProvider()
+	mockEmail := cryptoutilIdentityIdpUserauthMocks.NewEmailProvider()
 	challengeStore := newMockChallengeStore()
 	rateLimiter := newMockRateLimiter(5, 1*time.Minute) // Only 5 attempts per minute
 	userRepo := newMockUserRepository()
@@ -330,8 +330,8 @@ func TestMagicLinkRateLimitEnforcement(t *testing.T) {
 	err := userRepo.Create(ctx, testUser)
 	require.NoError(t, err)
 
-	generator := &cryptoutilIdentityUserAuth.DefaultOTPGenerator{}
-	authenticator := cryptoutilIdentityUserAuth.NewMagicLinkAuthenticator(
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
+	authenticator := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(
 		generator, mockEmail, challengeStore, rateLimiter, userRepo,
 		"https://example.com",
 	)
@@ -356,7 +356,7 @@ type mockChallengeStore struct {
 }
 
 type challengeEntry struct {
-	challenge *cryptoutilIdentityUserAuth.AuthChallenge
+	challenge *cryptoutilIdentityIdpUserauth.AuthChallenge
 	token     string // Hashed token
 }
 
@@ -366,7 +366,7 @@ func newMockChallengeStore() *mockChallengeStore {
 	}
 }
 
-func (s *mockChallengeStore) Store(_ context.Context, challenge *cryptoutilIdentityUserAuth.AuthChallenge, token string) error {
+func (s *mockChallengeStore) Store(_ context.Context, challenge *cryptoutilIdentityIdpUserauth.AuthChallenge, token string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -378,7 +378,7 @@ func (s *mockChallengeStore) Store(_ context.Context, challenge *cryptoutilIdent
 	return nil
 }
 
-func (s *mockChallengeStore) Retrieve(_ context.Context, id googleUuid.UUID) (*cryptoutilIdentityUserAuth.AuthChallenge, string, error) {
+func (s *mockChallengeStore) Retrieve(_ context.Context, id googleUuid.UUID) (*cryptoutilIdentityIdpUserauth.AuthChallenge, string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -390,7 +390,7 @@ func (s *mockChallengeStore) Retrieve(_ context.Context, id googleUuid.UUID) (*c
 	return entry.challenge, entry.token, nil
 }
 
-func (s *mockChallengeStore) Update(_ context.Context, challenge *cryptoutilIdentityUserAuth.AuthChallenge) error {
+func (s *mockChallengeStore) Update(_ context.Context, challenge *cryptoutilIdentityIdpUserauth.AuthChallenge) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

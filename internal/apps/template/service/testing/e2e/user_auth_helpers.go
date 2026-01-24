@@ -16,7 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // TestUser represents a user with authentication token for E2E testing.
@@ -151,10 +151,10 @@ func LoginUser(t *testing.T, client *http.Client, baseURL, loginPath, username, 
 func RegisterTestUserService(t *testing.T, client *http.Client, baseURL string) *TestUser {
 	t.Helper()
 
-	username, err := cryptoutilRandom.GenerateUsernameSimple()
+	username, err := cryptoutilSharedUtilRandom.GenerateUsernameSimple()
 	require.NoError(t, err, "failed to generate username")
 
-	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	password, err := cryptoutilSharedUtilRandom.GeneratePasswordSimple()
 	require.NoError(t, err, "failed to generate password")
 
 	return RegisterServiceUser(t, client, baseURL, username, password)
@@ -165,10 +165,10 @@ func RegisterTestUserService(t *testing.T, client *http.Client, baseURL string) 
 func RegisterTestUserBrowser(t *testing.T, client *http.Client, baseURL string) *TestUser {
 	t.Helper()
 
-	username, err := cryptoutilRandom.GenerateUsernameSimple()
+	username, err := cryptoutilSharedUtilRandom.GenerateUsernameSimple()
 	require.NoError(t, err, "failed to generate username")
 
-	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	password, err := cryptoutilSharedUtilRandom.GeneratePasswordSimple()
 	require.NoError(t, err, "failed to generate password")
 
 	return RegisterBrowserUser(t, client, baseURL, username, password)

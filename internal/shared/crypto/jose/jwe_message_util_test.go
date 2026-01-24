@@ -16,7 +16,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 func TestEncryptBytesWithContext_NilJWKs(t *testing.T) {
@@ -26,7 +26,7 @@ func TestEncryptBytesWithContext_NilJWKs(t *testing.T) {
 	_, _, err := EncryptBytesWithContext(nil, clearBytes, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestEncryptBytesWithContext_EmptyJWKs(t *testing.T) {
@@ -37,7 +37,7 @@ func TestEncryptBytesWithContext_EmptyJWKs(t *testing.T) {
 	_, _, err := EncryptBytesWithContext(jwks, clearBytes, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestEncryptBytesWithContext_NilClearBytes(t *testing.T) {
@@ -51,7 +51,7 @@ func TestEncryptBytesWithContext_NilClearBytes(t *testing.T) {
 	_, _, err = EncryptBytesWithContext(jwks, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid clearBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestEncryptBytesWithContext_EmptyClearBytes(t *testing.T) {
@@ -66,7 +66,7 @@ func TestEncryptBytesWithContext_EmptyClearBytes(t *testing.T) {
 	_, _, err = EncryptBytesWithContext(jwks, clearBytes, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid clearBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestEncryptBytesWithContext_NonEncryptJWK(t *testing.T) {
@@ -369,7 +369,7 @@ func Test_EncryptBytesWithContext_NilJWKS(t *testing.T) {
 	_, _, err := EncryptBytesWithContext(nil, []byte("cleartext"), []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func Test_EncryptBytesWithContext_EmptyJWKS(t *testing.T) {
@@ -378,7 +378,7 @@ func Test_EncryptBytesWithContext_EmptyJWKS(t *testing.T) {
 	_, _, err := EncryptBytesWithContext([]joseJwk.Key{}, []byte("cleartext"), []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func Test_EncryptBytesWithContext_NilClearBytes(t *testing.T) {
@@ -390,7 +390,7 @@ func Test_EncryptBytesWithContext_NilClearBytes(t *testing.T) {
 	_, _, err = EncryptBytesWithContext([]joseJwk.Key{encryptJWK}, nil, []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid clearBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func Test_EncryptBytesWithContext_EmptyClearBytes(t *testing.T) {
@@ -402,7 +402,7 @@ func Test_EncryptBytesWithContext_EmptyClearBytes(t *testing.T) {
 	_, _, err = EncryptBytesWithContext([]joseJwk.Key{encryptJWK}, []byte{}, []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid clearBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func Test_EncryptBytesWithContext_NonEncryptJWK(t *testing.T) {
@@ -416,7 +416,7 @@ func Test_EncryptBytesWithContext_NonEncryptJWK(t *testing.T) {
 	_, _, err = EncryptBytesWithContext([]joseJwk.Key{signingJWK}, []byte("cleartext"), []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWK")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrJWKMustBeEncryptJWK)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrJWKMustBeEncryptJWK)
 }
 
 // Test_EncryptBytesWithContext_MultipleEnc tests error for multiple encryption algorithms.
@@ -447,7 +447,7 @@ func Test_DecryptBytesWithContext_NilJWKS(t *testing.T) {
 	_, err := DecryptBytesWithContext(nil, []byte("cipher"), []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func Test_DecryptBytesWithContext_EmptyJWKS(t *testing.T) {
@@ -456,7 +456,7 @@ func Test_DecryptBytesWithContext_EmptyJWKS(t *testing.T) {
 	_, err := DecryptBytesWithContext([]joseJwk.Key{}, []byte("cipher"), []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func Test_DecryptBytesWithContext_NilJWEMessageBytes(t *testing.T) {
@@ -468,7 +468,7 @@ func Test_DecryptBytesWithContext_NilJWEMessageBytes(t *testing.T) {
 	_, err = DecryptBytesWithContext([]joseJwk.Key{nonPublicJWK}, nil, []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid jweMessageBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func Test_DecryptBytesWithContext_EmptyJWEMessageBytes(t *testing.T) {
@@ -480,7 +480,7 @@ func Test_DecryptBytesWithContext_EmptyJWEMessageBytes(t *testing.T) {
 	_, err = DecryptBytesWithContext([]joseJwk.Key{nonPublicJWK}, []byte{}, []byte("context"))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid jweMessageBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func Test_SadPath_DecryptBytes_InvalidJWEMessage(t *testing.T) {
@@ -612,7 +612,7 @@ func TestDecryptBytesWithContext_NilJWKs(t *testing.T) {
 	_, err := DecryptBytesWithContext(nil, jweMessageBytes, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestDecryptBytesWithContext_EmptyJWKs(t *testing.T) {
@@ -623,7 +623,7 @@ func TestDecryptBytesWithContext_EmptyJWKs(t *testing.T) {
 	_, err := DecryptBytesWithContext(jwks, jweMessageBytes, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestDecryptBytesWithContext_NilMessageBytes(t *testing.T) {
@@ -637,7 +637,7 @@ func TestDecryptBytesWithContext_NilMessageBytes(t *testing.T) {
 	_, err = DecryptBytesWithContext(jwks, nil, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid jweMessageBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestDecryptBytesWithContext_EmptyMessageBytes(t *testing.T) {
@@ -652,7 +652,7 @@ func TestDecryptBytesWithContext_EmptyMessageBytes(t *testing.T) {
 	_, err = DecryptBytesWithContext(jwks, jweMessageBytes, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid jweMessageBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestDecryptBytesWithContext_NonDecryptJWK(t *testing.T) {
@@ -691,7 +691,7 @@ func Test_JWEHeadersString_NilMessage(t *testing.T) {
 	require.Error(t, err)
 	require.Empty(t, headers)
 	require.Contains(t, err.Error(), "invalid jweMessage")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func Test_ExtractKidFromJWEMessage_NilMessage(t *testing.T) {
@@ -702,7 +702,7 @@ func Test_ExtractKidFromJWEMessage_NilMessage(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, kid)
 	require.Contains(t, err.Error(), "invalid jweMessage")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func Test_ExtractKidFromJWEMessage_InvalidUUID(t *testing.T) {

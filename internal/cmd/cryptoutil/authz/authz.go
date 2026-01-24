@@ -16,7 +16,7 @@ import (
 	"time"
 
 	cryptoutilAuthzServer "cryptoutil/internal/apps/identity/authz/server"
-	cryptoutilAuthzConfig "cryptoutil/internal/apps/identity/authz/server/config"
+	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity/authz/server/config"
 )
 
 const (
@@ -75,7 +75,7 @@ func startService(parameters []string) {
 	// Load Authz-specific configuration from YAML file.
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilAuthzConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilAppsIdentityAuthzServerConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}

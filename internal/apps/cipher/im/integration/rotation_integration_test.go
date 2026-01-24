@@ -14,7 +14,7 @@ import (
 	cipherClient "cryptoutil/internal/apps/cipher/im/client"
 	cryptoutilE2E "cryptoutil/internal/apps/template/service/testing/e2e"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/stretchr/testify/require"
 )
@@ -24,8 +24,8 @@ func TestE2E_RotateRootKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_root", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before root key rotation"
 
@@ -105,8 +105,8 @@ func TestE2E_RotateIntermediateKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message before rotation.
-	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_intermediate", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before intermediate key rotation"
 
@@ -177,8 +177,8 @@ func TestE2E_RotateContentKey(t *testing.T) {
 	t.Parallel()
 
 	// Step 1: Send baseline message (creates first content key).
-	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilRandom.GeneratePassword(t, 43))
-	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilRandom.GeneratePassword(t, 43))
+	user1 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user1_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
+	user2 := cryptoutilE2E.RegisterServiceUser(t, sharedHTTPClient, publicBaseURL, "user2_rotate_content", *cryptoutilSharedUtilRandom.GeneratePassword(t, 43))
 
 	plaintext1 := "Message before content key rotation"
 

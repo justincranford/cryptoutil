@@ -12,7 +12,7 @@ import (
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	_ "github.com/lib/pq" // PostgreSQL driver.
 	"github.com/stretchr/testify/require"
@@ -31,7 +31,7 @@ const (
 func generateTestPassword(t *testing.T) string {
 	t.Helper()
 
-	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	password, err := cryptoutilSharedUtilRandom.GeneratePasswordSimple()
 	require.NoError(t, err, "Failed to generate random password")
 
 	return password

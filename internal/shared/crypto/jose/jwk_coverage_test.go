@@ -17,7 +17,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -50,7 +50,7 @@ func TestCreateJWKFromKey_SymmetricKeys(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			kid := googleUuid.Must(googleUuid.NewV7())
 			secretKey, err := tc.keyGenFunc(tc.keySize)
@@ -149,7 +149,7 @@ func TestIsPublicPrivateAsymmetricSymmetric_AsymmetricKeys(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			privateKey, publicKey, err := tc.keyGenFunc()
 			require.NoError(t, err)
@@ -312,7 +312,7 @@ func TestCreateJWEJWKFromKey_ECDH_Variants(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			keyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(tc.curve)
 			require.NoError(t, err)
@@ -350,7 +350,7 @@ func TestCreateJWEJWKFromKey_RSA_Variants(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			privateKey, err := rsa.GenerateKey(crand.Reader, tc.keySize)
 			require.NoError(t, err)
@@ -388,7 +388,7 @@ func TestCreateJWEJWKFromKey_AES_Variants(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			secretKey, err := cryptoutilKeyGen.GenerateAESKey(tc.keySize)
 			require.NoError(t, err)
@@ -426,7 +426,7 @@ func TestCreateJWSJWKFromKey_RSA_Variants(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			privateKey, err := rsa.GenerateKey(crand.Reader, tc.keySize)
 			require.NoError(t, err)
@@ -464,7 +464,7 @@ func TestCreateJWSJWKFromKey_HMAC_Variants(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			secretKey, err := cryptoutilKeyGen.GenerateHMACKey(tc.keySize)
 			require.NoError(t, err)

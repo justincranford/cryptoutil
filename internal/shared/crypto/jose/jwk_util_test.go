@@ -16,7 +16,7 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
@@ -400,7 +400,7 @@ func getTestCases(t *testing.T) []testCase {
 	testCasesGenerateOnce.Do(func() {
 		keys := getTestKeys(t)
 		testCases = []testCase{
-			{wantErr: cryptoutilAppErr.ErrCantBeNil, name: "nil JWK"},
+			{wantErr: cryptoutilSharedApperr.ErrCantBeNil, name: "nil JWK"},
 			{expectedIsAsymmetric: true, expectedIsPublic: true, expectedIsEncrypt: true, name: "RSA encrypt public key", jwk: keys.rsaEncryptPublicJWK},
 			{expectedIsAsymmetric: true, expectedIsPrivate: true, expectedIsDecrypt: true, name: "RSA decrypt private key", jwk: keys.rsaDecryptPrivateJWK},
 			{expectedIsAsymmetric: true, expectedIsPrivate: true, expectedIsSign: true, name: "RSA sign private key", jwk: keys.rsaSignPrivateJWK},
@@ -527,7 +527,7 @@ func TestExtractAlg_NilJWK(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, extractedAlg)
 	require.Contains(t, err.Error(), "invalid jwk")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestExtractAlg_JWKMissingAlgHeader(t *testing.T) {
@@ -600,7 +600,7 @@ func TestExtractKidUUID_NilJWK(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, extractedKid)
 	require.Contains(t, err.Error(), "invalid jwk")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestExtractKidUUID_MissingKid(t *testing.T) {
@@ -892,7 +892,7 @@ func TestExtractKty_NilJWK(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, kty)
 	require.Contains(t, err.Error(), "invalid jwk")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 // TestExtractKty_MissingKeyType removed - JWX v3 always sets kty header on Import.

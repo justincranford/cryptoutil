@@ -14,7 +14,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // User represents a user with authentication token for client operations.
@@ -189,12 +189,12 @@ func LoginUser(client *http.Client, baseURL, loginPath, username, password strin
 // RegisterTestUserService registers a test user with randomly generated credentials via /service paths.
 // Reusable for all services implementing user registration.
 func RegisterTestUserService(client *http.Client, baseURL string) (*User, error) {
-	username, err := cryptoutilRandom.GenerateUsernameSimple()
+	username, err := cryptoutilSharedUtilRandom.GenerateUsernameSimple()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate username: %w", err)
 	}
 
-	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	password, err := cryptoutilSharedUtilRandom.GeneratePasswordSimple()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate password: %w", err)
 	}
@@ -205,12 +205,12 @@ func RegisterTestUserService(client *http.Client, baseURL string) (*User, error)
 // RegisterTestUserBrowser registers a test user with randomly generated credentials via /browser paths.
 // Reusable for all services implementing user registration.
 func RegisterTestUserBrowser(client *http.Client, baseURL string) (*User, error) {
-	username, err := cryptoutilRandom.GenerateUsernameSimple()
+	username, err := cryptoutilSharedUtilRandom.GenerateUsernameSimple()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate username: %w", err)
 	}
 
-	password, err := cryptoutilRandom.GeneratePasswordSimple()
+	password, err := cryptoutilSharedUtilRandom.GeneratePasswordSimple()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate password: %w", err)
 	}

@@ -97,6 +97,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 
 	// Start server.
 	errChan := make(chan error, 1)
+
 	go func() {
 		errChan <- server.Start(ctx)
 	}()
@@ -118,6 +119,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	_ = server.Shutdown(shutdownCtx)
 }
 

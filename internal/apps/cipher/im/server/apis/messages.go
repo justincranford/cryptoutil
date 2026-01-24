@@ -10,8 +10,8 @@ import (
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
-	cryptoutilCipherDomain "cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilCipherRepository "cryptoutil/internal/apps/cipher/im/repository"
+	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
+	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -19,16 +19,16 @@ import (
 
 // MessageHandler handles message operations (send, receive, delete).
 type MessageHandler struct {
-	messageRepo             *cryptoutilCipherRepository.MessageRepository
-	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository
+	messageRepo             *cryptoutilAppsCipherImRepository.MessageRepository
+	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository
 	jwkGenService           *cryptoutilJose.JWKGenService
 	barrierService          *cryptoutilBarrier.BarrierService
 }
 
 // NewMessageHandler creates a new MessageHandler with injected dependencies.
 func NewMessageHandler(
-	messageRepo *cryptoutilCipherRepository.MessageRepository,
-	messageRecipientJWKRepo *cryptoutilCipherRepository.MessageRecipientJWKRepository,
+	messageRepo *cryptoutilAppsCipherImRepository.MessageRepository,
+	messageRecipientJWKRepo *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository,
 	jwkGenService *cryptoutilJose.JWKGenService,
 	barrierService *cryptoutilBarrier.BarrierService,
 ) *MessageHandler {
@@ -129,7 +129,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 		}
 
 		// Create message with JWE ciphertext.
-		message := &cryptoutilCipherDomain.Message{
+		message := &cryptoutilAppsCipherImDomain.Message{
 			ID:       googleUuid.New(),
 			SenderID: senderID,
 			JWE:      string(jweCompactBytes),
@@ -163,7 +163,7 @@ func (h *MessageHandler) HandleSendMessage() fiber.Handler {
 			}
 
 			// Store encrypted JWK for this recipient.
-			messageRecipientJWK := &cryptoutilCipherDomain.MessageRecipientJWK{
+			messageRecipientJWK := &cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 				ID:           googleUuid.New(),
 				MessageID:    message.ID,
 				RecipientID:  recipientID,

@@ -10,17 +10,17 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // DatabaseType represents supported database types for cipher-im.
-type DatabaseType = cryptoutilTemplateServerRepository.DatabaseType
+type DatabaseType = cryptoutilAppsTemplateServiceServerRepository.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite = cryptoutilTemplateServerRepository.DatabaseTypeSQLite
+	DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL = cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL
+	DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
 )
 
 // MigrationsFS contains embedded cipher-im specific migrations (1005-1006 only).
@@ -118,7 +118,7 @@ func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
 // This is used by tests to access all migrations (1001-1999 template + 2001+ cipher-im) in sequence.
 func GetMergedMigrationsFS() fs.FS {
 	return &mergedFS{
-		templateFS: cryptoutilTemplateServerRepository.MigrationsFS,
+		templateFS: cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
 		cipherIMFS: MigrationsFS,
 	}
 }
@@ -140,7 +140,7 @@ func GetMergedMigrationsFS() fs.FS {
 // NOTE: cipher-im uses template_realms from template 1003_realms_template (NOT custom cipher_im_realms table).
 func ApplyCipherIMMigrations(db *sql.DB, dbType DatabaseType) error {
 	// Apply all migrations in sequence (1001-1999 template + 2001+ cipher-im) using merged filesystem.
-	runner := cryptoutilTemplateServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
 		return fmt.Errorf("failed to apply cipher-im migrations (1001-1999 + 2001+): %w", err)

@@ -11,7 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestUserRepositoryAdapter_Create(t *testing.T) {
@@ -23,12 +23,12 @@ func TestUserRepositoryAdapter_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		user    *cryptoutilRepository.User
+		user    *cryptoutilAppsTemplateServiceServerRepository.User
 		wantErr bool
 	}{
 		{
 			name: "valid user creation",
-			user: &cryptoutilRepository.User{
+			user: &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "adapter-test-" + testJWKGenService.GenerateUUIDv7().String(),
 			},
@@ -36,7 +36,7 @@ func TestUserRepositoryAdapter_Create(t *testing.T) {
 		},
 		{
 			name: "user with minimal fields",
-			user: &cryptoutilRepository.User{
+			user: &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "minimal-" + testJWKGenService.GenerateUUIDv7().String(),
 			},
@@ -107,11 +107,11 @@ func TestUserRepositoryAdapter_FindByUsername(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var user *cryptoutilRepository.User
+			var user *cryptoutilAppsTemplateServiceServerRepository.User
 
 			if tt.setupUser {
 				// Create test user in subtest context.
-				user = &cryptoutilRepository.User{
+				user = &cryptoutilAppsTemplateServiceServerRepository.User{
 					ID:       *testJWKGenService.GenerateUUIDv7(),
 					Username: "find-username-" + testJWKGenService.GenerateUUIDv7().String(),
 				}
@@ -177,11 +177,11 @@ func TestUserRepositoryAdapter_FindByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var user *cryptoutilRepository.User
+			var user *cryptoutilAppsTemplateServiceServerRepository.User
 
 			if tt.setupUser {
 				// Create test user in subtest context.
-				user = &cryptoutilRepository.User{
+				user = &cryptoutilAppsTemplateServiceServerRepository.User{
 					ID:       *testJWKGenService.GenerateUUIDv7(),
 					Username: "find-id-" + testJWKGenService.GenerateUUIDv7().String(),
 				}

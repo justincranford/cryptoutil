@@ -11,8 +11,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 // ContextKeySession is the Fiber context key for storing session information.
@@ -33,8 +33,8 @@ const ContextKeyRealmID = "realm_id"
 // SessionValidator defines the interface for session validation services.
 // Implementations must provide ValidateBrowserSession and ValidateServiceSession methods.
 type SessionValidator interface {
-	ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.BrowserSession, error)
-	ValidateServiceSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.ServiceSession, error)
+	ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error)
+	ValidateServiceSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error)
 }
 
 // SessionMiddleware validates session tokens for browser or service requests.
@@ -60,7 +60,7 @@ func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.
 		if authHeader == "" {
 			summary := "Missing Authorization header"
 
-			return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, nil)
+			return cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, nil)
 		}
 
 		// Parse Bearer token format
@@ -68,14 +68,14 @@ func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 			summary := "Invalid Authorization header format (expected: Bearer <token>)"
 
-			return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, nil)
+			return cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, nil)
 		}
 
 		token := parts[1]
 		if token == "" {
 			summary := "Empty token in Authorization header"
 
-			return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, nil)
+			return cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, nil)
 		}
 
 		// Validate token using SessionValidator
@@ -87,7 +87,7 @@ func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.
 			if validateErr != nil {
 				summary := "Invalid or expired browser session token"
 
-				return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, validateErr)
+				return cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, validateErr)
 			}
 
 			// Store session in context for downstream handlers
@@ -108,7 +108,7 @@ func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.
 			if validateErr != nil {
 				summary := "Invalid or expired service session token"
 
-				return cryptoutilAppErr.NewHTTP401Unauthorized(&summary, validateErr)
+				return cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, validateErr)
 			}
 
 			// Store session in context for downstream handlers

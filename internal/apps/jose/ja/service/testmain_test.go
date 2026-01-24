@@ -15,14 +15,14 @@ import (
 
 	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 
-	cryptoutilJoseJARepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
@@ -31,10 +31,10 @@ var (
 	testSQLDB *sql.DB // CRITICAL: Keep reference to prevent GC - in-memory SQLite requires open connection.
 
 	// Repositories.
-	testElasticRepo     cryptoutilJoseJARepository.ElasticJWKRepository
-	testMaterialRepo    cryptoutilJoseJARepository.MaterialJWKRepository
-	testAuditLogRepo    cryptoutilJoseJARepository.AuditLogRepository
-	testAuditConfigRepo cryptoutilJoseJARepository.AuditConfigRepository
+	testElasticRepo     cryptoutilAppsJoseJaRepository.ElasticJWKRepository
+	testMaterialRepo    cryptoutilAppsJoseJaRepository.MaterialJWKRepository
+	testAuditLogRepo    cryptoutilAppsJoseJaRepository.AuditLogRepository
+	testAuditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository
 
 	// Services (dependencies).
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
@@ -46,7 +46,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := cryptoutilRandom.GenerateUUIDv7()
+	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
 	// CRITICAL: Store sql.DB reference in package variable.
@@ -85,15 +85,15 @@ func TestMain(m *testing.M) {
 	}
 
 	// Run migrations.
-	if err := cryptoutilJoseJARepository.ApplyJoseJAMigrations(testSQLDB, cryptoutilJoseJARepository.DatabaseTypeSQLite); err != nil {
+	if err := cryptoutilAppsJoseJaRepository.ApplyJoseJAMigrations(testSQLDB, cryptoutilAppsJoseJaRepository.DatabaseTypeSQLite); err != nil {
 		panic("TestMain: failed to run migrations: " + err.Error())
 	}
 
 	// Create repositories.
-	testElasticRepo = cryptoutilJoseJARepository.NewElasticJWKRepository(testDB)
-	testMaterialRepo = cryptoutilJoseJARepository.NewMaterialJWKRepository(testDB)
-	testAuditLogRepo = cryptoutilJoseJARepository.NewAuditLogRepository(testDB)
-	testAuditConfigRepo = cryptoutilJoseJARepository.NewAuditConfigRepository(testDB)
+	testElasticRepo = cryptoutilAppsJoseJaRepository.NewElasticJWKRepository(testDB)
+	testMaterialRepo = cryptoutilAppsJoseJaRepository.NewMaterialJWKRepository(testDB)
+	testAuditLogRepo = cryptoutilAppsJoseJaRepository.NewAuditLogRepository(testDB)
+	testAuditConfigRepo = cryptoutilAppsJoseJaRepository.NewAuditConfigRepository(testDB)
 
 	// Initialize telemetry.
 	telemetrySettings := cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true)

@@ -23,7 +23,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -179,7 +179,7 @@ func _testMainAfter(m *testing.M) {
 	cfg := &cryptoutilTemplateServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: cryptoutilConfig.NewTestConfig(cryptoutilMagic.IPv4Loopback, 0, true),
 		DB:                            db,
-		DBType:                        cryptoutilTemplateServerRepository.DatabaseTypeSQLite,
+		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
 		// PublicHandlers: registerCipherIMHandlers, // Inject product-specific routes
 		// AdminHandlers:  registerBarrierRotation,  // Optional: barrier rotation endpoints
 	}

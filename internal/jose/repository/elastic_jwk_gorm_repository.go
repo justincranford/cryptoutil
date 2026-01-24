@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	"cryptoutil/internal/jose/domain"
 
 	googleUuid "github.com/google/uuid"
@@ -28,7 +28,7 @@ func NewElasticJWKRepository(db *gorm.DB) ElasticJWKRepository {
 
 // Create creates a new Elastic JWK with tenant isolation.
 func (r *elasticJWKGormRepository) Create(ctx context.Context, elasticJWK *domain.ElasticJWK) error {
-	if err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).Create(elasticJWK).Error; err != nil {
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Create(elasticJWK).Error; err != nil {
 		return fmt.Errorf("failed to create elastic JWK: %w", err)
 	}
 
@@ -39,7 +39,7 @@ func (r *elasticJWKGormRepository) Create(ctx context.Context, elasticJWK *domai
 func (r *elasticJWKGormRepository) Get(ctx context.Context, tenantID, realmID googleUuid.UUID, kid string) (*domain.ElasticJWK, error) {
 	var elasticJWK domain.ElasticJWK
 
-	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
+	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("tenant_id = ? AND realm_id = ? AND kid = ?", tenantID, realmID, kid).
 		First(&elasticJWK).
 		Error
@@ -58,7 +58,7 @@ func (r *elasticJWKGormRepository) Get(ctx context.Context, tenantID, realmID go
 func (r *elasticJWKGormRepository) GetByID(ctx context.Context, elasticJWKID googleUuid.UUID) (*domain.ElasticJWK, error) {
 	var elasticJWK domain.ElasticJWK
 
-	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
+	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("id = ?", elasticJWKID).
 		First(&elasticJWK).
 		Error
@@ -77,7 +77,7 @@ func (r *elasticJWKGormRepository) GetByID(ctx context.Context, elasticJWKID goo
 func (r *elasticJWKGormRepository) List(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]domain.ElasticJWK, error) {
 	var elasticJWKs []domain.ElasticJWK
 
-	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
+	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).
 		Offset(offset).
 		Limit(limit).
@@ -92,7 +92,7 @@ func (r *elasticJWKGormRepository) List(ctx context.Context, tenantID, realmID g
 
 // IncrementMaterialCount increments the material count for an Elastic JWK.
 func (r *elasticJWKGormRepository) IncrementMaterialCount(ctx context.Context, elasticJWKID googleUuid.UUID) error {
-	err := cryptoutilTemplateRepository.GetDB(ctx, r.db).WithContext(ctx).
+	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Model(&domain.ElasticJWK{}).
 		Where("id = ?", elasticJWKID).
 		Update("current_material_count", gorm.Expr("current_material_count + 1")).

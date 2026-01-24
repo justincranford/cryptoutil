@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 )
 
@@ -25,19 +25,19 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 	tests := []struct {
 		name        string
 		description string
-		testFunc    func(t *testing.T, app *cryptoutilTemplateServer.Application)
+		testFunc    func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application)
 	}{
 		{
 			name:        "NewApplication",
 			description: "Verify successful application creation with valid servers",
-			testFunc: func(t *testing.T, _ *cryptoutilTemplateServer.Application) {
+			testFunc: func(t *testing.T, _ *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
 				ctx := context.Background()
 				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 				require.NotNil(t, app)
 				assert.False(t, app.IsShutdown())
@@ -46,7 +46,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "Start",
 			description: "Application starts both public and admin servers concurrently",
-			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+			testFunc: func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
 				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -70,7 +70,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "Shutdown",
 			description: "Application shuts down both servers gracefully",
-			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+			testFunc: func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
 				ctx := context.Background()
@@ -83,7 +83,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "PublicPort",
 			description: "PublicPort returns correct port from public server",
-			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+			testFunc: func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
 				port := app.PublicPort()
@@ -93,7 +93,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "AdminPort",
 			description: "AdminPort returns correct port from admin server",
-			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+			testFunc: func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
 				port := app.AdminPort()
@@ -103,7 +103,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "IsShutdown",
 			description: "IsShutdown tracks shutdown state correctly",
-			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+			testFunc: func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
 				assert.False(t, app.IsShutdown())
@@ -118,7 +118,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "ConcurrentShutdown",
 			description: "Concurrent shutdown calls are safe and idempotent",
-			testFunc: func(t *testing.T, app *cryptoutilTemplateServer.Application) {
+			testFunc: func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
 				ctx := context.Background()
@@ -165,7 +165,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 			publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 			adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-			app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+			app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 			require.NoError(t, err)
 
 			// Run test function.
@@ -181,59 +181,59 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 	tests := []struct {
 		name          string
 		description   string
-		setupFunc     func(t *testing.T) (*cryptoutilTemplateServer.Application, error)
+		setupFunc     func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error)
 		expectedError string
 	}{
 		{
 			name:        "NilContext",
 			description: "NewApplication rejects nil context",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-				return cryptoutilTemplateServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // Testing nil context.
+				return cryptoutilAppsTemplateServiceServer.NewApplication(nil, publicServer, adminServer) //nolint:staticcheck // Testing nil context.
 			},
 			expectedError: "context cannot be nil",
 		},
 		{
 			name:        "NilPublicServer",
 			description: "NewApplication rejects nil public server",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-				return cryptoutilTemplateServer.NewApplication(ctx, nil, adminServer)
+				return cryptoutilAppsTemplateServiceServer.NewApplication(ctx, nil, adminServer)
 			},
 			expectedError: "publicServer cannot be nil",
 		},
 		{
 			name:        "NilAdminServer",
 			description: "NewApplication rejects nil admin server",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
 				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 
-				return cryptoutilTemplateServer.NewApplication(ctx, publicServer, nil)
+				return cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, nil)
 			},
 			expectedError: "adminServer cannot be nil",
 		},
 		{
 			name:        "Start_NilContext",
 			description: "Start rejects nil context",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
 				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				err = app.Start(nil) //nolint:staticcheck // Testing nil context.
@@ -245,7 +245,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Start_PublicServerFailure",
 			description: "Start propagates public server start errors",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
@@ -253,7 +253,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				publicServer.StartErr = errors.New("public server start failed")
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				err = app.Start(context.Background())
@@ -265,7 +265,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Start_AdminServerFailure",
 			description: "Start propagates admin server start errors",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
@@ -273,7 +273,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 				adminServer.StartErr = errors.New("admin server start failed")
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				err = app.Start(context.Background())
@@ -285,14 +285,14 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Shutdown_NilContext",
 			description: "Shutdown accepts nil context and uses Background()",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
 				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				err = app.Shutdown(nil) //nolint:staticcheck // Testing nil context.
@@ -307,7 +307,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Shutdown_PublicServerError",
 			description: "Shutdown continues even if public server shutdown fails",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
@@ -315,7 +315,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				publicServer.ShutdownErr = errors.New("public shutdown failed")
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				err = app.Shutdown(context.Background())
@@ -327,7 +327,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Shutdown_AdminServerError",
 			description: "Shutdown continues even if admin server shutdown fails",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
@@ -335,7 +335,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 				adminServer.ShutdownErr = errors.New("admin shutdown failed")
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				err = app.Shutdown(context.Background())
@@ -347,7 +347,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Shutdown_BothServersError",
 			description: "Shutdown reports both server errors when both fail",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
@@ -356,7 +356,7 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(9090)
 				adminServer.ShutdownErr = errors.New("admin shutdown failed")
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				err = app.Shutdown(context.Background())
@@ -368,14 +368,14 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "AdminPort_NotInitialized",
 			description: "AdminPort returns 0 when admin server port is 0",
-			setupFunc: func(t *testing.T) (*cryptoutilTemplateServer.Application, error) {
+			setupFunc: func(t *testing.T) (*cryptoutilAppsTemplateServiceServer.Application, error) {
 				t.Helper()
 
 				ctx := context.Background()
 				publicServer := cryptoutilTemplateServerTestutil.NewMockPublicServer(8080)
 				adminServer := cryptoutilTemplateServerTestutil.NewMockAdminServer(0) // Port 0 returns 0.
 
-				app, err := cryptoutilTemplateServer.NewApplication(ctx, publicServer, adminServer)
+				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 
 				port := app.AdminPort()

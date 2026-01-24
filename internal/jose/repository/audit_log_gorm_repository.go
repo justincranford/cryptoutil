@@ -13,7 +13,7 @@ import (
 
 	"cryptoutil/internal/jose/domain"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -34,7 +34,7 @@ func NewAuditLogGormRepository(db *gorm.DB) *AuditLogGormRepository {
 
 // Create creates a new audit log entry.
 func (r *AuditLogGormRepository) Create(ctx context.Context, entry *domain.AuditLogEntry) error {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	// Generate ID if not set.
 	if entry.ID == googleUuid.Nil {
@@ -74,7 +74,7 @@ func (r *AuditLogGormRepository) CreateWithSampling(ctx context.Context, entry *
 
 // GetByID retrieves an audit log entry by ID.
 func (r *AuditLogGormRepository) GetByID(ctx context.Context, id googleUuid.UUID) (*domain.AuditLogEntry, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	var entry domain.AuditLogEntry
 
@@ -92,7 +92,7 @@ func (r *AuditLogGormRepository) GetByID(ctx context.Context, id googleUuid.UUID
 
 // ListByTenantRealm retrieves audit log entries for a tenant/realm with pagination.
 func (r *AuditLogGormRepository) ListByTenantRealm(ctx context.Context, tenantID, realmID googleUuid.UUID, offset, limit int) ([]domain.AuditLogEntry, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	var entries []domain.AuditLogEntry
 
@@ -111,7 +111,7 @@ func (r *AuditLogGormRepository) ListByTenantRealm(ctx context.Context, tenantID
 
 // ListByOperation retrieves audit log entries for a specific operation with pagination.
 func (r *AuditLogGormRepository) ListByOperation(ctx context.Context, tenantID googleUuid.UUID, operation string, offset, limit int) ([]domain.AuditLogEntry, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	var entries []domain.AuditLogEntry
 
@@ -130,7 +130,7 @@ func (r *AuditLogGormRepository) ListByOperation(ctx context.Context, tenantID g
 
 // ListByResource retrieves audit log entries for a specific resource with pagination.
 func (r *AuditLogGormRepository) ListByResource(ctx context.Context, resourceType, resourceID string, offset, limit int) ([]domain.AuditLogEntry, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	var entries []domain.AuditLogEntry
 
@@ -149,7 +149,7 @@ func (r *AuditLogGormRepository) ListByResource(ctx context.Context, resourceTyp
 
 // ListByTimeRange retrieves audit log entries within a time range with pagination.
 func (r *AuditLogGormRepository) ListByTimeRange(ctx context.Context, tenantID googleUuid.UUID, start, end time.Time, offset, limit int) ([]domain.AuditLogEntry, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	startMillis := start.UnixMilli()
 	endMillis := end.UnixMilli()
@@ -171,7 +171,7 @@ func (r *AuditLogGormRepository) ListByTimeRange(ctx context.Context, tenantID g
 
 // Count returns the total number of audit log entries for a tenant.
 func (r *AuditLogGormRepository) Count(ctx context.Context, tenantID googleUuid.UUID) (int64, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	var count int64
 
@@ -186,7 +186,7 @@ func (r *AuditLogGormRepository) Count(ctx context.Context, tenantID googleUuid.
 // DeleteOlderThan deletes audit log entries older than the specified time.
 // Returns the number of entries deleted.
 func (r *AuditLogGormRepository) DeleteOlderThan(ctx context.Context, tenantID googleUuid.UUID, before time.Time) (int64, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	beforeMillis := before.UnixMilli()
 

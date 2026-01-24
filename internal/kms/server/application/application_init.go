@@ -16,7 +16,7 @@ import (
 	cryptoutilCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilDateTime "cryptoutil/internal/shared/util/datetime"
-	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
+	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 )
 
 const (
@@ -48,12 +48,12 @@ func ServerInit(settings *cryptoutilConfig.ServiceTemplateServerSettings) error 
 }
 
 func generateTLSServerSubjects(settings *cryptoutilConfig.ServiceTemplateServerSettings, serverApplicationBasic *ServerApplicationBasic) (*cryptoutilCertificate.Subject, *cryptoutilCertificate.Subject, error) {
-	publicTLSServerIPAddresses, err := cryptoutilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
+	publicTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
 	}
 
-	privateTLSServerIPAddresses, err := cryptoutilNetwork.ParseIPAddresses(settings.TLSPrivateIPAddresses)
+	privateTLSServerIPAddresses, err := cryptoutilSharedUtilNetwork.ParseIPAddresses(settings.TLSPrivateIPAddresses)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse private TLS server IP addresses: %w", err)
 	}

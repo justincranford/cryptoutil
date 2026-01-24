@@ -10,25 +10,25 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // mockRealmRepoForUpdate implements repository.TenantRealmRepository for UpdateRealm testing.
 type mockRealmRepoForUpdate struct {
-	realm      *cryptoutilTemplateRepository.TenantRealm
+	realm      *cryptoutilAppsTemplateServiceServerRepository.TenantRealm
 	getByIDErr error
 	updateErr  error
 }
 
-func (m *mockRealmRepoForUpdate) Create(ctx context.Context, realm *cryptoutilTemplateRepository.TenantRealm) error {
+func (m *mockRealmRepoForUpdate) Create(ctx context.Context, realm *cryptoutilAppsTemplateServiceServerRepository.TenantRealm) error {
 	return nil
 }
 
-func (m *mockRealmRepoForUpdate) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.TenantRealm, error) {
+func (m *mockRealmRepoForUpdate) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmRepoForUpdate) GetByRealmID(ctx context.Context, tenantID, realmID googleUuid.UUID) (*cryptoutilTemplateRepository.TenantRealm, error) {
+func (m *mockRealmRepoForUpdate) GetByRealmID(ctx context.Context, tenantID, realmID googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	if m.getByIDErr != nil {
 		return nil, m.getByIDErr
 	}
@@ -36,11 +36,11 @@ func (m *mockRealmRepoForUpdate) GetByRealmID(ctx context.Context, tenantID, rea
 	return m.realm, nil
 }
 
-func (m *mockRealmRepoForUpdate) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilTemplateRepository.TenantRealm, error) {
+func (m *mockRealmRepoForUpdate) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmRepoForUpdate) Update(ctx context.Context, realm *cryptoutilTemplateRepository.TenantRealm) error {
+func (m *mockRealmRepoForUpdate) Update(ctx context.Context, realm *cryptoutilAppsTemplateServiceServerRepository.TenantRealm) error {
 	return m.updateErr
 }
 
@@ -82,7 +82,7 @@ func TestUpdateRealm_WrongTenant(t *testing.T) {
 	realmID := googleUuid.New()
 
 	mockRepo := &mockRealmRepoForUpdate{
-		realm: &cryptoutilTemplateRepository.TenantRealm{
+		realm: &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 			TenantID: differentTenantID, // Different tenant!
 			RealmID:  realmID,
 		},
@@ -108,7 +108,7 @@ func TestUpdateRealm_InvalidConfig(t *testing.T) {
 	realmID := googleUuid.New()
 
 	mockRepo := &mockRealmRepoForUpdate{
-		realm: &cryptoutilTemplateRepository.TenantRealm{
+		realm: &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 			TenantID: tenantID,
 			RealmID:  realmID,
 		},
@@ -140,7 +140,7 @@ func TestUpdateRealm_UpdateError(t *testing.T) {
 	expectedErr := errors.New("database update error")
 
 	mockRepo := &mockRealmRepoForUpdate{
-		realm: &cryptoutilTemplateRepository.TenantRealm{
+		realm: &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 			TenantID: tenantID,
 			RealmID:  realmID,
 		},

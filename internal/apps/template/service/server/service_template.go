@@ -12,12 +12,12 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilTemplateServerApplication "cryptoutil/internal/apps/template/service/server/application"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilTemplateServerApplication "cryptoutil/internal/apps/template/service/server/application"
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // ServiceTemplate encapsulates reusable service infrastructure.
@@ -25,7 +25,7 @@ import (
 type ServiceTemplate struct {
 	config    *cryptoutilConfig.ServiceTemplateServerSettings
 	db        *gorm.DB
-	dbType    cryptoutilTemplateServerRepository.DatabaseType
+	dbType    cryptoutilAppsTemplateServiceServerRepository.DatabaseType
 	telemetry *cryptoutilTelemetry.TelemetryService
 	jwkGen    *cryptoutilJose.JWKGenService
 	barrier   *cryptoutilBarrierService.BarrierService // Optional (nil for demo services).
@@ -50,7 +50,7 @@ func NewServiceTemplate(
 	ctx context.Context,
 	config *cryptoutilConfig.ServiceTemplateServerSettings,
 	db *gorm.DB,
-	dbType cryptoutilTemplateServerRepository.DatabaseType,
+	dbType cryptoutilAppsTemplateServiceServerRepository.DatabaseType,
 	options ...ServiceTemplateOption,
 ) (*ServiceTemplate, error) {
 	if ctx == nil {
@@ -63,7 +63,7 @@ func NewServiceTemplate(
 
 	// Validate database type.
 	switch dbType {
-	case cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL, cryptoutilTemplateServerRepository.DatabaseTypeSQLite:
+	case cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite:
 		// Valid database type.
 	default:
 		return nil, fmt.Errorf("invalid database type: %s", dbType)
@@ -118,7 +118,7 @@ func (st *ServiceTemplate) SQLDB() (*sql.DB, error) {
 }
 
 // DBType returns the database type.
-func (st *ServiceTemplate) DBType() cryptoutilTemplateServerRepository.DatabaseType {
+func (st *ServiceTemplate) DBType() cryptoutilAppsTemplateServiceServerRepository.DatabaseType {
 	return st.dbType
 }
 

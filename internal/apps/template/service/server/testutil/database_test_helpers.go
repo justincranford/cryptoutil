@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	serverTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilContainer "cryptoutil/internal/shared/container"
 
 	googleUuid "github.com/google/uuid"
@@ -45,7 +45,7 @@ func NewInitializedPostgresTestDatabase(ctx context.Context, migrationsFS fs.FS)
 	}
 
 	// Initialize database with migrations.
-	gormDB, err := serverTemplateRepository.InitPostgreSQL(ctx, databaseURL, migrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitPostgreSQL(ctx, databaseURL, migrationsFS)
 	if err != nil {
 		closeDB()
 
@@ -88,7 +88,7 @@ func NewInitializedSQLiteTestDatabase(ctx context.Context, migrationsFS fs.FS, i
 	}
 
 	// Initialize database with migrations.
-	gormDB, err := serverTemplateRepository.InitSQLite(ctx, databaseURL, migrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, databaseURL, migrationsFS)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize database: %w", err)
 	} else if gormDB == nil {
@@ -129,9 +129,9 @@ func InitDatabase(ctx context.Context, databaseURL string, migrationsFS fs.FS) (
 
 	switch {
 	case len(databaseURL) >= 11 && databaseURL[:11] == "postgres://":
-		db, err = serverTemplateRepository.InitPostgreSQL(ctx, databaseURL, migrationsFS)
+		db, err = cryptoutilAppsTemplateServiceServerRepository.InitPostgreSQL(ctx, databaseURL, migrationsFS)
 	case len(databaseURL) >= 5 && databaseURL[:5] == "file:":
-		db, err = serverTemplateRepository.InitSQLite(ctx, databaseURL, migrationsFS)
+		db, err = cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, databaseURL, migrationsFS)
 	default:
 		return nil, fmt.Errorf("unsupported database URL scheme: %s", databaseURL)
 	}
@@ -234,7 +234,7 @@ func HelpTestInitDatabaseSadPaths(t *testing.T, migrationsFS fs.FS) {
 				defer cancel()
 
 				// Use invalid connection string (nonexistent server).
-				gormDB, err := serverTemplateRepository.InitPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname", migrationsFS)
+				gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitPostgreSQL(ctx, "postgres://user:pass@nonexistent:5432/dbname", migrationsFS)
 				if err != nil {
 					err = fmt.Errorf("expected error from InitPostgreSQL: %w", err)
 				}
@@ -250,7 +250,7 @@ func HelpTestInitDatabaseSadPaths(t *testing.T, migrationsFS fs.FS) {
 			name: "SQLite Invalid Path",
 			setupFunc: func(ctx context.Context) error {
 				// Use invalid file path (directory doesn't exist).
-				gormDB, err := serverTemplateRepository.InitSQLite(ctx, "file:/nonexistent/invalid/path.db", migrationsFS)
+				gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file:/nonexistent/invalid/path.db", migrationsFS)
 				if err != nil {
 					err = fmt.Errorf("expected error from InitSQLite: %w", err)
 				}

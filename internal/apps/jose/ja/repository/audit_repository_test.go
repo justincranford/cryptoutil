@@ -10,7 +10,7 @@ import (
 	"time"
 
 	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -27,7 +27,7 @@ func TestAuditConfigRepository_Get(t *testing.T) {
 	repo := NewAuditConfigRepository(testDB)
 
 	// Create config.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := "test-operation"
 	config := &cryptoutilJoseJADomain.AuditConfig{
 		TenantID:     *tenantID,
@@ -62,7 +62,7 @@ func TestAuditConfigRepository_GetAllForTenant(t *testing.T) {
 	repo := NewAuditConfigRepository(testDB)
 
 	// Create multiple configs for same tenant.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operations := []string{"sign", "verify", "encrypt"}
 
 	for _, op := range operations {
@@ -97,7 +97,7 @@ func TestAuditConfigRepository_Upsert(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(testDB)
 
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := "test-upsert"
 
 	// Test create (insert).
@@ -139,7 +139,7 @@ func TestAuditConfigRepository_Delete(t *testing.T) {
 	repo := NewAuditConfigRepository(testDB)
 
 	// Create config to delete.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := "test-delete"
 	config := &cryptoutilJoseJADomain.AuditConfig{
 		TenantID:     *tenantID,
@@ -164,7 +164,7 @@ func TestAuditConfigRepository_ShouldAudit(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(testDB)
 
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	operation := "test-should-audit"
 
 	// Test ShouldAudit when config doesn't exist (uses fallback).
@@ -220,9 +220,9 @@ func TestAuditLogRepository_Create(t *testing.T) {
 	repo := NewAuditLogRepository(testDB)
 
 	// Create audit log entry.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	requestID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	entry := &cryptoutilJoseJADomain.AuditLogEntry{
 		ID:        *id,
 		TenantID:  *tenantID,
@@ -250,11 +250,11 @@ func TestAuditLogRepository_List(t *testing.T) {
 	repo := NewAuditLogRepository(testDB)
 
 	// Create multiple entries for same tenant.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	for i := 0; i < 3; i++ {
-		id, _ := cryptoutilRandom.GenerateUUIDv7()
-		requestID, _ := cryptoutilRandom.GenerateUUIDv7()
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
@@ -293,12 +293,12 @@ func TestAuditLogRepository_ListByElasticJWK(t *testing.T) {
 	repo := NewAuditLogRepository(testDB)
 
 	// Create entries for specific ElasticJWK.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	elasticJWKID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	elasticJWKID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	for i := 0; i < 2; i++ {
-		id, _ := cryptoutilRandom.GenerateUUIDv7()
-		requestID, _ := cryptoutilRandom.GenerateUUIDv7()
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:           *id,
 			TenantID:     *tenantID,
@@ -332,12 +332,12 @@ func TestAuditLogRepository_ListByOperation(t *testing.T) {
 	repo := NewAuditLogRepository(testDB)
 
 	// Create entries with different operations.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	operations := []string{"sign", "sign", "verify"}
 	for i, op := range operations {
-		id, _ := cryptoutilRandom.GenerateUUIDv7()
-		requestID, _ := cryptoutilRandom.GenerateUUIDv7()
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
@@ -375,9 +375,9 @@ func TestAuditLogRepository_GetByRequestID(t *testing.T) {
 	repo := NewAuditLogRepository(testDB)
 
 	// Create entry.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
-	requestID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	entry := &cryptoutilJoseJADomain.AuditLogEntry{
 		ID:        *id,
 		TenantID:  *tenantID,
@@ -406,12 +406,12 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	repo := NewAuditLogRepository(testDB)
 
 	// Create entries.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	// Create 3 entries.
 	for i := 0; i < 3; i++ {
-		id, _ := cryptoutilRandom.GenerateUUIDv7()
-		requestID, _ := cryptoutilRandom.GenerateUUIDv7()
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,

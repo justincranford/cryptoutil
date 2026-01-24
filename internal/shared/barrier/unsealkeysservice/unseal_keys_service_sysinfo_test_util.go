@@ -5,7 +5,7 @@
 package unsealkeysservice
 
 import (
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 )
 
@@ -14,7 +14,7 @@ import (
 func RequireNewFromSysInfoForTest() UnsealKeysService {
 	mockProvider := &cryptoutilSysinfo.MockSysInfoProvider{}
 	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(mockProvider)
-	cryptoutilAppErr.RequireNoError(err, "failed to create unseal repository")
+	cryptoutilSharedApperr.RequireNoError(err, "failed to create unseal repository")
 
 	return unsealKeysService
 }

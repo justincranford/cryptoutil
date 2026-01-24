@@ -15,7 +15,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilFiles "cryptoutil/internal/shared/util/files"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 // checkOutdatedDeps checks for outdated Go direct dependencies and fails if any are found.
@@ -301,7 +301,7 @@ func saveDepCache(cacheFile string, cache cryptoutilMagic.DepCache) error {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	if err := cryptoutilFiles.WriteFile(cacheFile, string(content), cryptoutilMagic.CacheFilePermissions); err != nil {
+	if err := cryptoutilSharedUtilFiles.WriteFile(cacheFile, string(content), cryptoutilMagic.CacheFilePermissions); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 

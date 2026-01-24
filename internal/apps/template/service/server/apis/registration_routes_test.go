@@ -14,14 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TestRegisterRegistrationRoutes_Integration tests route registration with real app.
 func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testGormDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testGormDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testGormDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
 	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 
 	app := fiber.New()
@@ -34,9 +34,9 @@ func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
 
 // TestRegisterRegistrationRoutes_RateLimiting tests rate limiting middleware.
 func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testGormDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testGormDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testGormDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
 	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 
 	app := fiber.New()
@@ -69,9 +69,9 @@ func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
 
 // TestRegisterJoinRequestManagementRoutes_Integration tests join request route registration.
 func TestRegisterJoinRequestManagementRoutes_Integration(t *testing.T) {
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testGormDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testGormDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testGormDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
 	registrationService := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 
 	adminAPI := fiber.New()

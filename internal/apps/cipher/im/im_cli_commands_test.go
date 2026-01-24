@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
+	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
 // TestIM_SubcommandHelpFlags tests help flag for all subcommands in table-driven format.
@@ -263,7 +263,7 @@ func TestIM_SubcommandErrors(t *testing.T) {
 
 			output := stdout.String() + stderr.String()
 			// Check that output contains at least one of the expected strings.
-			require.True(t, cryptoutilTestutil.ContainsAny(output, tt.contains),
+			require.True(t, cryptoutilSharedTestutil.ContainsAny(output, tt.contains),
 				"output should contain one of %v: %s", tt.contains, output)
 		})
 	}
@@ -503,7 +503,7 @@ func TestIM_URLEdgeCases(t *testing.T) {
 
 			if len(tt.wantAny) > 0 {
 				require.True(t,
-					cryptoutilTestutil.ContainsAny(output, tt.wantAny),
+					cryptoutilSharedTestutil.ContainsAny(output, tt.wantAny),
 					"Should contain one of: %v, got: %s", tt.wantAny, output)
 			}
 		})

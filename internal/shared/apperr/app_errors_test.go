@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 func TestIsAppErr(t *testing.T) {
@@ -21,37 +21,37 @@ func TestIsAppErr(t *testing.T) {
 	}{
 		{
 			name:     "is-apperr-cant-be-nil",
-			target:   cryptoutilAppErr.ErrCantBeNil,
+			target:   cryptoutilSharedApperr.ErrCantBeNil,
 			expected: true,
 		},
 		{
 			name:     "is-apperr-cant-be-empty",
-			target:   cryptoutilAppErr.ErrCantBeEmpty,
+			target:   cryptoutilSharedApperr.ErrCantBeEmpty,
 			expected: true,
 		},
 		{
 			name:     "is-apperr-uuid-cant-be-nil",
-			target:   cryptoutilAppErr.ErrUUIDCantBeNil,
+			target:   cryptoutilSharedApperr.ErrUUIDCantBeNil,
 			expected: true,
 		},
 		{
 			name:     "is-apperr-uuid-cant-be-zero",
-			target:   cryptoutilAppErr.ErrUUIDCantBeZero,
+			target:   cryptoutilSharedApperr.ErrUUIDCantBeZero,
 			expected: true,
 		},
 		{
 			name:     "is-apperr-uuid-cant-be-max",
-			target:   cryptoutilAppErr.ErrUUIDCantBeMax,
+			target:   cryptoutilSharedApperr.ErrUUIDCantBeMax,
 			expected: true,
 		},
 		{
 			name:     "is-apperr-uuids-cant-be-nil",
-			target:   cryptoutilAppErr.ErrUUIDsCantBeNil,
+			target:   cryptoutilSharedApperr.ErrUUIDsCantBeNil,
 			expected: true,
 		},
 		{
 			name:     "is-apperr-uuids-cant-be-empty",
-			target:   cryptoutilAppErr.ErrUUIDsCantBeEmpty,
+			target:   cryptoutilSharedApperr.ErrUUIDsCantBeEmpty,
 			expected: true,
 		},
 		{
@@ -70,7 +70,7 @@ func TestIsAppErr(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := cryptoutilAppErr.IsAppErr(tc.target)
+			result := cryptoutilSharedApperr.IsAppErr(tc.target)
 			require.Equal(t, tc.expected, result)
 		})
 	}
@@ -140,7 +140,7 @@ func TestContainsError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := cryptoutilAppErr.ContainsError(tc.errs, tc.target)
+			result := cryptoutilSharedApperr.ContainsError(tc.errs, tc.target)
 			require.Equal(t, tc.expected, result)
 		})
 	}
@@ -156,22 +156,22 @@ func TestJWKErrors(t *testing.T) {
 	}{
 		{
 			name: "jwk-must-be-encrypt-jwk",
-			err:  cryptoutilAppErr.ErrJWKMustBeEncryptJWK,
+			err:  cryptoutilSharedApperr.ErrJWKMustBeEncryptJWK,
 			msg:  "JWK must be an encrypt JWK",
 		},
 		{
 			name: "jwk-must-be-decrypt-jwk",
-			err:  cryptoutilAppErr.ErrJWKMustBeDecryptJWK,
+			err:  cryptoutilSharedApperr.ErrJWKMustBeDecryptJWK,
 			msg:  "JWK must be a decrypt JWK",
 		},
 		{
 			name: "jwk-must-be-sign-jwk",
-			err:  cryptoutilAppErr.ErrJWKMustBeSignJWK,
+			err:  cryptoutilSharedApperr.ErrJWKMustBeSignJWK,
 			msg:  "JWK must be a sign JWK",
 		},
 		{
 			name: "jwk-must-be-verify-jwk",
-			err:  cryptoutilAppErr.ErrJWKMustBeVerifyJWK,
+			err:  cryptoutilSharedApperr.ErrJWKMustBeVerifyJWK,
 			msg:  "JWK must be a verify JWK",
 		},
 	}
@@ -191,21 +191,21 @@ func TestErrsSliceContainsAllExpectedErrors(t *testing.T) {
 
 	// Verify that Errs slice contains exactly the expected errors.
 	expectedErrs := []error{
-		cryptoutilAppErr.ErrCantBeNil,
-		cryptoutilAppErr.ErrCantBeEmpty,
-		cryptoutilAppErr.ErrUUIDCantBeNil,
-		cryptoutilAppErr.ErrUUIDCantBeZero,
-		cryptoutilAppErr.ErrUUIDCantBeMax,
-		cryptoutilAppErr.ErrUUIDsCantBeNil,
-		cryptoutilAppErr.ErrUUIDsCantBeEmpty,
+		cryptoutilSharedApperr.ErrCantBeNil,
+		cryptoutilSharedApperr.ErrCantBeEmpty,
+		cryptoutilSharedApperr.ErrUUIDCantBeNil,
+		cryptoutilSharedApperr.ErrUUIDCantBeZero,
+		cryptoutilSharedApperr.ErrUUIDCantBeMax,
+		cryptoutilSharedApperr.ErrUUIDsCantBeNil,
+		cryptoutilSharedApperr.ErrUUIDsCantBeEmpty,
 	}
 
-	require.Len(t, cryptoutilAppErr.Errs, len(expectedErrs))
+	require.Len(t, cryptoutilSharedApperr.Errs, len(expectedErrs))
 
 	for _, expectedErr := range expectedErrs {
 		found := false
 
-		for _, actualErr := range cryptoutilAppErr.Errs {
+		for _, actualErr := range cryptoutilSharedApperr.Errs {
 			if errors.Is(actualErr, expectedErr) {
 				found = true
 

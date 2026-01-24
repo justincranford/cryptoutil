@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // UserRepository handles database operations for User entities.
@@ -26,8 +26,8 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 // Create inserts a new user into the database.
-func (r *UserRepository) Create(ctx context.Context, user *cryptoutilRepository.User) error {
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Create(user).Error; err != nil {
+func (r *UserRepository) Create(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.User) error {
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Create(user).Error; err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -35,9 +35,9 @@ func (r *UserRepository) Create(ctx context.Context, user *cryptoutilRepository.
 }
 
 // FindByID retrieves a user by ID.
-func (r *UserRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilRepository.User, error) {
-	var user cryptoutilRepository.User
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
+func (r *UserRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.User, error) {
+	var user cryptoutilAppsTemplateServiceServerRepository.User
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
@@ -45,9 +45,9 @@ func (r *UserRepository) FindByID(ctx context.Context, id googleUuid.UUID) (*cry
 }
 
 // FindByUsername retrieves a user by username.
-func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*cryptoutilRepository.User, error) {
-	var user cryptoutilRepository.User
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).First(&user, "username = ?", username).Error; err != nil {
+func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*cryptoutilAppsTemplateServiceServerRepository.User, error) {
+	var user cryptoutilAppsTemplateServiceServerRepository.User
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).First(&user, "username = ?", username).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user by username: %w", err)
 	}
 
@@ -55,8 +55,8 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 }
 
 // Update updates an existing user.
-func (r *UserRepository) Update(ctx context.Context, user *cryptoutilRepository.User) error {
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Save(user).Error; err != nil {
+func (r *UserRepository) Update(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.User) error {
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Save(user).Error; err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 
@@ -65,7 +65,7 @@ func (r *UserRepository) Update(ctx context.Context, user *cryptoutilRepository.
 
 // Delete removes a user from the database.
 func (r *UserRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Delete(&cryptoutilRepository.User{}, "id = ?", id).Error; err != nil {
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Delete(&cryptoutilAppsTemplateServiceServerRepository.User{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 

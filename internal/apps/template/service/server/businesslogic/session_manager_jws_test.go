@@ -14,7 +14,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilJOSE "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
@@ -204,7 +204,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) 
 	jti, parseJTIErr := googleUuid.Parse(jtiStr)
 	require.NoError(t, parseJTIErr)
 
-	deleteErr := sm.db.Where("id = ?", jti).Delete(&cryptoutilRepository.BrowserSession{}).Error
+	deleteErr := sm.db.Where("id = ?", jti).Delete(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).Error
 	require.NoError(t, deleteErr)
 
 	// Validate should fail (session revoked)

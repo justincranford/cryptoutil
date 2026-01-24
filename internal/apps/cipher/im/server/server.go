@@ -13,11 +13,11 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/repository"
 	"cryptoutil/internal/apps/cipher/im/server/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -25,7 +25,7 @@ import (
 
 // CipherIMServer represents the cipher-im service application.
 type CipherIMServer struct {
-	app *cryptoutilTemplateServer.Application
+	app *cryptoutilAppsTemplateServiceServer.Application
 	db  *gorm.DB
 
 	// Services.
@@ -40,7 +40,7 @@ type CipherIMServer struct {
 	userRepo                *repository.UserRepository
 	messageRepo             *repository.MessageRepository
 	messageRecipientJWKRepo *repository.MessageRecipientJWKRepository
-	realmRepo               cryptoutilTemplateRepository.TenantRealmRepository // Uses service-template repository.
+	realmRepo               cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository // Uses service-template repository.
 }
 
 // NewFromConfig creates a new cipher-im server from CipherImServerSettings only.
@@ -60,7 +60,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CipherImServerSettings) (*Ci
 
 	// Register cipher-im specific public routes.
 	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilTemplateServer.PublicServerBase,
+		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 		res *cryptoutilTemplateBuilder.ServiceResources,
 	) error {
 		// Create cipher-im specific repositories.
@@ -147,7 +147,7 @@ func (s *CipherIMServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *CipherIMServer) App() *cryptoutilTemplateServer.Application {
+func (s *CipherIMServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
 }
 
@@ -237,6 +237,6 @@ func (s *CipherIMServer) MessageRecipientJWKRepo() *repository.MessageRecipientJ
 
 // PublicServerBase returns the public server base for testing NewPublicServer.
 // This extracts the base from the Application's public server.
-func (s *CipherIMServer) PublicServerBase() *cryptoutilTemplateServer.PublicServerBase {
+func (s *CipherIMServer) PublicServerBase() *cryptoutilAppsTemplateServiceServer.PublicServerBase {
 	return s.app.PublicServerBase()
 }

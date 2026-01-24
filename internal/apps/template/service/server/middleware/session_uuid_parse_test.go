@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 const testInvalidUUIDFormat = "not-a-valid-uuid-format"
@@ -28,8 +28,8 @@ func TestSessionMiddleware_BrowserSession_InvalidUserIDFormat(t *testing.T) {
 	invalidUserID := testInvalidUUIDFormat
 
 	validator := &mockSessionValidator{
-		browserSession: &cryptoutilTemplateRepository.BrowserSession{
-			Session: cryptoutilTemplateRepository.Session{
+		browserSession: &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},
@@ -71,8 +71,8 @@ func TestSessionMiddleware_ServiceSession_InvalidClientIDFormat(t *testing.T) {
 	invalidClientID := testInvalidUUIDFormat
 
 	validator := &mockSessionValidator{
-		serviceSession: &cryptoutilTemplateRepository.ServiceSession{
-			Session: cryptoutilTemplateRepository.Session{
+		serviceSession: &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},

@@ -22,7 +22,7 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -126,8 +126,8 @@ func TestMain(m *testing.M) {
 
 	// Auto-migrate template tables.
 	if err := testDB.AutoMigrate(
-		&cryptoutilTemplateRepository.Tenant{},
-		&cryptoutilTemplateRepository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
+		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
 		&cryptoutilTemplateDomain.TenantJoinRequest{},
 	); err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %v", err))
@@ -139,8 +139,8 @@ func TestMain(m *testing.M) {
 	testUserID = googleUuid.New()
 	testClientID = googleUuid.New()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   testTenantID,
 		Name: "Test Tenant",
 	}
@@ -149,8 +149,8 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("failed to create test tenant: %v", err))
 	}
 
-	realmRepo := cryptoutilTemplateRepository.NewTenantRealmRepository(testDB)
-	realm := &cryptoutilTemplateRepository.TenantRealm{
+	realmRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRealmRepository(testDB)
+	realm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 		ID:       testRealmID,
 		TenantID: testTenantID,
 		RealmID:  googleUuid.New(),
@@ -173,9 +173,9 @@ func TestMain(m *testing.M) {
 func TestNewTenantRegistrationService(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -189,9 +189,9 @@ func TestNewTenantRegistrationService(t *testing.T) {
 func TestRegisterUserWithTenant_CreateTenant(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -215,9 +215,9 @@ func TestRegisterUserWithTenant_CreateTenant(t *testing.T) {
 func TestRegisterClientWithTenant(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -254,9 +254,9 @@ func TestRegisterClientWithTenant(t *testing.T) {
 func TestRegisterClientWithTenant_TenantNotFound(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -273,9 +273,9 @@ func TestRegisterClientWithTenant_TenantNotFound(t *testing.T) {
 func TestAuthorizeJoinRequest_Approve(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -318,9 +318,9 @@ func TestAuthorizeJoinRequest_Approve(t *testing.T) {
 func TestAuthorizeJoinRequest_Reject(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -363,9 +363,9 @@ func TestAuthorizeJoinRequest_Reject(t *testing.T) {
 func TestAuthorizeJoinRequest_AlreadyProcessed(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -405,9 +405,9 @@ func TestAuthorizeJoinRequest_AlreadyProcessed(t *testing.T) {
 func TestListJoinRequests(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
@@ -437,9 +437,9 @@ func TestListJoinRequests(t *testing.T) {
 func TestRegisterUserWithTenant_JoinFlow(t *testing.T) {
 	t.Parallel()
 
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 

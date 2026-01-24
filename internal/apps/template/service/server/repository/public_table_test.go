@@ -16,10 +16,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateServerListener "cryptoutil/internal/apps/template/service/server/listener"
 	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestPublicHTTPServer_TableDriven_HappyPath tests successful public server operations.
@@ -29,12 +29,12 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 	tests := []struct {
 		name        string
 		description string
-		testFunc    func(t *testing.T, server cryptoutilTemplateServer.IPublicServer)
+		testFunc    func(t *testing.T, server cryptoutilAppsTemplateServiceServer.IPublicServer)
 	}{
 		{
 			name:        "NewPublicHTTPServer",
 			description: "Verify successful public server creation",
-			testFunc: func(t *testing.T, _ cryptoutilTemplateServer.IPublicServer) {
+			testFunc: func(t *testing.T, _ cryptoutilAppsTemplateServiceServer.IPublicServer) {
 				t.Helper()
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
@@ -47,7 +47,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "Start",
 			description: "Verify public server starts and listens on dynamic port",
-			testFunc: func(t *testing.T, server cryptoutilTemplateServer.IPublicServer) {
+			testFunc: func(t *testing.T, server cryptoutilAppsTemplateServiceServer.IPublicServer) {
 				t.Helper()
 
 				var wg sync.WaitGroup
@@ -81,7 +81,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "ServiceHealth_Healthy",
 			description: "Service health endpoint returns 200 when server is healthy",
-			testFunc: func(t *testing.T, server cryptoutilTemplateServer.IPublicServer) {
+			testFunc: func(t *testing.T, server cryptoutilAppsTemplateServiceServer.IPublicServer) {
 				t.Helper()
 
 				var wg sync.WaitGroup
@@ -139,7 +139,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "BrowserHealth_Healthy",
 			description: "Browser health endpoint returns 200 when server is healthy",
-			testFunc: func(t *testing.T, server cryptoutilTemplateServer.IPublicServer) {
+			testFunc: func(t *testing.T, server cryptoutilAppsTemplateServiceServer.IPublicServer) {
 				t.Helper()
 
 				var wg sync.WaitGroup
@@ -197,7 +197,7 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 		{
 			name:        "Shutdown_Graceful",
 			description: "Shutdown gracefully stops server and waits for connections to drain",
-			testFunc: func(t *testing.T, server cryptoutilTemplateServer.IPublicServer) {
+			testFunc: func(t *testing.T, server cryptoutilAppsTemplateServiceServer.IPublicServer) {
 				t.Helper()
 
 				ctx, cancel := context.WithCancel(context.Background())
@@ -249,13 +249,13 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 	tests := []struct {
 		name          string
 		description   string
-		setupFunc     func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error)
+		setupFunc     func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error)
 		expectedError string
 	}{
 		{
 			name:        "NilContext",
 			description: "NewPublicHTTPServer rejects nil context",
-			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
+			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
@@ -267,7 +267,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Start_NilContext",
 			description: "Start rejects nil context",
-			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
+			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
@@ -284,7 +284,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "Shutdown_NilContext",
 			description: "Shutdown accepts nil context and uses Background()",
-			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
+			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()
@@ -323,7 +323,7 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 		{
 			name:        "ActualPort_BeforeStart",
 			description: "ActualPort returns 0 before server starts",
-			setupFunc: func(t *testing.T) (cryptoutilTemplateServer.IPublicServer, error) {
+			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 				t.Helper()
 
 				tlsCfg := cryptoutilTemplateServerTestutil.PublicTLS()

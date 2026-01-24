@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilUserAuth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -102,10 +102,10 @@ func TestUsernamePasswordAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 	require.NotNil(t, auth, "NewUsernamePasswordAuthenticator should return non-nil authenticator")
 }
 
@@ -114,10 +114,10 @@ func TestUsernamePasswordAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 	require.Equal(t, cryptoutilIdentityMagic.AuthMethodUsernamePassword, auth.Method(), "Method should return correct identifier")
 }
 
@@ -168,9 +168,9 @@ func TestUsernamePasswordAuthenticator_HashPassword(t *testing.T) {
 			t.Parallel()
 
 			credStore := newMockPasswordCredentialStore()
-			challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+			challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 			userStore := newMockUserStore()
-			auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+			auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 			hash, err := auth.HashPassword(tc.password)
 			if tc.wantErr {
@@ -220,9 +220,9 @@ func TestUsernamePasswordAuthenticator_ValidatePassword(t *testing.T) {
 			t.Parallel()
 
 			credStore := newMockPasswordCredentialStore()
-			challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+			challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 			userStore := newMockUserStore()
-			auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+			auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 			err := auth.ValidatePassword(tc.password)
 			if tc.wantErr {
@@ -241,7 +241,7 @@ func TestUsernamePasswordAuthenticator_InitiateAuth(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	// Create a test user.
@@ -255,7 +255,7 @@ func TestUsernamePasswordAuthenticator_InitiateAuth(t *testing.T) {
 	}
 	userStore.AddUser(testUser)
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.NoError(t, err, "InitiateAuth should succeed")
@@ -270,9 +270,9 @@ func TestUsernamePasswordAuthenticator_InitiateAuthUserNotFound(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	nonExistentID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
@@ -289,7 +289,7 @@ func TestUsernamePasswordAuthenticator_InitiateAuthDisabledUser(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	userID, err := googleUuid.NewV7()
@@ -302,7 +302,7 @@ func TestUsernamePasswordAuthenticator_InitiateAuthDisabledUser(t *testing.T) {
 	}
 	userStore.AddUser(disabledUser)
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.Error(t, err, "InitiateAuth should fail for disabled user")
@@ -316,7 +316,7 @@ func TestUsernamePasswordAuthenticator_InitiateAuthLockedUser(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	userID, err := googleUuid.NewV7()
@@ -329,7 +329,7 @@ func TestUsernamePasswordAuthenticator_InitiateAuthLockedUser(t *testing.T) {
 	}
 	userStore.AddUser(lockedUser)
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	challenge, err := auth.InitiateAuth(ctx, userID.String())
 	require.Error(t, err, "InitiateAuth should fail for locked user")
@@ -345,7 +345,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuth(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	// Create a test user.
@@ -359,7 +359,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuth(t *testing.T) {
 	}
 	userStore.AddUser(testUser)
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash password with bcrypt directly (production code uses bcrypt in VerifyAuth).
 	password := "SecurePassword123!"
@@ -386,7 +386,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuthWrongPassword(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	userID, err := googleUuid.NewV7()
@@ -399,7 +399,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuthWrongPassword(t *testing.T) {
 	}
 	userStore.AddUser(testUser)
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash password with bcrypt directly.
 	hash, err := bcrypt.GenerateFromPassword([]byte(testCorrectPassword), bcrypt.DefaultCost)
@@ -425,7 +425,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuthEmptyPassword(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	userID, err := googleUuid.NewV7()
@@ -438,7 +438,7 @@ func TestUsernamePasswordAuthenticator_VerifyAuthEmptyPassword(t *testing.T) {
 	}
 	userStore.AddUser(testUser)
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash and store password.
 	hash, err := auth.HashPassword("ValidPassword123!")
@@ -465,13 +465,13 @@ func TestUsernamePasswordAuthenticator_UpdatePassword(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash and store initial password using bcrypt.
 	oldPassword := testOldPassword
@@ -493,13 +493,13 @@ func TestUsernamePasswordAuthenticator_UpdatePasswordWrongOld(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash and store initial password using bcrypt.
 	hash, err := bcrypt.GenerateFromPassword([]byte("CorrectOldPassword123!"), bcrypt.DefaultCost)
@@ -520,13 +520,13 @@ func TestUsernamePasswordAuthenticator_UpdatePasswordInvalidNew(t *testing.T) {
 
 	ctx := context.Background()
 	credStore := newMockPasswordCredentialStore()
-	challengeStore := cryptoutilUserAuth.NewInMemoryChallengeStore()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	userStore := newMockUserStore()
 
 	userID, err := googleUuid.NewV7()
 	require.NoError(t, err, "NewV7 should succeed")
 
-	auth := cryptoutilUserAuth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
+	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
 
 	// Hash and store initial password using bcrypt.
 	oldPassword := testOldPassword

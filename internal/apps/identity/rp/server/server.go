@@ -10,11 +10,11 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/identity/rp/server/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -23,7 +23,7 @@ import (
 // RPServer represents the identity-rp service application.
 // This is a Backend-for-Frontend (BFF) that proxies OAuth 2.1 flows for SPAs.
 type RPServer struct {
-	app *cryptoutilTemplateServer.Application
+	app *cryptoutilAppsTemplateServiceServer.Application
 	db  *gorm.DB
 
 	// RP configuration.
@@ -37,7 +37,7 @@ type RPServer struct {
 	realmService          cryptoutilTemplateService.RealmService
 
 	// Template repositories.
-	realmRepo cryptoutilTemplateRepository.TenantRealmRepository
+	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 
 	// Shutdown functions.
 	shutdownCore      func()
@@ -59,7 +59,7 @@ func NewFromConfig(ctx context.Context, cfg *config.IdentityRPServerSettings) (*
 
 	// Register identity-rp specific public routes.
 	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilTemplateServer.PublicServerBase,
+		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 		res *cryptoutilTemplateBuilder.ServiceResources,
 	) error {
 		// Create public server with BFF handlers.
@@ -131,7 +131,7 @@ func (s *RPServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *RPServer) App() *cryptoutilTemplateServer.Application {
+func (s *RPServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
 }
 

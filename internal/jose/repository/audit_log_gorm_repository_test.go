@@ -13,7 +13,7 @@ import (
 	"cryptoutil/internal/jose/domain"
 	"cryptoutil/internal/jose/repository"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -50,7 +50,7 @@ func setupAuditLogTestDB(t *testing.T) *gorm.DB {
 
 	// Auto-migrate required tables.
 	err = db.AutoMigrate(
-		&cryptoutilTemplateRepository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
 		&domain.AuditLogEntry{},
 	)
 	require.NoError(t, err)
@@ -549,7 +549,7 @@ func TestAuditLogGormRepository_WithTransaction(t *testing.T) {
 	tx := db.Begin()
 	require.NoError(t, tx.Error)
 
-	txCtx := cryptoutilTemplateRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	entry := createTestAuditLogEntry(tenantID, realmID, "encrypt")
 	err := repo.Create(txCtx, entry)
@@ -578,7 +578,7 @@ func TestAuditLogGormRepository_WithTransaction_Rollback(t *testing.T) {
 	tx := db.Begin()
 	require.NoError(t, tx.Error)
 
-	txCtx := cryptoutilTemplateRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	entry := createTestAuditLogEntry(tenantID, realmID, "encrypt")
 	err := repo.Create(txCtx, entry)

@@ -7,7 +7,7 @@ package random
 import (
 	"fmt"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -30,11 +30,11 @@ func GenerateUUIDv7() (*googleUuid.UUID, error) {
 // ValidateUUID validates that a UUID is not nil, zero, or max.
 func ValidateUUID(uuid *googleUuid.UUID, msg *string) error {
 	if uuid == nil {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilAppErr.ErrUUIDCantBeNil)
+		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDCantBeNil)
 	} else if *uuid == googleUuid.Nil {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilAppErr.ErrUUIDCantBeZero)
+		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDCantBeZero)
 	} else if *uuid == googleUuid.Max {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilAppErr.ErrUUIDCantBeMax)
+		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDCantBeMax)
 	}
 
 	return nil
@@ -43,14 +43,14 @@ func ValidateUUID(uuid *googleUuid.UUID, msg *string) error {
 // ValidateUUIDs validates a slice of UUIDs.
 func ValidateUUIDs(uuids []googleUuid.UUID, msg *string) error {
 	if uuids == nil {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilAppErr.ErrUUIDsCantBeNil)
+		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDsCantBeNil)
 	} else if len(uuids) == 0 {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilAppErr.ErrUUIDsCantBeEmpty)
+		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDsCantBeEmpty)
 	}
 
 	for i, uuid := range uuids {
 		if err := ValidateUUID(&uuid, msg); err != nil {
-			return fmt.Errorf("%s, offset %d: %w", *msg, i, cryptoutilAppErr.ErrUUIDsCantBeNil)
+			return fmt.Errorf("%s, offset %d: %w", *msg, i, cryptoutilSharedApperr.ErrUUIDsCantBeNil)
 		}
 	}
 

@@ -9,8 +9,8 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		var err error
 
 		testJWKGenService, err = NewJWKGenService(testCtx, testTelemetryService, false)
-		cryptoutilAppErr.RequireNoError(err, "failed to initialize NewJWKGenService")
+		cryptoutilSharedApperr.RequireNoError(err, "failed to initialize NewJWKGenService")
 
 		defer testJWKGenService.Shutdown()
 

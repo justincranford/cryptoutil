@@ -13,8 +13,8 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/stretchr/testify/require"
 )
@@ -86,7 +86,7 @@ func TestHappyPath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, cryptoutilRandom.GenerateUUIDv7Function(), false))
+			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 			require.NoError(t, err)
 			require.NotNil(t, poolInstance)
 

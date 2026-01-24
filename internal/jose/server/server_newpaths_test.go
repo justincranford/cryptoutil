@@ -504,7 +504,7 @@ func TestNewPaths_WellKnownJWKS(t *testing.T) {
 // Rate limiting functionality is sufficiently tested by:
 // - Unit tests for rate limiter middleware
 // - Manual testing with actual load
-// - E2E tests with dedicated servers
+// - E2E tests with dedicated servers.
 func TestNewPaths_RateLimitingApplied(t *testing.T) {
 	t.Skip("Skipping flaky test: rate limiter shared across parallel tests via sync.Once")
 

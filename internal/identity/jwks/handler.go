@@ -12,7 +12,7 @@ import (
 
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
@@ -26,11 +26,11 @@ type Handler struct {
 // NewHandler creates a new JWKS handler instance.
 func NewHandler(logger *slog.Logger, keyRepo cryptoutilIdentityRepository.KeyRepository) (*Handler, error) {
 	if logger == nil {
-		return nil, fmt.Errorf("logger cannot be nil: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("logger cannot be nil: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	if keyRepo == nil {
-		return nil, fmt.Errorf("keyRepo cannot be nil: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("keyRepo cannot be nil: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	return &Handler{

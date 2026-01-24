@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestUserRepository_Create(t *testing.T) {
@@ -33,12 +33,12 @@ func TestUserRepository_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		user    *cryptoutilRepository.User
+		user    *cryptoutilAppsTemplateServiceServerRepository.User
 		wantErr bool
 	}{
 		{
 			name: "valid user creation",
-			user: &cryptoutilRepository.User{
+			user: &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "test-user-" + testJWKGenService.GenerateUUIDv7().String(),
 			},
@@ -46,7 +46,7 @@ func TestUserRepository_Create(t *testing.T) {
 		},
 		{
 			name: "user with empty username",
-			user: &cryptoutilRepository.User{
+			user: &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "",
 			},
@@ -54,7 +54,7 @@ func TestUserRepository_Create(t *testing.T) {
 		},
 		{
 			name: "user with long username",
-			user: &cryptoutilRepository.User{
+			user: &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: string(make([]byte, 512)),
 			},
@@ -67,7 +67,7 @@ func TestUserRepository_Create(t *testing.T) {
 			t.Parallel()
 
 			// Create unique copy for this test to avoid shared mutations.
-			testUser := &cryptoutilRepository.User{
+			testUser := &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       tt.user.ID,
 				Username: tt.user.Username,
 			}
@@ -129,7 +129,7 @@ func TestUserRepository_FindByID(t *testing.T) {
 			}
 
 			// Test found existing user.
-			user := &cryptoutilRepository.User{
+			user := &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "test-user-" + testJWKGenService.GenerateUUIDv7().String(),
 			}
@@ -181,7 +181,7 @@ func TestUserRepository_FindByUsername(t *testing.T) {
 			}
 
 			// Test found existing user.
-			user := &cryptoutilRepository.User{
+			user := &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "test-user-unique-" + testJWKGenService.GenerateUUIDv7().String(),
 			}
@@ -205,7 +205,7 @@ func TestUserRepository_Update(t *testing.T) {
 	repo := NewUserRepository(testDB)
 
 	// Create test user.
-	user := &cryptoutilRepository.User{
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		Username: "test-user-original-" + testJWKGenService.GenerateUUIDv7().String(),
 	}
@@ -233,7 +233,7 @@ func TestUserRepository_Delete(t *testing.T) {
 	repo := NewUserRepository(testDB)
 
 	// Create test user.
-	user := &cryptoutilRepository.User{
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		Username: "test-user-" + testJWKGenService.GenerateUUIDv7().String(),
 	}
@@ -288,9 +288,9 @@ func TestUserRepository_TransactionContext(t *testing.T) {
 
 	// Test transaction rollback.
 	tx := testDB.Begin()
-	txCtx := cryptoutilRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	user := &cryptoutilRepository.User{
+	user := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		Username: "test-user-rollback-" + testJWKGenService.GenerateUUIDv7().String(),
 	}
@@ -308,9 +308,9 @@ func TestUserRepository_TransactionContext(t *testing.T) {
 
 	// Test transaction commit.
 	tx = testDB.Begin()
-	txCtx = cryptoutilRepository.WithTransaction(ctx, tx)
+	txCtx = cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
-	user2 := &cryptoutilRepository.User{
+	user2 := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		Username: "test-user-commit-" + testJWKGenService.GenerateUUIDv7().String(),
 	}

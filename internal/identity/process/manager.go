@@ -70,6 +70,7 @@ func (m *Manager) Start(ctx context.Context, serviceName string, binary string, 
 		if err2 != nil {
 			return fmt.Errorf("failed to write PID file: %w; additionally failed to kill process: %w", err, err2)
 		}
+
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}
 
@@ -93,6 +94,7 @@ func (m *Manager) Stop(serviceName string, force bool, timeout time.Duration) er
 		if err2 != nil {
 			return fmt.Errorf("failed to find process: %w; additionally failed to remove stale PID file: %w", err, err2)
 		}
+
 		return fmt.Errorf("failed to find process %d: %w", pid, err)
 	}
 
@@ -118,6 +120,7 @@ func (m *Manager) Stop(serviceName string, force bool, timeout time.Duration) er
 func (m *Manager) IsRunning(serviceName string) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	return m.isRunning(serviceName)
 }
 
@@ -125,6 +128,7 @@ func (m *Manager) IsRunning(serviceName string) bool {
 func (m *Manager) GetPID(serviceName string) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	return m.readPID(serviceName)
 }
 
@@ -139,13 +143,17 @@ func (m *Manager) StopAll(force bool, timeout time.Duration) error {
 	}
 
 	var errs []error
+
 	for _, file := range files {
 		if !file.IsDir() && filepath.Ext(file.Name()) == ".pid" {
 			serviceName := file.Name()[:len(file.Name())-4] // Remove .pid extension
-			m.mu.Unlock()                                   // Unlock before recursive call
+
+			m.mu.Unlock() // Unlock before recursive call
+
 			if stopErr := m.Stop(serviceName, force, timeout); stopErr != nil {
 				errs = append(errs, fmt.Errorf("%s: %w", serviceName, stopErr))
 			}
+
 			m.mu.Lock() // Re-lock
 		}
 	}
@@ -182,6 +190,7 @@ func (m *Manager) isRunning(serviceName string) bool {
 // readPID reads the PID from a service's PID file (caller must hold mutex).
 func (m *Manager) readPID(serviceName string) (int, error) {
 	pidFile := filepath.Join(m.pidDir, serviceName+".pid")
+
 	data, err := os.ReadFile(pidFile)
 	if err != nil {
 		return 0, fmt.Errorf("failed to read PID file: %w", err)
@@ -201,5 +210,6 @@ func (m *Manager) removePIDFile(serviceName string) error {
 	if err := os.Remove(pidFile); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove PID file: %w", err)
 	}
+
 	return nil
 }

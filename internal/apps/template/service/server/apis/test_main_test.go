@@ -14,7 +14,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 )
 
@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 	// Initialize GORM database with migrations.
 	var err error
 
-	testGormDB, err = cryptoutilTemplateServerRepository.InitSQLite(ctx, databaseURL, cryptoutilTemplateServerRepository.MigrationsFS)
+	testGormDB, err = cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, databaseURL, cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	if err != nil {
 		panic("failed to create test database: " + err.Error())
 	}

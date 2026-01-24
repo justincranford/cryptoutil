@@ -19,10 +19,10 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilClient "cryptoutil/internal/kms/client"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilClient "cryptoutil/internal/kms/client"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
+	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
 	"github.com/stretchr/testify/require"
 )
@@ -81,7 +81,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			statusCode, headers, body, err := cryptoutilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 10*time.Second, false, tc.tlsRootCAs, false)
+			statusCode, headers, body, err := cryptoutilSharedUtilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 10*time.Second, false, tc.tlsRootCAs, false)
 			if tc.expectError {
 				require.Error(t, err, "expected request to fail")
 				return //nolint:nlreturn // gofumpt removes blank line required by nlreturn linter
@@ -166,7 +166,7 @@ func TestSecurityHeaders(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			statusCode, headers, body, err := cryptoutilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 10*time.Second, false, tc.tlsRootCAs, false)
+			statusCode, headers, body, err := cryptoutilSharedUtilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 10*time.Second, false, tc.tlsRootCAs, false)
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
 			require.NoError(t, err, "failed to get response headers")
@@ -223,7 +223,7 @@ func TestHealthChecks(t *testing.T) {
 			name:     "Liveness Check (" + cryptoutilMagic.PrivateAdminLivezRequestPath + ")",
 			endpoint: cryptoutilMagic.PrivateAdminLivezRequestPath,
 			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-				return cryptoutilNetwork.HTTPGetLivez(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
+				return cryptoutilSharedUtilNetwork.HTTPGetLivez(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
@@ -250,7 +250,7 @@ func TestHealthChecks(t *testing.T) {
 			name:     "Readiness Check (" + cryptoutilMagic.PrivateAdminReadyzRequestPath + ")",
 			endpoint: cryptoutilMagic.PrivateAdminReadyzRequestPath,
 			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-				return cryptoutilNetwork.HTTPGetReadyz(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
+				return cryptoutilSharedUtilNetwork.HTTPGetReadyz(context.Background(), *baseURL, cryptoutilMagic.DefaultPrivateAdminAPIContextPath, 2*time.Second, rootCAsPool, false)
 			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
@@ -456,7 +456,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			url := testServerPublicURL + tc.path
-			statusCode, headers, body, err := cryptoutilNetwork.HTTPResponse(
+			statusCode, headers, body, err := cryptoutilSharedUtilNetwork.HTTPResponse(
 				context.Background(),
 				tc.method,
 				url,

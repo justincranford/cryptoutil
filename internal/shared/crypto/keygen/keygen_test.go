@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	"github.com/stretchr/testify/require"
@@ -36,7 +36,7 @@ func TestGenerateRSAKeyPair(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateRSAKeyPair(tc.rsaBits)
 			require.NoError(t, err)
@@ -90,7 +90,7 @@ func TestGenerateECDSAKeyPair(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateECDSAKeyPair(tc.curve)
 			require.NoError(t, err)
@@ -144,7 +144,7 @@ func TestGenerateECDHKeyPair(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateECDHKeyPair(tc.curve)
 			require.NoError(t, err)
@@ -223,7 +223,7 @@ func TestGenerateEDDSAKeyPair(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			keyPair, err := GenerateEDDSAKeyPair(tc.curve)
 			require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestGenerateAESKey(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			key, err := GenerateAESKey(tc.aesBits)
 			require.NoError(t, err)
@@ -342,7 +342,7 @@ func TestGenerateAESHSKey(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			key, err := GenerateAESHSKey(tc.aesHsBits)
 			require.NoError(t, err)
@@ -406,7 +406,7 @@ func TestGenerateHMACKey(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cryptoutilRandom.SkipByProbability(t, tc.prob)
+			cryptoutilSharedUtilRandom.SkipByProbability(t, tc.prob)
 
 			key, err := GenerateHMACKey(tc.hmacBits)
 			require.NoError(t, err)

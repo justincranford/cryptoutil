@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTestutil "cryptoutil/internal/shared/testutil"
+	cryptoutilSharedTestutil "cryptoutil/internal/shared/testutil"
 )
 
 // TestIM_HealthSubcommand_NoBodySuccess tests health check with 200 but no body.
@@ -119,7 +119,7 @@ func TestIM_HealthSubcommand_DefaultURL(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	// Accept either connection failure OR HTTP error (if Docker containers are running on default port).
 	require.True(t,
-		cryptoutilTestutil.ContainsAny(output, []string{
+		cryptoutilSharedTestutil.ContainsAny(output, []string{
 			"Health check failed:", // Connection error
 			"Service is unhealthy", // HTTP error from unexpected service
 			"connection refused",   // TCP connection refused
@@ -143,7 +143,7 @@ func TestIM_LivezSubcommand_DefaultURL(t *testing.T) {
 	output := stdout.String() + stderr.String()
 	require.Contains(t, output, "Liveness check failed:")
 	require.True(t,
-		cryptoutilTestutil.ContainsAny(output, []string{
+		cryptoutilSharedTestutil.ContainsAny(output, []string{
 			"connection refused",
 			"actively refused",
 			"dial tcp",

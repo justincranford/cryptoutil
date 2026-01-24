@@ -16,7 +16,7 @@ import (
 	"time"
 
 	cryptoutilCAServer "cryptoutil/internal/apps/ca/server"
-	cryptoutilCAConfig "cryptoutil/internal/apps/ca/server/config"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
 )
 
 const (
@@ -75,7 +75,7 @@ func startService(parameters []string) {
 	// Load CA-specific configuration from YAML file.
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilCAConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilAppsCaServerConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}

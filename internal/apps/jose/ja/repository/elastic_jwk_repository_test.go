@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 func TestElasticJWKRepository_Create(t *testing.T) {
@@ -28,8 +28,8 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 		{
 			name: "valid elastic JWK creation",
 			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
-				id, _ := cryptoutilRandom.GenerateUUIDv7()
-				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+				id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+				tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 				return &cryptoutilJoseJADomain.ElasticJWK{
 					ID:           *id,
@@ -47,8 +47,8 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 		{
 			name: "elastic JWK with EC key type",
 			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
-				id, _ := cryptoutilRandom.GenerateUUIDv7()
-				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+				id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+				tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 				return &cryptoutilJoseJADomain.ElasticJWK{
 					ID:           *id,
@@ -66,8 +66,8 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 		{
 			name: "elastic JWK with OKP key type",
 			jwk: func() *cryptoutilJoseJADomain.ElasticJWK {
-				id, _ := cryptoutilRandom.GenerateUUIDv7()
-				tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+				id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+				tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 				return &cryptoutilJoseJADomain.ElasticJWK{
 					ID:           *id,
@@ -122,8 +122,8 @@ func TestElasticJWKRepository_Get(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Create a test JWK first - use unique IDs for this test function.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
@@ -166,12 +166,12 @@ func TestElasticJWKRepository_List(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Create multiple test JWKs - use unique tenant for this test to avoid conflicts.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	var createdJWKs []*cryptoutilJoseJADomain.ElasticJWK
 
 	for i := 0; i < 5; i++ {
-		id, _ := cryptoutilRandom.GenerateUUIDv7()
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		jwk := &cryptoutilJoseJADomain.ElasticJWK{
 			ID:           *id,
 			TenantID:     *tenantID,
@@ -254,8 +254,8 @@ func TestElasticJWKRepository_Update(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Create a test JWK first.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
@@ -291,8 +291,8 @@ func TestElasticJWKRepository_Delete(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Create a test JWK first.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
@@ -322,8 +322,8 @@ func TestElasticJWKRepository_GetByID(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Create a test JWK first.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *id,
 		TenantID:     *tenantID,
@@ -361,8 +361,8 @@ func TestElasticJWKRepository_IncrementMaterialCount(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Create a test JWK with initial count of 0.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *id,
 		TenantID:             *tenantID,
@@ -416,8 +416,8 @@ func TestElasticJWKRepository_DecrementMaterialCount(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Create a test JWK with initial count of 5.
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	testJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:                   *id,
 		TenantID:             *tenantID,

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	joseJARepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -41,16 +41,16 @@ type AuditLogService interface {
 
 // auditLogServiceImpl implements AuditLogService.
 type auditLogServiceImpl struct {
-	auditLogRepo    joseJARepository.AuditLogRepository
-	auditConfigRepo joseJARepository.AuditConfigRepository
-	elasticRepo     joseJARepository.ElasticJWKRepository
+	auditLogRepo    cryptoutilAppsJoseJaRepository.AuditLogRepository
+	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository
+	elasticRepo     cryptoutilAppsJoseJaRepository.ElasticJWKRepository
 }
 
 // NewAuditLogService creates a new AuditLogService.
 func NewAuditLogService(
-	auditLogRepo joseJARepository.AuditLogRepository,
-	auditConfigRepo joseJARepository.AuditConfigRepository,
-	elasticRepo joseJARepository.ElasticJWKRepository,
+	auditLogRepo cryptoutilAppsJoseJaRepository.AuditLogRepository,
+	auditConfigRepo cryptoutilAppsJoseJaRepository.AuditConfigRepository,
+	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
 ) AuditLogService {
 	return &auditLogServiceImpl{
 		auditLogRepo:    auditLogRepo,

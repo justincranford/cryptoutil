@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	userauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -109,14 +109,14 @@ func (m *mockPushUserRepo) Count(_ context.Context) (int64, error) {
 func TestPushNotificationAuthenticator_NewAuthenticator(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewPushNotificationAuthenticator(nil, nil, nil, nil, nil)
+	auth := cryptoutilIdentityIdpUserauth.NewPushNotificationAuthenticator(nil, nil, nil, nil, nil)
 	require.NotNil(t, auth, "NewPushNotificationAuthenticator should return non-nil authenticator")
 }
 
 func TestPushNotificationAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
-	auth := userauth.NewPushNotificationAuthenticator(nil, nil, nil, nil, nil)
+	auth := cryptoutilIdentityIdpUserauth.NewPushNotificationAuthenticator(nil, nil, nil, nil, nil)
 	require.Equal(t, "push_notification", auth.Method())
 }
 
@@ -126,10 +126,10 @@ func TestPushNotificationAuthenticator_InitiateAuth(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPush := newMockPushNotificationService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPushUserRepo()
 
 	// Create test user with push device token.
@@ -143,7 +143,7 @@ func TestPushNotificationAuthenticator_InitiateAuth(t *testing.T) {
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	auth := userauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
 
 	// Initiate push notification authentication.
 	beforeInitiate := time.Now()
@@ -171,13 +171,13 @@ func TestPushNotificationAuthenticator_InitiateAuthUserNotFound(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPush := newMockPushNotificationService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPushUserRepo()
 
-	auth := userauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
 
 	// Initiate with non-existent user.
 	_, err := auth.InitiateAuth(ctx, userID)
@@ -191,10 +191,10 @@ func TestPushNotificationAuthenticator_InitiateAuthNoDeviceToken(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPush := newMockPushNotificationService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPushUserRepo()
 
 	// Create user without push device token.
@@ -208,7 +208,7 @@ func TestPushNotificationAuthenticator_InitiateAuthNoDeviceToken(t *testing.T) {
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	auth := userauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
 
 	// Initiate with user that has no device token.
 	_, err = auth.InitiateAuth(ctx, userID)
@@ -222,10 +222,10 @@ func TestPushNotificationAuthenticator_VerifyAuth(t *testing.T) {
 	ctx := context.Background()
 	userID := googleUuid.New().String()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPush := newMockPushNotificationService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPushUserRepo()
 
 	// Create test user.
@@ -239,7 +239,7 @@ func TestPushNotificationAuthenticator_VerifyAuth(t *testing.T) {
 	err := userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
-	auth := userauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
 
 	// Initiate authentication.
 	challenge, err := auth.InitiateAuth(ctx, userID)
@@ -264,13 +264,13 @@ func TestPushNotificationAuthenticator_VerifyAuthChallengeNotFound(t *testing.T)
 
 	ctx := context.Background()
 
-	generator := &userauth.DefaultOTPGenerator{}
+	generator := &cryptoutilIdentityIdpUserauth.DefaultOTPGenerator{}
 	mockPush := newMockPushNotificationService()
-	challengeStore := userauth.NewInMemoryChallengeStore()
-	rateLimiter := userauth.NewInMemoryRateLimiter()
+	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
+	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	userRepo := newMockPushUserRepo()
 
-	auth := userauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
+	auth := cryptoutilIdentityIdpUserauth.NewPushNotificationAuthenticator(generator, mockPush, challengeStore, rateLimiter, userRepo)
 
 	// Verify with non-existent challenge.
 	challengeID := googleUuid.New().String()

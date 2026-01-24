@@ -26,7 +26,7 @@ import (
 	cryptoutilTLS "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
+	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
 	"go.opentelemetry.io/otel/metric"
 
@@ -76,7 +76,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.ServiceTemplateS
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
-	_, _, result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
+	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get liveness check: %w", err)
 	}
@@ -89,7 +89,7 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.ServiceTemplate
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
-	_, _, result, err := cryptoutilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
+	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get readiness check: %w", err)
 	}
@@ -102,7 +102,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.ServiceTemplat
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
-	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
+	_, _, _, err := cryptoutilSharedUtilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
 	}

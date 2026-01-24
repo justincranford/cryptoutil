@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	joseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	joseJARepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
@@ -32,15 +32,15 @@ type JWSService interface {
 
 // jwsServiceImpl implements JWSService.
 type jwsServiceImpl struct {
-	elasticRepo  joseJARepository.ElasticJWKRepository
-	materialRepo joseJARepository.MaterialJWKRepository
+	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
+	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	barrierSvc   *cryptoutilBarrier.BarrierService
 }
 
 // NewJWSService creates a new JWSService.
 func NewJWSService(
-	elasticRepo joseJARepository.ElasticJWKRepository,
-	materialRepo joseJARepository.MaterialJWKRepository,
+	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
+	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	barrierSvc *cryptoutilBarrier.BarrierService,
 ) JWSService {
 	return &jwsServiceImpl{

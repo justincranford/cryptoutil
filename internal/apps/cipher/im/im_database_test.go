@@ -3,7 +3,7 @@ package im
 import (
 	"testing"
 
-	cipherIMRepository "cryptoutil/internal/apps/cipher/im/repository"
+	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
 	cryptoutilTemplateServerTestutil "cryptoutil/internal/apps/template/service/server/testutil"
 )
 
@@ -55,7 +55,7 @@ func TestInitDatabase_HappyPaths(t *testing.T) {
 	// Use merged filesystem to get all migrations (1001-1999 template + 2001+ cipher-im).
 	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseHappyPaths(
 		t,
-		cipherIMRepository.GetMergedMigrationsFS(),
+		cryptoutilAppsCipherImRepository.GetMergedMigrationsFS(),
 		expectedTableCount,
 		countTablesQueryPostgres,
 		countTablesQuerySQLite,
@@ -65,5 +65,5 @@ func TestInitDatabase_HappyPaths(t *testing.T) {
 // TestInitDatabase_SadPaths tests error handling for database initialization failures.
 func TestInitDatabase_SadPaths(t *testing.T) {
 	// Use merged filesystem to get all migrations (1001-1006).
-	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseSadPaths(t, cipherIMRepository.GetMergedMigrationsFS())
+	cryptoutilTemplateServerTestutil.HelpTestInitDatabaseSadPaths(t, cryptoutilAppsCipherImRepository.GetMergedMigrationsFS())
 }

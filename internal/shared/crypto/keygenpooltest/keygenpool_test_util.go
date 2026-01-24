@@ -9,12 +9,12 @@ import (
 	"crypto/ecdh"
 	"crypto/elliptic"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilPool "cryptoutil/internal/shared/pool"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -101,12 +101,12 @@ func RequireNewA128CbcHs256GenElasticKeyForTest(telemetryService *cryptoutilTele
 
 // RequireNewUUIDV7GenElasticKeyForTest creates a UUIDv7 generator pool for testing.
 func RequireNewUUIDV7GenElasticKeyForTest(telemetryService *cryptoutilTelemetry.TelemetryService) *cryptoutilPool.ValueGenPool[*googleUuid.UUID] {
-	return requireNewGenElasticKeyForTest(cryptoutilPool.NewValueGenPoolConfig(context.Background(), telemetryService, "Test UUIDv7", 1, cryptoutilMagic.TestPoolMaxSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilRandom.GenerateUUIDv7Function(), false))
+	return requireNewGenElasticKeyForTest(cryptoutilPool.NewValueGenPoolConfig(context.Background(), telemetryService, "Test UUIDv7", 1, cryptoutilMagic.TestPoolMaxSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 }
 
 func requireNewGenElasticKeyForTest[T any](config *cryptoutilPool.ValueGenPoolConfig[T], err error) *cryptoutilPool.ValueGenPool[T] {
 	keyGenPool, err := cryptoutilPool.NewValueGenPool(config, err)
-	cryptoutilAppErr.RequireNoError(err, "failed to create key gen pool")
+	cryptoutilSharedApperr.RequireNoError(err, "failed to create key gen pool")
 
 	return keyGenPool
 }

@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"net"
 
-	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilJoseServerMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -30,7 +30,7 @@ type Server struct {
 	fiberApp         *fiber.App
 	listener         net.Listener
 	actualPort       int // Actual port after dynamic allocation.
-	apiKeyMiddleware *cryptoutilJoseMiddleware.APIKeyMiddleware
+	apiKeyMiddleware *cryptoutilJoseServerMiddleware.APIKeyMiddleware
 	tlsMaterial      *cryptoutilConfig.TLSMaterial
 }
 
@@ -230,12 +230,12 @@ func (s *Server) Shutdown() error {
 
 // ConfigureAPIKeyAuth configures API key authentication middleware.
 // This should be called before Start() to enable authentication.
-func (s *Server) ConfigureAPIKeyAuth(config *cryptoutilJoseMiddleware.APIKeyConfig) {
+func (s *Server) ConfigureAPIKeyAuth(config *cryptoutilJoseServerMiddleware.APIKeyConfig) {
 	if config == nil {
-		config = cryptoutilJoseMiddleware.DefaultAPIKeyConfig()
+		config = cryptoutilJoseServerMiddleware.DefaultAPIKeyConfig()
 	}
 
-	s.apiKeyMiddleware = cryptoutilJoseMiddleware.NewAPIKeyMiddleware(config)
+	s.apiKeyMiddleware = cryptoutilJoseServerMiddleware.NewAPIKeyMiddleware(config)
 }
 
 // GetAPIKeyMiddleware returns the configured API key middleware handler.

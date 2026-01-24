@@ -11,8 +11,8 @@ import (
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilFiles "cryptoutil/internal/shared/util/files"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -41,7 +41,7 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 // NewUnsealKeysServiceFromSettings creates a new UnsealKeysService from application settings.
 func NewUnsealKeysServiceFromSettings(_ context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.ServiceTemplateServerSettings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
-		randomBytes, err := cryptoutilRandom.GenerateBytes(cryptoutilMagic.RandomKeySizeBytes)
+		randomBytes, err := cryptoutilSharedUtilRandom.GenerateBytes(cryptoutilMagic.RandomKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
 		}
@@ -80,7 +80,7 @@ func NewUnsealKeysServiceFromSettings(_ context.Context, telemetryService *crypt
 			return nil, fmt.Errorf("invalid M-of-N values in unseal mode %s: M must be > 0, N must be >= M", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilFiles.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
+		filesContents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {
@@ -98,7 +98,7 @@ func NewUnsealKeysServiceFromSettings(_ context.Context, telemetryService *crypt
 			return nil, fmt.Errorf("invalid unseal mode %s: N must be > 0", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilFiles.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
+		filesContents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.DefaultMaxUnsealFiles, cryptoutilMagic.DefaultMaxBytesPerUnsealFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {

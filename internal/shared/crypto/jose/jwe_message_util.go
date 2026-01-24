@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -25,13 +25,13 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 // EncryptBytesWithContext encrypts bytes with additional authenticated data context.
 func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []byte) (*joseJwe.Message, []byte, error) {
 	if jwks == nil {
-		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
-		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	} else if clearBytes == nil {
-		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(clearBytes) == 0 {
-		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	}
 
 	for _, jwk := range jwks {
@@ -39,7 +39,7 @@ func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []by
 		if err != nil {
 			return nil, nil, fmt.Errorf("invalid JWK: %w", err)
 		} else if !isEncryptJWK {
-			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeEncryptJWK)
+			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilSharedApperr.ErrJWKMustBeEncryptJWK)
 		}
 	}
 
@@ -126,13 +126,13 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 // DecryptBytesWithContext decrypts a JWE message with additional authenticated data context.
 func DecryptBytesWithContext(jwks []joseJwk.Key, jweMessageBytes []byte, _ []byte) ([]byte, error) {
 	if jwks == nil {
-		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
-		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	} else if jweMessageBytes == nil {
-		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	} else if len(jweMessageBytes) == 0 {
-		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
+		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilSharedApperr.ErrCantBeEmpty)
 	}
 
 	for _, jwk := range jwks {
@@ -140,7 +140,7 @@ func DecryptBytesWithContext(jwks []joseJwk.Key, jweMessageBytes []byte, _ []byt
 		if err != nil {
 			return nil, fmt.Errorf("invalid JWK: %w", err)
 		} else if !isDecryptJWK {
-			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeDecryptJWK)
+			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilSharedApperr.ErrJWKMustBeDecryptJWK)
 		}
 	}
 
@@ -215,7 +215,7 @@ func DecryptKey(kdks []joseJwk.Key, encryptedCdkBytes []byte) (joseJwk.Key, erro
 // JWEHeadersString returns a string representation of JWE message headers.
 func JWEHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	if jweMessage == nil {
-		return "", fmt.Errorf("invalid jweMessage: %w", cryptoutilAppErr.ErrCantBeNil)
+		return "", fmt.Errorf("invalid jweMessage: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	jweHeadersString, err := json.Marshal(jweMessage.ProtectedHeaders())
@@ -229,7 +229,7 @@ func JWEHeadersString(jweMessage *joseJwe.Message) (string, error) {
 // ExtractKidFromJWEMessage extracts the key ID from a JWE message.
 func ExtractKidFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, error) {
 	if jweMessage == nil {
-		return nil, fmt.Errorf("invalid jweMessage: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid jweMessage: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	var kidUUIDString string

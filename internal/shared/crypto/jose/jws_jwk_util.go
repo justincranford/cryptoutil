@@ -13,10 +13,10 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
@@ -152,7 +152,7 @@ func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 }
 
 func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilRandom.ValidateUUID(kid, &ErrInvalidJWSJWKKidUUID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, &ErrInvalidJWSJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWS JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWS JWK alg must be non-nil")
@@ -323,7 +323,7 @@ func validateOrGenerateJWSHMACJWK(key cryptoutilKeyGen.Key, alg joseJwa.Signatur
 // ExtractAlgFromJWSJWK extracts the signature algorithm from a JWS JWK.
 func ExtractAlgFromJWSJWK(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
 	if jwk == nil {
-		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	// Retrieve the algorithm via the helper which returns a generic KeyAlgorithm.
@@ -343,7 +343,7 @@ func ExtractAlgFromJWSJWK(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, 
 // IsJWSAlg returns true if the algorithm is a JWS signature algorithm.
 func IsJWSAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
 	if alg == nil {
-		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	_, ok := (*alg).(joseJwa.SignatureAlgorithm)

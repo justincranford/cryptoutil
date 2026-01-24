@@ -15,11 +15,11 @@ import (
 
 	"github.com/cloudflare/circl/sign/ed448"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilUtil "cryptoutil/internal/shared/util"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtil "cryptoutil/internal/shared/util"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -142,7 +142,7 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 }
 
 func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilRandom.ValidateUUID(kid, &ErrInvalidJWEJWKKidUUID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, &ErrInvalidJWEJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWE JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWE JWK alg must be non-nil")
@@ -192,7 +192,7 @@ func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 }
 
 func validateOrGenerateJWEAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (cryptoutilKeyGen.SecretKey, error) {
-	if !cryptoutilUtil.Contains(allowedEncs, enc) {
+	if !cryptoutilSharedUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	}
 
@@ -240,7 +240,7 @@ func validateOrGenerateJWEAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 }
 
 func validateOrGenerateJWERSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
-	if !cryptoutilUtil.Contains(allowedEncs, enc) {
+	if !cryptoutilSharedUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	}
 
@@ -280,7 +280,7 @@ func validateOrGenerateJWERSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 }
 
 func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, ecdhCurve ecdh.Curve, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
-	if !cryptoutilUtil.Contains(allowedEncs, enc) {
+	if !cryptoutilSharedUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	}
 
@@ -342,7 +342,7 @@ func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 // ExtractAlgEncFromJWEJWK extracts the encryption algorithm and key encryption algorithm from a JWE JWK.
 func ExtractAlgEncFromJWEJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	if jwk == nil {
-		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	var enc joseJwa.ContentEncryptionAlgorithm
@@ -373,7 +373,7 @@ func ExtractAlgEncFromJWEJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryption
 // IsJWEAlg returns true if the algorithm is a JWE key encryption algorithm.
 func IsJWEAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
 	if alg == nil {
-		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	_, ok := (*alg).(joseJwa.KeyEncryptionAlgorithm)

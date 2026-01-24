@@ -16,7 +16,7 @@ import (
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilPool "cryptoutil/internal/shared/pool"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -75,7 +75,7 @@ func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 	hmac512KeyGenPool, err17 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-512", cryptoutilMagic.DefaultPoolConfigHMAC512.NumWorkers, cryptoutilMagic.DefaultPoolConfigHMAC512.MaxSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(cryptoutilMagic.HMACKeySize512), verbose))
 	hmac384KeyGenPool, err18 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-384", cryptoutilMagic.DefaultPoolConfigHMAC384.NumWorkers, cryptoutilMagic.DefaultPoolConfigHMAC384.MaxSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(cryptoutilMagic.HMACKeySize384), verbose))
 	hmac256KeyGenPool, err19 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-256", cryptoutilMagic.DefaultPoolConfigHMAC256.NumWorkers, cryptoutilMagic.DefaultPoolConfigHMAC256.MaxSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(cryptoutilMagic.HMACKeySize256), verbose))
-	uuidV7KeyGenPool, err20 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService UUIDv7", cryptoutilMagic.DefaultPoolConfigUUIDv7.NumWorkers, cryptoutilMagic.DefaultPoolConfigUUIDv7.MaxSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilRandom.GenerateUUIDv7Function(), verbose))
+	uuidV7KeyGenPool, err20 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService UUIDv7", cryptoutilMagic.DefaultPoolConfigUUIDv7.NumWorkers, cryptoutilMagic.DefaultPoolConfigUUIDv7.MaxSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), verbose))
 
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil || err8 != nil || err9 != nil || err10 != nil || err11 != nil || err12 != nil || err13 != nil || err14 != nil || err15 != nil || err16 != nil || err17 != nil || err18 != nil || err19 != nil || err20 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12, err13, err14, err15, err16, err17, err18, err19, err20))

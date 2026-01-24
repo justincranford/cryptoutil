@@ -9,8 +9,8 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
 	cryptoutilBusinessLogic "cryptoutil/internal/kms/server/businesslogic"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
 	googleUuid "github.com/google/uuid"
 	openapiTypes "github.com/oapi-codegen/runtime/types"
@@ -80,7 +80,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_BadRequest(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testInvalidRequest
-	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostKeyResponse(appErr, nil)
 	require.NoError(t, err)
@@ -97,7 +97,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_NotFound(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testResourceNotFnd
-	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostKeyResponse(appErr, nil)
 	require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_InternalServerError(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testInternalError
-	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostKeyResponse(appErr, nil)
 	require.NoError(t, err)
@@ -160,7 +160,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_BadRequest(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testInvalidCTText
-	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostDecryptResponse(appErr, nil)
 	require.NoError(t, err)
@@ -177,7 +177,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_NotFound(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testKeyNotFound
-	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostDecryptResponse(appErr, nil)
 	require.NoError(t, err)
@@ -194,7 +194,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_InternalServerError(t *testing.T)
 
 	mapper := NewOasOamMapper()
 	summary := testDecryptFailed
-	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostDecryptResponse(appErr, nil)
 	require.NoError(t, err)
@@ -227,7 +227,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_BadRequest(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testInvalidPTText
-	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostEncryptResponse(appErr, nil)
 	require.NoError(t, err)
@@ -244,7 +244,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_NotFound(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testKeyNotFound
-	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostEncryptResponse(appErr, nil)
 	require.NoError(t, err)
@@ -261,7 +261,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_InternalServerError(t *testing.T)
 
 	mapper := NewOasOamMapper()
 	summary := testEncryptFailed
-	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostEncryptResponse(appErr, nil)
 	require.NoError(t, err)
@@ -328,7 +328,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_BadRequest(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testInvalidGenParam
-	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostGenerateResponse(appErr, nil, nil)
 	require.NoError(t, err)
@@ -345,7 +345,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_NotFound(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	summary := testEKNotFound
-	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostGenerateResponse(appErr, nil, nil)
 	require.NoError(t, err)
@@ -362,7 +362,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_InternalServerError(t *testing.T
 
 	mapper := NewOasOamMapper()
 	summary := testGenFailed
-	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostGenerateResponse(appErr, nil, nil)
 	require.NoError(t, err)
@@ -411,7 +411,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_BadRequest(t *testi
 
 	mapper := NewOasOamMapper()
 	summary := testInvalidRequest
-	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
 	require.NoError(t, err)
@@ -424,7 +424,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_NotFound(t *testing
 
 	mapper := NewOasOamMapper()
 	summary := testKeyNotFound
-	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
 	require.NoError(t, err)
@@ -437,7 +437,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_InternalServerError
 
 	mapper := NewOasOamMapper()
 	summary := testInternalError
-	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasGetElastickeyElasticKeyIDResponse(appErr, nil)
 	require.NoError(t, err)
@@ -518,7 +518,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_BadRequ
 
 	mapper := NewOasOamMapper()
 	summary := testInvalidRequest
-	appErr := cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 
 	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
 	require.NoError(t, err)
@@ -531,7 +531,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_NotFoun
 
 	mapper := NewOasOamMapper()
 	summary := testKeyNotFound
-	appErr := cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
 	require.NoError(t, err)
@@ -544,7 +544,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Interna
 
 	mapper := NewOasOamMapper()
 	summary := testInternalError
-	appErr := cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+	appErr := cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 
 	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(appErr, nil)
 	require.NoError(t, err)
@@ -594,17 +594,17 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResp
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
 			wantErr: false,
 		},
 		{
 			name:    "not found",
-			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
 			wantErr: false,
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
 			wantErr: false,
 		},
 		{
@@ -671,17 +671,17 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Errors(
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
 			wantErr: false,
 		},
 		{
 			name:    "not found",
-			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
 			wantErr: false,
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
 			wantErr: false,
 		},
 		{
@@ -732,17 +732,17 @@ func TestOamOasMapper_ToOasPostSignResponse_Errors(t *testing.T) {
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
 			wantErr: false,
 		},
 		{
 			name:    "not found",
-			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
 			wantErr: false,
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
 			wantErr: false,
 		},
 		{
@@ -792,17 +792,17 @@ func TestOamOasMapper_ToOasPostVerifyResponse_Errors(t *testing.T) {
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
 			wantErr: false,
 		},
 		{
 			name:    "not found",
-			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
 			wantErr: false,
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
 			wantErr: false,
 		},
 		{
@@ -864,17 +864,17 @@ func TestOamOasMapper_ToOasGetElastickeysResponse_Errors(t *testing.T) {
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
 			wantErr: false,
 		},
 		{
 			name:    "not found",
-			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
 			wantErr: false,
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
 			wantErr: false,
 		},
 		{
@@ -936,17 +936,17 @@ func TestOamOasMapper_ToOasGetMaterialKeysResponse_Errors(t *testing.T) {
 	}{
 		{
 			name:    "bad request",
-			err:     cryptoutilAppErr.NewHTTP400BadRequest(strPtr("invalid"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP400BadRequest(strPtr("invalid"), nil),
 			wantErr: false,
 		},
 		{
 			name:    "not found",
-			err:     cryptoutilAppErr.NewHTTP404NotFound(strPtr("not found"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP404NotFound(strPtr("not found"), nil),
 			wantErr: false,
 		},
 		{
 			name:    testInternalError,
-			err:     cryptoutilAppErr.NewHTTP500InternalServerError(strPtr("error"), nil),
+			err:     cryptoutilSharedApperr.NewHTTP500InternalServerError(strPtr("error"), nil),
 			wantErr: false,
 		},
 		{
@@ -993,7 +993,7 @@ func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
 			err: func() error {
 				summary := testInvalidRequest
 
-				return cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1002,7 +1002,7 @@ func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
 			err: func() error {
 				summary := testEKNotFound
 
-				return cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1011,7 +1011,7 @@ func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
 			err: func() error {
 				summary := "name already exists"
 
-				return cryptoutilAppErr.NewHTTP409Conflict(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP409Conflict(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1020,7 +1020,7 @@ func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
 			err: func() error {
 				summary := testInternalError
 
-				return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1076,7 +1076,7 @@ func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDResponse(t *testing.T) {
 			err: func() error {
 				summary := testInvalidRequest
 
-				return cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1085,7 +1085,7 @@ func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDResponse(t *testing.T) {
 			err: func() error {
 				summary := testEKNotFound
 
-				return cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1094,7 +1094,7 @@ func TestOamOasMapper_ToOasDeleteElastickeyElasticKeyIDResponse(t *testing.T) {
 			err: func() error {
 				summary := testInternalError
 
-				return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1142,7 +1142,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDImportResponse(t *testing.T
 			err: func() error {
 				summary := testInvalidRequest
 
-				return cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1151,7 +1151,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDImportResponse(t *testing.T
 			err: func() error {
 				summary := testEKNotFound
 
-				return cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1160,7 +1160,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDImportResponse(t *testing.T
 			err: func() error {
 				summary := testInternalError
 
-				return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1216,7 +1216,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRev
 			err: func() error {
 				summary := testInvalidRequest
 
-				return cryptoutilAppErr.NewHTTP400BadRequest(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP400BadRequest(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1225,7 +1225,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRev
 			err: func() error {
 				summary := testEKNotFound
 
-				return cryptoutilAppErr.NewHTTP404NotFound(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 			}(),
 			wantErr: false,
 		},
@@ -1234,7 +1234,7 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRev
 			err: func() error {
 				summary := testInternalError
 
-				return cryptoutilAppErr.NewHTTP500InternalServerError(&summary, nil)
+				return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 			}(),
 			wantErr: false,
 		},

@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityUserauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 )
 
 func TestLoadHistoricalLogs(t *testing.T) {
@@ -92,18 +92,18 @@ func TestCalculateRiskScore(t *testing.T) {
 	t.Parallel()
 
 	// Create mock policy with known weights.
-	policy := &cryptoutilIdentityUserauth.RiskScoringPolicy{
-		RiskFactors: map[string]cryptoutilIdentityUserauth.RiskFactorConfig{
+	policy := &cryptoutilIdentityIdpUserauth.RiskScoringPolicy{
+		RiskFactors: map[string]cryptoutilIdentityIdpUserauth.RiskFactorConfig{
 			"network":  {Weight: 0.30},
 			"location": {Weight: 0.25},
 			"device":   {Weight: 0.20},
 		},
-		NetworkRisks: map[string]cryptoutilIdentityUserauth.NetworkRisk{
+		NetworkRisks: map[string]cryptoutilIdentityIdpUserauth.NetworkRisk{
 			"vpn":   {Score: 0.6},
 			"proxy": {Score: 0.5},
 		},
-		GeographicRisks: cryptoutilIdentityUserauth.GeographicRisks{
-			HighRiskCountries: cryptoutilIdentityUserauth.HighRiskCountries{
+		GeographicRisks: cryptoutilIdentityIdpUserauth.GeographicRisks{
+			HighRiskCountries: cryptoutilIdentityIdpUserauth.HighRiskCountries{
 				Countries: []string{"XX", "YY"},
 				Score:     0.8,
 			},
@@ -165,8 +165,8 @@ func TestCalculateRiskScore(t *testing.T) {
 func TestDetermineRiskLevel(t *testing.T) {
 	t.Parallel()
 
-	policy := &cryptoutilIdentityUserauth.RiskScoringPolicy{
-		RiskThresholds: map[string]cryptoutilIdentityUserauth.RiskThreshold{
+	policy := &cryptoutilIdentityIdpUserauth.RiskScoringPolicy{
+		RiskThresholds: map[string]cryptoutilIdentityIdpUserauth.RiskThreshold{
 			"low":      {Min: 0.0, Max: 0.2},
 			"medium":   {Min: 0.2, Max: 0.5},
 			"high":     {Min: 0.5, Max: 0.8},
@@ -217,8 +217,8 @@ func TestDetermineRiskLevel(t *testing.T) {
 func TestDetermineRequiredLevel(t *testing.T) {
 	t.Parallel()
 
-	policy := &cryptoutilIdentityUserauth.StepUpPolicies{
-		Policies: map[string]cryptoutilIdentityUserauth.OperationPolicy{
+	policy := &cryptoutilIdentityIdpUserauth.StepUpPolicies{
+		Policies: map[string]cryptoutilIdentityIdpUserauth.OperationPolicy{
 			"transfer_funds": {
 				RequiredLevel: "mfa",
 			},
@@ -226,7 +226,7 @@ func TestDetermineRequiredLevel(t *testing.T) {
 				RequiredLevel: "basic",
 			},
 		},
-		DefaultPolicy: cryptoutilIdentityUserauth.OperationPolicy{
+		DefaultPolicy: cryptoutilIdentityIdpUserauth.OperationPolicy{
 			RequiredLevel: "basic",
 		},
 	}
@@ -278,7 +278,7 @@ func TestDetermineRequiredLevel(t *testing.T) {
 func TestMakeDecision(t *testing.T) {
 	t.Parallel()
 
-	policy := &cryptoutilIdentityUserauth.AdaptiveAuthPolicy{}
+	policy := &cryptoutilIdentityIdpUserauth.AdaptiveAuthPolicy{}
 
 	tests := []struct {
 		name         string
@@ -421,7 +421,7 @@ func TestSimulation_EndToEnd(t *testing.T) {
 	logsPath := createTempLogFile(t, mockHistoricalLogs)
 
 	// Create policy loader.
-	loader := cryptoutilIdentityUserauth.NewYAMLPolicyLoader(riskScoringPath, stepUpPath, adaptivePath)
+	loader := cryptoutilIdentityIdpUserauth.NewYAMLPolicyLoader(riskScoringPath, stepUpPath, adaptivePath)
 
 	simulator := &AdaptiveSimulator{
 		policyLoader: loader,

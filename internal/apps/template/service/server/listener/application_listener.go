@@ -31,10 +31,10 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilNetwork "cryptoutil/internal/shared/util/network"
+	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 )
 
 // ApplicationListener encapsulates complete service lifecycle (telemetry, DB, servers, shutdown).
@@ -46,7 +46,7 @@ import (
 // - SendShutdownRequest: Graceful shutdown via API
 // - Shutdown: Direct shutdown for cleanup.
 type ApplicationListener struct {
-	app               *cryptoutilTemplateServer.Application
+	app               *cryptoutilAppsTemplateServiceServer.Application
 	config            *cryptoutilConfig.ServiceTemplateServerSettings
 	shutdownFunc      func()
 	actualPublicPort  uint16
@@ -76,7 +76,7 @@ type TLSServerConfig struct {
 //	    app.Post("/api/v1/messages", handleSendMessage)
 //	    return nil
 //	}
-type HandlerRegistration func(server cryptoutilTemplateServer.IPublicServer) error
+type HandlerRegistration func(server cryptoutilAppsTemplateServiceServer.IPublicServer) error
 
 // PublicServerFactory creates a product-specific public server.
 //
@@ -104,8 +104,8 @@ type HandlerRegistration func(server cryptoutilTemplateServer.IPublicServer) err
 type PublicServerFactory func(
 	ctx context.Context,
 	cfg *ApplicationConfig,
-	template *cryptoutilTemplateServer.ServiceTemplate,
-) (cryptoutilTemplateServer.IPublicServer, error)
+	template *cryptoutilAppsTemplateServiceServer.ServiceTemplate,
+) (cryptoutilAppsTemplateServiceServer.IPublicServer, error)
 
 // ApplicationConfig encapsulates all product-service specific configuration.
 //
@@ -123,7 +123,7 @@ type ApplicationConfig struct {
 	DB *gorm.DB
 
 	// DatabaseType determines migration strategy and SQL dialect.
-	DBType cryptoutilTemplateServerRepository.DatabaseType
+	DBType cryptoutilAppsTemplateServiceServerRepository.DatabaseType
 
 	// PublicServerFactory creates the product-specific public server.
 	// REQUIRED: Each service must provide its own factory function.
@@ -186,7 +186,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 
 	// Create ServiceTemplate with shared infrastructure.
 	// This initializes telemetry, JWK generation, and optionally barrier service.
-	template, err := cryptoutilTemplateServer.NewServiceTemplate(ctx, cfg.ServiceTemplateServerSettings, cfg.DB, cfg.DBType)
+	template, err := cryptoutilAppsTemplateServiceServer.NewServiceTemplate(ctx, cfg.ServiceTemplateServerSettings, cfg.DB, cfg.DBType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create service template: %w", err)
 	}
@@ -250,7 +250,7 @@ func SendLivenessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings)
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
-	_, _, result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
+	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get liveness check: %w", err)
 	}
@@ -272,7 +272,7 @@ func SendReadinessCheck(settings *cryptoutilConfig.ServiceTemplateServerSettings
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
-	_, _, result, err := cryptoutilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
+	_, _, result, err := cryptoutilSharedUtilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get readiness check: %w", err)
 	}
@@ -296,7 +296,7 @@ func SendShutdownRequest(settings *cryptoutilConfig.ServiceTemplateServerSetting
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
-	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
+	_, _, _, err := cryptoutilSharedUtilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), settings.PrivateAdminAPIContextPath, 0, nil, settings.DevMode)
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
 	}

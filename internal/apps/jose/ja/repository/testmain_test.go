@@ -15,7 +15,7 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 var (
@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Setup: Create shared heavyweight resources ONCE.
-	dbID, _ := cryptoutilRandom.GenerateUUIDv7()
+	dbID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	dsn := "file:" + dbID.String() + "?mode=memory&cache=shared"
 
 	// CRITICAL: Store sql.DB reference in package variable.

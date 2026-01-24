@@ -12,7 +12,7 @@ import (
 
 	"cryptoutil/internal/jose/domain"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -33,7 +33,7 @@ func NewAuditConfigGormRepository(db *gorm.DB) *AuditConfigGormRepository {
 
 // Get retrieves audit config for a tenant and operation.
 func (r *AuditConfigGormRepository) Get(ctx context.Context, tenantID googleUuid.UUID, operation string) (*domain.AuditConfig, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	var config domain.AuditConfig
 
@@ -51,7 +51,7 @@ func (r *AuditConfigGormRepository) Get(ctx context.Context, tenantID googleUuid
 
 // GetAll retrieves all audit configs for a tenant.
 func (r *AuditConfigGormRepository) GetAll(ctx context.Context, tenantID googleUuid.UUID) ([]domain.AuditConfig, error) {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	var configs []domain.AuditConfig
 
@@ -65,7 +65,7 @@ func (r *AuditConfigGormRepository) GetAll(ctx context.Context, tenantID googleU
 
 // Upsert creates or updates audit config for a tenant and operation.
 func (r *AuditConfigGormRepository) Upsert(ctx context.Context, config *domain.AuditConfig) error {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	// Use Save which does upsert based on primary key (tenant_id + operation).
 	err := db.WithContext(ctx).Save(config).Error
@@ -78,7 +78,7 @@ func (r *AuditConfigGormRepository) Upsert(ctx context.Context, config *domain.A
 
 // Delete removes audit config for a tenant and operation.
 func (r *AuditConfigGormRepository) Delete(ctx context.Context, tenantID googleUuid.UUID, operation string) error {
-	db := cryptoutilTemplateRepository.GetDB(ctx, r.db)
+	db := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db)
 
 	result := db.WithContext(ctx).Where("tenant_id = ? AND operation = ?", tenantID.String(), operation).Delete(&domain.AuditConfig{})
 	if result.Error != nil {

@@ -12,7 +12,6 @@ func TestParse_HappyPath(t *testing.T) {
 	// Note: Cannot test CA-specific flags (--ca-config, --profiles-path, etc) directly
 	// due to pflag.Parse() being called twice (once in template, once in CA).
 	// Testing with template flags only, CA-specific defaults are validated indirectly.
-
 	args := []string{
 		"start", // Required subcommand.
 		"--bind-public-address", "127.0.0.1",

@@ -11,22 +11,22 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // Mock repositories for testing ApproveClient error paths.
 type mockUnverifiedClientRepoForApproval struct {
-	unverifiedClient *cryptoutilTemplateRepository.UnverifiedClient
+	unverifiedClient *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient
 	getByIDErr       error
 	deleteErr        error
 }
 
 // UnverifiedClientRepository methods.
-func (m *mockUnverifiedClientRepoForApproval) Create(ctx context.Context, client *cryptoutilTemplateRepository.UnverifiedClient) error {
+func (m *mockUnverifiedClientRepoForApproval) Create(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient) error {
 	return nil
 }
 
-func (m *mockUnverifiedClientRepoForApproval) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoForApproval) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	if m.getByIDErr != nil {
 		return nil, m.getByIDErr
 	}
@@ -34,11 +34,11 @@ func (m *mockUnverifiedClientRepoForApproval) GetByID(ctx context.Context, id go
 	return m.unverifiedClient, nil
 }
 
-func (m *mockUnverifiedClientRepoForApproval) GetByClientID(ctx context.Context, clientID string) (*cryptoutilTemplateRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoForApproval) GetByClientID(ctx context.Context, clientID string) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, nil
 }
 
-func (m *mockUnverifiedClientRepoForApproval) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilTemplateRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoForApproval) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, nil
 }
 
@@ -52,12 +52,12 @@ func (m *mockUnverifiedClientRepoForApproval) DeleteExpired(ctx context.Context)
 
 // Mock role repository.
 type mockRoleRepoForApproval struct {
-	role       *cryptoutilTemplateRepository.Role
+	role       *cryptoutilAppsTemplateServiceServerRepository.Role
 	getByIDErr error
 }
 
 // RoleRepository methods.
-func (m *mockRoleRepoForApproval) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.Role, error) {
+func (m *mockRoleRepoForApproval) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
 	if m.getByIDErr != nil {
 		return nil, m.getByIDErr
 	}
@@ -65,19 +65,19 @@ func (m *mockRoleRepoForApproval) GetByID(ctx context.Context, id googleUuid.UUI
 	return m.role, nil
 }
 
-func (m *mockRoleRepoForApproval) GetByName(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilTemplateRepository.Role, error) {
+func (m *mockRoleRepoForApproval) GetByName(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
 	return nil, nil
 }
 
-func (m *mockRoleRepoForApproval) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilTemplateRepository.Role, error) {
+func (m *mockRoleRepoForApproval) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
 	return nil, nil
 }
 
-func (m *mockRoleRepoForApproval) Create(ctx context.Context, role *cryptoutilTemplateRepository.Role) error {
+func (m *mockRoleRepoForApproval) Create(ctx context.Context, role *cryptoutilAppsTemplateServiceServerRepository.Role) error {
 	return nil
 }
 
-func (m *mockRoleRepoForApproval) Update(ctx context.Context, role *cryptoutilTemplateRepository.Role) error {
+func (m *mockRoleRepoForApproval) Update(ctx context.Context, role *cryptoutilAppsTemplateServiceServerRepository.Role) error {
 	return nil
 }
 
@@ -90,23 +90,23 @@ type mockClientRepo struct {
 	createErr error
 }
 
-func (m *mockClientRepo) Create(ctx context.Context, client *cryptoutilTemplateRepository.Client) error {
+func (m *mockClientRepo) Create(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.Client) error {
 	return m.createErr
 }
 
-func (m *mockClientRepo) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.Client, error) {
+func (m *mockClientRepo) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, nil
 }
 
-func (m *mockClientRepo) GetByClientID(ctx context.Context, clientID string) (*cryptoutilTemplateRepository.Client, error) {
+func (m *mockClientRepo) GetByClientID(ctx context.Context, clientID string) (*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, nil
 }
 
-func (m *mockClientRepo) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilTemplateRepository.Client, error) {
+func (m *mockClientRepo) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, nil
 }
 
-func (m *mockClientRepo) Update(ctx context.Context, client *cryptoutilTemplateRepository.Client) error {
+func (m *mockClientRepo) Update(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.Client) error {
 	return nil
 }
 
@@ -119,7 +119,7 @@ type mockClientRoleRepo struct {
 	assignErr error
 }
 
-func (m *mockClientRoleRepo) Assign(ctx context.Context, clientRole *cryptoutilTemplateRepository.ClientRole) error {
+func (m *mockClientRoleRepo) Assign(ctx context.Context, clientRole *cryptoutilAppsTemplateServiceServerRepository.ClientRole) error {
 	return m.assignErr
 }
 
@@ -127,11 +127,11 @@ func (m *mockClientRoleRepo) Revoke(ctx context.Context, clientID, roleID google
 	return nil
 }
 
-func (m *mockClientRoleRepo) ListRolesByClient(ctx context.Context, clientID googleUuid.UUID) ([]*cryptoutilTemplateRepository.Role, error) {
+func (m *mockClientRoleRepo) ListRolesByClient(ctx context.Context, clientID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.Role, error) {
 	return nil, nil
 }
 
-func (m *mockClientRoleRepo) ListClientsByRole(ctx context.Context, roleID googleUuid.UUID) ([]*cryptoutilTemplateRepository.Client, error) {
+func (m *mockClientRoleRepo) ListClientsByRole(ctx context.Context, roleID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.Client, error) {
 	return nil, nil
 }
 
@@ -171,7 +171,7 @@ func TestApproveClient_WrongTenant(t *testing.T) {
 	roleIDs := []googleUuid.UUID{googleUuid.New()}
 
 	mockUnverifiedRepo := &mockUnverifiedClientRepoForApproval{
-		unverifiedClient: &cryptoutilTemplateRepository.UnverifiedClient{
+		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:       unverifiedClientID,
 			TenantID: differentTenantID, // Wrong tenant!
 		},
@@ -198,7 +198,7 @@ func TestApproveClient_Expired(t *testing.T) {
 	roleIDs := []googleUuid.UUID{googleUuid.New()}
 
 	mockUnverifiedRepo := &mockUnverifiedClientRepoForApproval{
-		unverifiedClient: &cryptoutilTemplateRepository.UnverifiedClient{
+		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ExpiresAt: time.Now().Add(-1 * time.Hour), // Expired 1 hour ago!
@@ -226,7 +226,7 @@ func TestApproveClient_NoRoles(t *testing.T) {
 	roleIDs := []googleUuid.UUID{} // Empty!
 
 	mockUnverifiedRepo := &mockUnverifiedClientRepoForApproval{
-		unverifiedClient: &cryptoutilTemplateRepository.UnverifiedClient{
+		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ExpiresAt: time.Now().Add(1 * time.Hour), // Not expired
@@ -256,7 +256,7 @@ func TestApproveClient_RoleGetByIDError(t *testing.T) {
 	expectedErr := errors.New("role database error")
 
 	mockUnverifiedRepo := &mockUnverifiedClientRepoForApproval{
-		unverifiedClient: &cryptoutilTemplateRepository.UnverifiedClient{
+		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ExpiresAt: time.Now().Add(1 * time.Hour),
@@ -291,7 +291,7 @@ func TestApproveClient_RoleWrongTenant(t *testing.T) {
 	roleIDs := []googleUuid.UUID{roleID}
 
 	mockUnverifiedRepo := &mockUnverifiedClientRepoForApproval{
-		unverifiedClient: &cryptoutilTemplateRepository.UnverifiedClient{
+		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ExpiresAt: time.Now().Add(1 * time.Hour),
@@ -299,7 +299,7 @@ func TestApproveClient_RoleWrongTenant(t *testing.T) {
 	}
 
 	mockRoleRepo := &mockRoleRepoForApproval{
-		role: &cryptoutilTemplateRepository.Role{
+		role: &cryptoutilAppsTemplateServiceServerRepository.Role{
 			ID:       roleID,
 			TenantID: differentTenantID, // Different tenant!
 		},
@@ -329,7 +329,7 @@ func TestApproveClient_CreateClientError(t *testing.T) {
 	expectedErr := errors.New("client create failed")
 
 	mockUnverifiedRepo := &mockUnverifiedClientRepoForApproval{
-		unverifiedClient: &cryptoutilTemplateRepository.UnverifiedClient{
+		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ClientID:  "test-client",
@@ -338,7 +338,7 @@ func TestApproveClient_CreateClientError(t *testing.T) {
 	}
 
 	mockRoleRepo := &mockRoleRepoForApproval{
-		role: &cryptoutilTemplateRepository.Role{
+		role: &cryptoutilAppsTemplateServiceServerRepository.Role{
 			ID:       roleID,
 			TenantID: tenantID,
 		},
@@ -373,7 +373,7 @@ func TestApproveClient_AssignRoleError(t *testing.T) {
 	expectedErr := errors.New("role assign failed")
 
 	mockUnverifiedRepo := &mockUnverifiedClientRepoForApproval{
-		unverifiedClient: &cryptoutilTemplateRepository.UnverifiedClient{
+		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ClientID:  "test-client",
@@ -382,7 +382,7 @@ func TestApproveClient_AssignRoleError(t *testing.T) {
 	}
 
 	mockRoleRepo := &mockRoleRepoForApproval{
-		role: &cryptoutilTemplateRepository.Role{
+		role: &cryptoutilAppsTemplateServiceServerRepository.Role{
 			ID:       roleID,
 			TenantID: tenantID,
 		},

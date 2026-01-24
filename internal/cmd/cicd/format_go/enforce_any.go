@@ -11,7 +11,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilFiles "cryptoutil/internal/shared/util/files"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 // enforceAny enforces custom Go source code fixes across all Go files.
@@ -123,7 +123,7 @@ func processGoFile(filePath string) (int, error) {
 
 	// Only write if there were changes.
 	if replacements > 0 {
-		err = cryptoutilFiles.WriteFile(filePath, modifiedContent, cryptoutilMagic.FilePermissionsDefault)
+		err = cryptoutilSharedUtilFiles.WriteFile(filePath, modifiedContent, cryptoutilMagic.FilePermissionsDefault)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}

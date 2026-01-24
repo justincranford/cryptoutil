@@ -8,7 +8,7 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	"cryptoutil/internal/apps/cipher/im/domain"
 
@@ -62,7 +62,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				username := "test-user-" + testJWKGenService.GenerateUUIDv7().String()
 
 				// Create first user.
-				user1 := &cryptoutilTemplateRepository.User{
+				user1 := &cryptoutilAppsTemplateServiceServerRepository.User{
 					ID:       *testJWKGenService.GenerateUUIDv7(),
 					Username: username,
 				}
@@ -71,7 +71,7 @@ func TestErrorPaths_CreateOperations(t *testing.T) {
 				defer func() { _ = repo.Delete(ctx, user1.ID) }()
 
 				// Try to create duplicate username.
-				user2 := &cryptoutilTemplateRepository.User{
+				user2 := &cryptoutilAppsTemplateServiceServerRepository.User{
 					ID:       *testJWKGenService.GenerateUUIDv7(),
 					Username: username, // Same username = constraint violation
 				}
@@ -153,7 +153,7 @@ func TestErrorPaths_UpdateOperations(t *testing.T) {
 				// GORM Save() doesn't error on non-existent records.
 				// This test verifies the behavior (no error, 0 rows affected).
 				nonExistentID := *testJWKGenService.GenerateUUIDv7()
-				user := &cryptoutilTemplateRepository.User{
+				user := &cryptoutilAppsTemplateServiceServerRepository.User{
 					ID:       nonExistentID,
 					Username: "non-existent-user",
 				}

@@ -11,11 +11,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJoseConfig "cryptoutil/internal/jose/config"
 	"cryptoutil/internal/jose/repository"
@@ -28,14 +28,14 @@ import (
 // JoseServer represents the JOSE Authority Server using the service template.
 // This wraps the service-template Application with JOSE-specific functionality.
 type JoseServer struct {
-	app                *cryptoutilTemplateServer.Application
+	app                *cryptoutilAppsTemplateServiceServer.Application
 	db                 *gorm.DB
 	telemetryService   *cryptoutilTelemetry.TelemetryService
 	jwkGenService      *cryptoutilJose.JWKGenService
 	barrierService     *cryptoutilTemplateBarrier.BarrierService
 	sessionManager     *cryptoutilTemplateBusinessLogic.SessionManagerService
 	realmService       cryptoutilTemplateService.RealmService
-	realmRepo          cryptoutilTemplateRepository.TenantRealmRepository
+	realmRepo          cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 	elasticJWKRepo     repository.ElasticJWKRepository
 	materialJWKRepo    repository.MaterialJWKRepository
 	elasticJWKService  *service.ElasticJWKService
@@ -74,7 +74,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilJoseConfig.JoseServerSett
 
 	// Register JOSE-specific public routes.
 	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilTemplateServer.PublicServerBase,
+		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 		res *cryptoutilTemplateBuilder.ServiceResources,
 	) error {
 		// Create JOSE-specific repositories.
@@ -248,7 +248,7 @@ func (s *JoseServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *JoseServer) App() *cryptoutilTemplateServer.Application {
+func (s *JoseServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
 }
 

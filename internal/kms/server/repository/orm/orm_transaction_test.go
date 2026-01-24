@@ -14,10 +14,10 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
@@ -150,14 +150,14 @@ func TestSQLTransaction_Success(t *testing.T) {
 			uuidV7 := testJWKGenService.GenerateUUIDv7()
 
 			elasticKey, err := BuildElasticKey(*uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilOpenapiModel.Creating))
-			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 Elastic Key")
+			cryptoutilSharedApperr.RequireNoError(err, "failed to create AES 256 Elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
-			cryptoutilAppErr.RequireNoError(err, "failed to add AES 256 Elastic Key")
+			cryptoutilSharedApperr.RequireNoError(err, "failed to add AES 256 Elastic Key")
 
 			addedElasticKeys = append(addedElasticKeys, elasticKey)
 
-			multipleByteSlices, err := cryptoutilRandom.GenerateMultipleBytes(numMaterialKeys, 32)
-			cryptoutilAppErr.RequireNoError(err, "failed to generate AES 256 key materials")
+			multipleByteSlices, err := cryptoutilSharedUtilRandom.GenerateMultipleBytes(numMaterialKeys, 32)
+			cryptoutilSharedApperr.RequireNoError(err, "failed to generate AES 256 key materials")
 
 			for nextKeyID := 1; nextKeyID <= numMaterialKeys; nextKeyID++ {
 				now := time.Now().UTC()

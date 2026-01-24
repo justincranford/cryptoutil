@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"time"
 
-	cryptoutilIdentityUserauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
 )
 
 // Version information for the adaptive simulation CLI.
@@ -47,7 +47,7 @@ const (
 
 // AdaptiveSimulator simulates adaptive authentication policy changes against historical data.
 type AdaptiveSimulator struct {
-	policyLoader cryptoutilIdentityUserauth.PolicyLoader
+	policyLoader cryptoutilIdentityIdpUserauth.PolicyLoader
 	outputDir    string
 }
 
@@ -134,7 +134,7 @@ func internalMain(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	// Create policy loader.
-	loader := cryptoutilIdentityUserauth.NewYAMLPolicyLoader(*riskScoringPath, *stepUpPath, *adaptivePath)
+	loader := cryptoutilIdentityIdpUserauth.NewYAMLPolicyLoader(*riskScoringPath, *stepUpPath, *adaptivePath)
 
 	simulator := &AdaptiveSimulator{
 		policyLoader: loader,
@@ -230,9 +230,9 @@ func (s *AdaptiveSimulator) Simulate(ctx context.Context, logsPath, policyVersio
 // EvaluateAuthAttempt simulates policy evaluation for single auth attempt.
 func (s *AdaptiveSimulator) EvaluateAuthAttempt(
 	log HistoricalAuthLog,
-	riskPolicy *cryptoutilIdentityUserauth.RiskScoringPolicy,
-	stepUpPolicy *cryptoutilIdentityUserauth.StepUpPolicies,
-	adaptivePolicy *cryptoutilIdentityUserauth.AdaptiveAuthPolicy, //nolint:revive
+	riskPolicy *cryptoutilIdentityIdpUserauth.RiskScoringPolicy,
+	stepUpPolicy *cryptoutilIdentityIdpUserauth.StepUpPolicies,
+	adaptivePolicy *cryptoutilIdentityIdpUserauth.AdaptiveAuthPolicy, //nolint:revive
 ) PolicyEvaluation {
 	// Simplified risk scoring (real implementation would use full BehavioralRiskEngine).
 	riskScore := s.CalculateRiskScore(log, riskPolicy)
@@ -261,7 +261,7 @@ func (s *AdaptiveSimulator) EvaluateAuthAttempt(
 // CalculateRiskScore computes risk score based on log data and policy.
 func (s *AdaptiveSimulator) CalculateRiskScore(
 	log HistoricalAuthLog,
-	policy *cryptoutilIdentityUserauth.RiskScoringPolicy,
+	policy *cryptoutilIdentityIdpUserauth.RiskScoringPolicy,
 ) float64 {
 	score := 0.0
 
@@ -299,7 +299,7 @@ func (s *AdaptiveSimulator) CalculateRiskScore(
 // DetermineRiskLevel categorizes risk score into risk level.
 func (s *AdaptiveSimulator) DetermineRiskLevel(
 	score float64,
-	policy *cryptoutilIdentityUserauth.RiskScoringPolicy,
+	policy *cryptoutilIdentityIdpUserauth.RiskScoringPolicy,
 ) string {
 	for level, threshold := range policy.RiskThresholds {
 		if score >= threshold.Min && score <= threshold.Max {
@@ -314,7 +314,7 @@ func (s *AdaptiveSimulator) DetermineRiskLevel(
 func (s *AdaptiveSimulator) DetermineRequiredLevel(
 	operation string,
 	currentLevel string,
-	policy *cryptoutilIdentityUserauth.StepUpPolicies,
+	policy *cryptoutilIdentityIdpUserauth.StepUpPolicies,
 ) (requiredLevel string, stepUpNeeded bool) {
 	// Find operation policy.
 	opPolicy, found := policy.Policies[operation]
@@ -354,7 +354,7 @@ func (s *AdaptiveSimulator) AuthLevelToInt(level string) int {
 func (s *AdaptiveSimulator) MakeDecision(
 	riskLevel string,
 	stepUpNeeded bool,
-	_ *cryptoutilIdentityUserauth.AdaptiveAuthPolicy,
+	_ *cryptoutilIdentityIdpUserauth.AdaptiveAuthPolicy,
 ) string {
 	// Check if risk level requires blocking.
 	if riskLevel == "critical" {

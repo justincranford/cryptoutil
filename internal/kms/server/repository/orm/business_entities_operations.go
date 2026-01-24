@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"gorm.io/gorm"
 
@@ -51,7 +51,7 @@ var (
 
 // AddElasticKey adds a new elastic key to the database.
 func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
-	if err := cryptoutilRandom.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddElasticKey, err)
 	}
 
@@ -65,7 +65,7 @@ func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
 
 // GetElasticKey retrieves an elastic key by ID from the database.
 func (tx *OrmTransaction) GetElasticKey(elasticKeyID *googleUuid.UUID) (*ElasticKey, error) {
-	if err := cryptoutilRandom.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
 	}
 
@@ -81,7 +81,7 @@ func (tx *OrmTransaction) GetElasticKey(elasticKeyID *googleUuid.UUID) (*Elastic
 
 // UpdateElasticKey updates an existing elastic key in the database.
 func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
-	if err := cryptoutilRandom.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyByElasticKeyID, err)
 	}
 
@@ -95,7 +95,7 @@ func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
 
 // UpdateElasticKeyStatus updates the status of an elastic key in the database.
 func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus cryptoutilOpenapiModel.ElasticKeyStatus) error {
-	if err := cryptoutilRandom.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
 	}
 
@@ -123,9 +123,9 @@ func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFi
 
 // AddElasticKeyMaterialKey adds a new material key for an elastic key to the database.
 func (tx *OrmTransaction) AddElasticKeyMaterialKey(key *MaterialKey) error {
-	if err := cryptoutilRandom.ValidateUUID(&key.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(&key.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
-	} else if err := cryptoutilRandom.ValidateUUID(&key.MaterialKeyID, &ErrInvalidMaterialKeyID); err != nil {
+	} else if err := cryptoutilSharedUtilRandom.ValidateUUID(&key.MaterialKeyID, &ErrInvalidMaterialKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
 	}
 
@@ -139,7 +139,7 @@ func (tx *OrmTransaction) AddElasticKeyMaterialKey(key *MaterialKey) error {
 
 // GetMaterialKeysForElasticKey retrieves material keys for an elastic key with optional filters.
 func (tx *OrmTransaction) GetMaterialKeysForElasticKey(elasticKeyID *googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyMaterialKeysFilters) ([]MaterialKey, error) {
-	if err := cryptoutilRandom.ValidateUUID(elasticKeyID, &ErrFailedToGetMaterialKeysByElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(elasticKeyID, &ErrFailedToGetMaterialKeysByElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeysByElasticKeyID, err)
 	}
 
@@ -171,9 +171,9 @@ func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters
 
 // GetElasticKeyMaterialKeyVersion retrieves a specific version of a material key by elastic key ID and material key ID.
 func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyID *googleUuid.UUID) (*MaterialKey, error) {
-	if err := cryptoutilRandom.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
-	} else if err := cryptoutilRandom.ValidateUUID(materialKeyID, &ErrInvalidMaterialKeyID); err != nil {
+	} else if err := cryptoutilSharedUtilRandom.ValidateUUID(materialKeyID, &ErrInvalidMaterialKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
 	}
 
@@ -189,7 +189,7 @@ func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID, material
 
 // GetElasticKeyMaterialKeyLatest retrieves the latest material key for the given elastic key ID.
 func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid.UUID) (*MaterialKey, error) {
-	if err := cryptoutilRandom.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
 	}
 
@@ -205,9 +205,9 @@ func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid
 
 // UpdateElasticKeyMaterialKeyRevoke updates the revocation date for a material key.
 func (tx *OrmTransaction) UpdateElasticKeyMaterialKeyRevoke(materialKey *MaterialKey) error {
-	if err := cryptoutilRandom.ValidateUUID(&materialKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(&materialKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
-	} else if err := cryptoutilRandom.ValidateUUID(&materialKey.MaterialKeyID, &ErrInvalidMaterialKeyID); err != nil {
+	} else if err := cryptoutilSharedUtilRandom.ValidateUUID(&materialKey.MaterialKeyID, &ErrInvalidMaterialKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateMaterialKey, err)
 	}
 
@@ -225,26 +225,26 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	tx.ormRepository.telemetryService.Slogger.Error(*msg, "error", err)
 
 	// custom errors
-	if cryptoutilAppErr.IsAppErr(err) {
-		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+	if cryptoutilSharedApperr.IsAppErr(err) {
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 	}
 
 	// gorm errors
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return cryptoutilAppErr.NewHTTP404NotFound(msg, fmt.Errorf("%s: %w", *msg, err))
+		return cryptoutilSharedApperr.NewHTTP404NotFound(msg, fmt.Errorf("%s: %w", *msg, err))
 	case errors.Is(err, gorm.ErrDuplicatedKey):
-		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 	case errors.Is(err, gorm.ErrForeignKeyViolated):
-		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 	case errors.Is(err, gorm.ErrCheckConstraintViolated):
-		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 	case errors.Is(err, gorm.ErrInvalidData):
-		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 	case errors.Is(err, gorm.ErrInvalidValueOfLength):
-		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+		return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 	case errors.Is(err, gorm.ErrNotImplemented):
-		return cryptoutilAppErr.NewHTTP501StatusLineAndCodeNotImplemented(msg, fmt.Errorf("%s: %w", *msg, err))
+		return cryptoutilSharedApperr.NewHTTP501StatusLineAndCodeNotImplemented(msg, fmt.Errorf("%s: %w", *msg, err))
 	}
 
 	// SQLite errors
@@ -252,11 +252,11 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	if errors.As(err, &sqliteErr) {
 		switch sqliteErr.Code() {
 		case sqliteErrUniqueConstraint: // UNIQUE constraint failed
-			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		case sqliteErrForeignKey: // FOREIGN KEY constraint failed
-			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		case sqliteErrCheckConstraint: // CHECK constraint failed
-			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		}
 	}
 
@@ -265,17 +265,17 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
 		case pgCodeUniqueViolation: // unique_violation
-			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		case pgCodeForeignKeyViolation: // foreign_key_violation
-			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		case pgCodeCheckViolation: // check_violation
-			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		case pgCodeStringDataTruncation: // string_data_right_truncation
-			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
+			return cryptoutilSharedApperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		}
 	}
 
-	return cryptoutilAppErr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", *msg, err))
+	return cryptoutilSharedApperr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", *msg, err))
 }
 
 func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *gorm.DB {

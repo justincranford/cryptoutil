@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/cipher/im/domain"
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 func TestMessageRepository_Create(t *testing.T) {
@@ -24,7 +24,7 @@ func TestMessageRepository_Create(t *testing.T) {
 
 	// Create test user for sender relation.
 	userRepo := NewUserRepository(testDB)
-	sender := &cryptoutilRepository.User{
+	sender := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		Username: "test-sender-" + testJWKGenService.GenerateUUIDv7().String(),
 	}
@@ -137,7 +137,7 @@ func TestMessageRepository_FindByID(t *testing.T) {
 
 			// Test found existing message.
 			userRepo := NewUserRepository(testDB)
-			sender := &cryptoutilRepository.User{
+			sender := &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "test-sender-" + testJWKGenService.GenerateUUIDv7().String(),
 			}
@@ -193,7 +193,7 @@ func TestMessageRepository_FindByRecipientID(t *testing.T) {
 
 			// Create test users for sender and recipient.
 			userRepo := NewUserRepository(testDB)
-			sender := &cryptoutilRepository.User{
+			sender := &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "test-sender-" + testJWKGenService.GenerateUUIDv7().String(),
 			}
@@ -201,7 +201,7 @@ func TestMessageRepository_FindByRecipientID(t *testing.T) {
 
 			defer func() { _ = userRepo.Delete(ctx, sender.ID) }()
 
-			recipient := &cryptoutilRepository.User{
+			recipient := &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "test-recipient-" + testJWKGenService.GenerateUUIDv7().String(),
 			}
@@ -318,7 +318,7 @@ func TestMessageRepository_MarkAsRead(t *testing.T) {
 
 			// Test marking existing message as read.
 			userRepo := NewUserRepository(testDB)
-			sender := &cryptoutilRepository.User{
+			sender := &cryptoutilAppsTemplateServiceServerRepository.User{
 				ID:       *testJWKGenService.GenerateUUIDv7(),
 				Username: "test-sender-" + testJWKGenService.GenerateUUIDv7().String(),
 			}
@@ -354,7 +354,7 @@ func TestMessageRepository_Delete(t *testing.T) {
 
 	// Create test user for sender relation.
 	userRepo := NewUserRepository(testDB)
-	sender := &cryptoutilRepository.User{
+	sender := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		Username: "test-sender-" + testJWKGenService.GenerateUUIDv7().String(),
 	}
@@ -419,7 +419,7 @@ func TestMessageRepository_TransactionContext(t *testing.T) {
 
 	// Create test user for sender relation.
 	userRepo := NewUserRepository(testDB)
-	sender := &cryptoutilRepository.User{
+	sender := &cryptoutilAppsTemplateServiceServerRepository.User{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
 		Username: "test-sender-" + testJWKGenService.GenerateUUIDv7().String(),
 	}
@@ -429,7 +429,7 @@ func TestMessageRepository_TransactionContext(t *testing.T) {
 
 	// Test transaction rollback.
 	tx := testDB.Begin()
-	txCtx := cryptoutilRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	message := &domain.Message{
 		ID:       *testJWKGenService.GenerateUUIDv7(),
@@ -450,7 +450,7 @@ func TestMessageRepository_TransactionContext(t *testing.T) {
 
 	// Test transaction commit.
 	tx = testDB.Begin()
-	txCtx = cryptoutilRepository.WithTransaction(ctx, tx)
+	txCtx = cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	message2 := &domain.Message{
 		ID:       *testJWKGenService.GenerateUUIDv7(),

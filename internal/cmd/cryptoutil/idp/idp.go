@@ -16,7 +16,7 @@ import (
 	"time"
 
 	cryptoutilIDPServer "cryptoutil/internal/apps/identity/idp/server"
-	cryptoutilIDPConfig "cryptoutil/internal/apps/identity/idp/server/config"
+	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity/idp/server/config"
 )
 
 const (
@@ -75,7 +75,7 @@ func startService(parameters []string) {
 	// Load IDP-specific configuration from YAML file.
 	parseArgs := []string{"start", "--config", configFile}
 
-	settings, err := cryptoutilIDPConfig.Parse(parseArgs, false)
+	settings, err := cryptoutilAppsIdentityIdpServerConfig.Parse(parseArgs, false)
 	if err != nil {
 		log.Fatalf("Failed to load config from %s: %v", configFile, err)
 	}

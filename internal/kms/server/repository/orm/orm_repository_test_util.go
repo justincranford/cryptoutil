@@ -10,7 +10,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 )
@@ -18,7 +18,7 @@ import (
 // RequireNewForTest creates a new ORM repository for testing and panics on error.
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JWKGenService, settings *cryptoutilConfig.ServiceTemplateServerSettings) *OrmRepository {
 	ormRepository, err := NewOrmRepository(ctx, telemetryService, sqlRepository, jwkGenService, settings)
-	cryptoutilAppErr.RequireNoError(err, "failed to create new ORM repository")
+	cryptoutilSharedApperr.RequireNoError(err, "failed to create new ORM repository")
 
 	return ormRepository
 }
@@ -52,6 +52,6 @@ func CleanupDatabase(t *testing.T, repo *OrmRepository) {
 
 			return nil
 		})
-		cryptoutilAppErr.RequireNoError(err, "failed to cleanup database tables")
+		cryptoutilSharedApperr.RequireNoError(err, "failed to cleanup database tables")
 	})
 }

@@ -15,7 +15,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilFiles "cryptoutil/internal/shared/util/files"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 // PackageInfo represents Go package metadata from 'go list -json'.
@@ -150,7 +150,7 @@ func saveCircularDepCache(cacheFile string, cache cryptoutilMagic.CircularDepCac
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	if err := cryptoutilFiles.WriteFile(cacheFile, string(content), cryptoutilMagic.CacheFilePermissions); err != nil {
+	if err := cryptoutilSharedUtilFiles.WriteFile(cacheFile, string(content), cryptoutilMagic.CacheFilePermissions); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 

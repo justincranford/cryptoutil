@@ -51,6 +51,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -62,6 +63,7 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	_ = server.Shutdown(shutdownCtx)
 }
 
@@ -102,6 +104,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -112,6 +115,7 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	_ = server.Shutdown(shutdownCtx)
 }
 
@@ -147,6 +151,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	url := server.PublicBaseURL() + "/service/api/v1/crl"
 	resp, err := client.Get(url)
 	require.NoError(t, err)
+
 	defer func() {
 		require.NoError(t, resp.Body.Close())
 	}()
@@ -163,6 +168,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	} else {
 		// Error response should have JSON error.
 		var errResp map[string]interface{}
+
 		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		require.NoError(t, err)
 		require.Contains(t, errResp, "error")
@@ -171,6 +177,7 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	_ = server.Shutdown(shutdownCtx)
 }
 
@@ -209,6 +216,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 			url := server.PublicBaseURL() + endpoint
 			resp, err := client.Get(url)
 			require.NoError(t, err)
+
 			defer func() {
 				require.NoError(t, resp.Body.Close())
 			}()
@@ -226,6 +234,7 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
 	_ = server.Shutdown(shutdownCtx)
 }
 

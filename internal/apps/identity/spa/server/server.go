@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilSPAConfig "cryptoutil/internal/apps/identity/spa/server/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
@@ -22,7 +22,7 @@ import (
 // SPA serves static files for Single Page Application frontends.
 type SPAServer struct {
 	cfg              *cryptoutilSPAConfig.IdentitySPAServerSettings
-	app              *cryptoutilTemplateServer.Application
+	app              *cryptoutilAppsTemplateServiceServer.Application
 	db               *gorm.DB
 	barrierService   *cryptoutilBarrier.BarrierService
 	jwkGenService    *cryptoutilJose.JWKGenService
@@ -43,7 +43,7 @@ func NewFromConfig(ctx context.Context, cfg *cryptoutilSPAConfig.IdentitySPAServ
 
 	// Register public route registration for SPA endpoints.
 	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilTemplateServer.PublicServerBase,
+		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 		_ *cryptoutilTemplateBuilder.ServiceResources,
 	) error {
 		// Create SPA public server.
@@ -112,7 +112,7 @@ func (s *SPAServer) DB() *gorm.DB {
 }
 
 // App returns the template Application for tests.
-func (s *SPAServer) App() *cryptoutilTemplateServer.Application {
+func (s *SPAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
 }
 

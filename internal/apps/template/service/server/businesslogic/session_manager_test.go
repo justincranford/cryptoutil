@@ -19,7 +19,7 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -54,10 +54,10 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// Auto-migrate session tables
 	err = db.AutoMigrate(
-		&cryptoutilRepository.BrowserSession{},
-		&cryptoutilRepository.ServiceSession{},
-		&cryptoutilRepository.BrowserSessionJWK{},
-		&cryptoutilRepository.ServiceSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSessionJWK{},
 	)
 	require.NoError(t, err)
 
@@ -137,7 +137,7 @@ func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
 	require.NoError(t, parseErr, "Token should be valid UUID")
 
 	// Verify session stored in database
-	var session cryptoutilRepository.BrowserSession
+	var session cryptoutilAppsTemplateServiceServerRepository.BrowserSession
 
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
@@ -195,7 +195,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.
 	require.NoError(t, err)
 
 	// Manually expire the session by updating database
-	var session cryptoutilRepository.BrowserSession
+	var session cryptoutilAppsTemplateServiceServerRepository.BrowserSession
 
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
@@ -227,7 +227,7 @@ func TestSessionManager_IssueServiceSession_OPAQUE_Success(t *testing.T) {
 	require.NoError(t, parseErr)
 
 	// Verify session stored in database
-	var session cryptoutilRepository.ServiceSession
+	var session cryptoutilAppsTemplateServiceServerRepository.ServiceSession
 
 	findErr := sm.db.Where("client_id = ?", clientID).First(&session).Error
 	require.NoError(t, findErr)
@@ -273,7 +273,7 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 	require.NoError(t, err)
 
 	// Manually expire it
-	var session cryptoutilRepository.BrowserSession
+	var session cryptoutilAppsTemplateServiceServerRepository.BrowserSession
 
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
@@ -289,7 +289,7 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 	// Verify session removed
 	var count int64
 
-	sm.db.Model(&cryptoutilRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
 	require.Equal(t, int64(0), count)
 
 	// Validate should fail
@@ -309,7 +309,7 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 	require.NoError(t, err)
 
 	// Manually set last_activity to past idle threshold
-	var session cryptoutilRepository.BrowserSession
+	var session cryptoutilAppsTemplateServiceServerRepository.BrowserSession
 
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
@@ -325,7 +325,7 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 	// Verify session removed
 	var count int64
 
-	sm.db.Model(&cryptoutilRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
 	require.Equal(t, int64(0), count)
 }
 
@@ -359,7 +359,7 @@ func TestSessionManager_MultipleSessionsPerUser(t *testing.T) {
 	// Verify both in database
 	var count int64
 
-	sm.db.Model(&cryptoutilRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).Where("user_id = ?", userID).Count(&count)
 	require.Equal(t, int64(2), count)
 }
 

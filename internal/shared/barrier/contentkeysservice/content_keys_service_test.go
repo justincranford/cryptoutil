@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/shared/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/shared/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 
@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 		defer testOrmRepository.Shutdown()
 
 		_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
-		cryptoutilAppErr.RequireNoError(err, "failed to generate unseal JWK for test")
+		cryptoutilSharedApperr.RequireNoError(err, "failed to generate unseal JWK for test")
 
 		unsealKeysService := cryptoutilUnsealKeysService.RequireNewSimpleForTest([]joseJwk.Key{unsealJWK})
 		defer unsealKeysService.Shutdown()

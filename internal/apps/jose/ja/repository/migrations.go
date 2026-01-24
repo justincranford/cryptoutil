@@ -10,17 +10,17 @@ import (
 	"fmt"
 	"io/fs"
 
-	cryptoutilTemplateServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // DatabaseType represents supported database types for jose-ja.
-type DatabaseType = cryptoutilTemplateServerRepository.DatabaseType
+type DatabaseType = cryptoutilAppsTemplateServiceServerRepository.DatabaseType
 
 const (
 	// DatabaseTypeSQLite represents SQLite database.
-	DatabaseTypeSQLite = cryptoutilTemplateServerRepository.DatabaseTypeSQLite
+	DatabaseTypeSQLite = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite
 	// DatabaseTypePostgreSQL represents PostgreSQL database.
-	DatabaseTypePostgreSQL = cryptoutilTemplateServerRepository.DatabaseTypePostgreSQL
+	DatabaseTypePostgreSQL = cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL
 )
 
 // MigrationsFS contains embedded jose-ja specific migrations (2001+ only).
@@ -118,7 +118,7 @@ func (m *mergedFS) Stat(name string) (fs.FileInfo, error) {
 // This is used by tests to access all migrations (1001-1999 template + 2001+ jose-ja) in sequence.
 func GetMergedMigrationsFS() fs.FS {
 	return &mergedFS{
-		templateFS: cryptoutilTemplateServerRepository.MigrationsFS,
+		templateFS: cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
 		joseJAFS:   MigrationsFS,
 	}
 }
@@ -140,7 +140,7 @@ func GetMergedMigrationsFS() fs.FS {
 // - 2004_audit_log: Cryptographic operation audit entries.
 func ApplyJoseJAMigrations(db *sql.DB, dbType DatabaseType) error {
 	// Apply all migrations in sequence (1001-1999 template + 2001+ jose-ja) using merged filesystem.
-	runner := cryptoutilTemplateServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
+	runner := cryptoutilAppsTemplateServiceServerRepository.NewMigrationRunner(GetMergedMigrationsFS(), "migrations")
 
 	if err := runner.Apply(db, dbType); err != nil {
 		return fmt.Errorf("failed to apply jose-ja migrations (1001-1999 + 2001+): %w", err)

@@ -9,7 +9,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	joseJARepository "cryptoutil/internal/apps/jose/ja/repository"
+	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
@@ -31,15 +31,15 @@ type JWKSService interface {
 
 // jwksServiceImpl implements JWKSService.
 type jwksServiceImpl struct {
-	elasticRepo  joseJARepository.ElasticJWKRepository
-	materialRepo joseJARepository.MaterialJWKRepository
+	elasticRepo  cryptoutilAppsJoseJaRepository.ElasticJWKRepository
+	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository
 	barrierSvc   *cryptoutilBarrier.BarrierService
 }
 
 // NewJWKSService creates a new JWKSService.
 func NewJWKSService(
-	elasticRepo joseJARepository.ElasticJWKRepository,
-	materialRepo joseJARepository.MaterialJWKRepository,
+	elasticRepo cryptoutilAppsJoseJaRepository.ElasticJWKRepository,
+	materialRepo cryptoutilAppsJoseJaRepository.MaterialJWKRepository,
 	barrierSvc *cryptoutilBarrier.BarrierService,
 ) JWKSService {
 	return &jwksServiceImpl{

@@ -18,7 +18,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 type happyPathJWSTestCase struct {
@@ -49,7 +49,7 @@ func TestSignBytes_NilJWKs(t *testing.T) {
 	_, _, err := SignBytes(nil, clearBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestSignBytes_EmptyJWKs(t *testing.T) {
@@ -60,7 +60,7 @@ func TestSignBytes_EmptyJWKs(t *testing.T) {
 	_, _, err := SignBytes(jwks, clearBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestSignBytes_NilClearBytes(t *testing.T) {
@@ -74,7 +74,7 @@ func TestSignBytes_NilClearBytes(t *testing.T) {
 	_, _, err = SignBytes(jwks, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid clearBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestSignBytes_EmptyClearBytes(t *testing.T) {
@@ -89,7 +89,7 @@ func TestSignBytes_EmptyClearBytes(t *testing.T) {
 	_, _, err = SignBytes(jwks, clearBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid clearBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestSignBytes_NonSignJWK(t *testing.T) {
@@ -129,7 +129,7 @@ func TestVerifyBytes_NilJWKs(t *testing.T) {
 	_, err := VerifyBytes(nil, jwsMessageBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestVerifyBytes_EmptyJWKs(t *testing.T) {
@@ -140,7 +140,7 @@ func TestVerifyBytes_EmptyJWKs(t *testing.T) {
 	_, err := VerifyBytes(jwks, jwsMessageBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid JWKs")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestVerifyBytes_NilMessageBytes(t *testing.T) {
@@ -154,7 +154,7 @@ func TestVerifyBytes_NilMessageBytes(t *testing.T) {
 	_, err = VerifyBytes(jwks, nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid jwsMessageBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeNil)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeNil)
 }
 
 func TestVerifyBytes_EmptyMessageBytes(t *testing.T) {
@@ -169,7 +169,7 @@ func TestVerifyBytes_EmptyMessageBytes(t *testing.T) {
 	_, err = VerifyBytes(jwks, jwsMessageBytes)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid jwsMessageBytes")
-	require.ErrorIs(t, err, cryptoutilAppErr.ErrCantBeEmpty)
+	require.ErrorIs(t, err, cryptoutilSharedApperr.ErrCantBeEmpty)
 }
 
 func TestVerifyBytes_NonVerifyJWK(t *testing.T) {

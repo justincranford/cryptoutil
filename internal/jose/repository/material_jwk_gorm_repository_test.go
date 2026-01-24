@@ -13,7 +13,7 @@ import (
 	"cryptoutil/internal/jose/domain"
 	"cryptoutil/internal/jose/repository"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -53,8 +53,8 @@ func setupMaterialJWKTestDB(t *testing.T) *gorm.DB {
 
 	// Auto-migrate models (template models first, then JOSE domain models).
 	err = db.AutoMigrate(
-		&cryptoutilTemplateRepository.Tenant{},
-		&cryptoutilTemplateRepository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
+		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
 		&domain.ElasticJWK{},
 		&domain.MaterialJWK{},
 	)
@@ -74,7 +74,7 @@ func createMaterialJWKTestTenantAndRealm(t *testing.T, db *gorm.DB) (googleUuid.
 	tenantID := googleUuid.New()
 	realmID := googleUuid.New()
 
-	tenant := cryptoutilTemplateRepository.Tenant{
+	tenant := cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:          tenantID,
 		Name:        "test-tenant-" + tenantID.String(),
 		Description: "Test tenant for MaterialJWK tests",
@@ -85,7 +85,7 @@ func createMaterialJWKTestTenantAndRealm(t *testing.T, db *gorm.DB) (googleUuid.
 	err := db.Create(&tenant).Error
 	require.NoError(t, err)
 
-	realm := cryptoutilTemplateRepository.TenantRealm{
+	realm := cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 		ID:        realmID,
 		TenantID:  tenantID,
 		RealmID:   googleUuid.New(),
@@ -504,7 +504,7 @@ func TestMaterialJWKGormRepository_WithTransaction(t *testing.T) {
 	tx := db.Begin()
 	require.NoError(t, tx.Error)
 
-	txCtx := cryptoutilTemplateRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	materialJWK := &domain.MaterialJWK{
 		ID:             googleUuid.New(),
@@ -541,7 +541,7 @@ func TestMaterialJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 	tx := db.Begin()
 	require.NoError(t, tx.Error)
 
-	txCtx := cryptoutilTemplateRepository.WithTransaction(ctx, tx)
+	txCtx := cryptoutilAppsTemplateServiceServerRepository.WithTransaction(ctx, tx)
 
 	materialJWK := &domain.MaterialJWK{
 		ID:             googleUuid.New(),

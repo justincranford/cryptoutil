@@ -12,23 +12,23 @@ import (
 	"gorm.io/gorm"
 
 	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TenantRegistrationService handles tenant creation and join request workflows.
 type TenantRegistrationService struct {
 	db              *gorm.DB
-	tenantRepo      cryptoutilTemplateRepository.TenantRepository
-	userRepo        cryptoutilTemplateRepository.UserRepository
-	joinRequestRepo cryptoutilTemplateRepository.TenantJoinRequestRepository
+	tenantRepo      cryptoutilAppsTemplateServiceServerRepository.TenantRepository
+	userRepo        cryptoutilAppsTemplateServiceServerRepository.UserRepository
+	joinRequestRepo cryptoutilAppsTemplateServiceServerRepository.TenantJoinRequestRepository
 }
 
 // NewTenantRegistrationService creates a new tenant registration service.
 func NewTenantRegistrationService(
 	db *gorm.DB,
-	tenantRepo cryptoutilTemplateRepository.TenantRepository,
-	userRepo cryptoutilTemplateRepository.UserRepository,
-	joinRequestRepo cryptoutilTemplateRepository.TenantJoinRequestRepository,
+	tenantRepo cryptoutilAppsTemplateServiceServerRepository.TenantRepository,
+	userRepo cryptoutilAppsTemplateServiceServerRepository.UserRepository,
+	joinRequestRepo cryptoutilAppsTemplateServiceServerRepository.TenantJoinRequestRepository,
 ) *TenantRegistrationService {
 	return &TenantRegistrationService{
 		db:              db,
@@ -44,10 +44,10 @@ func (s *TenantRegistrationService) RegisterUserWithTenant(
 	_ googleUuid.UUID,
 	tenantName string,
 	createTenant bool,
-) (*cryptoutilTemplateRepository.Tenant, error) {
+) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	if createTenant {
 		// Create new tenant with user as admin
-		tenant := &cryptoutilTemplateRepository.Tenant{
+		tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 			ID:   googleUuid.New(),
 			Name: tenantName,
 		}

@@ -8,7 +8,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // mockSessionManager implements SessionManagerService interface for unit testing.
@@ -16,8 +16,8 @@ type mockSessionManager struct {
 	// Configurable function fields for different test scenarios
 	issueBrowserFunc    func(ctx context.Context, userID string, tenantID, realmID googleUuid.UUID) (string, error)
 	issueServiceFunc    func(ctx context.Context, clientID string, tenantID, realmID googleUuid.UUID) (string, error)
-	validateBrowserFunc func(ctx context.Context, token string) (*cryptoutilRepository.BrowserSession, error)
-	validateServiceFunc func(ctx context.Context, token string) (*cryptoutilRepository.ServiceSession, error)
+	validateBrowserFunc func(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error)
+	validateServiceFunc func(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error)
 }
 
 // IssueBrowserSessionWithTenant issues a browser session token.
@@ -39,16 +39,16 @@ func (m *mockSessionManager) IssueServiceSessionWithTenant(ctx context.Context, 
 }
 
 // ValidateBrowserSession validates a browser session token.
-func (m *mockSessionManager) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilRepository.BrowserSession, error) {
+func (m *mockSessionManager) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error) {
 	if m.validateBrowserFunc != nil {
 		return m.validateBrowserFunc(ctx, token)
 	}
 
 	userID := "mock-user-from-token"
 
-	return &cryptoutilRepository.BrowserSession{
+	return &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
 		UserID: &userID,
-		Session: cryptoutilRepository.Session{
+		Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 			TenantID: googleUuid.New(),
 			RealmID:  googleUuid.New(),
 		},
@@ -56,16 +56,16 @@ func (m *mockSessionManager) ValidateBrowserSession(ctx context.Context, token s
 }
 
 // ValidateServiceSession validates a service session token.
-func (m *mockSessionManager) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilRepository.ServiceSession, error) {
+func (m *mockSessionManager) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error) {
 	if m.validateServiceFunc != nil {
 		return m.validateServiceFunc(ctx, token)
 	}
 
 	clientID := "mock-client-from-token"
 
-	return &cryptoutilRepository.ServiceSession{
+	return &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
 		ClientID: &clientID,
-		Session: cryptoutilRepository.Session{
+		Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 			TenantID: googleUuid.New(),
 			RealmID:  googleUuid.New(),
 		},
@@ -88,10 +88,10 @@ func newMockSessionManagerError(err error) *mockSessionManager {
 		issueServiceFunc: func(context.Context, string, googleUuid.UUID, googleUuid.UUID) (string, error) {
 			return "", err
 		},
-		validateBrowserFunc: func(context.Context, string) (*cryptoutilRepository.BrowserSession, error) {
+		validateBrowserFunc: func(context.Context, string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error) {
 			return nil, err
 		},
-		validateServiceFunc: func(context.Context, string) (*cryptoutilRepository.ServiceSession, error) {
+		validateServiceFunc: func(context.Context, string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error) {
 			return nil, err
 		},
 	}

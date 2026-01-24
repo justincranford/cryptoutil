@@ -12,7 +12,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -609,10 +609,10 @@ func TestValidateSession_BrowserNullUserID(t *testing.T) {
 	t.Parallel()
 
 	mockManager := &mockSessionManager{
-		validateBrowserFunc: func(context.Context, string) (*cryptoutilRepository.BrowserSession, error) {
-			return &cryptoutilRepository.BrowserSession{
+		validateBrowserFunc: func(context.Context, string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error) {
+			return &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
 				UserID: nil, // ← Test null pointer handling
-				Session: cryptoutilRepository.Session{
+				Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 					TenantID: googleUuid.New(),
 					RealmID:  googleUuid.New(),
 				},
@@ -654,10 +654,10 @@ func TestValidateSession_ServiceNullClientID(t *testing.T) {
 	t.Parallel()
 
 	mockManager := &mockSessionManager{
-		validateServiceFunc: func(context.Context, string) (*cryptoutilRepository.ServiceSession, error) {
-			return &cryptoutilRepository.ServiceSession{
+		validateServiceFunc: func(context.Context, string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error) {
+			return &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
 				ClientID: nil, // ← Test null pointer handling
-				Session: cryptoutilRepository.Session{
+				Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 					TenantID: googleUuid.New(),
 					RealmID:  googleUuid.New(),
 				},

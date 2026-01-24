@@ -16,11 +16,11 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/ca/server/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilCAHandler "cryptoutil/internal/ca/api/handler"
 	cryptoutilCACrypto "cryptoutil/internal/ca/crypto"
@@ -43,7 +43,7 @@ const (
 
 // CAServer represents the pki-ca service application.
 type CAServer struct {
-	app *cryptoutilTemplateServer.Application
+	app *cryptoutilAppsTemplateServiceServer.Application
 	db  *gorm.DB
 
 	// Template services.
@@ -61,7 +61,7 @@ type CAServer struct {
 	handler     *cryptoutilCAHandler.Handler
 
 	// Template repositories.
-	realmRepo cryptoutilTemplateRepository.TenantRealmRepository
+	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 
 	// Shutdown functions.
 	shutdownCore      func()
@@ -164,7 +164,7 @@ func NewFromConfig(ctx context.Context, cfg *config.CAServerSettings) (*CAServer
 
 	// Register pki-ca specific public routes.
 	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilTemplateServer.PublicServerBase,
+		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 		_ *cryptoutilTemplateBuilder.ServiceResources,
 	) error {
 		// Create public server with CA handlers.
@@ -231,7 +231,7 @@ func (s *CAServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *CAServer) App() *cryptoutilTemplateServer.Application {
+func (s *CAServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
 }
 

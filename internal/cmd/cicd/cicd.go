@@ -21,7 +21,7 @@ import (
 	cryptoutilCmdCicdLintText "cryptoutil/internal/cmd/cicd/lint_text"
 	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/cmd/cicd/lint_workflow"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilFiles "cryptoutil/internal/shared/util/files"
+	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
 const (
@@ -49,7 +49,7 @@ func Run(commands []string) error {
 
 	logger.Log("validateCommands completed")
 
-	filesByExtension, err := cryptoutilFiles.ListAllFiles(cryptoutilMagic.ListAllFilesStartDirectory)
+	filesByExtension, err := cryptoutilSharedUtilFiles.ListAllFiles(cryptoutilMagic.ListAllFilesStartDirectory)
 	if err != nil {
 		return fmt.Errorf("failed to collect files: %w", err)
 	}

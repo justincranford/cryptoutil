@@ -10,7 +10,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilTemplateRealms "cryptoutil/internal/apps/template/service/server/realms"
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // UserRepositoryAdapter adapts UserRepository to realms.UserRepository interface.
@@ -29,7 +29,7 @@ func NewUserRepositoryAdapter(repo *UserRepository) *UserRepositoryAdapter {
 // Adapts realms.UserModel interface to concrete template repository.User.
 func (a *UserRepositoryAdapter) Create(ctx context.Context, user cryptoutilTemplateRealms.UserModel) error {
 	// Type assertion: UserModel -> *repository.User
-	concreteUser, ok := user.(*cryptoutilRepository.User)
+	concreteUser, ok := user.(*cryptoutilAppsTemplateServiceServerRepository.User)
 	if !ok {
 		// This should never happen if used correctly
 		panic("UserRepositoryAdapter.Create: expected *repository.User")

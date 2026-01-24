@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"testing"
 
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilAsn1 "cryptoutil/internal/shared/crypto/asn1"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
@@ -101,10 +101,10 @@ func writeKeys(tempDir *string, keys []any) {
 				privateDERFilename := baseFilename + "_private.der"
 
 				err = cryptoutilAsn1.PEMWrite(keyPair.Private, privatePEMFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+privatePEMFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Write failed "+privatePEMFilename)
 
 				err = cryptoutilAsn1.DERWrite(keyPair.Private, privateDERFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+privateDERFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Write failed "+privateDERFilename)
 			}
 
 			if keyPair.Public != nil {
@@ -112,10 +112,10 @@ func writeKeys(tempDir *string, keys []any) {
 				publicDERFilename := baseFilename + "_public.der"
 
 				err = cryptoutilAsn1.PEMWrite(keyPair.Public, publicPEMFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.pem")
+				cryptoutilSharedApperr.RequireNoError(err, "Write failed "+baseFilename+"_pub.pem")
 
 				err = cryptoutilAsn1.DERWrite(keyPair.Public, publicDERFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.der")
+				cryptoutilSharedApperr.RequireNoError(err, "Write failed "+baseFilename+"_pub.der")
 			}
 		}
 
@@ -126,10 +126,10 @@ func writeKeys(tempDir *string, keys []any) {
 				secretDERFilename := baseFilename + "_secret.der" // pragma: allowlist secret
 
 				err = cryptoutilAsn1.PEMWrite(secretKey, secretPEMFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretPEMFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Write failed "+secretPEMFilename)
 
 				err = cryptoutilAsn1.DERWrite(secretKey, secretDERFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretDERFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Write failed "+secretDERFilename)
 			}
 		}
 	}
@@ -148,10 +148,10 @@ func readKeys(tempDir *string, keys []any) {
 				privateDERFilename := baseFilename + "_private.der"
 
 				_, err := cryptoutilAsn1.PEMRead(privatePEMFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+privatePEMFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Read failed "+privatePEMFilename)
 
 				_, _, err = cryptoutilAsn1.DERRead(privateDERFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDERFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Read failed "+privateDERFilename)
 			}
 
 			if keyPair.Public != nil {
@@ -159,10 +159,10 @@ func readKeys(tempDir *string, keys []any) {
 				publicDERFilename := baseFilename + "_public.der"
 
 				_, err = cryptoutilAsn1.PEMRead(publicPEMFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicPEMFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Read failed "+publicPEMFilename)
 
 				_, _, err = cryptoutilAsn1.DERRead(publicDERFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicDERFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Read failed "+publicDERFilename)
 			}
 		}
 
@@ -173,10 +173,10 @@ func readKeys(tempDir *string, keys []any) {
 				secretDERFilename := baseFilename + "_secret.der" // pragma: allowlist secret
 
 				_, err := cryptoutilAsn1.PEMRead(secretPEMFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretPEMFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Read failed "+secretPEMFilename)
 
 				_, _, err = cryptoutilAsn1.DERRead(secretDERFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretDERFilename)
+				cryptoutilSharedApperr.RequireNoError(err, "Read failed "+secretDERFilename)
 			}
 		}
 	}

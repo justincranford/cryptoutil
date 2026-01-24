@@ -14,10 +14,10 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
@@ -100,7 +100,7 @@ var (
 // ExtractKidUUID extracts the key ID as a UUID from a JWK.
 func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	if jwk == nil {
-		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	var err error
@@ -116,7 +116,7 @@ func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 		return nil, fmt.Errorf("failed to parse kid as UUID: %w", err)
 	}
 
-	if err = cryptoutilRandom.ValidateUUID(&kidUUID, &ErrInvalidJWKKidUUID); err != nil {
+	if err = cryptoutilSharedUtilRandom.ValidateUUID(&kidUUID, &ErrInvalidJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("failed to validate kid UUID: %w", err)
 	}
 
@@ -126,7 +126,7 @@ func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 // ExtractAlg extracts the algorithm from a JWK.
 func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, error) {
 	if jwk == nil {
-		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	alg, ok := jwk.Algorithm()
@@ -147,7 +147,7 @@ func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, err
 // ExtractKty extracts the key type from a JWK.
 func ExtractKty(jwk joseJwk.Key) (*joseJwa.KeyType, error) {
 	if jwk == nil {
-		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	var err error
@@ -313,7 +313,7 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 }
 
 func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilRandom.ValidateUUID(kid, &ErrInvalidJWKKidUUID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, &ErrInvalidJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWK alg must be non-nil")
@@ -514,7 +514,7 @@ func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryp
 // IsPublicJWK returns true if the JWK is a public key.
 func IsPublicJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("invalid jwk: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	switch jwk.(type) {
@@ -530,7 +530,7 @@ func IsPublicJWK(jwk joseJwk.Key) (bool, error) {
 // IsPrivateJWK returns true if the JWK is a private key.
 func IsPrivateJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("invalid jwk: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	switch jwk.(type) {
@@ -546,7 +546,7 @@ func IsPrivateJWK(jwk joseJwk.Key) (bool, error) {
 // IsAsymmetricJWK returns true if the JWK is an asymmetric key.
 func IsAsymmetricJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("invalid jwk: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	switch jwk.(type) {
@@ -562,7 +562,7 @@ func IsAsymmetricJWK(jwk joseJwk.Key) (bool, error) {
 // IsSymmetricJWK returns true if the JWK is a symmetric key.
 func IsSymmetricJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("invalid jwk: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	switch jwk.(type) {
@@ -578,7 +578,7 @@ func IsSymmetricJWK(jwk joseJwk.Key) (bool, error) {
 // IsEncryptJWK returns true if the JWK can be used for encryption.
 func IsEncryptJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	_, _, err := ExtractAlgEncFromJWEJWK(jwk, 0)
@@ -609,7 +609,7 @@ func IsEncryptJWK(jwk joseJwk.Key) (bool, error) {
 // IsDecryptJWK returns true if the JWK can be used for decryption.
 func IsDecryptJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	_, _, err := ExtractAlgEncFromJWEJWK(jwk, 0)
@@ -640,7 +640,7 @@ func IsDecryptJWK(jwk joseJwk.Key) (bool, error) {
 // IsSignJWK returns true if the JWK can be used for signing.
 func IsSignJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	_, err := ExtractAlgFromJWSJWK(jwk, 0)
@@ -672,7 +672,7 @@ func IsSignJWK(jwk joseJwk.Key) (bool, error) {
 // IsVerifyJWK returns true if the JWK can be used for signature verification.
 func IsVerifyJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
-		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	_, err := ExtractAlgFromJWSJWK(jwk, 0)
@@ -705,7 +705,7 @@ func IsVerifyJWK(jwk joseJwk.Key) (bool, error) {
 // instead of a string. This is necessary after JSON parsing which converts types to strings.
 func EnsureSignatureAlgorithmType(jwk joseJwk.Key) error {
 	if jwk == nil {
-		return fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+		return fmt.Errorf("JWK invalid: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
 	// Get the algorithm as a string first

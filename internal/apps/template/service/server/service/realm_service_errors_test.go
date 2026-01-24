@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // mockRealmRepoWithErrors for error injection.
@@ -22,18 +22,18 @@ type mockRealmRepoWithErrors struct {
 	createErr       error
 	updateErr       error
 	deleteErr       error
-	realm           *cryptoutilTemplateRepository.TenantRealm
+	realm           *cryptoutilAppsTemplateServiceServerRepository.TenantRealm
 }
 
-func (m *mockRealmRepoWithErrors) Create(ctx context.Context, realm *cryptoutilTemplateRepository.TenantRealm) error {
+func (m *mockRealmRepoWithErrors) Create(ctx context.Context, realm *cryptoutilAppsTemplateServiceServerRepository.TenantRealm) error {
 	return m.createErr
 }
 
-func (m *mockRealmRepoWithErrors) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.TenantRealm, error) {
+func (m *mockRealmRepoWithErrors) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmRepoWithErrors) GetByRealmID(ctx context.Context, tenantID, realmID googleUuid.UUID) (*cryptoutilTemplateRepository.TenantRealm, error) {
+func (m *mockRealmRepoWithErrors) GetByRealmID(ctx context.Context, tenantID, realmID googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	if m.getByRealmIDErr != nil {
 		return nil, m.getByRealmIDErr
 	}
@@ -41,15 +41,15 @@ func (m *mockRealmRepoWithErrors) GetByRealmID(ctx context.Context, tenantID, re
 	return m.realm, nil
 }
 
-func (m *mockRealmRepoWithErrors) GetByName(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilTemplateRepository.TenantRealm, error) {
+func (m *mockRealmRepoWithErrors) GetByName(ctx context.Context, tenantID googleUuid.UUID, name string) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilTemplateRepository.TenantRealm, error) {
+func (m *mockRealmRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
 	return nil, nil
 }
 
-func (m *mockRealmRepoWithErrors) Update(ctx context.Context, realm *cryptoutilTemplateRepository.TenantRealm) error {
+func (m *mockRealmRepoWithErrors) Update(ctx context.Context, realm *cryptoutilAppsTemplateServiceServerRepository.TenantRealm) error {
 	return m.updateErr
 }
 
@@ -90,7 +90,7 @@ func TestDeleteRealm_WrongTenant(t *testing.T) {
 	realmID := googleUuid.New()
 
 	mockRepo := &mockRealmRepoWithErrors{
-		realm: &cryptoutilTemplateRepository.TenantRealm{
+		realm: &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 			TenantID: differentTenantID, // Different tenant!
 			RealmID:  realmID,
 		},
@@ -116,7 +116,7 @@ func TestDeleteRealm_UpdateError(t *testing.T) {
 	expectedErr := errors.New("update failed")
 
 	mockRepo := &mockRealmRepoWithErrors{
-		realm: &cryptoutilTemplateRepository.TenantRealm{
+		realm: &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 			TenantID: tenantID, // Correct tenant
 			RealmID:  realmID,
 		},
@@ -167,7 +167,7 @@ func TestGetRealmConfig_WrongTenant(t *testing.T) {
 	realmID := googleUuid.New()
 
 	mockRepo := &mockRealmRepoWithErrors{
-		realm: &cryptoutilTemplateRepository.TenantRealm{
+		realm: &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 			TenantID: differentTenantID, // Different tenant!
 			RealmID:  realmID,
 		},
@@ -218,7 +218,7 @@ func TestGetRealm_WrongTenant(t *testing.T) {
 	realmID := googleUuid.New()
 
 	mockRepo := &mockRealmRepoWithErrors{
-		realm: &cryptoutilTemplateRepository.TenantRealm{
+		realm: &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 			TenantID: differentTenantID, // Different tenant!
 			RealmID:  realmID,
 		},

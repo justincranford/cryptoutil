@@ -13,7 +13,7 @@ import (
 
 	"cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // MessageRecipientJWKRepository handles database operations for MessageRecipientJWK entities.
@@ -33,7 +33,7 @@ func NewMessageRecipientJWKRepository(db *gorm.DB, barrierService *cryptoutilBar
 // Create inserts a new message recipient JWK into the database.
 // The JWK is already encrypted by the handler layer.
 func (r *MessageRecipientJWKRepository) Create(ctx context.Context, messageRecipientJWK *domain.MessageRecipientJWK) error {
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Create(messageRecipientJWK).Error; err != nil {
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Create(messageRecipientJWK).Error; err != nil {
 		return fmt.Errorf("failed to create message recipient JWK: %w", err)
 	}
 
@@ -45,7 +45,7 @@ func (r *MessageRecipientJWKRepository) Create(ctx context.Context, messageRecip
 func (r *MessageRecipientJWKRepository) FindByRecipientAndMessage(ctx context.Context, recipientID, messageID googleUuid.UUID) (*domain.MessageRecipientJWK, error) {
 	var messageRecipientJWK domain.MessageRecipientJWK
 
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("recipient_id = ? AND message_id = ?", recipientID, messageID).
 		First(&messageRecipientJWK).Error; err != nil {
 		return nil, fmt.Errorf("failed to find message recipient JWK: %w", err)
@@ -59,7 +59,7 @@ func (r *MessageRecipientJWKRepository) FindByRecipientAndMessage(ctx context.Co
 func (r *MessageRecipientJWKRepository) FindByMessageID(ctx context.Context, messageID googleUuid.UUID) ([]domain.MessageRecipientJWK, error) {
 	var messageRecipientJWKs []domain.MessageRecipientJWK
 
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("message_id = ?", messageID).
 		Find(&messageRecipientJWKs).Error; err != nil {
 		return nil, fmt.Errorf("failed to find message recipient JWKs: %w", err)
@@ -70,7 +70,7 @@ func (r *MessageRecipientJWKRepository) FindByMessageID(ctx context.Context, mes
 
 // Delete removes a message recipient JWK from the database.
 func (r *MessageRecipientJWKRepository) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).Delete(&domain.MessageRecipientJWK{}, "id = ?", id).Error; err != nil {
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Delete(&domain.MessageRecipientJWK{}, "id = ?", id).Error; err != nil {
 		return fmt.Errorf("failed to delete message recipient JWK: %w", err)
 	}
 
@@ -79,7 +79,7 @@ func (r *MessageRecipientJWKRepository) Delete(ctx context.Context, id googleUui
 
 // DeleteByMessageID removes all recipient JWKs for a specific message.
 func (r *MessageRecipientJWKRepository) DeleteByMessageID(ctx context.Context, messageID googleUuid.UUID) error {
-	if err := cryptoutilRepository.GetDB(ctx, r.db).WithContext(ctx).
+	if err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).
 		Where("message_id = ?", messageID).
 		Delete(&domain.MessageRecipientJWK{}).Error; err != nil {
 		return fmt.Errorf("failed to delete message recipient JWKs: %w", err)

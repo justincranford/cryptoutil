@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // mockUnverifiedUserRepo with error injection.
@@ -21,14 +21,14 @@ type mockUnverifiedUserRepoWithErrors struct {
 	getByIDErr       error
 	deleteErr        error
 	deleteExpiredErr error
-	user             *cryptoutilTemplateRepository.UnverifiedUser
+	user             *cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser
 }
 
-func (m *mockUnverifiedUserRepoWithErrors) Create(ctx context.Context, user *cryptoutilTemplateRepository.UnverifiedUser) error {
+func (m *mockUnverifiedUserRepoWithErrors) Create(ctx context.Context, user *cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser) error {
 	return nil
 }
 
-func (m *mockUnverifiedUserRepoWithErrors) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepoWithErrors) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
 	if m.getByIDErr != nil {
 		return nil, m.getByIDErr
 	}
@@ -36,11 +36,11 @@ func (m *mockUnverifiedUserRepoWithErrors) GetByID(ctx context.Context, id googl
 	return m.user, nil
 }
 
-func (m *mockUnverifiedUserRepoWithErrors) GetByUsername(ctx context.Context, username string) (*cryptoutilTemplateRepository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepoWithErrors) GetByUsername(ctx context.Context, username string) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
 	return nil, nil
 }
 
-func (m *mockUnverifiedUserRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilTemplateRepository.UnverifiedUser, error) {
+func (m *mockUnverifiedUserRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
 	return nil, nil
 }
 
@@ -57,14 +57,14 @@ type mockUnverifiedClientRepoWithErrors struct {
 	getByIDErr       error
 	deleteErr        error
 	deleteExpiredErr error
-	client           *cryptoutilTemplateRepository.UnverifiedClient
+	client           *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient
 }
 
-func (m *mockUnverifiedClientRepoWithErrors) Create(ctx context.Context, client *cryptoutilTemplateRepository.UnverifiedClient) error {
+func (m *mockUnverifiedClientRepoWithErrors) Create(ctx context.Context, client *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient) error {
 	return nil
 }
 
-func (m *mockUnverifiedClientRepoWithErrors) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilTemplateRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoWithErrors) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	if m.getByIDErr != nil {
 		return nil, m.getByIDErr
 	}
@@ -72,11 +72,11 @@ func (m *mockUnverifiedClientRepoWithErrors) GetByID(ctx context.Context, id goo
 	return m.client, nil
 }
 
-func (m *mockUnverifiedClientRepoWithErrors) GetByClientID(ctx context.Context, clientID string) (*cryptoutilTemplateRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoWithErrors) GetByClientID(ctx context.Context, clientID string) (*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, nil
 }
 
-func (m *mockUnverifiedClientRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilTemplateRepository.UnverifiedClient, error) {
+func (m *mockUnverifiedClientRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
 	return nil, nil
 }
 
@@ -121,7 +121,7 @@ func TestRejectUser_WrongTenant(t *testing.T) {
 	unverifiedUserID := googleUuid.New()
 
 	mockRepo := &mockUnverifiedUserRepoWithErrors{
-		user: &cryptoutilTemplateRepository.UnverifiedUser{
+		user: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 			ID:       unverifiedUserID,
 			TenantID: differentTenantID, // Different tenant!
 		},
@@ -147,7 +147,7 @@ func TestRejectUser_DeleteError(t *testing.T) {
 	expectedErr := errors.New("delete failed")
 
 	mockRepo := &mockUnverifiedUserRepoWithErrors{
-		user: &cryptoutilTemplateRepository.UnverifiedUser{
+		user: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 			ID:       unverifiedUserID,
 			TenantID: tenantID, // Correct tenant
 		},
@@ -197,7 +197,7 @@ func TestRejectClient_WrongTenant(t *testing.T) {
 	unverifiedClientID := googleUuid.New()
 
 	mockRepo := &mockUnverifiedClientRepoWithErrors{
-		client: &cryptoutilTemplateRepository.UnverifiedClient{
+		client: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:       unverifiedClientID,
 			TenantID: differentTenantID, // Different tenant!
 		},
@@ -223,7 +223,7 @@ func TestRejectClient_DeleteError(t *testing.T) {
 	expectedErr := errors.New("delete failed")
 
 	mockRepo := &mockUnverifiedClientRepoWithErrors{
-		client: &cryptoutilTemplateRepository.UnverifiedClient{
+		client: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:       unverifiedClientID,
 			TenantID: tenantID, // Correct tenant
 		},

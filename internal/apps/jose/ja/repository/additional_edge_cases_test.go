@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilJoseJADomain "cryptoutil/internal/apps/jose/ja/domain"
-	cryptoutilRandom "cryptoutil/internal/shared/util/random"
+	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
 // TestElasticJWKRepository_GetByIDWithInvalidID tests GetByID with various invalid IDs.
@@ -83,8 +83,8 @@ func TestElasticJWKRepository_GetWithSpecialCharactersInKID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			id, _ := cryptoutilRandom.GenerateUUIDv7()
-			tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+			id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+			tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 			jwk := &cryptoutilJoseJADomain.ElasticJWK{
 				ID:           *id,
@@ -122,7 +122,7 @@ func TestElasticJWKRepository_ListWithEmptyDatabase(t *testing.T) {
 	repo := NewElasticJWKRepository(testDB)
 
 	// Use a unique tenant ID that has no JWKs.
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	jwks, total, err := repo.List(ctx, *tenantID, 0, 100)
 	require.NoError(t, err)
@@ -137,8 +137,8 @@ func TestElasticJWKRepository_UpdateNonExistentJWK(t *testing.T) {
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(testDB)
 
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	nonExistentJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *id,
@@ -173,8 +173,8 @@ func TestElasticJWKRepository_DeleteAlreadyDeleted(t *testing.T) {
 	ctx := context.Background()
 	repo := NewElasticJWKRepository(testDB)
 
-	id, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	jwk := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *id,
@@ -239,8 +239,8 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 	elasticRepo := NewElasticJWKRepository(testDB)
 
 	// Create parent elastic JWK.
-	elasticID, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	parentJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *elasticID,
 		TenantID:     *tenantID,
@@ -279,7 +279,7 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			materialID, _ := cryptoutilRandom.GenerateUUIDv7()
+			materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 			// Use sample encrypted JWK data.
 			material := &cryptoutilJoseJADomain.MaterialJWK{
@@ -318,8 +318,8 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 	elasticRepo := NewElasticJWKRepository(testDB)
 
 	// Create parent elastic JWK.
-	elasticID, _ := cryptoutilRandom.GenerateUUIDv7()
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	elasticID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	parentJWK := &cryptoutilJoseJADomain.ElasticJWK{
 		ID:           *elasticID,
 		TenantID:     *tenantID,
@@ -337,7 +337,7 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 	}()
 
 	// Create material but mark it as inactive.
-	materialID, _ := cryptoutilRandom.GenerateUUIDv7()
+	materialID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 	material := &cryptoutilJoseJADomain.MaterialJWK{
 		ID:            *materialID,
 		ElasticJWKID:  parentJWK.ID,
@@ -365,7 +365,7 @@ func TestAuditConfigRepository_UpsertMultipleTimes(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditConfigRepository(testDB)
 
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	config := &cryptoutilJoseJADomain.AuditConfig{
 		TenantID:     *tenantID,
@@ -413,7 +413,7 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 	ctx := context.Background()
 	repo := NewAuditLogRepository(testDB)
 
-	tenantID, _ := cryptoutilRandom.GenerateUUIDv7()
+	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
 	const numEntries = 20
 
@@ -421,7 +421,7 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 
 	// Create many audit log entries.
 	for i := 0; i < numEntries; i++ {
-		id, _ := cryptoutilRandom.GenerateUUIDv7()
+		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		entry := &cryptoutilJoseJADomain.AuditLogEntry{
 			ID:        *id,
 			TenantID:  *tenantID,
@@ -433,6 +433,7 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 
 		err := repo.Create(ctx, entry)
 		require.NoError(t, err)
+
 		createdIDs = append(createdIDs, *id)
 	}
 

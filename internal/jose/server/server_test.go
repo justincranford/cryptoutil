@@ -16,9 +16,9 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilJoseMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTLSGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilJoseServerMiddleware "cryptoutil/internal/jose/server/middleware"
 	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -1188,7 +1188,7 @@ func TestAPIKeyMiddleware(t *testing.T) {
 	require.Nil(t, server.GetAPIKeyMiddleware())
 
 	// Configure API key auth.
-	server.ConfigureAPIKeyAuth(&cryptoutilJoseMiddleware.APIKeyConfig{
+	server.ConfigureAPIKeyAuth(&cryptoutilJoseServerMiddleware.APIKeyConfig{
 		HeaderName: "X-API-Key",
 		ValidKeys: map[string]string{
 			"test-key-123": "test-client",

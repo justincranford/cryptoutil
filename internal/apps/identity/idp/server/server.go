@@ -10,11 +10,11 @@ import (
 	"gorm.io/gorm"
 
 	"cryptoutil/internal/apps/identity/idp/server/config"
-	cryptoutilTemplateServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilTemplateBuilder "cryptoutil/internal/apps/template/service/server/builder"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTemplateService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -23,7 +23,7 @@ import (
 // IDPServer represents the identity-idp service application.
 // This is an OIDC 1.0 Identity Provider with login/consent UI and MFA enrollment.
 type IDPServer struct {
-	app *cryptoutilTemplateServer.Application
+	app *cryptoutilAppsTemplateServiceServer.Application
 	db  *gorm.DB
 
 	// IDP configuration.
@@ -37,7 +37,7 @@ type IDPServer struct {
 	realmService          cryptoutilTemplateService.RealmService
 
 	// Template repositories.
-	realmRepo cryptoutilTemplateRepository.TenantRealmRepository
+	realmRepo cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
 
 	// Shutdown functions.
 	shutdownCore      func()
@@ -59,7 +59,7 @@ func NewFromConfig(ctx context.Context, cfg *config.IdentityIDPServerSettings) (
 
 	// Register identity-idp specific public routes.
 	builder.WithPublicRouteRegistration(func(
-		base *cryptoutilTemplateServer.PublicServerBase,
+		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 		_ *cryptoutilTemplateBuilder.ServiceResources,
 	) error {
 		// Create public server with idp handlers.
@@ -136,7 +136,7 @@ func (s *IDPServer) DB() *gorm.DB {
 }
 
 // App returns the application wrapper (for tests).
-func (s *IDPServer) App() *cryptoutilTemplateServer.Application {
+func (s *IDPServer) App() *cryptoutilAppsTemplateServiceServer.Application {
 	return s.app
 }
 

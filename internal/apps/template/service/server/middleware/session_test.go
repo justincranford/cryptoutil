@@ -15,23 +15,23 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilAppErr "cryptoutil/internal/shared/apperr"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 )
 
 // mockSessionValidator implements SessionValidator for testing.
 type mockSessionValidator struct {
-	browserSession    *cryptoutilTemplateRepository.BrowserSession
+	browserSession    *cryptoutilAppsTemplateServiceServerRepository.BrowserSession
 	browserSessionErr error
-	serviceSession    *cryptoutilTemplateRepository.ServiceSession
+	serviceSession    *cryptoutilAppsTemplateServiceServerRepository.ServiceSession
 	serviceSessionErr error
 }
 
-func (m *mockSessionValidator) ValidateBrowserSession(_ context.Context, _ string) (*cryptoutilTemplateRepository.BrowserSession, error) {
+func (m *mockSessionValidator) ValidateBrowserSession(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error) {
 	return m.browserSession, m.browserSessionErr
 }
 
-func (m *mockSessionValidator) ValidateServiceSession(_ context.Context, _ string) (*cryptoutilTemplateRepository.ServiceSession, error) {
+func (m *mockSessionValidator) ValidateServiceSession(_ context.Context, _ string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error) {
 	return m.serviceSession, m.serviceSessionErr
 }
 
@@ -39,7 +39,7 @@ func (m *mockSessionValidator) ValidateServiceSession(_ context.Context, _ strin
 func createTestApp() *fiber.App {
 	return fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			var appErr *cryptoutilAppErr.Error
+			var appErr *cryptoutilSharedApperr.Error
 			if errors.As(err, &appErr) {
 				return c.Status(int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode)).JSON(fiber.Map{
 					"error": appErr.Summary,
@@ -146,8 +146,8 @@ func TestSessionMiddleware_BrowserSession_Success(t *testing.T) {
 	realmID := googleUuid.New()
 
 	validator := &mockSessionValidator{
-		browserSession: &cryptoutilTemplateRepository.BrowserSession{
-			Session: cryptoutilTemplateRepository.Session{
+		browserSession: &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},
@@ -192,8 +192,8 @@ func TestSessionMiddleware_BrowserSession_NilUserID(t *testing.T) {
 	realmID := googleUuid.New()
 
 	validator := &mockSessionValidator{
-		browserSession: &cryptoutilTemplateRepository.BrowserSession{
-			Session: cryptoutilTemplateRepository.Session{
+		browserSession: &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},
@@ -254,8 +254,8 @@ func TestSessionMiddleware_ServiceSession_Success(t *testing.T) {
 	realmID := googleUuid.New()
 
 	validator := &mockSessionValidator{
-		serviceSession: &cryptoutilTemplateRepository.ServiceSession{
-			Session: cryptoutilTemplateRepository.Session{
+		serviceSession: &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},
@@ -297,8 +297,8 @@ func TestSessionMiddleware_ServiceSession_NilClientID(t *testing.T) {
 	realmID := googleUuid.New()
 
 	validator := &mockSessionValidator{
-		serviceSession: &cryptoutilTemplateRepository.ServiceSession{
-			Session: cryptoutilTemplateRepository.Session{
+		serviceSession: &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},
@@ -335,8 +335,8 @@ func TestBrowserSessionMiddleware(t *testing.T) {
 	realmID := googleUuid.New()
 
 	validator := &mockSessionValidator{
-		browserSession: &cryptoutilTemplateRepository.BrowserSession{
-			Session: cryptoutilTemplateRepository.Session{
+		browserSession: &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},
@@ -366,8 +366,8 @@ func TestServiceSessionMiddleware(t *testing.T) {
 	realmID := googleUuid.New()
 
 	validator := &mockSessionValidator{
-		serviceSession: &cryptoutilTemplateRepository.ServiceSession{
-			Session: cryptoutilTemplateRepository.Session{
+		serviceSession: &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
+			Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 				TenantID: tenantID,
 				RealmID:  realmID,
 			},
