@@ -146,9 +146,12 @@ func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfi
 
 	// Private server: TLS 1.3 only with optional mTLS for internal service-to-service communication.
 	// In production, uses RequireAndVerifyClientCert to enforce mutual authentication on admin/internal APIs.
-	// In dev mode, uses NoClientCert for easier local development and testing.
+	// In dev mode or container mode (0.0.0.0 binding), uses NoClientCert for easier testing/healthchecks.
+	// Container deployments use 0.0.0.0 for network accessibility and wget healthchecks without client certs.
 	privateClientAuth := tls.RequireAndVerifyClientCert
-	if settings.DevMode {
+
+	isContainerMode := settings.BindPublicAddress == cryptoutilSharedMagic.IPv4AnyAddress
+	if settings.DevMode || isContainerMode {
 		privateClientAuth = tls.NoClientCert
 	}
 
