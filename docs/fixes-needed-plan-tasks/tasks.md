@@ -792,6 +792,206 @@ statusService
 
 ---
 
+## Phase Z: Resolve Phase X Blockers and Test Failures
+
+**Purpose**: Resolve ALL Phase X blockers to enable completion of coverage targets
+
+**Context**: Phase X has 3 critical blockers preventing completion:
+1. X.2.1: TestInitDatabase_HappyPaths failure (Docker Desktop dependency)
+2. X.3.1: JOSE repositories BLOCKED at 82.8% (needs GORM mocking - P2.4)
+3. X.5.1: JOSE services BLOCKED at 82.7% (needs GORM mocking - P2.4)
+
+**Solution**: Fix Docker Desktop dependency, implement P2.4 GORM mocking, unblock coverage tasks
+
+---
+
+### Z.1: Fix TestInitDatabase_HappyPaths Docker Dependency
+
+**Owner**: LLM Agent
+**Estimated**: 1h
+**Dependencies**: Docker Desktop running
+**Priority**: P0 (Critical - blocks X.2.1)
+
+**Description**:
+Resolve Docker Desktop dependency for cipher-im PostgreSQL container tests.
+Update documentation with clear prerequisites.
+
+**Acceptance Criteria**:
+- [ ] Z.1.1 Start Docker Desktop on Windows:
+  ```powershell
+  Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+  Start-Sleep -Seconds 60  # Wait for initialization
+  docker ps  # Verify connection
+  ```
+- [ ] Z.1.2 Run cipher-im tests: `go test -v ./internal/apps/cipher/...`
+- [ ] Z.1.3 Verify TestInitDatabase_HappyPaths/PostgreSQL_Container passes
+- [ ] Z.1.4 Update README.md with Docker Desktop prerequisite
+- [ ] Z.1.5 Add pre-test check script: verify Docker Desktop running before container tests
+- [ ] Z.1.6 Document workaround in test files (comment explaining Docker Desktop requirement)
+- [ ] Z.1.7 All cipher-im tests pass (0 failures)
+- [ ] Z.1.8 Commit: "fix(cipher-im): resolve Docker Desktop dependency for container tests"
+
+**Files**:
+- Modified: `internal/apps/cipher/im/testing/integration/database_test.go` (add comment)
+- Modified: `README.md` (add Docker Desktop prerequisite)
+- Created: `scripts/verify-docker.ps1` (check Docker Desktop running)
+
+---
+
+### Z.2: Implement P2.4 GORM Mocking Infrastructure
+
+**Owner**: LLM Agent
+**Estimated**: 4h
+**Dependencies**: None
+**Priority**: P0 (Critical - blocks X.3.1, X.5.1)
+
+**Description**:
+Implement GORM mocking infrastructure to test database error paths.
+Enable repository/service tests to cover error handling without real database.
+
+**Architecture Options**:
+
+**Option A: Interface + Manual Mock** (RECOMMENDED):
+```go
+// Repository interface
+type ElasticJWKRepository interface {
+    Create(ctx context.Context, jwk *ElasticJWK) error
+    Get(ctx context.Context, id string) (*ElasticJWK, error)
+}
+
+// Manual mock for testing
+type MockElasticJWKRepository struct {
+    CreateFunc func(ctx context.Context, jwk *ElasticJWK) error
+}
+```
+
+**Option B: go-sqlmock** (alternative):
+```go
+// Mock database driver
+db, mock, _ := sqlmock.New()
+gormDB, _ := gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{})
+mock.ExpectBegin()
+mock.ExpectExec("INSERT").WillReturnError(errors.New("database error"))
+```
+
+**Acceptance Criteria**:
+- [ ] Z.2.1 Choose mocking approach (interface + manual mock OR go-sqlmock)
+- [ ] Z.2.2 Create repository interfaces for ElasticJWKRepository
+- [ ] Z.2.3 Create manual mock implementations OR integrate go-sqlmock
+- [ ] Z.2.4 Add test utilities: mock setup helpers, error injection
+- [ ] Z.2.5 Update existing repository implementation to implement interface
+- [ ] Z.2.6 Update service constructors to accept repository interface (not concrete type)
+- [ ] Z.2.7 Add example database error tests for 1-2 repository methods
+- [ ] Z.2.8 Verify error paths can be tested (Create fails, Get fails, etc.)
+- [ ] Z.2.9 Run tests: `go test ./internal/apps/jose/ja/repository/...`
+- [ ] Z.2.10 All tests pass (0 failures)
+- [ ] Z.2.11 Build clean: `go build ./...`
+- [ ] Z.2.12 Linting clean: `golangci-lint run ./internal/apps/jose/ja/repository/`
+- [ ] Z.2.13 Commit: "feat(jose): implement GORM mocking infrastructure for error path testing"
+
+**Files**:
+- Created: `internal/apps/jose/ja/repository/repository_interface.go`
+- Created: `internal/apps/jose/ja/repository/mock_repository.go`
+- Created: `internal/apps/jose/ja/repository/test_helpers.go`
+- Modified: `internal/apps/jose/ja/repository/elastic_jwk_repository.go`
+- Modified: `internal/apps/jose/ja/service/elastic_jwk_service.go`
+
+---
+
+### Z.3: Unblock X.3.1 - JOSE Repositories Coverage
+
+**Owner**: LLM Agent
+**Estimated**: 3h
+**Dependencies**: Z.2 (GORM mocking)
+**Priority**: P1 (Critical)
+
+**Description**:
+Use GORM mocking to test database error paths in repositories.
+Target: 82.8% → 98% coverage (15.2 percentage point increase).
+
+**Acceptance Criteria**:
+- [ ] Z.3.1 Run baseline coverage: `go test -coverprofile=test-output/jose_repo_baseline.out ./internal/apps/jose/ja/repository/`
+- [ ] Z.3.2 Analyze uncovered lines: `go tool cover -func=test-output/jose_repo_baseline.out | grep -v "100.0%"`
+- [ ] Z.3.3 For each uncovered error path, create database error test:
+  - CreateElasticJWK database error
+  - GetElasticJWK database error
+  - UpdateElasticJWK database error
+  - DeleteElasticJWK database error
+  - ListElasticJWKs database error
+- [ ] Z.3.4 Run coverage again: `go test -coverprofile=test-output/jose_repo_highcov.out ./internal/apps/jose/ja/repository/`
+- [ ] Z.3.5 Verify coverage ≥98%: `go tool cover -func=test-output/jose_repo_highcov.out`
+- [ ] Z.3.6 All tests pass (0 failures)
+- [ ] Z.3.7 Test execution <15 seconds per package
+- [ ] Z.3.8 Unblock X.3.1: mark [ ] as [x] in Phase X
+- [ ] Z.3.9 Commit: "test(jose/repository): add database error path tests → 98% coverage"
+
+**Files**:
+- Created: `internal/apps/jose/ja/repository/elastic_jwk_repository_errors_test.go`
+
+---
+
+### Z.4: Unblock X.5.1 - JOSE Services Coverage
+
+**Owner**: LLM Agent
+**Estimated**: 3h
+**Dependencies**: Z.2 (GORM mocking)
+**Priority**: P1 (Critical)
+
+**Description**:
+Use GORM mocking to test database error paths in services after validation.
+Target: 82.7% → 95% coverage (12.3 percentage point increase).
+
+**Acceptance Criteria**:
+- [ ] Z.4.1 Run baseline coverage: `go test -coverprofile=test-output/jose_service_baseline.out ./internal/apps/jose/ja/service/`
+- [ ] Z.4.2 Analyze uncovered lines: `go tool cover -func=test-output/jose_service_baseline.out | grep -v "100.0%"`
+- [ ] Z.4.3 For each uncovered error path after validation, create database error test:
+  - CreateElasticJWK after validation succeeds, repository.Create fails
+  - RotateActiveKey after validation succeeds, repository.Update fails
+  - GetElasticJWK after validation succeeds, repository.Get fails (DB error, not not-found)
+- [ ] Z.4.4 Run coverage again: `go test -coverprofile=test-output/jose_service_highcov.out ./internal/apps/jose/ja/service/`
+- [ ] Z.4.5 Verify coverage ≥95%: `go tool cover -func=test-output/jose_service_highcov.out`
+- [ ] Z.4.6 All tests pass (0 failures)
+- [ ] Z.4.7 Test execution <15 seconds per package
+- [ ] Z.4.8 Unblock X.5.1: mark [ ] as [x] in Phase X
+- [ ] Z.4.9 Commit: "test(jose/service): add database error path tests → 95% coverage"
+
+**Files**:
+- Created: `internal/apps/jose/ja/service/elastic_jwk_service_errors_test.go`
+
+---
+
+### Z.5: Complete Phase X Validation
+
+**Owner**: LLM Agent
+**Estimated**: 1h
+**Dependencies**: Z.1, Z.3, Z.4 (all blockers resolved)
+**Priority**: P1 (Critical)
+
+**Description**:
+With all blockers resolved, complete remaining Phase X tasks:
+- X.2.2: Cipher-IM coverage 85% → 95%
+- X.2.3: Validation
+- X.3.2: Validation
+- X.5.2: Validation
+- X.6.1-X.6.5: Final validation
+
+**Acceptance Criteria**:
+- [ ] Z.5.1 Complete X.2.2: Run cipher-im coverage tests (Docker Desktop running)
+- [ ] Z.5.2 Mark X.2.3 [x]: Verify ≥95% production, ≥98% infrastructure
+- [ ] Z.5.3 Mark X.3.2 [x]: Verify ≥98% infrastructure (repositories)
+- [ ] Z.5.4 Mark X.5.2 [x]: Verify ≥95% production (services)
+- [ ] Z.5.5 Run X.6.1: `go build ./...` (zero errors)
+- [ ] Z.5.6 Run X.6.2: `golangci-lint run ./...` (zero warnings)
+- [ ] Z.5.7 Run X.6.3: `go test ./... -cover` (100% pass)
+- [ ] Z.5.8 Verify X.6.4: Coverage ≥95% production, ≥98% infrastructure (ALL packages)
+- [ ] Z.5.9 Mark X.6.1-X.6.5 [x]: All validation complete
+- [ ] Z.5.10 Commit: "test(all): complete Phase X - coverage targets met"
+
+**Files**:
+- Modified: `docs/fixes-needed-plan-tasks/tasks.md`
+
+---
+
 ## Phase Y: Mutation Testing
 
 **Purpose**: Validate test suite quality via mutation testing. Ensures tests catch real bugs, not just achieve line coverage.
