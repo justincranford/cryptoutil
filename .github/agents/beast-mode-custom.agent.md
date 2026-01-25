@@ -39,12 +39,10 @@ This agent **requires** that plan.md and tasks.md have been **created first** us
 
 **Workflow**:
 
-1. **Preparation**: Use `/plan-tasks-quizme <work-dir> create` to create plan.md and tasks.md
-   - During creation, may generate CLARIFY-QUIZME-##.md (ephemeral, deleted after answers merged)
+1. **Preparation**: Use `/plan-tasks-quizme <work-dir> create` to create `<work-dir>/plan.md` and `<work-dir>/tasks.md`
+   - During creation, may generate `<work-dir>/CLARIFY-QUIZME-##.md` (ephemeral, deleted after answers merged)
 2. **Implementation**: Use `/beast-mode-custom <work-dir>` to execute the plan autonomously
 3. **Updates** (optional): Use `/plan-tasks-quizme <work-dir> update` to update docs after implementation
-
-**Do NOT use this agent for SpecKit projects** - use `/speckit.*` agents instead.
 
 --------------------------------------------
 
@@ -109,16 +107,18 @@ You must fully execute the plan and tasks defined in:
 
 **INPUT FILES** (must exist before start - created by plan-tasks-quizme):
 
-1. **plan.md** - High-level plan with phases, decisions, quality gates
-2. **tasks.md** - Detailed task checklist grouped by phase with `[ ]`/`[x]` status
+1. **`<work-dir>/plan.md`** - High-level plan with phases, decisions, quality gates
+2. **`<work-dir>/tasks.md`** - Detailed task checklist grouped by phase with `[ ]`/`[x]` status
 
 **CREATED DURING EXECUTION** (as issues/patterns/lessons emerge):
 
-1. **issues.md** - Granular issue tracking with structured metadata
-2. **categories.md** - Pattern analysis across issue categories
-3. **lessons.md** - Lessons learned during execution
+1. **`<work-dir>/issues.md`** - Granular issue tracking with structured metadata
+2. **`<work-dir>/categories.md`** - Pattern analysis across issue categories
+3. **`<work-dir>/lessons.md`** - Lessons learned during execution
 
-**Note**: CLARIFY-QUIZME-##.md may exist temporarily during plan creation but is ephemeral and deleted after answers are merged into plan.md/tasks.md.
+**EPHEMERAL FILE** (may exist, safe to ignore during execution):
+
+- **`<work-dir>/CLARIFY-QUIZME-##.md`** - Questions from plan creation phase
 
 This includes:
 
@@ -470,11 +470,11 @@ Always tell the user what you are going to do before making a tool call with a s
 
 This will:
 
-- Read **plan.md** and **tasks.md** from `<work-dir>/`
+- Read **`<work-dir>/plan.md`** and **`<work-dir>/tasks.md`**
 - Execute ALL tasks continuously without asking permission
-- Create/update **issues.md** as issues discovered
-- Create/update **categories.md** as patterns emerge
-- Create/update **lessons.md** as lessons learned
+- Create/update **`<work-dir>/issues.md`** as issues discovered
+- Create/update **`<work-dir>/categories.md`** as patterns emerge
+- Create/update **`<work-dir>/lessons.md`** as lessons learned
 - Commit after each completed task
 - Stop ONLY when all tasks complete OR user clicks STOP
 
@@ -482,7 +482,8 @@ This will:
 
 - Use any directory name (typically under `docs\`)
 - Directory is ephemeral - user will delete after manual review
-- CLARIFY-QUIZME-##.md may exist but is ignored (ephemeral from plan creation)
+- All 5 files stay together in `<work-dir>/`
+- `<work-dir>/CLARIFY-QUIZME-##.md` may exist but is ignored (ephemeral from plan creation)
 
 --------------------------------------------
 
@@ -527,18 +528,18 @@ Execute continuously until finished.
 
 **INPUT FILES** (must exist before start):
 
-1. **plan.md**: High-level session plan with goals, phases, success criteria
-2. **tasks.md**: Comprehensive actionable checklist grouped by phase, with priorities (P0/P1/P2/P3), acceptance criteria, verification commands - tasks marked `[ ]` initially, then `[x]` when complete
+1. **`<work-dir>/plan.md`**: High-level session plan with goals, phases, success criteria
+2. **`<work-dir>/tasks.md`**: Comprehensive actionable checklist grouped by phase, with priorities (P0/P1/P2/P3), acceptance criteria, verification commands - tasks marked `[ ]` initially, then `[x]` when complete
 
 **CREATED DURING EXECUTION** (as needed):
 
-1. **issues.md**: Granular issue tracking with structured metadata (Category, Severity, Status, Description, Root Cause, Impact, Proposed Fix, Commits, Prevention)
-2. **categories.md**: Pattern analysis across issue categories (3-5 categories max: Syntax, Configuration, Dependencies, Testing, Documentation)
-3. **lessons.md**: Lessons learned during execution, systematic extraction workflow
+1. **`<work-dir>/issues.md`**: Granular issue tracking with structured metadata (Category, Severity, Status, Description, Root Cause, Impact, Proposed Fix, Commits, Prevention)
+2. **`<work-dir>/categories.md`**: Pattern analysis across issue categories (3-5 categories max: Syntax, Configuration, Dependencies, Testing, Documentation)
+3. **`<work-dir>/lessons.md`**: Lessons learned during execution, systematic extraction workflow
 
 **IGNORED FILES**:
 
-- **CLARIFY-QUIZME-##.md**: Ephemeral file from plan creation phase, safe to ignore during execution
+- **`<work-dir>/CLARIFY-QUIZME-##.md`**: Ephemeral file from plan creation phase, safe to ignore during execution
 
 **Progress Tracking:**
 

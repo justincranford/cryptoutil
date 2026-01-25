@@ -13,14 +13,18 @@ tools:
 
 ## Purpose
 
-This prompt helps you create, update, and maintain **simple custom plans** (NOT SpecKit - for SpecKit use `/speckit.*` agents).
+This prompt helps you create, update, and maintain **simple custom plans**.
 
-**Custom plans** use **2 files**:
+**Custom plans** use **2 input files** (created/updated by this agent):
 
-- **plan.md** - High-level implementation plan with phases and decisions
-- **tasks.md** - Detailed task breakdown with acceptance criteria
+- **`<work-dir>/plan.md`** - High-level implementation plan with phases and decisions
+- **`<work-dir>/tasks.md`** - Detailed task breakdown with acceptance criteria
 
-**User must specify directory path** where plan.md and tasks.md will be created/updated.
+**Plus optional quizme file** (ephemeral, deleted after answers merged):
+
+- **`<work-dir>/CLARIFY-QUIZME-##.md`** - Questions to clarify before planning (temporary)
+
+**User must specify directory path** where files will be created/updated.
 
 ## Directory Path Guidelines
 
@@ -36,16 +40,7 @@ This prompt helps you create, update, and maintain **simple custom plans** (NOT 
 - `docs\short-term-work\` (plan.md + tasks.md)
 - `docs\feature-name\` (plan.md + tasks.md)
 
-**Pattern**: Short directory name under `docs\`, containing ONLY `plan.md` and `tasks.md`
-
-## SpecKit vs Custom Plans - CRITICAL DISTINCTION
-
-**This prompt is for CUSTOM PLANS, NOT SpecKit**:
-
-- ✅ Custom Plans: `docs\<directory>\` with plan.md + tasks.md (2 files)
-- ❌ SpecKit: `specs\<nnn>-<project>\` with constitution.md + spec.md + clarify.md + plan.md + tasks.md (5+ files)
-
-**For SpecKit**, use `/speckit.*` agents instead (see `.github/prompts/doc-sync.prompt.md` for differences).
+**Pattern**: Short directory name under `docs\`, containing files: plan.md, tasks.md, and optionally CLARIFY-QUIZME-##.md
 
 ## Usage Patterns
 
