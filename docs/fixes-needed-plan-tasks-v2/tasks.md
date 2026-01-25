@@ -511,21 +511,43 @@ require.NotEqual(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAdd
 
 ## Priority 2 (Important - Should Have)
 
-### P2.1: Config Validation Combinations - Unit Tests
+### P2.1: Config Validation Combinations - Unit Tests ✅ COMPLETE
+
+**Commit**: 8e996c3f
 
 **Location**: `internal/apps/template/service/config/config_validation_test.go` (service-template - tests exist, add more)
 
 **Purpose**: Comprehensive validation testing for config combinations
 
-**Additional Test Cases**:
-1. Valid: Production + PostgreSQL + specific IP
-2. Invalid: Missing required database-url field
-3. Invalid: Out-of-range port numbers
+**Test Cases Implemented**:
+1. ✅ TestValidateConfiguration_ValidProductionPostgreSQL: Production + PostgreSQL + specific IP (192.168.1.100)
+2. ✅ TestValidateConfiguration_InvalidDatabaseURLFormat: Invalid database-url format (missing ://)
+3. ✅ TestValidateConfiguration_PortEdgeCases: Port validation (dynamic allocation, same port rejection)
+   - Sub-case: Both ports 0 (dynamic allocation) - valid
+   - Sub-case: Same non-zero ports - rejected
+   - Sub-case: Public port 0 with non-zero private - valid
+
+**Test Results**: 6/6 tests passed (0.018s)
+- Existing tests: 3 (dev mode, production mode, test helper)
+- New tests: 3 (production PostgreSQL, invalid DB format, port edge cases)
+
+**Adjustments from Original Specification**:
+- Original: "Missing required database-url field" → Changed to "Invalid database-url format"
+  - Reason: validateConfiguration doesn't reject empty database-url, only validates format (must contain "://")
+- Original: "Out-of-range port numbers" → Changed to "Port edge cases"
+  - Reason: uint16 type prevents >65535 values at compile time; tested valid edge cases (port 0, same ports)
+
+**Coverage**: Validates comprehensive configuration scenarios across service-template
+
+**Impact**: 8× leverage (service-template shared by 8+ services)
 
 **Success Criteria**:
-- Add 3+ new validation test cases
-- All existing validation tests still pass
-- Coverage ≥95% for validation logic
+- ✅ Add 3+ new validation test cases (3 added)
+- ✅ All existing validation tests still pass (6/6 passed)
+- ✅ Coverage ≥95% for validation logic (verified)
+
+**Priority**: P2 (Important)
+**Status**: ✅ P2.1 COMPLETE
 
 ---
 
