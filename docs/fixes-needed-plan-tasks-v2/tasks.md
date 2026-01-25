@@ -6,9 +6,10 @@ This document provides detailed, actionable test specifications based on the ana
 
 ## Priority 1 (Critical - Must Have)
 
-### P1.1: Container Mode Detection - Unit Tests
+### P1.1: Container Mode Detection - Unit Tests ✅ COMPLETE
 
-**Location**: `internal/apps/template/service/server/application/application_listener_test.go` (NEW FILE - service-template)
+**Status**: ✅ COMPLETED (commit 19db4764)
+**Location**: `internal/apps/template/service/server/application/application_listener_test.go`
 
 **Purpose**: Test container mode detection logic based on bind address
 
@@ -90,9 +91,10 @@ require.Equal(t, tc.wantContainerMode, isContainerMode)
 
 ---
 
-### P1.2: mTLS Configuration - Unit Tests (MOST CRITICAL)
+### P1.2: mTLS Configuration - Unit Tests (MOST CRITICAL) ✅ COMPLETE
 
-**Location**: `internal/apps/template/service/server/application/application_listener_test.go` (service-template)
+**Status**: ✅ COMPLETED (commit 19db4764)
+**Location**: `internal/apps/template/service/server/application/application_listener_test.go`
 
 **Purpose**: Test mTLS client auth configuration for private/public servers in dev/container/production modes
 
@@ -205,9 +207,10 @@ require.Equal(t, tc.wantPublicClientAuth, publicClientAuth, "Public server mTLS"
 
 ---
 
-### P1.3: YAML Config Field Mapping - Unit Tests
+### P1.3: YAML Config Field Mapping - Unit Tests ✅ COMPLETE
 
-**Location**: `internal/apps/template/service/config/config_loading_test.go` (NEW FILE - service-template)
+**Status**: ✅ COMPLETED (commit f0955d16)
+**Location**: `internal/apps/template/service/config/config_loading_test.go`
 
 **Purpose**: Test YAML config file loading with kebab-case field names mapping to PascalCase struct fields
 
@@ -312,9 +315,10 @@ require.Equal(t, tc.wantDevMode, settings.DevMode, "DevMode field mapping")
 
 ---
 
-### P1.4: Database URL Parsing - Additional Test Cases
+### P1.4: Database URL Parsing - Additional Test Cases ✅ COMPLETE
 
-**Location**: `internal/kms/server/repository/sqlrepository/sql_settings_mapper_test.go` (KMS-specific - tests already exist)
+**Status**: ✅ COMPLETED (commit a71fc8c0)
+**Location**: `internal/kms/server/repository/sqlrepository/sql_settings_mapper_test.go`
 
 **Purpose**: Add missing test cases for SQLite URL edge cases
 
