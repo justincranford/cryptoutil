@@ -201,10 +201,28 @@ After completing any task:
 
 After completing any PHASE:
 
-- Identify new phases and/or tasks to insert or append
-- Update `<work-dir>/plan.md` and `<work-dir>/tasks.md` with dynamically discovered work
-- Immediately begin the next phase
-- This is self-learning and automated fixing
+- **CRITICAL**: Check for BLOCKED, SKIPPED, DEFERRED, or SATISFIED tasks in the completed phase
+- **If ANY exist**: Create new phase(s) to resolve ALL blockers/skips/deferrals
+- **Update plan.md** with new phase sections
+- **Update tasks.md** with new phase tasks  
+- **Immediately begin** the next phase (new or existing)
+- **This is self-learning and automated fixing** - NEVER stop when blockers are discovered
+
+**FORBIDDEN Stopping Points:**
+
+- ❌ "Task marked as BLOCKED - moving to next" (WRONG - create resolution phase first)
+- ❌ "Phase complete - stopping for review" (WRONG - check for blockers, create follow-up phases)
+- ❌ "All P1/P2/P3 tasks satisfied" (WRONG - if any are BLOCKED/SKIPPED, create P4/P5/P6)
+- ❌ "Existing tests cover this - no new tests needed" (WRONG - verify template service uses them)
+
+**REQUIRED Continuation Pattern:**
+
+```
+1. Complete Phase N → 2. Post-mortem → 3. Found blockers?
+   YES → 4. Create Phase N+1 tasks → 5. Start Phase N+1 → back to step 1
+   NO → 6. Start Phase N+1 (if exists) → back to step 1
+   NO phases left → 7. Verify ALL tasks truly complete → 8. Final analysis
+```
 
 The ONLY acceptable output during execution is:
 
@@ -575,17 +593,68 @@ Execute continuously until finished.
 - Checkboxes are sufficient for tracking progress
 - NO additional "Session Tracking System" or separate tracking mechanisms
 
-**Phase-Based Post-Mortem:**
+**Phase-Based Post-Mortem - MANDATORY:**
 
 - Tasks in tasks.md are grouped by phase
 - At end of EVERY phase, conduct post-mortem:
   1. Update issues.md with all issues discovered in phase
   2. Update categories.md with pattern analysis
   3. Update lessons.md with lessons learned
-  4. Identify new phases and/or tasks to insert or append
+  4. **CRITICAL**: Identify new phases and/or tasks to insert or append
   5. Update plan.md with new phases
   6. Update tasks.md with new tasks (insert or append after current phase)
   7. This is self-learning and automated fixing
+
+**MANDATORY: When Encountering BLOCKED/SKIPPED/DEFERRED Tasks:**
+
+**NEVER mark a task as "BLOCKED", "SKIPPED", "DEFERRED", or "SATISFIED BY EXISTING" without creating follow-up phases**
+
+If a task cannot be completed due to architectural limitations, missing infrastructure, or other blockers:
+
+1. **Document the blocker** in current task with comprehensive analysis
+2. **Create new phase** immediately after current phase to resolve the blocker
+3. **Add new tasks** to the new phase with specific resolution steps
+4. **Mark original task** as `[x]` only after follow-up phase tasks are added to plan
+5. **Continue execution** - do NOT stop, immediately begin the new phase tasks
+
+**Example - Correct Pattern:**
+
+```markdown
+### P3.1: Config Benchmarks ❌ BLOCKED
+
+**Blocker**: Parse() uses global pflag state, prevents benchmark iterations
+
+**Resolution**: See Phase 4 below for refactoring tasks
+
+---
+
+## Phase 4: Refactor Parse() for Benchmark Support
+
+### P4.1: Create ParseWithFlagSet Function
+
+- [ ] 4.1.1 Create ParseWithFlagSet(fs *pflag.FlagSet, ...) function  
+- [ ] 4.1.2 Modify Parse() to call ParseWithFlagSet(pflag.CommandLine, ...)
+- [ ] 4.1.3 Add unit tests for ParseWithFlagSet
+- [ ] 4.1.4 Update BenchmarkParse to use fresh FlagSet per iteration
+- [ ] 4.1.5 Remove skip from P3.1 tests
+- [ ] 4.1.6 Run benchmarks and verify no global state conflicts
+- [ ] 4.1.7 Commit with evidence
+```
+
+**Example - WRONG Pattern (FORBIDDEN):**
+
+```markdown
+### P3.1: Config Benchmarks ❌ BLOCKED
+
+**Blocker**: Parse() uses global pflag state
+
+**Decision**: Skip P3.1, mark as blocked
+
+---
+
+[No follow-up phase created - VIOLATION]
+[Stopped working - VIOLATION]
+```
 
 **Document Sprawl Prevention:**
 
