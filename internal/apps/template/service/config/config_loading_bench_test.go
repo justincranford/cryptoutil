@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
@@ -44,8 +45,11 @@ tls-private-dns-names: ["localhost"]
 	b.ResetTimer() // Reset timer after setup.
 
 	for i := 0; i < b.N; i++ {
-		// Benchmark Parse with config file.
-		_, err := cryptoutilAppsTemplateServiceConfig.Parse(
+		// Benchmark ParseWithFlagSet with fresh FlagSet per iteration (prevents "flag redefined" panic).
+		fs := pflag.NewFlagSet("bench", pflag.ContinueOnError)
+
+		_, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(
+			fs,
 			[]string{"start", "--config", configPath},
 			false, // Don't exit on help
 		)
@@ -90,8 +94,12 @@ allowed-ips: ["192.168.1.0/24", "10.0.0.0/8"]
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		// Parse includes validation, so this benchmarks both parsing + validation.
-		_, err := cryptoutilAppsTemplateServiceConfig.Parse(
+		// ParseWithFlagSet includes validation, so this benchmarks both parsing + validation.
+		// Use fresh FlagSet per iteration to prevent "flag redefined" panic.
+		fs := pflag.NewFlagSet("bench", pflag.ContinueOnError)
+
+		_, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(
+			fs,
 			[]string{"start", "--config", configPath},
 			false,
 		)
@@ -135,9 +143,13 @@ otlp-endpoint: "http://otel-collector:4317"
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		// Benchmark Parse with config file + CLI overrides + env vars.
+		// Benchmark ParseWithFlagSet with config file + CLI overrides + env vars.
 		// This tests the full merging logic: file → env vars → CLI flags.
-		_, err := cryptoutilAppsTemplateServiceConfig.Parse(
+		// Use fresh FlagSet per iteration to prevent "flag redefined" panic.
+		fs := pflag.NewFlagSet("bench", pflag.ContinueOnError)
+
+		_, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(
+			fs,
 			[]string{
 				"start",
 				"--config", configPath,
