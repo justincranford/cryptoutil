@@ -27,7 +27,6 @@
 |------|-------------|
 | [01-01.terminology](.github/instructions/01-01.terminology.instructions.md) | RFC 2119 keywords (MUST, SHOULD, MAY, CRITICAL) |
 | [01-02.continuous-work](.github/instructions/01-02.continuous-work.instructions.md) | Continuous work directive |
-| [01-03.speckit](.github/instructions/01-03.speckit.instructions.md) | SpecKit methodology |
 | [02-01.architecture](.github/instructions/02-01.architecture.instructions.md) | Products and services architecture patterns |
 | [02-02.service-template](.github/instructions/02-02.service-template.instructions.md) | Service template requirements and patterns for all cryptoutil services |
 | [02-03.https-ports](.github/instructions/02-03.https-ports.instructions.md) | HTTPS ports and TLS configuration |
