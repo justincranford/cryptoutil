@@ -279,7 +279,7 @@ Before ending documentation sync:
 1. Copilot Instructions (01-02.continuous-work) → Add "NEVER ask 'Should I proceed?'" to prohibited patterns
 2. Prompts (autonomous-execution.prompt.md) → Add to continuous execution rules
 3. Prompts (beast-mode-3.1.prompt.md) → Add to autonomous behavior section
-4. Plans (fixes-needed-PLAN.md) → Update execution workflow section
+4. Plans (plan.md) → Update execution workflow section
 
 **Sync Workflow**:
 

@@ -7,6 +7,7 @@
 **Architecture Reference**: See [docs/arch/ARCHITECTURE.md](../arch/ARCHITECTURE.md) for comprehensive design patterns, principles, and implementation guidelines.
 
 **PROGRESS TRACKING - MANDATORY**: Check off tasks in this document as they are completed. Each checkbox (- [ ]) represents objective evidence of completion:
+
 - Build succeeds (`go build ./...`)
 - Tests pass (`go test ./...`)
 - Coverage targets met (≥95% production, ≥98% infrastructure)
@@ -14,6 +15,7 @@
 - Commit created with conventional message and evidence
 
 **Critical Fixes from V3**:
+
 - ✅ Port 9090 for admin endpoints
 - ✅ PostgreSQL 18+ requirement
 - ✅ Directory: deployments/jose-ja/, configs/jose-ja/
@@ -32,6 +34,7 @@
 ## MANDATORY Execution Rules
 
 **Quality Gates (EVERY task MUST pass ALL before marking complete)**:
+
 1. ✅ **Build**: `go build ./...` (zero errors)
 2. ✅ **Linting**: `golangci-lint run --fix ./...` (zero warnings)
 3. ✅ **Tests**: `go test ./...` (100% pass, no skips without tracking)
@@ -41,6 +44,7 @@
 7. ✅ **Git**: Conventional commit after EACH logical unit with evidence in commit message
 
 **Continuous Execution (NO EXCEPTIONS)**:
+
 - ❌ NEVER stop to ask "Should I continue with Task X?"
 - ❌ NEVER pause between tasks for status updates
 - ❌ NEVER skip validation steps to save time
@@ -51,6 +55,7 @@
 - ✅ ALWAYS update specs/002-cryptoutil/implement/DETAILED.md Section 2 timeline
 
 **Evidence Requirements (NO task complete without ALL)**:
+
 - **Build output**: `go build ./...` zero errors
 - **Test output**: `go test ./...` 100% pass
 - **Coverage report**: ≥95%/≥98% targets met
@@ -62,6 +67,7 @@
 ## Phase 0: Service-Template - Remove Default Tenant Pattern
 
 ### 0.1 Remove WithDefaultTenant from ServerBuilder
+
 **File**: `internal/apps/template/service/server/builder/server_builder.go`
 
 - [x] 0.1.1 Remove `defaultTenantID` field from ServerBuilder struct
@@ -78,6 +84,7 @@
 ---
 
 ### 0.2 Remove EnsureDefaultTenant Helper
+
 **File**: `internal/apps/template/service/server/repository/seeding.go`
 
 - [x] 0.2.1 Delete entire file `seeding.go`
@@ -89,6 +96,7 @@
 ---
 
 ### 0.3 Update SessionManagerService
+
 **File**: `internal/apps/template/service/server/businesslogic/session_manager_service.go`
 
 - [x] 0.3.1 Remove `defaultTenantID` field
@@ -106,6 +114,7 @@
 ---
 
 ### 0.4 Remove Template Magic Constants
+
 **Files**: `internal/shared/magic/magic_template.go`
 
 - [x] 0.4.1 Remove `TemplateDefaultTenantID` constant (if exists)
@@ -123,6 +132,7 @@
 **User Decision**: "WTF is tenant_join_requests (1006)? Only pending_users (1005) needed?"
 
 **Implementation Details**:
+
 - Username unique per tenant across pending_users AND users
 - Composite index (username, tenant_id), status+requested_at index
 - Expiration in HOURS (configurable, default 72h), auto-delete expired
@@ -144,9 +154,11 @@
 ---
 
 ### 0.8 Create Registration HTTP Handlers
+
 **Files**: `internal/apps/template/service/server/apis/{registration,join_request}_handlers.go`
 
 **Implementation Details**:
+
 - Admin dashboard in template infrastructure (NOT domain-specific)
 - NO email notifications (users poll via login)
 - NO webhook callbacks (keep simple)
@@ -181,6 +193,7 @@
 ---
 
 ### 0.9 Update ServerBuilder Registration
+
 **File**: `internal/apps/template/service/server/builder/server_builder.go`
 
 - [x] 0.9.1 Register POST /browser/api/v1/auth/register route
@@ -209,6 +222,7 @@
 **Final Commit**: `feat(service-template): remove default tenant pattern, implement registration flow`
 
 **Evidence Summary**:
+
 - ✅ Build: Zero errors across entire project
 - ✅ Tests: All template service tests pass (unit + integration)
 - ⚠️ Linting: Template service clean (5 false positives in lambdas, CA package out of scope)
@@ -218,6 +232,7 @@
 - ✅ E2E: Registration and join request flows verified
 
 **Commits This Session** (5 total):
+
 1. 7462fa57: Integration tests for registration handlers
 2. bf7dac3c: Task 0.8.8 documentation
 3. e3e5ca53: Linting fixes (unused parameters)
@@ -229,6 +244,7 @@
 ## Phase 1: Cipher-IM - Adapt to Registration Flow
 
 ### 1.1 Remove cipher-im Default Tenant References
+
 **Files**: `internal/apps/cipher/im/server/*`
 
 - [x] 1.1.1 Remove any WithDefaultTenant() calls (if exist) ✅ No calls found
@@ -240,9 +256,11 @@
 ---
 
 ### 1.2 Update cipher-im Tests to Registration Pattern
+
 **Files**: `internal/apps/cipher/im/server/apis/*_test.go`
 
 **Hash Service Configuration**:
+
 - Q4.1: Verify PBKDF2 iterations = 610,000 in `internal/shared/magic/magic_cryptography.go`
 - Q4.2: Lazy migration for pepper rotation (already implemented in hash service)
 - Q4.3: Multiple hash versions supported (already implemented in hash service)
@@ -287,6 +305,7 @@
 ---
 
 ### 2.1 Create JOSE Domain Models
+
 **File**: `internal/apps/jose/ja/domain/models.go`
 
 - [x] 2.1.1 Create ElasticJWK model (with TenantID, NO realm_id) ✅ Already exists
@@ -301,6 +320,7 @@
 ---
 
 ### 2.2 Create JOSE Database Migrations
+
 **Directory**: `internal/apps/jose/ja/repository/migrations/`
 
 - [x] 2.2.1 Create 2001_elastic_jwk.{up,down}.sql ✅ Already exists (2001_elastic_jwks)
@@ -317,6 +337,7 @@
 ---
 
 ### 2.3 Implement JOSE Repositories
+
 **Files**: `internal/apps/jose/ja/repository/*_repository.go`
 
 - [x] 2.3.1 Implement ElasticJWKRepository (Create, GetByID, GetByKID, List, Update) ✅ Already exists
@@ -350,6 +371,7 @@
 ## Phase 3: JOSE-JA - ServerBuilder Integration
 
 ### 3.1 Create JOSE Server Configuration
+
 **File**: `internal/apps/jose/ja/server/config/config.go`
 
 - [x] 3.1.1 Create Settings struct (wraps ServiceTemplateServerSettings) ✅ JoseJAServerSettings wraps ServiceTemplateServerSettings
@@ -362,6 +384,7 @@
 ---
 
 ### 3.2 Create JOSE Public Server
+
 **File**: `internal/apps/jose/ja/server/server.go`
 
 - [x] 3.2.1 Create JoseServer struct ✅ JoseJAServer struct exists
@@ -376,6 +399,7 @@
 ---
 
 ### 3.3 Create JOSE HTTP Handlers
+
 **Files**: `internal/apps/jose/ja/server/apis/*_handlers.go`
 
 - [x] 3.3.1 Implement JWK handlers (Generate, List, Get, Rotate, Revoke) ✅ HandleCreateElasticJWK, HandleListElasticJWKs, HandleGetElasticJWK, HandleRotateMaterialJWK, HandleDeleteElasticJWK
@@ -394,6 +418,7 @@
 ---
 
 ### 3.4 Implement JOSE Business Logic Services
+
 **Files**: `internal/apps/jose/ja/service/*_service.go`
 
 - [x] 3.4.1 Implement ElasticJWKService ✅ elastic_jwk_service.go
@@ -420,7 +445,7 @@
 - [x] 3.5.3 Tests: `go test ./internal/apps/jose/... -cover` (100% pass) ✅ All 6 packages pass
 - [x] 3.5.4 Coverage: ≥85% production, ≥85% infrastructure (Phase 1) ⏸️ Partial - apis 100%, domain 100%, others 62-83% (deferred to Phase X)
 - [ ] 3.5.5 Mutation: DEFERRED to Phase Y (Mutation Testing)
-- [x] 3.5.6 Paths: No service name in request paths ✅ Verified - /service/api/v1/* and /browser/api/v1/*
+- [x] 3.5.6 Paths: No service name in request paths ✅ Verified - /service/api/v1/*and /browser/api/v1/*
 - [x] 3.5.7 Config: Docker secrets > YAML > ENV priority ✅ Inherited from ServiceTemplateServerSettings
 - [x] 3.5.8 Git: Conventional commit ✅ N/A - already complete (no changes needed)
 
@@ -435,6 +460,7 @@
 **See JOSE-JA-REFACTORING-PLAN-V4.md for detailed tasks**
 
 **Key Changes from V3**:
+
 - ✅ Phase 4: Fix repository realm_id filtering, test passwords
 - ✅ Phase 5: Cross-tenant JWKS via tenant management API
 - ✅ Phase 6: No changes
@@ -446,6 +472,7 @@
 ## Phase 9: JOSE-JA - Documentation
 
 ### 9.1 Update API Documentation
+
 **File**: `docs/jose-ja/API-REFERENCE.md`
 
 - [x] 9.1.1 Fix base URLs (port 9092 for admin) ✅ COMPLETE
@@ -460,6 +487,7 @@
 ---
 
 ### 9.2 Update Deployment Guide
+
 **File**: `docs/jose-ja/DEPLOYMENT.md`
 
 - [x] 9.2.1 Fix port 9092 for admin endpoints ✅ COMPLETE
@@ -470,7 +498,7 @@
 - [x] 9.2.6 **CRITICAL: Remove Kubernetes documentation** ✅ COMPLETE (only Docker documented)
 - [x] 9.2.7 **CRITICAL: Remove Prometheus scraping endpoint** ✅ COMPLETE (OTLP only)
 - [x] 9.2.8 **CRITICAL: OTLP telemetry only** ✅ COMPLETE
-- [x] 9.2.9 Separate browser-session-* and service-session-* configs ✅ COMPLETE
+- [x] 9.2.9 Separate browser-session-*and service-session-* configs ✅ COMPLETE
 - [x] 9.2.10 Document health endpoints on BOTH public and admin servers ✅ COMPLETE
 
 **Evidence**: Deployment docs created at docs/jose-ja/DEPLOYMENT.md, NO ENVs, NO K8s, OTLP only
@@ -478,6 +506,7 @@
 ---
 
 ### 9.3 Update Copilot Instructions
+
 **File**: `.github/instructions/02-02.service-template.instructions.md`
 
 - [x] 9.3.1 Document Docker secrets > YAML > CLI priority (NO ENV) ✅ COMPLETE
@@ -527,10 +556,12 @@
 ### W.1 Refactor Bootstrap to ApplicationCore
 
 **Files**:
+
 - `internal/apps/template/service/server/builder/server_builder.go`
 - `internal/apps/template/service/server/application/application_core.go`
 
 **Components to Move**:
+
 ```
 sqlDB
 barrierRepo
@@ -862,6 +893,7 @@ statusService
 - [x] Git history clean (conventional commits) ✅
 
 **Next Actions**:
+
 1. Fix 4 failing tests
 2. Complete Phase X (high coverage testing)
 3. Complete Phase Y (mutation testing)

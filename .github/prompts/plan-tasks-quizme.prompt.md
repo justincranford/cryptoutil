@@ -531,8 +531,8 @@ This prompt complements the existing SpecKit agents:
 
 **Examples** (reference these):
 
-- `docs/fixes-needed-plan-tasks/fixes-needed-PLAN.md`
-- `docs/fixes-needed-plan-tasks/fixes-needed-TASKS.md`
+- `docs/fixes-needed-plan-tasks/plan.md`
+- `docs/fixes-needed-plan-tasks/tasks.md`
 - `docs/fixes-needed-plan-tasks/CLARIFY-QUIZME-v1.md`
 - `specs/002-cryptoutil/plan.md`
 - `specs/002-cryptoutil/tasks.md`
