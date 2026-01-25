@@ -9,28 +9,20 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 )
 
-// NOTE: Parse() uses global pflag state that cannot be reset between test cases.
-// Therefore, we use separate test functions instead of table-driven tests.
-// Each test runs in a separate process via `go test`, avoiding flag conflicts.
-//
-// IMPORTANT: Tests must be run individually to avoid "flag redefined" errors:
-//   go test -v ./internal/apps/template/service/config -run "TestYAMLFieldMapping_KebabCase"
-//   go test -v ./internal/apps/template/service/config -run "TestYAMLFieldMapping_CamelCase"
-//   go test -v ./internal/apps/template/service/config -run "TestYAMLFieldMapping_PascalCase"
-//   go test -v ./internal/apps/template/service/config -run "TestYAMLFieldMapping_FalseBooleans"
-//
-// This limitation is acceptable because:
-// - Production code works correctly (Parse() called once per process)
-// - Each individual test validates the behavior correctly
-// - CI/CD can run tests individually or accept the limitation
+// NOTE: These tests now use ParseWithFlagSet() with fresh FlagSets to avoid
+// global pflag.CommandLine state conflicts. This allows parallel test execution
+// and benchmark testing without "flag redefined" panics.
 
 // TestYAMLFieldMapping_KebabCase tests that kebab-case YAML field names (dev-mode, bind-public-address)
 // correctly map to PascalCase struct fields (DevMode, BindPublicAddress).
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_KebabCase(t *testing.T) {
+	t.Parallel()
+
 	yamlContent := `
 dev: true
 bind-public-address: 127.0.0.1
@@ -45,7 +37,8 @@ bind-private-port: 9090
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
-	settings, err := Parse(cmdParams, false)
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
 	require.Equal(t, true, settings.DevMode, "dev should map to DevMode")
@@ -75,7 +68,8 @@ bind-private-port: 9999
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
-	settings, err := Parse(cmdParams, false)
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
 	require.Equal(t, false, settings.DevMode, "dev field correctly maps to DevMode")
@@ -105,7 +99,8 @@ bind-private-port: 6666
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
-	settings, err := Parse(cmdParams, false)
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
 	require.Equal(t, false, settings.DevMode, "dev field correctly maps to DevMode")
@@ -118,6 +113,8 @@ bind-private-port: 6666
 // TestYAMLFieldMapping_FalseBooleans tests that false boolean values are correctly parsed.
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_FalseBooleans(t *testing.T) {
+	t.Parallel()
+
 	yamlContent := `
 dev: false
 bind-public-address: 0.0.0.0
@@ -132,7 +129,8 @@ bind-private-port: 9090
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
-	settings, err := Parse(cmdParams, false)
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	settings, err := ParseWithFlagSet(fs, cmdParams, false)
 	require.NoError(t, err)
 
 	require.Equal(t, false, settings.DevMode, "dev: false should map to DevMode: false")

@@ -12,6 +12,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	googleUuid "github.com/google/uuid"
@@ -23,6 +24,11 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+// viperMutex protects concurrent access to the global viper instance used in ParseWithFlagSet.
+// This prevents "concurrent map writes" panics when tests run in parallel with ParseWithFlagSet().
+// Note: viper uses global maps for environment variable bindings and other state, so we must serialize access.
+var viperMutex sync.Mutex
 
 // TLSMode defines the three supported TLS certificate provisioning modes.
 type TLSMode string
@@ -902,7 +908,19 @@ func getTLSPEMBytes(key string) []byte {
 }
 
 // Parse parses command line parameters and returns application settings.
-func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerSettings, error) {
+// ParseWithFlagSet parses command parameters into ServiceTemplateServerSettings using a custom FlagSet.
+// This function enables benchmark testing by accepting a fresh FlagSet for each iteration,
+// avoiding pflag's "flag redefined" panics when the same flags are registered multiple times.
+//
+// Parameters:
+//   - fs: Custom FlagSet to register flags on (use pflag.NewFlagSet() for benchmarks, pflag.CommandLine for production)
+//   - commandParameters: Command line arguments (first element is subcommand, rest are flags)
+//   - exitIfHelp: If true, os.Exit(0) when --help flag is set
+//
+// Returns:
+//   - *ServiceTemplateServerSettings: Parsed configuration settings
+//   - error: Validation or parsing errors
+func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerSettings, error) {
 	if len(commandParameters) == 0 {
 		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", \"init\", \"live\", or \"ready\"")
 	}
@@ -913,6 +931,11 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	}
 
 	subCommandParameters := commandParameters[1:]
+
+	// Lock viperMutex to prevent concurrent map writes when tests run in parallel.
+	// viper uses global maps for environment variable bindings and other state, so we must serialize access.
+	viperMutex.Lock()
+	defer viperMutex.Unlock()
 
 	// Enable environment variable support with CRYPTOUTIL_ prefix BEFORE parsing flags
 	viper.SetEnvPrefix("CRYPTOUTIL")
@@ -929,74 +952,74 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 		}
 	}
 
-	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
-	pflag.BoolP(help.Name, help.Shorthand, RegisterAsBoolSetting(&help), help.Usage)
-	pflag.StringSliceP(configFile.Name, configFile.Shorthand, RegisterAsStringSliceSetting(&configFile), configFile.Usage)
-	pflag.StringP(logLevel.Name, logLevel.Shorthand, RegisterAsStringSetting(&logLevel), logLevel.Usage)
-	pflag.BoolP(verboseMode.Name, verboseMode.Shorthand, RegisterAsBoolSetting(&verboseMode), verboseMode.Usage)
-	pflag.BoolP(devMode.Name, devMode.Shorthand, RegisterAsBoolSetting(&devMode), devMode.Usage)
-	pflag.BoolP(demoMode.Name, demoMode.Shorthand, RegisterAsBoolSetting(&demoMode), demoMode.Usage)
-	pflag.BoolP(dryRun.Name, dryRun.Shorthand, RegisterAsBoolSetting(&dryRun), dryRun.Usage)
-	pflag.StringP(profile.Name, profile.Shorthand, RegisterAsStringSetting(&profile), profile.Usage)
-	pflag.StringP(bindPublicProtocol.Name, bindPublicProtocol.Shorthand, RegisterAsStringSetting(&bindPublicProtocol), bindPublicProtocol.Usage)
-	pflag.StringP(bindPublicAddress.Name, bindPublicAddress.Shorthand, RegisterAsStringSetting(&bindPublicAddress), bindPublicAddress.Usage)
-	pflag.Uint16P(bindPublicPort.Name, bindPublicPort.Shorthand, RegisterAsUint16Setting(&bindPublicPort), bindPublicPort.Usage)
-	pflag.StringSliceP(tlsPublicDNSNames.Name, tlsPublicDNSNames.Shorthand, RegisterAsStringSliceSetting(&tlsPublicDNSNames), tlsPublicDNSNames.Usage)
-	pflag.StringSliceP(tlsPublicIPAddresses.Name, tlsPublicIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.Usage)
-	pflag.StringSliceP(tlsPrivateDNSNames.Name, tlsPrivateDNSNames.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.Usage)
-	pflag.StringSliceP(tlsPrivateIPAddresses.Name, tlsPrivateIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.Usage)
-	pflag.StringP(tlsPublicMode.Name, tlsPublicMode.Shorthand, string(defaultTLSPublicMode), tlsPublicMode.Usage)
-	pflag.StringP(tlsPrivateMode.Name, tlsPrivateMode.Shorthand, string(defaultTLSPrivateMode), tlsPrivateMode.Usage)
-	pflag.BytesBase64P(tlsStaticCertPEM.Name, tlsStaticCertPEM.Shorthand, []byte(nil), tlsStaticCertPEM.Usage)
-	pflag.BytesBase64P(tlsStaticKeyPEM.Name, tlsStaticKeyPEM.Shorthand, []byte(nil), tlsStaticKeyPEM.Usage)
-	pflag.BytesBase64P(tlsMixedCACertPEM.Name, tlsMixedCACertPEM.Shorthand, []byte(nil), tlsMixedCACertPEM.Usage)
-	pflag.BytesBase64P(tlsMixedCAKeyPEM.Name, tlsMixedCAKeyPEM.Shorthand, []byte(nil), tlsMixedCAKeyPEM.Usage)
-	pflag.StringP(bindPrivateProtocol.Name, bindPrivateProtocol.Shorthand, RegisterAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.Usage)
-	pflag.StringP(bindPrivateAddress.Name, bindPrivateAddress.Shorthand, RegisterAsStringSetting(&bindPrivateAddress), bindPrivateAddress.Usage)
-	pflag.Uint16P(bindPrivatePort.Name, bindPrivatePort.Shorthand, RegisterAsUint16Setting(&bindPrivatePort), bindPrivatePort.Usage)
-	pflag.StringP(publicBrowserAPIContextPath.Name, publicBrowserAPIContextPath.Shorthand, RegisterAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.Usage)
-	pflag.StringP(publicServiceAPIContextPath.Name, publicServiceAPIContextPath.Shorthand, RegisterAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.Usage)
-	pflag.StringP(privateAdminAPIContextPath.Name, privateAdminAPIContextPath.Shorthand, RegisterAsStringSetting(&privateAdminAPIContextPath), privateAdminAPIContextPath.Usage)
-	pflag.StringSliceP(corsAllowedOrigins.Name, corsAllowedOrigins.Shorthand, RegisterAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.Usage)
-	pflag.StringSliceP(corsAllowedMethods.Name, corsAllowedMethods.Shorthand, RegisterAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.Usage)
-	pflag.StringSliceP(corsAllowedHeaders.Name, corsAllowedHeaders.Shorthand, RegisterAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.Usage)
-	pflag.Uint16P(corsMaxAge.Name, corsMaxAge.Shorthand, RegisterAsUint16Setting(&corsMaxAge), corsMaxAge.Usage)
-	pflag.StringP(csrfTokenName.Name, csrfTokenName.Shorthand, RegisterAsStringSetting(&csrfTokenName), csrfTokenName.Usage)
-	pflag.StringP(csrfTokenSameSite.Name, csrfTokenSameSite.Shorthand, RegisterAsStringSetting(&csrfTokenSameSite), csrfTokenSameSite.Usage)
-	pflag.DurationP(csrfTokenMaxAge.Name, csrfTokenMaxAge.Shorthand, RegisterAsDurationSetting(&csrfTokenMaxAge), csrfTokenMaxAge.Usage)
-	pflag.BoolP(csrfTokenCookieSecure.Name, csrfTokenCookieSecure.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieSecure), csrfTokenCookieSecure.Usage)
-	pflag.BoolP(csrfTokenCookieHTTPOnly.Name, csrfTokenCookieHTTPOnly.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.Usage)
-	pflag.BoolP(csrfTokenCookieSessionOnly.Name, csrfTokenCookieSessionOnly.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.Usage)
-	pflag.BoolP(csrfTokenSingleUseToken.Name, csrfTokenSingleUseToken.Shorthand, RegisterAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.Usage)
-	pflag.Uint16P(browserIPRateLimit.Name, browserIPRateLimit.Shorthand, RegisterAsUint16Setting(&browserIPRateLimit), browserIPRateLimit.Usage)
-	pflag.Uint16P(serviceIPRateLimit.Name, serviceIPRateLimit.Shorthand, RegisterAsUint16Setting(&serviceIPRateLimit), serviceIPRateLimit.Usage)
-	pflag.StringSliceP(allowedIps.Name, allowedIps.Shorthand, RegisterAsStringSliceSetting(&allowedIps), allowedIps.Usage)
-	pflag.StringSliceP(allowedCidrs.Name, allowedCidrs.Shorthand, RegisterAsStringSliceSetting(&allowedCidrs), allowedCidrs.Usage)
-	pflag.IntP(requestBodyLimit.Name, requestBodyLimit.Shorthand, RegisterAsIntSetting(&requestBodyLimit), requestBodyLimit.Usage)
-	pflag.StringP(databaseContainer.Name, databaseContainer.Shorthand, RegisterAsStringSetting(&databaseContainer), databaseContainer.Usage)
-	pflag.StringP(databaseURL.Name, databaseURL.Shorthand, RegisterAsStringSetting(&databaseURL), databaseURL.Usage)
-	pflag.DurationP(databaseInitTotalTimeout.Name, databaseInitTotalTimeout.Shorthand, RegisterAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.Usage)
-	pflag.DurationP(databaseInitRetryWait.Name, databaseInitRetryWait.Shorthand, RegisterAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.Usage)
-	pflag.DurationP(serverShutdownTimeout.Name, serverShutdownTimeout.Shorthand, RegisterAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.Usage)
-	pflag.BoolP(otlpEnabled.Name, otlpEnabled.Shorthand, RegisterAsBoolSetting(&otlpEnabled), otlpEnabled.Usage)
-	pflag.BoolP(otlpConsole.Name, otlpConsole.Shorthand, RegisterAsBoolSetting(&otlpConsole), otlpConsole.Usage)
-	pflag.StringP(otlpService.Name, otlpService.Shorthand, RegisterAsStringSetting(&otlpService), otlpService.Usage)
-	pflag.StringP(otlpVersion.Name, otlpVersion.Shorthand, RegisterAsStringSetting(&otlpVersion), otlpVersion.Usage)
-	pflag.StringP(otlpEnvironment.Name, otlpEnvironment.Shorthand, RegisterAsStringSetting(&otlpEnvironment), otlpEnvironment.Usage)
-	pflag.StringP(otlpHostname.Name, otlpHostname.Shorthand, RegisterAsStringSetting(&otlpHostname), otlpHostname.Usage)
-	pflag.StringP(otlpEndpoint.Name, otlpEndpoint.Shorthand, RegisterAsStringSetting(&otlpEndpoint), otlpEndpoint.Usage)
-	pflag.StringP(otlpInstance.Name, otlpInstance.Shorthand, RegisterAsStringSetting(&otlpInstance), otlpInstance.Usage)
-	pflag.StringP(unsealMode.Name, unsealMode.Shorthand, RegisterAsStringSetting(&unsealMode), unsealMode.Usage)
-	pflag.StringArrayP(unsealFiles.Name, unsealFiles.Shorthand, RegisterAsStringArraySetting(&unsealFiles), unsealFiles.Usage)
-	pflag.StringSliceP(browserRealms.Name, browserRealms.Shorthand, RegisterAsStringSliceSetting(&browserRealms), browserRealms.Usage)
-	pflag.StringSliceP(serviceRealms.Name, serviceRealms.Shorthand, RegisterAsStringSliceSetting(&serviceRealms), serviceRealms.Usage)
+	// Register flags on custom FlagSet (fs parameter instead of global pflag.CommandLine)
+	fs.BoolP(help.Name, help.Shorthand, RegisterAsBoolSetting(&help), help.Usage)
+	fs.StringSliceP(configFile.Name, configFile.Shorthand, RegisterAsStringSliceSetting(&configFile), configFile.Usage)
+	fs.StringP(logLevel.Name, logLevel.Shorthand, RegisterAsStringSetting(&logLevel), logLevel.Usage)
+	fs.BoolP(verboseMode.Name, verboseMode.Shorthand, RegisterAsBoolSetting(&verboseMode), verboseMode.Usage)
+	fs.BoolP(devMode.Name, devMode.Shorthand, RegisterAsBoolSetting(&devMode), devMode.Usage)
+	fs.BoolP(demoMode.Name, demoMode.Shorthand, RegisterAsBoolSetting(&demoMode), demoMode.Usage)
+	fs.BoolP(dryRun.Name, dryRun.Shorthand, RegisterAsBoolSetting(&dryRun), dryRun.Usage)
+	fs.StringP(profile.Name, profile.Shorthand, RegisterAsStringSetting(&profile), profile.Usage)
+	fs.StringP(bindPublicProtocol.Name, bindPublicProtocol.Shorthand, RegisterAsStringSetting(&bindPublicProtocol), bindPublicProtocol.Usage)
+	fs.StringP(bindPublicAddress.Name, bindPublicAddress.Shorthand, RegisterAsStringSetting(&bindPublicAddress), bindPublicAddress.Usage)
+	fs.Uint16P(bindPublicPort.Name, bindPublicPort.Shorthand, RegisterAsUint16Setting(&bindPublicPort), bindPublicPort.Usage)
+	fs.StringSliceP(tlsPublicDNSNames.Name, tlsPublicDNSNames.Shorthand, RegisterAsStringSliceSetting(&tlsPublicDNSNames), tlsPublicDNSNames.Usage)
+	fs.StringSliceP(tlsPublicIPAddresses.Name, tlsPublicIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.Usage)
+	fs.StringSliceP(tlsPrivateDNSNames.Name, tlsPrivateDNSNames.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.Usage)
+	fs.StringSliceP(tlsPrivateIPAddresses.Name, tlsPrivateIPAddresses.Shorthand, RegisterAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.Usage)
+	fs.StringP(tlsPublicMode.Name, tlsPublicMode.Shorthand, string(defaultTLSPublicMode), tlsPublicMode.Usage)
+	fs.StringP(tlsPrivateMode.Name, tlsPrivateMode.Shorthand, string(defaultTLSPrivateMode), tlsPrivateMode.Usage)
+	fs.BytesBase64P(tlsStaticCertPEM.Name, tlsStaticCertPEM.Shorthand, []byte(nil), tlsStaticCertPEM.Usage)
+	fs.BytesBase64P(tlsStaticKeyPEM.Name, tlsStaticKeyPEM.Shorthand, []byte(nil), tlsStaticKeyPEM.Usage)
+	fs.BytesBase64P(tlsMixedCACertPEM.Name, tlsMixedCACertPEM.Shorthand, []byte(nil), tlsMixedCACertPEM.Usage)
+	fs.BytesBase64P(tlsMixedCAKeyPEM.Name, tlsMixedCAKeyPEM.Shorthand, []byte(nil), tlsMixedCAKeyPEM.Usage)
+	fs.StringP(bindPrivateProtocol.Name, bindPrivateProtocol.Shorthand, RegisterAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.Usage)
+	fs.StringP(bindPrivateAddress.Name, bindPrivateAddress.Shorthand, RegisterAsStringSetting(&bindPrivateAddress), bindPrivateAddress.Usage)
+	fs.Uint16P(bindPrivatePort.Name, bindPrivatePort.Shorthand, RegisterAsUint16Setting(&bindPrivatePort), bindPrivatePort.Usage)
+	fs.StringP(publicBrowserAPIContextPath.Name, publicBrowserAPIContextPath.Shorthand, RegisterAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.Usage)
+	fs.StringP(publicServiceAPIContextPath.Name, publicServiceAPIContextPath.Shorthand, RegisterAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.Usage)
+	fs.StringP(privateAdminAPIContextPath.Name, privateAdminAPIContextPath.Shorthand, RegisterAsStringSetting(&privateAdminAPIContextPath), privateAdminAPIContextPath.Usage)
+	fs.StringSliceP(corsAllowedOrigins.Name, corsAllowedOrigins.Shorthand, RegisterAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.Usage)
+	fs.StringSliceP(corsAllowedMethods.Name, corsAllowedMethods.Shorthand, RegisterAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.Usage)
+	fs.StringSliceP(corsAllowedHeaders.Name, corsAllowedHeaders.Shorthand, RegisterAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.Usage)
+	fs.Uint16P(corsMaxAge.Name, corsMaxAge.Shorthand, RegisterAsUint16Setting(&corsMaxAge), corsMaxAge.Usage)
+	fs.StringP(csrfTokenName.Name, csrfTokenName.Shorthand, RegisterAsStringSetting(&csrfTokenName), csrfTokenName.Usage)
+	fs.StringP(csrfTokenSameSite.Name, csrfTokenSameSite.Shorthand, RegisterAsStringSetting(&csrfTokenSameSite), csrfTokenSameSite.Usage)
+	fs.DurationP(csrfTokenMaxAge.Name, csrfTokenMaxAge.Shorthand, RegisterAsDurationSetting(&csrfTokenMaxAge), csrfTokenMaxAge.Usage)
+	fs.BoolP(csrfTokenCookieSecure.Name, csrfTokenCookieSecure.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieSecure), csrfTokenCookieSecure.Usage)
+	fs.BoolP(csrfTokenCookieHTTPOnly.Name, csrfTokenCookieHTTPOnly.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.Usage)
+	fs.BoolP(csrfTokenCookieSessionOnly.Name, csrfTokenCookieSessionOnly.Shorthand, RegisterAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.Usage)
+	fs.BoolP(csrfTokenSingleUseToken.Name, csrfTokenSingleUseToken.Shorthand, RegisterAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.Usage)
+	fs.Uint16P(browserIPRateLimit.Name, browserIPRateLimit.Shorthand, RegisterAsUint16Setting(&browserIPRateLimit), browserIPRateLimit.Usage)
+	fs.Uint16P(serviceIPRateLimit.Name, serviceIPRateLimit.Shorthand, RegisterAsUint16Setting(&serviceIPRateLimit), serviceIPRateLimit.Usage)
+	fs.StringSliceP(allowedIps.Name, allowedIps.Shorthand, RegisterAsStringSliceSetting(&allowedIps), allowedIps.Usage)
+	fs.StringSliceP(allowedCidrs.Name, allowedCidrs.Shorthand, RegisterAsStringSliceSetting(&allowedCidrs), allowedCidrs.Usage)
+	fs.IntP(requestBodyLimit.Name, requestBodyLimit.Shorthand, RegisterAsIntSetting(&requestBodyLimit), requestBodyLimit.Usage)
+	fs.StringP(databaseContainer.Name, databaseContainer.Shorthand, RegisterAsStringSetting(&databaseContainer), databaseContainer.Usage)
+	fs.StringP(databaseURL.Name, databaseURL.Shorthand, RegisterAsStringSetting(&databaseURL), databaseURL.Usage)
+	fs.DurationP(databaseInitTotalTimeout.Name, databaseInitTotalTimeout.Shorthand, RegisterAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.Usage)
+	fs.DurationP(databaseInitRetryWait.Name, databaseInitRetryWait.Shorthand, RegisterAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.Usage)
+	fs.DurationP(serverShutdownTimeout.Name, serverShutdownTimeout.Shorthand, RegisterAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.Usage)
+	fs.BoolP(otlpEnabled.Name, otlpEnabled.Shorthand, RegisterAsBoolSetting(&otlpEnabled), otlpEnabled.Usage)
+	fs.BoolP(otlpConsole.Name, otlpConsole.Shorthand, RegisterAsBoolSetting(&otlpConsole), otlpConsole.Usage)
+	fs.StringP(otlpService.Name, otlpService.Shorthand, RegisterAsStringSetting(&otlpService), otlpService.Usage)
+	fs.StringP(otlpVersion.Name, otlpVersion.Shorthand, RegisterAsStringSetting(&otlpVersion), otlpVersion.Usage)
+	fs.StringP(otlpEnvironment.Name, otlpEnvironment.Shorthand, RegisterAsStringSetting(&otlpEnvironment), otlpEnvironment.Usage)
+	fs.StringP(otlpHostname.Name, otlpHostname.Shorthand, RegisterAsStringSetting(&otlpHostname), otlpHostname.Usage)
+	fs.StringP(otlpEndpoint.Name, otlpEndpoint.Shorthand, RegisterAsStringSetting(&otlpEndpoint), otlpEndpoint.Usage)
+	fs.StringP(otlpInstance.Name, otlpInstance.Shorthand, RegisterAsStringSetting(&otlpInstance), otlpInstance.Usage)
+	fs.StringP(unsealMode.Name, unsealMode.Shorthand, RegisterAsStringSetting(&unsealMode), unsealMode.Usage)
+	fs.StringArrayP(unsealFiles.Name, unsealFiles.Shorthand, RegisterAsStringArraySetting(&unsealFiles), unsealFiles.Usage)
+	fs.StringSliceP(browserRealms.Name, browserRealms.Shorthand, RegisterAsStringSliceSetting(&browserRealms), browserRealms.Usage)
+	fs.StringSliceP(serviceRealms.Name, serviceRealms.Shorthand, RegisterAsStringSliceSetting(&serviceRealms), serviceRealms.Usage)
 
-	err := pflag.CommandLine.Parse(subCommandParameters)
+	err := fs.Parse(subCommandParameters)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
 
-	err = viper.BindPFlags(pflag.CommandLine)
+	err = viper.BindPFlags(fs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to bind flags: %w", err)
 	}
@@ -1140,7 +1163,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	logSettings(s)
 
 	if s.Help {
-		pflag.CommandLine.SetOutput(os.Stdout)
+		fs.SetOutput(os.Stdout)
 		fmt.Println("cryptoutil - Cryptographic utility server")
 		fmt.Println()
 		fmt.Println("USAGE:")
@@ -1247,6 +1270,13 @@ func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerS
 	}
 
 	return s, nil
+}
+
+// Parse parses command parameters using the global pflag.CommandLine FlagSet.
+// This is the standard entry point for production use maintaining backward compatibility.
+// For benchmark testing, use ParseWithFlagSet with a fresh FlagSet to avoid "flag redefined" panics.
+func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, commandParameters, exitIfHelp)
 }
 
 func logSettings(s *ServiceTemplateServerSettings) {
