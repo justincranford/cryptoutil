@@ -409,7 +409,8 @@
     "https://json.schemastore.org/kustomization.json": [ "**/kustomization.{yaml,yml}"],
     "https://json.schemastore.org/helmfile.json": [ "**/helmfile.{yaml,yml}" ],
     "https://json.schemastore.org/pre-commit-config.json": [ ".pre-commit-config.yml", ".pre-commit-config.yaml" ],
-    "https://json.schemastore.org/prometheus.json": [ "prometheus.yml" ]
+    "https://json.schemastore.org/prometheus.json": [ "prometheus.yml" ],
+    "https://json.schemastore.org/dependabot-2.0.json": [ ".github/dependabot.yml", ".github/dependabot.yaml" ]
   },
   "yaml.validate": false, // Disable YAML validation - Requirements.yml doesn't have a schema
   "yaml.format.enable": true, // Enable YAML formatting - Default: true
