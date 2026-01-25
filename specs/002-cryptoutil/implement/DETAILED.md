@@ -596,7 +596,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Violations Found**:
 
-- **Instruction file loading issue**: `.github/instructions/01-02.continuous-work.instructions.md` exists at correct path and is documented in `copilot-instructions.md` but is **NOT being loaded** into Copilot context (tooling/configuration problem)
+- **Instruction file loading issue**: `.github/instructions/01-02.beast-mode.instructions.md` exists at correct path and is documented in `copilot-instructions.md` but is **NOT being loaded** into Copilot context (tooling/configuration problem)
 
 **Next Steps**:
 
@@ -2090,7 +2090,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - **Next steps**:
   1. Add more tests to reach 98% target (Parse edge cases, validation branches)
   2. Commit progress and continue to Task 8 (TestMain for TLS generator)
-  3. Per continuous-work.instructions.md: NEVER STOP between tasks until all 17 tasks complete
+  3. Per beast-mode.instructions.md: NEVER STOP between tasks until all 17 tasks complete
 
 - **Related commits**:
   - 421443ec ("fix: remove duplicate flag shorthands to prevent test failures")

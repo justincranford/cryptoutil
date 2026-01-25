@@ -274,7 +274,7 @@ Before ending documentation sync:
 
 **Documents Requiring Sync**:
 
-1. Copilot Instructions (01-02.continuous-work) → Add "NEVER ask 'Should I proceed?'" to prohibited patterns
+1. Copilot Instructions (01-02.beast-mode) → Add "NEVER ask 'Should I proceed?'" to prohibited patterns
 2. Prompts (autonomous-execution.prompt.md) → Add to continuous execution rules
 3. Prompts (beast-mode-3.1.prompt.md) → Add to autonomous behavior section
 4. Plans (plan.md) → Update execution workflow section
@@ -283,7 +283,7 @@ Before ending documentation sync:
 
 ```bash
 # Step 1: Add rule to copilot instructions
-# Edit .github/instructions/01-02.continuous-work.instructions.md
+# Edit .github/instructions/01-02.beast-mode.instructions.md
 
 # Step 2: Find all execution rule sections
 grep -rn "Execution.*Rule\|Continuous.*Execution\|NEVER ask" .github/prompts/

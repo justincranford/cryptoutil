@@ -173,7 +173,7 @@ Services MUST support configurable federation for cross-service communication (N
 
 **IF TASK COMPLETE**: Immediately start next task from todo list. IF TODO EMPTY: Create new tasks and execute.
 
-**See**: [continuous-work.instructions.md](/.github/instructions/01-02.continuous-work.instructions.md) for enforcement details
+**See**: [beast-mode.instructions.md](/.github/instructions/01-02.beast-mode.instructions.md) for enforcement details
 
 ### Linting and Formatting
 
