@@ -409,8 +409,7 @@
     "https://json.schemastore.org/kustomization.json": [ "**/kustomization.{yaml,yml}"],
     "https://json.schemastore.org/helmfile.json": [ "**/helmfile.{yaml,yml}" ],
     "https://json.schemastore.org/pre-commit-config.json": [ ".pre-commit-config.yml", ".pre-commit-config.yaml" ],
-    "https://json.schemastore.org/prometheus.json": [ "prometheus.yml" ],
-    "https://json.schemastore.org/grafana-dashboard.json": [ "**/grafana/dashboards/*.json" ]
+    "https://json.schemastore.org/prometheus.json": [ "prometheus.yml" ]
   },
   "yaml.validate": false, // Disable YAML validation - Requirements.yml doesn't have a schema
   "yaml.format.enable": true, // Enable YAML formatting - Default: true
@@ -423,8 +422,6 @@
     { "fileMatch": ["go.mod"], "url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/go-mod.json" },
     { "fileMatch": ["Dockerfile*"], "url": "https://raw.githubusercontent.com/moby/buildkit/master/frontend/dockerfile/cmd/dockerfile-parser/schema.json" },
     { "fileMatch": ["docker-compose*.json"], "url": "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json" },
-    { "fileMatch": ["pyproject.toml"], "url": "https://json.schemastore.org/pyproject.toml" },
-    { "fileMatch": ["dependabot.yml", "dependabot.yaml"], "url": "https://json.schemastore.org/dependabot.json" },
     { "fileMatch": ["package.json"], "url": "https://json.schemastore.org/package.json" },
     { "fileMatch": ["tsconfig*.json"], "url": "https://json.schemastore.org/tsconfig.json" },
     { "fileMatch": ["jsconfig*.json"], "url": "https://json.schemastore.org/jsconfig.json" },
