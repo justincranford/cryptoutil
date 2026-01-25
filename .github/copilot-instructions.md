@@ -15,6 +15,8 @@
 - **Do not ask follow-up questions unless explicitly requested**
 - **When given a plan, execute all steps completely**
 - **Avoid conversational check-ins**
+- **ALWAYS prefer lean documentation** - Append to existing docs (DETAILED.md, plan.md, tasks.md) instead of creating new analysis files
+- **NEVER create verbose analysis files** - No ANALYSIS.md, COMPLETION-ANALYSIS.md, SESSION-*.md files
 
 ## Instruction Files Reference
 

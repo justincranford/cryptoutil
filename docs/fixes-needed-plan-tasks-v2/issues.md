@@ -1,145 +1,59 @@
-# Session Issues Tracker - v3
+# V2 Session Issues Tracker
 
 ## Purpose
-Track specific issues encountered during this session to enable deep analysis and pattern recognition.
 
-## Session: 2025-01-24 - Documentation Clarification and Enhancement
+Track specific issues fixed during V2 workflow testing and container mode work.
 
-### Issue #1: Terminology Confusion in plan.md
+## Session: 2026-01-24 - Workflow Test Fixes
 
-**Date**: 2025-01-24
-**Category**: Documentation Clarity
-**Severity**: Medium
-**Status**: Completed
+### Issue #1: Container Mode - Explicit Database URL Support
 
-**Problem Description**:
-In `docs/fixes-needed-plan-tasks-v2/plan.md` line 254, wrote: "**Problem**: Validation didn't account for valid container mode combinations (SQLite + 0.0.0.0)"
+**Status**: Fixed (commit 9e9da31c)
 
-This is misleading because it implies:
-- SQLite database choice is coupled to bind address choice
-- Container mode requires SQLite specifically
+**Problem**:
+Container mode requires 0.0.0.0 binding, but the only SQLite path required `dev: true`, which is rejected with 0.0.0.0 (security restriction).
 
-**Actual Reality**:
-- Database choice (SQLite vs PostgreSQL) is INDEPENDENT of bind address (127.0.0.1 vs 0.0.0.0)
-- Container mode detection: `isContainerMode := settings.BindPublicAddress == "0.0.0.0"`
-- Dev mode validation: `dev-mode: true` + `bind-public-address: 0.0.0.0` → FAIL (security restriction)
-- The fix was adding `sqlite://` URL support so containers can use SQLite WITHOUT `dev: true` flag
+**Solution**:
+Added explicit `sqlite://` URL support so containers can specify database type independently of dev mode.
 
-**Root Cause**:
-Agent conflated two orthogonal concerns:
-1. Database type selection (SQLite vs PostgreSQL) - deployment choice
-2. Bind address validation (dev-mode security restriction) - networking requirement
-
-**Impact**:
-- Confusing documentation in plan.md and tasks.md
-- Potential to mislead future implementers
-- May propagate to other documentation files
-
-**Fix Required**:
-1. Update plan.md line 254: Change from "SQLite + 0.0.0.0" to "Container mode with explicit database URLs"
-2. Update Issue #1 title from "SQLite Container Mode Support" to "Container Mode - Explicit Database URL Support"
-3. Clarify Issue #1 problem statement to emphasize:
-   - Dev-mode requires 127.0.0.1 binding (security restriction)
-   - Container mode requires 0.0.0.0 binding (Docker networking)
-   - Database choice is orthogonal to both
-   - The fix adds sqlite:// prefix support for explicit database URLs
-4. Review all related documentation for similar confusion
-
-**Files Affected**:
-- docs/fixes-needed-plan-tasks-v2/plan.md (primary source of confusion)
-- docs/fixes-needed-plan-tasks-v2/tasks.md (test case names may imply coupling)
-- Potentially: copilot instructions, ARCHITECTURE.md, service-template docs
-
-**Lessons Learned**:
-- ALWAYS verify assumptions about system architecture before documenting
-- Database choice and bind address validation are separate concerns
-- Container mode is about networking requirements, not database requirements
-- Explicit database URLs decouple mode flags from database selection
+**Key Insight**:
+Database choice (SQLite vs PostgreSQL) is orthogonal to bind address (127.0.0.1 vs 0.0.0.0).
 
 ---
 
-### Issue #2: Missing Lessons Learned Extraction Process
+### Issue #2: mTLS Container Mode
 
-**Date**: 2025-01-24
-**Category**: Process Improvement
-**Severity**: Low
-**Status**: Completed
+**Status**: Fixed (commit f58c6ff6)
 
-**Problem Description**:
-Two maintenance documentation files exist that need deletion:
-- `docs/maintenance-session-2026-01-23.md` (135 lines)
-- `docs/workflow-fixing-prompt-fixes.md` (171 lines)
+**Problem**:
+Container healthchecks failed because admin server required client certificates, but Docker healthcheck (wget) doesn't provide them.
 
-However, there's no systematic process for extracting lessons learned before deletion.
+**Solution**:
+Detect container mode via 0.0.0.0 binding and disable mTLS for both dev mode AND container mode.
 
-**Root Cause**:
-No documented workflow for:
-1. Identifying reusable lessons in temporary docs
-2. Finding permanent homes for those lessons
-3. Verifying coverage before deletion
-4. Cross-referencing lesson locations
-
-**Impact**:
-- Risk of losing valuable insights
-- No audit trail for deleted content
-- Potential duplication of lessons in multiple locations
-
-**Fix Required**:
-1. Create lessons learned extraction checklist
-2. Map lessons to permanent doc locations (ARCHITECTURE.md, copilot instructions, etc.)
-3. Verify coverage before deletion
-4. Document deletion decision with justification
+**Test Gap**:
+ZERO tests for mTLS configuration logic (security-critical code untested).
 
 ---
 
-### Issue #3: Prompt Files Lack Session Tracking Workflows
+### Issue #3: DAST Workflow Diagnostics
 
-**Date**: 2025-01-24
-**Category**: Tooling Enhancement
-**Severity**: Medium
-**Status**: Completed
+**Status**: Fixed (commit 80a69d18)
 
-**Problem Description**:
-Three prompt files guide autonomous work:
-- `.github/prompts/workflow-fixing.prompt.md`
-- `.github/prompts/beast-mode-3.1.prompt.md`
-- `.github/prompts/autonomous-execution.prompt.md`
+**Problem**:
+DAST workflow failures didn't upload artifacts, making diagnosis impossible.
 
-None specify:
-- How to track issues/categories during implementation
-- Where to document session-specific problems
-- When/how to create plan.md and tasks.md
-- Whether to create QUIZME.md before implementation
-
-**Root Cause**:
-Prompts evolved organically without session tracking requirements.
-
-**Impact**:
-- Inconsistent documentation across sessions
-- No systematic issue tracking
-- Difficult to identify patterns across multiple sessions
-- Manual decisions about planning phase
-
-**Fix Required**:
-1. Add session tracking requirements to all 3 prompts
-2. Specify docs/fixes-needed-plan-tasks-v#/ as standard location
-3. Define issues.md and categories.md templates
-4. Specify analysis → plan → tasks → QUIZME workflow
-5. Define criteria for creating QUIZME.md vs proceeding directly
+**Solution**:
+Added `if: always()` to artifact upload step and inline diagnostic output on health check failures.
 
 ---
 
-## Summary Statistics
+### Issue #4: DAST Configuration Field Mapping
 
-**Total Issues**: 3
-**Categories**: Documentation Clarity (1), Process Improvement (1), Tooling Enhancement (1)
-**Severity**: Medium (2), Low (1)
-**Status**: In Progress (1), Identified (2)
+**Status**: Under investigation
 
-**Next Actions**:
-1. Correct terminology in plan.md and tasks.md
-2. Search for and correct related documentation
-3. Extract lessons from maintenance docs
-4. Delete maintenance docs
-5. Enhance 3 prompt files
-6. Create plan.md and tasks.md for this session
+**Problem**:
+YAML shows `dev-mode: true` but application logs show `Dev mode (-d): false`.
+
+**Hypothesis**:
+Potential kebab-case → PascalCase field mapping issue in config loading.
