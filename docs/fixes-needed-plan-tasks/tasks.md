@@ -720,9 +720,9 @@ statusService
 
   **Current**: 82.8% coverage (15.2 percentage point gap to target)
 
-  **Blocker**: Remaining gap requires P2.4 GORM mocking infrastructure
+  **Blocker**: Remaining gap requires TestMain pattern refactoring (Phase Z.2)
 
-  **Analysis**: Database error paths (`if err := db.Create(); err != nil`) cannot be tested without mocking
+  **Analysis**: Database error paths can be tested with real GORM DB from TestMain
 
   **Pattern**: Functions at 66.7% coverage = success + not-found covered, database error NOT covered
 
@@ -730,7 +730,7 @@ statusService
 
   **Work completed**: Created 449 lines of edge case tests → 0% coverage improvement (tested already-covered paths)
 
-  **Status**: ❌ BLOCKED until P2.4 GORM mocking architecture implemented
+  **Status**: ❌ BLOCKED until TestMain pattern violations fixed (Phase Z.2)
 
 - [ ] X.3.2 Validation: ≥98% (infrastructure)
 
@@ -760,19 +760,19 @@ statusService
 
   **Current**: 82.7% coverage (12.3 percentage point gap to target)
 
-  **Blocker**: Remaining gap requires P2.4 GORM mocking infrastructure (same as X.3)
+  **Blocker**: Remaining gap requires TestMain pattern refactoring (same as X.3)
 
   **Analysis**: Business logic validation ALREADY comprehensively tested
   - Validation errors: invalid algorithm, expired JWT, invalid key use (ALL TESTED)
   - Business rules: maxMaterials exceeded, duplicate KIDs (ALL TESTED)
   - Crypto errors: invalid keys, decryption failures (ALL TESTED)
-  - **Missing**: Database error paths after validation succeeds (`if err := s.repo.Create(); err != nil`)
+  - **Missing**: Database error paths after validation succeeds (can be tested with real GORM DB)
 
   **Pattern**: 31 functions at 67-94% coverage = validation covered, database errors NOT covered
 
   **Evidence**: See DETAILED.md entry 2026-01-24 (service error path categorization)
 
-  **Status**: ❌ BLOCKED until P2.4 GORM mocking architecture implemented
+  **Status**: ❌ BLOCKED until TestMain pattern violations fixed (Phase Z.2)
 
 - [ ] X.5.2 Validation: ≥95% (production)
 
@@ -798,10 +798,10 @@ statusService
 
 **Context**: Phase X has 3 critical blockers preventing completion:
 1. X.2.1: TestInitDatabase_HappyPaths failure (Docker Desktop dependency)
-2. X.3.1: JOSE repositories BLOCKED at 82.8% (needs GORM mocking - P2.4)
-3. X.5.1: JOSE services BLOCKED at 82.7% (needs GORM mocking - P2.4)
+2. X.3.1: JOSE repositories BLOCKED at 82.8% (needs TestMain refactoring)
+3. X.5.1: JOSE services BLOCKED at 82.7% (needs TestMain refactoring)
 
-**Solution**: Fix Docker Desktop dependency, implement P2.4 GORM mocking, unblock coverage tasks
+**Solution**: Fix Docker Desktop dependency, refactor to TestMain pattern, unblock coverage tasks
 
 ---
 
@@ -838,63 +838,40 @@ Update documentation with clear prerequisites.
 
 ---
 
-### Z.2: Implement P2.4 GORM Mocking Infrastructure
+### Z.2: Refactor TestMain Pattern Violations
 
 **Owner**: LLM Agent
-**Estimated**: 4h
-**Dependencies**: None
+**Estimated**: 12-17h
+**Dependencies**: Z.1 (Docker Desktop)
 **Priority**: P0 (Critical - blocks X.3.1, X.5.1)
 
 **Description**:
-Implement GORM mocking infrastructure to test database error paths.
-Enable repository/service tests to cover error handling without real database.
+Convert 5 packages from per-test setupTestDB() to TestMain pattern.
+Expose shared GORM DB/repositories for all integration tests.
 
-**Architecture Options**:
+**See**: .github/instructions/07-01.testmain-integration-pattern.instructions.md
 
-**Option A: Interface + Manual Mock** (RECOMMENDED):
-```go
-// Repository interface
-type ElasticJWKRepository interface {
-    Create(ctx context.Context, jwk *ElasticJWK) error
-    Get(ctx context.Context, id string) (*ElasticJWK, error)
-}
-
-// Manual mock for testing
-type MockElasticJWKRepository struct {
-    CreateFunc func(ctx context.Context, jwk *ElasticJWK) error
-}
-```
-
-**Option B: go-sqlmock** (alternative):
-```go
-// Mock database driver
-db, mock, _ := sqlmock.New()
-gormDB, _ := gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{})
-mock.ExpectBegin()
-mock.ExpectExec("INSERT").WillReturnError(errors.New("database error"))
-```
+**Violations to Fix**:
+1. internal/apps/template/service/server/businesslogic/session_manager_test.go
+2. internal/apps/template/service/server/businesslogic/tenant_registration_service_test.go
+3. internal/identity/repository/orm/test_helpers_test.go
+4. internal/jose/repository/elastic_jwk_gorm_repository_test.go
+5. internal/infra/tenant/tenant_test.go
 
 **Acceptance Criteria**:
-- [ ] Z.2.1 Choose mocking approach (interface + manual mock OR go-sqlmock)
-- [ ] Z.2.2 Create repository interfaces for ElasticJWKRepository
-- [ ] Z.2.3 Create manual mock implementations OR integrate go-sqlmock
-- [ ] Z.2.4 Add test utilities: mock setup helpers, error injection
-- [ ] Z.2.5 Update existing repository implementation to implement interface
-- [ ] Z.2.6 Update service constructors to accept repository interface (not concrete type)
-- [ ] Z.2.7 Add example database error tests for 1-2 repository methods
-- [ ] Z.2.8 Verify error paths can be tested (Create fails, Get fails, etc.)
-- [ ] Z.2.9 Run tests: `go test ./internal/apps/jose/ja/repository/...`
-- [ ] Z.2.10 All tests pass (0 failures)
-- [ ] Z.2.11 Build clean: `go build ./...`
-- [ ] Z.2.12 Linting clean: `golangci-lint run ./internal/apps/jose/ja/repository/`
-- [ ] Z.2.13 Commit: "feat(jose): implement GORM mocking infrastructure for error path testing"
+- [ ] Z.2.1 Refactor session_manager_test.go: Create TestMain, expose testDB
+- [ ] Z.2.2 Refactor tenant_registration_service_test.go: Expose testDB properly
+- [ ] Z.2.3 Refactor test_helpers_test.go: Add TestMain with testDB
+- [ ] Z.2.4 Refactor elastic_jwk_gorm_repository_test.go: Add TestMain
+- [ ] Z.2.5 Refactor tenant_test.go: Add TestMain
+- [ ] Z.2.6 All refactored tests pass: `go test ./...`
+- [ ] Z.2.7 Verify test execution faster (no repeated setup overhead)
+- [ ] Z.2.8 Build clean: `go build ./...`
+- [ ] Z.2.9 Linting clean: `golangci-lint run ./...`
+- [ ] Z.2.10 Commit: "refactor(tests): convert to TestMain pattern for GORM integration tests"
 
 **Files**:
-- Created: `internal/apps/jose/ja/repository/repository_interface.go`
-- Created: `internal/apps/jose/ja/repository/mock_repository.go`
-- Created: `internal/apps/jose/ja/repository/test_helpers.go`
-- Modified: `internal/apps/jose/ja/repository/elastic_jwk_repository.go`
-- Modified: `internal/apps/jose/ja/service/elastic_jwk_service.go`
+- Modified: All 5 violation files listed above
 
 ---
 
@@ -902,11 +879,11 @@ mock.ExpectExec("INSERT").WillReturnError(errors.New("database error"))
 
 **Owner**: LLM Agent
 **Estimated**: 3h
-**Dependencies**: Z.2 (GORM mocking)
+**Dependencies**: Z.2 (TestMain refactoring)
 **Priority**: P1 (Critical)
 
 **Description**:
-Use GORM mocking to test database error paths in repositories.
+Use refactored TestMain pattern to test database error paths in repositories.
 Target: 82.8% → 98% coverage (15.2 percentage point increase).
 
 **Acceptance Criteria**:
@@ -934,11 +911,11 @@ Target: 82.8% → 98% coverage (15.2 percentage point increase).
 
 **Owner**: LLM Agent
 **Estimated**: 3h
-**Dependencies**: Z.2 (GORM mocking)
+**Dependencies**: Z.2 (TestMain refactoring)
 **Priority**: P1 (Critical)
 
 **Description**:
-Use GORM mocking to test database error paths in services after validation.
+Use refactored TestMain pattern to test database error paths in services after validation.
 Target: 82.7% → 95% coverage (12.3 percentage point increase).
 
 **Acceptance Criteria**:
