@@ -135,6 +135,7 @@ func TestMTLSConfiguration(t *testing.T) {
 
 			// Replicate the mTLS logic from application_listener.go.
 			isContainerMode := settings.BindPublicAddress == cryptoutilSharedMagic.IPv4AnyAddress
+
 			privateClientAuth := tls.RequireAndVerifyClientCert
 			if settings.DevMode || isContainerMode {
 				privateClientAuth = tls.NoClientCert

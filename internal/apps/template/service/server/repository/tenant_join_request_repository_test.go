@@ -21,7 +21,10 @@ import (
 // setupJoinRequestTestDB creates an isolated in-memory SQLite database for join request tests.
 // Each call creates a unique database to prevent test interference.
 func setupJoinRequestTestDB(t *testing.T) *gorm.DB {
+	t.Helper(
 	// Use unique database name to avoid sharing between parallel tests.
+	)
+
 	dsn := fmt.Sprintf("file:memdb_%s?mode=memory&cache=shared", googleUuid.NewString()[:8])
 
 	sqlDB, err := sql.Open("sqlite", dsn)
@@ -71,33 +74,33 @@ func TestTenantJoinRequestRepository_Create(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
-		Description: "Test tenant for join request tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant",
+		Description:	"Test tenant for join request tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	// Create user for join request.
 	user := &User{
-		ID:           googleUuid.Must(googleUuid.NewV7()),
-		TenantID:     tenant.ID,
-		Username:     "joinrequestuser",
-		PasswordHash: "hashedpassword",
-		Active:       1,
-		CreatedAt:    time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		TenantID:	tenant.ID,
+		Username:	"joinrequestuser",
+		PasswordHash:	"hashedpassword",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
 	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		UserID:      &user.ID,
-		TenantID:    tenant.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		UserID:		&user.ID,
+		TenantID:	tenant.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		RequestedAt:	time.Now(),
 	}
 
 	err = repo.Create(ctx, request)
@@ -122,34 +125,34 @@ func TestTenantJoinRequestRepository_Update(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
-		Description: "Test tenant for update tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant",
+		Description:	"Test tenant for update tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	// Create user for join request.
 	user := &User{
-		ID:           googleUuid.Must(googleUuid.NewV7()),
-		TenantID:     tenant.ID,
-		Username:     "updateuser",
-		PasswordHash: "hashedpassword",
-		Active:       1,
-		CreatedAt:    time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		TenantID:	tenant.ID,
+		Username:	"updateuser",
+		PasswordHash:	"hashedpassword",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
 	// Create initial request.
 	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		UserID:      &user.ID,
-		TenantID:    tenant.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		UserID:		&user.ID,
+		TenantID:	tenant.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		RequestedAt:	time.Now(),
 	}
 	err = repo.Create(ctx, request)
 	require.NoError(t, err)
@@ -195,23 +198,23 @@ func TestTenantJoinRequestRepository_ListByTenant(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
-		Description: "Test tenant for list tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant",
+		Description:	"Test tenant for list tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	// Create user for join requests.
 	user := &User{
-		ID:           googleUuid.Must(googleUuid.NewV7()),
-		TenantID:     tenant.ID,
-		Username:     "listbytenantuser",
-		PasswordHash: "hashedpassword",
-		Active:       1,
-		CreatedAt:    time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		TenantID:	tenant.ID,
+		Username:	"listbytenantuser",
+		PasswordHash:	"hashedpassword",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -219,11 +222,11 @@ func TestTenantJoinRequestRepository_ListByTenant(t *testing.T) {
 	// Create multiple requests for the tenant.
 	for i := 0; i < 3; i++ {
 		request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-			ID:          googleUuid.Must(googleUuid.NewV7()),
-			UserID:      &user.ID,
-			TenantID:    tenant.ID,
-			Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-			RequestedAt: time.Now().Add(time.Duration(i) * time.Second),
+			ID:		googleUuid.Must(googleUuid.NewV7()),
+			UserID:		&user.ID,
+			TenantID:	tenant.ID,
+			Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+			RequestedAt:	time.Now().Add(time.Duration(i) * time.Second),
 		}
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
@@ -246,23 +249,23 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
-		Description: "Test tenant for status tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant",
+		Description:	"Test tenant for status tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	// Create user for join requests.
 	user := &User{
-		ID:           googleUuid.Must(googleUuid.NewV7()),
-		TenantID:     tenant.ID,
-		Username:     "listbystatususer",
-		PasswordHash: "hashedpassword",
-		Active:       1,
-		CreatedAt:    time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		TenantID:	tenant.ID,
+		Username:	"listbystatususer",
+		PasswordHash:	"hashedpassword",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -276,11 +279,11 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 	}
 	for _, status := range statuses {
 		request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-			ID:          googleUuid.Must(googleUuid.NewV7()),
-			UserID:      &user.ID,
-			TenantID:    tenant.ID,
-			Status:      status,
-			RequestedAt: time.Now(),
+			ID:		googleUuid.Must(googleUuid.NewV7()),
+			UserID:		&user.ID,
+			TenantID:	tenant.ID,
+			Status:		status,
+			RequestedAt:	time.Now(),
 		}
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
@@ -312,46 +315,46 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 
 	// Create first tenant.
 	tenant1 := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant 1",
-		Description: "First tenant for combined tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant 1",
+		Description:	"First tenant for combined tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant1)
 	require.NoError(t, err)
 
 	// Create user for first tenant.
 	user1 := &User{
-		ID:           googleUuid.Must(googleUuid.NewV7()),
-		TenantID:     tenant1.ID,
-		Username:     "tenant1user",
-		PasswordHash: "hashedpassword",
-		Active:       1,
-		CreatedAt:    time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		TenantID:	tenant1.ID,
+		Username:	"tenant1user",
+		PasswordHash:	"hashedpassword",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = userRepo.Create(ctx, user1)
 	require.NoError(t, err)
 
 	// Create second tenant.
 	tenant2 := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant 2",
-		Description: "Second tenant for combined tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant 2",
+		Description:	"Second tenant for combined tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = tenantRepo.Create(ctx, tenant2)
 	require.NoError(t, err)
 
 	// Create user for second tenant.
 	user2 := &User{
-		ID:           googleUuid.Must(googleUuid.NewV7()),
-		TenantID:     tenant2.ID,
-		Username:     "tenant2user",
-		PasswordHash: "hashedpassword",
-		Active:       1,
-		CreatedAt:    time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		TenantID:	tenant2.ID,
+		Username:	"tenant2user",
+		PasswordHash:	"hashedpassword",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = userRepo.Create(ctx, user2)
 	require.NoError(t, err)
@@ -359,33 +362,33 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 	// Create requests for tenant 1: 2 pending, 1 approved.
 	for i := 0; i < 2; i++ {
 		request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-			ID:          googleUuid.Must(googleUuid.NewV7()),
-			UserID:      &user1.ID,
-			TenantID:    tenant1.ID,
-			Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-			RequestedAt: time.Now(),
+			ID:		googleUuid.Must(googleUuid.NewV7()),
+			UserID:		&user1.ID,
+			TenantID:	tenant1.ID,
+			Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+			RequestedAt:	time.Now(),
 		}
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
 	}
 
 	approvedRequest := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		UserID:      &user1.ID,
-		TenantID:    tenant1.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
-		RequestedAt: time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		UserID:		&user1.ID,
+		TenantID:	tenant1.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
+		RequestedAt:	time.Now(),
 	}
 	err = repo.Create(ctx, approvedRequest)
 	require.NoError(t, err)
 
 	// Create request for tenant 2: 1 pending.
 	tenant2Request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		UserID:      &user2.ID,
-		TenantID:    tenant2.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		UserID:		&user2.ID,
+		TenantID:	tenant2.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		RequestedAt:	time.Now(),
 	}
 	err = repo.Create(ctx, tenant2Request)
 	require.NoError(t, err)
@@ -421,22 +424,22 @@ func TestTenantJoinRequestRepository_CreateWithClientID(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
-		Description: "Test tenant for client ID tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant",
+		Description:	"Test tenant for client ID tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	clientID := googleUuid.Must(googleUuid.NewV7())
 	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		ClientID:    &clientID,
-		TenantID:    tenant.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		ClientID:	&clientID,
+		TenantID:	tenant.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		RequestedAt:	time.Now(),
 	}
 
 	err = repo.Create(ctx, request)
@@ -460,11 +463,11 @@ func TestTenantJoinRequestRepository_ListByTenant_Empty(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Empty Tenant",
-		Description: "Tenant with no join requests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Empty Tenant",
+		Description:	"Tenant with no join requests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -498,11 +501,11 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus_Empty(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Empty Status Tenant",
-		Description: "Tenant with no matching status",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Empty Status Tenant",
+		Description:	"Tenant with no matching status",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -524,34 +527,34 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
-		Description: "Test tenant for duplicate tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant",
+		Description:	"Test tenant for duplicate tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	// Create user.
 	user := &User{
-		ID:           googleUuid.Must(googleUuid.NewV7()),
-		TenantID:     tenant.ID,
-		Username:     "duplicateuser",
-		PasswordHash: "hashedpassword",
-		Active:       1,
-		CreatedAt:    time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		TenantID:	tenant.ID,
+		Username:	"duplicateuser",
+		PasswordHash:	"hashedpassword",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
 	requestID := googleUuid.Must(googleUuid.NewV7())
 	request1 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          requestID,
-		UserID:      &user.ID,
-		TenantID:    tenant.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		ID:		requestID,
+		UserID:		&user.ID,
+		TenantID:	tenant.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		RequestedAt:	time.Now(),
 	}
 
 	err = repo.Create(ctx, request1)
@@ -559,11 +562,11 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 
 	// Try to create another request with same ID.
 	request2 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          requestID,
-		UserID:      &user.ID,
-		TenantID:    tenant.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		ID:		requestID,
+		UserID:		&user.ID,
+		TenantID:	tenant.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+		RequestedAt:	time.Now(),
 	}
 
 	err = repo.Create(ctx, request2)
@@ -581,11 +584,11 @@ func TestTenantJoinRequestRepository_Update_NonExistent(t *testing.T) {
 
 	// Create tenant.
 	tenant := &Tenant{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		Name:        "Test Tenant",
-		Description: "Test tenant for update tests",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		Name:		"Test Tenant",
+		Description:	"Test tenant for update tests",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -593,11 +596,11 @@ func TestTenantJoinRequestRepository_Update_NonExistent(t *testing.T) {
 	// Try to update non-existent request - GORM Save creates if not exists.
 	userID := googleUuid.Must(googleUuid.NewV7())
 	request := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
-		ID:          googleUuid.Must(googleUuid.NewV7()),
-		UserID:      &userID,
-		TenantID:    tenant.ID,
-		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
-		RequestedAt: time.Now(),
+		ID:		googleUuid.Must(googleUuid.NewV7()),
+		UserID:		&userID,
+		TenantID:	tenant.ID,
+		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
+		RequestedAt:	time.Now(),
 	}
 
 	// GORM Save does upsert, so this will succeed.

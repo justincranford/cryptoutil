@@ -20,6 +20,7 @@ import (
 
 // setupTestDB creates an in-memory SQLite database for testing.
 func setupTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
 	dsn := cryptoutilSharedMagic.SQLiteInMemoryDSN
 
 	sqlDB, err := sql.Open("sqlite", dsn)
@@ -62,41 +63,41 @@ func TestTenantRepository_Create(t *testing.T) {
 	// Create a tenant first for duplicate test
 	dupName := uniqueTenantName("DuplicateTest")
 	firstTenant := &Tenant{
-		ID:          googleUuid.New(),
-		Name:        dupName,
-		Description: "Test tenant",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.New(),
+		Name:		dupName,
+		Description:	"Test tenant",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 	err := repo.Create(ctx, firstTenant)
 	require.NoError(t, err)
 
 	tests := []struct {
-		name      string
-		tenant    *Tenant
-		wantError bool
+		name		string
+		tenant		*Tenant
+		wantError	bool
 	}{
 		{
-			name: "happy path - valid tenant",
+			name:	"happy path - valid tenant",
 			tenant: &Tenant{
-				ID:          googleUuid.New(),
-				Name:        uniqueTenantName("Acme"),
-				Description: "Test tenant",
-				Active:      1,
-				CreatedAt:   time.Now(),
+				ID:		googleUuid.New(),
+				Name:		uniqueTenantName("Acme"),
+				Description:	"Test tenant",
+				Active:		1,
+				CreatedAt:	time.Now(),
 			},
-			wantError: false,
+			wantError:	false,
 		},
 		{
-			name: "duplicate tenant name",
+			name:	"duplicate tenant name",
 			tenant: &Tenant{
-				ID:          googleUuid.New(),
-				Name:        dupName,
-				Description: "Duplicate tenant",
-				Active:      1,
-				CreatedAt:   time.Now(),
+				ID:		googleUuid.New(),
+				Name:		dupName,
+				Description:	"Duplicate tenant",
+				Active:		1,
+				CreatedAt:	time.Now(),
 			},
-			wantError: true,
+			wantError:	true,
 		},
 	}
 
@@ -119,30 +120,30 @@ func TestTenantRepository_GetByID(t *testing.T) {
 	ctx := context.Background()
 
 	tenant := &Tenant{
-		ID:          googleUuid.New(),
-		Name:        uniqueTenantName("GetByID"),
-		Description: "Test tenant",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.New(),
+		Name:		uniqueTenantName("GetByID"),
+		Description:	"Test tenant",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 
 	err := repo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	tests := []struct {
-		name      string
-		id        googleUuid.UUID
-		wantError bool
+		name		string
+		id		googleUuid.UUID
+		wantError	bool
 	}{
 		{
-			name:      "happy path - existing tenant",
-			id:        tenant.ID,
-			wantError: false,
+			name:		"happy path - existing tenant",
+			id:		tenant.ID,
+			wantError:	false,
 		},
 		{
-			name:      "not found - non-existent tenant",
-			id:        googleUuid.New(),
-			wantError: true,
+			name:		"not found - non-existent tenant",
+			id:		googleUuid.New(),
+			wantError:	true,
 		},
 	}
 
@@ -169,30 +170,30 @@ func TestTenantRepository_GetByName(t *testing.T) {
 	ctx := context.Background()
 
 	tenant := &Tenant{
-		ID:          googleUuid.New(),
-		Name:        uniqueTenantName("GetByName"),
-		Description: "Test tenant",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.New(),
+		Name:		uniqueTenantName("GetByName"),
+		Description:	"Test tenant",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 
 	err := repo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	tests := []struct {
-		name       string
-		tenantName string
-		wantError  bool
+		name		string
+		tenantName	string
+		wantError	bool
 	}{
 		{
-			name:       "happy path - existing tenant",
-			tenantName: tenant.Name,
-			wantError:  false,
+			name:		"happy path - existing tenant",
+			tenantName:	tenant.Name,
+			wantError:	false,
 		},
 		{
-			name:       "not found - non-existent tenant",
-			tenantName: "Non-Existent Corp",
-			wantError:  true,
+			name:		"not found - non-existent tenant",
+			tenantName:	"Non-Existent Corp",
+			wantError:	true,
 		},
 	}
 
@@ -219,19 +220,19 @@ func TestTenantRepository_List(t *testing.T) {
 	ctx := context.Background()
 
 	activeTenant := &Tenant{
-		ID:          googleUuid.New(),
-		Name:        uniqueTenantName("ActiveList"),
-		Description: "Active tenant",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.New(),
+		Name:		uniqueTenantName("ActiveList"),
+		Description:	"Active tenant",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 
 	inactiveTenant := &Tenant{
-		ID:          googleUuid.New(),
-		Name:        uniqueTenantName("InactiveList"),
-		Description: "Inactive tenant",
-		Active:      0,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.New(),
+		Name:		uniqueTenantName("InactiveList"),
+		Description:	"Inactive tenant",
+		Active:		0,
+		CreatedAt:	time.Now(),
 	}
 
 	err := repo.Create(ctx, activeTenant)
@@ -241,24 +242,24 @@ func TestTenantRepository_List(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		name        string
-		activeOnly  bool
-		minCount    int
-		hasActive   bool
-		hasInactive bool
+		name		string
+		activeOnly	bool
+		minCount	int
+		hasActive	bool
+		hasInactive	bool
 	}{
 		{
-			name:        "all tenants",
-			activeOnly:  false,
-			minCount:    2,
-			hasActive:   true,
-			hasInactive: true,
+			name:		"all tenants",
+			activeOnly:	false,
+			minCount:	2,
+			hasActive:	true,
+			hasInactive:	true,
 		},
 		{
-			name:       "active tenants only",
-			activeOnly: true,
-			minCount:   1,
-			hasActive:  true,
+			name:		"active tenants only",
+			activeOnly:	true,
+			minCount:	1,
+			hasActive:	true,
 		},
 	}
 
@@ -303,17 +304,17 @@ func TestTenantRepository_Update(t *testing.T) {
 	ctx := context.Background()
 
 	tenant := &Tenant{
-		ID:          googleUuid.New(),
-		Name:        uniqueTenantName("Update"),
-		Description: "Test tenant",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.New(),
+		Name:		uniqueTenantName("Update"),
+		Description:	"Test tenant",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 
 	err := repo.Create(ctx, tenant)
 	require.NoError(t, err)
 
-	time.Sleep(10 * time.Millisecond) // Ensure UpdatedAt will be different.
+	time.Sleep(10 * time.Millisecond)	// Ensure UpdatedAt will be different.
 
 	tenant.Description = "Updated description"
 	tenant.Active = 0
@@ -335,45 +336,45 @@ func TestTenantRepository_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name      string
-		setupFunc func(tenantID googleUuid.UUID)
-		wantError bool
-		errorMsg  string
+		name		string
+		setupFunc	func(tenantID googleUuid.UUID)
+		wantError	bool
+		errorMsg	string
 	}{
 		{
-			name: "happy path - tenant without users or clients",
+			name:	"happy path - tenant without users or clients",
 			setupFunc: func(_ googleUuid.UUID) {
 				// No setup needed
 			},
-			wantError: false,
+			wantError:	false,
 		},
 		{
-			name: "blocked - tenant has users",
+			name:	"blocked - tenant has users",
 			setupFunc: func(tenantID googleUuid.UUID) {
 				user := &User{
-					ID:        googleUuid.New(),
-					TenantID:  tenantID,
-					Username:  "testuser-" + googleUuid.New().String()[:8],
-					Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
-					Active:    1,
-					CreatedAt: time.Now(),
+					ID:		googleUuid.New(),
+					TenantID:	tenantID,
+					Username:	"testuser-" + googleUuid.New().String()[:8],
+					Email:		"test-" + googleUuid.New().String()[:8] + "@example.com",
+					Active:		1,
+					CreatedAt:	time.Now(),
 				}
 				err := userRepo.Create(ctx, user)
 				require.NoError(t, err)
 			},
-			wantError: true,
-			errorMsg:  "cannot delete tenant: has 1 users and 0 clients",
+			wantError:	true,
+			errorMsg:	"cannot delete tenant: has 1 users and 0 clients",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tenant := &Tenant{
-				ID:          googleUuid.New(),
-				Name:        "Tenant " + googleUuid.NewString(),
-				Description: "Test tenant",
-				Active:      1,
-				CreatedAt:   time.Now(),
+				ID:		googleUuid.New(),
+				Name:		"Tenant " + googleUuid.NewString(),
+				Description:	"Test tenant",
+				Active:		1,
+				CreatedAt:	time.Now(),
 			}
 
 			err := tenantRepo.Create(ctx, tenant)
@@ -404,34 +405,34 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 	ctx := context.Background()
 
 	tenant := &Tenant{
-		ID:          googleUuid.New(),
-		Name:        uniqueTenantName("Count"),
-		Description: "Test tenant",
-		Active:      1,
-		CreatedAt:   time.Now(),
+		ID:		googleUuid.New(),
+		Name:		uniqueTenantName("Count"),
+		Description:	"Test tenant",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
 
 	user := &User{
-		ID:        googleUuid.New(),
-		TenantID:  tenant.ID,
-		Username:  "testuser-" + googleUuid.New().String()[:8],
-		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
-		Active:    1,
-		CreatedAt: time.Now(),
+		ID:		googleUuid.New(),
+		TenantID:	tenant.ID,
+		Username:	"testuser-" + googleUuid.New().String()[:8],
+		Email:		"test-" + googleUuid.New().String()[:8] + "@example.com",
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
 
 	client := &Client{
-		ID:        googleUuid.New(),
-		TenantID:  tenant.ID,
-		ClientID:  "client-" + googleUuid.New().String()[:8],
-		Active:    1,
-		CreatedAt: time.Now(),
+		ID:		googleUuid.New(),
+		TenantID:	tenant.ID,
+		ClientID:	"client-" + googleUuid.New().String()[:8],
+		Active:		1,
+		CreatedAt:	time.Now(),
 	}
 
 	err = clientRepo.Create(ctx, client)

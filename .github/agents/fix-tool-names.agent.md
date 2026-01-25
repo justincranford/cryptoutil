@@ -9,7 +9,6 @@ tools:
 	- execute/runNotebookCell
 	- execute/runTask
 	- execute/testFailure
-	- github/github-mcp-server/issue_write
 	- read/getNotebookSummary
 	- read/getTaskOutput
 	- read/problems
@@ -49,8 +48,6 @@ Valid namespaces:
 - execute/
 - vscode/
 - web/
-
----
 
 ## Old → New Tool Name Mapping
 

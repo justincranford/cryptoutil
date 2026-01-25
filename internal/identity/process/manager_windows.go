@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -31,7 +31,7 @@ type Manager struct {
 
 // NewManager creates a new process manager with the specified PID directory.
 func NewManager(pidDir string) (*Manager, error) {
-	if err := os.MkdirAll(pidDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
+	if err := os.MkdirAll(pidDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		return nil, fmt.Errorf("failed to create PID directory: %w", err)
 	}
 
@@ -63,7 +63,7 @@ func (m *Manager) Start(ctx context.Context, serviceName string, binary string, 
 
 	// Write PID file
 	pidFile := filepath.Join(m.pidDir, serviceName+".pid")
-	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), cryptoutilMagic.FilePermOwnerReadWriteGroupRead); err != nil {
+	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead); err != nil {
 		// Kill the process if we can't write PID
 		if killErr := cmd.Process.Kill(); killErr != nil {
 			// Log but continue with original error
