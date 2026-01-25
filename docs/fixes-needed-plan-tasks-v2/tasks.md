@@ -618,19 +618,18 @@ require.NotEqual(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAdd
 
 ---
 
-## Priority 3 (Nice to Have - Could Have) ✅ 100% SATISFIED - 3/3 TASKS
+## Priority 3 (Nice to Have - Could Have) ❌ INCOMPLETE - SEE PHASES 4, 5, 6
 
-**Completion Summary**:
-- P3.1: ❌ BLOCKED - Architectural limitation (documented with comprehensive analysis)
-- P3.2: ✅ SATISFIED - Test skeleton with skip + existing coverage reference
-- P3.3: ✅ SATISFIED - Extensive existing E2E healthcheck infrastructure
+**Status Summary**:
+- P3.1: ❌ BLOCKED - See Phase 4 for Parse() refactoring resolution
+- P3.2: ❌ SKIPPED - See Phase 5 for ApplicationCore refactoring resolution
+- P3.3: ❌ UNVERIFIED - See Phase 6 for template service E2E verification
 
 **Overall Assessment**:
-P3 fully satisfies requirements through comprehensive documentation of architectural
-constraints and leveraging existing test coverage. P3.1 blocker documented with future
-refactoring path. P3.2 satisfied via test skeleton and extensive listener/admin_test.go
-coverage. P3.3 satisfied via existing internal/test/e2e/ infrastructure (docker_health.go,
-infrastructure.go, assertions.go) used by cipher-im, identity, jose, ca E2E tests.
+P3 tasks were initially marked "SATISFIED" but violated continuous work directive.
+Per .github/agents/plan-tasks-implement.agent.md (commit 3450ca43), when encountering
+BLOCKED/SKIPPED/SATISFIED tasks, agent MUST create follow-up phases with resolution tasks.
+Phases 4, 5, 6 added below to complete all P3 work.
 
 ---
 
@@ -897,6 +896,289 @@ Creating new `test/e2e/docker_healthcheck_test.go` would duplicate existing cove
 - 3 new test files
 - Benchmark baselines established
 - E2E test suite functional
+
+---
+
+## Priority 4 (P3.1 Resolution - Parse() Refactoring for Benchmark Support)
+
+**Purpose**: Resolve P3.1 blocker by refactoring Parse() to accept custom FlagSet
+
+**Context**: P3.1 BLOCKED because Parse() registers 50+ flags on global `pflag.CommandLine` singleton.
+Benchmarks require b.N iterations (100-10000+), but pflag panics on flag redefinition after first iteration.
+
+**Solution**: Create ParseWithFlagSet() that accepts custom FlagSet, modify Parse() to wrap it.
+
+---
+
+### P4.1: Refactor Parse() Architecture
+
+**Owner**: LLM Agent
+**Estimated**: 2h
+**Dependencies**: None
+**Priority**: P0 (Critical - unblocks P3.1)
+
+**Description**:
+Create ParseWithFlagSet() function that accepts *pflag.FlagSet parameter and registers all flags on it
+instead of global CommandLine. Modify Parse() to become thin wrapper calling ParseWithFlagSet(pflag.CommandLine, ...).
+
+**Acceptance Criteria**:
+- [ ] 4.1.1 Create ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp bool) function in config.go
+- [ ] 4.1.2 Move all flag registration logic from Parse() to ParseWithFlagSet()
+- [ ] 4.1.3 Modify Parse() to call ParseWithFlagSet(pflag.CommandLine, commandParameters, exitIfHelp)
+- [ ] 4.1.4 Add unit tests for ParseWithFlagSet with custom FlagSet
+- [ ] 4.1.5 Verify all existing Parse() consumers still work (no breaking changes)
+- [ ] 4.1.6 Run existing config tests: `go test ./internal/apps/template/service/config/... -v`
+- [ ] 4.1.7 All tests pass (0 failures)
+- [ ] 4.1.8 Coverage maintained: ≥95% for config package
+- [ ] 4.1.9 Build clean: `go build ./...` (zero errors)
+- [ ] 4.1.10 Linting clean: `golangci-lint run ./internal/apps/template/service/config/`
+- [ ] 4.1.11 Commit with evidence: "refactor(config): add ParseWithFlagSet for benchmark support"
+
+**Files**:
+- Modified: `internal/apps/template/service/config/config.go`
+- Created: `internal/apps/template/service/config/config_parse_flagset_test.go`
+
+---
+
+### P4.2: Implement Config Loading Benchmarks
+
+**Owner**: LLM Agent
+**Estimated**: 1h
+**Dependencies**: P4.1 (requires ParseWithFlagSet)
+**Priority**: P1 (Critical)
+
+**Description**:
+Implement BenchmarkParse using ParseWithFlagSet with fresh FlagSet per iteration.
+Remove skip from config_loading_bench_test.go and enable actual benchmarking.
+
+**Acceptance Criteria**:
+- [ ] 4.2.1 Update config_loading_bench_test.go to use ParseWithFlagSet()
+- [ ] 4.2.2 Create fresh pflag.NewFlagSet() per b.N iteration
+- [ ] 4.2.3 Remove skip/blocker comments from benchmark tests
+- [ ] 4.2.4 Add benchmark test cases:
+  - BenchmarkParse_MinimalConfig (few flags)
+  - BenchmarkParse_CompleteConfig (all flags)
+  - BenchmarkParse_LargeYAML (realistic config file)
+- [ ] 4.2.5 Run benchmarks: `go test -bench=BenchmarkParse -benchmem ./internal/apps/template/service/config/`
+- [ ] 4.2.6 Verify no global state conflicts (b.N > 1000 iterations successful)
+- [ ] 4.2.7 Establish baseline metrics:
+  - Parse time: <1ms per iteration
+  - Memory allocation: <100KB per iteration
+- [ ] 4.2.8 Commit with evidence: "test(config): add config loading benchmarks with ParseWithFlagSet"
+
+**Files**:
+- Modified: `internal/apps/template/service/config/config_loading_bench_test.go`
+
+---
+
+### P4.3: Update P3.1 Status to Complete
+
+**Owner**: LLM Agent
+**Estimated**: 15m
+**Dependencies**: P4.2 (benchmarks working)
+**Priority**: P1 (Critical)
+
+**Description**:
+Mark P3.1 task as complete with benchmark results, remove blocker status.
+
+**Acceptance Criteria**:
+- [ ] 4.3.1 Update P3.1 section to mark ✅ COMPLETE with benchmark metrics
+- [ ] 4.3.2 Document Parse() refactoring resolution in P3.1 blocker analysis
+- [ ] 4.3.3 Include benchmark output in P3.1 verification evidence
+- [ ] 4.3.4 Git commit: "docs(tasks): mark P3.1 complete - benchmarks working"
+
+**Files**:
+- Modified: `docs/fixes-needed-plan-tasks-v2/tasks.md`
+
+---
+
+## Priority 5 (P3.2 Resolution - ApplicationCore Refactoring for Healthcheck Testing)
+
+**Purpose**: Resolve P3.2 skip by refactoring ApplicationCore to enable standalone admin server testing
+
+**Context**: P3.2 SKIPPED because ApplicationCore builder pattern starts admin server internally.
+Testing healthcheck timeout requires standalone admin server initialization.
+
+**Solution**: Extract admin server creation from ApplicationCore, create NewAdminServer() constructor.
+
+---
+
+### P5.1: Extract Admin Server from ApplicationCore
+
+**Owner**: LLM Agent
+**Estimated**: 3h
+**Dependencies**: None
+**Priority**: P1 (Critical - unblocks P3.2)
+
+**Description**:
+Refactor ApplicationCore to extract admin server initialization into standalone NewAdminServer() constructor.
+Maintain backward compatibility with existing ApplicationCore.Build() API.
+
+**Acceptance Criteria**:
+- [ ] 5.1.1 Create NewAdminServer(settings AdminServerSettings) (*AdminServer, error) function
+- [ ] 5.1.2 Extract admin server initialization logic from ApplicationCore.Build()
+- [ ] 5.1.3 Update ApplicationCore.Build() to call NewAdminServer() internally
+- [ ] 5.1.4 Add AdminServerSettings struct with required configuration
+- [ ] 5.1.5 Add unit tests for NewAdminServer() standalone initialization
+- [ ] 5.1.6 Verify existing ApplicationCore consumers still work (no breaking changes)
+- [ ] 5.1.7 Run existing application tests: `go test ./internal/apps/template/service/server/application/... -v`
+- [ ] 5.1.8 All tests pass (0 failures)
+- [ ] 5.1.9 Coverage maintained: ≥95% for application package
+- [ ] 5.1.10 Build clean: `go build ./...`
+- [ ] 5.1.11 Linting clean: `golangci-lint run ./internal/apps/template/service/server/application/`
+- [ ] 5.1.12 Commit with evidence: "refactor(application): extract NewAdminServer for testability"
+
+**Files**:
+- Modified: `internal/apps/template/service/server/application/application_core.go`
+- Created: `internal/apps/template/service/server/listener/admin_server.go`
+- Created: `internal/apps/template/service/server/listener/admin_server_test.go`
+
+---
+
+### P5.2: Implement Healthcheck Timeout Tests
+
+**Owner**: LLM Agent
+**Estimated**: 1h
+**Dependencies**: P5.1 (requires NewAdminServer)
+**Priority**: P1 (Critical)
+
+**Description**:
+Remove t.Skip() from healthcheck timeout tests and implement actual timeout testing logic
+using standalone NewAdminServer() constructor.
+
+**Acceptance Criteria**:
+- [ ] 5.2.1 Remove t.Skip() from TestHealthcheck_CompletesWithinTimeout
+- [ ] 5.2.2 Remove t.Skip() from TestHealthcheck_TimeoutExceeded
+- [ ] 5.2.3 Implement TestHealthcheck_CompletesWithinTimeout:
+  - Create admin server with NewAdminServer()
+  - Set client timeout = 5s
+  - Call /admin/api/v1/livez
+  - Verify response within timeout (< 1s typical)
+- [ ] 5.2.4 Implement TestHealthcheck_TimeoutExceeded:
+  - Create admin server with NewAdminServer()
+  - Add artificial delay in healthcheck handler (6s)
+  - Set client timeout = 5s
+  - Verify timeout error returned
+- [ ] 5.2.5 Run tests: `go test -v -run="TestHealthcheck" ./internal/apps/template/service/server/application/`
+- [ ] 5.2.6 Both tests pass (0 failures, 0 skips)
+- [ ] 5.2.7 Test execution <30 seconds
+- [ ] 5.2.8 Commit with evidence: "test(application): implement healthcheck timeout tests"
+
+**Files**:
+- Modified: `internal/apps/template/service/server/application/application_listener_test.go`
+
+---
+
+### P5.3: Update P3.2 Status to Complete
+
+**Owner**: LLM Agent
+**Estimated**: 15m
+**Dependencies**: P5.2 (timeout tests working)
+**Priority**: P1 (Critical)
+
+**Description**:
+Mark P3.2 task as complete with test results, remove skip status.
+
+**Acceptance Criteria**:
+- [ ] 5.3.1 Update P3.2 section to mark ✅ COMPLETE with test output
+- [ ] 5.3.2 Document ApplicationCore refactoring resolution in P3.2 skip analysis
+- [ ] 5.3.3 Include test execution output in P3.2 verification evidence
+- [ ] 5.3.4 Git commit: "docs(tasks): mark P3.2 complete - timeout tests working"
+
+**Files**:
+- Modified: `docs/fixes-needed-plan-tasks-v2/tasks.md`
+
+---
+
+## Priority 6 (P3.3 Resolution - Template Service E2E Verification)
+
+**Purpose**: Resolve P3.3 "satisfied by existing" by verifying template service actually uses E2E infrastructure
+
+**Context**: P3.3 marked "SATISFIED BY EXISTING TESTS" but did NOT verify template service has E2E tests.
+Existing infrastructure documented (docker_health.go, infrastructure.go) but template service usage unverified.
+
+**Solution**: Check if template service has E2E tests, create if missing, verify uses existing helpers.
+
+---
+
+### P6.1: Verify Template Service E2E Test Existence
+
+**Owner**: LLM Agent
+**Estimated**: 30m
+**Dependencies**: None
+**Priority**: P1 (Critical - validates P3.3 claim)
+
+**Description**:
+Check if internal/apps/template/testing/e2e/ directory exists with functional E2E tests.
+Document findings and create tests if missing.
+
+**Acceptance Criteria**:
+- [ ] 6.1.1 Check if `internal/apps/template/testing/e2e/` directory exists
+- [ ] 6.1.2 If exists, verify contains testmain_e2e_test.go with TestMain pattern
+- [ ] 6.1.3 If exists, verify uses docker_health.go (ServiceAndJob) or ComposeManager helpers
+- [ ] 6.1.4 If exists, verify template service in dockerComposeServicesForHealthCheck list
+- [ ] 6.1.5 If missing, document gap and proceed to P6.2
+- [ ] 6.1.6 Document findings in P3.3 verification section
+- [ ] 6.1.7 Commit with evidence: "docs(tasks): verify template service E2E test status"
+
+**Files**:
+- Modified: `docs/fixes-needed-plan-tasks-v2/tasks.md`
+
+---
+
+### P6.2: Create Template Service E2E Tests (if missing)
+
+**Owner**: LLM Agent
+**Estimated**: 2h
+**Dependencies**: P6.1 (gap identified)
+**Priority**: P1 (Critical)
+
+**Description**:
+If template service E2E tests missing, create testmain_e2e_test.go using existing infrastructure patterns.
+Reuse ComposeManager, InfrastructureManager, and docker_health.go helpers.
+
+**Acceptance Criteria**:
+- [ ] 6.2.1 Create `internal/apps/template/testing/e2e/` directory (if missing)
+- [ ] 6.2.2 Create testmain_e2e_test.go with TestMain healthcheck flow
+- [ ] 6.2.3 Import and use ComposeManager from internal/apps/template/testing/e2e/compose.go
+- [ ] 6.2.4 Configure template service healthcheck URLs (admin: :9090/admin/api/v1/livez, public: :8080/ui/swagger/doc.json)
+- [ ] 6.2.5 Add template service to dockerComposeServicesForHealthCheck list in docker_health.go
+- [ ] 6.2.6 Create docker-compose-template-e2e.yml if missing
+- [ ] 6.2.7 Implement test cases:
+  - TestTemplateService_Healthcheck (verify admin server healthy)
+  - TestTemplateService_PublicEndpoint (verify public server reachable)
+- [ ] 6.2.8 Run E2E tests: `go test -tags=e2e -v ./internal/apps/template/testing/e2e/...`
+- [ ] 6.2.9 All tests pass (0 failures)
+- [ ] 6.2.10 Test execution <2 minutes (90s healthcheck timeout)
+- [ ] 6.2.11 Build clean: `go build ./...`
+- [ ] 6.2.12 Commit with evidence: "test(template): add E2E tests using existing infrastructure"
+
+**Files**:
+- Created: `internal/apps/template/testing/e2e/testmain_e2e_test.go`
+- Created: `internal/apps/template/testing/e2e/template_e2e_test.go`
+- Created: `deployments/template/docker-compose-template-e2e.yml` (if needed)
+- Modified: `internal/test/e2e/docker_health.go` (add template to service list)
+
+---
+
+### P6.3: Update P3.3 Status to Complete
+
+**Owner**: LLM Agent
+**Estimated**: 15m
+**Dependencies**: P6.2 (E2E tests verified/created)
+**Priority**: P1 (Critical)
+
+**Description**:
+Mark P3.3 task as complete with verification evidence or new test results.
+
+**Acceptance Criteria**:
+- [ ] 6.3.1 Update P3.3 section to mark ✅ COMPLETE with verification evidence
+- [ ] 6.3.2 Document E2E test verification in P3.3 analysis section
+- [ ] 6.3.3 Include test execution output or "already exists" confirmation
+- [ ] 6.3.4 Git commit: "docs(tasks): mark P3.3 complete - E2E tests verified"
+
+**Files**:
+- Modified: `docs/fixes-needed-plan-tasks-v2/tasks.md`
 
 ---
 
