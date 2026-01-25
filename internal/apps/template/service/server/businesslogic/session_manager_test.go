@@ -24,35 +24,37 @@ import (
 )
 
 // setupTestDB creates an in-memory SQLite database for testing.
+// DEPRECATED: Use testDB from TestMain instead.
+// Kept for backward compatibility with tests not yet refactored.
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	// Create unique database name to avoid sharing between tests
+	// Create unique database name to avoid sharing between tests.
 	dbName := fmt.Sprintf("file:test_%s.db?mode=memory&cache=private", strings.ReplaceAll(t.Name(), "/", "_"))
 	sqlDB, err := sql.Open("sqlite", dbName)
 	require.NoError(t, err)
 
-	// Enable WAL mode for better concurrency
+	// Enable WAL mode for better concurrency.
 	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
 
-	// Set busy timeout for concurrent writes
+	// Set busy timeout for concurrent writes.
 	_, err = sqlDB.ExecContext(context.Background(), "PRAGMA busy_timeout = 30000;")
 	require.NoError(t, err)
 
-	// Pass to GORM with auto-transactions disabled
+	// Pass to GORM with auto-transactions disabled.
 	dialector := sqlite.Dialector{Conn: sqlDB}
 	db, err := gorm.Open(dialector, &gorm.Config{SkipDefaultTransaction: true})
 	require.NoError(t, err)
 
-	// Configure connection pool for GORM transactions
+	// Configure connection pool for GORM transactions.
 	sqlDB, err = db.DB()
 	require.NoError(t, err)
 	sqlDB.SetMaxOpenConns(5) // Required for GORM transactions
 	sqlDB.SetMaxIdleConns(5)
 	sqlDB.SetConnMaxLifetime(0) // In-memory: never close
 
-	// Auto-migrate session tables
+	// Auto-migrate session tables.
 	err = db.AutoMigrate(
 		&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{},
 		&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{},
@@ -61,7 +63,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	)
 	require.NoError(t, err)
 
-	// Verify tables were created
+	// Verify tables were created.
 	var tableCount int
 
 	err = db.Raw("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN ('browser_sessions', 'service_sessions', 'browser_session_jwks', 'service_session_jwks')").Scan(&tableCount).Error

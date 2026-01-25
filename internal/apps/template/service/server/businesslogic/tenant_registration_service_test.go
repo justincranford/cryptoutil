@@ -21,18 +21,20 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
-	testDB         *gorm.DB
-	testTenantID   googleUuid.UUID
-	testRealmID    googleUuid.UUID
-	testUserID     googleUuid.UUID
-	testClientID   googleUuid.UUID
-	postgresTestDB bool
+	testDB             *gorm.DB
+	testSessionManager *SessionManager
+	testTenantID       googleUuid.UUID
+	testRealmID        googleUuid.UUID
+	testUserID         googleUuid.UUID
+	testClientID       googleUuid.UUID
+	postgresTestDB     bool
 )
 
 func TestMain(m *testing.M) {
@@ -131,6 +133,35 @@ func TestMain(m *testing.M) {
 		&cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{},
 	); err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %v", err))
+	}
+
+	// Auto-migrate session tables for SessionManager tests.
+	if err := testDB.AutoMigrate(
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSessionJWK{},
+	); err != nil {
+		panic(fmt.Sprintf("failed to migrate session tables: %v", err))
+	}
+
+	// Create shared SessionManager for session tests.
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWSAlgorithm: "RS256",
+		BrowserSessionJWEAlgorithm: "dir+A256GCM",
+		ServiceSessionJWSAlgorithm: "RS256",
+		ServiceSessionJWEAlgorithm: "dir+A256GCM",
+	}
+
+	testSessionManager = NewSessionManager(testDB, nil, config)
+	if err := testSessionManager.Initialize(ctx); err != nil {
+		panic(fmt.Sprintf("failed to initialize session manager: %v", err))
 	}
 
 	// Create test tenant and realm for all tests.
