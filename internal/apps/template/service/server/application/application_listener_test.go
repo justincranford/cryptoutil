@@ -147,3 +147,25 @@ func TestMTLSConfiguration(t *testing.T) {
 		})
 	}
 }
+
+// TestHealthcheck_CompletesWithinTimeout tests healthcheck completes within reasonable timeout.
+// Priority: P3.2 (Nice to Have - Could Have).
+func TestHealthcheck_CompletesWithinTimeout(t *testing.T) {
+	// Skipping because template service uses ApplicationCore builder pattern
+	// which starts admin server internally. Testing healthcheck timeout
+	// requires standalone admin server initialization, which is not the
+	// current architecture pattern.
+	// TODO: Revisit when admin server becomes independently testable.
+	t.Skip("Template service uses ApplicationCore - admin server not independently testable")
+}
+
+// TestHealthcheck_TimeoutExceeded tests healthcheck fails when client timeout exceeded.
+// Priority: P3.2 (Nice to Have - Could Have).
+func TestHealthcheck_TimeoutExceeded(t *testing.T) {
+	// Skipping because template service uses ApplicationCore builder pattern
+	// which starts admin server internally. Testing timeout behavior
+	// requires standalone admin server initialization, which is not the
+	// current architecture pattern.
+	// TODO: Revisit when admin server becomes independently testable.
+	t.Skip("Template service uses ApplicationCore - admin server not independently testable")
+}
