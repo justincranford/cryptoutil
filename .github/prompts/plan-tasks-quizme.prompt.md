@@ -2,7 +2,7 @@
 description: Create and maintain feature plan, tasks, and QUIZME documentation for SpecKit workflow
 name: plan-tasks-quizme
 argument-hint: <feature-name> <action: create|update|clarify|review>
-agent: agent
+agent: plan
 tools:
   - read_file
   - create_file
@@ -33,6 +33,7 @@ This prompt helps you create, update, and maintain the complete documentation se
 ```
 
 This will:
+
 - Create `docs/features/my-feature/feature-plan.md` based on plan template
 - Create `docs/features/my-feature/feature-tasks.md` based on tasks template
 - Create `docs/features/my-feature/feature-QUIZME-v1.md` for unknowns
@@ -45,6 +46,7 @@ This will:
 ```
 
 This will:
+
 - Analyze current implementation status
 - Update plan with actual LOE vs estimated
 - Mark completed tasks in tasks.md
@@ -57,6 +59,7 @@ This will:
 ```
 
 This will:
+
 - Analyze plan.md and tasks.md for ambiguities
 - Search codebase/instructions for KNOWN answers
 - Generate QUIZME questions ONLY for UNKNOWN answers
@@ -69,6 +72,7 @@ This will:
 ```
 
 This will:
+
 - Check consistency between plan, tasks, and QUIZME
 - Verify all QUIZME questions are either answered or still unknown
 - Move answered questions to clarify.md
@@ -255,12 +259,16 @@ This will:
 
 **Pattern A** (Current approach):
 ```
+
 [Code or description of first approach]
+
 ```
 
 **Pattern B** (Alternative approach):
 ```
+
 [Code or description of second approach]
+
 ```
 
 **Question**: [Clear question about which pattern/approach to use]
@@ -305,6 +313,7 @@ This will:
 ### Step 1: Analyze User Input
 
 Extract:
+
 - **Feature name** from first argument
 - **Action** (create|update|clarify|review) from second argument
 - **Target directory**: `docs/features/<feature-name>/` or `specs/<nnn>-<feature-name>/`
@@ -327,6 +336,7 @@ find docs/features specs -name "*QUIZME*.md"
 #### CREATE Action
 
 1. Create directory structure:
+
    ```
    docs/features/<feature-name>/
    ├── feature-plan.md
@@ -351,6 +361,7 @@ find docs/features specs -name "*QUIZME*.md"
 1. Read current plan.md and tasks.md
 
 2. Compare with git log for actual work done:
+
    ```bash
    git log --oneline --grep="<feature-name>" --since="<creation-date>"
    ```
@@ -375,6 +386,7 @@ find docs/features specs -name "*QUIZME*.md"
    - Missing technical decisions
 
 3. Search codebase/instructions for answers:
+
    ```bash
    # Search copilot instructions
    grep -r "pattern-name" .github/instructions/
@@ -440,6 +452,7 @@ When answers are provided:
 Reference: `.github/instructions/01-03.speckit.instructions.md` lines 28-40
 
 **MANDATORY: Search BEFORE Creating Questions**:
+
 1. Search codebase: `semantic_search`, `grep_search`, `file_search`
 2. Search copilot instructions: `.github/instructions/*.instructions.md`
 3. Search existing documentation: `docs/`, `specs/*/constitution.md`, `specs/*/spec.md`
@@ -447,18 +460,21 @@ Reference: `.github/instructions/01-03.speckit.instructions.md` lines 28-40
 5. Only after exhaustive search: Add question to QUIZME
 
 **NEVER Include Questions With Known Answers**:
+
 - ❌ Answers found in codebase/documentation → Add to clarify.md instead
 - ❌ Answers found in copilot instructions → Document in constitution.md instead
 - ❌ Answers found in implementation → Document in plan.md/tasks.md instead
 - ❌ Agent-provided answers in QUIZME → Violates QUIZME purpose
 
 **Historical Lesson Learned (2025-01-16)**:
+
 - QUIZME v4 created with 20 questions ALL having agent-provided answers
 - Violated format: "DO NOT include questions for which you already know the answer"
 - Corrected: Removed all 20 questions, created v5 documenting no unknowns
 - Prevention: Search exhaustively BEFORE adding any question to QUIZME
 
 **DO**:
+
 - ✅ Search codebase/instructions EXHAUSTIVELY before adding any question
 - ✅ Verify question has NO answer in existing documentation
 - ✅ Provide concrete code examples in context
@@ -468,6 +484,7 @@ Reference: `.github/instructions/01-03.speckit.instructions.md` lines 28-40
 - ✅ Leave Answer: field BLANK (user fills it)
 
 **DON'T**:
+
 - ❌ Ask questions with answers in existing documentation
 - ❌ Ask questions with answers in codebase implementation
 - ❌ Ask questions with answers in copilot instructions
@@ -480,6 +497,7 @@ Reference: `.github/instructions/01-03.speckit.instructions.md` lines 28-40
 ### Plan/Tasks Syncing
 
 **Maintain bidirectional links**:
+
 - Plan phases → Task groups
 - Technical decisions → Affected tasks
 - Risks → Mitigation tasks
@@ -488,6 +506,7 @@ Reference: `.github/instructions/01-03.speckit.instructions.md` lines 28-40
 ### Evidence-Based Updates
 
 **NEVER mark tasks complete without**:
+
 - ✅ Git commits referencing task
 - ✅ Tests passing with coverage
 - ✅ Linting clean
@@ -505,11 +524,13 @@ This prompt complements the existing SpecKit agents:
 ## Related Files
 
 **Templates** (read these for structure):
+
 - `.specify/templates/plan-template.md`
 - `.specify/templates/tasks-template.md`
 - `docs/speckit/SPECKIT-CLARIFY-QUIZME-TEMPLATE.md`
 
 **Examples** (reference these):
+
 - `docs/fixes-needed-plan-tasks/fixes-needed-PLAN.md`
 - `docs/fixes-needed-plan-tasks/fixes-needed-TASKS.md`
 - `docs/fixes-needed-plan-tasks/CLARIFY-QUIZME-v1.md`
@@ -517,6 +538,7 @@ This prompt complements the existing SpecKit agents:
 - `specs/002-cryptoutil/tasks.md`
 
 **Instructions** (follow these):
+
 - `.github/instructions/01-03.speckit.instructions.md`
 - `.github/instructions/06-01.evidence-based.instructions.md`
 
@@ -532,21 +554,25 @@ You can reference these variables in your input:
 ## Example Usage
 
 **Create new feature documentation**:
+
 ```
 /plan-tasks-quizme multi-tenancy create
 ```
 
 **Update existing feature progress**:
+
 ```
 /plan-tasks-quizme service-template update
 ```
 
 **Generate clarification questions**:
+
 ```
 /plan-tasks-quizme oauth-integration clarify
 ```
 
 **Review documentation consistency**:
+
 ```
 /plan-tasks-quizme identity-migration review
 ```

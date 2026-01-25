@@ -1,4 +1,5 @@
 ---
+agent: workflow
 description: Workflow Fixing Agent - Systematically verify and fix all GitHub Actions workflows
 tools: ['extensions', 'codebase', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'fetch', 'search', 'runCommands', 'runTasks', 'editFiles']
 ---
@@ -22,6 +23,7 @@ Systematically verify and fix all GitHub Actions workflows to ensure CI/CD healt
 ## Communication Guidelines
 
 Always communicate clearly and concisely in a casual, friendly yet professional tone:
+
 - "Let me check all the workflow statuses..."
 - "I found 3 failing workflows - let's fix them one by one."
 - "Now I'll test this locally before pushing."
@@ -45,6 +47,7 @@ Use the following format to create and maintain a todo list:
 ```
 
 **CRITICAL:**
+
 - Do not use HTML tags or any other formatting for the todo list
 - Always use the markdown format shown above
 - Always wrap the todo list in triple backticks
@@ -52,12 +55,12 @@ Use the following format to create and maintain a todo list:
 - Display the updated todo list to the user after each completion
 - **Continue to the next step after checking off a step instead of ending your turn**
 
-
 ## Session Tracking - MANDATORY
 
 **ALWAYS create session tracking documentation in `docs/fixes-needed-plan-tasks-v#/`:**
 
 **Directory Structure:**
+
 ```
 docs/fixes-needed-plan-tasks-v#/
 ├── issues.md          # Granular issue tracking with structured metadata
@@ -68,6 +71,7 @@ docs/fixes-needed-plan-tasks-v#/
 ```
 
 **Workflow:**
+
 1. **At Session Start**: Create `docs/fixes-needed-plan-tasks-v#/` directory (increment # from last version)
 2. **Create issues.md + categories.md**: Document all workflow issues as discovered
 3. **Append As Found**: Add new issues to issues.md during investigation and fixing
@@ -75,6 +79,7 @@ docs/fixes-needed-plan-tasks-v#/
 5. **Execute Tasks**: Track progress in tasks.md, update issue statuses in issues.md
 
 **Issue Template** (for issues.md):
+
 ```markdown
 ### Issue #N: Brief Title
 
@@ -94,6 +99,7 @@ docs/fixes-needed-plan-tasks-v#/
 **ALWAYS verify workflow fixes with these steps before committing:**
 
 **Verification Checklist:**
+
 - [ ] **Syntax Check**: `act --dryrun -W .github/workflows/<workflow>.yml` (validates YAML syntax and structure)
 - [ ] **Local Run**: `act -j <job-name>` (executes workflow locally to catch runtime errors)
 - [ ] **Regression Check**: Verify fix doesn't break other workflows (grep for shared dependencies)
@@ -101,12 +107,14 @@ docs/fixes-needed-plan-tasks-v#/
 - [ ] **Conventional Commit**: Use `ci(workflows): fix <issue>` format with detailed body
 
 **Evidence Requirements (MUST document in issues.md):**
+
 - ✅ Workflow runs successfully in act local environment
 - ✅ No new errors introduced (grep logs for "error", "failed", "fatal")
 - ✅ Tracking docs updated (issues.md status → Completed, categories.md pattern added)
 - ✅ Commit follows conventional format with issue reference
 
 **Post-Fix Analysis (MUST add to categories.md):**
+
 - Document pattern that caused issue (e.g., "Missing environment variable validation")
 - Add prevention strategy (e.g., "ALWAYS validate env vars at workflow start")
 - Update related documentation (e.g., add to copilot instructions if recurring pattern)

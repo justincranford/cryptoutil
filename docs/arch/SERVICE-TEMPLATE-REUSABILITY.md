@@ -8,6 +8,66 @@
 
 ---
 
+## Migration Benefits
+
+### Before (Manual Management)
+
+Services manually managed:
+
+- Database containers in TestMain
+- Multiple service dependencies injected into server constructors
+- Complex setup/cleanup in test files
+
+Example from `internal/cipher/integration/testmain_integration_test.go`:
+
+```go
+func TestMain(m *testing.M) {
+    // Manual PostgreSQL container setup.
+    sharedPGContainer, sharedConnStr, err = container.SetupSharedPostgresContainer(ctx)
+    // ...
+    sharedDB, err = gorm.Open(postgresDriver.Open(sharedConnStr), &gorm.Config{})
+    // ...
+    sharedServer, err = server.New(ctx, cfg, db, repository.DatabaseTypePostgreSQL)
+    // Manual cleanup with defer.
+}
+```
+
+### After (Service Template)
+
+Service-template handles all infrastructure:
+
+```go
+func TestMain(m *testing.M) {
+    cfg := &config.AppConfig{
+        ServerSettings: cryptoutilConfig.ServerSettings{
+            DatabaseURL:       "", // Empty = use testcontainer.
+            DatabaseContainer: "required",
+        },
+        JWTSecret: uuid.Must(uuid.NewUUID()).String(),
+    }
+
+    // Single function call - handles everything.
+    app, err := application.StartApplicationListener(ctx, &application.ApplicationListenerConfig{
+        Settings:     &cfg.ServerSettings,
+        PublicServer: publicServer,
+        AdminServer:  adminServer,
+    })
+
+    exitCode := m.Run()
+    app.Shutdown(context.Background()) // Automatic cleanup.
+    os.Exit(exitCode)
+}
+```
+
+**Reduction**:
+
+- 50+ lines → 15 lines per TestMain
+- Zero manual container management
+- Zero manual service initialization
+- Automatic cleanup (no defer chains)
+
+---
+
 ## 1. Realms Service Pattern
 
 **Purpose**: Domain-agnostic user authentication and session management with tenant isolation.

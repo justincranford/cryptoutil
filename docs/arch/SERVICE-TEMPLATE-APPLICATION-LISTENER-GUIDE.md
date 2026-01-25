@@ -26,20 +26,65 @@ This guide explains the new `ApplicationListener` pattern for service-template a
 
 ### Architecture Layers
 
+The service template provides a layered application architecture with three distinct levels:
+
+#### 1. ApplicationBasic
+
+**Foundation layer** providing basic service infrastructure:
+
+- **Telemetry Service**: Logging, metrics, tracing (OpenTelemetry)
+- **Unseal Keys Service**: Key encryption at rest (HKDF-based key derivation)
+- **JWK Generation Service**: Cryptographic key generation (RSA, ECDSA, EdDSA)
+
+**Usage**: Internal dependency for ApplicationCore, not used directly by services.
+
+#### 2. ApplicationCore
+
+**Database layer** extending ApplicationBasic with database provisioning:
+
+- **Automatic Database Management**: SQLite in-memory, PostgreSQL testcontainer, or external DB
+- **Configuration-Driven**: Uses `ServerSettings.DatabaseURL` and `ServerSettings.DatabaseContainer`
+- **Graceful Shutdown**: Cleanup of database containers and connections
+
+**Database Provisioning Modes**:
+
+| DatabaseURL | DatabaseContainer | Result |
+|-------------|------------------|--------|
+| `file::memory:?cache=shared` | Any | SQLite in-memory (tests) |
+| `postgres://...` | `disabled` | External PostgreSQL |
+| `postgres://...` | `required` | PostgreSQL testcontainer (fails if unavailable) |
+| `postgres://...` | `preferred` | PostgreSQL testcontainer with fallback to external |
+
+**Usage**: Internal dependency for ApplicationListener, provides `Core.DB` (GORM instance).
+
+#### 3. ApplicationListener
+
+**Top-level orchestrator** managing HTTP servers and core infrastructure:
+
+- **Public Server**: Business logic (APIs, UI, external clients)
+- **Admin Server**: Health checks, graceful shutdown (Kubernetes probes)
+- **Lifecycle Management**: Start/shutdown both servers concurrently
+
+**Usage**: Public API for services (replace manual server management).
+
 ```
-ApplicationListener (THIS GUIDE)
+ApplicationListener (Top-Level Orchestrator)
     ├── ApplicationConfig (product-specific injection)
     │   ├── ServerSettings (common: bind, TLS, OTLP)
     │   ├── Database (test-container OR production pool)
     │   ├── PublicHandlers (product-specific routes)
     │   └── AdminHandlers (optional: barrier rotation, diagnostics)
     │
-    ├── ServiceTemplate (shared infrastructure)
+    ├── ApplicationCore (Database Layer)
+    │   ├── Database Provisioning (SQLite/PostgreSQL/External)
+    │   └── Connection Management
+    │
+    ├── ApplicationBasic (Foundation Layer)
     │   ├── Telemetry (OTLP, structured logging)
     │   ├── JWK Generation (crypto key pools)
     │   └── Barrier Service (key encryption at rest)
     │
-    └── Application (dual servers)
+    └── Application (Dual Servers)
         ├── Public Server (business APIs, browser UI)
         └── Admin Server (health checks, shutdown)
 ```
