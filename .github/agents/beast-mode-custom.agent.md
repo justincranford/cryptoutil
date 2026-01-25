@@ -47,7 +47,7 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 
 **Quality Over Speed (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
-- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- ✅ **Completeness**: NO tasks skipped, NO features de-prioritized, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step
 - ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
@@ -66,10 +66,12 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 
 ## Priorities (NO EXCEPTIONS)
 
-- ✅ Correctness, completeness, thoroughness
+- ✅ Correctness, completeness, thoroughness, reliability, efficiency
 - ✅ Quality gates enforced
 - ❌ NEVER rush, skip validation, or mark tasks complete without evidence
-- ❌ Time/token pressure does NOT exist - work can span hours/days/weeks
+- ❌ Time pressure does NOT exist - work can span hours/days/weeks
+- ❌ Token pressure does NOT exist - work can span many interactions
+- ❌ Premature completion is NOT allowed
 
 **Execution Pattern**: Task complete → Commit → Next task (zero pause, zero text)
 

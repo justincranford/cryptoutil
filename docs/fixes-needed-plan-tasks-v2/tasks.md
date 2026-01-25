@@ -620,20 +620,80 @@ require.NotEqual(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAdd
 
 ## Priority 3 (Nice-to-Have)
 
-### P3.1: Config Loading Performance - Benchmarks
+### P3.1: Config Loading Performance - Benchmarks ❌ BLOCKED - ARCHITECTURAL LIMITATION
 
-**Location**: `internal/apps/template/service/config/config_loading_bench_test.go` (NEW FILE)
+**Location**: `internal/apps/template/service/config/config_loading_bench_test.go` (ATTEMPTED - BLOCKED)
 
-**Purpose**: Benchmark config loading performance
+**Status**: Cannot implement traditional Go benchmarks due to Parse() global state architecture
 
-**Benchmarks**:
-- YAML file loading
-- Config validation
-- Config merging (file + CLI + env)
+**Blocker Details**:
+- **Root Cause**: Parse() registers 50+ flags on global `pflag.CommandLine` singleton
+- **pflag Behavior**: Panics with "flag redefined: <name>" if same flag registered twice
+- **Benchmark Pattern**: Requires `b.N` iterations (typically 100-10000+)
+- **Conflict**: First iteration succeeds (registers flags), second iteration panics (flags already exist)
 
-**Success Criteria**:
-- Benchmarks complete <5 seconds
-- Baseline performance metrics established
+**Architecture Analysis**:
+```go
+// Parse() at config.go:933
+func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerSettings, error) {
+    // Registers flags on GLOBAL pflag.CommandLine (can only be called ONCE per process)
+    pflag.BoolP(help.Name, help.Shorthand, RegisterAsBoolSetting(&help), help.Usage)
+    pflag.StringP(logLevel.Name, logLevel.Shorthand, RegisterAsStringSetting(&logLevel), logLevel.Usage)
+    // ... 50+ more global flag registrations ...
+
+    err := pflag.CommandLine.Parse(subCommandParameters)  // Uses global singleton
+    // ...
+}
+
+// Benchmark Pattern (incompatible)
+for i := 0; i < b.N; i++ {  // b.N = 100+
+    Parse(...)  // Iteration 1: ✅ success | Iteration 2: ❌ panic: flag redefined: help
+}
+```
+
+**Alternative Approaches Considered**:
+
+1. **Manual Timing (single Parse call)**:
+   - ❌ No `b.N` iterations → no statistical stability
+   - ❌ No automatic memory profiling
+   - ❌ One-shot measurement with high variance
+
+2. **Refactor Parse() to accept custom FlagSet**:
+   - ❌ Requires modifying production code (out of scope for test-only task)
+   - ❌ High risk of breaking existing Parse() consumers
+   - ❌ Extensive testing required across all services
+
+3. **Subprocess Benchmarking**:
+   - ❌ Measures process startup + Go runtime init + config loading (can't isolate config time)
+   - ❌ High overhead (seconds per iteration vs microseconds)
+   - ❌ Complex setup/cleanup
+
+**Future Refactoring Path** (potential solution):
+```go
+// Proposed API change (enables benchmark compatibility)
+func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerSettings, error) {
+    // Register flags on provided FlagSet instead of global CommandLine
+    fs.BoolP(help.Name, ...)
+    // ... rest of Parse logic ...
+}
+
+// Existing Parse() becomes wrapper (maintains backward compatibility)
+func Parse(commandParameters []string, exitIfHelp bool) (*ServiceTemplateServerSettings, error) {
+    return ParseWithFlagSet(pflag.CommandLine, commandParameters, exitIfHelp)
+}
+
+// Benchmarks can now create new FlagSet per iteration
+func BenchmarkParse(b *testing.B) {
+    for i := 0; i < b.N; i++ {
+        fs := pflag.NewFlagSet("config", pflag.ContinueOnError)  // Fresh FlagSet per iteration
+        ParseWithFlagSet(fs, ...)  // No global state conflicts
+    }
+}
+```
+
+**Decision**: Skip P3.1, proceed to P3.2/P3.3
+**Impact**: P3 completion maximum 2/3 tasks (67%)
+**Rationale**: Document architectural limitation rather than force incompatible testing pattern or compromise code quality
 
 ---
 

@@ -41,7 +41,7 @@ bind-private-port: 9090
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0600)
+	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
@@ -71,7 +71,7 @@ bind-private-port: 9999
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0600)
+	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
@@ -101,7 +101,7 @@ bind-private-port: 6666
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0600)
+	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}
@@ -128,7 +128,7 @@ bind-private-port: 9090
 
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "test-config.yml")
-	err := os.WriteFile(configPath, []byte(yamlContent), 0600)
+	err := os.WriteFile(configPath, []byte(yamlContent), 0o600)
 	require.NoError(t, err)
 
 	cmdParams := []string{"start", "--config=" + configPath}

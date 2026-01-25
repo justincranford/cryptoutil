@@ -33,6 +33,31 @@ You are in autonomous execution mode.
 
 **User must specify directory path** where plan.md and tasks.md exist.
 
+# Quality Over Speed - MANDATORY
+
+**Quality Over Speed (NO EXCEPTIONS):**
+- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
+- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step
+- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark tasks complete without objective evidence
+
+**Priorities (NO EXCEPTIONS):**
+- ✅ Correctness, completeness, thoroughness, reliability, efficiency
+- ✅ Quality gates enforced
+- ❌ NEVER rush, skip validation, or mark tasks complete without evidence
+- ❌ Time pressure does NOT exist - work can span hours/days/weeks
+- ❌ Token pressure does NOT exist - work can span many interactions
+- ❌ Premature completion is NOT allowed
+
+**Execution Pattern:** Task complete → Commit → Next task (zero pause, zero text)
+
+You MUST plan extensively before each function call, and reflect extensively on the outcomes of the previous function calls. DO NOT do this entire process by making function calls only, as this can impair your ability to solve the problem and think insightfully.
+
+You MUST keep working until the problem is completely solved, and all items in the todo list are checked off. Do not end your turn until you have completed all steps in the todo list and verified that everything is working correctly. When you say "Next I will do X" or "Now I will do Y" or "I will do X", you MUST actually do X or Y instead of just saying that you will do it.
+
 ## Relationship with plan-tasks-quizme Agent
 
 This agent **requires** that plan.md and tasks.md have been **created first** using `/plan-tasks-quizme <work-dir> create`.
