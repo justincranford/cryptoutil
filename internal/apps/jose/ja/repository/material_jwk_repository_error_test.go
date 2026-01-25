@@ -165,10 +165,6 @@ func TestMaterialJWKRepository_NilContextHandling(t *testing.T) {
 		}
 	}()
 
-	materialKID := "test-kid"
-
-	_, err := repo.GetByMaterialKID(nil, materialKID) //nolint:staticcheck // Testing nil context.
-	if err != nil {
-		require.Error(t, err)
-	}
+	_, err := repo.GetByMaterialKID(nil, "test-kid") //nolint:staticcheck // Testing nil context.
+	require.Error(t, err)
 }
