@@ -3,10 +3,33 @@ description: Create and maintain simple plan.md and tasks.md documentation for c
 name: plan-tasks-quizme
 argument-hint: <directory-path> <action: create|update|review>
 tools:
-  - search/codebase
-  - search
-  - edit/editFiles
-  - execute/runInTerminal
+	- edit/editFiles
+	- execute/createAndRunTask
+	- execute/getTerminalOutput
+	- execute/runInTerminal
+	- execute/runNotebookCell
+	- execute/runTask
+	- execute/testFailure
+	- read/getNotebookSummary
+	- read/getTaskOutput
+	- read/problems
+	- read/readNotebookCellOutput
+	- read/terminalLastCommand
+	- read/terminalSelection
+	- search
+	- search/changes
+	- search/codebase
+	- search/searchResults
+	- search/usages
+	- vscode/extensions
+	- vscode/getProjectSetupInfo
+	- vscode/installExtension
+	- vscode/newWorkspace
+	- vscode/openSimpleBrowser
+	- vscode/runCommand
+	- vscode/vscodeAPI
+	- web/fetch
+	- web/githubRepo
 ---
 
 # Plan-Tasks Documentation Manager (Custom Plans)

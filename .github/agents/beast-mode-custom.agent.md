@@ -2,33 +2,33 @@
 name: beast-mode-custom
 description: Beast Mode Custom - Continuous Work with Zero Stopping
 tools:
-	- vscode/extensions
-	- search/codebase
-	- search/usages
-	- vscode/vscodeAPI
-	- read/problems
-	- search/changes
-	- execute/testFailure
-	- read/terminalSelection
-	- read/terminalLastCommand
-	- vscode/openSimpleBrowser
-	- web/fetch
-	- search/searchResults
-	- web/githubRepo
 	- edit/editFiles
+	- execute/createAndRunTask
 	- execute/getTerminalOutput
 	- execute/runInTerminal
-	- execute/createAndRunTask
-	- execute/runTask
-	- read/getTaskOutput
 	- execute/runNotebookCell
+	- execute/runTask
+	- execute/testFailure
 	- read/getNotebookSummary
+	- read/getTaskOutput
+	- read/problems
 	- read/readNotebookCellOutput
+	- read/terminalLastCommand
+	- read/terminalSelection
 	- search
+	- search/changes
+	- search/codebase
+	- search/searchResults
+	- search/usages
+	- vscode/extensions
 	- vscode/getProjectSetupInfo
 	- vscode/installExtension
 	- vscode/newWorkspace
+	- vscode/openSimpleBrowser
 	- vscode/runCommand
+	- vscode/vscodeAPI
+	- web/fetch
+	- web/githubRepo
 ---
 
 # Beast Mode Custom - Continuous Work Directive

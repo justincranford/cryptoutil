@@ -3,24 +3,33 @@ description: Autonomous Continuous Execution - Execute plan/tasks without asking
 name: plan-tasks-implement
 argument-hint: <directory-path>
 tools:
-   - vscode/extensions
-   - search/codebase
-   - search/usages
-   - read/problems
-   - search/changes
-   - execute/testFailure
-   - read/terminalSelection
-   - read/terminalLastCommand
-   - search
-   - edit/editFiles
-   - execute/getTerminalOutput
-   - execute/runInTerminal
-   - execute/createAndRunTask
-   - execute/runTask
-   - read/getTaskOutput
-   - execute/runNotebookCell
-   - read/getNotebookSummary
-   - read/readNotebookCellOutput
+	- edit/editFiles
+	- execute/createAndRunTask
+	- execute/getTerminalOutput
+	- execute/runInTerminal
+	- execute/runNotebookCell
+	- execute/runTask
+	- execute/testFailure
+	- read/getNotebookSummary
+	- read/getTaskOutput
+	- read/problems
+	- read/readNotebookCellOutput
+	- read/terminalLastCommand
+	- read/terminalSelection
+	- search
+	- search/changes
+	- search/codebase
+	- search/searchResults
+	- search/usages
+	- vscode/extensions
+	- vscode/getProjectSetupInfo
+	- vscode/installExtension
+	- vscode/newWorkspace
+	- vscode/openSimpleBrowser
+	- vscode/runCommand
+	- vscode/vscodeAPI
+	- web/fetch
+	- web/githubRepo
 ---
 
 # AUTONOMOUS EXECUTION MODE
@@ -204,7 +213,7 @@ After completing any PHASE:
 - **CRITICAL**: Check for BLOCKED, SKIPPED, DEFERRED, or SATISFIED tasks in the completed phase
 - **If ANY exist**: Create new phase(s) to resolve ALL blockers/skips/deferrals
 - **Update plan.md** with new phase sections
-- **Update tasks.md** with new phase tasks  
+- **Update tasks.md** with new phase tasks
 - **Immediately begin** the next phase (new or existing)
 - **This is self-learning and automated fixing** - NEVER stop when blockers are discovered
 
@@ -632,7 +641,7 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 
 ### P4.1: Create ParseWithFlagSet Function
 
-- [ ] 4.1.1 Create ParseWithFlagSet(fs *pflag.FlagSet, ...) function  
+- [ ] 4.1.1 Create ParseWithFlagSet(fs *pflag.FlagSet, ...) function
 - [ ] 4.1.2 Modify Parse() to call ParseWithFlagSet(pflag.CommandLine, ...)
 - [ ] 4.1.3 Add unit tests for ParseWithFlagSet
 - [ ] 4.1.4 Update BenchmarkParse to use fresh FlagSet per iteration
