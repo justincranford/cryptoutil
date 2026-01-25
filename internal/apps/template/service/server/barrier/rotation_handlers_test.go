@@ -31,6 +31,7 @@ import (
 
 func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *Service) {
 	t.Helper()
+
 	ctx := context.Background()
 
 	// Create in-memory database
