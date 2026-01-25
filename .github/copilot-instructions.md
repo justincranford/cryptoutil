@@ -51,21 +51,3 @@
 | [05-02.git](.github/instructions/05-02.git.instructions.md) | Instructions for local Git commands and commit conventions |
 | [05-03.dast](.github/instructions/05-03.dast.instructions.md) | Dynamic Application Security Testing |
 | [06-01.evidence-based](.github/instructions/06-01.evidence-based.instructions.md) | Instructions for evidence-based task completion and validation |
-
-## Prompt Files Reference
-
-**Note**: Prompt files in `.github/prompts/` provide reusable workflows for common tasks.
-
-| File | Description |
-|------|-------------|
-| [autonomous-execution](.github/prompts/autonomous-execution.prompt.md) | Autonomous continuous work execution patterns |
-| [plan-tasks-quizme](.github/prompts/plan-tasks-quizme.prompt.md) | Create and maintain feature plan, tasks, and QUIZME documentation |
-| [speckit.analyze](.github/prompts/speckit.analyze.prompt.md) | SpecKit analyze workflow |
-| [speckit.checklist](.github/prompts/speckit.checklist.prompt.md) | SpecKit checklist generation |
-| [speckit.clarify](.github/prompts/speckit.clarify.prompt.md) | SpecKit clarify workflow |
-| [speckit.constitution](.github/prompts/speckit.constitution.prompt.md) | SpecKit constitution workflow |
-| [speckit.implement](.github/prompts/speckit.implement.prompt.md) | SpecKit implement workflow |
-| [speckit.plan](.github/prompts/speckit.plan.prompt.md) | SpecKit plan workflow |
-| [speckit.specify](.github/prompts/speckit.specify.prompt.md) | SpecKit specify workflow |
-| [speckit.tasks](.github/prompts/speckit.tasks.prompt.md) | SpecKit tasks workflow |
-| [speckit.taskstoissues](.github/prompts/speckit.taskstoissues.prompt.md) | SpecKit tasks to GitHub issues conversion |
