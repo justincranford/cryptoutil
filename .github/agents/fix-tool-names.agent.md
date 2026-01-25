@@ -1,6 +1,35 @@
 ---
 name: fix-tool-names
 description: Fix Copilot Tool Names Agent
+tools:
+	- edit/editFiles
+	- execute/createAndRunTask
+	- execute/getTerminalOutput
+	- execute/runInTerminal
+	- execute/runNotebookCell
+	- execute/runTask
+	- execute/testFailure
+	- github/github-mcp-server/issue_write
+	- read/getNotebookSummary
+	- read/getTaskOutput
+	- read/problems
+	- read/readNotebookCellOutput
+	- read/terminalLastCommand
+	- read/terminalSelection
+	- search
+	- search/changes
+	- search/codebase
+	- search/searchResults
+	- search/usages
+	- vscode/extensions
+	- vscode/getProjectSetupInfo
+	- vscode/installExtension
+	- vscode/newWorkspace
+	- vscode/openSimpleBrowser
+	- vscode/runCommand
+	- vscode/vscodeAPI
+	- web/fetch
+	- web/githubRepo
 ---
 
 # Fix Copilot Tool Names Agent
