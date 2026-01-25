@@ -6,7 +6,6 @@ package repository_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -17,54 +16,16 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-
-	_ "modernc.org/sqlite"
 )
 
-// setupMaterialJWKTestDB creates an in-memory SQLite database for testing.
+// setupMaterialJWKTestDB returns the shared test database from TestMain.
+// This function is kept for backward compatibility - all tests in this package
+// share the same database instance created once in TestMain.
 func setupMaterialJWKTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	ctx := context.Background()
-	dsn := "file::memory:?cache=shared"
-
-	sqlDB, err := sql.Open("sqlite", dsn)
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
-	sqlDB.SetConnMaxLifetime(0)
-
-	dialector := sqlite.Dialector{Conn: sqlDB}
-	db, err := gorm.Open(dialector, &gorm.Config{
-		SkipDefaultTransaction: true,
-		Logger:                 logger.Default.LogMode(logger.Info),
-	})
-	require.NoError(t, err)
-
-	// Auto-migrate models (template models first, then JOSE domain models).
-	err = db.AutoMigrate(
-		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
-		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
-		&cryptoutilJoseDomain.ElasticJWK{},
-		&cryptoutilJoseDomain.MaterialJWK{},
-	)
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		_ = sqlDB.Close()
-	})
-
-	return db
+	return sharedTestDB
 }
 
 // createMaterialJWKTestTenantAndRealm creates a test tenant and realm, returning their IDs.

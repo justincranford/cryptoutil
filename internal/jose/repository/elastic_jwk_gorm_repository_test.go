@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -22,47 +23,88 @@ import (
 	_ "modernc.org/sqlite" // CGO-free SQLite driver
 )
 
-func setupTestDB(t *testing.T) *gorm.DB {
-	t.Helper()
+// Package-level shared database for all tests (TestMain pattern).
+var sharedTestDB *gorm.DB
 
+func TestMain(m *testing.M) {
 	ctx := context.Background()
 
-	// Open SQL database first with modernc driver.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	require.NoError(t, err)
+	// Generate unique database identifier
+	dbID, err := googleUuid.NewV7()
+	if err != nil {
+		panic(fmt.Sprintf("failed to generate database UUID: %v", err))
+	}
 
-	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
+	// Open SQL database with modernc driver (CGO-free)
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbID.String())
 
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
+	sqlDB, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		panic(fmt.Sprintf("failed to open SQLite: %v", err))
+	}
 
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
-	sqlDB.SetConnMaxLifetime(0)
+	// Configure SQLite for concurrent operations
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
+		panic(fmt.Sprintf("failed to enable WAL mode: %v", err))
+	}
 
-	// Wrap with GORM using Dialector pattern (uses already-opened connection).
+	if _, err := sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;"); err != nil {
+		panic(fmt.Sprintf("failed to set busy timeout: %v", err))
+	}
+
+	// Create GORM connection
 	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
-	require.NoError(t, err)
+	if err != nil {
+		panic(fmt.Sprintf("failed to initialize GORM: %v", err))
+	}
 
-	// Use GORM AutoMigrate instead of golang-migrate to avoid CGO dependency.
-	// AutoMigrate creates tables based on GORM model struct tags.
+	// Configure connection pool
+	gormDB, err := db.DB()
+	if err != nil {
+		panic(fmt.Sprintf("failed to get database instance: %v", err))
+	}
+
+	gormDB.SetMaxOpenConns(5)
+	gormDB.SetMaxIdleConns(5)
+	gormDB.SetConnMaxLifetime(0) // In-memory: never close connections
+	gormDB.SetConnMaxIdleTime(0)
+
+	// Auto-migrate schema
 	err = db.AutoMigrate(
-		// Template models needed for tenant/realm foreign key support.
+		// Template models needed for tenant/realm foreign key support
 		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
 		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
-		// JOSE domain models.
+		// JOSE domain models
 		&cryptoutilJoseDomain.ElasticJWK{},
 		&cryptoutilJoseDomain.MaterialJWK{},
 		&cryptoutilJoseDomain.AuditConfig{},
 		&cryptoutilJoseDomain.AuditLogEntry{},
 	)
-	require.NoError(t, err)
+	if err != nil {
+		panic(fmt.Sprintf("failed to run migrations: %v", err))
+	}
 
-	return db
+	// Assign to package-level variable
+	sharedTestDB = db
+
+	// Run all tests
+	exitCode := m.Run()
+
+	// Cleanup
+	_ = sqlDB.Close()
+
+	os.Exit(exitCode)
+}
+
+// setupTestDB is DEPRECATED - use shared sharedTestDB from TestMain instead.
+// This function is kept for backward compatibility during incremental refactoring.
+// New tests should use sharedTestDB directly without calling setupTestDB.
+func setupTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+
+	return sharedTestDB
 }
 
 func createTestTenantAndRealm(t *testing.T, db *gorm.DB) (tenantID, realmID googleUuid.UUID) {

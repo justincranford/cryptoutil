@@ -6,7 +6,6 @@ package repository_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	cryptoutilJoseDomain "cryptoutil/internal/jose/domain"
@@ -16,9 +15,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	_ "modernc.org/sqlite" // CGO-free SQLite driver.
 )
 
 // Test operation constants.
@@ -28,40 +25,13 @@ const (
 	testOpRotate  = "rotate"
 )
 
+// setupAuditConfigTestDB returns the shared test database from TestMain.
+// This function is kept for backward compatibility - all tests in this package
+// share the same database instance created once in TestMain.
 func setupAuditConfigTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	ctx := context.Background()
-
-	// Open SQL database first with modernc driver.
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	require.NoError(t, err)
-
-	// Configure SQLite for concurrent operations.
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
-	require.NoError(t, err)
-
-	_, err = sqlDB.ExecContext(ctx, "PRAGMA busy_timeout = 30000;")
-	require.NoError(t, err)
-
-	sqlDB.SetMaxOpenConns(5)
-	sqlDB.SetMaxIdleConns(5)
-	sqlDB.SetConnMaxLifetime(0)
-
-	// Wrap with GORM using Dialector pattern (uses already-opened connection).
-	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-	require.NoError(t, err)
-
-	// Auto-migrate required tables.
-	err = db.AutoMigrate(
-		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
-		&cryptoutilJoseDomain.AuditConfig{},
-	)
-	require.NoError(t, err)
-
-	return db
+	return sharedTestDB
 }
 
 func TestAuditConfigGormRepository_Get(t *testing.T) {
