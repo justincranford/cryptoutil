@@ -8,40 +8,48 @@
         // KMS SERVER LAUNCHES
         // ═══════════════════════════════════════════════════════════════════════
         {
-            "name": "KMS: SQLite (dev mode)",
+            "name": "Cryptoutil: KMS SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/cryptoutil",
-            "args": ["--dev=true", "--log-level=INFO"]
-        },
-        {
-            "name": "KMS: PostgreSQL",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/cryptoutil",
-            "args": ["--database-url=postgres://USR:PWD@localhost:5432/DB?sslmode=disable", "--log-level=INFO"]
+            "args": ["sm", "kms", "server", "--dev=true"]
         },
 
         // ═══════════════════════════════════════════════════════════════════════
-        // IDENTITY SERVER LAUNCHES
+        // SERVICE LAUNCHES
         // ═══════════════════════════════════════════════════════════════════════
         {
-            "name": "Identity: SQLite (dev mode)",
+            "name": "Cipher-IM: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/identity",
-            "args": ["--dev=true", "--log-level=INFO"]
+            "program": "${workspaceFolder}/cmd/cipher-im",
+            "args": ["server", "--dev=true"]
         },
         {
-            "name": "Identity: PostgreSQL",
+            "name": "JOSE-Server: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/identity",
-            "args": ["--database-url=postgres://USR:PWD@localhost:5432/DB?sslmode=disable", "--log-level=INFO"]
+            "program": "${workspaceFolder}/cmd/jose-server",
+            "args": ["server", "--dev=true"]
+        },
+        {
+            "name": "CA-Server: SQLite (dev mode)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/ca-server",
+            "args": ["server", "--dev=true"]
+        },
+        {
+            "name": "Identity-Unified: SQLite (dev mode)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/identity-unified",
+            "args": ["--dev=true"]
         },
 
         // ═══════════════════════════════════════════════════════════════════════
@@ -55,11 +63,18 @@
             "program": "${workspaceFolder}/cmd/identity-demo"
         },
         {
-            "name": "Demo: Identity Orchestrator",
+            "name": "Demo: Identity Compose",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/identity-orchestrator"
+            "program": "${workspaceFolder}/cmd/identity-compose"
+        },
+        {
+            "name": "Demo: General",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/demo"
         },
 
         // ═══════════════════════════════════════════════════════════════════════
