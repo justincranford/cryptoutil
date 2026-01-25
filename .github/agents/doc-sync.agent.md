@@ -1,5 +1,5 @@
 ---
-agent: docsync
+name: update-docs
 description: Documentation Synchronization - Keep all project docs consistent
 tools:
   - read_file

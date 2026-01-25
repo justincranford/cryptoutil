@@ -2,7 +2,6 @@
 description: Create and maintain simple plan.md and tasks.md documentation for custom plans
 name: plan-tasks-quizme
 argument-hint: <directory-path> <action: create|update|review>
-agent: plan
 tools:
   - read_file
   - create_file

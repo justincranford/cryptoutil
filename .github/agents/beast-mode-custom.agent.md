@@ -1,6 +1,6 @@
 ---
 description: Autonomous Continuous Execution - Execute plan/tasks without asking permission
-name: Autonomous
+name: beast-mode-custom
 tools: ['extensions', 'codebase', 'usages', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'search', 'editFiles', 'runCommands', 'runTasks', 'runNotebooks']
 ---
 

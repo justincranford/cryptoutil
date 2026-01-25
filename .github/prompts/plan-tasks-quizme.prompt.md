@@ -1,3 +1,3 @@
 ---
-agent: plan
+agent: plan-tasks-quizme
 ---

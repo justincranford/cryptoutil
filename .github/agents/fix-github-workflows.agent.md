@@ -1,6 +1,6 @@
 ---
-agent: workflow
-description: Workflow Fixing Agent - Systematically verify and fix all GitHub Actions workflows
+name: fix-github-workflows
+description: Fix GitHub Workflows Agent - Systematically verify and fix all GitHub Actions workflows
 tools: ['extensions', 'codebase', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'fetch', 'search', 'runCommands', 'runTasks', 'editFiles']
 ---
 
