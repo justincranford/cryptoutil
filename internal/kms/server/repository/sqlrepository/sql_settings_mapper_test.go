@@ -68,6 +68,22 @@ func TestMapDBTypeAndURL(t *testing.T) {
 			wantURL:     "",
 			wantError:   true,
 		},
+		{
+			name:        "sqlite URL with query parameters",
+			devMode:     false,
+			databaseURL: "sqlite://file::memory:?cache=shared&mode=rwc&_journal_mode=WAL",
+			wantDBType:  DBTypeSQLite,
+			wantURL:     "file::memory:?cache=shared&mode=rwc&_journal_mode=WAL",
+			wantError:   false,
+		},
+		{
+			name:        "sqlite URL with absolute file path",
+			devMode:     false,
+			databaseURL: "sqlite:///var/lib/cryptoutil/db.sqlite",
+			wantDBType:  DBTypeSQLite,
+			wantURL:     "/var/lib/cryptoutil/db.sqlite",
+			wantError:   false,
+		},
 	}
 
 	for _, tc := range tests {
