@@ -1,7 +1,24 @@
 ---
 name: fix-github-workflows
 description: Fix GitHub Workflows Agent - Systematically verify and fix all GitHub Actions workflows
-tools: ['extensions', 'codebase', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'fetch', 'search', 'runCommands', 'runTasks', 'editFiles']
+tools:
+	- vscode/extensions
+	- search/codebase
+	- search/usages
+	- vscode/vscodeAPI
+	- read/problems
+	- search/changes
+	- execute/testFailure
+	- read/terminalSelection
+	- read/terminalLastCommand
+	- web/fetch
+	- search
+	- edit/editFiles
+	- execute/getTerminalOutput
+	- execute/runInTerminal
+	- execute/createAndRunTask
+	- execute/runTask
+	- read/getTaskOutput
 ---
 
 # Workflow Fixing Agent

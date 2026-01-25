@@ -3,14 +3,10 @@ description: Create and maintain simple plan.md and tasks.md documentation for c
 name: plan-tasks-quizme
 argument-hint: <directory-path> <action: create|update|review>
 tools:
-  - read_file
-  - create_file
-  - replace_string_in_file
-  - multi_replace_string_in_file
-  - semantic_search
-  - grep_search
-  - list_dir
-  - git
+  - search/codebase
+  - search
+  - edit/editFiles
+  - execute/runInTerminal
 ---
 
 # Plan-Tasks Documentation Manager (Custom Plans)

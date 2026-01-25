@@ -2,11 +2,9 @@
 name: update-docs
 description: Documentation Synchronization - Keep all project docs consistent
 tools:
-  - read_file
-  - grep_search
-  - file_search
-  - replace_string_in_file
-  - multi_replace_string_in_file
+    - search/codebase
+    - search
+    - edit/editFiles
 ---
 
 # Documentation Synchronization Prompt

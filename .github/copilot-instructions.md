@@ -7,6 +7,7 @@
 - **Instruction files auto-discovered and used in alphanumeric order from** `.github/instructions/*.instructions.md`
 - **Reference external & project resources** - avoid duplication of content
 - **ALWAYS use built-in tools over terminal commands**
+- **Custom agent tool names** - Use official [VS Code Copilot Chat Tools Reference](https://code.visualstudio.com/docs/copilot/chat/chat-tools) and [Chat Tools API Reference](https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools) for correct tool names when creating/editing `.agent.md` files
 - **ALWAYS Do regular commits and pushes** to enable workflow monitoring and validation
 - **ALWAYS bias towards accuracy, completeness, and correctness** - NEVER bias towards fast completion at the expense of quality
 - **ALWAYS take the time required to do things correctly** - Time and token budgets are not constraints for Speckit work
