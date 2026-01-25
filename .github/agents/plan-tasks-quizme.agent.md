@@ -22,7 +22,9 @@ This prompt helps you create, update, and maintain **simple custom plans**.
 
 **Plus optional quizme file** (ephemeral, deleted after answers merged):
 
-- **`<work-dir>/CLARIFY-QUIZME-##.md`** - Questions to clarify before planning (temporary)
+- **`<work-dir>/quizme-v#.md`** - Questions to clarify unknowns, risks, inefficiencies ONLY
+  - Format: A-D multiple choice + E (blank fill-in) with blank Choice field
+  - Temporary - deleted after answers merged into plan.md/tasks.md
 
 **User must specify directory path** where files will be created/updated.
 
@@ -40,44 +42,48 @@ This prompt helps you create, update, and maintain **simple custom plans**.
 - `docs\short-term-work\` (plan.md + tasks.md)
 - `docs\feature-name\` (plan.md + tasks.md)
 
-**Pattern**: Short directory name under `docs\`, containing files: plan.md, tasks.md, and optionally CLARIFY-QUIZME-##.md
+**Pattern**: Short directory name under `docs\`, containing files: plan.md, tasks.md, and optionally quizme-v#.md
 
 ## Usage Patterns
 
 ### 1. Create New Custom Plan
 
 ```
-/plan-tasks-quizme docs\my-work\ create
+/plan-tasks-quizme <work-dir> create
 ```
 
 This will:
 
-- Create `docs\my-work\plan.md` from template
-- Create `docs\my-work\tasks.md` from template
+- Create `<work-dir>/plan.md` from template
+- Create `<work-dir>/tasks.md` from template
+- Optionally create `<work-dir>/quizme-v1.md` for unknowns/risks/inefficiencies
+  - A-D and E (blank fill-in) questions
+  - Choice field blank for user to answer
 - Initialize directory if needed
 
 ### 2. Update Existing Plan
 
 ```
-/plan-tasks-quizme docs\my-work\ update
+/plan-tasks-quizme <work-dir> update
 ```
 
 This will:
 
 - Analyze implementation status
-- Update plan with actual LOE vs estimated
-- Mark completed tasks in tasks.md
+- Update `<work-dir>/plan.md` with actual LOE vs estimated
+- Mark completed tasks in `<work-dir>/tasks.md`
 - Update decisions based on learnings
+- Merge quizme answers if `<work-dir>/quizme-v#.md` exists (then delete it)
 
 ### 3. Review Documentation
 
 ```
-/plan-tasks-quizme docs\my-work\ review
+/plan-tasks-quizme <work-dir> review
 ```
 
 This will:
 
-- Check consistency between plan.md and tasks.md
+- Check consistency between `<work-dir>/plan.md` and `<work-dir>/tasks.md`
 - Verify task completion status
 - Identify gaps or inconsistencies
 
@@ -265,23 +271,27 @@ ls <directory-path>/tasks.md
 1. Create directory if needed
 
    ```
-   docs/features/<feature-name>/
-   ├── feature-plan.md
-   ├── feature-tasks.md
-   ├── feature-QUIZME-v1.md
-   ├── clarify.md
-   └── research.md
+   <work-dir>/
+   ├── plan.md
+   ├── tasks.md
+   └── quizme-v1.md (optional, ephemeral)
    ```
 
-2. Create `plan.md` from template
+2. Create `<work-dir>/plan.md` from template
 
-3. Create `tasks.md` from template
+3. Create `<work-dir>/tasks.md` from template
 
-4. Initialize with placeholders
+4. Optionally create `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies ONLY
+   - Contains A-D and E (blank fill-in) multiple choice questions
+   - Contains choice field left blank for user to fill
+   - ONLY for: unknowns, risks, inefficiencies that need clarification
+   - Ephemeral - deleted after answers merged into plan.md/tasks.md
+
+5. Initialize with placeholders
 
 #### UPDATE Action
 
-1. Read current plan.md and tasks.md
+1. Read current `<work-dir>/plan.md` and `<work-dir>/tasks.md`
 
 2. Check git log for work done:
 
@@ -297,7 +307,7 @@ ls <directory-path>/tasks.md
 
 #### REVIEW Action
 
-1. Load plan.md and tasks.md
+1. Load `<work-dir>/plan.md` and `<work-dir>/tasks.md`
 
 2. Check consistency:
    - Do tasks align with plan phases?
@@ -331,19 +341,29 @@ ls <directory-path>/tasks.md
 - ✅ Linting clean
 - ✅ Acceptance criteria verified
 
+### Quizme File Purpose
+
+**Only create `<work-dir>/quizme-v#.md` for**:
+
+- ✅ Unknowns that need clarification before planning
+- ✅ Risks that need assessment
+- ✅ Inefficiencies that need decision
+
+**Quizme Format** (A-D and E blank fill-in):
+
+- Multiple choice questions A-D with one correct answer
+- Option E: blank fill-in for custom answer
+- Choice field: LEFT BLANK for user to select/fill
+
+**After user answers**: Merge into plan.md/tasks.md, DELETE quizme-v#.md
+
 ## Related Files
 
 **Examples**:
 
-- `docs/fixes-needed-plan-tasks/plan.md`
-- `docs/fixes-needed-plan-tasks/tasks.md`
-- `docs/fixes-needed-plan-tasks-v2/plan.md`
-- `docs/fixes-needed-plan-tasks-v2/tasks.md`
-
-**For SpecKit** (different workflow):
-
-- See `.github/prompts/doc-sync.prompt.md` for SpecKit vs Custom distinction
-- Use `/speckit.*` agents for full SpecKit workflow
+- `<work-dir>/plan.md` - High-level implementation plan
+- `<work-dir>/tasks.md` - Detailed task breakdown
+- `<work-dir>/quizme-v#.md` - Optional questions for unknowns/risks/inefficiencies (ephemeral)
 
 **Instructions**:
 

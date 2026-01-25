@@ -40,7 +40,7 @@ This agent **requires** that plan.md and tasks.md have been **created first** us
 **Workflow**:
 
 1. **Preparation**: Use `/plan-tasks-quizme <work-dir> create` to create `<work-dir>/plan.md` and `<work-dir>/tasks.md`
-   - During creation, may generate `<work-dir>/CLARIFY-QUIZME-##.md` (ephemeral, deleted after answers merged)
+   - During creation, may generate `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies (ephemeral, deleted after answers merged)
 2. **Implementation**: Use `/beast-mode-custom <work-dir>` to execute the plan autonomously
 3. **Updates** (optional): Use `/plan-tasks-quizme <work-dir> update` to update docs after implementation
 
@@ -101,7 +101,7 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 SCOPE OF WORK
 --------------------------------------------
 
-## The 5 Files (Custom Plan Documentation)
+## The 2 Files (Custom Plan Documentation)
 
 You must fully execute the plan and tasks defined in:
 
@@ -110,15 +110,11 @@ You must fully execute the plan and tasks defined in:
 1. **`<work-dir>/plan.md`** - High-level plan with phases, decisions, quality gates
 2. **`<work-dir>/tasks.md`** - Detailed task checklist grouped by phase with `[ ]`/`[x]` status
 
-**CREATED DURING EXECUTION** (as issues/patterns/lessons emerge):
-
-1. **`<work-dir>/issues.md`** - Granular issue tracking with structured metadata
-2. **`<work-dir>/categories.md`** - Pattern analysis across issue categories
-3. **`<work-dir>/lessons.md`** - Lessons learned during execution
-
 **EPHEMERAL FILE** (may exist, safe to ignore during execution):
 
-- **`<work-dir>/CLARIFY-QUIZME-##.md`** - Questions from plan creation phase
+- **`<work-dir>/quizme-v#.md`** - Questions from plan creation phase (A-D + E blank fill-in format)
+  - ONLY for unknowns, risks, inefficiencies
+  - Ignored during execution (already merged into plan.md/tasks.md)
 
 This includes:
 
@@ -180,9 +176,8 @@ After completing any task:
 
 After completing any PHASE:
 
-- Conduct post-mortem analysis (update issues.md, categories.md, lessons.md)
 - Identify new phases and/or tasks to insert or append
-- Update plan.md and tasks.md with dynamically discovered work
+- Update `<work-dir>/plan.md` and `<work-dir>/tasks.md` with dynamically discovered work
 - Immediately begin the next phase
 - This is self-learning and automated fixing
 
@@ -192,7 +187,7 @@ The ONLY acceptable output during execution is:
 - File reads/writes
 - Code changes
 - Test/lint/build commands
-- Post-mortem updates to issues.md, categories.md, lessons.md, plan.md, tasks.md
+- Updates to `<work-dir>/plan.md` and `<work-dir>/tasks.md` when new work discovered
 
 **Communication During Execution:**
 
@@ -373,11 +368,27 @@ These are the ONLY valid stopping conditions.
 SESSION TRACKING TEMPLATES
 --------------------------------------------
 
-**Issue Template Structure:**
+**Task Status Tracking in `<work-dir>/tasks.md`**:
 
-Each issue in issues.md MUST include:
+Each task MUST include:
 
-- **Category**: Type - Syntax, Configuration, Dependencies, Testing, Documentation
+- **Status**: ❌ Not Started | ⚠️ In Progress | ✅ Complete
+- **Owner**: LLM Agent
+- **Estimated**: Xh
+- **Actual**: [Fill when complete]
+- **Dependencies**: [Task IDs]
+- **Description**: [What needs doing]
+- **Acceptance Criteria**: Testable conditions with `[ ]`/`[x]` checkboxes
+- **Files**: List of files created/modified
+
+**Dynamic Work Discovery in `<work-dir>/plan.md`**:
+
+When new phases/tasks discovered during execution:
+
+- Add new phase section to plan.md
+- Document rationale for new work
+- Link to related existing phases
+- Update tasks.md with new task entries
 - **Severity**: P0/P1/P2/P3
 - **Status**: Open, In Progress, Completed
 - **Description**: One-line summary
@@ -472,9 +483,7 @@ This will:
 
 - Read **`<work-dir>/plan.md`** and **`<work-dir>/tasks.md`**
 - Execute ALL tasks continuously without asking permission
-- Create/update **`<work-dir>/issues.md`** as issues discovered
-- Create/update **`<work-dir>/categories.md`** as patterns emerge
-- Create/update **`<work-dir>/lessons.md`** as lessons learned
+- Update `<work-dir>/plan.md` and `<work-dir>/tasks.md` as new work discovered
 - Commit after each completed task
 - Stop ONLY when all tasks complete OR user clicks STOP
 
@@ -482,8 +491,8 @@ This will:
 
 - Use any directory name (typically under `docs\`)
 - Directory is ephemeral - user will delete after manual review
-- All 5 files stay together in `<work-dir>/`
-- `<work-dir>/CLARIFY-QUIZME-##.md` may exist but is ignored (ephemeral from plan creation)
+- Only 2 files: `<work-dir>/plan.md` and `<work-dir>/tasks.md`
+- `<work-dir>/quizme-v#.md` may exist but is ignored (ephemeral from plan creation)
 
 --------------------------------------------
 
@@ -522,24 +531,18 @@ Do not pause.
 
 Execute continuously until finished.
 
-## The 5 Files - MANDATORY
+## The 2 Files - MANDATORY
 
-**Focus ONLY on these 5 documentation files:**
+**Focus ONLY on these 2 documentation files:**
 
 **INPUT FILES** (must exist before start):
 
 1. **`<work-dir>/plan.md`**: High-level session plan with goals, phases, success criteria
 2. **`<work-dir>/tasks.md`**: Comprehensive actionable checklist grouped by phase, with priorities (P0/P1/P2/P3), acceptance criteria, verification commands - tasks marked `[ ]` initially, then `[x]` when complete
 
-**CREATED DURING EXECUTION** (as needed):
-
-1. **`<work-dir>/issues.md`**: Granular issue tracking with structured metadata (Category, Severity, Status, Description, Root Cause, Impact, Proposed Fix, Commits, Prevention)
-2. **`<work-dir>/categories.md`**: Pattern analysis across issue categories (3-5 categories max: Syntax, Configuration, Dependencies, Testing, Documentation)
-3. **`<work-dir>/lessons.md`**: Lessons learned during execution, systematic extraction workflow
-
 **IGNORED FILES**:
 
-- **`<work-dir>/CLARIFY-QUIZME-##.md`**: Ephemeral file from plan creation phase, safe to ignore during execution
+- **`<work-dir>/quizme-v#.md`**: Ephemeral file from plan creation phase, safe to ignore during execution
 
 **Progress Tracking:**
 
