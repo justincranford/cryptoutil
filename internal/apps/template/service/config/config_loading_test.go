@@ -29,6 +29,8 @@ bind-public-address: 127.0.0.1
 bind-public-port: 8080
 bind-private-address: 127.0.0.1
 bind-private-port: 9090
+browser-rate-limit: 100
+service-rate-limit: 25
 `
 
 	tmpDir := t.TempDir()
