@@ -1,12 +1,12 @@
 # Tasks - Unified Implementation
 
-**Status**: 43 of 115 tasks complete (37.4%) - See completed.md for completed tasks
+**Status**: 44 of 115 tasks complete (38.3%) - See completed.md for completed tasks
 **Last Updated**: 2026-01-26
 
 **Summary**:
-- Phase 4.2: JOSE-JA Config (16 tasks: 4 original + 12 NEW) - ✅ **Pflag refactor COMPLETE** (92.5% coverage, +30.6%) - ⚠️ Service error paths PARTIAL (testing limitation discovered)
+- Phase 4.2: JOSE-JA Config (16 tasks: 4 original + 12 NEW) - ✅ **Pflag refactor COMPLETE** (92.5% coverage, +30.6%) - ⚠️ Service error paths PARTIAL (testing limitation documented)
 - Phase 6.1: Cipher-IM Mutation (11 tasks: 6 original + 5 NEW) - ✅ UNBLOCKED (Docker health checks fixed) → 98% efficacy
-- Phase 6.3: Template Mutation (10 tasks: 6 original + 4 NEW) - 91.84% → 98% efficacy
+- Phase 6.3: Template Mutation (10 tasks: 6 original + 4 NEW) - ⏳ **IN PROGRESS** - 89.15% actual (regressed from 91.84%), targeting 98%
 - Phase 8.5: Docker Health Checks (8 tasks NEW) - ✅ **COMPLETE** - 100% standardization, cipher-im UNBLOCKED
 - Phase 9: Plan Quality Standards (1 task NEW) - Clarify 98% ideal vs 85% minimum
 - Phase 6.2: Mutation Analysis (COMPLETE) - See completed.md
@@ -23,9 +23,13 @@
    - Commit: 1e06849a (4 tests added, all pass)
    - Coverage: 75.0% → 75.0% (no improvement due to closed DB pattern limitation)
    - Discovery: Closed DB only tests first operation in multi-step functions
+4. ✅ Phase 6.3.7 Template Mutation Analysis - Gremlins run complete, 23 lived mutations identified
+   - Efficacy: 89.15% (REGRESSED from 91.84% baseline)
+   - Discovery: 7 config.go + 16 tls_generator.go mutations
+   - 610 timeouts (major concern, was ~0)
 
 **NEW TASKS ADDED**: 47 tasks (16 Phase 4.2 + 5 Phase 6.1 + 4 Phase 6.3 + 8 Phase 8.5 + 1 Phase 9 + 13 refinements to existing)
-**Total Estimated Time**: 30-40 hours for new tasks → **20h remaining** (Phase 8.5 + Phase 4.2 config complete, 4.2.10 partial)
+**Total Estimated Time**: 30-40 hours for new tasks → **19h remaining** (Phase 8.5 + Phase 4.2 config complete, 4.2.10 partial, 6.3.7 complete)
 
 **CRITICAL Quality Goals**:
 - **Mutation Efficacy**: 98% IDEAL (not 85% minimum) - ALWAYS target 98%, accept 85% ONLY with documented blockers
@@ -427,20 +431,36 @@
 
 **Tasks**:
 
-- [ ] **6.3.7: Re-run gremlins, identify which lived mutations remain** ⏳ PENDING
+- [x] **6.3.7: Re-run gremlins, identify which lived mutations remain** ✅ COMPLETE (REGRESSION DISCOVERED)
   - **Priority**: HIGH
-  - **Estimated**: 30min
+  - **Estimated**: 30min → **Actual**: 45min
   - **Objective**: Determine exact mutations preventing 98% efficacy
-  - **Current**: 91.84% (281/306 killed, 25 lived)
-  - **Target**: 98% (300/306 killed, ~6 lived acceptable)
-  - **Gap**: Need to kill 19 of 25 lived mutations (7-8 HIGH priority)
-  - **Process**:
-    - [ ] 6.3.7.1 Run: gremlins unleash ./internal/apps/template/ > /tmp/gremlins_template_detailed.log 2>&1
-    - [ ] 6.3.7.2 Extract lived mutations: grep "NOT COVERED" /tmp/gremlins_template_detailed.log
-    - [ ] 6.3.7.3 Cross-reference with docs/gremlins/mutation-analysis.md (6 HIGH, 6 MEDIUM, 17 LOW-deferred)
-    - [ ] 6.3.7.4 Identify which of 6 HIGH priority mutations still alive
-    - [ ] 6.3.7.5 Document in /tmp/template_mutation_targets.md
-  - **Commit**: `docs(mutation): identify template 98% efficacy targets`
+  - **Baseline**: 91.84% (281/306 killed, 25 lived)
+  - **Current**: 89.15% efficacy ❌ **REGRESSED by 2.69%**
+  - **Results**:
+    - Killed: 189 (was 281, ↓92)
+    - Lived: 23 (was 25, ↓2 minor improvement)
+    - NOT COVERED: 340 (new high count)
+    - TIMED OUT: 610 (was ~0, MAJOR ISSUE)
+  - **Target Gap**: Need to kill 19-20 of 23 lived for 98% (189→209 killed, 23→~4 lived)
+  - **CRITICAL DISCOVERY**: 23 lived mutations ALL in config/TLS code:
+    - **config.go**: 7 mutations (lines 949, 1046, 1459, 1526, 1530, 1593, 1599)
+      - Line 949: Boolean setting env binding (CONDITIONALS_NEGATION)
+      - Line 1046: Multiple config file merging (INCREMENT_DECREMENT)
+      - Line 1459: Empty []string formatting (CONDITIONALS_NEGATION)
+      - Lines 1526, 1530: Port boundary validation (CONDITIONALS_BOUNDARY × 2)
+      - Lines 1593, 1599: Rate limit boundary validation (CONDITIONALS_BOUNDARY × 2)
+    - **tls_generator.go**: 16 mutations (lines 39, 75, 91-98, 103-105, 190-194, 269, 361)
+      - Static cert parsing edge cases (rarely executed)
+      - Auto-generated cert paths (rarely executed)
+      - Previous analysis: LOW priority (deferred)
+  - **Completed**:
+    - [x] 6.3.7.1 Run gremlins: gremlins unleash ./internal/apps/template/ (1m22s)
+    - [x] 6.3.7.2 Extract lived: 23 total in /tmp/template_lived_mutations.txt
+    - [x] 6.3.7.3 Analyze breakdown: 7 config.go, 16 tls_generator.go
+    - [x] 6.3.7.4 Identify specific lines and mutation types
+    - [x] 6.3.7.5 Map to test gaps (no multi-file config, no boundary tests)
+  - **Next Steps**: Focus on 7 config.go mutations (HIGH ROI, 81.3% current coverage)
 
 - [ ] **6.3.8: Kill HIGH priority mutations for 98%** ⏳ PENDING (HIGH)
   - **Priority**: HIGHEST
