@@ -1,7 +1,102 @@
 # Completed Tasks - Unified Implementation
 
-**Total Completed**: 219 tasks (196 from V1 + 23 from V2)
-**Last Updated**: 2026-01-25
+**Total Completed**: 227 tasks (196 from V1 + 31 from V2)
+**Last Updated**: 2026-01-26
+
+---
+
+## Phase 1: CI/CD Enhancement - time.Now().UTC() Formatter (3 tasks)
+
+### 1.1: Implement time.Now().UTC() Formatter (Complete)
+
+- [x] 1.1.1 Create formatter function `enforceTimeNowUTC()` in format-go package
+- [x] 1.1.2 Use AST traversal to find all `time.Now()` call expressions
+- [x] 1.1.3 Detect if `.UTC()` selector already present (skip if already correct)
+- [x] 1.1.4 Replace `time.Now()` with `time.Now().UTC()` using AST rewriting
+- [x] 1.1.5 Add self-exclusion filter (skip format-go package itself to avoid self-modification)
+- [x] 1.1.6 Add unit tests with test cases (all passing)
+- [x] 1.1.7 Add integration test: Run formatter on test files containing time.Now(), verify replacements
+- [x] 1.1.8 Update format-go CLI to include new formatter in default execution
+- [x] 1.1.9 Run tests: `go test ./internal/cmd/cicd/format_go/... -v`
+- [x] 1.1.10 All tests pass (0 failures)
+- [x] 1.1.11 Coverage 98% (infrastructure code requirement)
+- [x] 1.1.12 Build clean: `go build ./cmd/cicd/`
+- [x] 1.1.13 Linting clean: `golangci-lint run ./internal/cmd/cicd/format_go/`
+- [x] 1.1.14 Commit: "feat(cicd): add time.Now().UTC() enforcement formatter" (92b8ef06)
+
+### 1.2: Add Pre-Commit Hook Integration (Complete)
+
+- [x] 1.2.1 Update `.pre-commit-config.yaml` to include format-go in `go-formatters` hook
+- [x] 1.2.2 Verify hook runs on `.go` files containing `time.Now()`
+- [x] 1.2.3 Test hook prevents commit of files with `time.Now()` (without UTC)
+- [x] 1.2.4 Test hook allows commit after auto-fix to `time.Now().UTC()`
+- [x] 1.2.5 Update `docs/pre-commit-hooks.md` with new formatter documentation
+- [x] 1.2.6 Run pre-commit test: Create file with `time.Now()`, attempt commit, verify auto-fix
+- [x] 1.2.7 Commit: "ci(hooks): document time.Now().UTC() formatter in pre-commit hooks" (46e9d241)
+
+### 1.3: Update Copilot Instructions (Complete)
+
+- [x] 1.3.1 Add section to `.github/instructions/03-02.testing.instructions.md`
+- [x] 1.3.2 Add reference to formatter in SQLite DateTime UTC Comparison section
+- [x] 1.3.3 Commit: "docs(instructions): document time.Now().UTC() formatter" (54b376d9)
+
+---
+
+## Phase 2: Healthcheck Testing with app.Test() (2 tasks)
+
+### 2.1: Implement Healthcheck Handler Tests with app.Test() (Complete)
+
+- [x] 2.1.1 Remove t.Skip() from TestHealthcheck_CompletesWithinTimeout
+- [x] 2.1.2 Remove t.Skip() from TestHealthcheck_TimeoutExceeded
+- [x] 2.1.3 Create standalone Fiber app with healthcheck handler registered
+- [x] 2.1.4 Implement timeout completion test (200 OK, <1s actual)
+- [x] 2.1.5 Implement timeout exceeded test (timeout error verified)
+- [x] 2.1.6 Add table-driven test structure for multiple timeout scenarios
+- [x] 2.1.7 Run tests: `go test -v -run="TestHealthcheck" ./internal/apps/template/service/server/application/... -count=5`
+- [x] 2.1.8 All tests pass (0 skips, 0 flakiness)
+- [x] 2.1.9 Test execution <5s (achieved: 0.094s)
+- [x] 2.1.10 Coverage ≥95% on healthcheck handler code (N/A: isolated handlers)
+- [x] 2.1.11 Build clean: `go build ./internal/apps/template/...`
+- [x] 2.1.12 Linting clean: `golangci-lint run ./internal/apps/template/service/server/application/`
+- [x] 2.1.13 Commit: "test(application): implement healthcheck tests with app.Test() pattern" (b75e692d)
+
+### 2.2: Update Copilot Instructions (Complete)
+
+- [x] 2.2.1 Add section to `.github/instructions/03-02.testing.instructions.md`
+- [x] 2.2.2 Add reference examples from CA handler tests
+- [x] 2.2.3 Update TestMain section to emphasize app.Test() for handler-level tests
+- [x] 2.2.4 Commit: "docs(instructions): document app.Test() pattern for handler testing" (3ae6e89b)
+
+---
+
+## Phase 3: Template Service E2E Verification (3 tasks)
+
+### 3.1: Verify E2E Test Existence (Complete)
+
+- [x] 3.1.1 Check `internal/apps/template/testing/e2e/` directory (EXISTS)
+- [x] 3.1.2 Verify testmain_e2e_test.go exists (MISSING - only compose.go exists)
+- [x] 3.1.3 Verify uses docker_health.go helpers (compose.go uses ComposeManager pattern)
+- [x] 3.1.4 Verify template service in healthcheck list (NO healthchecks - no tests)
+- [x] 3.1.5 Document findings (infrastructure exists, tests missing)
+- [x] 3.1.6 Proceed to 3.2 if missing (PROCEEDING)
+- [x] 3.1.7 Commit: "docs(tasks): verify template E2E status" (c769ade1)
+
+### 3.2: Create E2E Tests (N/A - infrastructure only)
+
+- [x] 3.2.1 Verify template is infrastructure, not standalone service (CONFIRMED)
+- [x] 3.2.2 Verify cipher-im E2E tests use template infrastructure (CONFIRMED)
+- [x] 3.2.3 Verify identity E2E tests use template infrastructure (CONFIRMED)
+- [x] 3.2.4 Verify no template E2E magic constants (CONFIRMED)
+- [x] 3.2.5 Document findings in tasks.md (COMPLETE)
+- [x] 3.2.6 Mark task N/A with justification (COMPLETE)
+- [x] 3.2.7 Commit: "docs(tasks): template E2E N/A - infrastructure only" (62177aae)
+
+### 3.3: Update P3.3 Status (Complete)
+
+- [x] 3.3.1 Verify P3.3 status in completed.md (CONFIRMED: "SATISFIED BY EXISTING TESTS")
+- [x] 3.3.2 Document Phase 3 verification findings (COMPLETE)
+- [x] 3.3.3 Confirm infrastructure used by services (CONFIRMED)
+- [x] 3.3.4 Commit: "docs(tasks): mark P3.3 verification complete" (6d27487d)
 
 ---
 
