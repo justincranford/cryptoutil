@@ -133,7 +133,7 @@ func (r *gormMaterialJWKRepository) ListByElasticJWK(ctx context.Context, elasti
 func (r *gormMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilAppsJoseJaDomain.MaterialJWK) error {
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Retire current active material.
-		now := time.Now()
+		now := time.Now().UTC()
 		if err := tx.Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 			Where("elastic_jwk_id = ? AND active = ?", elasticJWKID.String(), true).
 			Updates(map[string]any{
@@ -160,7 +160,7 @@ func (r *gormMaterialJWKRepository) RotateMaterial(ctx context.Context, elasticJ
 
 // RetireMaterial marks a material as retired.
 func (r *gormMaterialJWKRepository) RetireMaterial(ctx context.Context, id googleUuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	if err := r.db.WithContext(ctx).
 		Model(&cryptoutilAppsJoseJaDomain.MaterialJWK{}).
 		Where("id = ?", id.String()).

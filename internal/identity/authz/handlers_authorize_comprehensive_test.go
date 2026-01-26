@@ -382,8 +382,8 @@ func createTestClient(ctx context.Context, t *testing.T, repoFactory *cryptoutil
 		RequirePKCE:             boolPtr(true),
 		PKCEChallengeMethod:     "S256",
 		Enabled:                 boolPtr(true),
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 
 	clientRepo := repoFactory.ClientRepository()

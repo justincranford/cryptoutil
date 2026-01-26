@@ -27,8 +27,8 @@ func NewTestUserBuilder() *TestUserBuilder {
 			Name:         "Test User",
 			Enabled:      true,
 			PasswordHash: "pbkdf2$210000$Gpdnumx30ru2iTk0hkEdvQ$4KSkexHlyfwwlhVHm2f/1KqZWewwlQmy0GMvAoeFxsQ", // PBKDF2 hash for "password"
-			CreatedAt:    time.Now(),
-			UpdatedAt:    time.Now(),
+			CreatedAt:    time.Now().UTC(),
+			UpdatedAt:    time.Now().UTC(),
 		},
 	}
 }
@@ -81,8 +81,8 @@ func NewTestClientBuilder() *TestClientBuilder {
 			ClientType: cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:       "Test Client",
 			Enabled:    &enabled,
-			CreatedAt:  time.Now(),
-			UpdatedAt:  time.Now(),
+			CreatedAt:  time.Now().UTC(),
+			UpdatedAt:  time.Now().UTC(),
 		},
 	}
 }
@@ -134,10 +134,10 @@ func NewTestTokenBuilder() *TestTokenBuilder {
 			TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 			ClientID:    googleUuid.Must(googleUuid.NewV7()), // Will be overridden in tests
 			Scopes:      []string{"openid", "profile"},
-			IssuedAt:    time.Now(),
-			ExpiresAt:   time.Now().Add(time.Hour),
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			IssuedAt:    time.Now().UTC(),
+			ExpiresAt:   time.Now().UTC().Add(time.Hour),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
 		},
 	}
 }
@@ -196,10 +196,10 @@ func NewTestSessionBuilder() *TestSessionBuilder {
 			SessionID: googleUuid.Must(googleUuid.NewV7()).String(),
 			UserID:    googleUuid.Must(googleUuid.NewV7()), // Will be overridden in tests
 			Active:    &active,
-			IssuedAt:  time.Now(),
-			ExpiresAt: time.Now().Add(time.Hour),
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			IssuedAt:  time.Now().UTC(),
+			ExpiresAt: time.Now().UTC().Add(time.Hour),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
 		},
 	}
 }

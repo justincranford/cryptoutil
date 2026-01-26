@@ -129,7 +129,7 @@ func runEnroll(args []string) {
 	}
 
 	if *deviceName == "" {
-		*deviceName = fmt.Sprintf("Device-%s", time.Now().Format("20060102-150405"))
+		*deviceName = fmt.Sprintf("Device-%s", time.Now().UTC().Format("20060102-150405"))
 	}
 
 	ctx := context.Background()
@@ -380,8 +380,8 @@ func runRenew(args []string) {
 		AttestationType: credential.AttestationType,
 		AAGUID:          credential.AAGUID,
 		SignCount:       0,
-		CreatedAt:       time.Now(),
-		LastUsedAt:      time.Now(),
+		CreatedAt:       time.Now().UTC(),
+		LastUsedAt:      time.Now().UTC(),
 		Metadata:        credential.Metadata,
 	}
 
@@ -462,7 +462,7 @@ func runInventory(args []string) {
 
 	// Audit log entry.
 	logAuditEvent(ctx, "INVENTORY_GENERATED", "system", "all", map[string]any{
-		"timestamp":       time.Now().Format(time.RFC3339),
+		"timestamp":       time.Now().UTC().Format(time.RFC3339),
 		"event_category":  "access",
 		"compliance_flag": "hardware_credential_inventory",
 	})

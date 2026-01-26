@@ -40,7 +40,7 @@ const (
 // Returns an error if any command fails, but continues executing all commands.
 func Run(commands []string) error {
 	logger := cryptoutilCmdCicdCommon.NewLogger("Run")
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	actualCommands, err := validateCommands(commands)
 	if err != nil {
@@ -60,7 +60,7 @@ func Run(commands []string) error {
 	results := make([]cryptoutilCmdCicdCommon.CommandResult, 0, len(actualCommands))
 
 	for i, command := range actualCommands {
-		cmdStart := time.Now()
+		cmdStart := time.Now().UTC()
 
 		logger.Log(fmt.Sprintf("Executing command %d/%d: %s", i+1, len(actualCommands), command))
 

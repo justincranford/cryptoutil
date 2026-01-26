@@ -30,17 +30,17 @@ func TestAuthorizationRequest_IsExpired(t *testing.T) {
 	}{
 		{
 			name:     "expired request",
-			expiryFn: func() time.Time { return time.Now().Add(-1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(-1 * time.Hour) },
 			want:     true,
 		},
 		{
 			name:     "valid request",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Hour) },
 			want:     false,
 		},
 		{
 			name:     "request expiring now",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Millisecond) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Millisecond) },
 			want:     false,
 		},
 	}

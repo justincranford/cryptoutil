@@ -94,7 +94,7 @@ func TestElasticJWKRepository_GetWithSpecialCharactersInKID(t *testing.T) {
 				Algorithm:    "RS256",
 				Use:          "sig",
 				MaxMaterials: 10,
-				CreatedAt:    time.Now(),
+				CreatedAt:    time.Now().UTC(),
 			}
 
 			// Create.
@@ -148,7 +148,7 @@ func TestElasticJWKRepository_UpdateNonExistentJWK(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 
 	// Attempting to update a non-existent JWK should succeed (GORM creates it).
@@ -184,7 +184,7 @@ func TestElasticJWKRepository_DeleteAlreadyDeleted(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 
 	// Create.
@@ -249,7 +249,7 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, elasticRepo.Create(ctx, parentJWK))
 
@@ -289,7 +289,7 @@ func TestMaterialJWKRepository_GetByMaterialKIDWithSpecialChars(t *testing.T) {
 				PrivateJWKJWE: "sample-jwe-private-" + materialID.String(),
 				PublicJWKJWE:  "sample-jwe-public-" + materialID.String(),
 				Active:        true,
-				CreatedAt:     time.Now(),
+				CreatedAt:     time.Now().UTC(),
 			}
 
 			// Create.
@@ -328,7 +328,7 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, elasticRepo.Create(ctx, parentJWK))
 
@@ -345,7 +345,7 @@ func TestMaterialJWKRepository_GetActiveMaterialWhenNoneActive(t *testing.T) {
 		PrivateJWKJWE: "sample-jwe-private-" + materialID.String(),
 		PublicJWKJWE:  "sample-jwe-public-" + materialID.String(),
 		Active:        false, // Not active.
-		CreatedAt:     time.Now(),
+		CreatedAt:     time.Now().UTC(),
 	}
 	require.NoError(t, materialRepo.Create(ctx, material))
 
@@ -426,7 +426,7 @@ func TestAuditLogRepository_CreateMultipleEntries(t *testing.T) {
 			Operation: "bulk-test",
 			Success:   true,
 			RequestID: id.String(),
-			CreatedAt: time.Now().Add(time.Duration(-i) * time.Minute), // Different timestamps.
+			CreatedAt: time.Now().UTC().Add(time.Duration(-i) * time.Minute), // Different timestamps.
 		}
 
 		err := repo.Create(ctx, entry)

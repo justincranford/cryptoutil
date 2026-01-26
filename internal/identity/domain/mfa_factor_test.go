@@ -117,7 +117,7 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 			factor: &MFAFactor{
 				Nonce: "valid_nonce",
 				NonceExpiresAt: func() *time.Time {
-					t := time.Now().Add(1 * time.Hour)
+					t := time.Now().UTC().Add(1 * time.Hour)
 
 					return &t
 				}(),
@@ -129,7 +129,7 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 			factor: &MFAFactor{
 				Nonce: "expired_nonce",
 				NonceExpiresAt: func() *time.Time {
-					t := time.Now().Add(-1 * time.Hour)
+					t := time.Now().UTC().Add(-1 * time.Hour)
 
 					return &t
 				}(),
@@ -141,7 +141,7 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 			factor: &MFAFactor{
 				Nonce: "used_nonce",
 				NonceUsedAt: func() *time.Time {
-					t := time.Now()
+					t := time.Now().UTC()
 
 					return &t
 				}(),
@@ -153,12 +153,12 @@ func TestMFAFactor_IsNonceValid(t *testing.T) {
 			factor: &MFAFactor{
 				Nonce: "used_expired_nonce",
 				NonceExpiresAt: func() *time.Time {
-					t := time.Now().Add(-1 * time.Hour)
+					t := time.Now().UTC().Add(-1 * time.Hour)
 
 					return &t
 				}(),
 				NonceUsedAt: func() *time.Time {
-					t := time.Now().Add(-30 * time.Minute)
+					t := time.Now().UTC().Add(-30 * time.Minute)
 
 					return &t
 				}(),
@@ -189,5 +189,5 @@ func TestMFAFactor_MarkNonceAsUsed(t *testing.T) {
 	factor.MarkNonceAsUsed()
 
 	require.NotNil(t, factor.NonceUsedAt)
-	require.WithinDuration(t, time.Now(), *factor.NonceUsedAt, 1*time.Second)
+	require.WithinDuration(t, time.Now().UTC(), *factor.NonceUsedAt, 1*time.Second)
 }

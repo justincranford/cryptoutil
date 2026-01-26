@@ -81,7 +81,7 @@ func (s *ClientSecretVersion) MarkExpired() {
 
 // MarkRevoked marks the secret as revoked with revoker metadata.
 func (s *ClientSecretVersion) MarkRevoked(revokedBy string) {
-	now := time.Now()
+	now := time.Now().UTC()
 	s.Status = SecretStatusRevoked
 	s.RevokedAt = &now
 	s.RevokedBy = revokedBy

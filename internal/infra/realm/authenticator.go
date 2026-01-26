@@ -148,7 +148,7 @@ func (a *Authenticator) buildIndex() error {
 // Authenticate authenticates a user against a specific realm.
 func (a *Authenticator) Authenticate(ctx context.Context, realmID, username, password string) *AuthResult {
 	result := &AuthResult{
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 	}
 
 	// Validate inputs.
@@ -208,7 +208,7 @@ func (a *Authenticator) Authenticate(ctx context.Context, realmID, username, pas
 // authenticateFileRealm authenticates against a file-based realm.
 func (a *Authenticator) authenticateFileRealm(_ context.Context, realm *RealmConfig, username, password string) *AuthResult {
 	result := &AuthResult{
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 		RealmID:   realm.ID,
 		RealmName: realm.Name,
 	}
@@ -352,7 +352,7 @@ func (a *Authenticator) AuthenticateByRealmName(ctx context.Context, realmName, 
 	}
 
 	return &AuthResult{
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 		Error:     "realm not found",
 		ErrorCode: AuthErrorRealmNotFound,
 	}

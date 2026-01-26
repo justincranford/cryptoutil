@@ -52,7 +52,7 @@ func (m *mockKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm str
 		KeyID:         googleUuid.NewString(),
 		Key:           keyBytes,
 		Algorithm:     algorithm,
-		CreatedAt:     time.Now(),
+		CreatedAt:     time.Now().UTC(),
 		Active:        false,
 		ValidForVerif: false,
 	}, nil
@@ -65,7 +65,7 @@ func (m *mockKeyGenerator) GenerateEncryptionKey(ctx context.Context) (*cryptout
 	return &cryptoutilIdentityIssuer.EncryptionKey{
 		KeyID:        googleUuid.NewString(),
 		Key:          keyBytes,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 		Active:       false,
 		ValidForDecr: false,
 	}, nil
@@ -350,7 +350,7 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 	// Create test user for authentication.
 	userRepo := repoFactory.UserRepository()
 	testUserUUID := googleUuid.Must(googleUuid.NewV7())
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Generate password hash using the same crypto package used by authentication
 	passwordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(testPassword)

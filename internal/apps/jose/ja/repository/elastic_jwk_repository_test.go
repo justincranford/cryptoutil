@@ -39,7 +39,7 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 					Algorithm:    "RS256",
 					Use:          "sig",
 					MaxMaterials: 10,
-					CreatedAt:    time.Now(),
+					CreatedAt:    time.Now().UTC(),
 				}
 			},
 			wantErr: false,
@@ -58,7 +58,7 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 					Algorithm:    "ES256",
 					Use:          "sig",
 					MaxMaterials: 5,
-					CreatedAt:    time.Now(),
+					CreatedAt:    time.Now().UTC(),
 				}
 			},
 			wantErr: false,
@@ -77,7 +77,7 @@ func TestElasticJWKRepository_Create(t *testing.T) {
 					Algorithm:    "EdDSA",
 					Use:          "sig",
 					MaxMaterials: 20,
-					CreatedAt:    time.Now(),
+					CreatedAt:    time.Now().UTC(),
 				}
 			},
 			wantErr: false,
@@ -132,7 +132,7 @@ func TestElasticJWKRepository_Get(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
 
@@ -180,7 +180,7 @@ func TestElasticJWKRepository_List(t *testing.T) {
 			Algorithm:    "RS256",
 			Use:          "sig",
 			MaxMaterials: 10,
-			CreatedAt:    time.Now(),
+			CreatedAt:    time.Now().UTC(),
 		}
 		require.NoError(t, repo.Create(ctx, jwk))
 		createdJWKs = append(createdJWKs, jwk)
@@ -264,7 +264,7 @@ func TestElasticJWKRepository_Update(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
 
@@ -301,7 +301,7 @@ func TestElasticJWKRepository_Delete(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
 
@@ -332,7 +332,7 @@ func TestElasticJWKRepository_GetByID(t *testing.T) {
 		Algorithm:    "RS256",
 		Use:          "sig",
 		MaxMaterials: 10,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
 
@@ -372,7 +372,7 @@ func TestElasticJWKRepository_IncrementMaterialCount(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
 
@@ -427,7 +427,7 @@ func TestElasticJWKRepository_DecrementMaterialCount(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 5,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, testJWK))
 

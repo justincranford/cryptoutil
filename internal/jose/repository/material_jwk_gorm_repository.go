@@ -136,7 +136,7 @@ func (r *materialJWKGormRepository) GetActiveMaterial(ctx context.Context, elast
 func (r *materialJWKGormRepository) RotateMaterial(ctx context.Context, elasticJWKID googleUuid.UUID, newMaterial *cryptoutilJoseDomain.MaterialJWK) error {
 	err := cryptoutilAppsTemplateServiceServerRepository.GetDB(ctx, r.db).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Retire the currently active material.
-		now := time.Now().UnixMilli()
+		now := time.Now().UTC().UnixMilli()
 
 		err := tx.Model(&cryptoutilJoseDomain.MaterialJWK{}).
 			Where("elastic_jwk_id = ? AND active = ?", elasticJWKID, true).

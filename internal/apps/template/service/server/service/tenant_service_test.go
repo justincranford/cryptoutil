@@ -319,7 +319,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						Name:        "Original Name",
 						Description: "Original Description",
 						Active:      1,
-						CreatedAt:   time.Now(),
+						CreatedAt:   time.Now().UTC(),
 					}, nil
 				}
 				tenantRepo.updateFn = func(_ context.Context, _ *cryptoutilAppsTemplateServiceServerRepository.Tenant) error {
@@ -341,7 +341,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 						Name:        "Old Name",
 						Description: "Old Description",
 						Active:      1,
-						CreatedAt:   time.Now(),
+						CreatedAt:   time.Now().UTC(),
 					}, nil
 				}
 				tenantRepo.updateFn = func(_ context.Context, _ *cryptoutilAppsTemplateServiceServerRepository.Tenant) error {

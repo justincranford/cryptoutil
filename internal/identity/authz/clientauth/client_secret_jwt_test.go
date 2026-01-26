@@ -84,7 +84,7 @@ func TestClientSecretJWTValidator_JTIReplayProtection(t *testing.T) {
 	}
 
 	// Create first JWT with jti claim
-	now := time.Now()
+	now := time.Now().UTC()
 	firstToken := joseJwt.New()
 	require.NoError(t, firstToken.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, firstToken.Set(joseJwt.SubjectKey, client.ClientID))
@@ -159,7 +159,7 @@ func TestClientSecretJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 				ClientSecret: "test-secret",
 			}
 
-			now := time.Now()
+			now := time.Now().UTC()
 			token := joseJwt.New()
 			require.NoError(t, token.Set(joseJwt.IssuerKey, client.ClientID))
 			require.NoError(t, token.Set(joseJwt.SubjectKey, client.ClientID))
@@ -193,7 +193,7 @@ func TestClientSecretJWTValidator_MissingJTI(t *testing.T) {
 		ClientSecret: "test-secret",
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, client.ClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, client.ClientID))

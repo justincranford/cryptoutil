@@ -30,6 +30,7 @@ var registeredSimpleFormatters = []struct {
 	formatter FormatterFuncSimple
 }{
 	{"enforce-any", enforceAny},
+	{"enforce-time-now-utc", enforceTimeNowUTC},
 }
 
 // Format runs all registered Go formatters.

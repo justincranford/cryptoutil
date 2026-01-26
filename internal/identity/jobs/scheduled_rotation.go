@@ -36,7 +36,7 @@ func ScheduledRotation(ctx context.Context, db *gorm.DB, config *ScheduledRotati
 		config = DefaultScheduledRotationConfig()
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	expirationCutoff := now.Add(config.ExpirationThreshold)
 
 	// Find active secrets expiring within threshold.

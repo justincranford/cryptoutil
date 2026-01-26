@@ -25,7 +25,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	// Use unique database name per test to avoid conflicts.
-	dbName := fmt.Sprintf("file:test_%d?mode=memory&cache=private", time.Now().UnixNano())
+	dbName := fmt.Sprintf("file:test_%d?mode=memory&cache=private", time.Now().UTC().UnixNano())
 
 	// Use database/sql with modernc.org/sqlite driver.
 	sqlDB, err := sql.Open("sqlite", dbName)
@@ -537,8 +537,8 @@ func TestDBRealmRepository_UpdateUser(t *testing.T) {
 	err = repo.Migrate(ctx)
 	require.NoError(t, err)
 
-	realmID := fmt.Sprintf("realm-%d", time.Now().UnixNano())
-	userID := fmt.Sprintf("user-%d", time.Now().UnixNano())
+	realmID := fmt.Sprintf("realm-%d", time.Now().UTC().UnixNano())
+	userID := fmt.Sprintf("user-%d", time.Now().UTC().UnixNano())
 
 	user := &DBRealmUser{
 		ID:       userID,

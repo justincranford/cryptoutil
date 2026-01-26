@@ -319,7 +319,7 @@ func (c *OIDCClaims) IsExpired() bool {
 		return false
 	}
 
-	return time.Now().After(c.ExpiresAt)
+	return time.Now().UTC().After(c.ExpiresAt)
 }
 
 // TimeUntilExpiry returns the duration until token expiry.

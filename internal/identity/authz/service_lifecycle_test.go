@@ -27,7 +27,7 @@ func (m *mockKeyGenerator) GenerateSigningKey(_ context.Context, algorithm strin
 		KeyID:         googleUuid.NewString(),
 		Key:           []byte("mock-signing-key"),
 		Algorithm:     algorithm,
-		CreatedAt:     time.Now(),
+		CreatedAt:     time.Now().UTC(),
 		Active:        false,
 		ValidForVerif: false,
 	}, nil
@@ -37,7 +37,7 @@ func (m *mockKeyGenerator) GenerateEncryptionKey(_ context.Context) (*cryptoutil
 	return &cryptoutilIdentityIssuer.EncryptionKey{
 		KeyID:        googleUuid.NewString(),
 		Key:          []byte("0123456789abcdef0123456789abcdef"),
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 		Active:       false,
 		ValidForDecr: false,
 	}, nil

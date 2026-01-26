@@ -55,7 +55,7 @@ func (AuthorizationRequest) TableName() string {
 
 // IsExpired checks if the authorization request has expired.
 func (a *AuthorizationRequest) IsExpired() bool {
-	return time.Now().After(a.ExpiresAt)
+	return time.Now().UTC().After(a.ExpiresAt)
 }
 
 // IsUsed checks if the authorization code has been used.

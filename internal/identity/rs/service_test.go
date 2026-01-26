@@ -168,7 +168,7 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	// Configure mock to return claims without required scope.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(1 * time.Hour).Unix()),
+			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 			cryptoutilIdentityMagic.ClaimClientID: "test-client",
 			cryptoutilIdentityMagic.ClaimScope:    "write:other",
 		}, nil
@@ -205,7 +205,7 @@ func TestScopeEnforcement_ValidScope(t *testing.T) {
 	// Configure mock to return valid claims with required scope.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(1 * time.Hour).Unix()),
+			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 			cryptoutilIdentityMagic.ClaimClientID: "test-client",
 			cryptoutilIdentityMagic.ClaimScope:    "read:resource write:resource",
 		}, nil
@@ -253,7 +253,7 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
-					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(1 * time.Hour).Unix()),
+					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 					cryptoutilIdentityMagic.ClaimClientID: "test-client",
 					cryptoutilIdentityMagic.ClaimScope:    tc.scope,
 				}, nil
@@ -282,7 +282,7 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 	// Configure mock for write scope.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(1 * time.Hour).Unix()),
+			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 			cryptoutilIdentityMagic.ClaimClientID: "test-client",
 			cryptoutilIdentityMagic.ClaimScope:    "write:resource",
 		}, nil
@@ -331,7 +331,7 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
-					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(1 * time.Hour).Unix()),
+					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 					cryptoutilIdentityMagic.ClaimClientID: "test-client",
 					cryptoutilIdentityMagic.ClaimScope:    tc.scope,
 				}, nil
@@ -360,14 +360,14 @@ func TestExpiredToken(t *testing.T) {
 	// Configure mock to return expired token.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(-1 * time.Hour).Unix()),
+			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(-1 * time.Hour).Unix()),
 			cryptoutilIdentityMagic.ClaimClientID: "test-client",
 			cryptoutilIdentityMagic.ClaimScope:    "read:resource",
 		}, nil
 	}
 	tokenSvc.isActiveFunc = func(claims map[string]any) bool {
 		// Check expiration.
-		now := time.Now().Unix()
+		now := time.Now().UTC().Unix()
 		if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
 			return int64(exp) >= now
 		}
@@ -460,7 +460,7 @@ func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
 			// NOTE: No t.Parallel() - subtests share mockTokenService, parallel execution causes race.
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
-					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().Add(1 * time.Hour).Unix()),
+					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 					cryptoutilIdentityMagic.ClaimClientID: "test-client",
 					cryptoutilIdentityMagic.ClaimScope:    tc.scope,
 				}, nil

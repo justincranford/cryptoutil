@@ -64,7 +64,7 @@ func (v *TOTPValidator) ValidateTOTPWithWindow(ctx context.Context, userID strin
 	}
 
 	// Validate with time window (e.g., windowSize=1 allows 30s before/after current time).
-	valid, err := totp.ValidateCustom(code, secret, time.Now(), totp.ValidateOpts{
+	valid, err := totp.ValidateCustom(code, secret, time.Now().UTC(), totp.ValidateOpts{
 		Period:    totpPeriod30Seconds, // Standard TOTP period (30 seconds)
 		Skew:      windowSize,
 		Digits:    otp.DigitsSix,
@@ -85,7 +85,7 @@ func (v *TOTPValidator) ValidateEmailOTP(ctx context.Context, userID string, cod
 	}
 
 	// Email OTP typically uses longer period (e.g., 5-10 minutes).
-	valid, err := totp.ValidateCustom(code, secret, time.Now(), totp.ValidateOpts{
+	valid, err := totp.ValidateCustom(code, secret, time.Now().UTC(), totp.ValidateOpts{
 		Period:    totpPeriod300Seconds, // 5 minutes
 		Skew:      1,                    // Allow 1 period before/after
 		Digits:    otp.DigitsSix,
@@ -106,7 +106,7 @@ func (v *TOTPValidator) ValidateSMSOTP(ctx context.Context, userID string, code 
 	}
 
 	// SMS OTP typically uses longer period (e.g., 10 minutes).
-	valid, err := totp.ValidateCustom(code, secret, time.Now(), totp.ValidateOpts{
+	valid, err := totp.ValidateCustom(code, secret, time.Now().UTC(), totp.ValidateOpts{
 		Period:    totpPeriod600Seconds, // 10 minutes
 		Skew:      1,                    // Allow 1 period before/after
 		Digits:    otp.DigitsSix,

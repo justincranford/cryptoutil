@@ -100,9 +100,9 @@ func TestMain(m *testing.M) {
 
 // waitForReady waits for the server to be ready by polling port allocation.
 func waitForReady(ctx context.Context, srv *cryptoutilAppsIdentityRpServer.RPServer) error {
-	deadline := time.Now().Add(readyTimeout)
+	deadline := time.Now().UTC().Add(readyTimeout)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		// Check if public port is allocated.
 		if srv.PublicPort() > 0 {
 			return nil

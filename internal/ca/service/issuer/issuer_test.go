@@ -562,7 +562,7 @@ func TestIssuer_Issue_ChainVerification(t *testing.T) {
 	opts := x509.VerifyOptions{
 		Roots:         rootPool,
 		Intermediates: intermediatePool,
-		CurrentTime:   time.Now(),
+		CurrentTime:   time.Now().UTC(),
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 	}
 

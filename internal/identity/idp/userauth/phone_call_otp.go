@@ -86,7 +86,7 @@ func (a *PhoneCallOTPAuthenticator) InitiateAuth(ctx context.Context, userID str
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID,
 		Method:    a.Method(),
-		ExpiresAt: time.Now().Add(a.otpExpiration),
+		ExpiresAt: time.Now().UTC().Add(a.otpExpiration),
 		Metadata: map[string]any{
 			"phone":       user.PhoneNumber,
 			"retry_count": 0,
@@ -136,7 +136,7 @@ func (a *PhoneCallOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID,
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		if err := a.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
 		}

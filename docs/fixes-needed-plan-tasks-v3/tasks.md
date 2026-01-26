@@ -39,25 +39,25 @@ Add new formatter to format-go subcommand that finds all `time.Now()` calls (wit
 Extend format-go subcommand with new formatter that enforces UTC standardization for all time.Now() calls.
 
 **Acceptance Criteria**:
-- [ ] 1.1.1 Create formatter function `enforceTimeNowUTC()` in format-go package
-- [ ] 1.1.2 Use AST traversal to find all `time.Now()` call expressions
-- [ ] 1.1.3 Detect if `.UTC()` selector already present (skip if already correct)
-- [ ] 1.1.4 Replace `time.Now()` with `time.Now().UTC()` using AST rewriting
-- [ ] 1.1.5 Add self-exclusion filter (skip format-go package itself to avoid self-modification)
-- [ ] 1.1.6 Add unit tests with test cases:
-  - [ ] 1.1.6.1 `time.Now()`  `time.Now().UTC()` (basic replacement)
-  - [ ] 1.1.6.2 `time.Now().UTC()`  `time.Now().UTC()` (already correct, no change)
-  - [ ] 1.1.6.3 `time.Now().Add(1*time.Hour)`  `time.Now().UTC().Add(1*time.Hour)` (chained method calls)
-  - [ ] 1.1.6.4 `t := time.Now(); t.UTC()`  `t := time.Now().UTC(); t.UTC()` (variable assignment)
-  - [ ] 1.1.6.5 Format-go package files excluded (self-exclusion verification)
-- [ ] 1.1.7 Add integration test: Run formatter on test files containing time.Now(), verify replacements
-- [ ] 1.1.8 Update format-go CLI to include new formatter in default execution
-- [ ] 1.1.9 Run tests: `go test ./internal/cmd/cicd/format_go/... -v`
-- [ ] 1.1.10 All tests pass (0 failures)
-- [ ] 1.1.11 Coverage 98% (infrastructure code requirement)
-- [ ] 1.1.12 Build clean: `go build ./cmd/cicd/`
-- [ ] 1.1.13 Linting clean: `golangci-lint run ./internal/cmd/cicd/format_go/`
-- [ ] 1.1.14 Commit: "feat(cicd): add time.Now().UTC() enforcement formatter"
+- [x] 1.1.1 Create formatter function `enforceTimeNowUTC()` in format-go package
+- [x] 1.1.2 Use AST traversal to find all `time.Now()` call expressions
+- [x] 1.1.3 Detect if `.UTC()` selector already present (skip if already correct)
+- [x] 1.1.4 Replace `time.Now()` with `time.Now().UTC()` using AST rewriting
+- [x] 1.1.5 Add self-exclusion filter (skip format-go package itself to avoid self-modification)
+- [x] 1.1.6 Add unit tests with test cases:
+  - [x] 1.1.6.1 `time.Now()`  `time.Now().UTC()` (basic replacement)
+  - [x] 1.1.6.2 `time.Now().UTC()`  `time.Now().UTC()` (already correct, no change)
+  - [x] 1.1.6.3 `time.Now().Add(1*time.Hour)`  `time.Now().UTC().Add(1*time.Hour)` (chained method calls)
+  - [x] 1.1.6.4 `t := time.Now(); t.UTC()`  `t := time.Now().UTC(); t.UTC()` (variable assignment)
+  - [x] 1.1.6.5 Format-go package files excluded (self-exclusion verification)
+- [x] 1.1.7 Add integration test: Run formatter on test files containing time.Now(), verify replacements
+- [x] 1.1.8 Update format-go CLI to include new formatter in default execution
+- [x] 1.1.9 Run tests: `go test ./internal/cmd/cicd/format_go/... -v`
+- [x] 1.1.10 All tests pass (0 failures)
+- [x] 1.1.11 Coverage 98% (infrastructure code requirement)
+- [x] 1.1.12 Build clean: `go build ./cmd/cicd/`
+- [x] 1.1.13 Linting clean: `golangci-lint run ./internal/cmd/cicd/format_go/`
+- [x] 1.1.14 Commit: "feat(cicd): add time.Now().UTC() enforcement formatter"
 
 **Files**:
 - Modified: `internal/cmd/cicd/format_go/format_go.go`

@@ -217,8 +217,8 @@ func generateSelfSignedTLSConfig() (*tls.Config, error) {
 		Subject: pkix.Name{
 			Organization: []string{"CryptoUtil Test"},
 		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Day*cryptoutilSharedMagic.HoursPerDay) * time.Hour),
+		NotBefore:             time.Now().UTC(),
+		NotAfter:              time.Now().UTC().Add(time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Day*cryptoutilSharedMagic.HoursPerDay) * time.Hour),
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,

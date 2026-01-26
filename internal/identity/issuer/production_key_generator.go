@@ -55,7 +55,7 @@ func (g *ProductionKeyGenerator) GenerateEncryptionKey(_ context.Context) (*Encr
 		)
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &EncryptionKey{
 		KeyID:        googleUuid.NewString(),
@@ -93,7 +93,7 @@ func (g *ProductionKeyGenerator) generateRSASigningKey(_ context.Context, algori
 		)
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &SigningKey{
 		KeyID:         googleUuid.NewString(),
@@ -132,7 +132,7 @@ func (g *ProductionKeyGenerator) generateECDSASigningKey(_ context.Context, algo
 		)
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &SigningKey{
 		KeyID:         googleUuid.NewString(),
@@ -172,7 +172,7 @@ func (g *ProductionKeyGenerator) generateHMACSigningKey(_ context.Context, algor
 		)
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &SigningKey{
 		KeyID:         googleUuid.NewString(),

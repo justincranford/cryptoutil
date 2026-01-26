@@ -74,9 +74,9 @@ const (
 
 // waitForReady waits for the server to be ready.
 func waitForReady(ctx context.Context, server *IDPServer) error {
-	deadline := time.Now().Add(readyTimeout)
+	deadline := time.Now().UTC().Add(readyTimeout)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		// Check if public port is allocated.
 		if server.PublicPort() > 0 {
 			return nil

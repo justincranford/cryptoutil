@@ -41,7 +41,7 @@ func (e *KeyRotationEvent) BeforeCreate(_ *gorm.DB) error {
 	}
 
 	if e.Timestamp.IsZero() {
-		e.Timestamp = time.Now()
+		e.Timestamp = time.Now().UTC()
 	}
 
 	return nil

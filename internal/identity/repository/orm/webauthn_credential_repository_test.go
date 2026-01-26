@@ -89,8 +89,8 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 				AttestationType: "none",
 				AAGUID:          []byte{1, 2, 3, 4},
 				SignCount:       0,
-				CreatedAt:       time.Now(),
-				LastUsedAt:      time.Now(),
+				CreatedAt:       time.Now().UTC(),
+				LastUsedAt:      time.Now().UTC(),
 				Metadata: map[string]any{
 					"device_name": "Test Device",
 				},
@@ -112,8 +112,8 @@ func TestWebAuthnCredentialRepository_StoreCredential(t *testing.T) {
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: "none",
 				SignCount:       0,
-				CreatedAt:       time.Now(),
-				LastUsedAt:      time.Now(),
+				CreatedAt:       time.Now().UTC(),
+				LastUsedAt:      time.Now().UTC(),
 			},
 			wantError:         true,
 			wantErrorContains: "invalid user ID",
@@ -173,8 +173,8 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 		AttestationType: "none",
 		AAGUID:          []byte{1, 2, 3, 4},
 		SignCount:       5,
-		CreatedAt:       time.Now(),
-		LastUsedAt:      time.Now(),
+		CreatedAt:       time.Now().UTC(),
+		LastUsedAt:      time.Now().UTC(),
 		Metadata: map[string]any{
 			"device_name": "Test Device",
 		},
@@ -185,7 +185,7 @@ func TestWebAuthnCredentialRepository_UpdateCredential(t *testing.T) {
 
 	// Update sign counter (replay prevention).
 	cred.SignCount = 10
-	cred.LastUsedAt = time.Now().Add(1 * time.Hour)
+	cred.LastUsedAt = time.Now().UTC().Add(1 * time.Hour)
 
 	err = repo.StoreCredential(ctx, cred)
 	require.NoError(t, err)
@@ -217,8 +217,8 @@ func TestWebAuthnCredentialRepository_GetCredential(t *testing.T) {
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: "none",
 				SignCount:       0,
-				CreatedAt:       time.Now(),
-				LastUsedAt:      time.Now(),
+				CreatedAt:       time.Now().UTC(),
+				LastUsedAt:      time.Now().UTC(),
 			},
 			wantError: false,
 		},
@@ -287,8 +287,8 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 					PublicKey:       []byte("public-key-1"),
 					AttestationType: "none",
 					SignCount:       0,
-					CreatedAt:       time.Now(),
-					LastUsedAt:      time.Now(),
+					CreatedAt:       time.Now().UTC(),
+					LastUsedAt:      time.Now().UTC(),
 				},
 				{
 					ID:              "user-cred-2-webauthn-list-2",
@@ -297,8 +297,8 @@ func TestWebAuthnCredentialRepository_GetUserCredentials(t *testing.T) {
 					PublicKey:       []byte("public-key-2"),
 					AttestationType: "none",
 					SignCount:       0,
-					CreatedAt:       time.Now().Add(1 * time.Minute),
-					LastUsedAt:      time.Now().Add(1 * time.Minute),
+					CreatedAt:       time.Now().UTC().Add(1 * time.Minute),
+					LastUsedAt:      time.Now().UTC().Add(1 * time.Minute),
 				},
 			},
 			wantCount: 2,
@@ -380,8 +380,8 @@ func TestWebAuthnCredentialRepository_DeleteCredential(t *testing.T) {
 				PublicKey:       []byte("public-key-data"),
 				AttestationType: "none",
 				SignCount:       0,
-				CreatedAt:       time.Now(),
-				LastUsedAt:      time.Now(),
+				CreatedAt:       time.Now().UTC(),
+				LastUsedAt:      time.Now().UTC(),
 			},
 			wantError: false,
 		},
@@ -448,8 +448,8 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 		AttestationType: "none",
 		AAGUID:          []byte{1, 2, 3, 4},
 		SignCount:       5,
-		CreatedAt:       time.Now(),
-		LastUsedAt:      time.Now(),
+		CreatedAt:       time.Now().UTC(),
+		LastUsedAt:      time.Now().UTC(),
 	}
 
 	err = repo.StoreCredential(ctx, cred)
@@ -458,7 +458,7 @@ func TestWebAuthnCredentialRepository_CounterIncrement(t *testing.T) {
 	// Simulate authentication (counter increment).
 	for i := uint32(6); i <= 10; i++ {
 		cred.SignCount = i
-		cred.LastUsedAt = time.Now().Add(time.Duration(i) * time.Second)
+		cred.LastUsedAt = time.Now().UTC().Add(time.Duration(i) * time.Second)
 
 		err = repo.StoreCredential(ctx, cred)
 		require.NoError(t, err)

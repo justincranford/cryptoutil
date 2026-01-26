@@ -66,7 +66,7 @@ func (r *SessionRepositoryGORM) GetBySessionID(ctx context.Context, sessionID st
 
 // Update updates an existing session.
 func (r *SessionRepositoryGORM) Update(ctx context.Context, session *cryptoutilIdentityDomain.Session) error {
-	session.UpdatedAt = time.Now()
+	session.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(session).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update session: %w", err))
 	}
@@ -124,7 +124,7 @@ func (r *SessionRepositoryGORM) TerminateBySessionID(ctx context.Context, sessio
 // DeleteExpired deletes expired sessions (hard delete).
 func (r *SessionRepositoryGORM) DeleteExpired(ctx context.Context) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Unscoped().
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", time.Now().UTC()).
 		Delete(&cryptoutilIdentityDomain.Session{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired sessions: %w", err))
 	}

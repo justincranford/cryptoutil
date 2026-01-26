@@ -76,7 +76,7 @@ func (a *PushNotificationAuthenticator) InitiateAuth(ctx context.Context, userID
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID,
 		Method:    a.Method(),
-		ExpiresAt: time.Now().Add(a.pushTimeout),
+		ExpiresAt: time.Now().UTC().Add(a.pushTimeout),
 		Metadata:  map[string]any{"device_token": user.PushDeviceToken},
 	}
 
@@ -133,7 +133,7 @@ func (a *PushNotificationAuthenticator) VerifyAuth(ctx context.Context, challeng
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		if err := a.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
 		}

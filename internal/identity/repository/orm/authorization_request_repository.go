@@ -123,7 +123,7 @@ func (r *AuthorizationRequestRepository) Delete(ctx context.Context, id googleUu
 // DeleteExpired deletes all expired authorization requests.
 func (r *AuthorizationRequestRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	result := getDB(ctx, r.db).WithContext(ctx).
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", time.Now().UTC()).
 		Delete(&cryptoutilIdentityDomain.AuthorizationRequest{})
 
 	if result.Error != nil {

@@ -94,11 +94,11 @@ func (ServiceSession) TableName() string {
 
 // IsExpired checks if the session has expired.
 func (s *Session) IsExpired() bool {
-	return time.Now().After(s.Expiration)
+	return time.Now().UTC().After(s.Expiration)
 }
 
 // UpdateLastActivity updates the last activity timestamp to the current time.
 func (s *Session) UpdateLastActivity() {
-	now := time.Now()
+	now := time.Now().UTC()
 	s.LastActivity = &now
 }

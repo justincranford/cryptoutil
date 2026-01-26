@@ -63,7 +63,7 @@ func (s *InMemoryChallengeStore) Retrieve(_ context.Context, challengeID googleU
 		return nil, "", fmt.Errorf("challenge not found")
 	}
 
-	if time.Now().After(stored.expiresAt) {
+	if time.Now().UTC().After(stored.expiresAt) {
 		return nil, "", fmt.Errorf("challenge expired")
 	}
 
@@ -103,7 +103,7 @@ func (s *InMemoryChallengeStore) cleanup() {
 	for range ticker.C {
 		s.mu.Lock()
 
-		now := time.Now()
+		now := time.Now().UTC()
 		for id, stored := range s.challenges {
 			if now.After(stored.expiresAt) {
 				delete(s.challenges, id)
@@ -149,7 +149,7 @@ func (r *InMemoryRateLimiter) CheckLimit(_ context.Context, identifier string) e
 		return nil
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Check if locked out.
 	if !record.lockedUntil.IsZero() && now.Before(record.lockedUntil) {
@@ -176,7 +176,7 @@ func (r *InMemoryRateLimiter) RecordAttempt(_ context.Context, identifier string
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	record, ok := r.attempts[identifier]
 
 	if !ok {

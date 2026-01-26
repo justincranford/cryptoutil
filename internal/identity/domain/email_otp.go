@@ -27,7 +27,7 @@ func (EmailOTP) TableName() string {
 
 // IsExpired checks if the OTP has expired.
 func (e *EmailOTP) IsExpired() bool {
-	return time.Now().After(e.ExpiresAt)
+	return time.Now().UTC().After(e.ExpiresAt)
 }
 
 // IsUsed checks if the OTP has been used.
@@ -37,7 +37,7 @@ func (e *EmailOTP) IsUsed() bool {
 
 // MarkAsUsed marks the OTP as used.
 func (e *EmailOTP) MarkAsUsed() {
-	now := time.Now()
+	now := time.Now().UTC()
 	e.Used = true
 	e.UsedAt = &now
 }

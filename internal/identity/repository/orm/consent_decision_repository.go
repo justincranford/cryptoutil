@@ -124,7 +124,7 @@ func (r *ConsentDecisionRepository) Delete(ctx context.Context, id googleUuid.UU
 
 // RevokeByID revokes a consent decision by ID.
 func (r *ConsentDecisionRepository) RevokeByID(ctx context.Context, id googleUuid.UUID) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	result := getDB(ctx, r.db).WithContext(ctx).
 		Model(&cryptoutilIdentityDomain.ConsentDecision{}).
 		Where("id = ?", id).
@@ -147,7 +147,7 @@ func (r *ConsentDecisionRepository) RevokeByID(ctx context.Context, id googleUui
 // DeleteExpired deletes all expired consent decisions.
 func (r *ConsentDecisionRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	result := getDB(ctx, r.db).WithContext(ctx).
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", time.Now().UTC()).
 		Delete(&cryptoutilIdentityDomain.ConsentDecision{})
 
 	if result.Error != nil {

@@ -108,8 +108,8 @@ func (i *JWSIssuer) IssueAccessToken(_ context.Context, claims map[string]any) (
 	// Create token claims.
 	tokenClaims := make(map[string]any)
 	tokenClaims[cryptoutilIdentityMagic.ClaimIss] = i.issuer
-	tokenClaims[cryptoutilIdentityMagic.ClaimIat] = time.Now().Unix()
-	tokenClaims[cryptoutilIdentityMagic.ClaimExp] = time.Now().Add(i.accessTokenTTL).Unix()
+	tokenClaims[cryptoutilIdentityMagic.ClaimIat] = time.Now().UTC().Unix()
+	tokenClaims[cryptoutilIdentityMagic.ClaimExp] = time.Now().UTC().Add(i.accessTokenTTL).Unix()
 	tokenClaims[cryptoutilIdentityMagic.ClaimJti] = googleUuid.NewString()
 
 	// Add standard claims.
@@ -156,8 +156,8 @@ func (i *JWSIssuer) IssueIDToken(_ context.Context, claims map[string]any) (stri
 	// Create token claims.
 	tokenClaims := make(map[string]any)
 	tokenClaims[cryptoutilIdentityMagic.ClaimIss] = i.issuer
-	tokenClaims[cryptoutilIdentityMagic.ClaimIat] = time.Now().Unix()
-	tokenClaims[cryptoutilIdentityMagic.ClaimExp] = time.Now().Add(i.idTokenTTL).Unix()
+	tokenClaims[cryptoutilIdentityMagic.ClaimIat] = time.Now().UTC().Unix()
+	tokenClaims[cryptoutilIdentityMagic.ClaimExp] = time.Now().UTC().Add(i.idTokenTTL).Unix()
 	tokenClaims[cryptoutilIdentityMagic.ClaimJti] = googleUuid.NewString()
 
 	// Add all claims (including OIDC profile/email/address/phone claims).
@@ -240,7 +240,7 @@ func (i *JWSIssuer) ValidateToken(_ context.Context, tokenString string) (map[st
 
 	// Validate expiration.
 	if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
-		if time.Now().Unix() > int64(exp) {
+		if time.Now().UTC().Unix() > int64(exp) {
 			return nil, cryptoutilIdentityAppErr.ErrTokenExpired
 		}
 	}

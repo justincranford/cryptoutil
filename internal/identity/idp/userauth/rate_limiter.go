@@ -85,7 +85,7 @@ func (s *DatabaseRateLimitStore) CountAttempts(_ context.Context, key string, wi
 		return 0, nil
 	}
 
-	cutoff := time.Now().Add(-window)
+	cutoff := time.Now().UTC().Add(-window)
 	count := 0
 
 	for _, timestamp := range attempts {
@@ -102,7 +102,7 @@ func (s *DatabaseRateLimitStore) CleanupExpired(_ context.Context, retention tim
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	cutoff := time.Now().Add(-retention)
+	cutoff := time.Now().UTC().Add(-retention)
 
 	for key, attempts := range s.attempts {
 		filtered := make([]time.Time, 0, len(attempts))
@@ -183,7 +183,7 @@ func (r *PerUserRateLimiter) CheckLimit(ctx context.Context, userID googleUuid.U
 func (r *PerUserRateLimiter) RecordAttempt(ctx context.Context, userID googleUuid.UUID) error {
 	key := userID.String()
 
-	if err := r.store.RecordAttempt(ctx, key, time.Now()); err != nil {
+	if err := r.store.RecordAttempt(ctx, key, time.Now().UTC()); err != nil {
 		return fmt.Errorf("failed to record attempt: %w", err)
 	}
 
@@ -265,7 +265,7 @@ func (r *PerIPRateLimiter) RecordAttempt(ctx context.Context, ipAddress string) 
 		return fmt.Errorf("IP address cannot be empty")
 	}
 
-	if err := r.store.RecordAttempt(ctx, ipAddress, time.Now()); err != nil {
+	if err := r.store.RecordAttempt(ctx, ipAddress, time.Now().UTC()); err != nil {
 		return fmt.Errorf("failed to record attempt: %w", err)
 	}
 

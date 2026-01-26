@@ -138,7 +138,7 @@ func (s *ElasticJWKService) CreateElasticJWK(ctx context.Context, req *CreateEla
 		USE:                  req.USE,
 		MaxMaterials:         maxMaterials,
 		CurrentMaterialCount: 1, // Starting with first material.
-		CreatedAt:            time.Now().UnixMilli(),
+		CreatedAt:            time.Now().UTC().UnixMilli(),
 	}
 
 	// Create the first Material JWK record.
@@ -150,7 +150,7 @@ func (s *ElasticJWKService) CreateElasticJWK(ctx context.Context, req *CreateEla
 		PrivateJWKJWE:  string(privateJWKJWE),
 		PublicJWKJWE:   string(publicJWKJWE),
 		Active:         true,
-		CreatedAt:      time.Now().UnixMilli(),
+		CreatedAt:      time.Now().UTC().UnixMilli(),
 		RetiredAt:      nil,
 		BarrierVersion: 1, // Version is embedded in the JWE.
 	}

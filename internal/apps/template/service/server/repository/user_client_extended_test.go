@@ -24,7 +24,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -72,7 +72,7 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -121,7 +121,7 @@ func TestUserRepository_Update(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -162,7 +162,7 @@ func TestUserRepository_Delete(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -199,7 +199,7 @@ func TestClientRepository_GetByID(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -245,7 +245,7 @@ func TestClientRepository_GetByClientID(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -293,7 +293,7 @@ func TestClientRepository_ListByTenant(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -341,7 +341,7 @@ func TestClientRepository_Update(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -381,7 +381,7 @@ func TestClientRepository_Delete(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)

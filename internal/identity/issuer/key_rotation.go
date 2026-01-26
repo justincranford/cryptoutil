@@ -129,7 +129,7 @@ func (m *KeyRotationManager) GetActiveSigningKey() (*SigningKey, error) {
 	defer m.mu.RUnlock()
 
 	for _, key := range m.signingKeys {
-		if key.Active && time.Now().Before(key.ExpiresAt) {
+		if key.Active && time.Now().UTC().Before(key.ExpiresAt) {
 			return key, nil
 		}
 	}
@@ -156,7 +156,7 @@ func (m *KeyRotationManager) GetPublicKeys() []map[string]any {
 	keys := make([]map[string]any, 0)
 
 	for _, key := range m.signingKeys {
-		if !key.ValidForVerif || time.Now().After(key.ExpiresAt) {
+		if !key.ValidForVerif || time.Now().UTC().After(key.ExpiresAt) {
 			continue
 		}
 
@@ -194,7 +194,7 @@ func (m *KeyRotationManager) GetAllValidVerificationKeys() []*SigningKey {
 	keys := make([]*SigningKey, 0)
 
 	for _, key := range m.signingKeys {
-		if key.ValidForVerif && (key.ExpiresAt.IsZero() || time.Now().Before(key.ExpiresAt)) {
+		if key.ValidForVerif && (key.ExpiresAt.IsZero() || time.Now().UTC().Before(key.ExpiresAt)) {
 			keys = append(keys, key)
 		}
 	}
@@ -208,7 +208,7 @@ func (m *KeyRotationManager) GetActiveEncryptionKey() (*EncryptionKey, error) {
 	defer m.mu.RUnlock()
 
 	for _, key := range m.encryptionKeys {
-		if key.Active && time.Now().Before(key.ExpiresAt) {
+		if key.Active && time.Now().UTC().Before(key.ExpiresAt) {
 			return key, nil
 		}
 	}
@@ -251,7 +251,7 @@ func (m *KeyRotationManager) RotateSigningKey(ctx context.Context, algorithm str
 	}
 
 	// Set expiration based on rotation interval + grace period.
-	newKey.ExpiresAt = time.Now().Add(m.policy.RotationInterval + m.policy.GracePeriod)
+	newKey.ExpiresAt = time.Now().UTC().Add(m.policy.RotationInterval + m.policy.GracePeriod)
 	newKey.Active = true
 	newKey.ValidForVerif = true
 
@@ -260,8 +260,8 @@ func (m *KeyRotationManager) RotateSigningKey(ctx context.Context, algorithm str
 		if key.Active {
 			key.Active = false
 			// Extend verification validity through grace period.
-			if time.Now().Add(m.policy.GracePeriod).After(key.ExpiresAt) {
-				key.ExpiresAt = time.Now().Add(m.policy.GracePeriod)
+			if time.Now().UTC().Add(m.policy.GracePeriod).After(key.ExpiresAt) {
+				key.ExpiresAt = time.Now().UTC().Add(m.policy.GracePeriod)
 			}
 		}
 	}
@@ -307,7 +307,7 @@ func (m *KeyRotationManager) RotateEncryptionKey(ctx context.Context) error {
 	}
 
 	// Set expiration.
-	newKey.ExpiresAt = time.Now().Add(m.policy.RotationInterval + m.policy.GracePeriod)
+	newKey.ExpiresAt = time.Now().UTC().Add(m.policy.RotationInterval + m.policy.GracePeriod)
 	newKey.Active = true
 	newKey.ValidForDecr = true
 
@@ -315,8 +315,8 @@ func (m *KeyRotationManager) RotateEncryptionKey(ctx context.Context) error {
 	for _, key := range m.encryptionKeys {
 		if key.Active {
 			key.Active = false
-			if time.Now().Add(m.policy.GracePeriod).After(key.ExpiresAt) {
-				key.ExpiresAt = time.Now().Add(m.policy.GracePeriod)
+			if time.Now().UTC().Add(m.policy.GracePeriod).After(key.ExpiresAt) {
+				key.ExpiresAt = time.Now().UTC().Add(m.policy.GracePeriod)
 			}
 		}
 	}
@@ -347,7 +347,7 @@ func (m *KeyRotationManager) RotateEncryptionKey(ctx context.Context) error {
 
 // pruneSigningKeys removes expired signing keys.
 func (m *KeyRotationManager) pruneSigningKeys() {
-	now := time.Now()
+	now := time.Now().UTC()
 	validKeys := make([]*SigningKey, 0)
 
 	for _, key := range m.signingKeys {
@@ -361,7 +361,7 @@ func (m *KeyRotationManager) pruneSigningKeys() {
 
 // pruneEncryptionKeys removes expired encryption keys.
 func (m *KeyRotationManager) pruneEncryptionKeys() {
-	now := time.Now()
+	now := time.Now().UTC()
 	validKeys := make([]*EncryptionKey, 0)
 
 	for _, key := range m.encryptionKeys {

@@ -118,8 +118,8 @@ func TestHandleToken_InvalidGrant_ExpiredCode(t *testing.T) {
 		Code:                googleUuid.Must(googleUuid.NewV7()).String(),
 		CodeChallenge:       "test-challenge",
 		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-		CreatedAt:           time.Now().Add(-2 * time.Hour),
-		ExpiresAt:           time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
+		CreatedAt:           time.Now().UTC().Add(-2 * time.Hour),
+		ExpiresAt:           time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		ConsentGranted:      true,
 		Used:                false,
 	}
@@ -163,7 +163,7 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 	testClient := createTestClientForToken(ctx, t, repoFactory)
 
 	// Create already-used authorization code.
-	usedTime := time.Now().Add(-10 * time.Minute)
+	usedTime := time.Now().UTC().Add(-10 * time.Minute)
 	usedCode := &cryptoutilIdentityDomain.AuthorizationRequest{
 		ID:                  googleUuid.New(),
 		ClientID:            testClient.ClientID,
@@ -174,8 +174,8 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 		Code:                googleUuid.Must(googleUuid.NewV7()).String(),
 		CodeChallenge:       "test-challenge",
 		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-		CreatedAt:           time.Now().Add(-30 * time.Minute),
-		ExpiresAt:           time.Now().Add(5 * time.Minute),
+		CreatedAt:           time.Now().UTC().Add(-30 * time.Minute),
+		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 		ConsentGranted:      true,
 		Used:                true,
 		UsedAt:              &usedTime,
@@ -370,8 +370,8 @@ func createTestClientForToken(ctx context.Context, t *testing.T, repoFactory *cr
 		RequirePKCE:             boolPtr(true),
 		PKCEChallengeMethod:     "S256",
 		Enabled:                 boolPtr(true),
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -395,8 +395,8 @@ func createTestAuthorizationCode(ctx context.Context, t *testing.T, repoFactory 
 		Code:                googleUuid.Must(googleUuid.NewV7()).String(),
 		CodeChallenge:       "UjvqC9mj0YVcV_IU0g-ZN4N3PCwI_ls67w8ToZVLJMA", // SHA256 of "test-verifier-12345678901234567890123456789012".
 		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(10 * time.Minute),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 		ConsentGranted:      true,
 		Used:                false,
 		UserID: cryptoutilIdentityDomain.NullableUUID{

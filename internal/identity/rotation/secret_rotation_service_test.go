@@ -497,7 +497,7 @@ func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
 		ClientID:  clientID,
 		Version:   1,
 		Status:    cryptoutilIdentityDomain.SecretStatusActive,
-		CreatedAt: time.Now().Add(-48 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-48 * time.Hour),
 	}
 
 	activeVersion2 := &cryptoutilIdentityDomain.ClientSecretVersion{
@@ -505,17 +505,17 @@ func TestSecretRotationService_GetActiveSecretVersions(t *testing.T) {
 		ClientID:  clientID,
 		Version:   2,
 		Status:    cryptoutilIdentityDomain.SecretStatusActive,
-		CreatedAt: time.Now().Add(-24 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-24 * time.Hour),
 	}
 
-	revokedAt := time.Now().Add(-6 * time.Hour)
+	revokedAt := time.Now().UTC().Add(-6 * time.Hour)
 
 	revokedVersion := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ID:        googleUuid.New(),
 		ClientID:  clientID,
 		Version:   3,
 		Status:    cryptoutilIdentityDomain.SecretStatusRevoked,
-		CreatedAt: time.Now().Add(-12 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-12 * time.Hour),
 		RevokedAt: &revokedAt,
 	}
 

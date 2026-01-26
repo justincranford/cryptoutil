@@ -90,7 +90,7 @@ func (s *elasticJWKServiceImpl) CreateElasticJWK(ctx context.Context, tenantID g
 		Use:                  use,
 		MaxMaterials:         maxMaterials,
 		CurrentMaterialCount: 1,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 
 	// Store elastic JWK.
@@ -230,7 +230,7 @@ func (s *elasticJWKServiceImpl) createMaterialJWK(ctx context.Context, elasticJW
 		PrivateJWKJWE:  privateJWE,
 		PublicJWKJWE:   publicJWE,
 		Active:         active,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1, // Initial barrier version.
 	}
 

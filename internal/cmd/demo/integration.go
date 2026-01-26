@@ -94,7 +94,7 @@ type integrationServers struct {
 func runIntegrationDemo(ctx context.Context, config *Config) int {
 	progress := NewProgressDisplay(config)
 	errors := NewErrorAggregator("integration")
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	progress.Info("Starting Integration Demo")
 	progress.Info("=========================")
@@ -447,14 +447,14 @@ func stopIntegrationServers(servers *integrationServers) {
 
 // waitForIntegrationHealth waits for both servers to be healthy.
 func waitForIntegrationHealth(ctx context.Context, servers *integrationServers, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 
 	// Wait for Identity server health.
 	identityHealthURL := servers.identityBaseURL + "/health"
 
 	client := &http.Client{Timeout: integrationHTTPTimeout}
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, identityHealthURL, nil)
 		if err != nil {
 			continue
@@ -477,12 +477,12 @@ func waitForIntegrationHealth(ctx context.Context, servers *integrationServers, 
 		}
 	}
 
-	if time.Now().After(deadline) {
+	if time.Now().UTC().After(deadline) {
 		return fmt.Errorf("identity health check did not pass within %v", timeout)
 	}
 
 	// Wait for KMS server health.
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(servers.kmsSettings)
 		if err == nil {
 			_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(servers.kmsSettings)

@@ -51,7 +51,7 @@ func TestJWTService_CreateJWT(t *testing.T) {
 			require.NoError(t, err)
 
 			// Create JWT.
-			exp := time.Now().Add(time.Hour)
+			exp := time.Now().UTC().Add(time.Hour)
 			claims := &JWTClaims{
 				Issuer:    "test-issuer",
 				Subject:   "test-subject",
@@ -143,7 +143,7 @@ func TestJWTService_ValidateJWT(t *testing.T) {
 			require.NoError(t, err)
 
 			// Create JWT.
-			exp := time.Now().Add(time.Hour)
+			exp := time.Now().UTC().Add(time.Hour)
 			originalClaims := &JWTClaims{
 				Issuer:    "test-issuer",
 				Subject:   "test-subject",
@@ -178,7 +178,7 @@ func TestJWTService_ValidateJWT_Expired(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create expired JWT.
-	exp := time.Now().Add(-time.Hour) // Already expired.
+	exp := time.Now().UTC().Add(-time.Hour) // Already expired.
 	claims := &JWTClaims{
 		Issuer:    "test-issuer",
 		ExpiresAt: &exp,
@@ -206,8 +206,8 @@ func TestJWTService_ValidateJWT_NotYetValid(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create JWT with future not-before.
-	nbf := time.Now().Add(time.Hour) // Not yet valid.
-	exp := time.Now().Add(2 * time.Hour)
+	nbf := time.Now().UTC().Add(time.Hour) // Not yet valid.
+	exp := time.Now().UTC().Add(2 * time.Hour)
 	claims := &JWTClaims{
 		Issuer:    "test-issuer",
 		NotBefore: &nbf,
@@ -236,7 +236,7 @@ func TestJWTService_ValidateJWT_WrongTenant(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create JWT.
-	exp := time.Now().Add(time.Hour)
+	exp := time.Now().UTC().Add(time.Hour)
 	claims := &JWTClaims{
 		Issuer:    "test",
 		ExpiresAt: &exp,
@@ -287,7 +287,7 @@ func TestJWTService_CreateEncryptedJWT(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create encrypted JWT.
-	exp := time.Now().Add(time.Hour)
+	exp := time.Now().UTC().Add(time.Hour)
 	claims := &JWTClaims{
 		Issuer:    "test-issuer",
 		Subject:   "test-subject",
@@ -385,8 +385,8 @@ func TestJWTService_CreateJWT_WithCustomClaims(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create JWT with custom claims.
-	exp := time.Now().Add(time.Hour)
-	iat := time.Now()
+	exp := time.Now().UTC().Add(time.Hour)
+	iat := time.Now().UTC()
 	claims := &JWTClaims{
 		Issuer:    "test-issuer",
 		Subject:   "test-subject",
@@ -524,7 +524,7 @@ func TestJWTService_ValidateJWT_MaterialFromDifferentKey(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create JWT with key 1.
-	exp := time.Now().Add(time.Hour)
+	exp := time.Now().UTC().Add(time.Hour)
 	claims := &JWTClaims{
 		Issuer:    "test",
 		ExpiresAt: &exp,

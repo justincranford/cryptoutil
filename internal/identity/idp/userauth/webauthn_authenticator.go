@@ -202,7 +202,7 @@ func (w *WebAuthnAuthenticator) BeginRegistration(ctx context.Context, user *cry
 		ID:        challengeID,
 		UserID:    user.ID.String(),
 		Method:    "passkey_webauthn",
-		ExpiresAt: time.Now().Add(w.config.Timeout),
+		ExpiresAt: time.Now().UTC().Add(w.config.Timeout),
 		Metadata: map[string]any{
 			"session_data": session.Challenge,
 			"operation":    "registration",
@@ -245,7 +245,7 @@ func (w *WebAuthnAuthenticator) FinishRegistration(
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := w.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
@@ -315,8 +315,8 @@ func (w *WebAuthnAuthenticator) FinishRegistration(
 		AttestationType: credential.AttestationType,
 		AAGUID:          credential.Authenticator.AAGUID,
 		SignCount:       credential.Authenticator.SignCount,
-		CreatedAt:       time.Now(),
-		LastUsedAt:      time.Now(),
+		CreatedAt:       time.Now().UTC(),
+		LastUsedAt:      time.Now().UTC(),
 		Metadata:        map[string]any{},
 	}
 
@@ -384,7 +384,7 @@ func (w *WebAuthnAuthenticator) InitiateAuth(ctx context.Context, userID string)
 		ID:        challengeID,
 		UserID:    userID,
 		Method:    "passkey_webauthn",
-		ExpiresAt: time.Now().Add(w.config.Timeout),
+		ExpiresAt: time.Now().UTC().Add(w.config.Timeout),
 		Metadata: map[string]any{
 			"session_data":           session.Challenge,
 			"operation":              "authentication",
@@ -424,7 +424,7 @@ func (w *WebAuthnAuthenticator) VerifyAuth(
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := w.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
@@ -499,7 +499,7 @@ func (w *WebAuthnAuthenticator) VerifyAuth(
 	}
 
 	storedCred.SignCount = credential.Authenticator.SignCount
-	storedCred.LastUsedAt = time.Now()
+	storedCred.LastUsedAt = time.Now().UTC()
 
 	if err := w.credentialStore.StoreCredential(ctx, storedCred); err != nil {
 		fmt.Printf("warning: failed to update credential sign count: %v\n", err)

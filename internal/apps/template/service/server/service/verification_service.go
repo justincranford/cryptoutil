@@ -114,7 +114,7 @@ func (s *VerificationServiceImpl) ApproveUser(ctx context.Context, tenantID, unv
 	}
 
 	// Check if the registration has expired.
-	if time.Now().After(unverifiedUser.ExpiresAt) {
+	if time.Now().UTC().After(unverifiedUser.ExpiresAt) {
 		return nil, fmt.Errorf("user registration has expired")
 	}
 
@@ -185,7 +185,7 @@ func (s *VerificationServiceImpl) ApproveClient(ctx context.Context, tenantID, u
 	}
 
 	// Check if the registration has expired.
-	if time.Now().After(unverifiedClient.ExpiresAt) {
+	if time.Now().UTC().After(unverifiedClient.ExpiresAt) {
 		return nil, fmt.Errorf("client registration has expired")
 	}
 

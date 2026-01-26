@@ -24,7 +24,7 @@ func TestUnverifiedUserRepository_GetByUsername(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -38,8 +38,8 @@ func TestUnverifiedUserRepository_GetByUsername(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  username,
 		Email:     email,
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedUserRepo.Create(ctx, unverifiedUser)
@@ -76,7 +76,7 @@ func TestUnverifiedUserRepository_ListByTenant(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -87,8 +87,8 @@ func TestUnverifiedUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "user1_" + googleUuid.New().String()[:8],
 		Email:     "user1_" + googleUuid.New().String()[:8] + "@example.com",
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	user2 := &UnverifiedUser{
@@ -96,8 +96,8 @@ func TestUnverifiedUserRepository_ListByTenant(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "user2_" + googleUuid.New().String()[:8],
 		Email:     "user2_" + googleUuid.New().String()[:8] + "@example.com",
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedUserRepo.Create(ctx, user1)
@@ -124,7 +124,7 @@ func TestUnverifiedUserRepository_Delete(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -135,8 +135,8 @@ func TestUnverifiedUserRepository_Delete(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "user_to_delete_" + googleUuid.New().String()[:8],
 		Email:     "delete_" + googleUuid.New().String()[:8] + "@example.com",
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedUserRepo.Create(ctx, unverifiedUser)
@@ -162,7 +162,7 @@ func TestUnverifiedClientRepository_GetByClientID(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -174,8 +174,8 @@ func TestUnverifiedClientRepository_GetByClientID(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  clientID,
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedClientRepo.Create(ctx, unverifiedClient)
@@ -211,7 +211,7 @@ func TestUnverifiedClientRepository_ListByTenant(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -221,16 +221,16 @@ func TestUnverifiedClientRepository_ListByTenant(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  "client1_" + googleUuid.New().String()[:8],
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	client2 := &UnverifiedClient{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  "client2_" + googleUuid.New().String()[:8],
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedClientRepo.Create(ctx, client1)
@@ -257,7 +257,7 @@ func TestUnverifiedClientRepository_Delete(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -267,8 +267,8 @@ func TestUnverifiedClientRepository_Delete(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  "client_to_delete_" + googleUuid.New().String()[:8],
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedClientRepo.Create(ctx, unverifiedClient)

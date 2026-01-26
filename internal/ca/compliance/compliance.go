@@ -545,9 +545,9 @@ func GenerateReport(
 	generatedBy string,
 ) *Report {
 	report := &Report{
-		ID:           fmt.Sprintf("CR-%d", time.Now().UnixNano()),
+		ID:           fmt.Sprintf("CR-%d", time.Now().UTC().UnixNano()),
 		Framework:    framework,
-		GeneratedAt:  time.Now(),
+		GeneratedAt:  time.Now().UTC(),
 		GeneratedBy:  generatedBy,
 		Period:       period,
 		Requirements: requirements,
@@ -676,7 +676,7 @@ func CreateCPSTemplate() *PolicyDocument {
 		ID:            "CPS-001",
 		Title:         "Certificate Practice Statement",
 		Version:       "1.0",
-		EffectiveDate: time.Now(),
+		EffectiveDate: time.Now().UTC(),
 		Sections: []PolicySection{
 			{Number: "1", Title: "Introduction", Content: "This CPS describes the practices..."},
 			{Number: "1.1", Title: "Overview", Content: "The Certificate Authority..."},
@@ -721,7 +721,7 @@ func (c *EvidenceCollector) Collect(evidence Evidence) {
 	defer c.mu.Unlock()
 
 	if evidence.Timestamp.IsZero() {
-		evidence.Timestamp = time.Now()
+		evidence.Timestamp = time.Now().UTC()
 	}
 
 	c.evidence = append(c.evidence, evidence)

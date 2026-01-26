@@ -90,7 +90,7 @@ func (r *EmailOTPRepositoryGORM) DeleteByUserID(ctx context.Context, userID goog
 // DeleteExpired deletes all expired email OTPs.
 func (r *EmailOTPRepositoryGORM) DeleteExpired(ctx context.Context) (int64, error) {
 	result := getDB(ctx, r.db).WithContext(ctx).
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", time.Now().UTC()).
 		Delete(&cryptoutilIdentityDomain.EmailOTP{})
 
 	if result.Error != nil {

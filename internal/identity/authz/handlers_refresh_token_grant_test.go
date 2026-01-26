@@ -121,8 +121,8 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 		TokenValue:  tokenValue,
 		ClientID:    clientUUID,
 		UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: userUUID, Valid: true},
-		ExpiresAt:   time.Now().Add(24 * time.Hour),
-		IssuedAt:    time.Now(),
+		ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
+		IssuedAt:    time.Now().UTC(),
 	}
 
 	tokenRepo := repoFactory.TokenRepository()
@@ -363,7 +363,7 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 	// Create revoked refresh token
 	userUUID := googleUuid.Must(googleUuid.NewV7())
 	tokenValue := googleUuid.NewString()
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// User must exist for foreign key constraint
 	testUser := &cryptoutilIdentityDomain.User{
@@ -383,9 +383,9 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 		TokenValue:  tokenValue,
 		ClientID:    clientUUID,
 		UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: userUUID, Valid: true},
-		ExpiresAt:   time.Now().Add(24 * time.Hour),
+		ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
 		RevokedAt:   &now,
-		IssuedAt:    time.Now(),
+		IssuedAt:    time.Now().UTC(),
 	}
 
 	tokenRepo := repoFactory.TokenRepository()

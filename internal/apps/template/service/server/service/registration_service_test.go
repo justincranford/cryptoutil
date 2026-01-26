@@ -472,7 +472,7 @@ func TestRegistrationService_RegisterUser_ExistingTenant(t *testing.T) {
 				require.Equal(t, tt.wantStatus, result.Status)
 				require.Nil(t, result.UserID)
 				require.NotNil(t, result.ExpiresAt)
-				require.True(t, result.ExpiresAt.After(time.Now()))
+				require.True(t, result.ExpiresAt.After(time.Now().UTC()))
 			}
 		})
 	}

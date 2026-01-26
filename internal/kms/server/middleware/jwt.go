@@ -357,7 +357,7 @@ func (v *JWTValidator) refreshJWKS(ctx context.Context) (joseJwk.Set, error) {
 	}
 
 	v.cache.keySet = keySet
-	v.cache.lastUpdate = time.Now()
+	v.cache.lastUpdate = time.Now().UTC()
 
 	return keySet, nil
 }

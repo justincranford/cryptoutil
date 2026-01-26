@@ -493,7 +493,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 		ClientID:    nil,
 		TenantID:    testTenantID,
 		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		RequestedAt: time.Now().UTC(),
 		ProcessedAt: nil,
 		ProcessedBy: nil,
 	}
@@ -507,7 +507,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 		ClientID:    &testClientID,
 		TenantID:    testTenantID,
 		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt: time.Now(),
+		RequestedAt: time.Now().UTC(),
 		ProcessedAt: nil,
 		ProcessedBy: nil,
 	}
@@ -515,7 +515,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 	require.NoError(t, err)
 
 	// Request 3: Processed request (has ProcessedAt and ProcessedBy)
-	processedAt := time.Now().Add(-1 * time.Hour)
+	processedAt := time.Now().UTC().Add(-1 * time.Hour)
 	processedBy := googleUuid.New()
 	req3 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.New(),
@@ -523,7 +523,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 		ClientID:    nil,
 		TenantID:    testTenantID,
 		Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
-		RequestedAt: time.Now().Add(-2 * time.Hour),
+		RequestedAt: time.Now().UTC().Add(-2 * time.Hour),
 		ProcessedAt: &processedAt,
 		ProcessedBy: &processedBy,
 	}

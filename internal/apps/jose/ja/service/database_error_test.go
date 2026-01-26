@@ -1277,7 +1277,7 @@ func TestJWTService_CreateEncryptedJWT_EncryptionKeyWrongTenant(t *testing.T) {
 	// Try to create encrypted JWT using tenant1's signing key but tenant2's encryption key.
 	claims := &JWTClaims{
 		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().Add(time.Hour)),
+		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
 	}
 	_, err = jwtSvc.CreateEncryptedJWT(ctx, tenantID, signingKey.ID, encryptionKey.ID, claims)
 	require.Error(t, err)
@@ -1306,7 +1306,7 @@ func TestJWTService_CreateEncryptedJWT_EncryptionKeyWrongUse(t *testing.T) {
 	// Try to create encrypted JWT using signing key for encryption.
 	claims := &JWTClaims{
 		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().Add(time.Hour)),
+		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
 	}
 	_, err = jwtSvc.CreateEncryptedJWT(ctx, tenantID, signingKey.ID, anotherSigningKey.ID, claims)
 	require.Error(t, err)
@@ -1357,7 +1357,7 @@ func TestJWTService_ValidateJWT_MaterialKIDNotBelongToElasticJWK(t *testing.T) {
 	// Create JWT with signing key 1.
 	claims := &JWTClaims{
 		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().Add(time.Hour)),
+		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
 	}
 	token, err := jwtSvc.CreateJWT(ctx, tenantID, signingKey1.ID, claims)
 	require.NoError(t, err)
@@ -1467,7 +1467,7 @@ func TestJWTService_CreateJWT_WrongKeyUse(t *testing.T) {
 	// Try to create JWT with encryption key - should fail.
 	claims := &JWTClaims{
 		Subject:   "test-user",
-		ExpiresAt: timePtr(time.Now().Add(time.Hour)),
+		ExpiresAt: timePtr(time.Now().UTC().Add(time.Hour)),
 	}
 	_, err = jwtSvc.CreateJWT(ctx, tenantID, encryptionKey.ID, claims)
 	require.Error(t, err)

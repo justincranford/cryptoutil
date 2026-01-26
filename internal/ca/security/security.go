@@ -202,7 +202,7 @@ func (v *Validator) ValidateCertificate(_ context.Context, cert *x509.Certificat
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
-		CheckedAt: time.Now(),
+		CheckedAt: time.Now().UTC(),
 	}
 
 	// Validate key size.
@@ -292,7 +292,7 @@ func (v *Validator) validateValidityPeriod(cert *x509.Certificate, config *Confi
 	}
 
 	// Check for expired or not yet valid certificates.
-	now := time.Now()
+	now := time.Now().UTC()
 	if now.Before(cert.NotBefore) {
 		result.Warnings = append(result.Warnings, "certificate is not yet valid")
 	}
@@ -346,7 +346,7 @@ func (v *Validator) checkWeakAlgorithms(cert *x509.Certificate, result *Validati
 			Category:    "cryptography",
 			Location:    cert.Subject.CommonName,
 			Remediation: "Re-issue certificate with SHA-256 or stronger signature algorithm",
-			FoundAt:     time.Now(),
+			FoundAt:     time.Now().UTC(),
 		})
 	}
 }
@@ -372,7 +372,7 @@ func (v *Validator) ValidatePrivateKey(_ context.Context, key any) (*ValidationR
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
-		CheckedAt: time.Now(),
+		CheckedAt: time.Now().UTC(),
 	}
 
 	switch k := key.(type) {
@@ -413,7 +413,7 @@ func (v *Validator) ValidateCSR(_ context.Context, csr *x509.CertificateRequest)
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
-		CheckedAt: time.Now(),
+		CheckedAt: time.Now().UTC(),
 	}
 
 	// Validate public key in CSR.
@@ -482,8 +482,8 @@ func NewThreatModelBuilder(name, version string) *ThreatModelBuilder {
 			Assets:    make([]Asset, 0),
 			Threats:   make([]Threat, 0),
 			Controls:  make([]Control, 0),
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
 		},
 	}
 }
@@ -498,7 +498,7 @@ func (b *ThreatModelBuilder) WithDescription(desc string) *ThreatModelBuilder {
 // AddAsset adds an asset to the threat model.
 func (b *ThreatModelBuilder) AddAsset(asset Asset) *ThreatModelBuilder {
 	b.model.Assets = append(b.model.Assets, asset)
-	b.model.UpdatedAt = time.Now()
+	b.model.UpdatedAt = time.Now().UTC()
 
 	return b
 }
@@ -506,7 +506,7 @@ func (b *ThreatModelBuilder) AddAsset(asset Asset) *ThreatModelBuilder {
 // AddThreat adds a threat to the threat model.
 func (b *ThreatModelBuilder) AddThreat(threat Threat) *ThreatModelBuilder {
 	b.model.Threats = append(b.model.Threats, threat)
-	b.model.UpdatedAt = time.Now()
+	b.model.UpdatedAt = time.Now().UTC()
 
 	return b
 }
@@ -514,7 +514,7 @@ func (b *ThreatModelBuilder) AddThreat(threat Threat) *ThreatModelBuilder {
 // AddControl adds a security control to the threat model.
 func (b *ThreatModelBuilder) AddControl(control Control) *ThreatModelBuilder {
 	b.model.Controls = append(b.model.Controls, control)
-	b.model.UpdatedAt = time.Now()
+	b.model.UpdatedAt = time.Now().UTC()
 
 	return b
 }
@@ -704,7 +704,7 @@ func (s *Scanner) ScanCertificateChain(ctx context.Context, chain []*x509.Certif
 		Valid:     true,
 		Errors:    make([]string, 0),
 		Warnings:  make([]string, 0),
-		CheckedAt: time.Now(),
+		CheckedAt: time.Now().UTC(),
 	}
 
 	// Validate each certificate in the chain.
@@ -780,7 +780,7 @@ type Summary struct {
 // GenerateReport creates a security report from threat model and validations.
 func GenerateReport(threatModel *ThreatModel, validations []ValidationResult) *Report {
 	report := &Report{
-		GeneratedAt: time.Now(),
+		GeneratedAt: time.Now().UTC(),
 		ThreatModel: threatModel,
 		Validations: validations,
 	}

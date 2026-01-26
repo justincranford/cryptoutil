@@ -31,8 +31,8 @@ func TestTokenRepository_Create(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid", "profile"},
-		IssuedAt:       time.Now(),
-		ExpiresAt:      time.Now().Add(time.Hour),
+		IssuedAt:       time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -90,8 +90,8 @@ func TestTokenRepository_GetByTokenValue(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid", "profile"},
-		IssuedAt:       time.Now(),
-		ExpiresAt:      time.Now().Add(time.Hour),
+		IssuedAt:       time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -149,8 +149,8 @@ func TestTokenRepository_Update(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid", "profile"},
-		IssuedAt:       time.Now(),
-		ExpiresAt:      time.Now().Add(time.Hour),
+		IssuedAt:       time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -182,8 +182,8 @@ func TestTokenRepository_Delete(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid", "profile"},
-		IssuedAt:       time.Now(),
-		ExpiresAt:      time.Now().Add(time.Hour),
+		IssuedAt:       time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -214,8 +214,8 @@ func TestTokenRepository_RevokeByID(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid", "profile"},
-		IssuedAt:       time.Now(),
-		ExpiresAt:      time.Now().Add(time.Hour),
+		IssuedAt:       time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -246,8 +246,8 @@ func TestTokenRepository_RevokeByTokenValue(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid", "profile"},
-		IssuedAt:       time.Now(),
-		ExpiresAt:      time.Now().Add(time.Hour),
+		IssuedAt:       time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -279,8 +279,8 @@ func TestTokenRepository_List(t *testing.T) {
 			ClientID:       googleUuid.Must(googleUuid.NewV7()),
 			UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 			Scopes:         []string{"openid", "profile"},
-			IssuedAt:       time.Now(),
-			ExpiresAt:      time.Now().Add(time.Hour),
+			IssuedAt:       time.Now().UTC(),
+			ExpiresAt:      time.Now().UTC().Add(time.Hour),
 			Revoked:        false,
 			RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 		}
@@ -317,8 +317,8 @@ func TestTokenRepository_Count(t *testing.T) {
 			ClientID:       googleUuid.Must(googleUuid.NewV7()),
 			UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 			Scopes:         []string{"openid", "profile"},
-			IssuedAt:       time.Now(),
-			ExpiresAt:      time.Now().Add(time.Hour),
+			IssuedAt:       time.Now().UTC(),
+			ExpiresAt:      time.Now().UTC().Add(time.Hour),
 			Revoked:        false,
 			RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 		}
@@ -347,8 +347,8 @@ func TestTokenRepository_DeleteExpired(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid"},
-		IssuedAt:       time.Now().Add(-2 * time.Hour),
-		ExpiresAt:      time.Now().Add(-1 * time.Hour),
+		IssuedAt:       time.Now().UTC().Add(-2 * time.Hour),
+		ExpiresAt:      time.Now().UTC().Add(-1 * time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -364,8 +364,8 @@ func TestTokenRepository_DeleteExpired(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid"},
-		IssuedAt:       time.Now(),
-		ExpiresAt:      time.Now().Add(1 * time.Hour),
+		IssuedAt:       time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(1 * time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -401,8 +401,8 @@ func TestTokenRepository_DeleteExpiredBefore(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid"},
-		IssuedAt:       time.Now().Add(-3 * time.Hour),
-		ExpiresAt:      time.Now().Add(-2 * time.Hour),
+		IssuedAt:       time.Now().UTC().Add(-3 * time.Hour),
+		ExpiresAt:      time.Now().UTC().Add(-2 * time.Hour),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -418,8 +418,8 @@ func TestTokenRepository_DeleteExpiredBefore(t *testing.T) {
 		ClientID:       googleUuid.Must(googleUuid.NewV7()),
 		UserID:         cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.Must(googleUuid.NewV7()), Valid: true},
 		Scopes:         []string{"openid"},
-		IssuedAt:       time.Now().Add(-1 * time.Hour),
-		ExpiresAt:      time.Now().Add(-30 * time.Minute),
+		IssuedAt:       time.Now().UTC().Add(-1 * time.Hour),
+		ExpiresAt:      time.Now().UTC().Add(-30 * time.Minute),
 		Revoked:        false,
 		RefreshTokenID: cryptoutilIdentityDomain.NullableUUID{Valid: false},
 	}
@@ -427,7 +427,7 @@ func TestTokenRepository_DeleteExpiredBefore(t *testing.T) {
 	require.NoError(t, err)
 
 	// Delete tokens expired before 1 hour ago.
-	cutoffTime := time.Now().Add(-1 * time.Hour)
+	cutoffTime := time.Now().UTC().Add(-1 * time.Hour)
 	deletedCount, err := repo.DeleteExpiredBefore(ctx, cutoffTime)
 	require.NoError(t, err)
 	require.Equal(t, 1, deletedCount) // Only token1 deleted.

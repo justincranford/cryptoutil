@@ -32,12 +32,12 @@ func TestSessionRepository_Create(t *testing.T) {
 		ClientID:              cryptoutilIdentityDomain.NullableUUID{UUID: clientID, Valid: true},
 		IPAddress:             "192.168.1.100",
 		UserAgent:             "Mozilla/5.0",
-		IssuedAt:              time.Now(),
-		ExpiresAt:             time.Now().Add(24 * time.Hour),
-		LastSeenAt:            time.Now(),
+		IssuedAt:              time.Now().UTC(),
+		ExpiresAt:             time.Now().UTC().Add(24 * time.Hour),
+		LastSeenAt:            time.Now().UTC(),
 		Active:                &active,
 		AuthenticationMethods: []string{"password", "totp"},
-		AuthenticationTime:    time.Now(),
+		AuthenticationTime:    time.Now().UTC(),
 		GrantedScopes:         []string{"openid", "profile"},
 	}
 
@@ -85,9 +85,9 @@ func TestSessionRepository_GetBySessionID(t *testing.T) {
 					SessionID:  "test-session-123",
 					UserID:     userID,
 					IPAddress:  "127.0.0.1",
-					IssuedAt:   time.Now(),
-					ExpiresAt:  time.Now().Add(24 * time.Hour),
-					LastSeenAt: time.Now(),
+					IssuedAt:   time.Now().UTC(),
+					ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+					LastSeenAt: time.Now().UTC(),
 					Active:     boolPtr(true),
 				}
 				err := repo.Create(context.Background(), session)
@@ -134,15 +134,15 @@ func TestSessionRepository_Update(t *testing.T) {
 		SessionID:  "update-session",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now(),
-		ExpiresAt:  time.Now().Add(24 * time.Hour),
-		LastSeenAt: time.Now(),
+		IssuedAt:   time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
 	require.NoError(t, err)
 
-	session.LastSeenAt = time.Now().Add(1 * time.Hour)
+	session.LastSeenAt = time.Now().UTC().Add(1 * time.Hour)
 	session.IPAddress = "192.168.1.200"
 	err = repo.Update(context.Background(), session)
 	require.NoError(t, err)
@@ -164,9 +164,9 @@ func TestSessionRepository_Delete(t *testing.T) {
 		SessionID:  "delete-session",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now(),
-		ExpiresAt:  time.Now().Add(24 * time.Hour),
-		LastSeenAt: time.Now(),
+		IssuedAt:   time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
@@ -191,9 +191,9 @@ func TestSessionRepository_TerminateByID(t *testing.T) {
 		SessionID:  "terminate-by-id-session",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now(),
-		ExpiresAt:  time.Now().Add(24 * time.Hour),
-		LastSeenAt: time.Now(),
+		IssuedAt:   time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
@@ -222,9 +222,9 @@ func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 		SessionID:  "terminate-by-session-id",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now(),
-		ExpiresAt:  time.Now().Add(24 * time.Hour),
-		LastSeenAt: time.Now(),
+		IssuedAt:   time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session)
@@ -254,9 +254,9 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 		SessionID:  "expired-session",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now().Add(-48 * time.Hour),
-		ExpiresAt:  time.Now().Add(-24 * time.Hour), // Expired.
-		LastSeenAt: time.Now().Add(-24 * time.Hour),
+		IssuedAt:   time.Now().UTC().Add(-48 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(-24 * time.Hour), // Expired.
+		LastSeenAt: time.Now().UTC().Add(-24 * time.Hour),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), expiredSession)
@@ -267,9 +267,9 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 		SessionID:  "valid-session",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now(),
-		ExpiresAt:  time.Now().Add(24 * time.Hour), // Not expired.
-		LastSeenAt: time.Now(),
+		IssuedAt:   time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(24 * time.Hour), // Not expired.
+		LastSeenAt: time.Now().UTC(),
 		Active:     boolPtr(true),
 	}
 	err = repo.Create(context.Background(), validSession)
@@ -298,9 +298,9 @@ func TestSessionRepository_DeleteExpiredBefore(t *testing.T) {
 		SessionID:  "session-1",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now().Add(-72 * time.Hour),
-		ExpiresAt:  time.Now().Add(-48 * time.Hour), // Expired 48h ago.
-		LastSeenAt: time.Now().Add(-48 * time.Hour),
+		IssuedAt:   time.Now().UTC().Add(-72 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(-48 * time.Hour), // Expired 48h ago.
+		LastSeenAt: time.Now().UTC().Add(-48 * time.Hour),
 		Active:     boolPtr(true),
 	}
 	err := repo.Create(context.Background(), session1)
@@ -310,15 +310,15 @@ func TestSessionRepository_DeleteExpiredBefore(t *testing.T) {
 		SessionID:  "session-2",
 		UserID:     userID,
 		IPAddress:  "127.0.0.1",
-		IssuedAt:   time.Now().Add(-36 * time.Hour),
-		ExpiresAt:  time.Now().Add(-12 * time.Hour), // Expired 12h ago.
-		LastSeenAt: time.Now().Add(-12 * time.Hour),
+		IssuedAt:   time.Now().UTC().Add(-36 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(-12 * time.Hour), // Expired 12h ago.
+		LastSeenAt: time.Now().UTC().Add(-12 * time.Hour),
 		Active:     boolPtr(true),
 	}
 	err = repo.Create(context.Background(), session2)
 	require.NoError(t, err)
 
-	cutoffTime := time.Now().Add(-24 * time.Hour)
+	cutoffTime := time.Now().UTC().Add(-24 * time.Hour)
 	deletedCount, err := repo.DeleteExpiredBefore(context.Background(), cutoffTime)
 	require.NoError(t, err)
 	require.Equal(t, 1, deletedCount) // Only session1 deleted (expired 48h ago).
@@ -344,9 +344,9 @@ func TestSessionRepository_List(t *testing.T) {
 			SessionID:  googleUuid.Must(googleUuid.NewV7()).String(),
 			UserID:     userID,
 			IPAddress:  "127.0.0.1",
-			IssuedAt:   time.Now(),
-			ExpiresAt:  time.Now().Add(24 * time.Hour),
-			LastSeenAt: time.Now(),
+			IssuedAt:   time.Now().UTC(),
+			ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+			LastSeenAt: time.Now().UTC(),
 			Active:     boolPtr(true),
 		}
 		err := repo.Create(context.Background(), session)
@@ -382,9 +382,9 @@ func TestSessionRepository_Count(t *testing.T) {
 			SessionID:  googleUuid.Must(googleUuid.NewV7()).String(),
 			UserID:     userID,
 			IPAddress:  "127.0.0.1",
-			IssuedAt:   time.Now(),
-			ExpiresAt:  time.Now().Add(24 * time.Hour),
-			LastSeenAt: time.Now(),
+			IssuedAt:   time.Now().UTC(),
+			ExpiresAt:  time.Now().UTC().Add(24 * time.Hour),
+			LastSeenAt: time.Now().UTC(),
 			Active:     boolPtr(true),
 		}
 		err := repo.Create(context.Background(), session)

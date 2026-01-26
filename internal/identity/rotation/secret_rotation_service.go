@@ -85,7 +85,7 @@ func (s *SecretRotationService) RotateClientSecret(
 			result.OldVersion = currentVersion.Version
 
 			// Mark old version as expired (after grace period).
-			expiresAt := time.Now().Add(gracePeriodDuration)
+			expiresAt := time.Now().UTC().Add(gracePeriodDuration)
 			currentVersion.ExpiresAt = &expiresAt
 
 			if updateErr := tx.Save(&currentVersion).Error; updateErr != nil {
@@ -107,7 +107,7 @@ func (s *SecretRotationService) RotateClientSecret(
 
 		result.NewVersion = newVersionNum
 		result.NewSecretPlaintext = newSecretPlaintext
-		result.GracePeriodEnd = time.Now().Add(gracePeriodDuration)
+		result.GracePeriodEnd = time.Now().UTC().Add(gracePeriodDuration)
 
 		// Create rotation event.
 		oldVersionPtr := &result.OldVersion
@@ -181,7 +181,7 @@ func (s *SecretRotationService) ValidateSecretDuringGracePeriod(
 	}
 
 	// Validate against all active versions.
-	now := time.Now()
+	now := time.Now().UTC()
 
 	for i := range activeVersions {
 		if activeVersions[i].IsValid(now) {

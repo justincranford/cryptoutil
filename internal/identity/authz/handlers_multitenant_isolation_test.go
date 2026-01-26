@@ -384,8 +384,8 @@ func createMultiTenantTestTokenWithScopes(t *testing.T, repoFactory *cryptoutilI
 		TokenType:  cryptoutilIdentityDomain.TokenTypeAccess,
 		ClientID:   clientID,
 		Scopes:     scopes,
-		ExpiresAt:  time.Now().Add(1 * time.Hour),
-		IssuedAt:   time.Now(),
+		ExpiresAt:  time.Now().UTC().Add(1 * time.Hour),
+		IssuedAt:   time.Now().UTC(),
 	}
 
 	err := tokenRepo.Create(ctx, testToken)

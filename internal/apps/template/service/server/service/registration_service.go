@@ -154,7 +154,7 @@ func (s *RegistrationServiceImpl) RegisterUser(ctx context.Context, username, em
 	}
 
 	// Case 2: Existing tenant registration (pending verification).
-	expiresAt := time.Now().Add(DefaultRegistrationExpiryHours * time.Hour)
+	expiresAt := time.Now().UTC().Add(DefaultRegistrationExpiryHours * time.Hour)
 	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
 		ID:           googleUuid.New(),
 		TenantID:     *existingTenantID,
@@ -229,7 +229,7 @@ func (s *RegistrationServiceImpl) RegisterClient(ctx context.Context, clientID, 
 	}
 
 	// Case 2: Existing tenant registration (pending verification).
-	expiresAt := time.Now().Add(DefaultRegistrationExpiryHours * time.Hour)
+	expiresAt := time.Now().UTC().Add(DefaultRegistrationExpiryHours * time.Hour)
 	unverifiedClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 		ID:               googleUuid.New(),
 		TenantID:         *existingTenantID,

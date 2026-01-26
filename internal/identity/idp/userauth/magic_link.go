@@ -82,7 +82,7 @@ func (a *MagicLinkAuthenticator) InitiateAuth(ctx context.Context, userID string
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID,
 		Method:    a.Method(),
-		ExpiresAt: time.Now().Add(a.linkExpiration),
+		ExpiresAt: time.Now().UTC().Add(a.linkExpiration),
 		Metadata:  map[string]any{"email": user.Email},
 	}
 
@@ -138,7 +138,7 @@ func (a *MagicLinkAuthenticator) VerifyAuth(ctx context.Context, challengeID, re
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := a.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)

@@ -35,7 +35,7 @@ func TestScheduledRotation_NoExpiringSecrets(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set expiration far in future (30 days).
-	futureExpiration := time.Now().Add(30 * 24 * time.Hour)
+	futureExpiration := time.Now().UTC().Add(30 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", futureExpiration).Error
@@ -74,7 +74,7 @@ func TestScheduledRotation_OneExpiringSecret(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set expiration within threshold (3 days).
-	soonExpiration := time.Now().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -116,7 +116,7 @@ func TestScheduledRotation_MultipleExpiringSecrets(t *testing.T) {
 	client3 := createTestClient(t, db)
 	rotationService := cryptoutilIdentityRotation.NewSecretRotationService(db)
 
-	soonExpiration := time.Now().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
 
 	// Set expiration for all 3 clients.
 	for _, clientID := range []googleUuid.UUID{client1.ID, client2.ID, client3.ID} {
@@ -164,7 +164,7 @@ func TestScheduledRotation_SecretsOutsideThreshold(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, versions1, 1, "Client1 should have 1 active secret after creation")
 
-	soonExpiration := time.Now().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client1.ID, versions1[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -175,7 +175,7 @@ func TestScheduledRotation_SecretsOutsideThreshold(t *testing.T) {
 	require.NoError(t, err2)
 	require.Len(t, versions2, 1, "Client2 should have 1 active secret after creation")
 
-	laterExpiration := time.Now().Add(10 * 24 * time.Hour)
+	laterExpiration := time.Now().UTC().Add(10 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client2.ID, versions2[0].Version).
 		Update("expires_at", laterExpiration).Error
@@ -217,7 +217,7 @@ func TestScheduledRotation_DefaultConfig(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set expiration within default threshold (3 days < 7 days default).
-	soonExpiration := time.Now().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -249,7 +249,7 @@ func TestScheduledRotation_AlreadyRotatedSecrets(t *testing.T) {
 	require.Len(t, versions, 1, "Client should have 1 active secret after creation")
 
 	// Set version 1 to expire soon.
-	soonExpiration := time.Now().Add(3 * 24 * time.Hour)
+	soonExpiration := time.Now().UTC().Add(3 * 24 * time.Hour)
 	err = db.Model(&cryptoutilIdentityDomain.ClientSecretVersion{}).
 		Where("client_id = ? AND version = ?", client.ID, versions[0].Version).
 		Update("expires_at", soonExpiration).Error
@@ -329,7 +329,7 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 			Version:    1,
 			SecretHash: secretHash,
 			Status:     cryptoutilIdentityDomain.SecretStatusActive,
-			CreatedAt:  time.Now(),
+			CreatedAt:  time.Now().UTC(),
 			ExpiresAt:  nil,
 		}
 		if err := tx.Create(version).Error; err != nil {
@@ -344,7 +344,7 @@ func createTestClient(t *testing.T, db *gorm.DB) *cryptoutilIdentityDomain.Clien
 			EventType:     "secret_created",
 			KeyType:       "client_secret",
 			KeyID:         client.ID.String(),
-			Timestamp:     time.Now(),
+			Timestamp:     time.Now().UTC(),
 			Initiator:     "system",
 			OldKeyVersion: &oldVersion,
 			NewKeyVersion: &newVersion,

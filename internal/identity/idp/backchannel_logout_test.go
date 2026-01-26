@@ -171,8 +171,8 @@ func TestBackChannelLogoutService_DeliverLogoutToken(t *testing.T) {
 			session := &cryptoutilIdentityDomain.Session{
 				SessionID: googleUuid.Must(googleUuid.NewV7()).String(),
 				UserID:    googleUuid.Must(googleUuid.NewV7()),
-				IssuedAt:  time.Now(),
-				ExpiresAt: time.Now().Add(1 * time.Hour),
+				IssuedAt:  time.Now().UTC(),
+				ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 			}
 
 			client := &cryptoutilIdentityDomain.Client{

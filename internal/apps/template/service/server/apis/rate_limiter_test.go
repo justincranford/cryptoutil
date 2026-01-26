@@ -110,7 +110,7 @@ func TestRateLimiter_Cleanup(t *testing.T) {
 
 	// Manually set lastRefillTime to old time.
 	rl.mu.Lock()
-	rl.buckets[ipAddress].lastRefillTime = time.Now().Add(-15 * time.Minute)
+	rl.buckets[ipAddress].lastRefillTime = time.Now().UTC().Add(-15 * time.Minute)
 	rl.mu.Unlock()
 
 	// Trigger cleanup.

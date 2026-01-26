@@ -119,8 +119,8 @@ func TestIntrospectionRefreshTokenRevocation(t *testing.T) {
 		TokenType:  cryptoutilIdentityDomain.TokenTypeRefresh,
 		ClientID:   testClient.ID,
 		Scopes:     []string{"openid", "offline_access"},
-		ExpiresAt:  time.Now().Add(7 * 24 * time.Hour), // 7 days.
-		IssuedAt:   time.Now(),
+		ExpiresAt:  time.Now().UTC().Add(7 * 24 * time.Hour), // 7 days.
+		IssuedAt:   time.Now().UTC(),
 	}
 
 	err := tokenRepo.Create(ctx, refreshToken)
@@ -358,12 +358,12 @@ func createRevocationFlowTestToken(t *testing.T, repoFactory *cryptoutilIdentity
 		TokenType:  cryptoutilIdentityDomain.TokenTypeAccess,
 		ClientID:   clientID,
 		Scopes:     []string{"openid", "profile"},
-		ExpiresAt:  time.Now().Add(1 * time.Hour),
-		IssuedAt:   time.Now(),
+		ExpiresAt:  time.Now().UTC().Add(1 * time.Hour),
+		IssuedAt:   time.Now().UTC(),
 	}
 
 	if revoked {
-		now := time.Now()
+		now := time.Now().UTC()
 		testToken.RevokedAt = &now
 	}
 

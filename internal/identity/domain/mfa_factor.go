@@ -98,7 +98,7 @@ func (mf *MFAFactor) IsNonceValid() bool {
 		return false
 	}
 
-	if mf.NonceExpiresAt != nil && time.Now().After(*mf.NonceExpiresAt) {
+	if mf.NonceExpiresAt != nil && time.Now().UTC().After(*mf.NonceExpiresAt) {
 		return false
 	}
 
@@ -107,6 +107,6 @@ func (mf *MFAFactor) IsNonceValid() bool {
 
 // MarkNonceAsUsed marks nonce as consumed with current timestamp.
 func (mf *MFAFactor) MarkNonceAsUsed() {
-	now := time.Now()
+	now := time.Now().UTC()
 	mf.NonceUsedAt = &now
 }

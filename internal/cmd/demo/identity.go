@@ -73,7 +73,7 @@ type identityDemoServer struct {
 func runIdentityDemo(ctx context.Context, config *Config) int {
 	progress := NewProgressDisplay(config)
 	errors := NewErrorAggregator("identity")
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	progress.Info("Starting Identity Demo")
 	progress.Info("=======================")
@@ -342,12 +342,12 @@ func stopIdentityServer(demoServer *identityDemoServer) {
 
 // waitForIdentityHealth waits for Identity server health checks to pass.
 func waitForIdentityHealth(ctx context.Context, demoServer *identityDemoServer, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 	healthURL := demoServer.baseURL + "/health"
 
 	client := &http.Client{Timeout: identityHTTPClientTimeout}
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
 		if err != nil {
 			continue

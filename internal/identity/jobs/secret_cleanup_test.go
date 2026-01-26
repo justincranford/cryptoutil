@@ -37,8 +37,8 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
-					CreatedAt:  time.Now(),
-					ExpiresAt:  ptrTime(time.Now().Add(24 * time.Hour)), // Future expiration.
+					CreatedAt:  time.Now().UTC(),
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(24 * time.Hour)), // Future expiration.
 				},
 			},
 			wantRows: 0,
@@ -52,8 +52,8 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
-					CreatedAt:  time.Now().Add(-48 * time.Hour),
-					ExpiresAt:  ptrTime(time.Now().Add(-1 * time.Hour)), // Past expiration.
+					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)), // Past expiration.
 				},
 			},
 			wantRows: 1,
@@ -67,8 +67,8 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
-					CreatedAt:  time.Now().Add(-48 * time.Hour),
-					ExpiresAt:  ptrTime(time.Now().Add(-1 * time.Hour)), // Expired.
+					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)), // Expired.
 				},
 				{
 					ID:         googleUuid.Must(googleUuid.NewV7()),
@@ -76,8 +76,8 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    2,
 					SecretHash: "hash2",
 					Status:     cryptoutilIdentityDomain.SecretStatusActive,
-					CreatedAt:  time.Now(),
-					ExpiresAt:  ptrTime(time.Now().Add(24 * time.Hour)), // Active.
+					CreatedAt:  time.Now().UTC(),
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(24 * time.Hour)), // Active.
 				},
 			},
 			wantRows: 1,
@@ -91,8 +91,8 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusExpired, // Already expired.
-					CreatedAt:  time.Now().Add(-48 * time.Hour),
-					ExpiresAt:  ptrTime(time.Now().Add(-1 * time.Hour)),
+					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)),
 				},
 			},
 			wantRows: 0,
@@ -106,9 +106,9 @@ func TestCleanupExpiredSecrets(t *testing.T) {
 					Version:    1,
 					SecretHash: "hash1",
 					Status:     cryptoutilIdentityDomain.SecretStatusRevoked, // Revoked.
-					CreatedAt:  time.Now().Add(-48 * time.Hour),
-					ExpiresAt:  ptrTime(time.Now().Add(-1 * time.Hour)),
-					RevokedAt:  ptrTime(time.Now().Add(-12 * time.Hour)),
+					CreatedAt:  time.Now().UTC().Add(-48 * time.Hour),
+					ExpiresAt:  ptrTime(time.Now().UTC().Add(-1 * time.Hour)),
+					RevokedAt:  ptrTime(time.Now().UTC().Add(-12 * time.Hour)),
 				},
 			},
 			wantRows: 0,

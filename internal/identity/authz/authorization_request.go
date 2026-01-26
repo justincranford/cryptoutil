@@ -110,7 +110,7 @@ func (s *InMemoryAuthorizationRequestStore) GetByRequestID(_ context.Context, re
 		return nil, fmt.Errorf("authorization request not found")
 	}
 
-	if time.Now().After(request.ExpiresAt) {
+	if time.Now().UTC().After(request.ExpiresAt) {
 		return nil, fmt.Errorf("authorization request expired")
 	}
 
@@ -132,7 +132,7 @@ func (s *InMemoryAuthorizationRequestStore) GetByCode(_ context.Context, code st
 		return nil, fmt.Errorf("authorization request not found")
 	}
 
-	if time.Now().After(request.ExpiresAt) {
+	if time.Now().UTC().After(request.ExpiresAt) {
 		return nil, fmt.Errorf("authorization code expired")
 	}
 
@@ -181,7 +181,7 @@ func (s *InMemoryAuthorizationRequestStore) cleanup() {
 	for range ticker.C {
 		s.mu.Lock()
 
-		now := time.Now()
+		now := time.Now().UTC()
 
 		for id, request := range s.requests {
 			if now.After(request.ExpiresAt) {

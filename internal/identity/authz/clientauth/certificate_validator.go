@@ -61,7 +61,7 @@ func (v *CACertificateValidator) ValidateCertificate(clientCert *x509.Certificat
 	}
 
 	// Check if certificate is expired
-	now := time.Now()
+	now := time.Now().UTC()
 	if now.Before(clientCert.NotBefore) {
 		return fmt.Errorf("certificate is not yet valid")
 	}
@@ -145,7 +145,7 @@ func (v *SelfSignedCertificateValidator) ValidateCertificate(clientCert *x509.Ce
 	}
 
 	// Check if certificate is expired
-	now := time.Now()
+	now := time.Now().UTC()
 	if now.Before(clientCert.NotBefore) {
 		return fmt.Errorf("certificate is not yet valid")
 	}

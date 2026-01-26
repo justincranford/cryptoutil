@@ -22,12 +22,12 @@ func TestEmailOTP_IsExpired(t *testing.T) {
 	}{
 		{
 			name:      "not_expired",
-			expiresAt: time.Now().Add(5 * time.Minute),
+			expiresAt: time.Now().UTC().Add(5 * time.Minute),
 			want:      false,
 		},
 		{
 			name:      "expired",
-			expiresAt: time.Now().Add(-1 * time.Minute),
+			expiresAt: time.Now().UTC().Add(-1 * time.Minute),
 			want:      true,
 		},
 	}
@@ -94,11 +94,11 @@ func TestEmailOTP_MarkAsUsed(t *testing.T) {
 		UsedAt: nil,
 	}
 
-	beforeMark := time.Now()
+	beforeMark := time.Now().UTC()
 
 	otp.MarkAsUsed()
 
-	afterMark := time.Now()
+	afterMark := time.Now().UTC()
 
 	require.True(t, otp.Used, "OTP should be marked as used")
 	require.NotNil(t, otp.UsedAt, "UsedAt should be set")

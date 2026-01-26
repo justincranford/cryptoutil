@@ -72,7 +72,7 @@ func (t *TOTPAuthenticator) GenerateSecret(_ context.Context) (string, error) {
 
 // GenerateTOTP generates a TOTP code from a secret.
 func (t *TOTPAuthenticator) GenerateTOTP(_ context.Context, secret string) (string, error) {
-	return t.generateTOTPAtTime(secret, time.Now())
+	return t.generateTOTPAtTime(secret, time.Now().UTC())
 }
 
 // ValidateTOTP validates a TOTP code against a secret.
@@ -80,7 +80,7 @@ func (t *TOTPAuthenticator) ValidateTOTP(_ context.Context, secret, code string)
 	// Allow for clock skew - check current time and ±1 period.
 	const windowSize = 1
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	for i := -windowSize; i <= windowSize; i++ {
 		testTime := now.Add(time.Duration(i) * t.period)
@@ -106,7 +106,7 @@ func (t *TOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (*A
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,
@@ -142,7 +142,7 @@ func (t *TOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respons
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := t.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
@@ -355,7 +355,7 @@ func (h *HOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (*A
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,
@@ -390,7 +390,7 @@ func (h *HOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respons
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := h.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)

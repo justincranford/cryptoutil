@@ -182,8 +182,8 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 		ClientID:    client.ID,
 		Scopes:      []string{"openid", "profile"},
-		IssuedAt:    time.Now(),
-		ExpiresAt:   time.Now().Add(time.Hour),
+		IssuedAt:    time.Now().UTC(),
+		ExpiresAt:   time.Now().UTC().Add(time.Hour),
 	}
 
 	err = tokenRepo.Create(ctx, token)
@@ -252,8 +252,8 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 		SessionID: "test-session-" + uuidSuffix,
 		UserID:    user.ID,
 		Active:    boolPtr(true),
-		IssuedAt:  time.Now(),
-		ExpiresAt: time.Now().Add(time.Hour),
+		IssuedAt:  time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(time.Hour),
 	}
 
 	err = sessionRepo.Create(ctx, session)

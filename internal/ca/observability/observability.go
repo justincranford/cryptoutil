@@ -525,7 +525,7 @@ func (t *Tracer) GetSpan(spanID string) *Span {
 // generateID generates a random hex ID.
 func generateID() string {
 	// Simple implementation - in production use proper trace ID generation.
-	return time.Now().Format("20060102150405.000000000")
+	return time.Now().UTC().Format("20060102150405.000000000")
 }
 
 // AuditEvent represents a CA audit event.

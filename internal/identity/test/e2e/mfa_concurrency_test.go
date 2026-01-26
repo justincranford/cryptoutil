@@ -86,8 +86,8 @@ func (s *E2ETestSuite) executeMFAChain(ctx context.Context, userID string, metho
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		SessionID: googleUuid.Must(googleUuid.NewV7()).String(),
 		UserID:    googleUuid.MustParse(userID),
-		IssuedAt:  time.Now(),
-		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
+		IssuedAt:  time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
 		Active:    boolPtr(true),
 	}
 
@@ -102,11 +102,11 @@ func (s *E2ETestSuite) executeMFAChain(ctx context.Context, userID string, metho
 
 		// Update session with completed authentication method.
 		session.AuthenticationMethods = append(session.AuthenticationMethods, string(method))
-		session.LastSeenAt = time.Now()
+		session.LastSeenAt = time.Now().UTC()
 	}
 
 	// Mark authentication complete.
-	session.AuthenticationTime = time.Now()
+	session.AuthenticationTime = time.Now().UTC()
 
 	return nil
 }

@@ -335,9 +335,9 @@ func TestAdminEndpointShutdown(t *testing.T) {
 func waitForAdminPort(t *testing.T, server *AdminServer, timeout time.Duration) int {
 	t.Helper()
 
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		if port := server.ActualPort(); port > 0 {
 			return port
 		}

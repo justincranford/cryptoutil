@@ -34,8 +34,8 @@ func TestAuthorizationRequestStore_CRUD(t *testing.T) {
 		State:               "state123",
 		CodeChallenge:       "challenge",
 		CodeChallengeMethod: "S256",
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(5 * time.Minute),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 	}
 
 	err := store.Store(ctx, authRequest)
@@ -85,8 +85,8 @@ func TestAuthorizationRequestStore_Expiration(t *testing.T) {
 		CodeChallenge:       "challenge",
 		CodeChallengeMethod: "S256",
 		Code:                "valid_code",
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(5 * time.Minute), // Valid.
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute), // Valid.
 		ConsentGranted:      true,
 	}
 
@@ -145,8 +145,8 @@ func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 		State:               "state1",
 		CodeChallenge:       "challenge1",
 		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(5 * time.Minute),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 	}
 
 	requestID2 := googleUuid.Must(googleUuid.NewV7())
@@ -159,8 +159,8 @@ func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 		State:               "state2",
 		CodeChallenge:       "challenge2",
 		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(5 * time.Minute),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 	}
 
 	// Store requests.

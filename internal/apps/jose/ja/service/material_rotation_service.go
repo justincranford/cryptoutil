@@ -268,7 +268,7 @@ func (s *materialRotationServiceImpl) createMaterialJWK(ctx context.Context, ela
 		PublicJWKJWE:   publicJWE,
 		BarrierVersion: 1,
 		Active:         true,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 	}
 
 	return materialJWK, nil

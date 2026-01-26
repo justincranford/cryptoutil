@@ -78,7 +78,7 @@ func TestTenantJoinRequestRepository_Create(t *testing.T) {
 		Name:		"Test Tenant",
 		Description:	"Test tenant for join request tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -90,7 +90,7 @@ func TestTenantJoinRequestRepository_Create(t *testing.T) {
 		Username:	"joinrequestuser",
 		PasswordHash:	"hashedpassword",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -100,7 +100,7 @@ func TestTenantJoinRequestRepository_Create(t *testing.T) {
 		UserID:		&user.ID,
 		TenantID:	tenant.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 
 	err = repo.Create(ctx, request)
@@ -129,7 +129,7 @@ func TestTenantJoinRequestRepository_Update(t *testing.T) {
 		Name:		"Test Tenant",
 		Description:	"Test tenant for update tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -141,7 +141,7 @@ func TestTenantJoinRequestRepository_Update(t *testing.T) {
 		Username:	"updateuser",
 		PasswordHash:	"hashedpassword",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -152,14 +152,14 @@ func TestTenantJoinRequestRepository_Update(t *testing.T) {
 		UserID:		&user.ID,
 		TenantID:	tenant.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 	err = repo.Create(ctx, request)
 	require.NoError(t, err)
 
 	// Update request.
 	request.Status = cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved
-	processedAt := time.Now()
+	processedAt := time.Now().UTC()
 	request.ProcessedAt = &processedAt
 	request.ProcessedBy = &user.ID
 
@@ -202,7 +202,7 @@ func TestTenantJoinRequestRepository_ListByTenant(t *testing.T) {
 		Name:		"Test Tenant",
 		Description:	"Test tenant for list tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -214,7 +214,7 @@ func TestTenantJoinRequestRepository_ListByTenant(t *testing.T) {
 		Username:	"listbytenantuser",
 		PasswordHash:	"hashedpassword",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -226,7 +226,7 @@ func TestTenantJoinRequestRepository_ListByTenant(t *testing.T) {
 			UserID:		&user.ID,
 			TenantID:	tenant.ID,
 			Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-			RequestedAt:	time.Now().Add(time.Duration(i) * time.Second),
+			RequestedAt:	time.Now().UTC().Add(time.Duration(i) * time.Second),
 		}
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
@@ -253,7 +253,7 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 		Name:		"Test Tenant",
 		Description:	"Test tenant for status tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -265,7 +265,7 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 		Username:	"listbystatususer",
 		PasswordHash:	"hashedpassword",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -283,7 +283,7 @@ func TestTenantJoinRequestRepository_ListByStatus(t *testing.T) {
 			UserID:		&user.ID,
 			TenantID:	tenant.ID,
 			Status:		status,
-			RequestedAt:	time.Now(),
+			RequestedAt:	time.Now().UTC(),
 		}
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
@@ -319,7 +319,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		Name:		"Test Tenant 1",
 		Description:	"First tenant for combined tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant1)
 	require.NoError(t, err)
@@ -331,7 +331,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		Username:	"tenant1user",
 		PasswordHash:	"hashedpassword",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, user1)
 	require.NoError(t, err)
@@ -342,7 +342,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		Name:		"Test Tenant 2",
 		Description:	"Second tenant for combined tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = tenantRepo.Create(ctx, tenant2)
 	require.NoError(t, err)
@@ -354,7 +354,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		Username:	"tenant2user",
 		PasswordHash:	"hashedpassword",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, user2)
 	require.NoError(t, err)
@@ -366,7 +366,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 			UserID:		&user1.ID,
 			TenantID:	tenant1.ID,
 			Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-			RequestedAt:	time.Now(),
+			RequestedAt:	time.Now().UTC(),
 		}
 		err = repo.Create(ctx, request)
 		require.NoError(t, err)
@@ -377,7 +377,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		UserID:		&user1.ID,
 		TenantID:	tenant1.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 	err = repo.Create(ctx, approvedRequest)
 	require.NoError(t, err)
@@ -388,7 +388,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus(t *testing.T) {
 		UserID:		&user2.ID,
 		TenantID:	tenant2.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 	err = repo.Create(ctx, tenant2Request)
 	require.NoError(t, err)
@@ -428,7 +428,7 @@ func TestTenantJoinRequestRepository_CreateWithClientID(t *testing.T) {
 		Name:		"Test Tenant",
 		Description:	"Test tenant for client ID tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -439,7 +439,7 @@ func TestTenantJoinRequestRepository_CreateWithClientID(t *testing.T) {
 		ClientID:	&clientID,
 		TenantID:	tenant.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 
 	err = repo.Create(ctx, request)
@@ -467,7 +467,7 @@ func TestTenantJoinRequestRepository_ListByTenant_Empty(t *testing.T) {
 		Name:		"Empty Tenant",
 		Description:	"Tenant with no join requests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -505,7 +505,7 @@ func TestTenantJoinRequestRepository_ListByTenantAndStatus_Empty(t *testing.T) {
 		Name:		"Empty Status Tenant",
 		Description:	"Tenant with no matching status",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -531,7 +531,7 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 		Name:		"Test Tenant",
 		Description:	"Test tenant for duplicate tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -543,7 +543,7 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 		Username:	"duplicateuser",
 		PasswordHash:	"hashedpassword",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, user)
 	require.NoError(t, err)
@@ -554,7 +554,7 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 		UserID:		&user.ID,
 		TenantID:	tenant.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 
 	err = repo.Create(ctx, request1)
@@ -566,7 +566,7 @@ func TestTenantJoinRequestRepository_Create_DuplicateID(t *testing.T) {
 		UserID:		&user.ID,
 		TenantID:	tenant.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 
 	err = repo.Create(ctx, request2)
@@ -588,7 +588,7 @@ func TestTenantJoinRequestRepository_Update_NonExistent(t *testing.T) {
 		Name:		"Test Tenant",
 		Description:	"Test tenant for update tests",
 		Active:		1,
-		CreatedAt:	time.Now(),
+		CreatedAt:	time.Now().UTC(),
 	}
 	err := tenantRepo.Create(ctx, tenant)
 	require.NoError(t, err)
@@ -600,7 +600,7 @@ func TestTenantJoinRequestRepository_Update_NonExistent(t *testing.T) {
 		UserID:		&userID,
 		TenantID:	tenant.ID,
 		Status:		cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusApproved,
-		RequestedAt:	time.Now(),
+		RequestedAt:	time.Now().UTC(),
 	}
 
 	// GORM Save does upsert, so this will succeed.

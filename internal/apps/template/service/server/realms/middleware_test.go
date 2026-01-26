@@ -26,7 +26,7 @@ func createTestToken(t *testing.T, userID string, username string, secret string
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiration),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 		},
 	}
 
@@ -99,7 +99,7 @@ func TestJWTMiddleware_ExpiredToken(t *testing.T) {
 	t.Parallel()
 
 	userID := googleUuid.New()
-	expiredToken := createTestToken(t, userID.String(), "testuser", testJWTSecret, time.Now().Add(-1*time.Hour))
+	expiredToken := createTestToken(t, userID.String(), "testuser", testJWTSecret, time.Now().UTC().Add(-1*time.Hour))
 
 	app := fiber.New()
 	app.Use(JWTMiddleware(testJWTSecret))
@@ -123,7 +123,7 @@ func TestJWTMiddleware_WrongSecret(t *testing.T) {
 
 	userID := googleUuid.New()
 	// Token signed with different secret.
-	tokenWithWrongSecret := createTestToken(t, userID.String(), "testuser", "wrong-secret", time.Now().Add(1*time.Hour))
+	tokenWithWrongSecret := createTestToken(t, userID.String(), "testuser", "wrong-secret", time.Now().UTC().Add(1*time.Hour))
 
 	app := fiber.New()
 	app.Use(JWTMiddleware(testJWTSecret))
@@ -146,7 +146,7 @@ func TestJWTMiddleware_InvalidUserID(t *testing.T) {
 	t.Parallel()
 
 	// Token with invalid UUID format for user_id.
-	invalidUserIDToken := createTestToken(t, "not-a-valid-uuid", "testuser", testJWTSecret, time.Now().Add(1*time.Hour))
+	invalidUserIDToken := createTestToken(t, "not-a-valid-uuid", "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
 
 	app := fiber.New()
 	app.Use(JWTMiddleware(testJWTSecret))
@@ -169,7 +169,7 @@ func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	t.Parallel()
 
 	userID := googleUuid.New()
-	validToken := createTestToken(t, userID.String(), "testuser", testJWTSecret, time.Now().Add(1*time.Hour))
+	validToken := createTestToken(t, userID.String(), "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
 
 	var capturedUserID googleUuid.UUID
 
@@ -204,8 +204,8 @@ func TestJWTMiddleware_UnsupportedSigningMethod(t *testing.T) {
 		UserID:   userID.String(),
 		Username: "testuser",
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(1 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 		},
 	}
 

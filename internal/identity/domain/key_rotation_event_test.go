@@ -54,7 +54,7 @@ func TestKeyRotationEvent_Constants(t *testing.T) {
 func TestKeyRotationEvent_FieldValidation(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	oldVersion := 1
 	newVersion := 2
 	gracePeriod := "24h"

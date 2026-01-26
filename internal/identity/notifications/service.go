@@ -104,7 +104,7 @@ func NewNotificationService(db *gorm.DB, config *NotificationConfig) *Notificati
 
 // CheckExpiringSecrets checks for secrets approaching expiration and sends notifications.
 func (s *NotificationService) CheckExpiringSecrets(ctx context.Context) (int, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 	notificationsSent := 0
 
 	// Check each threshold (7, 3, 1 days).

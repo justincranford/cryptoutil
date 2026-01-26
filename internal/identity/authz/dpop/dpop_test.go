@@ -126,7 +126,7 @@ func TestValidateProof(t *testing.T) {
 				require.Equal(t, strings.ToUpper(testCase.httpMethod), strings.ToUpper(proof.HTM))
 				require.Equal(t, testCase.httpURI, proof.HTU)
 				require.Equal(t, expectedThumbprint, proof.JWKThumbprint)
-				require.WithinDuration(t, time.Now(), proof.IAT, 60*time.Second)
+				require.WithinDuration(t, time.Now().UTC(), proof.IAT, 60*time.Second)
 			}
 		})
 	}
@@ -228,7 +228,7 @@ func buildValidProof(t *testing.T, privateKey, publicKey joseJwk.Key, httpMethod
 	require.NoError(t, token.Set("jti", "unique-jti-value"))
 	require.NoError(t, token.Set("htm", httpMethod))
 	require.NoError(t, token.Set("htu", httpURI))
-	require.NoError(t, token.Set("iat", time.Now().Unix()))
+	require.NoError(t, token.Set("iat", time.Now().UTC().Unix()))
 
 	if accessToken != "" {
 		ath := ComputeAccessTokenHash(accessToken)

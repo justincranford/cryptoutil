@@ -140,7 +140,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 		// Consent exists and is valid - skip consent page, generate code immediately.
 		authCode := generateRandomString(cryptoutilIdentityMagic.DefaultAuthCodeLength)
 		authRequest.Code = authCode
-		authRequest.ExpiresAt = time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime)
+		authRequest.ExpiresAt = time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime)
 		authRequest.ConsentGranted = true
 
 		if err := authzReqRepo.Update(ctx, authRequest); err != nil {
@@ -246,8 +246,8 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 		UserID:    authRequest.UserID.UUID,
 		ClientID:  authRequest.ClientID,
 		Scope:     authRequest.Scope,
-		GrantedAt: time.Now(),
-		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime), // Consent lasts as long as refresh token.
+		GrantedAt: time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime), // Consent lasts as long as refresh token.
 	}
 
 	if err := consentRepo.Create(ctx, consentDecision); err != nil {
@@ -260,7 +260,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	// Generate authorization code.
 	authCode := generateRandomString(cryptoutilIdentityMagic.DefaultAuthCodeLength)
 	authRequest.Code = authCode
-	authRequest.ExpiresAt = time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime)
+	authRequest.ExpiresAt = time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime)
 	authRequest.ConsentGranted = true
 
 	if err := authzReqRepo.Update(ctx, authRequest); err != nil {

@@ -17,7 +17,7 @@ import (
 // CleanupExpiredSecrets marks active secrets with past expiration as expired.
 // This job should run periodically (e.g., hourly) to enforce grace period expiration.
 func CleanupExpiredSecrets(ctx context.Context, db *gorm.DB) (int64, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Update active secrets with expiration in the past.
 	result := db.WithContext(ctx).

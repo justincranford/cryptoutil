@@ -141,8 +141,8 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 	err := db.Create(testClient).Error
 	require.NoError(t, err)

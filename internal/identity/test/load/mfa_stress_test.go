@@ -47,7 +47,7 @@ func TestMFAStress100ConcurrentSessions(t *testing.T) {
 	t.Run("100_Parallel_MFA_Chains", func(t *testing.T) {
 		var wg sync.WaitGroup
 
-		startTime := time.Now()
+		startTime := time.Now().UTC()
 
 		for i := 0; i < parallelSessions; i++ {
 			wg.Add(1)
@@ -220,7 +220,7 @@ func TestMFALongRunningStress(t *testing.T) {
 
 		stopSignal := make(chan struct{})
 
-		startTime := time.Now()
+		startTime := time.Now().UTC()
 
 		for i := 0; i < parallelWorkers; i++ {
 			wg.Add(1)
@@ -284,8 +284,8 @@ func (s *MFAStressTestSuite) executeMFAChain(ctx context.Context, userID string,
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		SessionID: googleUuid.Must(googleUuid.NewV7()).String(),
 		UserID:    googleUuid.MustParse(userID),
-		IssuedAt:  time.Now(),
-		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
+		IssuedAt:  time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
 		Active:    boolPtr(true),
 	}
 
@@ -303,7 +303,7 @@ func (s *MFAStressTestSuite) executeMFAChain(ctx context.Context, userID string,
 		session.AuthenticationMethods = append(session.AuthenticationMethods, fmt.Sprintf("factor_%d", i+1))
 	}
 
-	session.AuthenticationTime = time.Now()
+	session.AuthenticationTime = time.Now().UTC()
 
 	return nil
 }

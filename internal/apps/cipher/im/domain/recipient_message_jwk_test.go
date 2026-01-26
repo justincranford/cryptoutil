@@ -29,7 +29,7 @@ func TestMessageRecipientJWK_FieldTypes(t *testing.T) {
 	recipientID := googleUuid.New()
 	messageID := googleUuid.New()
 	encryptedJWK := `{"protected":"eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0","iv":"test","ciphertext":"test","tag":"test"}`
-	createdAt := time.Now()
+	createdAt := time.Now().UTC()
 
 	mrj := cryptoutilAppsCipherImDomain.MessageRecipientJWK{
 		ID:           id,
@@ -91,7 +91,7 @@ func TestMessageRecipientJWK_MultiRecipientScenario(t *testing.T) {
 			RecipientID:  recipID,
 			MessageID:    messageID,
 			EncryptedJWK: `{"protected":"test","iv":"test","ciphertext":"test","tag":"test"}`,
-			CreatedAt:    time.Now(),
+			CreatedAt:    time.Now().UTC(),
 		}
 	}
 

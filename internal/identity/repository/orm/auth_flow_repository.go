@@ -67,7 +67,7 @@ func (r *AuthFlowRepositoryGORM) GetByName(ctx context.Context, name string) (*c
 
 // Update updates an existing authorization flow.
 func (r *AuthFlowRepositoryGORM) Update(ctx context.Context, flow *cryptoutilIdentityDomain.AuthFlow) error {
-	flow.UpdatedAt = time.Now()
+	flow.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(flow).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update auth flow: %w", err))
 	}

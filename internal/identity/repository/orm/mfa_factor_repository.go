@@ -65,7 +65,7 @@ func (r *MFAFactorRepositoryGORM) GetByAuthProfileID(ctx context.Context, authPr
 
 // Update updates an existing MFA factor.
 func (r *MFAFactorRepositoryGORM) Update(ctx context.Context, factor *cryptoutilIdentityDomain.MFAFactor) error {
-	factor.UpdatedAt = time.Now()
+	factor.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(factor).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update MFA factor: %w", err))
 	}

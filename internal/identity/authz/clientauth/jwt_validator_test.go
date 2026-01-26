@@ -65,7 +65,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_Success(t *testing.T) {
 	}
 
 	// Create valid JWT.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -167,7 +167,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	}
 
 	// Create valid JWT but sign with DIFFERENT private key.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -220,7 +220,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	}
 
 	// Create EXPIRED JWT.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -272,7 +272,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidIssuer(t *testing.T) {
 	}
 
 	// Create valid JWT with WRONG issuer.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, "wrong-client-id")) // Wrong issuer.
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -324,7 +324,7 @@ func TestPrivateKeyJWTValidator_ValidateJWT_InvalidAudience(t *testing.T) {
 	}
 
 	// Create JWT with WRONG audience.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -354,7 +354,7 @@ func TestClientSecretJWTValidator_ValidateJWT_Success(t *testing.T) {
 	}
 
 	// Create valid JWT.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -415,7 +415,7 @@ func TestClientSecretJWTValidator_ValidateJWT_InvalidSignature(t *testing.T) {
 	}
 
 	// Create JWT with WRONG secret for signing.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -451,7 +451,7 @@ func TestClientSecretJWTValidator_ValidateJWT_ExpiredToken(t *testing.T) {
 	}
 
 	// Create EXPIRED JWT.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -487,7 +487,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingExpirationClaim(t *testing.
 	}
 
 	// Create JWT WITHOUT expiration claim.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -523,7 +523,7 @@ func TestClientSecretJWTValidator_ValidateJWT_MissingIssuedAtClaim(t *testing.T)
 	}
 
 	// Create JWT WITHOUT issued at claim.
-	now := time.Now()
+	now := time.Now().UTC()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
 	require.NoError(t, token.Set(joseJwt.SubjectKey, testClientID))
@@ -573,7 +573,7 @@ func TestPrivateKeyJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	validator := NewPrivateKeyJWTValidator(testTokenEndpointURL, nil)
 
 	// Create token with all claims.
-	now := time.Now()
+	now := time.Now().UTC()
 	jti := googleUuid.NewString()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))
@@ -598,7 +598,7 @@ func TestClientSecretJWTValidator_ExtractClaims_AllClaimsPresent(t *testing.T) {
 	validator := NewClientSecretJWTValidator(testTokenEndpointURL, nil)
 
 	// Create token with all claims.
-	now := time.Now()
+	now := time.Now().UTC()
 	jti := googleUuid.NewString()
 	token := joseJwt.New()
 	require.NoError(t, token.Set(joseJwt.IssuerKey, testClientID))

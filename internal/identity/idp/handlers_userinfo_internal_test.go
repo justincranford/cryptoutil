@@ -17,7 +17,7 @@ import (
 func TestAddScopeBasedClaims(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	userID := googleUuid.New()
 
 	baseUser := &cryptoutilIdentityDomain.User{
@@ -132,7 +132,7 @@ func TestAddScopeBasedClaimsNilAddress(t *testing.T) {
 		ID:        googleUuid.New(),
 		Sub:       "testuser",
 		Address:   nil,
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now().UTC(),
 	}
 
 	userInfo := make(map[string]any)
@@ -145,7 +145,7 @@ func TestAddScopeBasedClaimsNilAddress(t *testing.T) {
 func TestAddScopeBasedClaimsProfileValues(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	user := &cryptoutilIdentityDomain.User{
 		ID:                googleUuid.New(),
 		Sub:               "testuser",
@@ -198,7 +198,7 @@ func TestAddScopeBasedClaimsAddressValues(t *testing.T) {
 			PostalCode:    "67890",
 			Country:       "Canada",
 		},
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now().UTC(),
 	}
 
 	userInfo := make(map[string]any)

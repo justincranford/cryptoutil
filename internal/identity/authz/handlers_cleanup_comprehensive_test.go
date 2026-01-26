@@ -45,9 +45,9 @@ func TestCleanupService_DeletesExpiredTokens(t *testing.T) {
 		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 		TokenValue:  "expired-access-token-" + googleUuid.NewString(),
 		Scopes:      []string{"read", "write"},
-		ExpiresAt:   time.Now().Add(-1 * time.Hour), // Expired 1 hour ago
-		IssuedAt:    time.Now().Add(-2 * time.Hour),
-		NotBefore:   time.Now().Add(-2 * time.Hour),
+		ExpiresAt:   time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago
+		IssuedAt:    time.Now().UTC().Add(-2 * time.Hour),
+		NotBefore:   time.Now().UTC().Add(-2 * time.Hour),
 		Revoked:     false,
 	}
 
@@ -63,9 +63,9 @@ func TestCleanupService_DeletesExpiredTokens(t *testing.T) {
 		TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 		TokenValue:  "valid-access-token-" + googleUuid.NewString(),
 		Scopes:      []string{"read"},
-		ExpiresAt:   time.Now().Add(1 * time.Hour), // Valid for 1 hour
-		IssuedAt:    time.Now(),
-		NotBefore:   time.Now(),
+		ExpiresAt:   time.Now().UTC().Add(1 * time.Hour), // Valid for 1 hour
+		IssuedAt:    time.Now().UTC(),
+		NotBefore:   time.Now().UTC(),
 		Revoked:     false,
 	}
 

@@ -66,8 +66,8 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 
 	// 3. Create JWT claims (sub, name, email, iat, exp, aud, iss)
 	// exp set to 1 year from now for valid token test
-	iat := time.Now().Unix()
-	exp := time.Now().Add(365 * 24 * time.Hour).Unix()
+	iat := time.Now().UTC().Unix()
+	exp := time.Now().UTC().Add(365 * 24 * time.Hour).Unix()
 	claims := fmt.Sprintf(
 		`{"sub":"user-123","name":"Test User","email":"test@example.com","iat":%d,"exp":%d,"aud":"test-audience","iss":"jose-e2e-test"}`,
 		iat, exp,
@@ -105,7 +105,7 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	}
 
 	// 7. Test expired token rejection (set exp in past, expect validation error)
-	expiredExp := time.Now().Add(-1 * time.Hour).Unix() // 1 hour ago
+	expiredExp := time.Now().UTC().Add(-1 * time.Hour).Unix() // 1 hour ago
 	expiredClaims := fmt.Sprintf(
 		`{"sub":"user-456","name":"Expired User","email":"expired@example.com","iat":%d,"exp":%d,"aud":"test-audience","iss":"jose-e2e-test"}`,
 		iat, expiredExp,

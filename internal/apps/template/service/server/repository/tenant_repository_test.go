@@ -68,7 +68,7 @@ func TestTenantRepository_Create(t *testing.T) {
 		Name:        dupName,
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 	err := repo.Create(ctx, firstTenant)
 	require.NoError(t, err)
@@ -85,7 +85,7 @@ func TestTenantRepository_Create(t *testing.T) {
 				Name:        uniqueTenantName("Acme"),
 				Description: "Test tenant",
 				Active:      1,
-				CreatedAt:   time.Now(),
+				CreatedAt:   time.Now().UTC(),
 			},
 			wantError: false,
 		},
@@ -96,7 +96,7 @@ func TestTenantRepository_Create(t *testing.T) {
 				Name:        dupName,
 				Description: "Duplicate tenant",
 				Active:      1,
-				CreatedAt:   time.Now(),
+				CreatedAt:   time.Now().UTC(),
 			},
 			wantError: true,
 		},
@@ -125,7 +125,7 @@ func TestTenantRepository_GetByID(t *testing.T) {
 		Name:        uniqueTenantName("GetByID"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := repo.Create(ctx, tenant)
@@ -175,7 +175,7 @@ func TestTenantRepository_GetByName(t *testing.T) {
 		Name:        uniqueTenantName("GetByName"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := repo.Create(ctx, tenant)
@@ -225,7 +225,7 @@ func TestTenantRepository_List(t *testing.T) {
 		Name:        uniqueTenantName("ActiveList"),
 		Description: "Active tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	inactiveTenant := &Tenant{
@@ -233,7 +233,7 @@ func TestTenantRepository_List(t *testing.T) {
 		Name:        uniqueTenantName("InactiveList"),
 		Description: "Inactive tenant",
 		Active:      0,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := repo.Create(ctx, activeTenant)
@@ -309,7 +309,7 @@ func TestTenantRepository_Update(t *testing.T) {
 		Name:        uniqueTenantName("Update"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := repo.Create(ctx, tenant)
@@ -358,7 +358,7 @@ func TestTenantRepository_Delete(t *testing.T) {
 					Username:  "testuser-" + googleUuid.New().String()[:8],
 					Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
 					Active:    1,
-					CreatedAt: time.Now(),
+					CreatedAt: time.Now().UTC(),
 				}
 				err := userRepo.Create(ctx, user)
 				require.NoError(t, err)
@@ -375,7 +375,7 @@ func TestTenantRepository_Delete(t *testing.T) {
 				Name:        "Tenant " + googleUuid.NewString(),
 				Description: "Test tenant",
 				Active:      1,
-				CreatedAt:   time.Now(),
+				CreatedAt:   time.Now().UTC(),
 			}
 
 			err := tenantRepo.Create(ctx, tenant)
@@ -410,7 +410,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 		Name:        uniqueTenantName("Count"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -422,7 +422,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 		Username:  "testuser-" + googleUuid.New().String()[:8],
 		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
 		Active:    1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = userRepo.Create(ctx, user)
@@ -433,7 +433,7 @@ func TestTenantRepository_CountUsersAndClients(t *testing.T) {
 		TenantID:  tenant.ID,
 		ClientID:  "client-" + googleUuid.New().String()[:8],
 		Active:    1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = clientRepo.Create(ctx, client)

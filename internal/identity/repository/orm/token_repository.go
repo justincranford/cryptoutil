@@ -66,7 +66,7 @@ func (r *TokenRepositoryGORM) GetByTokenValue(ctx context.Context, tokenValue st
 
 // Update updates an existing token.
 func (r *TokenRepositoryGORM) Update(ctx context.Context, token *cryptoutilIdentityDomain.Token) error {
-	token.UpdatedAt = time.Now()
+	token.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(token).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update token: %w", err))
 	}
@@ -102,7 +102,7 @@ func (r *TokenRepositoryGORM) RevokeByID(ctx context.Context, id googleUuid.UUID
 
 // RevokeByTokenValue revokes a token by token value.
 func (r *TokenRepositoryGORM) RevokeByTokenValue(ctx context.Context, tokenValue string) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	result := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Token{}).
 		Where("token_value = ? AND deleted_at IS NULL", tokenValue).
 		Updates(map[string]any{
@@ -124,7 +124,7 @@ func (r *TokenRepositoryGORM) RevokeByTokenValue(ctx context.Context, tokenValue
 // DeleteExpired deletes expired tokens (hard delete).
 func (r *TokenRepositoryGORM) DeleteExpired(ctx context.Context) error {
 	if err := getDB(ctx, r.db).WithContext(ctx).Unscoped().
-		Where("expires_at < ?", time.Now()).
+		Where("expires_at < ?", time.Now().UTC()).
 		Delete(&cryptoutilIdentityDomain.Token{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired tokens: %w", err))
 	}

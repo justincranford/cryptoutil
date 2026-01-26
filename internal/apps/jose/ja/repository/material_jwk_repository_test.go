@@ -34,7 +34,7 @@ func TestMaterialJWKRepository_Create(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -52,7 +52,7 @@ func TestMaterialJWKRepository_Create(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-private-jwk-content",
 		PublicJWKJWE:   "encrypted-public-jwk-content",
 		Active:         true,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 
@@ -89,7 +89,7 @@ func TestMaterialJWKRepository_GetByMaterialKID(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -108,7 +108,7 @@ func TestMaterialJWKRepository_GetByMaterialKID(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-private-content",
 		PublicJWKJWE:   "encrypted-public-content",
 		Active:         true,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 	require.NoError(t, repo.Create(ctx, testMaterial))
@@ -146,7 +146,7 @@ func TestMaterialJWKRepository_GetByID(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -164,7 +164,7 @@ func TestMaterialJWKRepository_GetByID(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-private-content",
 		PublicJWKJWE:   "encrypted-public-content",
 		Active:         false,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 	require.NoError(t, repo.Create(ctx, testMaterial))
@@ -203,7 +203,7 @@ func TestMaterialJWKRepository_GetActiveMaterial(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -221,7 +221,7 @@ func TestMaterialJWKRepository_GetActiveMaterial(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-private",
 		PublicJWKJWE:   "encrypted-public",
 		Active:         false,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 	require.NoError(t, repo.Create(ctx, inactiveMaterial))
@@ -239,7 +239,7 @@ func TestMaterialJWKRepository_GetActiveMaterial(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-private-active",
 		PublicJWKJWE:   "encrypted-public-active",
 		Active:         true,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 	require.NoError(t, repo.Create(ctx, activeMaterial))
@@ -279,7 +279,7 @@ func TestMaterialJWKRepository_ListByElasticJWK(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -302,7 +302,7 @@ func TestMaterialJWKRepository_ListByElasticJWK(t *testing.T) {
 			PrivateJWKJWE:  "encrypted-private",
 			PublicJWKJWE:   "encrypted-public",
 			Active:         i == 2, // Only last one active.
-			CreatedAt:      time.Now().Add(time.Duration(i) * time.Second),
+			CreatedAt:      time.Now().UTC().Add(time.Duration(i) * time.Second),
 			BarrierVersion: 1,
 		}
 		require.NoError(t, repo.Create(ctx, material))
@@ -356,7 +356,7 @@ func TestMaterialJWKRepository_RotateMaterial(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -374,7 +374,7 @@ func TestMaterialJWKRepository_RotateMaterial(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-old-private",
 		PublicJWKJWE:   "encrypted-old-public",
 		Active:         true,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 	require.NoError(t, repo.Create(ctx, oldMaterial))
@@ -392,7 +392,7 @@ func TestMaterialJWKRepository_RotateMaterial(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-new-private",
 		PublicJWKJWE:   "encrypted-new-public",
 		Active:         false, // Will be set to true by RotateMaterial.
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 
@@ -439,7 +439,7 @@ func TestMaterialJWKRepository_RetireMaterial(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -457,7 +457,7 @@ func TestMaterialJWKRepository_RetireMaterial(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-private",
 		PublicJWKJWE:   "encrypted-public",
 		Active:         true,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 	require.NoError(t, repo.Create(ctx, material))
@@ -495,7 +495,7 @@ func TestMaterialJWKRepository_Delete(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -513,7 +513,7 @@ func TestMaterialJWKRepository_Delete(t *testing.T) {
 		PrivateJWKJWE:  "encrypted-private",
 		PublicJWKJWE:   "encrypted-public",
 		Active:         false,
-		CreatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
 		BarrierVersion: 1,
 	}
 	require.NoError(t, repo.Create(ctx, material))
@@ -545,7 +545,7 @@ func TestMaterialJWKRepository_CountMaterials(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo := NewElasticJWKRepository(testDB)
 	require.NoError(t, elasticRepo.Create(ctx, elasticJWK))
@@ -573,7 +573,7 @@ func TestMaterialJWKRepository_CountMaterials(t *testing.T) {
 			PrivateJWKJWE:  "encrypted-private",
 			PublicJWKJWE:   "encrypted-public",
 			Active:         i == 2,
-			CreatedAt:      time.Now().Add(time.Duration(i) * time.Second),
+			CreatedAt:      time.Now().UTC().Add(time.Duration(i) * time.Second),
 			BarrierVersion: 1,
 		}
 		require.NoError(t, repo.Create(ctx, material))

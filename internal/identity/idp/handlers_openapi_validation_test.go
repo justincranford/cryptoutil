@@ -88,8 +88,8 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					Scopes:      []string{"openid", "profile", "email"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(3600 * time.Second),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(3600 * time.Second),
 				}
 
 				err = db.Create(token).Error
@@ -219,8 +219,8 @@ func TestOpenAPISchemaValidation(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					Scopes:      []string{"openid"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(600 * time.Second),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(600 * time.Second),
 				}
 
 				err = db.Create(token).Error

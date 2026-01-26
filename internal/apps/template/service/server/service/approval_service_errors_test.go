@@ -201,7 +201,7 @@ func TestApproveClient_Expired(t *testing.T) {
 		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
-			ExpiresAt: time.Now().Add(-1 * time.Hour), // Expired 1 hour ago!
+			ExpiresAt: time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago!
 		},
 	}
 
@@ -229,7 +229,7 @@ func TestApproveClient_NoRoles(t *testing.T) {
 		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
-			ExpiresAt: time.Now().Add(1 * time.Hour), // Not expired
+			ExpiresAt: time.Now().UTC().Add(1 * time.Hour), // Not expired
 		},
 	}
 
@@ -259,7 +259,7 @@ func TestApproveClient_RoleGetByIDError(t *testing.T) {
 		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
-			ExpiresAt: time.Now().Add(1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 		},
 	}
 
@@ -294,7 +294,7 @@ func TestApproveClient_RoleWrongTenant(t *testing.T) {
 		unverifiedClient: &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
-			ExpiresAt: time.Now().Add(1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 		},
 	}
 
@@ -333,7 +333,7 @@ func TestApproveClient_CreateClientError(t *testing.T) {
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ClientID:  "test-client",
-			ExpiresAt: time.Now().Add(1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 		},
 	}
 
@@ -377,7 +377,7 @@ func TestApproveClient_AssignRoleError(t *testing.T) {
 			ID:        unverifiedClientID,
 			TenantID:  tenantID,
 			ClientID:  "test-client",
-			ExpiresAt: time.Now().Add(1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(1 * time.Hour),
 		},
 	}
 

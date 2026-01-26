@@ -29,7 +29,7 @@ func TestRoleRepository_Create(t *testing.T) {
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -41,7 +41,7 @@ func TestRoleRepository_Create(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "admin",
 		Description: "Administrator role",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 	err = roleRepo.Create(ctx, firstRole)
 	require.NoError(t, err)
@@ -58,7 +58,7 @@ func TestRoleRepository_Create(t *testing.T) {
 				TenantID:    tenant.ID,
 				Name:        "user",
 				Description: "User role",
-				CreatedAt:   time.Now(),
+				CreatedAt:   time.Now().UTC(),
 			},
 			wantError: false,
 		},
@@ -69,7 +69,7 @@ func TestRoleRepository_Create(t *testing.T) {
 				TenantID:    tenant.ID,
 				Name:        "admin",
 				Description: "Duplicate admin role",
-				CreatedAt:   time.Now(),
+				CreatedAt:   time.Now().UTC(),
 			},
 			wantError: true,
 		},
@@ -99,7 +99,7 @@ func TestRoleRepository_GetByName(t *testing.T) {
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -110,7 +110,7 @@ func TestRoleRepository_GetByName(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "admin",
 		Description: "Administrator role",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err = roleRepo.Create(ctx, role)
@@ -172,7 +172,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -184,7 +184,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		Username:  "testuser2-" + googleUuid.New().String()[:8],
 		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
 		Active:    1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = userRepo.Create(ctx, user)
@@ -195,7 +195,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "admin",
 		Description: "Administrator role",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err = roleRepo.Create(ctx, role)
@@ -205,7 +205,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 		UserID:    user.ID,
 		RoleID:    role.ID,
 		TenantID:  tenant.ID,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = userRoleRepo.Assign(ctx, userRole)
@@ -230,7 +230,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -242,7 +242,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 		Username:  "testuser",
 		Email:     "test@example.com",
 		Active:    1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = userRepo.Create(ctx, user)
@@ -253,7 +253,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "admin",
 		Description: "Administrator role",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err = roleRepo.Create(ctx, role)
@@ -263,7 +263,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 		UserID:    user.ID,
 		RoleID:    role.ID,
 		TenantID:  tenant.ID,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = userRoleRepo.Assign(ctx, userRole)
@@ -290,7 +290,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -301,7 +301,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 		TenantID:  tenant.ID,
 		ClientID:  "client-" + googleUuid.New().String()[:8],
 		Active:    1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = clientRepo.Create(ctx, client)
@@ -312,7 +312,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "service",
 		Description: "Service role",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err = roleRepo.Create(ctx, role)
@@ -322,7 +322,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 		ClientID:  client.ID,
 		RoleID:    role.ID,
 		TenantID:  tenant.ID,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = clientRoleRepo.Assign(ctx, clientRole)
@@ -345,7 +345,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -364,7 +364,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 				RealmID:   googleUuid.New(),
 				Type:      "DB",
 				Active:    true,
-				CreatedAt: time.Now(),
+				CreatedAt: time.Now().UTC(),
 			},
 			wantError: false,
 		},
@@ -377,7 +377,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 					RealmID:   googleUuid.New(),
 					Type:      "DB",
 					Active:    true,
-					CreatedAt: time.Now(),
+					CreatedAt: time.Now().UTC(),
 				}
 				err := realmRepo.Create(ctx, existingRealm)
 				require.NoError(t, err)
@@ -388,7 +388,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 					RealmID:   existingRealm.RealmID,
 					Type:      "DB",
 					Active:    true,
-					CreatedAt: time.Now(),
+					CreatedAt: time.Now().UTC(),
 				}
 			}(),
 			wantError: true,
@@ -419,7 +419,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 		Name:        uniqueRoleTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -431,7 +431,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 		RealmID:   googleUuid.New(),
 		Type:      "DB",
 		Active:    true,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	inactiveRealm := &TenantRealm{
@@ -440,7 +440,7 @@ func TestTenantRealmRepository_ListByTenant(t *testing.T) {
 		RealmID:   googleUuid.New(),
 		Type:      "FILE",
 		Active:    false,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = realmRepo.Create(ctx, activeRealm)

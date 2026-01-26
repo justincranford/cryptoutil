@@ -192,7 +192,7 @@ func TestEmailOTPService_VerifyOTP_Expired(t *testing.T) {
 	otp, err := repo.GetByUserID(ctx, userID)
 	require.NoError(t, err)
 
-	otp.ExpiresAt = time.Now().Add(-1 * time.Minute)
+	otp.ExpiresAt = time.Now().UTC().Add(-1 * time.Minute)
 	err = repo.Update(ctx, otp)
 	require.NoError(t, err)
 

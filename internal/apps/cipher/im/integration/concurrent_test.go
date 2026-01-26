@@ -69,7 +69,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			start := time.Now()
+			start := time.Now().UTC()
 
 			// Create test users via API.
 			users := createTestUsersAPI(t, client, sharedServiceBaseURL, tt.numUsers)

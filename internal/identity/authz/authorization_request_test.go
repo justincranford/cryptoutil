@@ -30,8 +30,8 @@ func TestInMemoryAuthorizationRequestStore_StoreAndGet(t *testing.T) {
 		ResponseType: "code",
 		Scope:        "openid profile",
 		State:        "state123",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -58,8 +58,8 @@ func TestInMemoryAuthorizationRequestStore_GetByCode(t *testing.T) {
 		RedirectURI:  "https://example.com/callback",
 		ResponseType: "code",
 		Code:         code,
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -84,8 +84,8 @@ func TestInMemoryAuthorizationRequestStore_Update(t *testing.T) {
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
 		ResponseType: "code",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -116,8 +116,8 @@ func TestInMemoryAuthorizationRequestStore_Delete(t *testing.T) {
 		RedirectURI:  "https://example.com/callback",
 		ResponseType: "code",
 		Code:         code,
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	err := store.Store(ctx, request)
@@ -146,8 +146,8 @@ func TestInMemoryAuthorizationRequestStore_ExpiredRequest(t *testing.T) {
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
 		ResponseType: "code",
-		CreatedAt:    time.Now().Add(-20 * time.Minute),
-		ExpiresAt:    time.Now().Add(-10 * time.Minute), // Expired.
+		CreatedAt:    time.Now().UTC().Add(-20 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(-10 * time.Minute), // Expired.
 	}
 
 	err := store.Store(ctx, request)
@@ -188,8 +188,8 @@ func TestInMemoryAuthorizationRequestStore_UpdateNonExistent(t *testing.T) {
 		ClientID:     "test-client",
 		RedirectURI:  "https://example.com/callback",
 		ResponseType: "code",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	err := store.Update(ctx, nonExistentRequest)

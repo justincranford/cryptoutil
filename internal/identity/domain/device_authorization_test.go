@@ -31,17 +31,17 @@ func TestDeviceAuthorization_IsExpired(t *testing.T) {
 	}{
 		{
 			name:      "not expired - future expiration",
-			expiresAt: time.Now().Add(10 * time.Minute),
+			expiresAt: time.Now().UTC().Add(10 * time.Minute),
 			want:      false,
 		},
 		{
 			name:      "expired - past expiration",
-			expiresAt: time.Now().Add(-10 * time.Minute),
+			expiresAt: time.Now().UTC().Add(-10 * time.Minute),
 			want:      true,
 		},
 		{
 			name:      "expired - just expired",
-			expiresAt: time.Now().Add(-1 * time.Second),
+			expiresAt: time.Now().UTC().Add(-1 * time.Second),
 			want:      true,
 		},
 	}
@@ -134,7 +134,7 @@ func TestDeviceAuthorization_StatusChecks(t *testing.T) {
 func TestDeviceAuthorization_FullLifecycle(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	authID := googleUuid.Must(googleUuid.NewV7())
 
 	auth := &DeviceAuthorization{
@@ -167,7 +167,7 @@ func TestDeviceAuthorization_FullLifecycle(t *testing.T) {
 
 	// Device exchanges code for tokens.
 	auth.Status = DeviceAuthStatusUsed
-	usedTime := time.Now()
+	usedTime := time.Now().UTC()
 	auth.UsedAt = &usedTime
 
 	require.False(t, auth.IsPending(), "Should not be pending after token exchange")
@@ -186,15 +186,15 @@ func TestDeviceAuthorization_PollingMetadata(t *testing.T) {
 		DeviceCode: "device-code-123",
 		UserCode:   "ABCD-1234",
 		Status:     DeviceAuthStatusPending,
-		CreatedAt:  time.Now(),
-		ExpiresAt:  time.Now().Add(30 * time.Minute),
+		CreatedAt:  time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(30 * time.Minute),
 	}
 
 	// Initially no polling timestamp.
 	require.Nil(t, auth.LastPolledAt, "LastPolledAt should be nil initially")
 
 	// First poll.
-	firstPoll := time.Now()
+	firstPoll := time.Now().UTC()
 	auth.LastPolledAt = &firstPoll
 
 	require.NotNil(t, auth.LastPolledAt, "LastPolledAt should be set after first poll")
@@ -203,7 +203,7 @@ func TestDeviceAuthorization_PollingMetadata(t *testing.T) {
 	// Second poll (5 seconds later).
 	time.Sleep(100 * time.Millisecond) // Simulate small delay for test.
 
-	secondPoll := time.Now()
+	secondPoll := time.Now().UTC()
 	auth.LastPolledAt = &secondPoll
 
 	require.True(t, secondPoll.After(firstPoll), "Second poll should be after first poll")

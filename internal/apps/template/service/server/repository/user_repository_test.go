@@ -29,7 +29,7 @@ func TestUserRepository_Create(t *testing.T) {
 		Name:        uniqueUserTenantName("UserCreate"),
 		Description: "Test tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -51,7 +51,7 @@ func TestUserRepository_Create(t *testing.T) {
 				Username:  "testuser-" + googleUuid.New().String()[:8],
 				Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
 				Active: 1,
-				CreatedAt: time.Now(),
+				CreatedAt: time.Now().UTC(),
 			},
 			wantError: false,
 		},
@@ -63,7 +63,7 @@ func TestUserRepository_Create(t *testing.T) {
 				Username:  dupUsername,
 				Email:     "different@example.com",
 				Active: 1,
-				CreatedAt: time.Now(),
+				CreatedAt: time.Now().UTC(),
 			},
 			wantError: true,
 		},
@@ -76,7 +76,7 @@ func TestUserRepository_Create(t *testing.T) {
 		Username:  dupUsername,
 		Email:     "first@example.com",
 		Active: 1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 	err = userRepo.Create(ctx, firstUser)
 	require.NoError(t, err)
@@ -105,7 +105,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -117,7 +117,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		Username:  "testuser-" + googleUuid.New().String()[:8],
 		Email:     "test-" + googleUuid.New().String()[:8] + "@example.com",
 		Active: 1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = userRepo.Create(ctx, user)
@@ -168,7 +168,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		Name:        "Tenant 1",
 		Description: "First tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	tenant2 := &Tenant{
@@ -176,7 +176,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		Name:        "Tenant 2",
 		Description: "Second tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant1)
@@ -191,7 +191,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		Username:  "user1",
 		Email:     "user1@example.com",
 		Active: 1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	user2 := &User{
@@ -200,7 +200,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		Username:  "user2",
 		Email:     "user2@example.com",
 		Active: 1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	user3 := &User{
@@ -209,7 +209,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 		Username:  "user3",
 		Email:     "user3@example.com",
 		Active: 1,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = userRepo.Create(ctx, user1)
@@ -241,7 +241,7 @@ func TestClientRepository_Create(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -259,7 +259,7 @@ func TestClientRepository_Create(t *testing.T) {
 				TenantID:  tenant.ID,
 				ClientID:  "client123",
 				Active: 1,
-				CreatedAt: time.Now(),
+				CreatedAt: time.Now().UTC(),
 			},
 			wantError: false,
 		},
@@ -270,7 +270,7 @@ func TestClientRepository_Create(t *testing.T) {
 				TenantID:  tenant.ID,
 				ClientID:  "client123",
 				Active: 1,
-				CreatedAt: time.Now(),
+				CreatedAt: time.Now().UTC(),
 			},
 			wantError: true,
 		},
@@ -300,7 +300,7 @@ func TestUnverifiedUserRepository_Create(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -311,8 +311,8 @@ func TestUnverifiedUserRepository_Create(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "unverified1",
 		Email:     "unverified1@example.com",
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedUserRepo.Create(ctx, unverifiedUser)
@@ -334,7 +334,7 @@ func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -345,8 +345,8 @@ func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "expired_user",
 		Email:     "expired@example.com",
-		ExpiresAt: time.Now().Add(-1 * time.Hour),
-		CreatedAt: time.Now().Add(-73 * time.Hour),
+		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-73 * time.Hour),
 	}
 
 	validUser := &UnverifiedUser{
@@ -354,8 +354,8 @@ func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
 		TenantID:  tenant.ID,
 		Username:  "valid_user",
 		Email:     "valid@example.com",
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedUserRepo.Create(ctx, expiredUser)
@@ -387,7 +387,7 @@ func TestUnverifiedClientRepository_DeleteExpired(t *testing.T) {
 		Name:        uniqueUserTenantName("Test"),
 		Description: "Test tenant",
 		Active: 1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -397,16 +397,16 @@ func TestUnverifiedClientRepository_DeleteExpired(t *testing.T) {
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  "expired_client",
-		ExpiresAt: time.Now().Add(-1 * time.Hour),
-		CreatedAt: time.Now().Add(-73 * time.Hour),
+		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
+		CreatedAt: time.Now().UTC().Add(-73 * time.Hour),
 	}
 
 	validClient := &UnverifiedClient{
 		ID:        googleUuid.New(),
 		TenantID:  tenant.ID,
 		ClientID:  "valid_client",
-		ExpiresAt: time.Now().Add(72 * time.Hour),
-		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().UTC().Add(72 * time.Hour),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err = unverifiedClientRepo.Create(ctx, expiredClient)

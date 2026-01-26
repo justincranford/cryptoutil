@@ -208,8 +208,8 @@ func TestIssueAccessTokenJWS(t *testing.T) {
 		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 		"email": "test@example.com",
 		"name":  "Test User",
-		"iat":   time.Now().Unix(),
-		"exp":   time.Now().Add(1 * time.Hour).Unix(),
+		"iat":   time.Now().UTC().Unix(),
+		"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
 	}
 
 	token, err := service.IssueAccessToken(ctx, claims)
@@ -323,8 +323,8 @@ func TestIssueAccessTokenJWE(t *testing.T) {
 		"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 		"email": "test@example.com",
 		"name":  "Test User",
-		"iat":   time.Now().Unix(),
-		"exp":   time.Now().Add(1 * time.Hour).Unix(),
+		"iat":   time.Now().UTC().Unix(),
+		"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
 	}
 
 	token, err := service.IssueAccessToken(ctx, claims)
@@ -606,7 +606,7 @@ func TestBuildTokenDomain(t *testing.T) {
 	clientID := googleUuid.Must(googleUuid.NewV7())
 	userID := googleUuid.Must(googleUuid.NewV7())
 	scopes := []string{"openid", "profile"}
-	expiresAt := time.Now().Add(1 * time.Hour)
+	expiresAt := time.Now().UTC().Add(1 * time.Hour)
 
 	token := cryptoutilIdentityIssuer.BuildTokenDomain(
 		cryptoutilIdentityDomain.TokenTypeAccess,
@@ -646,8 +646,8 @@ func TestValidateAccessToken(t *testing.T) {
 				claims := map[string]any{
 					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"scope": "openid profile",
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+					"iat":   time.Now().UTC().Unix(),
+					"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
 				token, err := service.IssueAccessToken(ctx, claims)
 				require.NoError(t, err)
@@ -666,8 +666,8 @@ func TestValidateAccessToken(t *testing.T) {
 				claims := map[string]any{
 					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"scope": "openid profile",
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+					"iat":   time.Now().UTC().Unix(),
+					"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
 				token, err := service.IssueAccessToken(ctx, claims)
 				require.NoError(t, err)
@@ -764,8 +764,8 @@ func TestValidateIDToken(t *testing.T) {
 					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"aud":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"nonce": "test-nonce",
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+					"iat":   time.Now().UTC().Unix(),
+					"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
 				token, err := service.IssueIDToken(ctx, claims)
 				require.NoError(t, err)
@@ -793,8 +793,8 @@ func TestValidateIDToken(t *testing.T) {
 					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"aud":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"nonce": "test-nonce",
-					"iat":   time.Now().Add(-2 * time.Hour).Unix(),
-					"exp":   time.Now().Add(-1 * time.Hour).Unix(),
+					"iat":   time.Now().UTC().Add(-2 * time.Hour).Unix(),
+					"exp":   time.Now().UTC().Add(-1 * time.Hour).Unix(),
 				}
 				token, err := service.IssueIDToken(ctx, claims)
 				require.NoError(t, err)
@@ -840,24 +840,24 @@ func TestIsTokenActive(t *testing.T) {
 		{
 			name: "valid_active_token",
 			claims: map[string]any{
-				"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
-				"nbf": float64(time.Now().Add(-1 * time.Minute).Unix()),
+				"exp": float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
+				"nbf": float64(time.Now().UTC().Add(-1 * time.Minute).Unix()),
 			},
 			wantActive: true,
 		},
 		{
 			name: "expired_token",
 			claims: map[string]any{
-				"exp": float64(time.Now().Add(-1 * time.Hour).Unix()),
-				"nbf": float64(time.Now().Add(-2 * time.Hour).Unix()),
+				"exp": float64(time.Now().UTC().Add(-1 * time.Hour).Unix()),
+				"nbf": float64(time.Now().UTC().Add(-2 * time.Hour).Unix()),
 			},
 			wantActive: false,
 		},
 		{
 			name: "not_yet_valid_token",
 			claims: map[string]any{
-				"exp": float64(time.Now().Add(2 * time.Hour).Unix()),
-				"nbf": float64(time.Now().Add(1 * time.Hour).Unix()),
+				"exp": float64(time.Now().UTC().Add(2 * time.Hour).Unix()),
+				"nbf": float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 			},
 			wantActive: false,
 		},
@@ -869,14 +869,14 @@ func TestIsTokenActive(t *testing.T) {
 		{
 			name: "only_expiration_valid",
 			claims: map[string]any{
-				"exp": float64(time.Now().Add(1 * time.Hour).Unix()),
+				"exp": float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
 			},
 			wantActive: true,
 		},
 		{
 			name: "only_nbf_valid",
 			claims: map[string]any{
-				"nbf": float64(time.Now().Add(-1 * time.Minute).Unix()),
+				"nbf": float64(time.Now().UTC().Add(-1 * time.Minute).Unix()),
 			},
 			wantActive: true,
 		},
@@ -914,8 +914,8 @@ func TestIntrospectToken(t *testing.T) {
 				claims := map[string]any{
 					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"scope": "openid profile",
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(1 * time.Hour).Unix(),
+					"iat":   time.Now().UTC().Unix(),
+					"exp":   time.Now().UTC().Add(1 * time.Hour).Unix(),
 				}
 				token, err := service.IssueAccessToken(ctx, claims)
 				require.NoError(t, err)
@@ -934,8 +934,8 @@ func TestIntrospectToken(t *testing.T) {
 				claims := map[string]any{
 					"sub":   googleUuid.Must(googleUuid.NewV7()).String(),
 					"scope": "openid profile",
-					"iat":   time.Now().Add(-2 * time.Hour).Unix(),
-					"exp":   time.Now().Add(-1 * time.Hour).Unix(),
+					"iat":   time.Now().UTC().Add(-2 * time.Hour).Unix(),
+					"exp":   time.Now().UTC().Add(-1 * time.Hour).Unix(),
 				}
 				token, err := service.IssueAccessToken(ctx, claims)
 				require.NoError(t, err)

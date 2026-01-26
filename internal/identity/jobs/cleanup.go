@@ -89,7 +89,7 @@ func (j *CleanupJob) Stop() {
 func (j *CleanupJob) cleanup(ctx context.Context) {
 	j.logger.Debug("Running cleanup tasks")
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Cleanup expired tokens.
 	tokensDeleted, err := j.cleanupExpiredTokens(ctx, now)

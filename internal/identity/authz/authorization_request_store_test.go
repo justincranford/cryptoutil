@@ -40,8 +40,8 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					State:               "test-state",
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-					CreatedAt:           time.Now(),
-					ExpiresAt:           time.Now().Add(5 * time.Minute),
+					CreatedAt:           time.Now().UTC(),
+					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 					ConsentGranted:      false,
 				}
 
@@ -72,8 +72,8 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					Code:                authCode,
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-					CreatedAt:           time.Now(),
-					ExpiresAt:           time.Now().Add(5 * time.Minute),
+					CreatedAt:           time.Now().UTC(),
+					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 					ConsentGranted:      true,
 				}
 
@@ -102,8 +102,8 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					State:               "test-state",
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-					CreatedAt:           time.Now(),
-					ExpiresAt:           time.Now().Add(5 * time.Minute),
+					CreatedAt:           time.Now().UTC(),
+					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 					ConsentGranted:      false,
 				}
 
@@ -138,8 +138,8 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					State:               "test-state",
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-					CreatedAt:           time.Now(),
-					ExpiresAt:           time.Now().Add(5 * time.Minute),
+					CreatedAt:           time.Now().UTC(),
+					ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 					ConsentGranted:      false,
 				}
 
@@ -168,8 +168,8 @@ func TestInMemoryAuthorizationRequestStore(t *testing.T) {
 					State:               "test-state",
 					CodeChallenge:       "test-challenge",
 					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-					CreatedAt:           time.Now().Add(-10 * time.Minute),
-					ExpiresAt:           time.Now().Add(-5 * time.Minute),
+					CreatedAt:           time.Now().UTC().Add(-10 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(-5 * time.Minute),
 					ConsentGranted:      false,
 				}
 

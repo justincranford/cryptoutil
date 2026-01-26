@@ -241,7 +241,7 @@ func TestAuditLogGormRepository_ListByTimeRange(t *testing.T) {
 	realmID := googleUuid.New()
 
 	// Record start time.
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	// Create entries.
 	for i := 0; i < 5; i++ {
@@ -252,7 +252,7 @@ func TestAuditLogGormRepository_ListByTimeRange(t *testing.T) {
 	}
 
 	// Record end time.
-	endTime := time.Now()
+	endTime := time.Now().UTC()
 
 	// List by time range.
 	results, err := repo.ListByTimeRange(ctx, tenantID, startTime.Add(-time.Second), endTime.Add(time.Second), 0, 10)
@@ -340,7 +340,7 @@ func TestAuditLogGormRepository_DeleteOlderThan(t *testing.T) {
 	}
 
 	// Record time after creating entries.
-	cutoffTime := time.Now().Add(time.Second)
+	cutoffTime := time.Now().UTC().Add(time.Second)
 
 	// Delete entries older than cutoff (should delete all).
 	deleted, err := repo.DeleteOlderThan(ctx, tenantID, cutoffTime)
@@ -372,7 +372,7 @@ func TestAuditLogGormRepository_DeleteOlderThan_Partial(t *testing.T) {
 	// Record cutoff time.
 	time.Sleep(10 * time.Millisecond)
 
-	cutoffTime := time.Now()
+	cutoffTime := time.Now().UTC()
 
 	// Create new entries after cutoff.
 	time.Sleep(10 * time.Millisecond)

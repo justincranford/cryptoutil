@@ -39,7 +39,7 @@ func TestApplyKeyFilters_WithDates(t *testing.T) {
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
-	minDate := time.Now().Add(-24 * time.Hour)
+	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	filters := &GetMaterialKeysFilters{
 		MinimumGenerateDate: &minDate,
 	}
@@ -47,7 +47,7 @@ func TestApplyKeyFilters_WithDates(t *testing.T) {
 	require.NotNil(t, filteredQuery)
 
 	// Test with MaximumGenerateDate.
-	maxDate := time.Now()
+	maxDate := time.Now().UTC()
 	filters2 := &GetMaterialKeysFilters{
 		MaximumGenerateDate: &maxDate,
 	}
@@ -68,7 +68,7 @@ func TestApplyGetElasticKeyKeysFilters_WithDates(t *testing.T) {
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
-	minDate := time.Now().Add(-24 * time.Hour)
+	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	filters := &GetElasticKeyMaterialKeysFilters{
 		MinimumGenerateDate: &minDate,
 	}
@@ -76,7 +76,7 @@ func TestApplyGetElasticKeyKeysFilters_WithDates(t *testing.T) {
 	require.NotNil(t, filteredQuery)
 
 	// Test with MaximumGenerateDate.
-	maxDate := time.Now()
+	maxDate := time.Now().UTC()
 	filters2 := &GetElasticKeyMaterialKeysFilters{
 		MaximumGenerateDate: &maxDate,
 	}

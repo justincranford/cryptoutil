@@ -38,7 +38,7 @@ func (ConsentDecision) TableName() string {
 
 // IsExpired checks if the consent decision has expired.
 func (c *ConsentDecision) IsExpired() bool {
-	return time.Now().After(c.ExpiresAt)
+	return time.Now().UTC().After(c.ExpiresAt)
 }
 
 // IsRevoked checks if the consent decision has been revoked.

@@ -26,7 +26,7 @@ const joseStepCount = 9
 func runJOSEDemo(ctx context.Context, config *Config) int {
 	progress := NewProgressDisplay(config)
 	errors := NewErrorAggregator("jose")
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 	passedSteps := 0
 
 	progress.Info("Starting JOSE Authority Demo")
@@ -176,8 +176,8 @@ func runJOSEDemo(ctx context.Context, config *Config) int {
 	claims := map[string]any{
 		"sub":  "demo-user",
 		"name": "JOSE Demo User",
-		"iat":  time.Now().Unix(),
-		"exp":  time.Now().Add(time.Hour).Unix(),
+		"iat":  time.Now().UTC().Unix(),
+		"exp":  time.Now().UTC().Add(time.Hour).Unix(),
 	}
 
 	jwt, err := createJWT(ctx, client, baseURL, keyResp.KID, claims)

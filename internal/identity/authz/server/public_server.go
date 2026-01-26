@@ -174,8 +174,8 @@ func (s *PublicServer) generateTLSConfig() (*tls.Config, error) {
 			Organization: []string{"cryptoutil"},
 			CommonName:   "authz-public-server",
 		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(365 * 24 * time.Hour), // 1 year
+		NotBefore:             time.Now().UTC(),
+		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour), // 1 year
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,

@@ -63,9 +63,9 @@ func TestMain(m *testing.M) {
 
 // waitForReady waits for the server to become ready.
 func waitForReady(server *SPAServer, timeout time.Duration) bool {
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		if server.PublicPort() > 0 && server.AdminPort() > 0 {
 			return true
 		}

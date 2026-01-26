@@ -112,7 +112,7 @@ func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 	}
 
 	// Check if token is expired.
-	if tokenRecord.ExpiresAt.Before(time.Now()) {
+	if tokenRecord.ExpiresAt.Before(time.Now().UTC()) {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"active": false,
 		})

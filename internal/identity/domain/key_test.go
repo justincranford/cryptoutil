@@ -70,17 +70,17 @@ func TestKey_IsExpired(t *testing.T) {
 	}{
 		{
 			name:      "expired_key",
-			expiresAt: time.Now().Add(-1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(-1 * time.Hour),
 			want:      true,
 		},
 		{
 			name:      "not_expired_key",
-			expiresAt: time.Now().Add(1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(1 * time.Hour),
 			want:      false,
 		},
 		{
 			name:      "just_expired",
-			expiresAt: time.Now().Add(-1 * time.Second),
+			expiresAt: time.Now().UTC().Add(-1 * time.Second),
 			want:      true,
 		},
 	}

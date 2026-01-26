@@ -24,7 +24,7 @@ func TestRoleRepository_GetByID(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -35,7 +35,7 @@ func TestRoleRepository_GetByID(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "admin",
 		Description: "Administrator role",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err = roleRepo.Create(ctx, role)
@@ -71,7 +71,7 @@ func TestRoleRepository_ListByTenant(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -82,7 +82,7 @@ func TestRoleRepository_ListByTenant(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "admin",
 		Description: "Administrator",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	role2 := &Role{
@@ -90,7 +90,7 @@ func TestRoleRepository_ListByTenant(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "user",
 		Description: "Regular user",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err = roleRepo.Create(ctx, role1)
@@ -117,7 +117,7 @@ func TestRoleRepository_Delete(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -128,7 +128,7 @@ func TestRoleRepository_Delete(t *testing.T) {
 		TenantID:    tenant.ID,
 		Name:        "deletable",
 		Description: "Role to delete",
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err = roleRepo.Create(ctx, role)
@@ -156,7 +156,7 @@ func TestUserRoleRepository_ListRolesByUser(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -225,7 +225,7 @@ func TestUserRoleRepository_ListUsersByRole(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -296,7 +296,7 @@ func TestClientRoleRepository_Revoke(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -351,7 +351,7 @@ func TestClientRoleRepository_ListRolesByClient(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -419,7 +419,7 @@ func TestClientRoleRepository_ListClientsByRole(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -486,7 +486,7 @@ func TestTenantRealmRepository_GetByID(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -534,7 +534,7 @@ func TestTenantRealmRepository_GetByRealmID(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -583,7 +583,7 @@ func TestTenantRealmRepository_Update(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)
@@ -624,7 +624,7 @@ func TestTenantRealmRepository_Delete(t *testing.T) {
 		Name:        uniqueTenantName("Test"),
 		Description: "Test tenant",
 		Active:      1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 	}
 
 	err := tenantRepo.Create(ctx, tenant)

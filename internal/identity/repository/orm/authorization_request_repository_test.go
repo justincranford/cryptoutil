@@ -33,8 +33,8 @@ func TestAuthorizationRequestRepository_Create(t *testing.T) {
 		CodeChallenge:       "challenge-hash",
 		CodeChallengeMethod: "S256",
 		Code:                "auth-code-12345",
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(10 * time.Minute),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 		ConsentGranted:      false,
 		Used:                false,
 	}
@@ -83,8 +83,8 @@ func TestAuthorizationRequestRepository_GetByCode(t *testing.T) {
 					CodeChallenge:       "challenge",
 					CodeChallengeMethod: "S256",
 					Code:                "test-code-123",
-					CreatedAt:           time.Now(),
-					ExpiresAt:           time.Now().Add(10 * time.Minute),
+					CreatedAt:           time.Now().UTC(),
+					ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 				}
 				err := repo.Create(context.Background(), request)
 				require.NoError(t, err)
@@ -132,8 +132,8 @@ func TestAuthorizationRequestRepository_Update(t *testing.T) {
 		CodeChallenge:       "challenge",
 		CodeChallengeMethod: "S256",
 		Code:                "update-code",
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(10 * time.Minute),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 		ConsentGranted:      false,
 	}
 	err := repo.Create(context.Background(), request)
@@ -164,8 +164,8 @@ func TestAuthorizationRequestRepository_Delete(t *testing.T) {
 		CodeChallenge:       "challenge",
 		CodeChallengeMethod: "S256",
 		Code:                "delete-code",
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(10 * time.Minute),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 	}
 	err := repo.Create(context.Background(), request)
 	require.NoError(t, err)
@@ -193,8 +193,8 @@ func TestAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 			CodeChallenge:       "challenge",
 			CodeChallengeMethod: "S256",
 			Code:                "expired-code-" + string(rune('a'+i)),
-			CreatedAt:           time.Now().Add(-20 * time.Minute),
-			ExpiresAt:           time.Now().Add(-10 * time.Minute), // Expired.
+			CreatedAt:           time.Now().UTC().Add(-20 * time.Minute),
+			ExpiresAt:           time.Now().UTC().Add(-10 * time.Minute), // Expired.
 		}
 		err := repo.Create(context.Background(), expiredRequest)
 		require.NoError(t, err)
@@ -210,8 +210,8 @@ func TestAuthorizationRequestRepository_DeleteExpired(t *testing.T) {
 			CodeChallenge:       "challenge",
 			CodeChallengeMethod: "S256",
 			Code:                "valid-code-" + string(rune('a'+i)),
-			CreatedAt:           time.Now(),
-			ExpiresAt:           time.Now().Add(10 * time.Minute), // Not expired.
+			CreatedAt:           time.Now().UTC(),
+			ExpiresAt:           time.Now().UTC().Add(10 * time.Minute), // Not expired.
 		}
 		err := repo.Create(context.Background(), validRequest)
 		require.NoError(t, err)

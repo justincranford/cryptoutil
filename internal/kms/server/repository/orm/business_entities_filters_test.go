@@ -86,8 +86,8 @@ func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
 	t.Run("Create filters with all fields", func(t *testing.T) {
 		ekID1 := googleUuid.New()
 		ekID2 := googleUuid.New()
-		minDate := time.Now().Add(-24 * time.Hour)
-		maxDate := time.Now()
+		minDate := time.Now().UTC().Add(-24 * time.Hour)
+		maxDate := time.Now().UTC()
 
 		filters := GetElasticKeyMaterialKeysFilters{
 			ElasticKeyID:        []googleUuid.UUID{ekID1, ekID2},
@@ -143,8 +143,8 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 		mkID1 := googleUuid.New()
 		mkID2 := googleUuid.New()
 		mkID3 := googleUuid.New()
-		minDate := time.Now().Add(-7 * 24 * time.Hour)
-		maxDate := time.Now()
+		minDate := time.Now().UTC().Add(-7 * 24 * time.Hour)
+		maxDate := time.Now().UTC()
 
 		filters := GetMaterialKeysFilters{
 			ElasticKeyID:        []googleUuid.UUID{ekID1, ekID2},
@@ -198,8 +198,8 @@ func TestGetMaterialKeysFilters(t *testing.T) {
 	})
 
 	t.Run("Create filters with date range only", func(t *testing.T) {
-		minDate := time.Now().Add(-30 * 24 * time.Hour)
-		maxDate := time.Now()
+		minDate := time.Now().UTC().Add(-30 * 24 * time.Hour)
+		maxDate := time.Now().UTC()
 
 		filters := GetMaterialKeysFilters{
 			MinimumGenerateDate: &minDate,

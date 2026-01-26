@@ -78,7 +78,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		}
 	} else {
 		// Check token expiration for UUID tokens.
-		if time.Now().After(dbToken.ExpiresAt) {
+		if time.Now().UTC().After(dbToken.ExpiresAt) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
 				"error_description": "Token has expired",

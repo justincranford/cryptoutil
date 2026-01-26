@@ -585,7 +585,7 @@ func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID.String(),
 		Method:    "magic_link",
-		ExpiresAt: time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
+		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		Metadata:  map[string]any{"email": user.Email},
 	}
 
@@ -633,7 +633,7 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID.String(),
 		Method:    "magic_link",
-		ExpiresAt: time.Now().Add(15 * time.Minute),
+		ExpiresAt: time.Now().UTC().Add(15 * time.Minute),
 		Metadata:  map[string]any{"email": user.Email},
 	}
 

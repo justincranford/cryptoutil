@@ -15,7 +15,7 @@ import (
 func TestClientSecretVersion_IsValid(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	past := now.Add(-time.Hour)
 	future := now.Add(time.Hour)
 

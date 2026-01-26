@@ -48,7 +48,7 @@ func TestRateLimiter_CleanupStale(t *testing.T) {
 	limiter.mu.Lock()
 
 	if bucket, ok := limiter.buckets[ipAddress]; ok {
-		bucket.lastRefillTime = time.Now().Add(-15 * time.Minute) // > 10 min threshold
+		bucket.lastRefillTime = time.Now().UTC().Add(-15 * time.Minute) // > 10 min threshold
 	}
 
 	limiter.mu.Unlock()

@@ -81,7 +81,7 @@ func TestValidator_ValidateCertificate(t *testing.T) {
 		{
 			name: "valid certificate",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour))
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour))
 			},
 			wantValid: true,
 			wantErr:   false,
@@ -89,7 +89,7 @@ func TestValidator_ValidateCertificate(t *testing.T) {
 		{
 			name: "expired certificate",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now().Add(-730*24*time.Hour), time.Now().Add(-365*24*time.Hour))
+				return createTestCert(t, key, false, time.Now().UTC().Add(-730*24*time.Hour), time.Now().UTC().Add(-365*24*time.Hour))
 			},
 			wantValid: false,
 			wantErr:   false,
@@ -97,7 +97,7 @@ func TestValidator_ValidateCertificate(t *testing.T) {
 		{
 			name: "certificate with excessive validity",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now(), time.Now().Add(500*24*time.Hour))
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(500*24*time.Hour))
 			},
 			wantValid: false,
 			wantErr:   false,
@@ -199,7 +199,7 @@ func TestValidator_ValidateCertificate_KeySizes(t *testing.T) {
 			validator := NewValidator(tc.config)
 			key := tc.keyFunc()
 
-			cert := createTestCertWithKey(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour))
+			cert := createTestCertWithKey(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour))
 			result, err := validator.ValidateCertificate(ctx, cert)
 
 			require.NoError(t, err)
@@ -349,7 +349,7 @@ func TestValidator_WeakAlgorithms(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create certificate with weak algorithm indicator.
-	cert := createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour))
+	cert := createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour))
 
 	// The test certificate uses ECDSA with SHA256 which is not weak.
 	result, err := validator.ValidateCertificate(ctx, cert)
@@ -685,12 +685,12 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey, parent *x509.Certific
 	t.Helper()
 
 	template := &x509.Certificate{
-		SerialNumber: big.NewInt(time.Now().UnixNano()),
+		SerialNumber: big.NewInt(time.Now().UTC().UnixNano()),
 		Subject: pkix.Name{
 			CommonName: cn,
 		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(365 * 24 * time.Hour),
+		NotBefore:             time.Now().UTC(),
+		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -715,12 +715,12 @@ func createTestLeafCert(t *testing.T, key *ecdsa.PrivateKey, parent *x509.Certif
 	t.Helper()
 
 	template := &x509.Certificate{
-		SerialNumber: big.NewInt(time.Now().UnixNano()),
+		SerialNumber: big.NewInt(time.Now().UTC().UnixNano()),
 		Subject: pkix.Name{
 			CommonName: cn,
 		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(365 * 24 * time.Hour),
+		NotBefore:             time.Now().UTC(),
+		NotAfter:              time.Now().UTC().Add(365 * 24 * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,

@@ -37,7 +37,7 @@ func TestInMemoryChallengeStore_StoreAndRetrieve(t *testing.T) {
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
-		ExpiresAt: time.Now().Add(5 * time.Minute),
+		ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
 	}
 
 	// Store the challenge.
@@ -77,7 +77,7 @@ func TestInMemoryChallengeStore_RetrieveExpired(t *testing.T) {
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
-		ExpiresAt: time.Now().Add(-1 * time.Minute), // Already expired.
+		ExpiresAt: time.Now().UTC().Add(-1 * time.Minute), // Already expired.
 	}
 
 	// Store the expired challenge.
@@ -102,7 +102,7 @@ func TestInMemoryChallengeStore_Delete(t *testing.T) {
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
 		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
-		ExpiresAt: time.Now().Add(5 * time.Minute),
+		ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
 	}
 
 	// Store the challenge.
@@ -146,7 +146,7 @@ func TestInMemoryChallengeStore_MultipleChallenges(t *testing.T) {
 			ID:        googleUuid.Must(googleUuid.NewV7()),
 			UserID:    googleUuid.NewString(),
 			Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
-			ExpiresAt: time.Now().Add(5 * time.Minute),
+			ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
 		}
 		secrets[i] = googleUuid.NewString()
 

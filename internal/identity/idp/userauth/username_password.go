@@ -103,7 +103,7 @@ func (u *UsernamePasswordAuthenticator) InitiateAuth(ctx context.Context, userID
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
 
 	// Create challenge with hardware requirement if enabled.
 	challenge := &AuthChallenge{
@@ -133,7 +133,7 @@ func (u *UsernamePasswordAuthenticator) VerifyAuth(ctx context.Context, challeng
 	}
 
 	// Check challenge expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		return nil, fmt.Errorf("challenge expired")
 	}
 

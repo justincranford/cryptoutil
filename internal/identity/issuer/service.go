@@ -105,7 +105,7 @@ func (s *TokenService) ValidateIDToken(ctx context.Context, token string) (map[s
 
 // IsTokenActive checks if a token is currently active (not expired, not before valid).
 func (s *TokenService) IsTokenActive(claims map[string]any) bool {
-	now := time.Now().Unix()
+	now := time.Now().UTC().Unix()
 
 	// Check expiration time (exp claim).
 	if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
@@ -203,6 +203,6 @@ func BuildTokenDomain(
 		Scopes:      scopes,
 		ExpiresAt:   expiresAt,
 		Revoked:     false,
-		IssuedAt:    time.Now(),
+		IssuedAt:    time.Now().UTC(),
 	}
 }

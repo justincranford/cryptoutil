@@ -356,7 +356,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	newJWK := cryptoutilAppsTemplateServiceServerRepository.SessionJWK{
 		ID:           jwkID,
 		EncryptedJWK: string(encryptedJWK),
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 		Algorithm:    algIdentifier,
 		Active:       true, // Mark as active key for signing.
 	}
@@ -627,7 +627,7 @@ func (sm *SessionManager) ValidateServiceSession(ctx context.Context, token stri
 //
 // Should be called periodically (e.g., every hour) to prevent database bloat.
 func (sm *SessionManager) CleanupExpiredSessions(ctx context.Context) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	idleThreshold := now.Add(-sm.config.SessionIdleTimeout)
 
 	// Cleanup browser sessions
@@ -694,13 +694,13 @@ func (sm *SessionManager) issueOPAQUESession(ctx context.Context, isBrowser bool
 	// Calculate expiration
 	var expiration time.Time
 	if isBrowser {
-		expiration = time.Now().Add(sm.config.BrowserSessionExpiration)
+		expiration = time.Now().UTC().Add(sm.config.BrowserSessionExpiration)
 	} else {
-		expiration = time.Now().Add(sm.config.ServiceSessionExpiration)
+		expiration = time.Now().UTC().Add(sm.config.ServiceSessionExpiration)
 	}
 
 	// Create session record
-	now := time.Now()
+	now := time.Now().UTC()
 	session := cryptoutilAppsTemplateServiceServerRepository.Session{
 		ID:           tokenID,
 		TenantID:     tenantID,
@@ -744,7 +744,7 @@ func (sm *SessionManager) validateOPAQUESession(ctx context.Context, isBrowser b
 	}
 
 	// Look up session by token hash
-	now := time.Now()
+	now := time.Now().UTC()
 
 	var (
 		session any
@@ -843,7 +843,7 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 
 	// Create JWT claims
 	jti := googleUuid.Must(googleUuid.NewV7())
-	now := time.Now()
+	now := time.Now().UTC()
 
 	var exp time.Time
 	if isBrowser {
@@ -1008,7 +1008,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	exp := time.Unix(int64(expFloat), 0)
-	if time.Now().After(exp) {
+	if time.Now().UTC().After(exp) {
 		summary := "JWT expired"
 
 		return nil, cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, fmt.Errorf("token expired at %v", exp))
@@ -1036,7 +1036,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Look up session by token hash
-	now := time.Now()
+	now := time.Now().UTC()
 
 	var (
 		session any
@@ -1139,7 +1139,7 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	}
 
 	// Create JWT claims
-	now := time.Now()
+	now := time.Now().UTC()
 
 	var exp time.Time
 	if isBrowser {
@@ -1301,7 +1301,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 
 	exp := time.Unix(int64(expFloat), 0)
 
-	now := time.Now()
+	now := time.Now().UTC()
 	if now.After(exp) {
 		summary := "Session expired"
 

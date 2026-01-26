@@ -74,7 +74,7 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 	ctx, span := o.telemetry.StartValidationSpan(ctx, factorType, authProfileID)
 	defer span.End()
 
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 	isReplay := false
 
 	// Fetch MFA factors for authentication profile.

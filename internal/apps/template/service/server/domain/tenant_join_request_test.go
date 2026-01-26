@@ -24,7 +24,7 @@ func TestTenantJoinRequest_StructCreation(t *testing.T) {
 	id := googleUuid.New()
 	userID := googleUuid.New()
 	tenantID := googleUuid.New()
-	now := time.Now()
+	now := time.Now().UTC()
 	processedBy := googleUuid.New()
 
 	request := TenantJoinRequest{
@@ -64,7 +64,7 @@ func TestTenantJoinRequest_ClientIDMutuallyExclusive(t *testing.T) {
 
 	clientID := googleUuid.New()
 	tenantID := googleUuid.New()
-	now := time.Now()
+	now := time.Now().UTC()
 
 	request := TenantJoinRequest{
 		ID:          googleUuid.New(),

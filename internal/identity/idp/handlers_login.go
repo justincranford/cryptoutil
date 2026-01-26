@@ -136,12 +136,12 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 		UserID:                user.ID,
 		IPAddress:             c.IP(),
 		UserAgent:             c.Get("User-Agent"),
-		IssuedAt:              time.Now(),
-		ExpiresAt:             time.Now().Add(s.config.Sessions.SessionLifetime),
-		LastSeenAt:            time.Now(),
+		IssuedAt:              time.Now().UTC(),
+		ExpiresAt:             time.Now().UTC().Add(s.config.Sessions.SessionLifetime),
+		LastSeenAt:            time.Now().UTC(),
 		Active:                &active,
 		AuthenticationMethods: []string{"username_password"},
-		AuthenticationTime:    time.Now(),
+		AuthenticationTime:    time.Now().UTC(),
 	}
 
 	sessionRepo := s.repoFactory.SessionRepository()

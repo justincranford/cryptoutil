@@ -142,7 +142,7 @@ func TestPhoneCallOTPAuthenticator_InitiateAuth(t *testing.T) {
 	auth := cryptoutilIdentityIdpUserauth.NewPhoneCallOTPAuthenticator(generator, mockPhone, challengeStore, rateLimiter, userRepo)
 
 	// Initiate phone call OTP authentication.
-	beforeInitiate := time.Now()
+	beforeInitiate := time.Now().UTC()
 	challenge, err := auth.InitiateAuth(ctx, userID)
 	require.NoError(t, err)
 	require.NotNil(t, challenge)

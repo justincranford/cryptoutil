@@ -66,7 +66,7 @@ func (r *ClientProfileRepositoryGORM) GetByName(ctx context.Context, name string
 
 // Update updates an existing client profile.
 func (r *ClientProfileRepositoryGORM) Update(ctx context.Context, profile *cryptoutilIdentityDomain.ClientProfile) error {
-	profile.UpdatedAt = time.Now()
+	profile.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(profile).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update client profile: %w", err))
 	}

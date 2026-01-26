@@ -229,7 +229,7 @@ func TestAuditLogRepository_Create(t *testing.T) {
 		Operation: "sign",
 		Success:   true,
 		RequestID: requestID.String(),
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	err := repo.Create(ctx, entry)
@@ -261,7 +261,7 @@ func TestAuditLogRepository_List(t *testing.T) {
 			Operation: "verify",
 			Success:   true,
 			RequestID: requestID.String(),
-			CreatedAt: time.Now().Add(time.Duration(i) * time.Second),
+			CreatedAt: time.Now().UTC().Add(time.Duration(i) * time.Second),
 		}
 		require.NoError(t, repo.Create(ctx, entry))
 	}
@@ -306,7 +306,7 @@ func TestAuditLogRepository_ListByElasticJWK(t *testing.T) {
 			Operation:    "sign",
 			Success:      true,
 			RequestID:    requestID.String(),
-			CreatedAt:    time.Now().Add(time.Duration(i) * time.Second),
+			CreatedAt:    time.Now().UTC().Add(time.Duration(i) * time.Second),
 		}
 		require.NoError(t, repo.Create(ctx, entry))
 	}
@@ -344,7 +344,7 @@ func TestAuditLogRepository_ListByOperation(t *testing.T) {
 			Operation: op,
 			Success:   true,
 			RequestID: requestID.String(),
-			CreatedAt: time.Now().Add(time.Duration(i) * time.Second),
+			CreatedAt: time.Now().UTC().Add(time.Duration(i) * time.Second),
 		}
 		require.NoError(t, repo.Create(ctx, entry))
 	}
@@ -384,7 +384,7 @@ func TestAuditLogRepository_GetByRequestID(t *testing.T) {
 		Operation: "encrypt",
 		Success:   true,
 		RequestID: requestID.String(),
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 	require.NoError(t, repo.Create(ctx, entry))
 
@@ -418,7 +418,7 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 			Operation: "sign",
 			Success:   true,
 			RequestID: requestID.String(),
-			CreatedAt: time.Now(),
+			CreatedAt: time.Now().UTC(),
 		}
 		require.NoError(t, repo.Create(ctx, entry))
 	}

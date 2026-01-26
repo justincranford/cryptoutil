@@ -498,7 +498,7 @@ func TestJWTCreateAndVerify(t *testing.T) {
 		Claims: map[string]any{
 			"sub":  "user123",
 			"name": "Test User",
-			"iat":  time.Now().Unix(),
+			"iat":  time.Now().UTC().Unix(),
 		},
 	})
 	require.NoError(t, err)

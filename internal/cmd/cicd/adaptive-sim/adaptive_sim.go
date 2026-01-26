@@ -191,7 +191,7 @@ func (s *AdaptiveSimulator) Simulate(ctx context.Context, logsPath, policyVersio
 	// Initialize result.
 	result := &SimulationResult{
 		PolicyVersion:     policyVersion,
-		SimulationTime:    time.Now(),
+		SimulationTime:    time.Now().UTC(),
 		TotalAttempts:     len(logs),
 		RiskDistribution:  make(map[string]int),
 		PolicyEvaluations: make([]PolicyEvaluation, 0, len(logs)),
@@ -427,7 +427,7 @@ func (s *AdaptiveSimulator) LoadHistoricalLogs(path string) ([]HistoricalAuthLog
 
 // SaveResults saves simulation results to JSON file.
 func (s *AdaptiveSimulator) SaveResults(result *SimulationResult, stdout io.Writer) error {
-	timestamp := time.Now().Format("20060102-150405")
+	timestamp := time.Now().UTC().Format("20060102-150405")
 	filename := fmt.Sprintf("simulation-%s.json", timestamp)
 	outputPath := filepath.Join(s.outputDir, filename)
 

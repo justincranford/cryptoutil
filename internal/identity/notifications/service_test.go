@@ -99,7 +99,7 @@ func TestCheckExpiringSecrets_NoExpiringSecrets(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 30 days (outside all thresholds).
-	farFutureExpiration := time.Now().Add(30 * 24 * time.Hour)
+	farFutureExpiration := time.Now().UTC().Add(30 * 24 * time.Hour)
 	createTestClient(t, db, "test-client", &farFutureExpiration)
 
 	// Check for expiring secrets.
@@ -122,7 +122,7 @@ func TestCheckExpiringSecrets_OneExpiringSecret_7DaysThreshold(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 7 days (within 7-day threshold).
-	sevenDaysExpiration := time.Now().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
 	createTestClient(t, db, "test-client", &sevenDaysExpiration)
 
 	// Check for expiring secrets.
@@ -145,7 +145,7 @@ func TestCheckExpiringSecrets_OneExpiringSecret_3DaysThreshold(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 3 days (within 3-day threshold).
-	threeDaysExpiration := time.Now().Add(3*24*time.Hour + 30*time.Minute)
+	threeDaysExpiration := time.Now().UTC().Add(3*24*time.Hour + 30*time.Minute)
 	createTestClient(t, db, "test-client", &threeDaysExpiration)
 
 	// Check for expiring secrets.
@@ -168,7 +168,7 @@ func TestCheckExpiringSecrets_OneExpiringSecret_1DayThreshold(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 1 day (within 1-day threshold).
-	oneDayExpiration := time.Now().Add(24*time.Hour + 30*time.Minute)
+	oneDayExpiration := time.Now().UTC().Add(24*time.Hour + 30*time.Minute)
 	createTestClient(t, db, "test-client", &oneDayExpiration)
 
 	// Check for expiring secrets.
@@ -191,9 +191,9 @@ func TestCheckExpiringSecrets_MultipleClients(t *testing.T) {
 	ctx := context.Background()
 
 	// Create 3 clients with different expiration times.
-	sevenDaysExpiration := time.Now().Add(7*24*time.Hour + 30*time.Minute)
-	threeDaysExpiration := time.Now().Add(3*24*time.Hour + 30*time.Minute)
-	oneDayExpiration := time.Now().Add(24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
+	threeDaysExpiration := time.Now().UTC().Add(3*24*time.Hour + 30*time.Minute)
+	oneDayExpiration := time.Now().UTC().Add(24*time.Hour + 30*time.Minute)
 
 	createTestClient(t, db, "client-1", &sevenDaysExpiration)
 	createTestClient(t, db, "client-2", &threeDaysExpiration)
@@ -219,7 +219,7 @@ func TestCheckExpiringSecrets_MultipleChannels(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 7 days.
-	sevenDaysExpiration := time.Now().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
 	createTestClient(t, db, "test-client", &sevenDaysExpiration)
 
 	// Check with multiple channels (log + webhook).
@@ -246,7 +246,7 @@ func TestCheckExpiringSecrets_DefaultConfig(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with secret expiring in 7 days.
-	sevenDaysExpiration := time.Now().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
 	createTestClient(t, db, "test-client", &sevenDaysExpiration)
 
 	// Check with nil config (uses defaults).
@@ -286,7 +286,7 @@ func TestCheckExpiringSecrets_AlreadyExpiredSecrets(t *testing.T) {
 	ctx := context.Background()
 
 	// Create client with already-expired secret.
-	pastExpiration := time.Now().Add(-24 * time.Hour)
+	pastExpiration := time.Now().UTC().Add(-24 * time.Hour)
 	createTestClient(t, db, "test-client", &pastExpiration)
 
 	// Check for expiring secrets.
@@ -318,7 +318,7 @@ func TestCheckExpiringSecrets_RevokedSecrets(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create revoked secret version.
-	sevenDaysExpiration := time.Now().Add(7*24*time.Hour + 30*time.Minute)
+	sevenDaysExpiration := time.Now().UTC().Add(7*24*time.Hour + 30*time.Minute)
 	version := &cryptoutilIdentityDomain.ClientSecretVersion{
 		ClientID:   client.ID,
 		Version:    1,
@@ -403,7 +403,7 @@ func TestEmailNotifier_Send(t *testing.T) {
 				ClientID:      googleUuid.New(),
 				ClientName:    "Test Client",
 				DaysRemaining: 7,
-				ExpiresAt:     time.Now().Add(7 * 24 * time.Hour),
+				ExpiresAt:     time.Now().UTC().Add(7 * 24 * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",
@@ -415,7 +415,7 @@ func TestEmailNotifier_Send(t *testing.T) {
 				ClientID:      googleUuid.New(),
 				ClientName:    "Critical Service",
 				DaysRemaining: 1,
-				ExpiresAt:     time.Now().Add(24 * time.Hour),
+				ExpiresAt:     time.Now().UTC().Add(24 * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",
@@ -427,7 +427,7 @@ func TestEmailNotifier_Send(t *testing.T) {
 				ClientID:      googleUuid.New(),
 				ClientName:    "Orphan Client",
 				DaysRemaining: 3,
-				ExpiresAt:     time.Now().Add(3 * 24 * time.Hour),
+				ExpiresAt:     time.Now().UTC().Add(3 * 24 * time.Hour),
 			},
 			wantErr:     true,
 			errContains: "email notifications not yet implemented",

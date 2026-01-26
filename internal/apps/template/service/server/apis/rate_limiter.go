@@ -57,13 +57,13 @@ func (rl *RateLimiter) Allow(ipAddress string) bool {
 		// First request from this IP - create bucket with full tokens.
 		bucket = &tokenBucket{
 			tokens:         rl.burstSize,
-			lastRefillTime: time.Now(),
+			lastRefillTime: time.Now().UTC(),
 		}
 		rl.buckets[ipAddress] = bucket
 	}
 
 	// Refill tokens based on time elapsed.
-	now := time.Now()
+	now := time.Now().UTC()
 	elapsed := now.Sub(bucket.lastRefillTime)
 	tokensToAdd := int(elapsed.Seconds() * float64(rl.requestsPerMin) / cryptoutilSharedMagic.RateLimitSecondsPerMinute)
 
@@ -103,7 +103,7 @@ func (rl *RateLimiter) cleanup() {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	threshold := cryptoutilSharedMagic.RateLimitStaleThresholdMinutes * time.Minute
 
 	for ip, bucket := range rl.buckets {

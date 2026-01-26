@@ -76,7 +76,7 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	require.True(t, ok, "exp claim should be float64")
 
 	exp := time.Unix(int64(expFloat), 0)
-	require.True(t, time.Now().Before(exp), "Expiration should be in future")
+	require.True(t, time.Now().UTC().Before(exp), "Expiration should be in future")
 }
 
 func TestSessionManager_ValidateBrowserSession_JWS_Success(t *testing.T) {
@@ -136,7 +136,7 @@ func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
 	require.NoError(t, parseErr)
 
 	// Create expired JWT manually
-	now := time.Now()
+	now := time.Now().UTC()
 	exp := now.Add(-1 * time.Hour) // Already expired
 	jti := googleUuid.Must(googleUuid.NewV7())
 

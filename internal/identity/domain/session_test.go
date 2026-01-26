@@ -110,17 +110,17 @@ func TestSession_IsExpired(t *testing.T) {
 	}{
 		{
 			name:     "expired session",
-			expiryFn: func() time.Time { return time.Now().Add(-1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(-1 * time.Hour) },
 			want:     true,
 		},
 		{
 			name:     "valid session",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Hour) },
 			want:     false,
 		},
 		{
 			name:     "session expiring now",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Millisecond) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Millisecond) },
 			want:     false,
 		},
 	}
@@ -150,25 +150,25 @@ func TestSession_IsValid(t *testing.T) {
 	}{
 		{
 			name:     "valid active session",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Hour) },
 			active:   boolPtr(true),
 			want:     true,
 		},
 		{
 			name:     "expired but active",
-			expiryFn: func() time.Time { return time.Now().Add(-1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(-1 * time.Hour) },
 			active:   boolPtr(true),
 			want:     false,
 		},
 		{
 			name:     "valid but inactive",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Hour) },
 			active:   boolPtr(false),
 			want:     false,
 		},
 		{
 			name:     "expired and inactive",
-			expiryFn: func() time.Time { return time.Now().Add(-1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(-1 * time.Hour) },
 			active:   boolPtr(false),
 			want:     false,
 		},

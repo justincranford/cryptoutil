@@ -63,9 +63,9 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    client.ID,
 					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
-					ExpiresAt:   time.Now().Add(time.Hour),
-					IssuedAt:    time.Now(),
-					NotBefore:   time.Now(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					NotBefore:   time.Now().UTC(),
 				}
 
 				err = tokenRepo.Create(ctx, refreshToken)
@@ -106,9 +106,9 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    client.ID,
 					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
-					ExpiresAt:   time.Now().Add(time.Hour),
-					IssuedAt:    time.Now(),
-					NotBefore:   time.Now(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					NotBefore:   time.Now().UTC(),
 				}
 
 				err = tokenRepo.Create(ctx, accessToken)

@@ -205,7 +205,7 @@ func (s *jwtServiceImpl) ValidateJWT(ctx context.Context, tenantID, elasticJWKID
 	claims := s.parseClaimsMap(claimsMap)
 
 	// Validate expiration.
-	now := time.Now()
+	now := time.Now().UTC()
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(now) {
 		return nil, fmt.Errorf("JWT has expired")
 	}

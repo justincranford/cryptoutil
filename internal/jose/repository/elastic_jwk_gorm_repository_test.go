@@ -119,8 +119,8 @@ func createTestTenantAndRealm(t *testing.T, db *gorm.DB) (tenantID, realmID goog
 		Name:        "Test Tenant " + tenantID.String(),
 		Description: "Test tenant for repository tests",
 		Active:      1,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
@@ -132,8 +132,8 @@ func createTestTenantAndRealm(t *testing.T, db *gorm.DB) (tenantID, realmID goog
 		Type:      "test",
 		Active:    true,
 		Source:    "db",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 	}
 	require.NoError(t, db.Create(tenantRealm).Error)
 

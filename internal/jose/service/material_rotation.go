@@ -95,7 +95,7 @@ func (s *ElasticJWKService) RotateMaterial(ctx context.Context, tenantID, realmI
 		PrivateJWKJWE:  string(privateJWKJWE),
 		PublicJWKJWE:   string(publicJWKJWE),
 		Active:         true,
-		CreatedAt:      time.Now().UnixMilli(),
+		CreatedAt:      time.Now().UTC().UnixMilli(),
 		RetiredAt:      nil,
 		BarrierVersion: 1,
 	}

@@ -286,7 +286,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 
 		// Session expiration is handled by SessionManager configuration.
 		// For compatibility, return current time + configured session expiration.
-		expiresAt := time.Now().Add(cryptoutilSharedMagic.DefaultCompatibilitySessionExpiration)
+		expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultCompatibilitySessionExpiration)
 
 		return c.JSON(fiber.Map{
 			"token":      token,
@@ -313,13 +313,13 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 // - Issuer: "cipher-im" (configurable via cryptoutilMagic.CipherJWTIssuer)
 // - Claims: user_id (string), username (string), iat, exp, iss.
 func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(cryptoutilSharedMagic.CipherJWTExpiration)
+	expirationTime := time.Now().UTC().Add(cryptoutilSharedMagic.CipherJWTExpiration)
 	claims := &Claims{
 		UserID:   userID.String(),
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 			Issuer:    cryptoutilSharedMagic.CipherJWTIssuer,
 		},
 	}

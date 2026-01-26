@@ -44,5 +44,5 @@ func (k *Key) BeforeCreate(_ *gorm.DB) error {
 
 // IsExpired checks if the key has expired.
 func (k *Key) IsExpired() bool {
-	return time.Now().After(k.ExpiresAt)
+	return time.Now().UTC().After(k.ExpiresAt)
 }

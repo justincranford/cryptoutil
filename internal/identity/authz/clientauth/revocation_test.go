@@ -33,8 +33,8 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 			CommonName:   "Test CA",
 			Organization: []string{"Test Org"},
 		},
-		NotBefore:             time.Now().Add(-1 * time.Hour),
-		NotAfter:              time.Now().Add(24 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -56,8 +56,8 @@ func createTestCertificatePair(t *testing.T, includeCRLDistributionPoints, inclu
 			CommonName:   "Test Client",
 			Organization: []string{"Test Org"},
 		},
-		NotBefore:             time.Now().Add(-1 * time.Hour),
-		NotAfter:              time.Now().Add(24 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -90,15 +90,15 @@ func createTestCRL(t *testing.T, issuer *x509.Certificate, issuerKey *rsa.Privat
 	for _, serial := range revokedSerialNumbers {
 		revokedCerts = append(revokedCerts, pkix.RevokedCertificate{
 			SerialNumber:   serial,
-			RevocationTime: time.Now(),
+			RevocationTime: time.Now().UTC(),
 		})
 	}
 
 	// Create the revocation list.
 	revocationList := &x509.RevocationList{
 		Number:     big.NewInt(1),
-		ThisUpdate: time.Now(),
-		NextUpdate: time.Now().Add(24 * time.Hour),
+		ThisUpdate: time.Now().UTC(),
+		NextUpdate: time.Now().UTC().Add(24 * time.Hour),
 		RevokedCertificateEntries: func() []x509.RevocationListEntry {
 			entries := make([]x509.RevocationListEntry, len(revokedCerts))
 			for i, rc := range revokedCerts {
@@ -382,7 +382,7 @@ func TestOCSPRevocationChecker_CheckRevocation_Good(t *testing.T) {
 			},
 		}
 
-		basicResp.TBSResponseData.ProducedAt = time.Now()
+		basicResp.TBSResponseData.ProducedAt = time.Now().UTC()
 
 		// Encode basic response.
 		//nolint:errcheck // Test OCSP response generation, errors not critical.

@@ -81,8 +81,8 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 		RequireMFA:  false,
 		MFAChain:    []string{},
 		Enabled:     true,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}
 
 	authProfileRepo := repoFactory.AuthProfileRepository()
@@ -139,8 +139,8 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 		PKCEChallengeMethod:     "S256",
 		Enabled:                 boolPtr(true),
 		Name:                    "Test Client",
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -158,8 +158,8 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 		Email:             fmt.Sprintf("%s@example.com", testUsername),
 		PasswordHash:      testPasswordHash,
 		Enabled:           true,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -174,8 +174,8 @@ func TestSecurityAttacks_CSRFProtection(t *testing.T) {
 		Scope:        "openid profile email",
 		State:        "", // MISSING STATE - CSRF vulnerability
 		Nonce:        "test-nonce",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -256,8 +256,8 @@ func TestSecurityAttacks_SessionFixation(t *testing.T) {
 		PreferredUsername: "victim-user",
 		Email:             "victim@example.com",
 		Enabled:           true,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -270,12 +270,12 @@ func TestSecurityAttacks_SessionFixation(t *testing.T) {
 		UserID:                testUser.ID,
 		IPAddress:             "192.168.1.100", // Victim IP
 		UserAgent:             "Mozilla/5.0",   // Victim User-Agent
-		IssuedAt:              time.Now(),
-		ExpiresAt:             time.Now().Add(1 * time.Hour),
-		LastSeenAt:            time.Now(),
+		IssuedAt:              time.Now().UTC(),
+		ExpiresAt:             time.Now().UTC().Add(1 * time.Hour),
+		LastSeenAt:            time.Now().UTC(),
 		Active:                boolPtr(true),
 		AuthenticationMethods: []string{"username_password"},
-		AuthenticationTime:    time.Now(),
+		AuthenticationTime:    time.Now().UTC(),
 	}
 
 	sessionRepo := repoFactory.SessionRepository()

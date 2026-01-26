@@ -43,8 +43,8 @@ func TestPushedAuthorizationRequestRepository_Create(t *testing.T) {
 					State:               "state123",
 					CodeChallenge:       "challenge",
 					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().Add(90 * time.Second),
-					CreatedAt:           time.Now(),
+					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					CreatedAt:           time.Now().UTC(),
 				}
 			},
 			expectErr: false,
@@ -94,8 +94,8 @@ func TestPushedAuthorizationRequestRepository_GetByRequestURI(t *testing.T) {
 						RedirectURI:         "https://example.com/callback",
 						CodeChallenge:       "challenge",
 						CodeChallengeMethod: "S256",
-						ExpiresAt:           time.Now().Add(90 * time.Second),
-						CreatedAt:           time.Now(),
+						ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+						CreatedAt:           time.Now().UTC(),
 					},
 				}
 			},
@@ -115,8 +115,8 @@ func TestPushedAuthorizationRequestRepository_GetByRequestURI(t *testing.T) {
 						RedirectURI:         "https://example.com/callback",
 						CodeChallenge:       "challenge",
 						CodeChallengeMethod: "S256",
-						ExpiresAt:           time.Now().Add(90 * time.Second),
-						CreatedAt:           time.Now(),
+						ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+						CreatedAt:           time.Now().UTC(),
 					},
 				}
 			},
@@ -178,8 +178,8 @@ func TestPushedAuthorizationRequestRepository_GetByID(t *testing.T) {
 					RedirectURI:         "https://example.com/callback",
 					CodeChallenge:       "challenge",
 					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().Add(90 * time.Second),
-					CreatedAt:           time.Now(),
+					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					CreatedAt:           time.Now().UTC(),
 				}
 			},
 			queryID: func(par *cryptoutilIdentityDomain.PushedAuthorizationRequest) googleUuid.UUID {
@@ -198,8 +198,8 @@ func TestPushedAuthorizationRequestRepository_GetByID(t *testing.T) {
 					RedirectURI:         "https://example.com/callback",
 					CodeChallenge:       "challenge",
 					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().Add(90 * time.Second),
-					CreatedAt:           time.Now(),
+					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					CreatedAt:           time.Now().UTC(),
 				}
 			},
 			queryID: func(_ *cryptoutilIdentityDomain.PushedAuthorizationRequest) googleUuid.UUID {
@@ -253,8 +253,8 @@ func TestPushedAuthorizationRequestRepository_Update(t *testing.T) {
 					CodeChallenge:       "challenge",
 					CodeChallengeMethod: "S256",
 					Used:                false,
-					ExpiresAt:           time.Now().Add(90 * time.Second),
-					CreatedAt:           time.Now(),
+					ExpiresAt:           time.Now().UTC().Add(90 * time.Second),
+					CreatedAt:           time.Now().UTC(),
 				}
 			},
 			modifyPAR: func(par *cryptoutilIdentityDomain.PushedAuthorizationRequest) {

@@ -94,9 +94,9 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
 					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
-					ExpiresAt:   time.Now().Add(1 * time.Hour),
-					IssuedAt:    time.Now(),
-					NotBefore:   time.Now(),
+					ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					NotBefore:   time.Now().UTC(),
 				}
 
 				tokenRepo := repoFactory.TokenRepository()
@@ -128,7 +128,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 
 				// Create REVOKED refresh token.
 				tokenValue := "refresh-token-" + googleUuid.NewString()
-				now := time.Now()
+				now := time.Now().UTC()
 				token := &cryptoutilIdentityDomain.Token{
 					ID:          googleUuid.Must(googleUuid.NewV7()),
 					ClientID:    client.ID,
@@ -136,9 +136,9 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
 					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
-					ExpiresAt:   time.Now().Add(24 * time.Hour),
-					IssuedAt:    time.Now(),
-					NotBefore:   time.Now(),
+					ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					NotBefore:   time.Now().UTC(),
 					Revoked:     true,
 					RevokedAt:   &now,
 				}
@@ -179,9 +179,9 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
 					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
-					ExpiresAt:   time.Now().Add(-1 * time.Hour), // Already expired
-					IssuedAt:    time.Now().Add(-25 * time.Hour),
-					NotBefore:   time.Now().Add(-25 * time.Hour),
+					ExpiresAt:   time.Now().UTC().Add(-1 * time.Hour), // Already expired
+					IssuedAt:    time.Now().UTC().Add(-25 * time.Hour),
+					NotBefore:   time.Now().UTC().Add(-25 * time.Hour),
 				}
 
 				tokenRepo := repoFactory.TokenRepository()

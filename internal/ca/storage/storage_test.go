@@ -47,8 +47,8 @@ func TestMemoryStore_Store(t *testing.T) {
 				SerialNumber: "123456",
 				SubjectDN:    "CN=test",
 				IssuerDN:     "CN=CA",
-				NotBefore:    time.Now(),
-				NotAfter:     time.Now().Add(365 * 24 * time.Hour),
+				NotBefore:    time.Now().UTC(),
+				NotAfter:     time.Now().UTC().Add(365 * 24 * time.Hour),
 				Status:       StatusActive,
 			},
 			wantErr: false,
@@ -415,8 +415,8 @@ func TestNewStoredCertificateFromX509(t *testing.T) {
 				Issuer: pkix.Name{
 					CommonName: "Test CA",
 				},
-				NotBefore:      time.Now(),
-				NotAfter:       time.Now().Add(365 * 24 * time.Hour),
+				NotBefore:      time.Now().UTC(),
+				NotAfter:       time.Now().UTC().Add(365 * 24 * time.Hour),
 				SubjectKeyId:   []byte{1, 2, 3, 4},
 				AuthorityKeyId: []byte{5, 6, 7, 8},
 				Raw:            []byte{0x30, 0x00}, // Minimal DER.

@@ -225,7 +225,7 @@ func TestRecoveryCodeService_Verify_AllCodesExpired(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, code := range codes {
-		code.ExpiresAt = time.Now().Add(-1 * time.Hour)
+		code.ExpiresAt = time.Now().UTC().Add(-1 * time.Hour)
 		err := repo.Update(ctx, code)
 		require.NoError(t, err)
 	}

@@ -80,7 +80,7 @@ func TestTOTPValidation(t *testing.T) {
 	t.Run("Valid_TOTP_Code", func(t *testing.T) {
 		t.Parallel()
 		// Generate current TOTP code.
-		code, err := totp.GenerateCode(secret, time.Now())
+		code, err := totp.GenerateCode(secret, time.Now().UTC())
 		require.NoError(t, err)
 
 		// Validate code.
@@ -102,7 +102,7 @@ func TestTOTPValidation(t *testing.T) {
 	t.Run("TOTP_With_Time_Window", func(t *testing.T) {
 		t.Parallel()
 		// Generate code for 30 seconds ago (outside standard window).
-		pastTime := time.Now().Add(-30 * time.Second)
+		pastTime := time.Now().UTC().Add(-30 * time.Second)
 		pastCode, err := totp.GenerateCode(secret, pastTime)
 		require.NoError(t, err)
 
@@ -132,7 +132,7 @@ func TestEmailOTPValidation(t *testing.T) {
 	t.Run("Valid_Email_OTP", func(t *testing.T) {
 		t.Parallel()
 		// Generate current email OTP code (5-minute period).
-		code, err := totp.GenerateCode(secret, time.Now())
+		code, err := totp.GenerateCode(secret, time.Now().UTC())
 		require.NoError(t, err)
 
 		valid, err := validator.ValidateEmailOTP(ctx, userID, code)
@@ -170,7 +170,7 @@ func TestSMSOTPValidation(t *testing.T) {
 	t.Run("Valid_SMS_OTP", func(t *testing.T) {
 		t.Parallel()
 		// Generate current SMS OTP code (10-minute period).
-		code, err := totp.GenerateCode(secret, time.Now())
+		code, err := totp.GenerateCode(secret, time.Now().UTC())
 		require.NoError(t, err)
 
 		valid, err := validator.ValidateSMSOTP(ctx, userID, code)
@@ -213,7 +213,7 @@ func TestOTPConcurrency(t *testing.T) {
 		}
 
 		// Generate current code.
-		code, err := totp.GenerateCode(secret, time.Now())
+		code, err := totp.GenerateCode(secret, time.Now().UTC())
 		require.NoError(t, err)
 
 		// Validate concurrently from 10 goroutines.
@@ -264,7 +264,7 @@ func TestOTPExpiration(t *testing.T) {
 	t.Run("Expired_TOTP_Code", func(t *testing.T) {
 		t.Parallel()
 		// Generate code for 2 minutes ago (outside all windows).
-		expiredTime := time.Now().Add(-2 * time.Minute)
+		expiredTime := time.Now().UTC().Add(-2 * time.Minute)
 		expiredCode, err := totp.GenerateCode(secret, expiredTime)
 		require.NoError(t, err)
 
@@ -277,7 +277,7 @@ func TestOTPExpiration(t *testing.T) {
 	t.Run("Expired_Code_With_Window", func(t *testing.T) {
 		t.Parallel()
 		// Generate code for 90 seconds ago.
-		expiredTime := time.Now().Add(-90 * time.Second)
+		expiredTime := time.Now().UTC().Add(-90 * time.Second)
 		expiredCode, err := totp.GenerateCode(secret, expiredTime)
 		require.NoError(t, err)
 

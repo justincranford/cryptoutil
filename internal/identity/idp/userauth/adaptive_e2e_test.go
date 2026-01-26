@@ -42,8 +42,8 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 			{ID: "known-device-001"},
 		},
 		TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-		LastLoginTime:     time.Now().Add(-24 * time.Hour),
-		EstablishedAt:     time.Now().Add(-90 * 24 * time.Hour),
+		LastLoginTime:     time.Now().UTC().Add(-24 * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-90 * 24 * time.Hour),
 		EventCount:        150,
 	}
 
@@ -109,7 +109,7 @@ func TestAdaptiveAuth_E2E_LowRiskNoStepUp(t *testing.T) {
 	authState := &AuthenticationState{
 		UserID:          user.ID.UUID.String(),
 		CurrentLevel:    AuthLevelBasic,
-		AuthenticatedAt: time.Now().Add(-10 * time.Minute), // Recent authentication.
+		AuthenticatedAt: time.Now().UTC().Add(-10 * time.Minute), // Recent authentication.
 		SessionID:       googleUuid.New().String(),
 	}
 
@@ -143,8 +143,8 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 			{ID: "known-device-001"},
 		},
 		TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-		LastLoginTime:     time.Now().Add(-24 * time.Hour),
-		EstablishedAt:     time.Now().Add(-90 * 24 * time.Hour),
+		LastLoginTime:     time.Now().UTC().Add(-24 * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-90 * 24 * time.Hour),
 		EventCount:        150,
 	}
 
@@ -216,7 +216,7 @@ func TestAdaptiveAuth_E2E_MediumRiskOTPStepUp(t *testing.T) {
 	authState := &AuthenticationState{
 		UserID:          user.ID.UUID.String(),
 		CurrentLevel:    AuthLevelBasic,
-		AuthenticatedAt: time.Now().Add(-10 * time.Minute),
+		AuthenticatedAt: time.Now().UTC().Add(-10 * time.Minute),
 		SessionID:       googleUuid.New().String(),
 	}
 
@@ -252,8 +252,8 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 			{ID: "known-device-001"},
 		},
 		TypicalLoginHours: []int{9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-		LastLoginTime:     time.Now().Add(-48 * time.Hour),
-		EstablishedAt:     time.Now().Add(-30 * 24 * time.Hour),
+		LastLoginTime:     time.Now().UTC().Add(-48 * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-30 * 24 * time.Hour),
 		EventCount:        50,
 	}
 
@@ -322,7 +322,7 @@ func TestAdaptiveAuth_E2E_HighRiskStrongMFAOrBlock(t *testing.T) {
 	authState := &AuthenticationState{
 		UserID:          user.ID.UUID.String(),
 		CurrentLevel:    AuthLevelBasic,
-		AuthenticatedAt: time.Now().Add(-10 * time.Minute),
+		AuthenticatedAt: time.Now().UTC().Add(-10 * time.Minute),
 		SessionID:       googleUuid.New().String(),
 	}
 
@@ -359,8 +359,8 @@ func TestAdaptiveAuth_E2E_CriticalRiskBlocked(t *testing.T) {
 			{ID: "known-device-001"},
 		},
 		TypicalLoginHours: []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
-		LastLoginTime:     time.Now().Add(-72 * time.Hour),
-		EstablishedAt:     time.Now().Add(-120 * 24 * time.Hour),
+		LastLoginTime:     time.Now().UTC().Add(-72 * time.Hour),
+		EstablishedAt:     time.Now().UTC().Add(-120 * 24 * time.Hour),
 		EventCount:        200,
 	}
 

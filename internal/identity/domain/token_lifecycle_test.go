@@ -39,49 +39,49 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 			name:         "access_token_not_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeAccess,
 			issuedOffset: -5 * time.Minute,
-			expiresAt:    time.Now().Add(1 * time.Hour),
+			expiresAt:    time.Now().UTC().Add(1 * time.Hour),
 			wantExpired:  false,
 		},
 		{
 			name:         "access_token_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeAccess,
 			issuedOffset: -2 * time.Hour,
-			expiresAt:    time.Now().Add(-1 * time.Hour),
+			expiresAt:    time.Now().UTC().Add(-1 * time.Hour),
 			wantExpired:  true,
 		},
 		{
 			name:         "refresh_token_not_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeRefresh,
 			issuedOffset: -1 * time.Hour,
-			expiresAt:    time.Now().Add(24 * time.Hour),
+			expiresAt:    time.Now().UTC().Add(24 * time.Hour),
 			wantExpired:  false,
 		},
 		{
 			name:         "refresh_token_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeRefresh,
 			issuedOffset: -48 * time.Hour,
-			expiresAt:    time.Now().Add(-24 * time.Hour),
+			expiresAt:    time.Now().UTC().Add(-24 * time.Hour),
 			wantExpired:  true,
 		},
 		{
 			name:         "id_token_not_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeID,
 			issuedOffset: -10 * time.Minute,
-			expiresAt:    time.Now().Add(30 * time.Minute),
+			expiresAt:    time.Now().UTC().Add(30 * time.Minute),
 			wantExpired:  false,
 		},
 		{
 			name:         "id_token_expired",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeID,
 			issuedOffset: -2 * time.Hour,
-			expiresAt:    time.Now().Add(-1 * time.Hour),
+			expiresAt:    time.Now().UTC().Add(-1 * time.Hour),
 			wantExpired:  true,
 		},
 		{
 			name:         "token_expires_exactly_now",
 			tokenType:    cryptoutilIdentityDomain.TokenTypeAccess,
 			issuedOffset: -1 * time.Hour,
-			expiresAt:    time.Now(),
+			expiresAt:    time.Now().UTC(),
 			wantExpired:  true, // Token is considered expired AT expiration time
 		},
 	}
@@ -142,7 +142,7 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 				TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 				ClientID:    clientID,
 				Scopes:      []string{"openid"},
-				IssuedAt:    time.Now().Add(tc.issuedOffset),
+				IssuedAt:    time.Now().UTC().Add(tc.issuedOffset),
 				ExpiresAt:   tc.expiresAt,
 			}
 
@@ -156,16 +156,16 @@ func TestTokenExpirationEnforcement(t *testing.T) {
 			require.NoError(t, err)
 
 			// Validate expiration logic.
-			isExpired := time.Now().After(retrievedToken.ExpiresAt) || time.Now().Equal(retrievedToken.ExpiresAt)
+			isExpired := time.Now().UTC().After(retrievedToken.ExpiresAt) || time.Now().UTC().Equal(retrievedToken.ExpiresAt)
 
 			if tc.wantExpired {
 				require.True(t, isExpired, "Token should be expired but is not")
-				require.True(t, time.Now().After(retrievedToken.ExpiresAt) || time.Now().Equal(retrievedToken.ExpiresAt),
-					"ExpiresAt (%v) should be before or equal to now (%v)", retrievedToken.ExpiresAt, time.Now())
+				require.True(t, time.Now().UTC().After(retrievedToken.ExpiresAt) || time.Now().UTC().Equal(retrievedToken.ExpiresAt),
+					"ExpiresAt (%v) should be before or equal to now (%v)", retrievedToken.ExpiresAt, time.Now().UTC())
 			} else {
 				require.False(t, isExpired, "Token should not be expired but is")
-				require.True(t, time.Now().Before(retrievedToken.ExpiresAt),
-					"ExpiresAt (%v) should be after now (%v)", retrievedToken.ExpiresAt, time.Now())
+				require.True(t, time.Now().UTC().Before(retrievedToken.ExpiresAt),
+					"ExpiresAt (%v) should be after now (%v)", retrievedToken.ExpiresAt, time.Now().UTC())
 			}
 		})
 	}
@@ -198,7 +198,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			name:            "access_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeAccess,
 			revoked:         cryptoutilIdentityDomain.IntBool(true),
-			revokedAt:       timePtr(time.Now().Add(-5 * time.Minute)),
+			revokedAt:       timePtr(time.Now().UTC().Add(-5 * time.Minute)),
 			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
@@ -214,7 +214,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			name:            "refresh_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeRefresh,
 			revoked:         cryptoutilIdentityDomain.IntBool(true),
-			revokedAt:       timePtr(time.Now().Add(-1 * time.Hour)),
+			revokedAt:       timePtr(time.Now().UTC().Add(-1 * time.Hour)),
 			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
@@ -222,7 +222,7 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 			name:            "id_token_revoked",
 			tokenType:       cryptoutilIdentityDomain.TokenTypeID,
 			revoked:         cryptoutilIdentityDomain.IntBool(true),
-			revokedAt:       timePtr(time.Now().Add(-30 * time.Second)),
+			revokedAt:       timePtr(time.Now().UTC().Add(-30 * time.Second)),
 			wantRevoked:     cryptoutilIdentityDomain.IntBool(true),
 			wantRevokedTime: true,
 		},
@@ -283,8 +283,8 @@ func TestTokenRevocationEnforcement(t *testing.T) {
 				TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 				ClientID:    clientID,
 				Scopes:      []string{"openid"},
-				IssuedAt:    time.Now().Add(-1 * time.Hour),
-				ExpiresAt:   time.Now().Add(1 * time.Hour),
+				IssuedAt:    time.Now().UTC().Add(-1 * time.Hour),
+				ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 				Revoked:     tc.revoked,
 				RevokedAt:   tc.revokedAt,
 			}

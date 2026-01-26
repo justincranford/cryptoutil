@@ -72,17 +72,17 @@ func TestToken_IsExpired(t *testing.T) {
 	}{
 		{
 			name:      "expired token",
-			expiresAt: time.Now().Add(-1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(-1 * time.Hour),
 			expired:   true,
 		},
 		{
 			name:      "valid token",
-			expiresAt: time.Now().Add(1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(1 * time.Hour),
 			expired:   false,
 		},
 		{
 			name:      "token expiring now",
-			expiresAt: time.Now().Add(1 * time.Second),
+			expiresAt: time.Now().UTC().Add(1 * time.Second),
 			expired:   false,
 		},
 	}
@@ -111,25 +111,25 @@ func TestToken_IsValid(t *testing.T) {
 	}{
 		{
 			name:      "valid active token",
-			expiresAt: time.Now().Add(1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(1 * time.Hour),
 			revoked:   cryptoutilIdentityDomain.IntBool(false),
 			valid:     true,
 		},
 		{
 			name:      "expired active token",
-			expiresAt: time.Now().Add(-1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(-1 * time.Hour),
 			revoked:   cryptoutilIdentityDomain.IntBool(false),
 			valid:     false,
 		},
 		{
 			name:      "valid revoked token",
-			expiresAt: time.Now().Add(1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(1 * time.Hour),
 			revoked:   cryptoutilIdentityDomain.IntBool(true),
 			valid:     false,
 		},
 		{
 			name:      "expired revoked token",
-			expiresAt: time.Now().Add(-1 * time.Hour),
+			expiresAt: time.Now().UTC().Add(-1 * time.Hour),
 			revoked:   cryptoutilIdentityDomain.IntBool(true),
 			valid:     false,
 		},

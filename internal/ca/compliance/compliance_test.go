@@ -145,7 +145,7 @@ func TestChecker_CheckCertificate(t *testing.T) {
 			name:      "cabf valid cert",
 			framework: FrameworkCABFBaseline,
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
 			},
 			wantErr: false,
 		},
@@ -153,7 +153,7 @@ func TestChecker_CheckCertificate(t *testing.T) {
 			name:      "rfc5280 valid cert",
 			framework: FrameworkRFC5280,
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
 			},
 			wantErr: false,
 		},
@@ -201,21 +201,21 @@ func TestChecker_CABFRequirements(t *testing.T) {
 		{
 			name: "compliant certificate",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
 			},
 			expectCompliant: true,
 		},
 		{
 			name: "certificate exceeds validity period",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now(), time.Now().Add(500*24*time.Hour), []string{"example.com"})
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(500*24*time.Hour), []string{"example.com"})
 			},
 			expectCompliant: false,
 		},
 		{
 			name: "certificate without SAN",
 			certFunc: func() *x509.Certificate {
-				return createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour), nil)
+				return createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), nil)
 			},
 			expectCompliant: false,
 		},
@@ -260,7 +260,7 @@ func TestChecker_RFC5280Requirements(t *testing.T) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	require.NoError(t, err)
 
-	cert := createTestCert(t, key, false, time.Now(), time.Now().Add(365*24*time.Hour), []string{"example.com"})
+	cert := createTestCert(t, key, false, time.Now().UTC(), time.Now().UTC().Add(365*24*time.Hour), []string{"example.com"})
 
 	requirements, err := checker.CheckCertificate(ctx, cert)
 	require.NoError(t, err)
@@ -325,8 +325,8 @@ func TestGenerateReport(t *testing.T) {
 	}
 
 	period := AuditPeriod{
-		StartDate: time.Now().Add(-30 * 24 * time.Hour),
-		EndDate:   time.Now(),
+		StartDate: time.Now().UTC().Add(-30 * 24 * time.Hour),
+		EndDate:   time.Now().UTC(),
 	}
 
 	report := GenerateReport(FrameworkCABFBaseline, requirements, period, "test-auditor")
@@ -350,8 +350,8 @@ func TestGenerateReport(t *testing.T) {
 func TestAuditTrailBuilder(t *testing.T) {
 	t.Parallel()
 
-	startTime := time.Now().Add(-24 * time.Hour)
-	endTime := time.Now()
+	startTime := time.Now().UTC().Add(-24 * time.Hour)
+	endTime := time.Now().UTC()
 
 	builder := NewAuditTrailBuilder(startTime, endTime)
 	require.NotNil(t, builder)
@@ -544,8 +544,8 @@ func createTestCACert(t *testing.T, key *ecdsa.PrivateKey) *x509.Certificate {
 		Subject: pkix.Name{
 			CommonName: "Test CA",
 		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().Add(10 * 365 * 24 * time.Hour),
+		NotBefore:             time.Now().UTC(),
+		NotAfter:              time.Now().UTC().Add(10 * 365 * 24 * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,

@@ -125,7 +125,7 @@ func ValidateProof(dpopHeader, httpMethod, httpURI, accessToken string) (*Proof,
 	}
 
 	// RFC 9449 Section 4.3: iat must be within acceptable time window (±60s).
-	now := time.Now()
+	now := time.Now().UTC()
 	if now.Sub(iat) > 60*time.Second || iat.Sub(now) > 60*time.Second {
 		return nil, fmt.Errorf("DPoP iat claim is outside acceptable time window")
 	}

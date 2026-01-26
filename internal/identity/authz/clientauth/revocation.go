@@ -65,7 +65,7 @@ func (c *CRLCache) GetCRL(ctx context.Context, url string) (*pkix.CertificateLis
 	c.mu.Lock()
 	c.crls[url] = &cachedCRL{
 		crl:       crl,
-		fetchedAt: time.Now(),
+		fetchedAt: time.Now().UTC(),
 	}
 	c.mu.Unlock()
 

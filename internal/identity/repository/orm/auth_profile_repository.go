@@ -66,7 +66,7 @@ func (r *AuthProfileRepositoryGORM) GetByName(ctx context.Context, name string) 
 
 // Update updates an existing authentication profile.
 func (r *AuthProfileRepositoryGORM) Update(ctx context.Context, profile *cryptoutilIdentityDomain.AuthProfile) error {
-	profile.UpdatedAt = time.Now()
+	profile.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(profile).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update auth profile: %w", err))
 	}

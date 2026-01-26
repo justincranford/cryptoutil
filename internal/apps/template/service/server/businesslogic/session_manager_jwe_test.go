@@ -103,7 +103,7 @@ func TestSessionManager_ValidateBrowserSession_JWE_ExpiredJWT(t *testing.T) {
 	tenantID := googleUuid.Must(googleUuid.NewV7())
 	realmID := googleUuid.Must(googleUuid.NewV7())
 	jti := googleUuid.Must(googleUuid.NewV7())
-	now := time.Now()
+	now := time.Now().UTC()
 	exp := now.Add(-1 * time.Hour) // Expired 1 hour ago
 
 	// Create expired JWT claims

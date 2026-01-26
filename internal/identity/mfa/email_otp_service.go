@@ -72,8 +72,8 @@ func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, e
 		UserID:    userID,
 		CodeHash:  hashedOTP,
 		Used:      false,
-		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultEmailOTPLifetime),
+		CreatedAt: time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultEmailOTPLifetime),
 	}
 
 	if err := s.emailOTPRepo.Create(ctx, otp); err != nil {

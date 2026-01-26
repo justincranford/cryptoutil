@@ -59,8 +59,8 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 		},
 		Enabled:   true,
 		Locked:    false,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 	}
 
 	err = userRepo.Create(ctx, testUser)
@@ -91,8 +91,8 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 		},
 		TokenEndpointAuthMethod: "client_secret_basic",
 		Enabled:                 boolPtr(true),
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 
 	err = clientRepo.Create(ctx, testClient)
@@ -113,8 +113,8 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 			UUID:  testUser.ID,
 			Valid: true,
 		},
-		CreatedAt:      time.Now(),
-		ExpiresAt:      time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
+		CreatedAt:      time.Now().UTC(),
+		ExpiresAt:      time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
 		ConsentGranted: false,
 	}
 
@@ -128,12 +128,12 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 		SessionID:             "test_session_" + googleUuid.New().String(),
 		IPAddress:             "127.0.0.1",
 		UserAgent:             "test-agent",
-		IssuedAt:              time.Now(),
-		ExpiresAt:             time.Now().Add(30 * time.Minute),
-		LastSeenAt:            time.Now(),
+		IssuedAt:              time.Now().UTC(),
+		ExpiresAt:             time.Now().UTC().Add(30 * time.Minute),
+		LastSeenAt:            time.Now().UTC(),
 		Active:                boolPtr(true),
 		AuthenticationMethods: []string{"username_password"},
-		AuthenticationTime:    time.Now(),
+		AuthenticationTime:    time.Now().UTC(),
 	}
 
 	err = sessionRepo.Create(ctx, session)
@@ -146,8 +146,8 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 		UserID:    testUser.ID,
 		ClientID:  testClient.ClientID,
 		Scope:     authRequest.Scope,
-		GrantedAt: time.Now(),
-		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime),
+		GrantedAt: time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime),
 	}
 
 	err = consentRepo.Create(ctx, consentDecision)
@@ -179,7 +179,7 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 	require.False(t, retrievedAuthRequest.IsUsed(), "Authorization request should not be used yet")
 
 	// Mark authorization code as used (simulating token exchange).
-	now := time.Now()
+	now := time.Now().UTC()
 	retrievedAuthRequest.Used = true
 	retrievedAuthRequest.UsedAt = &now
 

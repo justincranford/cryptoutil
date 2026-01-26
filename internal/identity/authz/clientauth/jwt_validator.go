@@ -122,7 +122,7 @@ func (v *PrivateKeyJWTValidator) validateClaims(ctx context.Context, token joseJ
 		return fmt.Errorf("missing expiration claim")
 	}
 
-	if time.Now().After(exp) {
+	if time.Now().UTC().After(exp) {
 		return fmt.Errorf("JWT expired at %v", exp)
 	}
 
@@ -132,7 +132,7 @@ func (v *PrivateKeyJWTValidator) validateClaims(ctx context.Context, token joseJ
 		return fmt.Errorf("missing issued at claim")
 	}
 
-	if time.Now().Before(iat) {
+	if time.Now().UTC().Before(iat) {
 		return fmt.Errorf("JWT issued in the future at %v", iat)
 	}
 
@@ -278,7 +278,7 @@ func (v *ClientSecretJWTValidator) validateClaims(ctx context.Context, token jos
 		return fmt.Errorf("missing expiration claim")
 	}
 
-	if time.Now().After(exp) {
+	if time.Now().UTC().After(exp) {
 		return fmt.Errorf("JWT expired at %v", exp)
 	}
 
@@ -288,7 +288,7 @@ func (v *ClientSecretJWTValidator) validateClaims(ctx context.Context, token jos
 		return fmt.Errorf("missing issued at claim")
 	}
 
-	if time.Now().Before(iat) {
+	if time.Now().UTC().Before(iat) {
 		return fmt.Errorf("JWT issued in the future at %v", iat)
 	}
 

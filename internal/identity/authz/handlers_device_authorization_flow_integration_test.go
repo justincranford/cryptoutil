@@ -108,7 +108,7 @@ func TestDeviceAuthorizationFlow_ExpiredCode(t *testing.T) {
 	deviceAuth, err := deviceAuthRepo.GetByDeviceCode(ctx, deviceCode)
 	require.NoError(t, err, "Should retrieve device authorization")
 
-	deviceAuth.ExpiresAt = time.Now().Add(-1 * time.Hour) // Set expiration to past
+	deviceAuth.ExpiresAt = time.Now().UTC().Add(-1 * time.Hour) // Set expiration to past
 	err = deviceAuthRepo.Update(ctx, deviceAuth)
 	require.NoError(t, err, "Should update device authorization")
 

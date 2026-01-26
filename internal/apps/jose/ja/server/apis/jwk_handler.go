@@ -140,7 +140,7 @@ func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
 			Use:                  req.Use,
 			MaxMaterials:         maxMaterials,
 			CurrentMaterialCount: 0,
-			CreatedAt:            time.Now(),
+			CreatedAt:            time.Now().UTC(),
 		}
 
 		ctx := c.Context()
@@ -366,7 +366,7 @@ func (h *JWKHandler) HandleCreateMaterialJWK() fiber.Handler {
 			PrivateJWKJWE:  "encrypted-private-key-placeholder",
 			PublicJWKJWE:   "encrypted-public-key-placeholder",
 			Active:         true,
-			CreatedAt:      time.Now(),
+			CreatedAt:      time.Now().UTC(),
 			BarrierVersion: 1, // TODO: Get from barrier service.
 		}
 
@@ -568,7 +568,7 @@ func (h *JWKHandler) HandleRotateMaterialJWK() fiber.Handler {
 			PrivateJWKJWE:  "encrypted-private-key-placeholder",
 			PublicJWKJWE:   "encrypted-public-key-placeholder",
 			Active:         true,
-			CreatedAt:      time.Now(),
+			CreatedAt:      time.Now().UTC(),
 			BarrierVersion: 1,
 		}
 

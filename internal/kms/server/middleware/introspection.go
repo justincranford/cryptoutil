@@ -274,7 +274,7 @@ func (b *BatchIntrospector) getCached(token string) *introspectionCacheEntry {
 	defer b.cacheLock.RUnlock()
 
 	entry, exists := b.cache[token]
-	if !exists || time.Now().After(entry.expiresAt) {
+	if !exists || time.Now().UTC().After(entry.expiresAt) {
 		return nil
 	}
 
@@ -288,7 +288,7 @@ func (b *BatchIntrospector) setCached(token string, active bool) {
 
 	b.cache[token] = &introspectionCacheEntry{
 		active:    active,
-		expiresAt: time.Now().Add(b.config.CacheTTL),
+		expiresAt: time.Now().UTC().Add(b.config.CacheTTL),
 	}
 }
 

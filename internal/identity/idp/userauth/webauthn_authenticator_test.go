@@ -333,7 +333,7 @@ func TestWebAuthnAuthenticator_InitiateAuth(t *testing.T) {
 				require.NotNil(t, challenge)
 				require.Equal(t, "passkey_webauthn", challenge.Method)
 				require.Equal(t, tc.userID, challenge.UserID)
-				require.True(t, challenge.ExpiresAt.After(time.Now()))
+				require.True(t, challenge.ExpiresAt.After(time.Now().UTC()))
 				require.Contains(t, challenge.Metadata, "session_data")
 				require.Contains(t, challenge.Metadata, "operation")
 				require.Equal(t, "authentication", challenge.Metadata["operation"])

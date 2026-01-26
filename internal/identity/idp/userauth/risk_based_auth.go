@@ -133,7 +133,7 @@ func (r *RiskBasedAuthenticator) InitiateAuth(ctx context.Context, userID string
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,
@@ -167,7 +167,7 @@ func (r *RiskBasedAuthenticator) VerifyAuth(ctx context.Context, challengeID, _ 
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := r.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)

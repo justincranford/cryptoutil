@@ -140,7 +140,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 		t.Parallel()
 
 		// Create a unique user in SQLite instance.
-		username := fmt.Sprintf("sqlite_user_%d", time.Now().UnixNano())
+		username := fmt.Sprintf("sqlite_user_%d", time.Now().UTC().UnixNano())
 		password := generateTestPassword(t)
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
@@ -192,7 +192,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 		t.Parallel()
 
 		// Create a unique user in pg-1.
-		username := fmt.Sprintf("pg_shared_user_%d", time.Now().UnixNano())
+		username := fmt.Sprintf("pg_shared_user_%d", time.Now().UTC().UnixNano())
 		password := generateTestPassword(t)
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
@@ -242,7 +242,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 		t.Parallel()
 
 		// Create a unique user in pg-2.
-		username := fmt.Sprintf("pg_isolated_user_%d", time.Now().UnixNano())
+		username := fmt.Sprintf("pg_isolated_user_%d", time.Now().UTC().UnixNano())
 		password := generateTestPassword(t)
 
 		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
@@ -362,7 +362,7 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 			defer cancel()
 
 			// Generate unique user credentials.
-			username := fmt.Sprintf("tenant_owner_%d", time.Now().UnixNano())
+			username := fmt.Sprintf("tenant_owner_%d", time.Now().UTC().UnixNano())
 			password := generateTestPassword(t)
 
 			// Determine API path prefix based on client type.
@@ -426,7 +426,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 			}
 
 			// Step 1: Create a tenant (first user).
-			tenantOwner := fmt.Sprintf("owner_%d", time.Now().UnixNano())
+			tenantOwner := fmt.Sprintf("owner_%d", time.Now().UTC().UnixNano())
 			ownerPassword := generateTestPassword(t)
 
 			ownerRegisterURL := tt.publicURL + pathPrefix + apiV1AuthRegister
@@ -453,7 +453,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 			// In real implementation, we'd extract tenant_id from owner registration response.
 
 			// Step 2: Second user attempts to join the tenant (creates join request).
-			joinerUsername := fmt.Sprintf("joiner_%d", time.Now().UnixNano())
+			joinerUsername := fmt.Sprintf("joiner_%d", time.Now().UTC().UnixNano())
 			joinerPassword := generateTestPassword(t)
 			placeholderTenantID := "00000000-0000-0000-0000-000000000000" // Placeholder until we parse response.
 

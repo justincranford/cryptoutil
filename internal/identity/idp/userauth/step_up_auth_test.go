@@ -163,7 +163,7 @@ monitoring:
 			name:              "transfer_funds requires step_up - current basic",
 			operation:         "transfer_funds",
 			currentLevel:      AuthLevelBasic,
-			authTime:          time.Now(),
+			authTime:          time.Now().UTC(),
 			wantStepUpNeeded:  true,
 			wantRequiredLevel: AuthLevelStepUp,
 		},
@@ -171,14 +171,14 @@ monitoring:
 			name:             "transfer_funds satisfied - recent step_up",
 			operation:        "transfer_funds",
 			currentLevel:     AuthLevelStepUp,
-			authTime:         time.Now().Add(-2 * time.Minute), // Within 5m max age.
+			authTime:         time.Now().UTC().Add(-2 * time.Minute), // Within 5m max age.
 			wantStepUpNeeded: false,
 		},
 		{
 			name:              "transfer_funds expired - old step_up",
 			operation:         "transfer_funds",
 			currentLevel:      AuthLevelStepUp,
-			authTime:          time.Now().Add(-10 * time.Minute), // Beyond 5m max age.
+			authTime:          time.Now().UTC().Add(-10 * time.Minute), // Beyond 5m max age.
 			wantStepUpNeeded:  true,
 			wantRequiredLevel: AuthLevelStepUp,
 		},
@@ -186,21 +186,21 @@ monitoring:
 			name:             "view_profile satisfied - basic auth",
 			operation:        "view_profile",
 			currentLevel:     AuthLevelBasic,
-			authTime:         time.Now().Add(-1 * time.Hour), // Within 24h max age.
+			authTime:         time.Now().UTC().Add(-1 * time.Hour), // Within 24h max age.
 			wantStepUpNeeded: false,
 		},
 		{
 			name:             "unknown operation uses default policy",
 			operation:        "unknown_operation",
 			currentLevel:     AuthLevelBasic,
-			authTime:         time.Now(),
+			authTime:         time.Now().UTC(),
 			wantStepUpNeeded: false, // Default policy requires basic.
 		},
 		{
 			name:              "unknown operation with no auth uses default policy",
 			operation:         "unknown_operation",
 			currentLevel:      AuthLevelNone,
-			authTime:          time.Now(),
+			authTime:          time.Now().UTC(),
 			wantStepUpNeeded:  true, // Default policy requires basic.
 			wantRequiredLevel: AuthLevelBasic,
 		},

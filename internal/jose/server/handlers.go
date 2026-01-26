@@ -117,7 +117,7 @@ func (s *Server) handleJWKGenerate(c *fiber.Ctx) error {
 		KeyType:    kty,
 		Algorithm:  req.Algorithm,
 		Use:        req.Use,
-		CreatedAt:  time.Now().Unix(),
+		CreatedAt:  time.Now().UTC().Unix(),
 	}
 
 	if err := s.keyStore.Store(storedKey); err != nil {

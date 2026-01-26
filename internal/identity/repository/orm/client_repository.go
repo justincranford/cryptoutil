@@ -56,7 +56,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 		}
 
 		// 4. Store ClientSecretVersion (version 1, active, no expiration).
-		now := time.Now()
+		now := time.Now().UTC()
 
 		version := &cryptoutilIdentityDomain.ClientSecretVersion{
 			ID:         googleUuid.New(),
@@ -152,7 +152,7 @@ func (r *ClientRepositoryGORM) GetAll(ctx context.Context) ([]*cryptoutilIdentit
 
 // Update updates an existing client.
 func (r *ClientRepositoryGORM) Update(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
-	client.UpdatedAt = time.Now()
+	client.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(client).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update client: %w", err))
 	}
@@ -212,12 +212,12 @@ func (r *ClientRepositoryGORM) RotateSecret(_ context.Context, clientID googleUu
 			ID:         historyID,
 			ClientID:   clientID,
 			SecretHash: client.ClientSecret,
-			RotatedAt:  time.Now(),
+			RotatedAt:  time.Now().UTC(),
 			RotatedBy:  rotatedBy,
 			Reason:     reason,
 			ExpiresAt:  nil,
-			CreatedAt:  time.Now(),
-			UpdatedAt:  time.Now(),
+			CreatedAt:  time.Now().UTC(),
+			UpdatedAt:  time.Now().UTC(),
 		}
 		if err := tx.Create(&history).Error; err != nil {
 			return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create secret history: %w", err))

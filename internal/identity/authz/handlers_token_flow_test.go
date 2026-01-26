@@ -88,8 +88,8 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 		ClientID:     "test-client-credentials",
 		ClientSecret: "$" + cryptoutilSharedMagic.PBKDF2DefaultHashName + "$i=100000,l=32$test-salt$test-hash", // Pre-hashed.
 		Name:         "Test Client",
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
 	err := clientRepo.Create(ctx, testClient)

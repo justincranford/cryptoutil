@@ -143,7 +143,7 @@ func TestVerificationService_ListPendingUsers(t *testing.T) {
 			Username:     "user" + googleUuid.NewString()[:8],
 			Email:        "user" + googleUuid.NewString()[:8] + "@example.com",
 			PasswordHash: "hash",
-			ExpiresAt:    time.Now().Add(72 * time.Hour),
+			ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 		}
 		require.NoError(t, db.Create(unverifiedUser).Error)
 	}
@@ -170,7 +170,7 @@ func TestVerificationService_ListPendingClients(t *testing.T) {
 			TenantID:         tenant.ID,
 			ClientID:         "client" + googleUuid.NewString()[:8],
 			ClientSecretHash: "secret",
-			ExpiresAt:        time.Now().Add(72 * time.Hour),
+			ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
 		}
 		require.NoError(t, db.Create(unverifiedClient).Error)
 	}
@@ -197,7 +197,7 @@ func TestVerificationService_ApproveUser_Success(t *testing.T) {
 		Username:     "pendinguser" + googleUuid.NewString()[:8],
 		Email:        "pending" + googleUuid.NewString()[:8] + "@example.com",
 		PasswordHash: "hashedpassword",
-		ExpiresAt:    time.Now().Add(72 * time.Hour),
+		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
 
@@ -239,7 +239,7 @@ func TestVerificationService_ApproveUser_ExpiredRegistration(t *testing.T) {
 		Username:     "expireduser" + googleUuid.NewString()[:8],
 		Email:        "expired" + googleUuid.NewString()[:8] + "@example.com",
 		PasswordHash: "hashedpassword",
-		ExpiresAt:    time.Now().Add(-1 * time.Hour), // Already expired.
+		ExpiresAt:    time.Now().UTC().Add(-1 * time.Hour), // Already expired.
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
 
@@ -266,7 +266,7 @@ func TestVerificationService_ApproveUser_WrongTenant(t *testing.T) {
 		Username:     "wrongtenantuser" + googleUuid.NewString()[:8],
 		Email:        "wrong" + googleUuid.NewString()[:8] + "@example.com",
 		PasswordHash: "hashedpassword",
-		ExpiresAt:    time.Now().Add(72 * time.Hour),
+		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
 
@@ -292,7 +292,7 @@ func TestVerificationService_ApproveUser_NoRoles(t *testing.T) {
 		Username:     "norolesuser" + googleUuid.NewString()[:8],
 		Email:        "noroles" + googleUuid.NewString()[:8] + "@example.com",
 		PasswordHash: "hashedpassword",
-		ExpiresAt:    time.Now().Add(72 * time.Hour),
+		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
 
@@ -317,7 +317,7 @@ func TestVerificationService_ApproveClient_Success(t *testing.T) {
 		TenantID:         tenant.ID,
 		ClientID:         "pendingclient" + googleUuid.NewString()[:8],
 		ClientSecretHash: "clientsecret",
-		ExpiresAt:        time.Now().Add(72 * time.Hour),
+		ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedClient).Error)
 
@@ -352,7 +352,7 @@ func TestVerificationService_RejectUser(t *testing.T) {
 		Username:     "rejectuser" + googleUuid.NewString()[:8],
 		Email:        "reject" + googleUuid.NewString()[:8] + "@example.com",
 		PasswordHash: "hashedpassword",
-		ExpiresAt:    time.Now().Add(72 * time.Hour),
+		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedUser).Error)
 
@@ -382,7 +382,7 @@ func TestVerificationService_RejectClient(t *testing.T) {
 		TenantID:         tenant.ID,
 		ClientID:         "rejectclient" + googleUuid.NewString()[:8],
 		ClientSecretHash: "secret",
-		ExpiresAt:        time.Now().Add(72 * time.Hour),
+		ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(unverifiedClient).Error)
 
@@ -413,7 +413,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 		Username:     "expireduser" + googleUuid.NewString()[:8],
 		Email:        "expired" + googleUuid.NewString()[:8] + "@example.com",
 		PasswordHash: "hash",
-		ExpiresAt:    time.Now().Add(-1 * time.Hour),
+		ExpiresAt:    time.Now().UTC().Add(-1 * time.Hour),
 	}
 	require.NoError(t, db.Create(expiredUser).Error)
 
@@ -423,7 +423,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 		Username:     "validuser" + googleUuid.NewString()[:8],
 		Email:        "valid" + googleUuid.NewString()[:8] + "@example.com",
 		PasswordHash: "hash",
-		ExpiresAt:    time.Now().Add(72 * time.Hour),
+		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
 	}
 	require.NoError(t, db.Create(validUser).Error)
 
@@ -433,7 +433,7 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 		TenantID:         tenant.ID,
 		ClientID:         "expiredclient" + googleUuid.NewString()[:8],
 		ClientSecretHash: "secret",
-		ExpiresAt:        time.Now().Add(-1 * time.Hour),
+		ExpiresAt:        time.Now().UTC().Add(-1 * time.Hour),
 	}
 	require.NoError(t, db.Create(expiredClient).Error)
 

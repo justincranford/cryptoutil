@@ -30,17 +30,17 @@ func TestConsentDecision_IsExpired(t *testing.T) {
 	}{
 		{
 			name:     "expired consent",
-			expiryFn: func() time.Time { return time.Now().Add(-1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(-1 * time.Hour) },
 			want:     true,
 		},
 		{
 			name:     "valid consent",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Hour) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Hour) },
 			want:     false,
 		},
 		{
 			name:     "consent expiring now",
-			expiryFn: func() time.Time { return time.Now().Add(1 * time.Millisecond) },
+			expiryFn: func() time.Time { return time.Now().UTC().Add(1 * time.Millisecond) },
 			want:     false,
 		},
 	}
@@ -77,7 +77,7 @@ func TestConsentDecision_IsRevoked(t *testing.T) {
 		{
 			name: "revoked",
 			revokedFn: func() *time.Time {
-				t := time.Now()
+				t := time.Now().UTC()
 
 				return &t
 			},

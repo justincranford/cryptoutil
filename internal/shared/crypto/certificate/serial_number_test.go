@@ -50,7 +50,7 @@ func TestGenerateSerialNumber(t *testing.T) {
 func TestRandomizedNotBeforeNotAfterCA_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	requestedDuration := 24 * time.Hour
 	minSubtract := 5 * time.Minute
 	maxSubtract := 10 * time.Minute
@@ -73,7 +73,7 @@ func TestRandomizedNotBeforeNotAfterCA_HappyPath(t *testing.T) {
 func TestRandomizedNotBeforeNotAfterCA_ExceedsMaxDuration(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	requestedDuration := cryptoutilSharedMagic.TLSDefaultMaxCACertDuration + time.Hour // Exceeds max.
 	minSubtract := 5 * time.Minute
 	maxSubtract := 10 * time.Minute
@@ -86,7 +86,7 @@ func TestRandomizedNotBeforeNotAfterCA_ExceedsMaxDuration(t *testing.T) {
 func TestRandomizedNotBeforeNotAfterEndEntity_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	requestedDuration := 24 * time.Hour
 	minSubtract := 5 * time.Minute
 	maxSubtract := 10 * time.Minute
@@ -109,7 +109,7 @@ func TestRandomizedNotBeforeNotAfterEndEntity_HappyPath(t *testing.T) {
 func TestRandomizedNotBeforeNotAfterEndEntity_ExceedsMaxDuration(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	requestedDuration := cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration + time.Hour // Exceeds max.
 	minSubtract := 5 * time.Minute
 	maxSubtract := 10 * time.Minute
@@ -122,7 +122,7 @@ func TestRandomizedNotBeforeNotAfterEndEntity_ExceedsMaxDuration(t *testing.T) {
 func TestGenerateNotBeforeNotAfter(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	requestedDuration := 48 * time.Hour
 	minSubtract := 10 * time.Minute
 	maxSubtract := 20 * time.Minute

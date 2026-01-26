@@ -346,7 +346,7 @@ func (c *CLI) ValidateCertificate(_ context.Context, cert *x509.Certificate, roo
 	opts := x509.VerifyOptions{
 		Roots:         roots,
 		Intermediates: intermediates,
-		CurrentTime:   time.Now(),
+		CurrentTime:   time.Now().UTC(),
 	}
 
 	_, err := cert.Verify(opts)

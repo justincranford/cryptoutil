@@ -93,7 +93,7 @@ func (s *BackChannelLogoutService) SendBackChannelLogout(ctx context.Context, se
 
 // generateLogoutToken creates a JWT logout token per OpenID Connect Back-Channel Logout 1.0.
 func (s *BackChannelLogoutService) generateLogoutToken(ctx context.Context, session *cryptoutilIdentityDomain.Session, client *cryptoutilIdentityDomain.Client) (string, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Build logout token claims as a map for the token service.
 	claims := map[string]any{

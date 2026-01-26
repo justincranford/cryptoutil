@@ -373,8 +373,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 
 				err := tokenRepo.Create(ctx, token)
@@ -391,8 +391,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 				err := tokenRepo.Create(ctx, token)
 				require.NoError(t, err)
@@ -412,8 +412,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 				err := tokenRepo.Create(ctx, token)
 				require.NoError(t, err)
@@ -432,8 +432,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 				err := tokenRepo.Create(ctx, token)
 				require.NoError(t, err)
@@ -456,8 +456,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 				err := tokenRepo.Create(ctx, token)
 				require.NoError(t, err)
@@ -475,8 +475,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 				token2 := &cryptoutilIdentityDomain.Token{
 					TokenValue:  "test-token-2-" + googleUuid.Must(googleUuid.NewV7()).String(),
@@ -484,8 +484,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 
 				err := tokenRepo.Create(ctx, token1)
@@ -507,8 +507,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    testClient.ID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now(),
-					ExpiresAt:   time.Now().Add(time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 				}
 				err := tokenRepo.Create(ctx, token)
 				require.NoError(t, err)
@@ -560,8 +560,8 @@ func TestSessionRepository_CRUD(t *testing.T) {
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 
 				err := sessionRepo.Create(ctx, session)
@@ -576,8 +576,8 @@ func TestSessionRepository_CRUD(t *testing.T) {
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 				err := sessionRepo.Create(ctx, session)
 				require.NoError(t, err)
@@ -595,8 +595,8 @@ func TestSessionRepository_CRUD(t *testing.T) {
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 				err := sessionRepo.Create(ctx, session)
 				require.NoError(t, err)
@@ -613,8 +613,8 @@ func TestSessionRepository_CRUD(t *testing.T) {
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 				err := sessionRepo.Create(ctx, session)
 				require.NoError(t, err)
@@ -635,8 +635,8 @@ func TestSessionRepository_CRUD(t *testing.T) {
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 				err := sessionRepo.Create(ctx, session)
 				require.NoError(t, err)
@@ -652,15 +652,15 @@ func TestSessionRepository_CRUD(t *testing.T) {
 					SessionID: "test-session-1-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 				session2 := &cryptoutilIdentityDomain.Session{
 					SessionID: "test-session-2-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 
 				err := sessionRepo.Create(ctx, session1)
@@ -680,8 +680,8 @@ func TestSessionRepository_CRUD(t *testing.T) {
 					SessionID: "test-session-" + googleUuid.Must(googleUuid.NewV7()).String(),
 					UserID:    testUser.ID,
 					Active:    boolPtr(true),
-					IssuedAt:  time.Now(),
-					ExpiresAt: time.Now().Add(time.Hour),
+					IssuedAt:  time.Now().UTC(),
+					ExpiresAt: time.Now().UTC().Add(time.Hour),
 				}
 				err := sessionRepo.Create(ctx, session)
 				require.NoError(t, err)

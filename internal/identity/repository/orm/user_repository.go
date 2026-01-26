@@ -95,7 +95,7 @@ func (r *UserRepositoryGORM) GetByEmail(ctx context.Context, email string) (*cry
 
 // Update updates an existing user.
 func (r *UserRepositoryGORM) Update(ctx context.Context, user *cryptoutilIdentityDomain.User) error {
-	user.UpdatedAt = time.Now()
+	user.UpdatedAt = time.Now().UTC()
 	if err := getDB(ctx, r.db).WithContext(ctx).Save(user).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update user: %w", err))
 	}

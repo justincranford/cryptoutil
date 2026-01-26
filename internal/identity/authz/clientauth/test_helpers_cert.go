@@ -30,8 +30,8 @@ func createTestCAForAuth(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 		Subject: pkix.Name{
 			CommonName: "Test CA",
 		},
-		NotBefore:             time.Now().Add(-testCertValidityHours * time.Hour),
-		NotAfter:              time.Now().Add(testCertValidityHours * time.Hour),
+		NotBefore:             time.Now().UTC().Add(-testCertValidityHours * time.Hour),
+		NotAfter:              time.Now().UTC().Add(testCertValidityHours * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -57,8 +57,8 @@ func createTestClientCertForAuth(t *testing.T, caCert *x509.Certificate, caKey *
 		Subject: pkix.Name{
 			CommonName: "Test Client",
 		},
-		NotBefore: time.Now().Add(-1 * time.Hour),
-		NotAfter:  time.Now().Add(testCertValidityHours * time.Hour),
+		NotBefore: time.Now().UTC().Add(-1 * time.Hour),
+		NotAfter:  time.Now().UTC().Add(testCertValidityHours * time.Hour),
 		KeyUsage:  x509.KeyUsageDigitalSignature,
 	}
 

@@ -44,7 +44,7 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 
 	// Step 1: Create client with version 1 secret
 	client := createTestClient(t, db, "lifecycle-client")
-	_ = createTestSecret(t, db, client.ID, 1, time.Now().Add(48*time.Hour))
+	_ = createTestSecret(t, db, client.ID, 1, time.Now().UTC().Add(48*time.Hour))
 
 	// Verify: 1 active secret (version 1)
 	activeSecrets, err := rotationService.GetActiveSecretVersions(ctx, client.ID)
@@ -71,7 +71,7 @@ func TestCompleteRotationLifecycle(t *testing.T) {
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&secret1Fresh).Error
 	require.NoError(t, err)
 
-	secret1Fresh.ExpiresAt = timePtr(time.Now().Add(-1 * time.Hour))
+	secret1Fresh.ExpiresAt = timePtr(time.Now().UTC().Add(-1 * time.Hour))
 	err = db.Save(&secret1Fresh).Error
 	require.NoError(t, err)
 
@@ -130,7 +130,7 @@ func TestMultiClientConcurrentRotation(t *testing.T) {
 	clients := make([]*cryptoutilIdentityDomain.Client, clientCount)
 	for i := 0; i < clientCount; i++ {
 		clients[i] = createTestClient(t, db, googleUuid.NewString())
-		createTestSecret(t, db, clients[i].ID, 1, time.Now().Add(48*time.Hour))
+		createTestSecret(t, db, clients[i].ID, 1, time.Now().UTC().Add(48*time.Hour))
 	}
 
 	// Step 2: Rotate all 5 clients concurrently
@@ -176,7 +176,7 @@ func TestGracePeriodOverlap(t *testing.T) {
 
 	// Step 1: Create client with version 1 secret
 	client := createTestClient(t, db, "overlap-client")
-	createTestSecret(t, db, client.ID, 1, time.Now().Add(48*time.Hour))
+	createTestSecret(t, db, client.ID, 1, time.Now().UTC().Add(48*time.Hour))
 
 	// Rotate to version 2 (24h grace)
 	_, err := rotationService.RotateClientSecret(ctx, client.ID, gracePeriod, "admin", "first rotation")
@@ -193,7 +193,7 @@ func TestGracePeriodOverlap(t *testing.T) {
 	err = db.Where("client_id = ? AND version = ?", client.ID, 1).First(&secret1).Error
 	require.NoError(t, err)
 
-	secret1.ExpiresAt = timePtr(time.Now().Add(12 * time.Hour)) // 12h remaining
+	secret1.ExpiresAt = timePtr(time.Now().UTC().Add(12 * time.Hour)) // 12h remaining
 	err = db.Save(&secret1).Error
 	require.NoError(t, err)
 
@@ -210,7 +210,7 @@ func TestGracePeriodOverlap(t *testing.T) {
 	require.Equal(t, 1, activeSecrets[2].Version)
 
 	// Step 4: Simulate version 1 expiration (set expires_at in past)
-	secret1.ExpiresAt = timePtr(time.Now().Add(-1 * time.Hour))
+	secret1.ExpiresAt = timePtr(time.Now().UTC().Add(-1 * time.Hour))
 	err = db.Save(&secret1).Error
 	require.NoError(t, err)
 

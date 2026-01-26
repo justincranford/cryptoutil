@@ -95,7 +95,7 @@ func (r *TenantRepositoryImpl) List(ctx context.Context, activeOnly bool) ([]*Te
 
 // Update updates a tenant.
 func (r *TenantRepositoryImpl) Update(ctx context.Context, tenant *Tenant) error {
-	tenant.UpdatedAt = time.Now()
+	tenant.UpdatedAt = time.Now().UTC()
 
 	if err := r.db.WithContext(ctx).Save(tenant).Error; err != nil {
 		return toAppErr(err)

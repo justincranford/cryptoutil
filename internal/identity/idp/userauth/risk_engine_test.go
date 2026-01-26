@@ -175,7 +175,7 @@ behavior_risks: {}
 		KnownDevices:  []string{"device-fingerprint-1"},
 		TypicalHours:  []int{9, 10, 11, 14, 15, 16},
 		KnownNetworks: []string{"192.168.1.1"},
-		LastAuthTime:  time.Now().Add(-1 * time.Hour),
+		LastAuthTime:  time.Now().UTC().Add(-1 * time.Hour),
 	}
 
 	userHistory := &mockUserBehaviorStore{
@@ -516,7 +516,7 @@ func TestRiskBasedAuthenticator_Authenticate(t *testing.T) {
 					Location: &GeoLocation{Country: "US"},
 					Device:   &DeviceFingerprint{ID: "test-device"},
 					Network:  &NetworkInfo{IPAddress: "192.168.1.1"},
-					Time:     time.Now(),
+					Time:     time.Now().UTC(),
 				},
 			}
 

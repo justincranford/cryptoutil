@@ -74,7 +74,7 @@ func TestAnalyzeContext(t *testing.T) {
 				UserID:    "user-1",
 				IPAddress: "192.168.1.1",
 				UserAgent: "Mozilla/5.0",
-				Timestamp: time.Now(),
+				Timestamp: time.Now().UTC(),
 			},
 			expectGeo: true,
 			expectDev: true,
@@ -86,7 +86,7 @@ func TestAnalyzeContext(t *testing.T) {
 			request: &AuthRequest{
 				UserID:    "user-1",
 				IPAddress: "192.168.1.1",
-				Timestamp: time.Now(),
+				Timestamp: time.Now().UTC(),
 			},
 			expectGeo: false,
 			expectDev: false,

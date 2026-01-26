@@ -202,7 +202,7 @@ func TestSessionManager_ValidateBrowserSession_OPAQUE_ExpiredSession(t *testing.
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
 
-	pastTime := time.Now().Add(-1 * time.Hour)
+	pastTime := time.Now().UTC().Add(-1 * time.Hour)
 	updateErr := sm.db.Model(&session).Update("expiration", pastTime).Error
 	require.NoError(t, updateErr)
 
@@ -280,7 +280,7 @@ func TestSessionManager_CleanupExpiredSessions_ExpiredByTime(t *testing.T) {
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
 
-	pastTime := time.Now().Add(-1 * time.Hour)
+	pastTime := time.Now().UTC().Add(-1 * time.Hour)
 	updateErr := sm.db.Model(&session).Update("expiration", pastTime).Error
 	require.NoError(t, updateErr)
 
@@ -316,7 +316,7 @@ func TestSessionManager_CleanupExpiredSessions_IdleTimeout(t *testing.T) {
 	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
 	require.NoError(t, findErr)
 
-	pastActivity := time.Now().Add(-3 * time.Hour) // Beyond 2h idle timeout
+	pastActivity := time.Now().UTC().Add(-3 * time.Hour) // Beyond 2h idle timeout
 	updateErr := sm.db.Model(&session).Update("last_activity", pastActivity).Error
 	require.NoError(t, updateErr)
 

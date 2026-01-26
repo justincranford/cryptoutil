@@ -27,8 +27,8 @@ func TestMessage_FieldTypes(t *testing.T) {
 
 	senderID := googleUuid.New()
 	messageID := googleUuid.New()
-	createdAt := time.Now()
-	readAt := time.Now().Add(10 * time.Minute)
+	createdAt := time.Now().UTC()
+	readAt := time.Now().UTC().Add(10 * time.Minute)
 	jwe := `{"protected":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIn0","iv":"test","ciphertext":"test","tag":"test"}`
 
 	m := cryptoutilAppsCipherImDomain.Message{
@@ -60,7 +60,7 @@ func TestMessage_NilReadAt(t *testing.T) {
 		ID:        googleUuid.New(),
 		SenderID:  googleUuid.New(),
 		JWE:       "test-jwe",
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 		ReadAt:    nil, // Message not read yet
 	}
 

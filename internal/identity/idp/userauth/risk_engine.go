@@ -189,7 +189,7 @@ func (e *BehavioralRiskEngine) AssessRisk(ctx context.Context, userID string, au
 		Level:      level,
 		Factors:    factors,
 		Confidence: confidence,
-		AssessedAt: time.Now(),
+		AssessedAt: time.Now().UTC(),
 	}, nil
 }
 

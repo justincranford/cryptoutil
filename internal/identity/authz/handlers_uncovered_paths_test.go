@@ -73,8 +73,8 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 					Scope:               "openid profile",
 					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-					CreatedAt:           time.Now(),
-					ExpiresAt:           time.Now().Add(10 * time.Minute),
+					CreatedAt:           time.Now().UTC(),
+					ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 					ConsentGranted:      true,
 					// UserID NOT SET - this is the error condition we're testing
 				}
@@ -164,7 +164,7 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 
 				// Create token that's already revoked.
 				tokenValue := "revoked-token-" + googleUuid.NewString()
-				now := time.Now()
+				now := time.Now().UTC()
 				token := &cryptoutilIdentityDomain.Token{
 					ID:          googleUuid.Must(googleUuid.NewV7()),
 					ClientID:    client.ID, // Use client.ID (UUID), not ClientID (string)
@@ -172,9 +172,9 @@ func TestHandleRevoke_ErrorPaths(t *testing.T) {
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
 					Scopes:      []string{"read"},
-					ExpiresAt:   time.Now().Add(1 * time.Hour),
-					IssuedAt:    time.Now(),
-					NotBefore:   time.Now(),
+					ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
+					IssuedAt:    time.Now().UTC(),
+					NotBefore:   time.Now().UTC(),
 					Revoked:     true,
 					RevokedAt:   &now, // Already revoked
 				}

@@ -90,7 +90,7 @@ func (Token) TableName() string {
 
 // IsExpired checks if the token has expired.
 func (t *Token) IsExpired() bool {
-	return time.Now().After(t.ExpiresAt)
+	return time.Now().UTC().After(t.ExpiresAt)
 }
 
 // IsValid checks if the token is valid (not expired and not revoked).

@@ -106,8 +106,8 @@ func createTestCA(t *testing.T) (*x509.Certificate, *ecdsa.PrivateKey) {
 		Subject: pkix.Name{
 			CommonName: "Test CA",
 		},
-		NotBefore:             time.Now().Add(-1 * time.Hour),
-		NotAfter:              time.Now().Add(24 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
 		KeyUsage:              x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
@@ -134,8 +134,8 @@ func createTestClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecdsa.P
 		Subject: pkix.Name{
 			CommonName: "Test Client",
 		},
-		NotBefore: time.Now().Add(-1 * time.Hour),
-		NotAfter:  time.Now().Add(24 * time.Hour),
+		NotBefore: time.Now().UTC().Add(-1 * time.Hour),
+		NotAfter:  time.Now().UTC().Add(24 * time.Hour),
 		KeyUsage:  x509.KeyUsageDigitalSignature,
 	}
 
@@ -160,8 +160,8 @@ func createExpiredClientCert(t *testing.T, caCert *x509.Certificate, caKey *ecds
 		Subject: pkix.Name{
 			CommonName: "Expired Client",
 		},
-		NotBefore:   time.Now().Add(-48 * time.Hour),
-		NotAfter:    time.Now().Add(-24 * time.Hour), // Expired.
+		NotBefore:   time.Now().UTC().Add(-48 * time.Hour),
+		NotAfter:    time.Now().UTC().Add(-24 * time.Hour), // Expired.
 		KeyUsage:    x509.KeyUsageDigitalSignature,
 		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
@@ -200,8 +200,8 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 			CommonName:   "Test Self-Signed Client",
 			Organization: []string{"Test Org"},
 		},
-		NotBefore:             time.Now().Add(-1 * time.Hour),
-		NotAfter:              time.Now().Add(24 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(-1 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(24 * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -220,8 +220,8 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 			CommonName:   "Expired Client",
 			Organization: []string{"Test Org"},
 		},
-		NotBefore:             time.Now().Add(-48 * time.Hour),
-		NotAfter:              time.Now().Add(-24 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(-48 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(-24 * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -240,8 +240,8 @@ func TestSelfSignedCertificateValidator_ValidateCertificate(t *testing.T) {
 			CommonName:   "Future Client",
 			Organization: []string{"Test Org"},
 		},
-		NotBefore:             time.Now().Add(24 * time.Hour),
-		NotAfter:              time.Now().Add(48 * time.Hour),
+		NotBefore:             time.Now().UTC().Add(24 * time.Hour),
+		NotAfter:              time.Now().UTC().Add(48 * time.Hour),
 		KeyUsage:              x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
@@ -341,8 +341,8 @@ func TestCertificateParser_ParsePEMCertificate(t *testing.T) {
 		Subject: pkix.Name{
 			CommonName: "Test Certificate",
 		},
-		NotBefore: time.Now().Add(-1 * time.Hour),
-		NotAfter:  time.Now().Add(24 * time.Hour),
+		NotBefore: time.Now().UTC().Add(-1 * time.Hour),
+		NotAfter:  time.Now().UTC().Add(24 * time.Hour),
 	}
 
 	certDER, err := x509.CreateCertificate(crand.Reader, template, template, &privKey.PublicKey, privKey)

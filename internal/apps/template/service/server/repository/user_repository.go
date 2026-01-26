@@ -90,7 +90,7 @@ func (r *UserRepositoryImpl) ListByTenant(ctx context.Context, tenantID googleUu
 
 // Update updates a user.
 func (r *UserRepositoryImpl) Update(ctx context.Context, user *User) error {
-	user.UpdatedAt = time.Now()
+	user.UpdatedAt = time.Now().UTC()
 
 	return toAppErr(r.db.WithContext(ctx).Save(user).Error)
 }
@@ -166,7 +166,7 @@ func (r *ClientRepositoryImpl) ListByTenant(ctx context.Context, tenantID google
 
 // Update updates a client.
 func (r *ClientRepositoryImpl) Update(ctx context.Context, client *Client) error {
-	client.UpdatedAt = time.Now()
+	client.UpdatedAt = time.Now().UTC()
 
 	return toAppErr(r.db.WithContext(ctx).Save(client).Error)
 }
@@ -241,7 +241,7 @@ func (r *UnverifiedUserRepositoryImpl) Delete(ctx context.Context, id googleUuid
 
 // DeleteExpired deletes all expired unverified users.
 func (r *UnverifiedUserRepositoryImpl) DeleteExpired(ctx context.Context) (int64, error) {
-	result := r.db.WithContext(ctx).Where("expires_at < ?", time.Now()).Delete(&UnverifiedUser{})
+	result := r.db.WithContext(ctx).Where("expires_at < ?", time.Now().UTC()).Delete(&UnverifiedUser{})
 
 	if result.Error != nil {
 		return 0, toAppErr(result.Error)
@@ -315,7 +315,7 @@ func (r *UnverifiedClientRepositoryImpl) Delete(ctx context.Context, id googleUu
 
 // DeleteExpired deletes all expired unverified clients.
 func (r *UnverifiedClientRepositoryImpl) DeleteExpired(ctx context.Context) (int64, error) {
-	result := r.db.WithContext(ctx).Where("expires_at < ?", time.Now()).Delete(&UnverifiedClient{})
+	result := r.db.WithContext(ctx).Where("expires_at < ?", time.Now().UTC()).Delete(&UnverifiedClient{})
 
 	if result.Error != nil {
 		return 0, toAppErr(result.Error)

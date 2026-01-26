@@ -89,12 +89,12 @@ func TestHandleEndSession_GET(t *testing.T) {
 		SessionID:             googleUuid.Must(googleUuid.NewV7()).String(),
 		IPAddress:             "127.0.0.1",
 		UserAgent:             "test-agent",
-		IssuedAt:              time.Now(),
-		ExpiresAt:             time.Now().Add(1 * time.Hour),
-		LastSeenAt:            time.Now(),
+		IssuedAt:              time.Now().UTC(),
+		ExpiresAt:             time.Now().UTC().Add(1 * time.Hour),
+		LastSeenAt:            time.Now().UTC(),
 		Active:                boolPtr(true),
 		AuthenticationMethods: []string{"username_password"},
-		AuthenticationTime:    time.Now(),
+		AuthenticationTime:    time.Now().UTC(),
 	}
 	sessionRepo := repoFactory.SessionRepository()
 	require.NoError(t, sessionRepo.Create(ctx, testSession))

@@ -74,7 +74,7 @@ func TestJTIReplayCacheRepository_Store(t *testing.T) {
 	ctx := context.Background()
 	jti := "test-jti-" + googleUuid.NewString()
 	clientID := googleUuid.New()
-	expiresAt := time.Now().Add(10 * time.Minute)
+	expiresAt := time.Now().UTC().Add(10 * time.Minute)
 
 	// First store should succeed
 	err := repo.Store(ctx, jti, clientID, expiresAt)
@@ -96,7 +96,7 @@ func TestJTIReplayCacheRepository_Exists(t *testing.T) {
 	ctx := context.Background()
 	jti := "test-jti-" + googleUuid.NewString()
 	clientID := googleUuid.New()
-	expiresAt := time.Now().Add(10 * time.Minute)
+	expiresAt := time.Now().UTC().Add(10 * time.Minute)
 
 	// JTI should not exist initially
 	exists, err := repo.Exists(ctx, jti)

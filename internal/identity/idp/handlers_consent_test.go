@@ -169,8 +169,8 @@ func TestHandleConsentSubmit_POST(t *testing.T) {
 		ResponseType: "code",
 		Scope:        "openid profile",
 		State:        "test-state",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()
 	require.NoError(t, authzReqRepo.Create(ctx, authzReq))

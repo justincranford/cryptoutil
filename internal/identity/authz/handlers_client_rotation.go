@@ -98,7 +98,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"client_id":     client.ClientID,
 		"client_secret": newSecretPlaintext,
-		"rotated_at":    time.Now(),
+		"rotated_at":    time.Now().UTC(),
 		"message":       "Client secret rotated successfully. Store this secret securely - it will not be shown again.",
 	})
 }

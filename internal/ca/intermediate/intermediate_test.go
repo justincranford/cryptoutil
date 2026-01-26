@@ -440,7 +440,7 @@ func TestProvisioner_Provision_ChainVerification(t *testing.T) {
 
 	opts := x509.VerifyOptions{
 		Roots:       rootPool,
-		CurrentTime: time.Now(),
+		CurrentTime: time.Now().UTC(),
 	}
 
 	chains, err := intermediateCA.Certificate.Verify(opts)

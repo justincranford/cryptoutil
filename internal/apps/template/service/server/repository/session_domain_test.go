@@ -54,8 +54,8 @@ func TestSession_IsExpired(t *testing.T) {
 		expiration time.Time
 		expected   bool
 	}{
-		{"Expired session", time.Now().Add(-1 * time.Hour), true},
-		{"Not expired session", time.Now().Add(1 * time.Hour), false},
+		{"Expired session", time.Now().UTC().Add(-1 * time.Hour), true},
+		{"Not expired session", time.Now().UTC().Add(1 * time.Hour), false},
 	}
 
 	for _, tt := range tests {

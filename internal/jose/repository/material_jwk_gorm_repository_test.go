@@ -40,8 +40,8 @@ func createMaterialJWKTestTenantAndRealm(t *testing.T, db *gorm.DB) (googleUuid.
 		Name:        "test-tenant-" + tenantID.String(),
 		Description: "Test tenant for MaterialJWK tests",
 		Active:      1,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}
 	err := db.Create(&tenant).Error
 	require.NoError(t, err)
@@ -53,8 +53,8 @@ func createMaterialJWKTestTenantAndRealm(t *testing.T, db *gorm.DB) (googleUuid.
 		Type:      "username_password",
 		Active:    true,
 		Source:    "db",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 	}
 	err = db.Create(&realm).Error
 	require.NoError(t, err)
@@ -76,7 +76,7 @@ func createTestElasticJWK(t *testing.T, db *gorm.DB, tenantID, realmID googleUui
 		USE:                  "sig",
 		MaxMaterials:         1000,
 		CurrentMaterialCount: 0,
-		CreatedAt:            time.Now().UnixMilli(),
+		CreatedAt:            time.Now().UTC().UnixMilli(),
 	}
 	err := db.Create(elasticJWK).Error
 	require.NoError(t, err)

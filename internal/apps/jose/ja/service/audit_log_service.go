@@ -81,7 +81,7 @@ func (s *auditLogServiceImpl) LogOperation(ctx context.Context, tenantID googleU
 		Success:      success,
 		ErrorMessage: errorMessage,
 		RequestID:    requestID,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 
 	// Store audit log.

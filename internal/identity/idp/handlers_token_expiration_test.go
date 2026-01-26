@@ -64,8 +64,8 @@ func TestTokenExpiration(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now().Add(-10 * time.Minute),
-					ExpiresAt:   time.Now().Add(50 * time.Minute), // Valid for 50 more minutes.
+					IssuedAt:    time.Now().UTC().Add(-10 * time.Minute),
+					ExpiresAt:   time.Now().UTC().Add(50 * time.Minute), // Valid for 50 more minutes.
 				}
 
 				err = db.Create(token).Error
@@ -103,8 +103,8 @@ func TestTokenExpiration(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now().Add(-70 * time.Minute),
-					ExpiresAt:   time.Now().Add(-10 * time.Minute), // Expired 10 minutes ago.
+					IssuedAt:    time.Now().UTC().Add(-70 * time.Minute),
+					ExpiresAt:   time.Now().UTC().Add(-10 * time.Minute), // Expired 10 minutes ago.
 				}
 
 				err = db.Create(token).Error
@@ -142,8 +142,8 @@ func TestTokenExpiration(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					Scopes:      []string{"openid", "profile"},
-					IssuedAt:    time.Now().Add(-59 * time.Minute),
-					ExpiresAt:   time.Now().Add(1 * time.Minute), // Expires in 1 minute (within grace).
+					IssuedAt:    time.Now().UTC().Add(-59 * time.Minute),
+					ExpiresAt:   time.Now().UTC().Add(1 * time.Minute), // Expires in 1 minute (within grace).
 				}
 
 				err = db.Create(token).Error

@@ -116,7 +116,7 @@ func (r *DBRealmRepository) CreateUser(ctx context.Context, user *DBRealmUser, p
 	}
 
 	user.PasswordHash = hash
-	user.CreatedAt = time.Now()
+	user.CreatedAt = time.Now().UTC()
 	user.UpdatedAt = user.CreatedAt
 
 	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
@@ -162,7 +162,7 @@ func (r *DBRealmRepository) UpdateUser(ctx context.Context, user *DBRealmUser) e
 		return errors.New("user cannot be nil")
 	}
 
-	user.UpdatedAt = time.Now()
+	user.UpdatedAt = time.Now().UTC()
 
 	if err := r.db.WithContext(ctx).Save(user).Error; err != nil {
 		return fmt.Errorf("failed to update user: %w", err)
@@ -180,7 +180,7 @@ func (r *DBRealmRepository) UpdatePassword(ctx context.Context, userID, newPassw
 
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
 		"password_hash": hash,
-		"updated_at":    time.Now(),
+		"updated_at":    time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to update password: %w", err)
 	}
@@ -221,7 +221,7 @@ func (r *DBRealmRepository) ListUsers(ctx context.Context, realmID string, limit
 // Authenticate verifies user credentials and returns an auth result.
 func (r *DBRealmRepository) Authenticate(ctx context.Context, realmID, username, password string) (*AuthResult, error) {
 	result := &AuthResult{
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 		RealmID:   realmID,
 	}
 
@@ -258,7 +258,7 @@ func (r *DBRealmRepository) Authenticate(ctx context.Context, realmID, username,
 	}
 
 	// Update last login.
-	now := time.Now()
+	now := time.Now().UTC()
 	user.LastLoginAt = &now
 
 	if err := r.UpdateUser(ctx, user); err != nil {
@@ -320,7 +320,7 @@ func (r *DBRealmRepository) CountUsers(ctx context.Context, realmID string) (int
 func (r *DBRealmRepository) EnableUser(ctx context.Context, userID string) error {
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
 		"enabled":    true,
-		"updated_at": time.Now(),
+		"updated_at": time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to enable user: %w", err)
 	}
@@ -332,7 +332,7 @@ func (r *DBRealmRepository) EnableUser(ctx context.Context, userID string) error
 func (r *DBRealmRepository) DisableUser(ctx context.Context, userID string) error {
 	if err := r.db.WithContext(ctx).Model(&DBRealmUser{}).Where("id = ?", userID).Updates(map[string]any{
 		"enabled":    false,
-		"updated_at": time.Now(),
+		"updated_at": time.Now().UTC(),
 	}).Error; err != nil {
 		return fmt.Errorf("failed to disable user: %w", err)
 	}

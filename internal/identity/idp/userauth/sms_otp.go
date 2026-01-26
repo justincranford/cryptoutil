@@ -81,7 +81,7 @@ func (a *SMSOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (
 		ID:        googleUuid.Must(googleUuid.NewV7()),
 		UserID:    userID,
 		Method:    a.Method(),
-		ExpiresAt: time.Now().Add(a.otpExpiration),
+		ExpiresAt: time.Now().UTC().Add(a.otpExpiration),
 		Metadata:  map[string]any{"phone": user.PhoneNumber},
 	}
 
@@ -127,7 +127,7 @@ func (a *SMSOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respo
 	}
 
 	// Check expiration.
-	if time.Now().After(challenge.ExpiresAt) {
+	if time.Now().UTC().After(challenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := a.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)

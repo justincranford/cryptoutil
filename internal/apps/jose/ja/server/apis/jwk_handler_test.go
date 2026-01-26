@@ -484,7 +484,7 @@ func TestHandleGetElasticJWK_Success(t *testing.T) {
 		Use:                  "sig",
 		MaxMaterials:         10,
 		CurrentMaterialCount: 1,
-		CreatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
 	}
 	elasticRepo.On("Get", mock.Anything, tenantID, kid.String()).
 		Return(expectedJWK, nil)
@@ -557,7 +557,7 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 			Use:                  "sig",
 			MaxMaterials:         10,
 			CurrentMaterialCount: 1,
-			CreatedAt:            time.Now(),
+			CreatedAt:            time.Now().UTC(),
 		},
 		{
 			ID:                   googleUuid.New(),
@@ -568,7 +568,7 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 			Use:                  "enc",
 			MaxMaterials:         5,
 			CurrentMaterialCount: 0,
-			CreatedAt:            time.Now(),
+			CreatedAt:            time.Now().UTC(),
 		},
 	}
 	elasticRepo.On("List", mock.Anything, tenantID, 0, 100).
@@ -724,7 +724,7 @@ func TestHandleListMaterialJWKs_Success(t *testing.T) {
 			ElasticJWKID: elasticID,
 			MaterialKID:  "material-1",
 			Active:       true,
-			CreatedAt:    time.Now(),
+			CreatedAt:    time.Now().UTC(),
 		},
 	}
 
@@ -768,7 +768,7 @@ func TestHandleGetActiveMaterialJWK_Success(t *testing.T) {
 		ElasticJWKID: elasticID,
 		MaterialKID:  "active-material",
 		Active:       true,
-		CreatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
@@ -1665,7 +1665,7 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 		KID:      kid,
 	}
 
-	retiredAt := time.Now().Add(-24 * time.Hour)
+	retiredAt := time.Now().UTC().Add(-24 * time.Hour)
 	materials := []*cryptoutilAppsJoseJaDomain.MaterialJWK{
 		{
 			ID:           googleUuid.New(),
@@ -1673,7 +1673,7 @@ func TestHandleListMaterialJWKs_WithRetiredMaterial(t *testing.T) {
 			MaterialKID:  "material-retired",
 			Active:       false,
 			RetiredAt:    &retiredAt,
-			CreatedAt:    time.Now().Add(-48 * time.Hour),
+			CreatedAt:    time.Now().UTC().Add(-48 * time.Hour),
 		},
 	}
 

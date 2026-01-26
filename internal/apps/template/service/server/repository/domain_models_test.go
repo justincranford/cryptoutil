@@ -85,8 +85,8 @@ func TestUnverifiedUser_IsExpired(t *testing.T) {
 		expiresAt time.Time
 		expected  bool
 	}{
-		{"Expired user", time.Now().Add(-1 * time.Hour), true},
-		{"Not expired user", time.Now().Add(1 * time.Hour), false},
+		{"Expired user", time.Now().UTC().Add(-1 * time.Hour), true},
+		{"Not expired user", time.Now().UTC().Add(1 * time.Hour), false},
 	}
 
 	for _, tt := range tests {
@@ -116,8 +116,8 @@ func TestUnverifiedClient_IsExpired(t *testing.T) {
 		expiresAt time.Time
 		expected  bool
 	}{
-		{"Expired client", time.Now().Add(-1 * time.Hour), true},
-		{"Not expired client", time.Now().Add(1 * time.Hour), false},
+		{"Expired client", time.Now().UTC().Add(-1 * time.Hour), true},
+		{"Not expired client", time.Now().UTC().Add(1 * time.Hour), false},
 	}
 
 	for _, tt := range tests {

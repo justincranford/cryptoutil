@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 	testTLSCfg = resources.TLSCfg
 
 	// Record start time for benchmark.
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	// Run all tests (defer statements will execute cleanup AFTER m.Run() completes).
 	exitCode := m.Run()

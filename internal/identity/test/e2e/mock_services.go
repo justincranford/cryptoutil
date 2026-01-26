@@ -252,8 +252,8 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 			"active":     true,
 			"client_id":  "spa-client",
 			"token_type": "Bearer",
-			"exp":        time.Now().Add(time.Hour).Unix(),
-			"iat":        time.Now().Unix(),
+			"exp":        time.Now().UTC().Add(time.Hour).Unix(),
+			"iat":        time.Now().UTC().Unix(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -374,7 +374,7 @@ func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
 			"email_verified": true,
 			"profile":        "https://example.com/profile/test_user",
 			"picture":        "https://example.com/avatar/test_user.jpg",
-			"updated_at":     time.Now().Unix(),
+			"updated_at":     time.Now().UTC().Unix(),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -501,7 +501,7 @@ func (tms *TestableMockServices) startSPARPServer(ctx context.Context) error {
 		response := map[string]any{
 			"code":        code,
 			"state":       state,
-			"received_at": time.Now().Format(time.RFC3339),
+			"received_at": time.Now().UTC().Format(time.RFC3339),
 		}
 
 		w.Header().Set("Content-Type", "application/json")

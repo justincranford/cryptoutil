@@ -34,7 +34,7 @@ func NewProgressDisplay(config *Config) *ProgressDisplay {
 		noColor:   config.NoColor,
 		quiet:     config.Quiet,
 		verbose:   config.Verbose,
-		startTime: time.Now(),
+		startTime: time.Now().UTC(),
 		stepCount: 0,
 		stepTotal: 0,
 	}

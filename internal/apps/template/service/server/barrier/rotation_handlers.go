@@ -84,7 +84,7 @@ func HandleRotateRootKey(rotationService *RotationService) fiber.Handler {
 			OldKeyUUID: result.OldKeyUUID.String(),
 			NewKeyUUID: result.NewKeyUUID.String(),
 			Reason:     result.Reason,
-			RotatedAt:  time.Now().UnixMilli(),
+			RotatedAt:  time.Now().UTC().UnixMilli(),
 		})
 	}
 }
@@ -127,7 +127,7 @@ func HandleRotateIntermediateKey(rotationService *RotationService) fiber.Handler
 			OldKeyUUID: result.OldKeyUUID.String(),
 			NewKeyUUID: result.NewKeyUUID.String(),
 			Reason:     result.Reason,
-			RotatedAt:  time.Now().UnixMilli(),
+			RotatedAt:  time.Now().UTC().UnixMilli(),
 		})
 	}
 }
@@ -169,7 +169,7 @@ func HandleRotateContentKey(rotationService *RotationService) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(&RotateContentKeyResponse{
 			NewKeyUUID: result.NewKeyUUID.String(),
 			Reason:     result.Reason,
-			RotatedAt:  time.Now().UnixMilli(),
+			RotatedAt:  time.Now().UTC().UnixMilli(),
 		})
 	}
 }

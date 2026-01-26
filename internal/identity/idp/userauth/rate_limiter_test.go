@@ -25,7 +25,7 @@ func TestDatabaseRateLimitStoreRecordAttempt(t *testing.T) {
 
 	ctx := context.Background()
 	key := "user-123"
-	timestamp := time.Now()
+	timestamp := time.Now().UTC()
 
 	err = store.RecordAttempt(ctx, key, timestamp)
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestDatabaseRateLimitStoreCountAttempts(t *testing.T) {
 
 	ctx := context.Background()
 	key := "user-456"
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Record 3 attempts: 2 within 1 hour, 1 older.
 	err = store.RecordAttempt(ctx, key, now.Add(-30*time.Minute))
@@ -76,7 +76,7 @@ func TestDatabaseRateLimitStoreCleanupExpired(t *testing.T) {
 
 	ctx := context.Background()
 	key := "user-789"
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Record attempts at different times.
 	err = store.RecordAttempt(ctx, key, now.Add(-3*time.Hour))
@@ -219,7 +219,7 @@ func TestPerUserRateLimiterCleanup(t *testing.T) {
 	userID := googleUuid.New()
 
 	// Record old attempt.
-	err = store.RecordAttempt(ctx, userID.String(), time.Now().Add(-3*time.Hour))
+	err = store.RecordAttempt(ctx, userID.String(), time.Now().UTC().Add(-3*time.Hour))
 	require.NoError(t, err)
 
 	// Before cleanup: 1 attempt.
@@ -433,7 +433,7 @@ func TestPerIPRateLimiterCleanup(t *testing.T) {
 
 	// Record some test data.
 	testIP := "192.168.1.1"
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Record an old attempt (older than window).
 	err = store.RecordAttempt(ctx, testIP, now.Add(-3*time.Hour))

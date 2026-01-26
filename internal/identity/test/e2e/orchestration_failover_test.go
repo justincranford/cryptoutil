@@ -225,9 +225,9 @@ func stopCompose(ctx context.Context, profile string, removeVolumes bool) error 
 
 // Helper: waitForHealthy waits for all services to become healthy.
 func waitForHealthy(ctx context.Context, profile string, timeout, retryInterval time.Duration) error {
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("context cancelled while waiting for healthy services: %w", ctx.Err())

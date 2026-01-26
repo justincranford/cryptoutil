@@ -83,8 +83,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 		RequireMFA:  false,
 		MFAChain:    []string{},
 		Enabled:     true,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}
 
 	authProfileRepo := repoFactory.AuthProfileRepository()
@@ -141,8 +141,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 		PKCEChallengeMethod:     "S256",
 		Enabled:                 boolPtr(true),
 		Name:                    "Test Client",
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -161,8 +161,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 		Email:             fmt.Sprintf("%s@example.com", testUsername),
 		PasswordHash:      testPasswordHash,
 		Enabled:           true,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -186,8 +186,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					Scope:        "openid profile email",
 					State:        "test-state",
 					Nonce:        "test-nonce",
-					CreatedAt:    time.Now(),
-					ExpiresAt:    time.Now().Add(10 * time.Minute),
+					CreatedAt:    time.Now().UTC(),
+					ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 				}
 
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -221,8 +221,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					Scope:        "openid profile email",
 					State:        "test-state",
 					Nonce:        "test-nonce",
-					CreatedAt:    time.Now(),
-					ExpiresAt:    time.Now().Add(10 * time.Minute),
+					CreatedAt:    time.Now().UTC(),
+					ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 				}
 
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -281,8 +281,8 @@ func TestSecurityValidation_InputSanitization(t *testing.T) {
 					Scope:        "openid profile email",
 					State:        "test-state",
 					Nonce:        "test-nonce",
-					CreatedAt:    time.Now(),
-					ExpiresAt:    time.Now().Add(10 * time.Minute),
+					CreatedAt:    time.Now().UTC(),
+					ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 				}
 
 				authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -377,8 +377,8 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 		RequireMFA:  false,
 		MFAChain:    []string{},
 		Enabled:     true,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}
 
 	authProfileRepo := repoFactory.AuthProfileRepository()
@@ -435,8 +435,8 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 		PKCEChallengeMethod:     "S256",
 		Enabled:                 boolPtr(true),
 		Name:                    "Test Client",
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -455,8 +455,8 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 		Email:             fmt.Sprintf("%s@example.com", testUsername),
 		PasswordHash:      testPasswordHash,
 		Enabled:           true,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -471,8 +471,8 @@ func TestSecurityValidation_RateLimiting(t *testing.T) {
 		Scope:        "openid profile email",
 		State:        "test-state",
 		Nonce:        "test-nonce",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()

@@ -13,7 +13,7 @@ import (
 func runCADemo(_ context.Context, config *Config) int {
 	progress := NewProgressDisplay(config)
 	errors := NewErrorAggregator("ca")
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	progress.Info("Starting CA Demo")
 	progress.Info("================")

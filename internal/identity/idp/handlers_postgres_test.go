@@ -202,8 +202,8 @@ func testConcurrentOperations(t *testing.T, repoFactory *cryptoutilIdentityRepos
 				UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 				ClientID:    clientIDUUID,
 				Scopes:      []string{"openid", "profile"},
-				IssuedAt:    time.Now(),
-				ExpiresAt:   time.Now().Add(1 * time.Hour),
+				IssuedAt:    time.Now().UTC(),
+				ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 			}
 			done <- tokenRepo.Create(ctx, token)
 		}(i)

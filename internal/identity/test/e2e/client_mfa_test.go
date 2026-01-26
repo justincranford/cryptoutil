@@ -67,7 +67,7 @@ func (s *E2ETestSuite) executeClientMFAChain(ctx context.Context, clientID strin
 	clientSession := &ClientAuthSession{
 		ClientID:            clientID,
 		AuthenticationChain: make([]string, 0, len(methods)),
-		StartTime:           time.Now(),
+		StartTime:           time.Now().UTC(),
 	}
 
 	// Execute each client authentication method in chain.

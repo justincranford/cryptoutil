@@ -203,7 +203,7 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
 
 	// Select step-up method (first allowed method for simplicity).
 	challengeMethod := cryptoutilIdentityMagic.AuthMethodTOTP
@@ -269,7 +269,7 @@ func (s *StepUpAuthenticator) VerifyStepUp(
 	}
 
 	// Check expiration.
-	if time.Now().After(authChallenge.ExpiresAt) {
+	if time.Now().UTC().After(authChallenge.ExpiresAt) {
 		// Best-effort cleanup of expired challenge.
 		if err := s.challengeStore.Delete(ctx, id); err != nil {
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
@@ -318,7 +318,7 @@ func (s *StepUpAuthenticator) InitiateAuth(ctx context.Context, userID string) (
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,

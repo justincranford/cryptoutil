@@ -256,7 +256,7 @@ func (r *TenantRealmRepositoryImpl) ListByTenant(ctx context.Context, tenantID g
 
 // Update updates a tenant realm.
 func (r *TenantRealmRepositoryImpl) Update(ctx context.Context, realm *TenantRealm) error {
-	realm.UpdatedAt = time.Now()
+	realm.UpdatedAt = time.Now().UTC()
 
 	return toAppErr(r.db.WithContext(ctx).Save(realm).Error)
 }

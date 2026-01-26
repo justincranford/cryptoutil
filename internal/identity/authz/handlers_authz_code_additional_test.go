@@ -66,7 +66,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 					State:               "test-state",
 					CodeChallenge:       codeChallenge,
 					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().Add(10 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 					UserID:              cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.New(), Valid: true},
 				}
 				require.NoError(t, authzReqRepo.Create(ctx, authRequest))
@@ -95,7 +95,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 					State:               "test-state",
 					CodeChallenge:       codeChallenge,
 					CodeChallengeMethod: "S256",
-					ExpiresAt:           time.Now().Add(10 * time.Minute),
+					ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 					UserID:              cryptoutilIdentityDomain.NullableUUID{UUID: googleUuid.New(), Valid: true},
 				}
 				require.NoError(t, authzReqRepo.Create(ctx, authRequest))

@@ -224,8 +224,8 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 		ID:           userUUID,
 		Sub:          fmt.Sprintf("user-%s", userUUID),
 		PasswordHash: "dummy-hash",
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -246,8 +246,8 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 		RefreshTokenLifetime: 86400,
 		IDTokenLifetime:      3600,
 		Enabled:              boolPtr(true),
-		CreatedAt:            time.Now(),
-		UpdatedAt:            time.Now(),
+		CreatedAt:            time.Now().UTC(),
+		UpdatedAt:            time.Now().UTC(),
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -255,7 +255,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	require.NoError(t, err, "Failed to create test client")
 
 	tokenValue := googleUuid.Must(googleUuid.NewV7()).String()
-	now := time.Now()
+	now := time.Now().UTC()
 	revokedAt := now.Add(-1 * time.Hour)
 
 	revokedToken := &cryptoutilIdentityDomain.Token{

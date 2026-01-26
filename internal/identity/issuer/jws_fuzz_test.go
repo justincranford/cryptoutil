@@ -134,8 +134,8 @@ func FuzzJWSExpirationValidation(f *testing.F) {
 	f.Add(int64(0))
 	f.Add(int64(1))
 	f.Add(int64(-1))
-	f.Add(time.Now().Add(1 * time.Hour).Unix())
-	f.Add(time.Now().Add(-1 * time.Hour).Unix())
+	f.Add(time.Now().UTC().Add(1 * time.Hour).Unix())
+	f.Add(time.Now().UTC().Add(-1 * time.Hour).Unix())
 	f.Add(int64(9999999999))
 
 	// Create legacy JWS issuer.

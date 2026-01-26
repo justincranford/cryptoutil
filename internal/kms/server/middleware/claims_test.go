@@ -369,12 +369,12 @@ func TestOIDCClaims_IsExpired(t *testing.T) {
 	}{
 		{
 			name:     "not expired",
-			exp:      time.Now().Add(time.Hour),
+			exp:      time.Now().UTC().Add(time.Hour),
 			expected: false,
 		},
 		{
 			name:     "expired",
-			exp:      time.Now().Add(-time.Hour),
+			exp:      time.Now().UTC().Add(-time.Hour),
 			expected: true,
 		},
 		{
@@ -398,7 +398,7 @@ func TestOIDCClaims_TimeUntilExpiry(t *testing.T) {
 	t.Parallel()
 
 	// Future expiry.
-	claims := &OIDCClaims{ExpiresAt: time.Now().Add(time.Hour)}
+	claims := &OIDCClaims{ExpiresAt: time.Now().UTC().Add(time.Hour)}
 	dur := claims.TimeUntilExpiry()
 	require.Greater(t, dur, time.Duration(0))
 	require.LessOrEqual(t, dur, time.Hour)

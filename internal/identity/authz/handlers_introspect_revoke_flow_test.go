@@ -105,8 +105,8 @@ func TestHandleIntrospect_ExpiredToken(t *testing.T) {
 		TokenType:  cryptoutilIdentityDomain.TokenTypeAccess,
 		ClientID:   clientUUID,
 		Scopes:     []string{"openid", "profile"},
-		ExpiresAt:  time.Now().Add(-1 * time.Hour),
-		IssuedAt:   time.Now().Add(-2 * time.Hour),
+		ExpiresAt:  time.Now().UTC().Add(-1 * time.Hour),
+		IssuedAt:   time.Now().UTC().Add(-2 * time.Hour),
 	}
 
 	err := tokenRepo.Create(ctx, expiredToken)
@@ -279,12 +279,12 @@ func createIntrospectRevokeTestToken(
 		TokenType:  tokenType,
 		ClientID:   clientID,
 		Scopes:     []string{"openid", "profile"},
-		ExpiresAt:  time.Now().Add(1 * time.Hour),
-		IssuedAt:   time.Now(),
+		ExpiresAt:  time.Now().UTC().Add(1 * time.Hour),
+		IssuedAt:   time.Now().UTC(),
 	}
 
 	if revoked {
-		now := time.Now()
+		now := time.Now().UTC()
 		testToken.RevokedAt = &now
 	}
 

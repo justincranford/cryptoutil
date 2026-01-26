@@ -252,7 +252,7 @@ func (m *FederationManager) DiscoverOIDC(ctx context.Context, providerID string)
 	entry, cached := m.discoveryCache[cacheKey]
 	m.mu.RUnlock()
 
-	if cached && time.Now().Before(entry.expiresAt) {
+	if cached && time.Now().UTC().Before(entry.expiresAt) {
 		return entry.document, nil
 	}
 
@@ -291,8 +291,8 @@ func (m *FederationManager) DiscoverOIDC(ctx context.Context, providerID string)
 	m.mu.Lock()
 	m.discoveryCache[cacheKey] = &discoveryEntry{
 		document:  &doc,
-		expiresAt: time.Now().Add(defaultDiscoveryCacheTTL),
-		lastFetch: time.Now(),
+		expiresAt: time.Now().UTC().Add(defaultDiscoveryCacheTTL),
+		lastFetch: time.Now().UTC(),
 	}
 	m.mu.Unlock()
 

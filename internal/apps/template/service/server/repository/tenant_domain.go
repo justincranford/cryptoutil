@@ -166,7 +166,7 @@ func (UnverifiedUser) TableName() string {
 
 // IsExpired checks if the unverified user has expired.
 func (u *UnverifiedUser) IsExpired() bool {
-	return time.Now().After(u.ExpiresAt)
+	return time.Now().UTC().After(u.ExpiresAt)
 }
 
 // UnverifiedClient represents a client awaiting admin verification.
@@ -191,7 +191,7 @@ func (UnverifiedClient) TableName() string {
 
 // IsExpired checks if the unverified client has expired.
 func (c *UnverifiedClient) IsExpired() bool {
-	return time.Now().After(c.ExpiresAt)
+	return time.Now().UTC().After(c.ExpiresAt)
 }
 
 // Role represents a role that can be assigned to users or clients.

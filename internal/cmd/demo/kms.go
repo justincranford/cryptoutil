@@ -30,7 +30,7 @@ const (
 func runKMSDemo(ctx context.Context, config *Config) int {
 	progress := NewProgressDisplay(config)
 	errors := NewErrorAggregator("kms")
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	progress.Info("Starting KMS Demo")
 	progress.Info("==================")
@@ -162,9 +162,9 @@ func startKMSServer(_ context.Context, settings *cryptoutilAppsTemplateServiceCo
 
 // waitForKMSHealth waits for KMS health checks to pass.
 func waitForKMSHealth(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 
-	for time.Now().Before(deadline) {
+	for time.Now().UTC().Before(deadline) {
 		_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(settings)
 		if err == nil {
 			_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(settings)

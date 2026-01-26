@@ -122,7 +122,7 @@ func (d *DemoScript) Run(ctx context.Context) (*DemoResult, error) {
 	d.progress.Info("=======================")
 	d.progress.SetTotalSteps(demoScriptStepCount)
 
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	// Step 1: Wait for services.
 	if err := d.waitForServices(ctx); err != nil {

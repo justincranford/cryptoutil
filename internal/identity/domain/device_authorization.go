@@ -59,7 +59,7 @@ func (DeviceAuthorization) TableName() string {
 
 // IsExpired checks if the device code has expired.
 func (d *DeviceAuthorization) IsExpired() bool {
-	return time.Now().After(d.ExpiresAt)
+	return time.Now().UTC().After(d.ExpiresAt)
 }
 
 // IsPending checks if authorization is pending user action.

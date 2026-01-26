@@ -67,8 +67,8 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		TokenValue:    googleUuid.NewString(),
 		TokenType:     cryptoutilIdentityDomain.TokenTypeAccess,
 		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
-		ExpiresAt:     time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
-		IssuedAt:      time.Now().Add(-2 * time.Hour),
+		ExpiresAt:     time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
+		IssuedAt:      time.Now().UTC().Add(-2 * time.Hour),
 		Scopes:        []string{"read", "write"},
 		ClientID:      testClient.ID,
 		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
@@ -84,8 +84,8 @@ func TestCleanupJob_Integration_TokenDeletion(t *testing.T) {
 		TokenValue:    googleUuid.NewString(),
 		TokenType:     cryptoutilIdentityDomain.TokenTypeAccess,
 		TokenFormat:   cryptoutilIdentityDomain.TokenFormatUUID,
-		ExpiresAt:     time.Now().Add(1 * time.Hour), // Expires 1 hour from now.
-		IssuedAt:      time.Now(),
+		ExpiresAt:     time.Now().UTC().Add(1 * time.Hour), // Expires 1 hour from now.
+		IssuedAt:      time.Now().UTC(),
 		Scopes:        []string{"read", "write"},
 		ClientID:      testClient.ID,
 		UserID:        cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
@@ -149,12 +149,12 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 	expiredSession := &cryptoutilIdentityDomain.Session{
 		SessionID:          googleUuid.NewString(),
 		UserID:             testUser.ID,
-		IssuedAt:           time.Now().Add(-2 * time.Hour),
-		LastSeenAt:         time.Now().Add(-2 * time.Hour),
-		ExpiresAt:          time.Now().Add(-1 * time.Hour), // Expired 1 hour ago.
+		IssuedAt:           time.Now().UTC().Add(-2 * time.Hour),
+		LastSeenAt:         time.Now().UTC().Add(-2 * time.Hour),
+		ExpiresAt:          time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		IPAddress:          "192.168.1.100",
 		UserAgent:          "Mozilla/5.0",
-		AuthenticationTime: time.Now().Add(-2 * time.Hour),
+		AuthenticationTime: time.Now().UTC().Add(-2 * time.Hour),
 		Active:             boolPtr(true),
 	}
 
@@ -166,12 +166,12 @@ func TestCleanupJob_Integration_SessionDeletion(t *testing.T) {
 	validSession := &cryptoutilIdentityDomain.Session{
 		SessionID:          googleUuid.NewString(),
 		UserID:             testUser.ID,
-		IssuedAt:           time.Now(),
-		LastSeenAt:         time.Now(),
-		ExpiresAt:          time.Now().Add(1 * time.Hour), // Expires 1 hour from now.
+		IssuedAt:           time.Now().UTC(),
+		LastSeenAt:         time.Now().UTC(),
+		ExpiresAt:          time.Now().UTC().Add(1 * time.Hour), // Expires 1 hour from now.
 		IPAddress:          "192.168.1.101",
 		UserAgent:          "Mozilla/5.0",
-		AuthenticationTime: time.Now(),
+		AuthenticationTime: time.Now().UTC(),
 		Active:             boolPtr(true),
 	}
 

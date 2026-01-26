@@ -189,7 +189,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			name:       "nonce_expired",
 			factorType: string(cryptoutilIdentityDomain.MFAFactorTypeTOTP),
 			setupRepo: func() *mockMFAFactorRepo {
-				now := time.Now()
+				now := time.Now().UTC()
 				expiry := now.Add(-5 * time.Minute)
 				factor := &cryptoutilIdentityDomain.MFAFactor{
 					ID:             googleUuid.New(),
@@ -222,7 +222,7 @@ func TestMFAOrchestrator_ValidateFactor(t *testing.T) {
 			name:       "unsupported_factor_type",
 			factorType: "unknown_mfa_type",
 			setupRepo: func() *mockMFAFactorRepo {
-				now := time.Now()
+				now := time.Now().UTC()
 				expiry := now.Add(5 * time.Minute)
 				factor := &cryptoutilIdentityDomain.MFAFactor{
 					ID:             googleUuid.New(),

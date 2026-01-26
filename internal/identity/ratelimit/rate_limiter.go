@@ -31,7 +31,7 @@ func (rl *RateLimiter) Allow(key string) error {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	windowStart := now.Add(-rl.windowSize)
 
 	// Clean up old requests outside the window.
@@ -71,7 +71,7 @@ func (rl *RateLimiter) GetCount(key string) int {
 	rl.mu.RLock()
 	defer rl.mu.RUnlock()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	windowStart := now.Add(-rl.windowSize)
 
 	count := 0

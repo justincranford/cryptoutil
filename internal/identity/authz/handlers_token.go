@@ -144,7 +144,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 	}
 
 	// Mark authorization code as used (single-use enforcement).
-	now := time.Now()
+	now := time.Now().UTC()
 	authRequest.Used = true
 	authRequest.UsedAt = &now
 
@@ -193,8 +193,8 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		"sub":       authRequest.UserID.UUID.String(),
 		"client_id": clientID,
 		"scope":     authRequest.Scope,
-		"exp":       time.Now().Add(time.Duration(client.AccessTokenLifetime) * time.Second).Unix(),
-		"iat":       time.Now().Unix(),
+		"exp":       time.Now().UTC().Add(time.Duration(client.AccessTokenLifetime) * time.Second).Unix(),
+		"iat":       time.Now().UTC().Unix(),
 	}
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)
@@ -272,7 +272,7 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 	}
 
 	// Generate access token.
-	now := time.Now()
+	now := time.Now().UTC()
 	expiresAt := now.Add(time.Duration(cryptoutilIdentityMagic.AccessTokenExpirySeconds) * time.Second)
 
 	accessTokenClaims := map[string]any{
@@ -384,7 +384,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	}
 
 	// Validate token not expired.
-	if token.ExpiresAt.Before(time.Now()) {
+	if token.ExpiresAt.Before(time.Now().UTC()) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
 			"error_description": "Refresh token has expired",
@@ -408,8 +408,8 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 		"sub":       token.UserID,
 		"client_id": clientID,
 		"scope":     scope,
-		"exp":       time.Now().Add(time.Hour).Unix(),
-		"iat":       time.Now().Unix(),
+		"exp":       time.Now().UTC().Add(time.Hour).Unix(),
+		"iat":       time.Now().UTC().Unix(),
 	}
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)
@@ -499,7 +499,7 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 	// Enforce polling rate limiting (RFC 8628 Section 3.5).
 	if deviceAuth.LastPolledAt != nil {
 		minPollTime := deviceAuth.LastPolledAt.Add(cryptoutilIdentityMagic.DefaultPollingInterval)
-		if time.Now().Before(minPollTime) {
+		if time.Now().UTC().Before(minPollTime) {
 			slog.DebugContext(ctx, "Polling too fast", "device_code", deviceCode, "last_polled_at", deviceAuth.LastPolledAt)
 
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -510,7 +510,7 @@ func (s *Service) handleDeviceCodeGrant(c *fiber.Ctx) error {
 	}
 
 	// Update last polled timestamp.
-	now := time.Now()
+	now := time.Now().UTC()
 	deviceAuth.LastPolledAt = &now
 
 	if err := deviceAuthRepo.Update(ctx, deviceAuth); err != nil {
@@ -557,7 +557,7 @@ func (s *Service) issueDeviceCodeTokens(c *fiber.Ctx, deviceAuth *cryptoutilIden
 	ctx := c.Context()
 
 	// Mark device code as used.
-	now := time.Now()
+	now := time.Now().UTC()
 	deviceAuth.Status = cryptoutilIdentityDomain.DeviceAuthStatusUsed
 	deviceAuth.UsedAt = &now
 
@@ -609,8 +609,8 @@ func (s *Service) issueDeviceCodeTokens(c *fiber.Ctx, deviceAuth *cryptoutilIden
 		"sub":       deviceAuth.UserID.UUID.String(),
 		"client_id": deviceAuth.ClientID,
 		"scope":     deviceAuth.Scope,
-		"exp":       time.Now().Add(time.Duration(client.AccessTokenLifetime) * time.Second).Unix(),
-		"iat":       time.Now().Unix(),
+		"exp":       time.Now().UTC().Add(time.Duration(client.AccessTokenLifetime) * time.Second).Unix(),
+		"iat":       time.Now().UTC().Unix(),
 	}
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)

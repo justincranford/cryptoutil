@@ -28,7 +28,7 @@ func TestTelemetryAuditLoggerTokenGeneration(t *testing.T) {
 		TokenID:      googleUuid.New(),
 		TokenType:    "sms_otp",
 		Provider:     "sms",
-		ExpiresAt:    time.Now().Add(5 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
 		PhoneNumber:  "+15551234567",
 		EmailAddress: "",
 	}
@@ -201,7 +201,7 @@ func TestAuditLoggerConcurrent(t *testing.T) {
 				TokenID:      googleUuid.New(),
 				TokenType:    "sms_otp",
 				Provider:     "sms",
-				ExpiresAt:    time.Now().Add(5 * time.Minute),
+				ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
 				PhoneNumber:  "+15551234567",
 				EmailAddress: "",
 			}
@@ -254,7 +254,7 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 		TokenID:      googleUuid.New(),
 		TokenType:    "sms_otp",
 		Provider:     "sms",
-		ExpiresAt:    time.Now().Add(5 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
 		PhoneNumber:  "+15551234567", // Full phone number (last 4 logged: "4567")
 		EmailAddress: "",
 	}
@@ -268,7 +268,7 @@ func TestAuditLoggerPIIProtection(t *testing.T) {
 		TokenID:      googleUuid.New(),
 		TokenType:    "email_otp",
 		Provider:     "email",
-		ExpiresAt:    time.Now().Add(5 * time.Minute),
+		ExpiresAt:    time.Now().UTC().Add(5 * time.Minute),
 		PhoneNumber:  "",
 		EmailAddress: "sensitive@example.com", // Full email (domain logged: "example.com")
 	}

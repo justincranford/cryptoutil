@@ -29,7 +29,7 @@ func setupTenantTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	// Use unique database name per test to avoid conflicts.
-	dbName := fmt.Sprintf("file:tenant_test_%d?mode=memory&cache=private", time.Now().UnixNano())
+	dbName := fmt.Sprintf("file:tenant_test_%d?mode=memory&cache=private", time.Now().UTC().UnixNano())
 
 	// Use database/sql with modernc.org/sqlite driver.
 	sqlDB, err := sql.Open("sqlite", dbName)

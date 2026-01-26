@@ -63,7 +63,7 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 	require.NotNil(t, challenge)
 	require.Equal(t, "sms_otp", challenge.Method)
 	require.Equal(t, testUser.Sub, challenge.UserID)
-	require.True(t, time.Now().Before(challenge.ExpiresAt), "Challenge should not be expired")
+	require.True(t, time.Now().UTC().Before(challenge.ExpiresAt), "Challenge should not be expired")
 
 	// Verify SMS sent.
 	require.Equal(t, 1, mockSMS.GetCallCount(), "SMS should be sent")
@@ -154,7 +154,7 @@ func TestSMSOTPExpiredChallenge(t *testing.T) {
 	require.NoError(t, err)
 
 	// Manually expire challenge.
-	challenge.ExpiresAt = time.Now().Add(-1 * time.Minute)
+	challenge.ExpiresAt = time.Now().UTC().Add(-1 * time.Minute)
 	challengeStore.challenges[challenge.ID] = challengeEntry{
 		challenge: challenge,
 		token:     challengeStore.challenges[challenge.ID].token,
@@ -433,7 +433,7 @@ func (r *mockRateLimiter) CheckLimit(_ context.Context, userID string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	now := time.Now()
+	now := time.Now().UTC()
 	attempts := r.attempts[userID]
 
 	// Remove expired attempts.
@@ -456,7 +456,7 @@ func (r *mockRateLimiter) RecordAttempt(_ context.Context, userID string, _ bool
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.attempts[userID] = append(r.attempts[userID], time.Now())
+	r.attempts[userID] = append(r.attempts[userID], time.Now().UTC())
 
 	return nil
 }

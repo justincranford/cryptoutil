@@ -92,8 +92,8 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		UserCode:   userCode,
 		Scope:      scope,
 		Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
-		CreatedAt:  time.Now(),
-		ExpiresAt:  time.Now().Add(cryptoutilIdentityMagic.DefaultDeviceCodeLifetime),
+		CreatedAt:  time.Now().UTC(),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultDeviceCodeLifetime),
 	}
 
 	deviceAuthRepo := s.repoFactory.DeviceAuthorizationRepository()

@@ -89,8 +89,8 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 		State:               state,
 		CodeChallenge:       codeChallenge,
 		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
-		CreatedAt:           time.Now(),
-		ExpiresAt:           time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
+		CreatedAt:           time.Now().UTC(),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
 	}
 	require.NoError(t, authzReqRepo.Create(ctx, authRequest), "Failed to create authorization request")
 
@@ -112,8 +112,8 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 		UserID:    testUser.ID,
 		ClientID:  testClient.ClientID,
 		Scope:     authRequest.Scope,
-		GrantedAt: time.Now(),
-		ExpiresAt: time.Now().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime),
+		GrantedAt: time.Now().UTC(),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime),
 	}
 	require.NoError(t, consentRepo.Create(ctx, consentDecision), "Failed to create consent decision")
 
@@ -145,7 +145,7 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 	require.False(t, retrievedAuthRequest.IsUsed(), "Authorization code should not be used yet")
 
 	// Mark code as used.
-	now := time.Now()
+	now := time.Now().UTC()
 	retrievedAuthRequest.Used = true
 	retrievedAuthRequest.UsedAt = &now
 	require.NoError(t, authzReqRepo.Update(ctx, retrievedAuthRequest), "Failed to mark authorization code as used")

@@ -100,7 +100,7 @@ func (h *joseHandlerAdapter) handleJWKGenerate(c *fiber.Ctx) error {
 		KeyType:    kty.String(),
 		Algorithm:  alg2.String(),
 		Use:        req.Use,
-		CreatedAt:  time.Now().Unix(),
+		CreatedAt:  time.Now().UTC().Unix(),
 	}
 
 	if err := h.keyStore.Store(storedKey); err != nil {
@@ -122,7 +122,7 @@ func (h *joseHandlerAdapter) handleJWKGenerate(c *fiber.Ctx) error {
 		Use:       req.Use,
 		KeyType:   kty.String(),
 		PublicJWK: publicJWKJSON,
-		CreatedAt: time.Now().Unix(),
+		CreatedAt: time.Now().UTC().Unix(),
 	})
 }
 

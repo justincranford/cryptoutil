@@ -83,8 +83,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		RequireMFA:  false,
 		MFAChain:    []string{},
 		Enabled:     true,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
+		UpdatedAt:   time.Now().UTC(),
 	}
 
 	authProfileRepo := repoFactory.AuthProfileRepository()
@@ -141,8 +141,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		PKCEChallengeMethod:     "S256",
 		Enabled:                 boolPtr(true),
 		Name:                    "Test Client",
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		CreatedAt:               time.Now().UTC(),
+		UpdatedAt:               time.Now().UTC(),
 	}
 
 	clientRepo := repoFactory.ClientRepository()
@@ -164,8 +164,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		FamilyName:        "User",
 		Enabled:           true,
 		PasswordHash:      testPasswordHash,
-		CreatedAt:         time.Now(),
-		UpdatedAt:         time.Now(),
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
 	}
 
 	userRepo := repoFactory.UserRepository()
@@ -180,8 +180,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		Scope:        "openid profile email",
 		State:        "test-state",
 		Nonce:        "test-nonce",
-		CreatedAt:    time.Now(),
-		ExpiresAt:    time.Now().Add(10 * time.Minute),
+		CreatedAt:    time.Now().UTC(),
+		ExpiresAt:    time.Now().UTC().Add(10 * time.Minute),
 	}
 
 	authzReqRepo := repoFactory.AuthorizationRequestRepository()
@@ -267,8 +267,8 @@ func TestOIDCFlow_IDPEndpointsIntegration(t *testing.T) {
 		ClientID:    clientIDUUID,
 		UserID:      cryptoutilIdentityDomain.NullableUUID{UUID: testUser.ID, Valid: true},
 		Scopes:      []string{"openid", "profile", "email"},
-		IssuedAt:    time.Now(),
-		ExpiresAt:   time.Now().Add(1 * time.Hour),
+		IssuedAt:    time.Now().UTC(),
+		ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 	}
 
 	tokenRepo := repoFactory.TokenRepository()
