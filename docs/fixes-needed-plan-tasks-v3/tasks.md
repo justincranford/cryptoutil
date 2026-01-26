@@ -617,7 +617,7 @@ After reviewing jose-ja/service code and tests, determined that the 12.7% gap is
 ### 6.4: Continuous Mutation Testing - ❌ BLOCKED (Phase 6.3)
 
 **Estimated**: 2h
-**Status**: ❌ BLOCKED - Phase 6.3 not started  
+**Status**: ❌ BLOCKED - Phase 6.3 not started
 **Resolution**: See Phase 7
 
 **Process**:

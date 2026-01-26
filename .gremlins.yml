@@ -3,7 +3,7 @@ unleash:
   # Test command configuration
   test-cpu: 4           # Number of CPUs for test execution
   timeout: 180s         # Timeout for each mutant test (increased to 3 minutes for TestMain overhead)
-  
+
   # Mutation configuration
   mutators:
     - ARITHMETIC_BASE
@@ -12,14 +12,14 @@ unleash:
     - INCREMENT_DECREMENT
     - INVERT_NEGATIVES
     - REMOVE_SELF_ASSIGNMENTS
-  
+
   # Coverage thresholds
   threshold:
     efficacy: 85        # Minimum required test efficacy (percentage of mutations killed)
-    
+
   # Output configuration
   output: "gremlins-report.json"
-  
+
   # Tags to exclude
   tags-filters:
     - "!integration"    # Skip integration tests (too slow for mutation testing)
