@@ -235,7 +235,9 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 10s
 

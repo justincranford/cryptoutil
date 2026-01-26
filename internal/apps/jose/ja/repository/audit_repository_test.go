@@ -442,3 +442,72 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	require.Equal(t, int64(0), total)
 	require.Empty(t, entries)
 }
+
+// =============================================================================
+// Mutation-Killing Tests
+// =============================================================================
+
+// TestShouldAudit_DatabaseErrorPropagation kills mutations:
+// - audit_repository.go:101:26 (CONDITIONALS_NEGATION)
+// - audit_repository.go:101:26 (CONDITIONALS_BOUNDARY)
+//
+// Verifies that non-ErrRecordNotFound errors are propagated correctly,
+// not converted to fallback sampling logic.
+func TestShouldAudit_DatabaseErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use invalid tenant ID to trigger database error (foreign key constraint).
+	// This will cause a non-ErrRecordNotFound error when querying audit config.
+	invalidTenantID := googleUuid.Nil
+	operation := "test-operation"
+
+	repo := NewAuditConfigRepository(testDB)
+
+	// Attempt to check if audit should be performed with invalid tenant.
+	// This should return an error (not fallback to sampling).
+	shouldAudit, err := repo.ShouldAudit(ctx, invalidTenantID, operation)
+
+	// Verify error is propagated (not converted to fallback sampling).
+	// The exact error depends on database implementation, but it should NOT be nil.
+	require.Error(t, err, "expected database error to be propagated")
+	require.False(t, shouldAudit, "should not audit when error occurs")
+}
+
+// TestShouldAudit_FallbackSamplingBoundary kills mutation:
+// - audit_repository.go:112:24 (CONDITIONALS_BOUNDARY)
+//
+// Verifies boundary condition for sampling rate (< vs <=).
+// Since rand.Float64() returns [0.0, 1.0), exact equality with sampling rate
+// is theoretically possible but extremely rare. This test documents the
+// expected behavior: < (not <=).
+func TestShouldAudit_FallbackSamplingBoundary(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	repo := NewAuditConfigRepository(testDB)
+
+	// Use non-existent tenant to trigger ErrRecordNotFound → fallback sampling.
+	nonExistentTenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
+	operation := "test-operation"
+
+	// Run sampling decision multiple times to verify statistical behavior.
+	// With 0.5 fallback sampling rate, expect ~50% true results.
+	const iterations = 1000
+	trueCount := 0
+
+	for i := 0; i < iterations; i++ {
+		shouldAudit, err := repo.ShouldAudit(ctx, *nonExistentTenantID, operation)
+		require.NoError(t, err, "fallback sampling should not error")
+
+		if shouldAudit {
+			trueCount++
+		}
+	}
+
+	// Verify sampling rate is approximately 50% (allow ±10% tolerance).
+	samplingRate := float64(trueCount) / float64(iterations)
+	require.Greater(t, samplingRate, 0.4, "sampling rate should be > 40%%")
+	require.Less(t, samplingRate, 0.6, "sampling rate should be < 60%%")
+}

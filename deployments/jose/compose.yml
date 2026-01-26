@@ -62,7 +62,9 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:8092/health"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9092/admin/api/v1/livez"]
       start_period: 30s
       interval: 10s
       timeout: 5s
