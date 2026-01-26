@@ -5,7 +5,8 @@
 
 **Summary**:
 - Phase 1: CI/CD Enhancement (NEW) - 0 of 3 tasks complete (5.5h estimated)
-- Phase 2-3: V2 Priorities (ApplicationCore, E2E) - 0 of 6 tasks complete (7h estimated)
+- Phase 2: Healthcheck Testing with app.Test() (REVISED) - 0 of 2 tasks complete (2.5h estimated)
+- Phase 3: V2 Priorities (E2E Verification) - 0 of 2 tasks complete (2.5h estimated)
 - Phase 4-6: V1 Phases (Coverage, Blockers, Mutations) - 0 of 70 tasks complete (41h estimated)
 - Completed: 219 tasks (see completed.md)
 
@@ -115,80 +116,110 @@ Document the new formatter in copilot instructions as a defensive measure agains
 
 ---
 
-## Phase 2: ApplicationCore Refactoring (P3.2 Resolution)
+## Phase 2: Healthcheck Testing with app.Test() Pattern (P3.2 Resolution)
 
-**Purpose**: Enable standalone admin server testing for healthcheck timeout verification
+**Purpose**: Implement healthcheck timeout tests without starting actual HTTPS listeners
 
-**From V2 Priority 5 (P3.2 Resolution)**
+**Root Cause Analysis**:
+- **Original Problem**: ApplicationCore bundles admin server internally, tests can't control healthcheck timing
+- **Original Approach (WRONG)**: Extract admin server to start/stop in tests → violates TestMain pattern
+- **Real Problem**: Starting/stopping HTTPS listeners repeatedly triggers Windows Firewall warnings
+- **Best Practice Solution**: Use Fiber's `app.Test()` to test handlers WITHOUT starting listeners
+
+**Evidence**:
+- `internal/ca/api/handler/*_test.go` - Extensive use of `app.Test(req)` for handler testing
+- `internal/apps/template/service/server/apis/sessions_test.go` - Handler tests without server start
+- `internal/identity/authz/swagger_test.go` - Multiple invocations of handlers via `app.Test()`
+
+**From V2 Priority 5 (P3.2 Resolution) - REVISED APPROACH**
 
 ---
 
-### 2.1: Extract Admin Server from ApplicationCore
+### 2.1: Implement Healthcheck Handler Tests with app.Test()
 
 **Owner**: LLM Agent
-**Estimated**: 3h
+**Estimated**: 2h
 **Dependencies**: None
 **Priority**: P0 (Critical)
 
-**Description**: Refactor ApplicationCore to extract admin server initialization into standalone NewAdminServer() constructor.
+**Description**:
+Replace skipped healthcheck timeout tests with `app.Test()` pattern that doesn't require starting HTTPS listeners.
 
 **Acceptance Criteria**:
-- [ ] 2.1.1 Create NewAdminServer(settings AdminServerSettings) (*AdminServer, error)
-- [ ] 2.1.2 Extract admin server logic from ApplicationCore.Build()
-- [ ] 2.1.3 Update ApplicationCore.Build() to call NewAdminServer() internally
-- [ ] 2.1.4 Add AdminServerSettings struct
-- [ ] 2.1.5 Add unit tests for NewAdminServer()
-- [ ] 2.1.6 Verify backward compatibility
-- [ ] 2.1.7 Run tests: `go test ./internal/apps/template/service/server/application/... -v`
-- [ ] 2.1.8 All tests pass
-- [ ] 2.1.9 Coverage 95%
-- [ ] 2.1.10 Build clean
-- [ ] 2.1.11 Linting clean
-- [ ] 2.1.12 Commit: "refactor(application): extract NewAdminServer for testability"
-
-**Files**:
-- Modified: `internal/apps/template/service/server/application/application_core.go`
-- Created: `internal/apps/template/service/server/listener/admin_server.go`
-- Created: `internal/apps/template/service/server/listener/admin_server_test.go`
-
----
-
-### 2.2: Implement Healthcheck Timeout Tests
-
-**Owner**: LLM Agent
-**Estimated**: 1h
-**Dependencies**: 2.1
-**Priority**: P0
-
-**Description**: Remove t.Skip() and implement actual healthcheck timeout testing.
-
-**Acceptance Criteria**:
-- [ ] 2.2.1 Remove t.Skip() from TestHealthcheck_CompletesWithinTimeout
-- [ ] 2.2.2 Remove t.Skip() from TestHealthcheck_TimeoutExceeded
-- [ ] 2.2.3 Implement timeout completion test (verify <1s response with 5s timeout)
-- [ ] 2.2.4 Implement timeout exceeded test (6s delay with 5s timeout)
-- [ ] 2.2.5 Run tests: `go test -v -run="TestHealthcheck" ./internal/apps/template/...`
-- [ ] 2.2.6 Both tests pass (0 skips)
-- [ ] 2.2.7 Test execution <30s
-- [ ] 2.2.8 Commit: "test(application): implement healthcheck timeout tests"
+- [ ] 2.1.1 Remove t.Skip() from TestHealthcheck_CompletesWithinTimeout
+- [ ] 2.1.2 Remove t.Skip() from TestHealthcheck_TimeoutExceeded
+- [ ] 2.1.3 Create standalone Fiber app with healthcheck handler registered
+- [ ] 2.1.4 Implement timeout completion test:
+  - [ ] 2.1.4.1 Create HTTP client with 5s timeout
+  - [ ] 2.1.4.2 Use `app.Test(req)` to invoke healthcheck handler
+  - [ ] 2.1.4.3 Verify response received within timeout (<1s actual)
+  - [ ] 2.1.4.4 Assert 200 OK status
+- [ ] 2.1.5 Implement timeout exceeded test:
+  - [ ] 2.1.5.1 Create HTTP client with 100ms timeout
+  - [ ] 2.1.5.2 Add artificial delay to healthcheck handler (200ms)
+  - [ ] 2.1.5.3 Use `app.Test(req, 100*time.Millisecond)` to enforce timeout
+  - [ ] 2.1.5.4 Verify timeout error returned
+- [ ] 2.1.6 Add table-driven test structure for multiple timeout scenarios
+- [ ] 2.1.7 Run tests: `go test -v -run="TestHealthcheck" ./internal/apps/template/service/server/application/... -count=5`
+- [ ] 2.1.8 All tests pass (0 skips, 0 flakiness)
+- [ ] 2.1.9 Test execution <5s (no HTTPS listener overhead)
+- [ ] 2.1.10 Coverage ≥95% on healthcheck handler code
+- [ ] 2.1.11 Build clean: `go build ./internal/apps/template/...`
+- [ ] 2.1.12 Linting clean: `golangci-lint run ./internal/apps/template/service/server/application/`
+- [ ] 2.1.13 Commit: "test(application): implement healthcheck tests with app.Test() pattern"
 
 **Files**:
 - Modified: `internal/apps/template/service/server/application/application_listener_test.go`
 
+**Reference Implementation**:
+See `internal/ca/api/handler/handler_est_csrattrs_test.go` for `app.Test(req)` pattern example.
+
+**Pattern Example**:
+```go
+func TestHealthcheck_CompletesWithinTimeout(t *testing.T) {
+    t.Parallel()
+
+    app := fiber.New()
+
+    // Register healthcheck handler
+    app.Get("/admin/api/v1/livez", func(c *fiber.Ctx) error {
+        return c.Status(200).SendString("OK")
+    })
+
+    req := httptest.NewRequest("GET", "/admin/api/v1/livez", nil)
+
+    // Test without starting listener - uses app.Test()
+    resp, err := app.Test(req, 5*time.Second)
+    require.NoError(t, err)
+    require.Equal(t, 200, resp.StatusCode)
+
+    defer resp.Body.Close()
+}
+```
+
 ---
 
-### 2.3: Update P3.2 Status
+### 2.2: Update Copilot Instructions
 
 **Owner**: LLM Agent
-**Estimated**: 15m
-**Dependencies**: 2.2
-**Priority**: P0
+**Estimated**: 30m
+**Dependencies**: 2.1
+**Priority**: P1 (Important - documentation)
+
+**Description**:
+Document app.Test() pattern as best practice for handler testing without HTTPS listeners.
 
 **Acceptance Criteria**:
-- [ ] 2.3.1 Mark P3.2 complete with test results
-- [ ] 2.3.2 Document refactoring resolution
-- [ ] 2.3.3 Include test execution output
-- [ ] 2.3.4 Commit: "docs(tasks): mark P3.2 complete"
+- [ ] 2.2.1 Add section to `.github/instructions/03-02.testing.instructions.md`:
+  - Anti-pattern: Starting/stopping HTTPS listeners in tests (Windows Firewall warnings)
+  - Solution: Use `app.Test(req)` for handler testing without listeners
+  - Rationale: Avoids firewall prompts, faster execution, respects TestMain pattern
+- [ ] 2.2.2 Add reference examples from CA handler tests
+- [ ] 2.2.3 Update TestMain section to emphasize app.Test() for handler-level tests
+- [ ] 2.2.4 Commit: "docs(instructions): document app.Test() pattern for handler testing"
+
+**Files**:
+- Modified: `.github/instructions/03-02.testing.instructions.md`
 
 ---
 
