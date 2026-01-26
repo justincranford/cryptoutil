@@ -3,25 +3,25 @@
 package format_go
 
 import (
-"os"
-"path/filepath"
-"strings"
-"testing"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
 
-cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
+	cryptoutilCmdCicdCommon "cryptoutil/internal/cmd/cicd/common"
 
-"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 // TestEnforceTimeNowUTC_BasicReplacement tests basic time.Now()  time.Now().UTC() replacement.
 func TestEnforceTimeNowUTC_BasicReplacement(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-testFile := filepath.Join(tmpDir, "test.go")
+	testFile := filepath.Join(tmpDir, "test.go")
 
-originalContent := `package main
+	originalContent := `package main
 
 import "time"
 
@@ -31,33 +31,33 @@ println(now)
 }
 `
 
-err := os.WriteFile(testFile, []byte(originalContent), 0o600)
-require.NoError(t, err)
+	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	require.NoError(t, err)
 
-// Run enforcement.
-replacements, err := processGoFileForTimeNowUTC(testFile)
-require.NoError(t, err)
-require.Equal(t, 1, replacements, "Should replace one time.Now() call")
+	// Run enforcement.
+	replacements, err := processGoFileForTimeNowUTC(testFile)
+	require.NoError(t, err)
+	require.Equal(t, 1, replacements, "Should replace one time.Now() call")
 
-// Read modified content.
-modifiedContent, err := os.ReadFile(testFile)
-require.NoError(t, err)
+	// Read modified content.
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
 
-modifiedStr := string(modifiedContent)
+	modifiedStr := string(modifiedContent)
 
-require.Contains(t, modifiedStr, "time.Now().UTC()", "Should contain time.Now().UTC()")
-require.NotContains(t, modifiedStr, "time.Now()\n", "Should not contain bare time.Now()")
+	require.Contains(t, modifiedStr, "time.Now().UTC()", "Should contain time.Now().UTC()")
+	require.NotContains(t, modifiedStr, "time.Now()\n", "Should not contain bare time.Now()")
 }
 
 // TestEnforceTimeNowUTC_AlreadyCorrect tests that time.Now().UTC() is not modified.
 func TestEnforceTimeNowUTC_AlreadyCorrect(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-testFile := filepath.Join(tmpDir, "test.go")
+	testFile := filepath.Join(tmpDir, "test.go")
 
-originalContent := `package main
+	originalContent := `package main
 
 import "time"
 
@@ -67,30 +67,30 @@ println(now)
 }
 `
 
-err := os.WriteFile(testFile, []byte(originalContent), 0o600)
-require.NoError(t, err)
+	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	require.NoError(t, err)
 
-// Run enforcement.
-replacements, err := processGoFileForTimeNowUTC(testFile)
-require.NoError(t, err)
-require.Equal(t, 0, replacements, "Should not modify already correct code")
+	// Run enforcement.
+	replacements, err := processGoFileForTimeNowUTC(testFile)
+	require.NoError(t, err)
+	require.Equal(t, 0, replacements, "Should not modify already correct code")
 
-// Read content to verify unchanged.
-modifiedContent, err := os.ReadFile(testFile)
-require.NoError(t, err)
+	// Read content to verify unchanged.
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
 
-require.Equal(t, originalContent, string(modifiedContent), "Content should be unchanged")
+	require.Equal(t, originalContent, string(modifiedContent), "Content should be unchanged")
 }
 
 // TestEnforceTimeNowUTC_ChainedMethodCalls tests time.Now().Add(duration)  time.Now().UTC().Add(duration).
 func TestEnforceTimeNowUTC_ChainedMethodCalls(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-testFile := filepath.Join(tmpDir, "test.go")
+	testFile := filepath.Join(tmpDir, "test.go")
 
-originalContent := `package main
+	originalContent := `package main
 
 import "time"
 
@@ -100,32 +100,32 @@ println(later)
 }
 `
 
-err := os.WriteFile(testFile, []byte(originalContent), 0o600)
-require.NoError(t, err)
+	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	require.NoError(t, err)
 
-// Run enforcement.
-replacements, err := processGoFileForTimeNowUTC(testFile)
-require.NoError(t, err)
-require.Equal(t, 1, replacements, "Should replace time.Now() in chained call")
+	// Run enforcement.
+	replacements, err := processGoFileForTimeNowUTC(testFile)
+	require.NoError(t, err)
+	require.Equal(t, 1, replacements, "Should replace time.Now() in chained call")
 
-// Read modified content.
-modifiedContent, err := os.ReadFile(testFile)
-require.NoError(t, err)
+	// Read modified content.
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
 
-modifiedStr := string(modifiedContent)
+	modifiedStr := string(modifiedContent)
 
-require.Contains(t, modifiedStr, "time.Now().UTC().Add(1 * time.Hour)", "Should have UTC inserted before Add")
+	require.Contains(t, modifiedStr, "time.Now().UTC().Add(1 * time.Hour)", "Should have UTC inserted before Add")
 }
 
 // TestEnforceTimeNowUTC_VariableAssignment tests t := time.Now()  t := time.Now().UTC().
 func TestEnforceTimeNowUTC_VariableAssignment(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
+	tmpDir := t.TempDir()
 
-testFile := filepath.Join(tmpDir, "test.go")
+	testFile := filepath.Join(tmpDir, "test.go")
 
-originalContent := `package main
+	originalContent := `package main
 
 import "time"
 
@@ -136,36 +136,36 @@ println(later)
 }
 `
 
-err := os.WriteFile(testFile, []byte(originalContent), 0o600)
-require.NoError(t, err)
+	err := os.WriteFile(testFile, []byte(originalContent), 0o600)
+	require.NoError(t, err)
 
-// Run enforcement.
-replacements, err := processGoFileForTimeNowUTC(testFile)
-require.NoError(t, err)
-require.Equal(t, 1, replacements, "Should replace time.Now() in assignment")
+	// Run enforcement.
+	replacements, err := processGoFileForTimeNowUTC(testFile)
+	require.NoError(t, err)
+	require.Equal(t, 1, replacements, "Should replace time.Now() in assignment")
 
-// Read modified content.
-modifiedContent, err := os.ReadFile(testFile)
-require.NoError(t, err)
+	// Read modified content.
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
 
-modifiedStr := string(modifiedContent)
+	modifiedStr := string(modifiedContent)
 
-require.Contains(t, modifiedStr, "t := time.Now().UTC()", "Should have UTC in assignment")
+	require.Contains(t, modifiedStr, "t := time.Now().UTC()", "Should have UTC in assignment")
 }
 
 // TestEnforceTimeNowUTC_SelfExclusion verifies format_go package files are excluded.
 func TestEnforceTimeNowUTC_SelfExclusion(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-// Process this test file itself (should be excluded).
-replacements, err := processGoFileForTimeNowUTC("enforce_time_now_utc_test.go")
-require.NoError(t, err)
-require.Equal(t, 0, replacements, "format_go package files should be excluded from enforcement")
+	// Process this test file itself (should be excluded).
+	replacements, err := processGoFileForTimeNowUTC("enforce_time_now_utc_test.go")
+	require.NoError(t, err)
+	require.Equal(t, 0, replacements, "format_go package files should be excluded from enforcement")
 
-// Process the enforcement file itself (should be excluded).
-replacements, err = processGoFileForTimeNowUTC("enforce_time_now_utc.go")
-require.NoError(t, err)
-require.Equal(t, 0, replacements, "format_go package files should be excluded from enforcement")
+	// Process the enforcement file itself (should be excluded).
+	replacements, err = processGoFileForTimeNowUTC("enforce_time_now_utc.go")
+	require.NoError(t, err)
+	require.Equal(t, 0, replacements, "format_go package files should be excluded from enforcement")
 }
 
 // TestEnforceTimeNowUTC_Integration tests full enforcement flow.
