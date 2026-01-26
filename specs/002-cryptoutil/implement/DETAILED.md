@@ -6128,3 +6128,122 @@ Service coverage gap (12.3%) is dominated by database error paths, similar to re
    - Priority 4: JOSE-JA config (61.9%), service (87.3%)
 5. Rerun coverage tests to validate 95% target achieved
 6. Proceed to Phase 5 (blockers/validation) and Phase 6 (mutation testing)
+
+---
+
+### 2026-01-26: Phase 4.3 Coverage Gap Analysis Complete
+
+**Objective**: Document specific uncovered lines and categorize gaps for targeted test implementation
+
+**Actions Taken**:
+
+1. **Generated HTML Coverage Reports** (10 packages <90%):
+   - Created PowerShell script: `scripts/generate-coverage-reports.ps1`
+   - Generated 10 HTML reports in `test-output/coverage-html/`
+   - Reports cover all packages below 90% threshold
+
+2. **Coverage Reports Generated**:
+   - ✅ cipher-im-server-config.html (80.4%)
+   - ✅ cipher-im-server-apis.html (82.1%)
+   - ✅ jose-ja-server-config.html (61.9%)
+   - ✅ jose-ja-service.html (87.3%)
+   - ✅ template-server-repository.html (84.8%)
+   - ✅ template-service-config.html (81.3%)
+   - ✅ template-service-config-tls.html (80.6%)
+   - ✅ template-server-businesslogic.html (75.2%)
+   - ✅ template-server-listener.html (70.7%)
+   - ✅ template-server-barrier.html (72.6%)
+
+3. **Comprehensive Gap Analysis Document Created**:
+   - File: `docs/coverage-gaps.md`
+   - Structure: Priority-based categorization (largest gaps first)
+   - Content: Uncovered scenarios per package, test strategies, implementation priority
+   - Categories: Error paths (40%), edge cases (30%), validation (20%), concurrency (10%)
+
+**Gap Analysis Highlights**:
+
+**Priority 1 (>20% deficit)**:
+1. Template Listener (70.7%, -24.3%) - 4h estimated
+   - HTTP server lifecycle, port allocation, graceful shutdown
+   - Timeout scenarios, concurrent Start/Shutdown
+   
+2. Template Barrier (72.6%, -22.4%) - 3h estimated  
+   - Encryption service edge cases, key rotation concurrency
+   - Database transaction rollback, unseal key derivation
+   
+3. Template Businesslogic (75.2%, -19.8%) - 4h estimated
+   - Session expiration/revocation, realm validation
+   - Tenant isolation boundaries, registration duplicates
+
+**Priority 2 (10-20% deficit)**:
+4. Template Repository (84.8%, -10.2%) - 2h
+5. Template Config (81.3%, -13.7%) - 2h
+6. Template TLS Generator (80.6%, -14.4%) - 2h
+7. Cipher-IM Config (80.4%, -14.6%) - 2h
+8. Cipher-IM APIs (82.1%, -12.9%) - 2h
+
+**Priority 3 (<10% deficit)**:
+9. JOSE-JA Service (87.3%, -7.7%) - 2h (Phase 5.1 blocker)
+10. JOSE-JA Config (61.9%, -33.1%) - 2h (high deficit but simple validation tests)
+
+**Gap Categories Identified**:
+
+**Error Paths** (40% of gaps):
+- Config file loading failures (missing, malformed, invalid schema)
+- Database constraint violations (unique, foreign key, check)
+- TLS certificate loading errors
+- Validation failures (business rules, schemas)
+- Transaction rollback scenarios
+
+**Edge Cases** (30% of gaps):
+- Nil/empty input handling
+- Boundary values (min/max, zero, negative)
+- Date/time scenarios (expiration, past dates)
+- Concurrent operations (race conditions, database contention)
+
+**Validation Logic** (20% of gaps):
+- Business rule enforcement (multi-field cross-validation)
+- Tenant isolation boundaries (cross-tenant access attempts)
+- Complex validation chains (dependent fields)
+
+**Concurrency/Race Conditions** (10% of gaps):
+- Parallel request handling
+- Database lock contention (SQLite WAL mode)
+- Key rotation concurrency (barrier, JWK services)
+- Session creation races (same user, multiple devices)
+
+**Implementation Priority Established**:
+
+1. Template Listener (4h) - Critical infrastructure, highest deficit
+2. Template Barrier (3h) - Security-critical, recently fixed timeout
+3. Template Businesslogic (4h) - Business rules, multi-tenancy
+4. JOSE-JA Config (2h) - High deficit but straightforward
+5. Template Config/TLS/Repository (6h) - Medium complexity, can parallelize
+6. Cipher-IM Config/APIs (4h) - Similar patterns to template
+7. JOSE-JA Service (2h) - Phase 5.1 blocker, smallest deficit
+
+**Total Estimated Effort**: 25 hours (aligns with Phase 4.4 + 5.1 estimates from tasks.md)
+
+**Commits This Session**:
+- 946ee7ac: "docs: add Phase 4.2 coverage verification session to timeline"
+- 238a5b14: "docs(coverage): add comprehensive coverage gaps analysis for Phase 4.3"
+
+**Files Created**:
+- `docs/coverage-gaps.md`: Comprehensive gap analysis with test strategies
+- `scripts/generate-coverage-reports.ps1`: Automated HTML report generation
+- `test-output/coverage-html/*.html`: 10 HTML coverage reports
+
+**Duration**: ~30 minutes (script creation + report generation + gap analysis documentation)
+
+**Phase 4.3 Completion Criteria Met**:
+- ✅ HTML coverage reports generated for all 10 packages <90%
+- ✅ Gaps documented by category (error paths, edge cases, validation, concurrency)
+- ✅ Test implementation priority established
+- ✅ Specific uncovered scenarios listed per package
+- ✅ Effort estimates provided (total 25 hours)
+
+**Next Steps** (Phase 4.4):
+1. Implement targeted tests in priority order (Listener → Barrier → Businesslogic)
+2. Verify coverage improvements after each package
+3. Target: All 26 packages ≥95% coverage
+4. Duration estimate: 23 hours for Phase 4.4, 2 hours for Phase 5.1 (JOSE service)
