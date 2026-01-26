@@ -63,28 +63,20 @@ var (
 // ParseWithFlagSet parses command line arguments using provided FlagSet and returns jose-ja settings.
 // This enables test isolation by allowing each test to use its own FlagSet.
 func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*JoseJAServerSettings, error) {
-	// Parse base template settings first using the same FlagSet.
+	// Register jose-ja specific flags on the provided FlagSet BEFORE parsing.
+	// This must happen before calling template ParseWithFlagSet since it will call fs.Parse().
+	fs.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
+	fs.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
+	fs.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
+
+	// Parse base template settings using the same FlagSet.
+	// This will register template flags and call fs.Parse() + viper.BindPFlags().
 	baseSettings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register jose-ja specific flags on the provided FlagSet.
-	fs.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
-	fs.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
-	fs.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
-
-	// Parse flags using the provided FlagSet.
-	if err := fs.Parse(args); err != nil {
-		return nil, fmt.Errorf("failed to parse flags: %w", err)
-	}
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(fs); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create jose-ja settings.
+	// Create jose-ja settings using values from viper (bound by template ParseWithFlagSet).
 	settings := &JoseJAServerSettings{
 		ServiceTemplateServerSettings: baseSettings,
 		DefaultMaxMaterials:           viper.GetInt(maxMaterialsSetting.Name),

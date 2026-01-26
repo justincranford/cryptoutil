@@ -8,6 +8,7 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 )
 
@@ -92,18 +93,117 @@ func TestLogOutputFormat(t *testing.T) {
 	logJoseJASettings(settings)
 }
 
-// TestParse_DefaultValues tests Parse returns correct default values.
-func TestParse_DefaultValues(t *testing.T) {
-	// Cannot run in parallel due to global flag state.
-	// Note: This test would require resetting pflag state.
-	// Skip for now as Parse modifies global state.
-	t.Skip("TODO P2.4: Add Parse tests with flag state isolation")
+// TestParseWithFlagSet_DefaultValues tests ParseWithFlagSet returns correct default values.
+func TestParseWithFlagSet_DefaultValues(t *testing.T) {
+	t.Parallel()
+
+	// Create fresh FlagSet for this test (enables parallel execution).
+	fs := pflag.NewFlagSet("test-defaults", pflag.ContinueOnError)
+
+	// Parse with subcommand + no additional flags.
+	args := []string{"start"}
+	settings, err := ParseWithFlagSet(fs, args, false)
+	if err != nil {
+		t.Fatalf("ParseWithFlagSet() error = %v, want nil", err)
+	}
+
+	// Verify jose-ja defaults.
+	if settings.DefaultMaxMaterials != 10 {
+		t.Errorf("DefaultMaxMaterials = %d, want 10", settings.DefaultMaxMaterials)
+	}
+	if settings.AuditEnabled != true {
+		t.Errorf("AuditEnabled = %v, want true", settings.AuditEnabled)
+	}
+	if settings.AuditSamplingRate != 100 {
+		t.Errorf("AuditSamplingRate = %d, want 100", settings.AuditSamplingRate)
+	}
+
+	// Verify template defaults inherited.
+	if settings.BindPublicPort != 9443 { // cryptoutilSharedMagic.JoseJAServicePort.
+		t.Errorf("BindPublicPort = %d, want 9443", settings.BindPublicPort)
+	}
+	if settings.OTLPService != "jose-ja" {
+		t.Errorf("OTLPService = %q, want %q", settings.OTLPService, "jose-ja")
+	}
 }
 
-// TestParse_OverrideDefaults tests Parse with command line overrides.
+// TestParseWithFlagSet_OverrideDefaults tests ParseWithFlagSet with command line overrides.
+func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		args    []string
+		wantMax int
+		wantAud bool
+		wantRate int
+	}{
+		{
+			name:    "override max materials",
+			args:    []string{"start", "--max-materials", "50"},
+			wantMax: 50,
+			wantAud: true,
+			wantRate: 100,
+		},
+		{
+			name:    "disable audit",
+			args:    []string{"start", "--audit-enabled=false"},
+			wantMax: 10,
+			wantAud: false,
+			wantRate: 100,
+		},
+		{
+			name:    "override sampling rate",
+			args:    []string{"start", "--audit-sampling-rate", "25"},
+			wantMax: 10,
+			wantAud: true,
+			wantRate: 25,
+		},
+		{
+			name:    "override all jose-ja flags",
+			args:    []string{"start", "--max-materials", "100", "--audit-enabled=false", "--audit-sampling-rate", "50"},
+			wantMax: 100,
+			wantAud: false,
+			wantRate: 50,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Create fresh FlagSet for each test.
+			fs := pflag.NewFlagSet("test-override-"+tt.name, pflag.ContinueOnError)
+
+			settings, err := ParseWithFlagSet(fs, tt.args, false)
+			if err != nil {
+				t.Fatalf("ParseWithFlagSet() error = %v, want nil", err)
+			}
+
+			if settings.DefaultMaxMaterials != tt.wantMax {
+				t.Errorf("DefaultMaxMaterials = %d, want %d", settings.DefaultMaxMaterials, tt.wantMax)
+			}
+			if settings.AuditEnabled != tt.wantAud {
+				t.Errorf("AuditEnabled = %v, want %v", settings.AuditEnabled, tt.wantAud)
+			}
+			if settings.AuditSamplingRate != tt.wantRate {
+				t.Errorf("AuditSamplingRate = %d, want %d", settings.AuditSamplingRate, tt.wantRate)
+			}
+		})
+	}
+}
+
+// TestParse_DefaultValues tests Parse returns correct default values using global pflag.
+func TestParse_DefaultValues(t *testing.T) {
+	// Use ParseWithFlagSet instead - Parse modifies global pflag.CommandLine.
+	// Tests should use ParseWithFlagSet for isolation.
+	t.Skip("Use TestParseWithFlagSet_DefaultValues instead - this test would modify global pflag state")
+}
+
+// TestParse_OverrideDefaults tests Parse with command line overrides using global pflag.
 func TestParse_OverrideDefaults(t *testing.T) {
-	// Cannot run in parallel due to global flag state.
-	t.Skip("TODO P2.4: Add Parse tests with flag state isolation")
+	// Use ParseWithFlagSet instead - Parse modifies global pflag.CommandLine.
+	t.Skip("Use TestParseWithFlagSet_OverrideDefaults instead - this test would modify global pflag state")
 }
 
 // TestPublicBaseURL tests URL construction for public server.
