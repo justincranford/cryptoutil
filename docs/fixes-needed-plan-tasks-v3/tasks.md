@@ -241,13 +241,13 @@ Document app.Test() pattern as best practice for handler testing without HTTPS l
 **Description**: Check if internal/apps/template/testing/e2e/ exists with functional tests.
 
 **Acceptance Criteria**:
-- [ ] 3.1.1 Check `internal/apps/template/testing/e2e/` directory
-- [ ] 3.1.2 Verify testmain_e2e_test.go exists
-- [ ] 3.1.3 Verify uses docker_health.go helpers
-- [ ] 3.1.4 Verify template service in healthcheck list
-- [ ] 3.1.5 Document findings
-- [ ] 3.1.6 Proceed to 3.2 if missing
-- [ ] 3.1.7 Commit: "docs(tasks): verify template E2E status"
+- [x] 3.1.1 Check `internal/apps/template/testing/e2e/` directory - EXISTS
+- [x] 3.1.2 Verify testmain_e2e_test.go exists - MISSING (only compose.go exists)
+- [x] 3.1.3 Verify uses docker_health.go helpers - compose.go uses ComposeManager pattern
+- [x] 3.1.4 Verify template service in healthcheck list - NO healthchecks configured (no tests)
+- [x] 3.1.5 Document findings - Infrastructure exists (compose.go), tests missing (testmain_e2e_test.go)
+- [x] 3.1.6 Proceed to 3.2 if missing - PROCEEDING (testmain_e2e_test.go missing)
+- [x] 3.1.7 Commit: "docs(tasks): verify template E2E status"
 
 ---
 
