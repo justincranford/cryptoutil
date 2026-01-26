@@ -30,21 +30,21 @@ This plan contains the **remaining incomplete work** from v3, reorganized for cl
 
 ## Phases
 
-### Phase 0: Research & Discovery (Estimated: 4h)
+### Phase 0: Research & Discovery
 
 **Objective**: Clarify ambiguities before implementation
 
 **Tasks**:
-- [ ] 0.1: Service template comparison analysis (2h)
+- [ ] 0.1: Service template comparison analysis
   - Compare KMS vs service-template vs cipher-im vs JOSE-JA
   - Identify duplication opportunities
   - Create comparison table in research.md
-- [ ] 0.2: Mutation efficacy standards clarification (1h)
+- [ ] 0.2: Mutation efficacy standards clarification
   - Document 98% ideal vs 95% minimum distinction
   - Update plan.md quality gates
-- [ ] 0.3: CI/CD mutation workflow research (1h)
+- [ ] 0.3: CI/CD mutation workflow research
   - Linux execution requirements
-  - Timeout configuration (15min per package)
+  - Timeout configuration per package
   - Artifact collection patterns
 
 **Deliverables**:
@@ -52,7 +52,7 @@ This plan contains the **remaining incomplete work** from v3, reorganized for cl
 - Updated plan.md quality gates section
 - CI/CD execution checklist
 
-### Phase 1: JOSE-JA Service Error Coverage (Estimated: 8h)
+### Phase 1: JOSE-JA Service Error Coverage
 
 **Objective**: Achieve 95% coverage for jose/service (currently 87.3%, gap: 7.7%)
 
@@ -62,117 +62,117 @@ This plan contains the **remaining incomplete work** from v3, reorganized for cl
 - Discovery: Multi-step error paths need decomposition
 
 **Tasks** (6 tasks):
-- [ ] 1.1: Add createMaterialJWK error tests (1.5h)
-- [ ] 1.2: Add Encrypt error tests (1.5h)
-- [ ] 1.3: Add RotateMaterial error tests (1.5h)
-- [ ] 1.4: Add CreateEncryptedJWT error tests (1.5h)
-- [ ] 1.5: Add EncryptWithKID error tests (1.5h)
-- [ ] 1.6: Verify 95% coverage achieved (30min)
+- [ ] 1.1: Add createMaterialJWK error tests
+- [ ] 1.2: Add Encrypt error tests
+- [ ] 1.3: Add RotateMaterial error tests
+- [ ] 1.4: Add CreateEncryptedJWT error tests
+- [ ] 1.5: Add EncryptWithKID error tests
+- [ ] 1.6: Verify 95% coverage achieved
 
 **Success Criteria**:
 - Coverage ≥95% for jose/service
 - All error paths tested independently
 - No skipped tests without documentation
 
-### Phase 2: Cipher-IM Infrastructure Fixes (Estimated: 5h)
+### Phase 2: Cipher-IM Infrastructure Fixes
 
 **Objective**: Unblock cipher-im mutation testing (currently 0% - UNACCEPTABLE)
 
 **Root Cause**: Docker compose unhealthy, E2E tag bypass, repository timeouts
 
 **Tasks** (5 tasks):
-- [ ] 2.1: Fix cipher-im Docker infrastructure (2h)
+- [ ] 2.1: Fix cipher-im Docker infrastructure
   - OTEL HTTP/gRPC mismatch resolution
   - E2E tag bypass fix
   - Health check verification
-- [ ] 2.2: Run gremlins baseline on cipher-im (1h)
-- [ ] 2.3: Analyze cipher-im lived mutations (1h)
-- [ ] 2.4: Kill cipher-im mutations for 98% efficacy (6-10h, HIGH)
-- [ ] 2.5: Verify cipher-im mutation testing complete (30min)
+- [ ] 2.2: Run gremlins baseline on cipher-im
+- [ ] 2.3: Analyze cipher-im lived mutations
+- [ ] 2.4: Kill cipher-im mutations for 98% efficacy (HIGH)
+- [ ] 2.5: Verify cipher-im mutation testing complete
 
 **Success Criteria**:
 - Docker compose healthy (all services pass health checks)
 - Gremlins runs successfully without timeouts
 - Mutation efficacy ≥98% (ideal target)
 
-### Phase 3: Template Mutation Cleanup (Estimated: 2h)
+### Phase 3: Template Mutation Cleanup
 
 **Objective**: Address remaining template mutations (currently 98.91% efficacy)
 
 **Status**: Template already exceeds 98% target, but 1 lived mutation remains
 
 **Tasks** (Optional - deferred LOW priority):
-- [ ] 3.1: Analyze remaining tls_generator.go mutation (30min)
-- [ ] 3.2: Determine if killable or inherent limitation (30min)
-- [ ] 3.3: Implement test if feasible (1h)
+- [ ] 3.1: Analyze remaining tls_generator.go mutation
+- [ ] 3.2: Determine if killable or inherent limitation
+- [ ] 3.3: Implement test if feasible
 
 **Success Criteria**:
 - Document mutation as killable or inherent limitation
 - Update mutation-analysis.md with findings
 
-### Phase 4: Continuous Mutation Testing (Estimated: 2h)
+### Phase 4: Continuous Mutation Testing
 
 **Objective**: Enable automated mutation testing in CI/CD
 
 **Dependencies**: Phase 2 complete (cipher-im unblocked)
 
 **Tasks** (6 tasks):
-- [ ] 4.1: Verify ci-mutation.yml workflow (30min)
-- [ ] 4.2: Configure timeout (15min per package) (15min)
-- [ ] 4.3: Set efficacy threshold enforcement (95% required) (30min)
-- [ ] 4.4: Test workflow with actual PR (30min)
-- [ ] 4.5: Document in README.md and DEV-SETUP.md (15min)
-- [ ] 4.6: Commit continuous mutation testing (15min)
+- [ ] 4.1: Verify ci-mutation.yml workflow
+- [ ] 4.2: Configure timeout (per package)
+- [ ] 4.3: Set efficacy threshold enforcement (95% required)
+- [ ] 4.4: Test workflow with actual PR
+- [ ] 4.5: Document in README.md and DEV-SETUP.md
+- [ ] 4.6: Commit continuous mutation testing
 
 **Success Criteria**:
 - ci-mutation.yml runs on every PR
 - Enforces 95% minimum efficacy
 - Documents workflow in README
 
-### Phase 5: CI/CD Mutation Campaign (Estimated: 10h)
+### Phase 5: CI/CD Mutation Campaign
 
 **Objective**: Execute first Linux-based mutation testing campaign
 
 **Dependencies**: Phase 4 complete
 
 **Tasks** (11 tasks):
-- [ ] 5.1: Monitor workflow execution at GitHub Actions (30min)
-- [ ] 5.2: Download mutation-test-results artifact (15min)
-- [ ] 5.3: Analyze gremlins output (2h)
-- [ ] 5.4: Populate mutation-baseline-results.md (1h)
-- [ ] 5.5: Commit baseline analysis (15min)
-- [ ] 5.6: Review survived mutations (1h)
-- [ ] 5.7: Categorize by mutation type (1h)
-- [ ] 5.8: Write targeted tests for survived mutations (3-6h)
-- [ ] 5.9: Re-run ci-mutation.yml workflow (30min)
-- [ ] 5.10: Verify efficacy ≥95% for all packages (30min)
-- [ ] 5.11: Commit mutation-killing tests (15min)
+- [ ] 5.1: Monitor workflow execution at GitHub Actions
+- [ ] 5.2: Download mutation-test-results artifact
+- [ ] 5.3: Analyze gremlins output
+- [ ] 5.4: Populate mutation-baseline-results.md
+- [ ] 5.5: Commit baseline analysis
+- [ ] 5.6: Review survived mutations
+- [ ] 5.7: Categorize by mutation type
+- [ ] 5.8: Write targeted tests for survived mutations
+- [ ] 5.9: Re-run ci-mutation.yml workflow
+- [ ] 5.10: Verify efficacy ≥95% for all packages
+- [ ] 5.11: Commit mutation-killing tests
 
 **Success Criteria**:
 - All packages ≥95% efficacy (minimum)
 - Baseline results documented
 - CI/CD workflow passing
 
-### Phase 6: Automation & Branch Protection (Estimated: 1h)
+### Phase 6: Automation & Branch Protection
 
 **Objective**: Enforce mutation testing on every PR
 
 **Dependencies**: Phase 5 complete
 
 **Tasks** (6 tasks):
-- [ ] 6.1: Add workflow trigger: on: [push, pull_request] (10min)
-- [ ] 6.2: Configure path filters (code changes only) (15min)
-- [ ] 6.3: Add status check requirement in branch protection (15min)
-- [ ] 6.4: Document in README.md and DEV-SETUP.md (10min)
-- [ ] 6.5: Test with actual PR (10min)
-- [ ] 6.6: Commit automation (10min)
+- [ ] 6.1: Add workflow trigger: on: [push, pull_request]
+- [ ] 6.2: Configure path filters (code changes only)
+- [ ] 6.3: Add status check requirement in branch protection
+- [ ] 6.4: Document in README.md and DEV-SETUP.md
+- [ ] 6.5: Test with actual PR
+- [ ] 6.6: Commit automation
 
 **Success Criteria**:
 - Mutation testing runs on every code change
 - Branch protection enforces passing mutation tests
 - Documented in project README
 
-### Phase 7: Race Condition Testing (Estimated: 10h)
+### Phase 7: Race Condition Testing
 
 **Objective**: Verify thread-safety on Linux with race detector
 
@@ -181,31 +181,31 @@ This plan contains the **remaining incomplete work** from v3, reorganized for cl
 **Tasks** (35 tasks organized by category):
 
 **Repository Layer** (7 tasks):
-- [ ] 7.1: Run race detector on jose-ja repository (1h)
-- [ ] 7.2: Run race detector on cipher-im repository (1h)
-- [ ] 7.3: Run race detector on template repository (1h)
-- [ ] 7.4: Document any race conditions found (1h)
-- [ ] 7.5: Fix races with proper mutex/channel usage (3h)
-- [ ] 7.6: Re-run until clean (0 races detected) (2h)
-- [ ] 7.7: Commit repository thread-safety verified on Linux (15min)
+- [ ] 7.1: Run race detector on jose-ja repository
+- [ ] 7.2: Run race detector on cipher-im repository
+- [ ] 7.3: Run race detector on template repository
+- [ ] 7.4: Document any race conditions found
+- [ ] 7.5: Fix races with proper mutex/channel usage
+- [ ] 7.6: Re-run until clean (0 races detected)
+- [ ] 7.7: Commit repository thread-safety verified on Linux
 
 **Service Layer** (7 tasks):
-- [ ] 7.8: Run race detector on jose-ja service (1h)
-- [ ] 7.9: Run race detector on cipher-im service (1h)
-- [ ] 7.10: Run race detector on template service (1h)
-- [ ] 7.11: Document races (1h)
-- [ ] 7.12: Fix races (3h)
-- [ ] 7.13: Re-run until clean (2h)
-- [ ] 7.14: Commit service thread-safety (15min)
+- [ ] 7.8: Run race detector on jose-ja service
+- [ ] 7.9: Run race detector on cipher-im service
+- [ ] 7.10: Run race detector on template service
+- [ ] 7.11: Document races
+- [ ] 7.12: Fix races
+- [ ] 7.13: Re-run until clean
+- [ ] 7.14: Commit service thread-safety
 
 **APIs Layer** (7 tasks):
-- [ ] 7.15-7.21: Similar pattern for APIs layer (7h)
+- [ ] 7.15-7.21: Similar pattern for APIs layer
 
 **Config Layer** (7 tasks):
-- [ ] 7.22-7.28: Similar pattern for config layer (7h)
+- [ ] 7.22-7.28: Similar pattern for config layer
 
 **Integration Tests** (7 tasks):
-- [ ] 7.29-7.35: Similar pattern for integration tests (7h)
+- [ ] 7.29-7.35: Similar pattern for integration tests
 
 **Success Criteria**:
 - All packages pass race detector (0 races)
@@ -243,9 +243,9 @@ This plan contains the **remaining incomplete work** from v3, reorganized for cl
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| Cipher-IM Docker issues persist | Medium | High | Dedicated Phase 2 with 5h allocation, fallback: simplify compose |
-| Race detector finds major issues | Medium | Medium | Allocate 10h Phase 7, prioritize fixes by severity |
-| CI/CD mutation timeouts | Low | Medium | 15min timeout per package, parallelize execution |
+| Cipher-IM Docker issues persist | Medium | High | Dedicated Phase 2, fallback: simplify compose |
+| Race detector finds major issues | Medium | Medium | Phase 7 dedicated, prioritize fixes by severity |
+| CI/CD mutation timeouts | Low | Medium | Timeout per package, parallelize execution |
 | Service template refactor too large | Low | High | Phase 0.1 research quantifies scope, break into sub-phases if needed |
 | 95% service coverage unreachable | Low | Medium | Document testing limitations (as done in 4.2.10), accept <95% with justification |
 

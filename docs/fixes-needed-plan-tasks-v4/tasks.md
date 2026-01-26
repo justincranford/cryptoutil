@@ -7,15 +7,12 @@
 ## Phase 0: Research & Discovery
 
 **Objective**: Clarify unknowns before implementation
-**Estimated**: 4h total
 **Status**: ⏳ NOT STARTED
 
 ### Task 0.1: Service Template Comparison Analysis
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 2h
-**Actual**: 
 **Dependencies**: None
 **Priority**: HIGH
 
@@ -48,8 +45,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1h
-**Actual**: 
+
 **Dependencies**: None
 **Priority**: MEDIUM
 
@@ -71,8 +67,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1h
-**Actual**: 
+
 **Dependencies**: None
 **Priority**: MEDIUM
 
@@ -81,7 +76,7 @@
 **Acceptance Criteria**:
 - [ ] 0.3.1: Review existing .github/workflows/ci-mutation.yml
 - [ ] 0.3.2: Document Linux execution requirements
-- [ ] 0.3.3: Document timeout configuration (15min per package recommended)
+- [ ] 0.3.3: Document timeout configuration (per package recommended)
 - [ ] 0.3.4: Document artifact collection patterns
 - [ ] 0.3.5: Create CI/CD execution checklist in research.md
 - [ ] 0.3.6: Commit: "docs(research): CI/CD mutation testing patterns"
@@ -95,15 +90,12 @@
 ## Phase 1: JOSE-JA Service Error Coverage
 
 **Objective**: Achieve 95% coverage for jose/service (currently 87.3%, gap: 7.7%)
-**Estimated**: 8h total
 **Status**: ⏳ NOT STARTED
 
 ### Task 1.1: Add createMaterialJWK Error Tests
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1.5h
-**Actual**: 
 **Dependencies**: Task 0.1 complete (comparison analysis)
 **Priority**: HIGH
 
@@ -127,8 +119,6 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1.5h
-**Actual**: 
 **Dependencies**: Task 1.1 complete
 **Priority**: HIGH
 
@@ -152,8 +142,6 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1.5h
-**Actual**: 
 **Dependencies**: Task 1.2 complete
 **Priority**: HIGH
 
@@ -177,8 +165,6 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1.5h
-**Actual**: 
 **Dependencies**: Task 1.3 complete
 **Priority**: HIGH
 
@@ -202,8 +188,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1.5h
-**Actual**: 
+
 **Dependencies**: Task 1.4 complete
 **Priority**: HIGH
 
@@ -227,8 +212,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 30min
-**Actual**: 
+
 **Dependencies**: Task 1.5 complete
 **Priority**: HIGH
 
@@ -250,15 +234,14 @@
 ## Phase 2: Cipher-IM Infrastructure Fixes
 
 **Objective**: Unblock cipher-im mutation testing (currently 0% - UNACCEPTABLE)
-**Estimated**: 5h + 6-10h (mutation killing)
+
 **Status**: ⏳ NOT STARTED
 
 ### Task 2.1: Fix Cipher-IM Docker Infrastructure
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 2h
-**Actual**: 
+
 **Dependencies**: Phase 1 complete
 **Priority**: CRITICAL
 
@@ -282,8 +265,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1h
-**Actual**: 
+
 **Dependencies**: Task 2.1 complete
 **Priority**: HIGH
 
@@ -305,8 +287,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 1h
-**Actual**: 
+
 **Dependencies**: Task 2.2 complete
 **Priority**: HIGH
 
@@ -329,8 +310,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 6-10h (HIGH priority, depends on mutation count)
-**Actual**: 
+
 **Dependencies**: Task 2.3 complete
 **Priority**: CRITICAL
 
@@ -355,8 +335,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 30min
-**Actual**: 
+
 **Dependencies**: Task 2.4 complete
 **Priority**: HIGH
 
@@ -380,15 +359,14 @@
 ## Phase 3: Template Mutation Cleanup (OPTIONAL - LOW PRIORITY)
 
 **Objective**: Address remaining template mutation (currently 98.91% efficacy)
-**Estimated**: 2h total
+
 **Status**: ⏳ DEFERRED (template already exceeds 98% target)
 
 ### Task 3.1: Analyze Remaining tls_generator.go Mutation
 
 **Status**: ⏳ DEFERRED
 **Owner**: LLM Agent
-**Estimated**: 30min
-**Actual**: 
+
 **Dependencies**: Phase 2 complete
 **Priority**: LOW (optional cleanup)
 
@@ -409,8 +387,7 @@
 
 **Status**: ⏳ DEFERRED
 **Owner**: LLM Agent
-**Estimated**: 30min
-**Actual**: 
+
 **Dependencies**: Task 3.1 complete
 **Priority**: LOW
 
@@ -431,8 +408,7 @@
 
 **Status**: ⏳ DEFERRED
 **Owner**: LLM Agent
-**Estimated**: 1h
-**Actual**: 
+
 **Dependencies**: Task 3.2 complete
 **Priority**: LOW
 
@@ -453,15 +429,14 @@
 ## Phase 4: Continuous Mutation Testing
 
 **Objective**: Enable automated mutation testing in CI/CD
-**Estimated**: 2h total
+
 **Status**: ⏳ NOT STARTED
 
 ### Task 4.1: Verify ci-mutation.yml Workflow
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Estimated**: 30min
-**Actual**: 
+
 **Dependencies**: Phase 2 complete (cipher-im unblocked)
 **Priority**: HIGH
 
