@@ -204,7 +204,84 @@ Agent: [Creates plan.md] → [Creates tasks.md] → [Creates quizme-v1.md if nee
 User: "/plan-tasks-quizme docs\new-work\ create"
 Agent: [Creates plan.md] → "I've created plan.md. Should I create tasks.md next?"  ❌ FORBIDDEN
 ```
+---
 
+## Evidence Collection Pattern - MANDATORY
+
+**CRITICAL: ALL analysis outputs, verification artifacts, and generated evidence MUST be collected in organized subdirectories**
+
+**Required Pattern**:
+
+```
+test-output/<analysis-type>/
+```
+
+**Common Analysis Types for Plan/Tasks Documentation**:
+
+- `test-output/coverage-analysis/` - Coverage verification during plan updates
+- `test-output/mutation-results/` - Mutation testing evidence for task completion
+- `test-output/benchmark-results/` - Performance benchmark evidence
+- `test-output/integration-tests/` - Integration test logs for verification
+- `test-output/gap-analysis/` - Gap analysis artifacts when updating plans
+- `test-output/completion-verification/` - Evidence for task completion claims
+
+**Benefits**:
+
+1. **Prevents Documentation Sprawl**: No docs/analysis-*.md, docs/SESSION-*.md files
+2. **Consistent Location**: All related evidence in one predictable location
+3. **Easy to Reference**: Plan/tasks documents reference subdirectory for evidence
+4. **Git-Friendly**: Covered by .gitignore test-output/ pattern
+
+**Requirements**:
+
+1. **Create subdirectory BEFORE generating evidence**: `mkdir -p test-output/<analysis-type>/`
+2. **Place ALL related files in subdirectory**: Analysis docs, verification logs, test results
+3. **Reference in plan.md/tasks.md**: Link to subdirectory for complete evidence
+4. **Use descriptive subdirectory names**: `coverage-analysis` not `cov`
+5. **Document in plan.md**: Add "Evidence" section with subdirectory reference
+
+**Violations**:
+
+- ❌ **Scattered docs**: `docs/analysis-*.md`, `docs/SESSION-*.md`, `docs/work-log-*.md`
+- ❌ **Root-level evidence**: `./coverage.out`, `./test-results.txt`
+- ❌ **Undocumented evidence**: Evidence exists but not referenced in plan.md
+
+**Correct Patterns**:
+
+- ✅ **Organized subdirectories**: All evidence in `test-output/<analysis-type>/`
+- ✅ **Referenced in plan.md**: "See test-output/coverage-analysis/ for evidence"
+- ✅ **Comprehensive coverage**: All related files together
+
+**Example - Plan Update with Evidence**:
+
+```bash
+# Create evidence subdirectory
+mkdir -p test-output/gap-analysis/
+
+# Collect evidence during plan update
+grep -r "TODO" internal/ > test-output/gap-analysis/remaining-todos.txt
+go test ./... -count=1 > test-output/gap-analysis/test-status.log 2>&1
+go tool cover -func=coverage.out > test-output/gap-analysis/coverage-detail.txt
+
+# Update plan.md with evidence reference
+cat >> docs/fixes-needed-plan-tasks-v4/plan.md <<EOF
+
+## Evidence
+
+Complete gap analysis available in: test-output/gap-analysis/
+
+- remaining-todos.txt: 47 TODOs across 12 packages
+- test-status.log: 3 failing tests requiring fixes
+- coverage-detail.txt: 15 packages below ≥95% minimum
+EOF
+```
+
+**Enforcement**:
+
+- This pattern is MANDATORY for ALL evidence collection
+- Plan.md and tasks.md MUST reference evidence subdirectories
+- DO NOT create separate analysis documents in docs/
+- ALL verification artifacts go in test-output/
 ---
 
 ## File Templates

@@ -67,6 +67,92 @@ You MUST plan extensively before each function call, and reflect extensively on 
 
 You MUST keep working until the problem is completely solved, and all items in the todo list are checked off. Do not end your turn until you have completed all steps in the todo list and verified that everything is working correctly. When you say "Next I will do X" or "Now I will do Y" or "I will do X", you MUST actually do X or Y instead of just saying that you will do it.
 
+---
+
+## Evidence Collection Pattern - MANDATORY
+
+**CRITICAL: ALL analysis outputs, test coverage, mutation results, verification artifacts, and generated evidence MUST be collected in organized subdirectories**
+
+**Required Pattern**:
+
+```
+test-output/<analysis-type>/
+```
+
+**Examples**:
+
+- `test-output/coverage-analysis/` - Coverage profiles, function-level breakdowns, gap analysis
+- `test-output/mutation-results/` - Gremlins output, mutation efficacy reports, surviving mutants
+- `test-output/benchmark-results/` - Benchmark profiles, performance comparisons, timing data
+- `test-output/integration-tests/` - Integration test logs, database dumps, request/response traces
+- `test-output/workflow-validation/` - Workflow dry-run results, act execution logs, syntax checks
+- `test-output/security-scans/` - DAST reports, SAST results, dependency vulnerability scans
+
+**Benefits**:
+
+1. **Prevents Root-Level Sprawl**: No scattered .cov, .html, .log files in project root
+2. **Prevents Documentation Sprawl**: No docs/analysis-*.md, docs/SESSION-*.md files
+3. **Consistent Location**: All related evidence in one predictable location
+4. **Easy to Reference**: Documentation references subdirectory, not individual files
+5. **Git-Friendly**: Covered by .gitignore test-output/ pattern
+6. **Clean Workspace**: All temporary evidence isolated from source code
+
+**Requirements**:
+
+1. **Create subdirectory BEFORE generating evidence**: `mkdir -p test-output/<analysis-type>/`
+2. **Place ALL related files in subdirectory**: Coverage profiles, reports, logs, analysis documents
+3. **Reference subdirectory in documentation**: Link to directory, not individual files
+4. **Use descriptive subdirectory names**: `coverage-analysis` not `cov`, `mutation-results` not `mut`
+5. **One subdirectory per analysis session**: Append timestamp if multiple sessions (e.g., `coverage-analysis-2026-01-27/`)
+
+**Violations**:
+
+- ❌ **Root-level evidence files**: `./coverage.out`, `./mutation-report.txt`, `./benchmark.html`
+- ❌ **Scattered documentation**: `docs/analysis-*.md`, `docs/SESSION-*.md`, `docs/coverage-gaps.md`
+- ❌ **Service-level sprawl**: `internal/jose/test-coverage.out`, `internal/ca/mutation.txt`
+- ❌ **Ambiguous names**: `test-output/results/`, `test-output/temp/`, `test-output/data/`
+
+**Correct Patterns**:
+
+- ✅ **Organized subdirectories**: All evidence in `test-output/<analysis-type>/`
+- ✅ **Comprehensive coverage**: All related files together (profile + report + analysis)
+- ✅ **Referenced in docs**: Documentation links to subdirectory for complete evidence
+- ✅ **Descriptive names**: Clear purpose from subdirectory name
+
+**Example - Coverage Analysis** (Demonstrated in V4 Plan Phase 4):
+
+```bash
+# Create subdirectory
+mkdir -p test-output/coverage-analysis/
+
+# Generate evidence
+go test -coverprofile=test-output/coverage-analysis/all-packages.cov ./... > test-output/coverage-analysis/test-run.log 2>&1
+go tool cover -func=test-output/coverage-analysis/all-packages.cov > test-output/coverage-analysis/coverage-by-package.txt
+go tool cover -func=test-output/coverage-analysis/all-packages.cov | tail -1 > test-output/coverage-analysis/total-coverage.txt
+
+# Create analysis document
+cat > test-output/coverage-analysis/gaps-analysis.md <<EOF
+# Coverage Gaps Analysis
+
+## Executive Summary
+- Total Coverage: 52.2%
+- Critical Gaps (0%): 7+ packages
+...
+EOF
+
+# Reference in main documentation
+echo "See test-output/coverage-analysis/ for complete evidence" >> docs/coverage-analysis-2026-01-27.md
+```
+
+**Enforcement**:
+
+- This pattern is MANDATORY for ALL evidence collection
+- Violations will be rejected in code review
+- Pre-commit hooks MAY enforce this pattern
+- CI/CD workflows MUST use this pattern for artifact uploads
+
+---
+
 ## Relationship with plan-tasks-quizme Agent
 
 This agent **requires** that plan.md and tasks.md have been **created first** using `/plan-tasks-quizme <work-dir> create`.

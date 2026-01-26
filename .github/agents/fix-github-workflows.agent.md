@@ -145,3 +145,89 @@ docs/fixes-needed-plan-tasks-v#/
 - Document pattern that caused issue (e.g., "Missing environment variable validation")
 - Add prevention strategy (e.g., "ALWAYS validate env vars at workflow start")
 - Update related documentation (e.g., add to copilot instructions if recurring pattern)
+
+---
+
+## Evidence Collection Pattern - MANDATORY
+
+**CRITICAL: ALL workflow validation artifacts, test logs, and verification evidence MUST be collected in organized subdirectories**
+
+**Required Pattern**:
+
+```
+test-output/<analysis-type>/
+```
+
+**Common Evidence Types for Workflow Fixes**:
+
+- `test-output/workflow-validation/` - Act dry-run results, syntax validation, workflow verification
+- `test-output/workflow-execution/` - Act run logs, job output, container logs
+- `test-output/workflow-regression/` - Regression test results, before/after comparisons
+- `test-output/workflow-analysis/` - Workflow dependency analysis, shared action audits
+- `test-output/dast-workflow-reports/` - DAST workflow specific artifacts (already exists)
+- `test-output/load-test-artifacts/` - Load test workflow artifacts (already exists)
+
+**Benefits**:
+
+1. **Prevents Root-Level Sprawl**: No scattered .log, .txt, .html files in project root
+2. **Prevents Documentation Sprawl**: No docs/workflow-analysis-*.md files
+3. **Consistent Location**: All related evidence in one predictable location
+4. **Easy to Reference**: Issues.md references subdirectory for complete evidence
+5. **Git-Friendly**: Covered by .gitignore test-output/ pattern
+
+**Requirements**:
+
+1. **Create subdirectory BEFORE validation**: `mkdir -p test-output/workflow-validation/`
+2. **Place ALL validation artifacts in subdirectory**: Dry-run results, execution logs, error reports
+3. **Reference in issues.md**: Link to subdirectory for complete evidence
+4. **Use descriptive subdirectory names**: `workflow-validation` not `wf`, `workflow-execution` not `logs`
+5. **One subdirectory per workflow session**: Append workflow name or timestamp if needed
+
+**Violations**:
+
+- ❌ **Root-level logs**: `./act-dryrun.log`, `./workflow-output.txt`
+- ❌ **Scattered docs**: `docs/workflow-analysis-*.md`, `docs/SESSION-*.md`
+- ❌ **Service-level logs**: `.github/workflows/validation.log`
+- ❌ **Ambiguous names**: `test-output/logs/`, `test-output/temp/`
+
+**Correct Patterns**:
+
+- ✅ **Organized subdirectories**: All evidence in `test-output/workflow-validation/`
+- ✅ **Comprehensive evidence**: Dry-run + execution + regression logs together
+- ✅ **Referenced in issues.md**: "See test-output/workflow-validation/ for evidence"
+- ✅ **Descriptive names**: Clear purpose from subdirectory name
+
+**Example - Workflow Validation Evidence**:
+
+```bash
+# Create evidence subdirectory
+mkdir -p test-output/workflow-validation/
+
+# Validate syntax
+act --dryrun -W .github/workflows/ci-quality.yml > test-output/workflow-validation/ci-quality-dryrun.log 2>&1
+
+# Execute workflow locally
+act -j lint > test-output/workflow-validation/ci-quality-lint-execution.log 2>&1
+
+# Check for regressions
+grep -r "shared-action" .github/workflows/ > test-output/workflow-validation/shared-action-dependencies.txt
+
+# Document evidence in issues.md
+cat >> docs/fixes-needed-plan-tasks-v#/issues.md <<EOF
+
+### Issue #3: CI Quality Workflow Syntax Error
+
+- **Evidence**: test-output/workflow-validation/
+  - ci-quality-dryrun.log: Syntax validation passed
+  - ci-quality-lint-execution.log: Execution successful
+  - shared-action-dependencies.txt: No regressions found
+EOF
+```
+
+**Enforcement**:
+
+- This pattern is MANDATORY for ALL workflow validation evidence
+- Issues.md MUST reference evidence subdirectories
+- DO NOT create separate analysis documents in docs/
+- ALL validation artifacts go in test-output/
+- Existing test-output/dast-workflow-reports/ and test-output/load-test-artifacts/ already follow this pattern
