@@ -320,7 +320,9 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 30s
 
@@ -407,7 +409,9 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 30s
 
@@ -488,9 +492,11 @@ services:
 
     healthcheck:
 
-      # CA uses curl (not wget like KMS), and /livez (not /admin/api/v1/livez).
+      # CA uses wget and /livez endpoint (not /admin/api/v1/livez).
 
-      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:8443/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:8443/livez"]
 
       start_period: 60s
 
@@ -563,7 +569,9 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:8092/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:8092/admin/api/v1/livez"]
 
       start_period: 30s
 
@@ -698,7 +706,9 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 10s
 
@@ -779,7 +789,9 @@ services:
 
     healthcheck:
 
-      test: ["CMD", "curl", "-k", "-f", "-s", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "--quiet", 
+             "--tries=1", "--spider",
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 10s
 
