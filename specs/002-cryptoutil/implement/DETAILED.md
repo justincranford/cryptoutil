@@ -6166,11 +6166,11 @@ Service coverage gap (12.3%) is dominated by database error paths, similar to re
 1. Template Listener (70.7%, -24.3%) - 4h estimated
    - HTTP server lifecycle, port allocation, graceful shutdown
    - Timeout scenarios, concurrent Start/Shutdown
-   
-2. Template Barrier (72.6%, -22.4%) - 3h estimated  
+
+2. Template Barrier (72.6%, -22.4%) - 3h estimated
    - Encryption service edge cases, key rotation concurrency
    - Database transaction rollback, unseal key derivation
-   
+
 3. Template Businesslogic (75.2%, -19.8%) - 4h estimated
    - Session expiration/revocation, realm validation
    - Tenant isolation boundaries, registration duplicates

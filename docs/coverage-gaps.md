@@ -337,4 +337,3 @@
 - **Coverage Measurement**: Using `go test -cover` with SQLite in-memory
 - **Parallel Tests**: All use `t.Parallel()` - account for SQLite contention
 - **GORM**: SkipDefaultTransaction=true for test performance
-

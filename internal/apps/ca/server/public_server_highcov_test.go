@@ -135,7 +135,20 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	time.Sleep(1 * time.Second)
+	const (
+		maxWaitAttempts = 50
+		waitInterval    = 100 * time.Millisecond
+	)
+
+	for i := 0; i < maxWaitAttempts; i++ {
+		if server.PublicPort() > 0 {
+			break
+		}
+
+		time.Sleep(waitInterval)
+	}
+
+	require.Greater(t, server.PublicPort(), 0, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -199,7 +212,20 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	time.Sleep(500 * time.Millisecond)
+	const (
+		maxWaitAttempts = 50
+		waitInterval    = 100 * time.Millisecond
+	)
+
+	for i := 0; i < maxWaitAttempts; i++ {
+		if server.PublicPort() > 0 {
+			break
+		}
+
+		time.Sleep(waitInterval)
+	}
+
+	require.Greater(t, server.PublicPort(), 0, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{

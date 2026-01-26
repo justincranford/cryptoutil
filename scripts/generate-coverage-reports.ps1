@@ -23,21 +23,21 @@ foreach ($pkg in $packages) {
     $name = $pkg.name
     $path = $pkg.path
     $expected = $pkg.coverage
-    
+
     $covFile = "$outputDir/$name.cov"
     $htmlFile = "$outputDir/$name.html"
-    
+
     Write-Host "[$name] Generating coverage..." -ForegroundColor Yellow
     Write-Host "  Path: $path" -ForegroundColor Gray
     Write-Host "  Expected: $expected" -ForegroundColor Gray
-    
+
     # Run coverage test
     go test -coverprofile=$covFile $path 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Host "  ❌ Test failed" -ForegroundColor Red
         continue
     }
-    
+
     # Generate HTML
     go tool cover -html=$covFile -o $htmlFile
     if ($LASTEXITCODE -eq 0) {
@@ -45,7 +45,7 @@ foreach ($pkg in $packages) {
     } else {
         Write-Host "  ❌ HTML generation failed" -ForegroundColor Red
     }
-    
+
     Write-Host ""
 }
 
