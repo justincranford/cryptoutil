@@ -427,44 +427,1626 @@
 - [ ] 0.3.1: Review existing .github/workflows/ci-mutation.yml
 - [ ] 0.3.2: Document Linux execution requirements
 - [ ] 0.3.3: Document timeout configuration (per package recommended)
-- [ ] 0.3.4: Document artifact collection patterns
-- [ ] 0.3.5: Create CI/CD execution checklist in research.md
-- [ ] 0.3.6: Commit: "docs(research): CI/CD mutation testing patterns"
+---
+
+## Phase 4: Shared Packages Coverage (Foundation Quality)
+
+**Objective**: Bring shared packages to ≥98% coverage (infrastructure/utility standard)
+**Status**: ⏳ NOT STARTED
+**Current**: pool 61.5%, telemetry 67.5%
+
+### Task 4.1: Add Pool Worker Thread Management Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Phase 3 complete
+**Priority**: HIGH
+
+**Description**: Add unit tests for pool worker thread management.
+
+**Acceptance Criteria**:
+- [ ] 4.1.1: Test worker thread startup
+- [ ] 4.1.2: Test worker thread shutdown
+- [ ] 4.1.3: Test concurrent worker operations
+- [ ] 4.1.4: Test worker thread pool resizing
+- [ ] 4.1.5: Commit: "test(pool): add worker thread management tests"
 
 **Files**:
-- docs/fixes-needed-plan-tasks-v4/research.md (update)
-- .github/workflows/ci-mutation.yml (reference)
+- internal/shared/pool/worker_test.go (add or extend)
 
 ---
 
-## Phase 5: Infrastructure Code Coverage (Crypto + Barrier Services)
+### Task 4.2: Add Pool Cleanup Edge Case Tests
 
-**Objective**: Bring infrastructure packages to ≥98% coverage
 **Status**: ⏳ NOT STARTED
-**Current**: Multiple packages below minimum
+**Owner**: LLM Agent
+**Dependencies**: Task 4.1
+**Priority**: HIGH
 
-### Task 5.1: Add Barrier Intermediate Key Service Tests
+**Description**: Add tests for pool cleanup (closeChannelsThread edge cases).
+
+**Acceptance Criteria**:
+- [ ] 4.2.1: Test cleanup during active operations
+- [ ] 4.2.2: Test cleanup with pending work
+- [ ] 4.2.3: Test cleanup timeout scenarios
+- [ ] 4.2.4: Test cleanup error handling
+- [ ] 4.2.5: Commit: "test(pool): add cleanup edge case tests"
+
+**Files**:
+- internal/shared/pool/cleanup_test.go (add)
+
+---
+
+### Task 4.3: Add Pool Error Path Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 4.2
+**Priority**: HIGH
+
+**Description**: Add tests for pool error paths.
+
+**Acceptance Criteria**:
+- [ ] 4.3.1: Test worker initialization failures
+- [ ] 4.3.2: Test channel creation failures
+- [ ] 4.3.3: Test concurrent error scenarios
+- [ ] 4.3.4: Test error recovery mechanisms
+- [ ] 4.3.5: Commit: "test(pool): add error path tests"
+
+**Files**:
+- internal/shared/pool/error_test.go (add)
+
+---
+
+### Task 4.4: Add Telemetry Metrics Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 4.3
+**Priority**: HIGH
+
+**Description**: Add tests for telemetry initMetrics with all backends.
+
+**Acceptance Criteria**:
+- [ ] 4.4.1: Test metrics initialization (Prometheus, OTLP)
+- [ ] 4.4.2: Test metrics collection
+- [ ] 4.4.3: Test metrics export
+- [ ] 4.4.4: Test metrics backend fallback
+- [ ] 4.4.5: Commit: "test(telemetry): add metrics tests"
+
+**Files**:
+- internal/shared/telemetry/metrics_test.go (add or extend)
+
+---
+
+### Task 4.5: Add Telemetry Traces Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 4.4
+**Priority**: HIGH
+
+**Description**: Add tests for telemetry initTraces with all configurations.
+
+**Acceptance Criteria**:
+- [ ] 4.5.1: Test trace initialization (OTLP gRPC, HTTP)
+- [ ] 4.5.2: Test trace sampling configurations
+- [ ] 4.5.3: Test trace propagation
+- [ ] 4.5.4: Test trace export
+- [ ] 4.5.5: Commit: "test(telemetry): add traces tests"
+
+**Files**:
+- internal/shared/telemetry/traces_test.go (add or extend)
+
+---
+
+### Task 4.6: Add Telemetry Sidecar Health Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 4.5
+**Priority**: HIGH
+
+**Description**: Add tests for telemetry checkSidecarHealth (failure scenarios).
+
+**Acceptance Criteria**:
+- [ ] 4.6.1: Test sidecar unavailable
+- [ ] 4.6.2: Test sidecar timeout
+- [ ] 4.6.3: Test sidecar health degradation
+- [ ] 4.6.4: Test health check retry logic
+- [ ] 4.6.5: Commit: "test(telemetry): add sidecar health tests"
+
+**Files**:
+- internal/shared/telemetry/health_test.go (add)
+
+---
+
+### Task 4.7: Add Pool Integration Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 4.6
+**Priority**: HIGH
+
+**Description**: Add integration tests for pool with real workloads.
+
+**Acceptance Criteria**:
+- [ ] 4.7.1: Test pool with concurrent operations
+- [ ] 4.7.2: Test pool under load
+- [ ] 4.7.3: Test pool graceful degradation
+- [ ] 4.7.4: Verify integration scenarios
+- [ ] 4.7.5: Commit: "test(pool): add integration tests"
+
+**Files**:
+- internal/shared/pool/integration_test.go (add)
+
+---
+
+### Task 4.8: Add Telemetry Integration Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 4.7
+**Priority**: HIGH
+
+**Description**: Add integration tests for telemetry with otel-collector.
+
+**Acceptance Criteria**:
+- [ ] 4.8.1: Test telemetry with real otel-collector
+- [ ] 4.8.2: Test metrics/traces end-to-end
+- [ ] 4.8.3: Test telemetry under load
+- [ ] 4.8.4: Verify telemetry export
+- [ ] 4.8.5: Commit: "test(telemetry): add integration tests"
+
+**Files**:
+- internal/shared/telemetry/integration_test.go (add)
+
+---
+
+### Task 4.9: Verify Shared Packages Coverage
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 4.8
+**Priority**: HIGH
+
+**Description**: Verify pool and telemetry meet ≥98% coverage standard.
+
+**Acceptance Criteria**:
+- [ ] 4.9.1: Run coverage analysis for pool
+- [ ] 4.9.2: Run coverage analysis for telemetry
+- [ ] 4.9.3: Verify pool ≥98% coverage
+- [ ] 4.9.4: Verify telemetry ≥98% coverage
+- [ ] 4.9.5: Document coverage results in test-output/
+
+**Files**:
+- test-output/shared-coverage-analysis/ (create)
+
+---
+
+## Phase 5: Infrastructure Code Coverage (Barrier + Crypto)
+
+**Objective**: Bring barrier services and crypto core to ≥98% coverage
+**Status**: ⏳ NOT STARTED
+**Current**: barrier 76-90%, crypto 78-85%
+
+### Task 5.1: Add Barrier Intermediate Key Tests
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
 **Dependencies**: Phase 4 complete
 **Priority**: HIGH
 
-**Description**: Add tests for barrier intermediate key service.
+**Description**: Add unit tests for intermediate key encryption/decryption edge cases.
 
 **Acceptance Criteria**:
-- [ ] 5.1.1: Add tests for key generation
-- [ ] 5.1.2: Add tests for key rotation
-- [ ] 5.1.3: Add tests for error paths
-- [ ] 5.1.4: Verify ≥98% coverage
-- [ ] 5.1.5: Commit: "test(barrier): add intermediate key service tests"
+- [ ] 5.1.1: Test intermediate key generation
+- [ ] 5.1.2: Test intermediate key encryption
+- [ ] 5.1.3: Test intermediate key decryption
+- [ ] 5.1.4: Test edge cases (invalid keys, corrupted ciphertext)
+- [ ] 5.1.5: Commit: "test(barrier): add intermediate key tests"
 
 **Files**:
-- internal/shared/barrier/intermediate_key_service_test.go (add)
+- internal/shared/barrier/intermediatekeysservice_test.go (extend)
 
 ---
 
-[Remaining tasks 5.2-12.35 to be added in next commit - file too complex for single operation]
+### Task 5.2: Add Barrier Root Key Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.1
+**Priority**: HIGH
+
+**Description**: Add unit tests for root key encryption/decryption edge cases.
+
+**Acceptance Criteria**:
+- [ ] 5.2.1: Test root key generation
+- [ ] 5.2.2: Test root key encryption
+- [ ] 5.2.3: Test root key decryption
+- [ ] 5.2.4: Test edge cases
+- [ ] 5.2.5: Commit: "test(barrier): add root key tests"
+
+**Files**:
+- internal/shared/barrier/rootkeysservice_test.go (extend)
+
+---
+
+### Task 5.3: Add Barrier Unseal Key Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.2
+**Priority**: HIGH
+
+**Description**: Add unit tests for unseal key encryption/decryption edge cases.
+
+**Acceptance Criteria**:
+- [ ] 5.3.1: Test unseal key generation
+- [ ] 5.3.2: Test unseal key encryption
+- [ ] 5.3.3: Test unseal key decryption
+- [ ] 5.3.4: Test edge cases
+- [ ] 5.3.5: Commit: "test(barrier): add unseal key tests"
+
+**Files**:
+- internal/shared/barrier/unsealkeysservice_test.go (extend)
+
+---
+
+### Task 5.4: Add Barrier Key Hierarchy Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.3
+**Priority**: HIGH
+
+**Description**: Add integration tests for key hierarchy (unseal → root → intermediate).
+
+**Acceptance Criteria**:
+- [ ] 5.4.1: Test full key hierarchy initialization
+- [ ] 5.4.2: Test key derivation chain
+- [ ] 5.4.3: Test hierarchy rotation
+- [ ] 5.4.4: Test hierarchy integrity
+- [ ] 5.4.5: Commit: "test(barrier): add key hierarchy tests"
+
+**Files**:
+- internal/shared/barrier/hierarchy_test.go (add)
+
+---
+
+### Task 5.5: Add Barrier Error Path Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.4
+**Priority**: HIGH
+
+**Description**: Add error path tests (invalid keys, corrupted ciphertext).
+
+**Acceptance Criteria**:
+- [ ] 5.5.1: Test invalid key scenarios
+- [ ] 5.5.2: Test corrupted ciphertext handling
+- [ ] 5.5.3: Test missing key scenarios
+- [ ] 5.5.4: Test error recovery
+- [ ] 5.5.5: Commit: "test(barrier): add error path tests"
+
+**Files**:
+- internal/shared/barrier/error_test.go (add)
+
+---
+
+### Task 5.6: Add Barrier Concurrent Operation Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.5
+**Priority**: HIGH
+
+**Description**: Add concurrent operation tests (thread-safety verification).
+
+**Acceptance Criteria**:
+- [ ] 5.6.1: Test concurrent encryption operations
+- [ ] 5.6.2: Test concurrent decryption operations
+- [ ] 5.6.3: Test concurrent key rotations
+- [ ] 5.6.4: Test race detector (Linux)
+- [ ] 5.6.5: Commit: "test(barrier): add concurrent operation tests"
+
+**Files**:
+- internal/shared/barrier/concurrent_test.go (add)
+
+---
+
+### Task 5.7: Verify Intermediate Key Service Coverage
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.6
+**Priority**: HIGH
+
+**Description**: Verify intermediatekeysservice ≥98% coverage.
+
+**Acceptance Criteria**:
+- [ ] 5.7.1: Run coverage analysis
+- [ ] 5.7.2: Verify ≥98% threshold
+- [ ] 5.7.3: Document results
+- [ ] 5.7.4: Commit if threshold met
+
+**Files**:
+- test-output/barrier-coverage-analysis/ (create)
+
+---
+
+### Task 5.8: Verify Root Key Service Coverage
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.7
+**Priority**: HIGH
+
+**Description**: Verify rootkeysservice ≥98% coverage.
+
+**Acceptance Criteria**:
+- [ ] 5.8.1: Run coverage analysis
+- [ ] 5.8.2: Verify ≥98% threshold
+- [ ] 5.8.3: Document results
+- [ ] 5.8.4: Commit if threshold met
+
+**Files**:
+- test-output/barrier-coverage-analysis/ (update)
+
+---
+
+### Task 5.9: Verify Unseal Key Service Coverage
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.8
+**Priority**: HIGH
+
+**Description**: Verify unsealkeysservice ≥98% coverage.
+
+**Acceptance Criteria**:
+- [ ] 5.9.1: Run coverage analysis
+- [ ] 5.9.2: Verify ≥98% threshold
+- [ ] 5.9.3: Document results
+- [ ] 5.9.4: Commit if threshold met
+
+**Files**:
+- test-output/barrier-coverage-analysis/ (update)
+
+---
+
+### Task 5.10: Add Crypto JOSE Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.9
+**Priority**: HIGH
+
+**Description**: Add tests for crypto/jose key creation functions.
+
+**Acceptance Criteria**:
+- [ ] 5.10.1: Test CreateJWKFromKey variations
+- [ ] 5.10.2: Test CreateJWEJWKFromKey variations
+- [ ] 5.10.3: Test algorithm-specific paths
+- [ ] 5.10.4: Test error cases
+- [ ] 5.10.5: Commit: "test(crypto/jose): add key creation tests"
+
+**Files**:
+- internal/shared/crypto/jose/key_test.go (extend)
+
+---
+
+### Task 5.11: Add Crypto JOSE Algorithm Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.10
+**Priority**: HIGH
+
+**Description**: Add tests for crypto/jose algorithm validation.
+
+**Acceptance Criteria**:
+- [ ] 5.11.1: Test EnsureSignatureAlgorithmType
+- [ ] 5.11.2: Test algorithm compatibility checks
+- [ ] 5.11.3: Test algorithm constraints
+- [ ] 5.11.4: Test invalid algorithm scenarios
+- [ ] 5.11.5: Commit: "test(crypto/jose): add algorithm validation tests"
+
+**Files**:
+- internal/shared/crypto/jose/algorithm_test.go (extend)
+
+---
+
+### Task 5.12: Add Crypto Certificate Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.11
+**Priority**: HIGH
+
+**Description**: Add tests for crypto/certificate TLS server utilities.
+
+**Acceptance Criteria**:
+- [ ] 5.12.1: Test TLS certificate generation
+- [ ] 5.12.2: Test certificate validation
+- [ ] 5.12.3: Test certificate chain building
+- [ ] 5.12.4: Test certificate expiration
+- [ ] 5.12.5: Commit: "test(crypto/certificate): add TLS tests"
+
+**Files**:
+- internal/shared/crypto/certificate/tls_test.go (extend)
+
+---
+
+### Task 5.13: Add Crypto Password Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.12
+**Priority**: HIGH
+
+**Description**: Add tests for crypto/password edge cases.
+
+**Acceptance Criteria**:
+- [ ] 5.13.1: Test password hashing variations
+- [ ] 5.13.2: Test password verification
+- [ ] 5.13.3: Test pepper handling
+- [ ] 5.13.4: Test edge cases (empty, long passwords)
+- [ ] 5.13.5: Commit: "test(crypto/password): add edge case tests"
+
+**Files**:
+- internal/shared/crypto/password/password_test.go (extend)
+
+---
+
+### Task 5.14: Add Crypto PBKDF2 Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.13
+**Priority**: HIGH
+
+**Description**: Add tests for crypto/pbkdf2 parameter variations.
+
+**Acceptance Criteria**:
+- [ ] 5.14.1: Test iteration count variations
+- [ ] 5.14.2: Test salt size variations
+- [ ] 5.14.3: Test output length variations
+- [ ] 5.14.4: Test hash function variations
+- [ ] 5.14.5: Commit: "test(crypto/pbkdf2): add parameter tests"
+
+**Files**:
+- internal/shared/crypto/pbkdf2/pbkdf2_test.go (extend)
+
+---
+
+### Task 5.15: Add Crypto TLS Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.14
+**Priority**: HIGH
+
+**Description**: Add tests for crypto/tls configuration edge cases.
+
+**Acceptance Criteria**:
+- [ ] 5.15.1: Test TLS config creation
+- [ ] 5.15.2: Test cipher suite selection
+- [ ] 5.15.3: Test protocol version enforcement
+- [ ] 5.15.4: Test certificate validation modes
+- [ ] 5.15.5: Commit: "test(crypto/tls): add configuration tests"
+
+**Files**:
+- internal/shared/crypto/tls/config_test.go (extend)
+
+---
+
+### Task 5.16: Add Crypto Keygen Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.15
+**Priority**: HIGH
+
+**Description**: Add tests for crypto/keygen error paths.
+
+**Acceptance Criteria**:
+- [ ] 5.16.1: Test key generation failures
+- [ ] 5.16.2: Test invalid parameters
+- [ ] 5.16.3: Test algorithm-specific errors
+- [ ] 5.16.4: Test resource exhaustion scenarios
+- [ ] 5.16.5: Commit: "test(crypto/keygen): add error path tests"
+
+**Files**:
+- internal/shared/crypto/keygen/keygen_test.go (extend)
+
+---
+
+### Task 5.17: Verify All Crypto Packages Coverage
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 5.16
+**Priority**: HIGH
+
+**Description**: Verify all crypto packages ≥98% coverage.
+
+**Acceptance Criteria**:
+- [ ] 5.17.1: Run coverage analysis for all crypto packages
+- [ ] 5.17.2: Verify each package ≥98% threshold
+- [ ] 5.17.3: Document results
+- [ ] 5.17.4: Commit coverage verification
+
+**Files**:
+- test-output/crypto-coverage-analysis/ (create)
+
+---
+
+## Phase 6: KMS Modernization (LAST - Leverages Validated Template)
+
+**Objective**: Migrate KMS to service-template pattern
+**Status**: ⏳ NOT STARTED
+**Current**: 75.2% coverage, pre-template architecture
+**Tasks**: 40+ tasks TBD based on lessons from Phases 1-5
+
+**Rationale**: User explicitly planning to refactor KMS LAST after service-template fully validated by template, cipher-im, and JOSE-JA. Learns from all migrations, leverages stable template.
+
+### Task 6.1-6.N: KMS Migration Tasks (TBD)
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Phases 1-5 complete
+**Priority**: HIGH
+
+**Description**: Task breakdown will be defined after completing Phases 1-5, learning from migration patterns.
+
+**High-Level Scope**:
+- Database migration (raw database/sql → GORM via ServerBuilder)
+- Registration flow implementation (/auth/register)
+- Browser API addition (/browser/** paths)
+- Merged migrations pattern implementation
+- Multi-tenancy validation
+- Coverage improvement to ≥95% minimum (≥98% ideal)
+- Mutation testing to ≥98%
+- Docker Compose YAML+secrets migration
+
+**Acceptance Criteria**:
+- [ ] KMS ≥95% coverage minimum (≥98% ideal)
+- [ ] KMS ≥98% mutation efficacy
+- [ ] All architectural conformance issues resolved
+- [ ] ~1,500 lines duplication eliminated
+- [ ] ServerBuilder pattern fully integrated
+- [ ] TestMain pattern for all integration tests
+
+**Files**: TBD after Phases 1-5 complete
+
+---
+
+## Phase 7: Docker Compose Consolidation
+
+**Objective**: Consolidate 13 compose files to 5-7 with YAML configs + Docker secrets
+**Status**: ⏳ NOT STARTED
+**Current**: 13 files (Identity 4, CA 3, KMS 2, duplicated patterns)
+
+### Task 7.1: Consolidate Identity Compose Files
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Phase 3 complete (JOSE-JA migrated)
+**Priority**: MEDIUM
+
+**Description**: Consolidate Identity compose files (4 → 1) with YAML configs + Docker secrets.
+
+**Acceptance Criteria**:
+- [ ] 7.1.1: Identify common patterns across 4 Identity files
+- [ ] 7.1.2: Create unified compose file
+- [ ] 7.1.3: Extract configs to YAML (dev, prod, test)
+- [ ] 7.1.4: Migrate sensitive values to Docker secrets
+- [ ] 7.1.5: Commit: "refactor(compose): consolidate Identity compose files"
+
+**Files**:
+- deployments/identity/compose.yml (create)
+- configs/identity/dev.yml (create)
+- configs/identity/prod.yml (create)
+- configs/identity/test.yml (create)
+
+---
+
+### Task 7.2: Consolidate CA Compose Files
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.1
+**Priority**: MEDIUM
+
+**Description**: Consolidate CA compose files (3 → 1) with YAML configs + Docker secrets.
+
+**Acceptance Criteria**:
+- [ ] 7.2.1: Identify common patterns across 3 CA files
+- [ ] 7.2.2: Create unified compose file
+- [ ] 7.2.3: Extract configs to YAML
+- [ ] 7.2.4: Migrate sensitive values to Docker secrets
+- [ ] 7.2.5: Commit: "refactor(compose): consolidate CA compose files"
+
+**Files**:
+- deployments/ca/compose.yml (create)
+- configs/ca/dev.yml (update)
+- configs/ca/prod.yml (create)
+
+---
+
+### Task 7.3: Consolidate KMS Compose Files
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.2, Phase 6 complete
+**Priority**: MEDIUM
+
+**Description**: Consolidate KMS compose files (2 → 1) with YAML configs + Docker secrets.
+
+**Acceptance Criteria**:
+- [ ] 7.3.1: Identify common patterns across 2 KMS files
+- [ ] 7.3.2: Create unified compose file
+- [ ] 7.3.3: Extract configs to YAML
+- [ ] 7.3.4: Migrate sensitive values to Docker secrets
+- [ ] 7.3.5: Commit: "refactor(compose): consolidate KMS compose files"
+
+**Files**:
+- deployments/kms/compose.yml (create)
+- configs/kms/dev.yml (update)
+
+---
+
+### Task 7.4: Create Environment-Specific YAML Configs
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.3
+**Priority**: MEDIUM
+
+**Description**: Create environment-specific YAML config files (dev, prod, test).
+
+**Acceptance Criteria**:
+- [ ] 7.4.1: Define dev environment configs
+- [ ] 7.4.2: Define prod environment configs
+- [ ] 7.4.3: Define test environment configs
+- [ ] 7.4.4: Document config patterns
+- [ ] 7.4.5: Commit: "feat(config): add environment-specific YAML configs"
+
+**Files**:
+- configs/*/dev.yml (create/update)
+- configs/*/prod.yml (create)
+- configs/*/test.yml (create)
+
+---
+
+### Task 7.5: Migrate Sensitive Values to Docker Secrets
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.4
+**Priority**: HIGH
+
+**Description**: Migrate sensitive values to Docker secrets (NOT .env).
+
+**Acceptance Criteria**:
+- [ ] 7.5.1: Identify all sensitive values (passwords, keys, tokens)
+- [ ] 7.5.2: Create Docker secret definitions
+- [ ] 7.5.3: Update compose files to use secrets
+- [ ] 7.5.4: Remove .env references
+- [ ] 7.5.5: Commit: "security(compose): migrate to Docker secrets"
+
+**Files**:
+- deployments/*/compose.yml (update all)
+- .env files (remove references)
+
+---
+
+### Task 7.6: Document YAML + Docker Secrets Pattern
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.5
+**Priority**: MEDIUM
+
+**Description**: Document YAML + Docker secrets pattern as PRIMARY, .env as LAST RESORT.
+
+**Acceptance Criteria**:
+- [ ] 7.6.1: Create compose configuration guide
+- [ ] 7.6.2: Document YAML patterns
+- [ ] 7.6.3: Document Docker secrets usage
+- [ ] 7.6.4: Document when .env acceptable (LAST RESORT)
+- [ ] 7.6.5: Commit: "docs(compose): document YAML+secrets pattern"
+
+**Files**:
+- docs/compose-configuration.md (create)
+- README.md (update)
+
+---
+
+### Task 7.7: Update All Compose Files
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.6
+**Priority**: MEDIUM
+
+**Description**: Update all compose files to use YAML configs + secrets.
+
+**Acceptance Criteria**:
+- [ ] 7.7.1: Update all service definitions
+- [ ] 7.7.2: Verify YAML config loading
+- [ ] 7.7.3: Verify secret mounting
+- [ ] 7.7.4: Remove hardcoded values
+- [ ] 7.7.5: Commit: "refactor(compose): update all files to YAML+secrets"
+
+**Files**:
+- deployments/*/compose.yml (update all)
+
+---
+
+### Task 7.8: Test All Environments
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.7
+**Priority**: HIGH
+
+**Description**: Test all environments (dev, prod, test).
+
+**Acceptance Criteria**:
+- [ ] 7.8.1: Test dev environment startup
+- [ ] 7.8.2: Test prod environment startup
+- [ ] 7.8.3: Test test environment startup
+- [ ] 7.8.4: Verify config loading
+- [ ] 7.8.5: Verify secret access
+
+**Files**:
+- test-output/compose-testing/ (create)
+
+---
+
+### Task 7.9: Update Documentation
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.8
+**Priority**: MEDIUM
+
+**Description**: Update documentation for consolidated compose approach.
+
+**Acceptance Criteria**:
+- [ ] 7.9.1: Update README.md
+- [ ] 7.9.2: Update DEV-SETUP.md
+- [ ] 7.9.3: Update deployment guides
+- [ ] 7.9.4: Document migration from old patterns
+- [ ] 7.9.5: Commit: "docs(compose): update for consolidated approach"
+
+**Files**:
+- README.md (update)
+- docs/DEV-SETUP.md (update)
+
+---
+
+### Task 7.10: Verify File Count Reduction
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 7.9
+**Priority**: HIGH
+
+**Description**: Verify 13 → 5-7 files achieved.
+
+**Acceptance Criteria**:
+- [ ] 7.10.1: Count compose files (should be 5-7)
+- [ ] 7.10.2: Verify no functionality lost
+- [ ] 7.10.3: Document file structure
+- [ ] 7.10.4: Verify all services working
+- [ ] 7.10.5: Commit verification
+
+**Files**:
+- test-output/compose-consolidation/ (create)
+
+---
+
+## Phase 8: Template Mutation Cleanup (Optional - Deferred)
+
+**Objective**: Address remaining template mutation (currently 98.91% efficacy)
+**Status**: ⏳ DEFERRED
+**Priority**: LOW (template already exceeds 98% ideal)
+
+### Task 8.1: Analyze Remaining TLS Generator Mutation
+
+**Status**: ⏳ DEFERRED
+**Owner**: LLM Agent
+**Dependencies**: Phase 1 complete
+**Priority**: LOW
+
+**Description**: Analyze remaining tls_generator.go mutation.
+
+**Acceptance Criteria**:
+- [ ] 8.1.1: Review gremlins output
+- [ ] 8.1.2: Identify survived mutation type
+- [ ] 8.1.3: Analyze killability
+- [ ] 8.1.4: Document findings
+
+**Files**:
+- test-output/template-mutation-analysis/ (create)
+
+---
+
+### Task 8.2: Determine Mutation Killability
+
+**Status**: ⏳ DEFERRED
+**Owner**: LLM Agent
+**Dependencies**: Task 8.1
+**Priority**: LOW
+
+**Description**: Determine if mutation is killable or inherent limitation.
+
+**Acceptance Criteria**:
+- [ ] 8.2.1: Analyze code context
+- [ ] 8.2.2: Check test coverage options
+- [ ] 8.2.3: Evaluate effort vs benefit
+- [ ] 8.2.4: Document decision
+
+**Files**:
+- test-output/template-mutation-analysis/ (update)
+
+---
+
+### Task 8.3: Implement Test If Feasible
+
+**Status**: ⏳ DEFERRED
+**Owner**: LLM Agent
+**Dependencies**: Task 8.2
+**Priority**: LOW
+
+**Description**: Implement test if mutation is killable.
+
+**Acceptance Criteria**:
+- [ ] 8.3.1: Write test if feasible
+- [ ] 8.3.2: Run gremlins to verify
+- [ ] 8.3.3: Document outcome
+- [ ] 8.3.4: Commit if successful
+
+**Files**:
+- internal/apps/template/service/server/infrastructure/tls_generator_test.go (extend if needed)
+
+---
+
+## Phase 9: Continuous Mutation Testing
+
+**Objective**: Enable automated mutation testing in CI/CD
+**Status**: ⏳ NOT STARTED
+**Dependencies**: Phases 1-3 complete (all services ≥98% mutation)
+
+### Task 9.1: Verify ci-mutation.yml Workflow
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Phases 1-3 complete
+**Priority**: HIGH
+
+**Description**: Verify ci-mutation.yml workflow configuration.
+
+**Acceptance Criteria**:
+- [ ] 9.1.1: Review workflow YAML
+- [ ] 9.1.2: Verify trigger configuration
+- [ ] 9.1.3: Verify gremlins installation
+- [ ] 9.1.4: Verify artifact upload
+- [ ] 9.1.5: Document workflow structure
+
+**Files**:
+- .github/workflows/ci-mutation.yml (verify)
+
+---
+
+### Task 9.2: Configure Timeout Per Package
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 9.1
+**Priority**: HIGH
+
+**Description**: Configure timeout per package to prevent workflow failures.
+
+**Acceptance Criteria**:
+- [ ] 9.2.1: Identify timeout requirements per package
+- [ ] 9.2.2: Configure gremlins timeout
+- [ ] 9.2.3: Test timeout behavior
+- [ ] 9.2.4: Document timeout strategy
+- [ ] 9.2.5: Commit: "ci(mutation): configure per-package timeout"
+
+**Files**:
+- .github/workflows/ci-mutation.yml (update)
+
+---
+
+### Task 9.3: Set Efficacy Threshold Enforcement
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 9.2
+**Priority**: HIGH
+
+**Description**: Set efficacy threshold enforcement (95% required).
+
+**Acceptance Criteria**:
+- [ ] 9.3.1: Configure gremlins threshold
+- [ ] 9.3.2: Add failure condition
+- [ ] 9.3.3: Test threshold enforcement
+- [ ] 9.3.4: Document threshold policy
+- [ ] 9.3.5: Commit: "ci(mutation): enforce 95% efficacy threshold"
+
+**Files**:
+- .github/workflows/ci-mutation.yml (update)
+
+---
+
+### Task 9.4: Test Workflow With Actual PR
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 9.3
+**Priority**: HIGH
+
+**Description**: Test workflow with actual PR to verify functionality.
+
+**Acceptance Criteria**:
+- [ ] 9.4.1: Create test PR
+- [ ] 9.4.2: Verify workflow triggers
+- [ ] 9.4.3: Verify mutation testing runs
+- [ ] 9.4.4: Verify artifacts uploaded
+- [ ] 9.4.5: Document test results
+
+**Files**:
+- test-output/ci-mutation-testing/ (create)
+
+---
+
+### Task 9.5: Document in README
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 9.4
+**Priority**: MEDIUM
+
+**Description**: Document mutation testing in README.md and DEV-SETUP.md.
+
+**Acceptance Criteria**:
+- [ ] 9.5.1: Add mutation testing section to README
+- [ ] 9.5.2: Add workflow instructions to DEV-SETUP
+- [ ] 9.5.3: Document threshold policy
+- [ ] 9.5.4: Document artifact retrieval
+- [ ] 9.5.5: Commit: "docs: add mutation testing documentation"
+
+**Files**:
+- README.md (update)
+- docs/DEV-SETUP.md (update)
+
+---
+
+### Task 9.6: Commit Continuous Mutation Configuration
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 9.5
+**Priority**: HIGH
+
+**Description**: Commit continuous mutation testing configuration.
+
+**Acceptance Criteria**:
+- [ ] 9.6.1: Verify all workflow changes committed
+- [ ] 9.6.2: Verify documentation updated
+- [ ] 9.6.3: Create comprehensive commit message
+- [ ] 9.6.4: Tag commit if milestone
+- [ ] 9.6.5: Push to origin
+
+**Files**:
+- .github/workflows/ci-mutation.yml
+- README.md
+- docs/DEV-SETUP.md
+
+---
+
+## Phase 10: CI/CD Mutation Campaign
+
+**Objective**: Execute first Linux-based mutation testing campaign
+**Status**: ⏳ NOT STARTED
+**Dependencies**: Phase 9 complete
+
+### Task 10.1: Monitor Workflow Execution
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Phase 9 complete
+**Priority**: HIGH
+
+**Description**: Monitor workflow execution at GitHub Actions.
+
+**Acceptance Criteria**:
+- [ ] 10.1.1: Trigger workflow run
+- [ ] 10.1.2: Monitor execution progress
+- [ ] 10.1.3: Verify no timeout failures
+- [ ] 10.1.4: Document execution time per package
+- [ ] 10.1.5: Record any issues
+
+**Files**:
+- test-output/mutation-campaign/ (create)
+
+---
+
+### Task 10.2: Download Mutation Test Results
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.1
+**Priority**: HIGH
+
+**Description**: Download mutation-test-results artifact.
+
+**Acceptance Criteria**:
+- [ ] 10.2.1: Download artifact from GitHub Actions
+- [ ] 10.2.2: Extract artifact contents
+- [ ] 10.2.3: Organize results by package
+- [ ] 10.2.4: Verify results completeness
+- [ ] 10.2.5: Document artifact structure
+
+**Files**:
+- test-output/mutation-campaign/results/ (create)
+
+---
+
+### Task 10.3: Analyze Gremlins Output
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.2
+**Priority**: HIGH
+
+**Description**: Analyze gremlins output for all packages.
+
+**Acceptance Criteria**:
+- [ ] 10.3.1: Review efficacy scores per package
+- [ ] 10.3.2: Identify packages below 95%
+- [ ] 10.3.3: Categorize survived mutations
+- [ ] 10.3.4: Prioritize by impact
+- [ ] 10.3.5: Document analysis
+
+**Files**:
+- test-output/mutation-campaign/analysis.md (create)
+
+---
+
+### Task 10.4: Populate Mutation Baseline Results
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.3
+**Priority**: HIGH
+
+**Description**: Populate mutation-baseline-results.md with findings.
+
+**Acceptance Criteria**:
+- [ ] 10.4.1: Create baseline results document
+- [ ] 10.4.2: Document efficacy per package
+- [ ] 10.4.3: Document survived mutations
+- [ ] 10.4.4: Document killability assessment
+- [ ] 10.4.5: Document action items
+
+**Files**:
+- docs/mutation-baseline-results.md (create)
+
+---
+
+### Task 10.5: Commit Baseline Analysis
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.4
+**Priority**: HIGH
+
+**Description**: Commit baseline analysis results.
+
+**Acceptance Criteria**:
+- [ ] 10.5.1: Review baseline document
+- [ ] 10.5.2: Verify completeness
+- [ ] 10.5.3: Create commit message
+- [ ] 10.5.4: Commit baseline results
+- [ ] 10.5.5: Push to origin
+
+**Files**:
+- docs/mutation-baseline-results.md
+
+---
+
+### Task 10.6: Review Survived Mutations
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.5
+**Priority**: HIGH
+
+**Description**: Review survived mutations in detail.
+
+**Acceptance Criteria**:
+- [ ] 10.6.1: Analyze each survived mutation
+- [ ] 10.6.2: Identify root causes
+- [ ] 10.6.3: Determine killability
+- [ ] 10.6.4: Prioritize by package
+- [ ] 10.6.5: Document review findings
+
+**Files**:
+- test-output/mutation-campaign/review.md (create)
+
+---
+
+### Task 10.7: Categorize By Mutation Type
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.6
+**Priority**: MEDIUM
+
+**Description**: Categorize survived mutations by type.
+
+**Acceptance Criteria**:
+- [ ] 10.7.1: Group by mutation operator
+- [ ] 10.7.2: Identify patterns
+- [ ] 10.7.3: Document common gaps
+- [ ] 10.7.4: Prioritize categories
+- [ ] 10.7.5: Create action plan
+
+**Files**:
+- test-output/mutation-campaign/categorization.md (create)
+
+---
+
+### Task 10.8: Write Targeted Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.7
+**Priority**: HIGH
+
+**Description**: Write targeted tests for survived mutations.
+
+**Acceptance Criteria**:
+- [ ] 10.8.1: Implement tests per category
+- [ ] 10.8.2: Verify tests kill mutations
+- [ ] 10.8.3: Run gremlins locally
+- [ ] 10.8.4: Document test approach
+- [ ] 10.8.5: Commit: "test: add mutation-killing tests for <package>"
+
+**Files**:
+- internal/*/\*_test.go (extend multiple)
+
+---
+
+### Task 10.9: Re-Run ci-mutation.yml Workflow
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.8
+**Priority**: HIGH
+
+**Description**: Re-run ci-mutation.yml workflow to verify improvements.
+
+**Acceptance Criteria**:
+- [ ] 10.9.1: Trigger new workflow run
+- [ ] 10.9.2: Monitor execution
+- [ ] 10.9.3: Download new results
+- [ ] 10.9.4: Compare with baseline
+- [ ] 10.9.5: Document improvements
+
+**Files**:
+- test-output/mutation-campaign/iteration-2/ (create)
+
+---
+
+### Task 10.10: Verify Efficacy ≥95% For All Packages
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.9
+**Priority**: HIGH
+
+**Description**: Verify all packages meet ≥95% efficacy minimum.
+
+**Acceptance Criteria**:
+- [ ] 10.10.1: Review final efficacy scores
+- [ ] 10.10.2: Verify all packages ≥95%
+- [ ] 10.10.3: Document any exceptions
+- [ ] 10.10.4: Verify threshold enforcement working
+- [ ] 10.10.5: Create verification report
+
+**Files**:
+- test-output/mutation-campaign/verification.md (create)
+
+---
+
+### Task 10.11: Commit Mutation-Killing Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 10.10
+**Priority**: HIGH
+
+**Description**: Commit all mutation-killing tests with comprehensive message.
+
+**Acceptance Criteria**:
+- [ ] 10.11.1: Review all test changes
+- [ ] 10.11.2: Verify gremlins pass
+- [ ] 10.11.3: Create detailed commit message
+- [ ] 10.11.4: Commit test improvements
+- [ ] 10.11.5: Push to origin
+
+**Files**:
+- internal/*/\*_test.go (multiple files)
+
+---
+
+## Phase 11: Automation & Branch Protection
+
+**Objective**: Enforce mutation testing on every PR
+**Status**: ⏳ NOT STARTED
+**Dependencies**: Phase 10 complete
+
+### Task 11.1: Add Workflow Trigger Configuration
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Phase 10 complete
+**Priority**: HIGH
+
+**Description**: Add workflow trigger: on: [push, pull_request].
+
+**Acceptance Criteria**:
+- [ ] 11.1.1: Update workflow trigger
+- [ ] 11.1.2: Test on push event
+- [ ] 11.1.3: Test on pull_request event
+- [ ] 11.1.4: Verify no duplicate runs
+- [ ] 11.1.5: Commit: "ci(mutation): add PR trigger"
+
+**Files**:
+- .github/workflows/ci-mutation.yml (update)
+
+---
+
+### Task 11.2: Configure Path Filters
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 11.1
+**Priority**: MEDIUM
+
+**Description**: Configure path filters (code changes only).
+
+**Acceptance Criteria**:
+- [ ] 11.2.1: Add paths filter for code files
+- [ ] 11.2.2: Exclude docs-only changes
+- [ ] 11.2.3: Exclude config-only changes
+- [ ] 11.2.4: Test filter behavior
+- [ ] 11.2.5: Commit: "ci(mutation): add path filters"
+
+**Files**:
+- .github/workflows/ci-mutation.yml (update)
+
+---
+
+### Task 11.3: Add Status Check Requirement
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 11.2
+**Priority**: HIGH
+
+**Description**: Add status check requirement in branch protection.
+
+**Acceptance Criteria**:
+- [ ] 11.3.1: Navigate to branch protection settings
+- [ ] 11.3.2: Add "Mutation Testing" required check
+- [ ] 11.3.3: Verify enforcement
+- [ ] 11.3.4: Document configuration
+- [ ] 11.3.5: Test with PR
+
+**Files**:
+- docs/branch-protection.md (create)
+
+---
+
+### Task 11.4: Document in README
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 11.3
+**Priority**: MEDIUM
+
+**Description**: Document automation in README.md and DEV-SETUP.md.
+
+**Acceptance Criteria**:
+- [ ] 11.4.1: Update README with automation details
+- [ ] 11.4.2: Update DEV-SETUP with workflow info
+- [ ] 11.4.3: Document branch protection policy
+- [ ] 11.4.4: Document PR requirements
+- [ ] 11.4.5: Commit: "docs: document mutation testing automation"
+
+**Files**:
+- README.md (update)
+- docs/DEV-SETUP.md (update)
+
+---
+
+### Task 11.5: Test With Actual PR
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 11.4
+**Priority**: HIGH
+
+**Description**: Test automation with actual PR.
+
+**Acceptance Criteria**:
+- [ ] 11.5.1: Create test PR
+- [ ] 11.5.2: Verify workflow triggers
+- [ ] 11.5.3: Verify status check appears
+- [ ] 11.5.4: Verify merge blocking if fail
+- [ ] 11.5.5: Document test results
+
+**Files**:
+- test-output/automation-testing/ (create)
+
+---
+
+### Task 11.6: Commit Automation Configuration
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 11.5
+**Priority**: HIGH
+
+**Description**: Commit complete automation configuration.
+
+**Acceptance Criteria**:
+- [ ] 11.6.1: Review all automation changes
+- [ ] 11.6.2: Verify branch protection active
+- [ ] 11.6.3: Create comprehensive commit
+- [ ] 11.6.4: Tag as milestone if appropriate
+- [ ] 11.6.5: Push to origin
+
+**Files**:
+- .github/workflows/ci-mutation.yml
+- README.md
+- docs/DEV-SETUP.md
+- docs/branch-protection.md
+
+---
+
+## Phase 12: Race Condition Testing (Linux)
+
+**Objective**: Verify thread-safety on Linux with race detector
+**Status**: ⏳ NOT STARTED
+**Current**: 35 tasks unmarked for Linux re-testing
+
+### Task 12.1: Run Race Detector on JOSE-JA Repository
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Phase 3 complete
+**Priority**: HIGH
+
+**Description**: Run race detector on JOSE-JA repository layer.
+
+**Acceptance Criteria**:
+- [ ] 12.1.1: Run `go test -race ./internal/jose/ja/repository/...`
+- [ ] 12.1.2: Document any races found
+- [ ] 12.1.3: Analyze race patterns
+- [ ] 12.1.4: Verify race-free if no issues
+- [ ] 12.1.5: Commit verification
+
+**Files**:
+- test-output/race-testing/jose-ja-repository.log (create)
+
+---
+
+### Task 12.2: Run Race Detector on Cipher-IM Repository
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.1
+**Priority**: HIGH
+
+**Description**: Run race detector on cipher-im repository layer.
+
+**Acceptance Criteria**:
+- [ ] 12.2.1: Run `go test -race ./internal/cipher/im/repository/...`
+- [ ] 12.2.2: Document any races
+- [ ] 12.2.3: Analyze patterns
+- [ ] 12.2.4: Verify race-free
+- [ ] 12.2.5: Commit verification
+
+**Files**:
+- test-output/race-testing/cipher-im-repository.log (create)
+
+---
+
+### Task 12.3: Run Race Detector on Template Repository
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.2
+**Priority**: HIGH
+
+**Description**: Run race detector on template repository layer.
+
+**Acceptance Criteria**:
+- [ ] 12.3.1: Run `go test -race ./internal/apps/template/service/server/repository/...`
+- [ ] 12.3.2: Document any races
+- [ ] 12.3.3: Analyze patterns
+- [ ] 12.3.4: Verify race-free
+- [ ] 12.3.5: Commit verification
+
+**Files**:
+- test-output/race-testing/template-repository.log (create)
+
+---
+
+### Task 12.4: Document Repository Race Conditions
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.3
+**Priority**: HIGH
+
+**Description**: Document any race conditions found in repositories.
+
+**Acceptance Criteria**:
+- [ ] 12.4.1: Consolidate race findings
+- [ ] 12.4.2: Categorize by type
+- [ ] 12.4.3: Prioritize by severity
+- [ ] 12.4.4: Create fix plan
+- [ ] 12.4.5: Document in test-output/
+
+**Files**:
+- test-output/race-testing/repository-races.md (create)
+
+---
+
+### Task 12.5: Fix Repository Races
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.4
+**Priority**: HIGH
+
+**Description**: Fix races with proper mutex/channel usage.
+
+**Acceptance Criteria**:
+- [ ] 12.5.1: Implement mutex protection where needed
+- [ ] 12.5.2: Use channels for coordination
+- [ ] 12.5.3: Add sync.RWMutex for read-heavy paths
+- [ ] 12.5.4: Verify fixes with race detector
+- [ ] 12.5.5: Commit: "fix(repository): resolve race conditions"
+
+**Files**:
+- internal/*/repository/*.go (update as needed)
+
+---
+
+### Task 12.6: Re-Run Repository Race Tests
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.5
+**Priority**: HIGH
+
+**Description**: Re-run until clean (0 races detected).
+
+**Acceptance Criteria**:
+- [ ] 12.6.1: Run race detector on all repositories
+- [ ] 12.6.2: Verify 0 races detected
+- [ ] 12.6.3: Document clean results
+- [ ] 12.6.4: Create verification report
+- [ ] 12.6.5: Commit verification
+
+**Files**:
+- test-output/race-testing/repository-clean.log (create)
+
+---
+
+### Task 12.7: Commit Repository Thread-Safety
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.6
+**Priority**: HIGH
+
+**Description**: Commit repository thread-safety verified on Linux.
+
+**Acceptance Criteria**:
+- [ ] 12.7.1: Review all repository changes
+- [ ] 12.7.2: Verify race detector clean
+- [ ] 12.7.3: Create comprehensive commit
+- [ ] 12.7.4: Document verification process
+- [ ] 12.7.5: Push to origin
+
+**Files**:
+- internal/*/repository/*.go
+- test-output/race-testing/
+
+---
+
+### Task 12.8-12.14: Service Layer Race Testing
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.7
+**Priority**: HIGH
+
+**Description**: Apply same pattern to service layer (Tasks 12.8-12.14 mirror 12.1-12.7).
+
+**Acceptance Criteria**: Same as repository layer tasks
+
+**Files**:
+- test-output/race-testing/service-*.log
+- internal/*/service/*.go
+
+---
+
+### Task 12.15-12.21: APIs Layer Race Testing
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.14
+**Priority**: HIGH
+
+**Description**: Apply same pattern to APIs layer (Tasks 12.15-12.21 mirror 12.1-12.7).
+
+**Acceptance Criteria**: Same as repository layer tasks
+
+**Files**:
+- test-output/race-testing/apis-*.log
+- internal/*/apis/*.go
+
+---
+
+### Task 12.22-12.28: Config Layer Race Testing
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.21
+**Priority**: MEDIUM
+
+**Description**: Apply same pattern to config layer (Tasks 12.22-12.28 mirror 12.1-12.7).
+
+**Acceptance Criteria**: Same as repository layer tasks
+
+**Files**:
+- test-output/race-testing/config-*.log
+- internal/*/config/*.go
+
+---
+
+### Task 12.29-12.35: Integration Tests Race Testing
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 12.28
+**Priority**: MEDIUM
+
+**Description**: Apply same pattern to integration tests (Tasks 12.29-12.35 mirror 12.1-12.7).
+
+**Acceptance Criteria**: Same as repository layer tasks
+
+**Files**:
+- test-output/race-testing/integration-*.log
+- internal/*/integration_test.go
+
+---
+
+## Cross-Cutting Tasks
 
 ---
 
@@ -473,13 +2055,13 @@
 ### Documentation
 - [ ] Update README.md with mutation testing instructions
 - [ ] Update DEV-SETUP.md with workflow setup
-- [ ] Create research.md with comparison table
-- [ ] Update completed.md as phases finish
+- [ ] Update comparison-table.md as needed
+- [ ] Update completion-status.md as phases finish
 
 ### Testing
 - [ ] All tests pass (`runTests`)
-- [ ] Coverage ≥95% production, ≥98% infrastructure
-- [ ] Mutation efficacy ≥98% ideal (ALL services)
+- [ ] Coverage ≥95% production minimum, ≥98% infrastructure/utility
+- [ ] Mutation efficacy ≥98% ideal (ALL services), ≥95% minimum
 - [ ] Race detector clean on Linux
 
 ### Quality
@@ -487,35 +2069,10 @@
 - [ ] No new TODOs without tracking
 - [ ] Conventional commits enforced
 
-
-**Objective**: Achieve 95% coverage for jose/service (currently 87.3%, gap: 7.7%)
-**Status**: ⏳ NOT STARTED
-
-### Task 1.1: Add createMaterialJWK Error Tests
-
-**Status**: ⏳ NOT STARTED
-**Owner**: LLM Agent
-**Dependencies**: Phase 2 complete
-**Priority**: HIGH
-
-**Description**: Add error path tests for createMaterialJWK function.
-
-**Acceptance Criteria**:
-- [ ] 3.1.1: Analyze createMaterialJWK error paths
-- [ ] 3.1.2: Write tests for invalid parameters
-- [ ] 3.1.3: Write tests for JWKGen errors
-- [ ] 3.1.4: Write tests for database errors
-- [ ] 3.1.5: Verify coverage improvement
-- [ ] 3.1.6: Commit: "test(jose): add createMaterialJWK error tests"
-
-**Files**:
-- internal/apps/jose/ja/service/service_test.go (add)
-
 ---
 
-### Task 3.2: Add Encrypt Error Tests
+**END OF TASKS DOCUMENT**
 
-**Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
 **Dependencies**: Task 3.1 complete
 **Priority**: HIGH
