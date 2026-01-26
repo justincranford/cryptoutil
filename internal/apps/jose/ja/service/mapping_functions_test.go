@@ -4,6 +4,7 @@
 package service
 
 import (
+	json "encoding/json"
 	"testing"
 
 	jose "github.com/go-jose/go-jose/v4"
@@ -385,13 +386,13 @@ func TestMapToGenerateAlgorithmForRotation_AllBranches(t *testing.T) {
 func TestParseClaimsMap_AllBranches(t *testing.T) {
 	t.Parallel()
 
-	// Create a service instance to access parseClaimsMap indirectly through ValidateJWT.
-	// Since parseClaimsMap is private, we test it through the JWT validation flow.
-	// These tests exercise the type assertion branches.
+	// Create a service instance to call parseClaimsMap directly.
+	svc := &jwtServiceImpl{}
+
 	tests := []struct {
 		name      string
 		claimsMap map[string]any
-		verify    func(t *testing.T, result map[string]any)
+		verify    func(t *testing.T, claims *JWTClaims)
 	}{
 		{
 			name: "iss as non-string (int) - type assertion fails",
@@ -399,9 +400,9 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 				"iss": 12345, // Not a string.
 				"sub": "test-subject",
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				// iss should be empty since type assertion failed.
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Empty(t, claims.Issuer)
+				require.Equal(t, "test-subject", claims.Subject)
 			},
 		},
 		{
@@ -410,28 +411,65 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 				"iss": "test-issuer",
 				"sub": true, // Not a string.
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Equal(t, "test-issuer", claims.Issuer)
+				require.Empty(t, claims.Subject)
+			},
+		},
+		{
+			name: "aud as string",
+			claimsMap: map[string]any{
+				"aud": "single-audience",
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Equal(t, []string{"single-audience"}, claims.Audience)
+			},
+		},
+		{
+			name: "aud as array of strings",
+			claimsMap: map[string]any{
+				"aud": []any{"aud1", "aud2", "aud3"},
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Equal(t, []string{"aud1", "aud2", "aud3"}, claims.Audience)
 			},
 		},
 		{
 			name: "aud as neither string nor array",
 			claimsMap: map[string]any{
-				"iss": "test-issuer",
 				"aud": 12345, // Neither string nor array.
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Empty(t, claims.Audience)
 			},
 		},
 		{
-			name: "aud as array with non-string items",
+			name: "aud as array with non-string items (filters out)",
 			claimsMap: map[string]any{
-				"iss": "test-issuer",
 				"aud": []any{123, "valid-aud", true}, // Mixed types.
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Equal(t, []string{"valid-aud"}, claims.Audience)
+			},
+		},
+		{
+			name: "exp as float64",
+			claimsMap: map[string]any{
+				"exp": float64(1700000000),
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.NotNil(t, claims.ExpiresAt)
+				require.Equal(t, int64(1700000000), claims.ExpiresAt.Unix())
+			},
+		},
+		{
+			name: "exp as json.Number",
+			claimsMap: map[string]any{
+				"exp": json.Number("1700000000"),
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.NotNil(t, claims.ExpiresAt)
+				require.Equal(t, int64(1700000000), claims.ExpiresAt.Unix())
 			},
 		},
 		{
@@ -439,8 +477,28 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 			claimsMap: map[string]any{
 				"exp": "not-a-number", // Should be float64 or json.Number.
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Nil(t, claims.ExpiresAt)
+			},
+		},
+		{
+			name: "nbf as float64",
+			claimsMap: map[string]any{
+				"nbf": float64(1699990000),
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.NotNil(t, claims.NotBefore)
+				require.Equal(t, int64(1699990000), claims.NotBefore.Unix())
+			},
+		},
+		{
+			name: "nbf as json.Number",
+			claimsMap: map[string]any{
+				"nbf": json.Number("1699990000"),
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.NotNil(t, claims.NotBefore)
+				require.Equal(t, int64(1699990000), claims.NotBefore.Unix())
 			},
 		},
 		{
@@ -448,8 +506,28 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 			claimsMap: map[string]any{
 				"nbf": true, // Should be float64 or json.Number.
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Nil(t, claims.NotBefore)
+			},
+		},
+		{
+			name: "iat as float64",
+			claimsMap: map[string]any{
+				"iat": float64(1699980000),
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.NotNil(t, claims.IssuedAt)
+				require.Equal(t, int64(1699980000), claims.IssuedAt.Unix())
+			},
+		},
+		{
+			name: "iat as json.Number",
+			claimsMap: map[string]any{
+				"iat": json.Number("1699980000"),
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.NotNil(t, claims.IssuedAt)
+				require.Equal(t, int64(1699980000), claims.IssuedAt.Unix())
 			},
 		},
 		{
@@ -457,8 +535,17 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 			claimsMap: map[string]any{
 				"iat": []string{"array"}, // Should be float64 or json.Number.
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Nil(t, claims.IssuedAt)
+			},
+		},
+		{
+			name: "jti as string",
+			claimsMap: map[string]any{
+				"jti": "test-jti",
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Equal(t, "test-jti", claims.JTI)
 			},
 		},
 		{
@@ -466,8 +553,8 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 			claimsMap: map[string]any{
 				"jti": 12345, // Not a string.
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Empty(t, claims.JTI)
 			},
 		},
 		{
@@ -477,8 +564,33 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 				"custom_int":    42,
 				"custom_bool":   true,
 			},
-			verify: func(t *testing.T, result map[string]any) {
-				require.NotNil(t, result)
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Equal(t, "value", claims.Custom["custom_string"])
+				require.Equal(t, 42, claims.Custom["custom_int"])
+				require.Equal(t, true, claims.Custom["custom_bool"])
+			},
+		},
+		{
+			name: "all claims combined",
+			claimsMap: map[string]any{
+				"iss":    "combined-issuer",
+				"sub":    "combined-subject",
+				"aud":    []any{"aud1", "aud2"},
+				"exp":    json.Number("1700000000"),
+				"nbf":    float64(1699990000),
+				"iat":    float64(1699980000),
+				"jti":    "combined-jti",
+				"custom": "custom-value",
+			},
+			verify: func(t *testing.T, claims *JWTClaims) {
+				require.Equal(t, "combined-issuer", claims.Issuer)
+				require.Equal(t, "combined-subject", claims.Subject)
+				require.Equal(t, []string{"aud1", "aud2"}, claims.Audience)
+				require.NotNil(t, claims.ExpiresAt)
+				require.NotNil(t, claims.NotBefore)
+				require.NotNil(t, claims.IssuedAt)
+				require.Equal(t, "combined-jti", claims.JTI)
+				require.Equal(t, "custom-value", claims.Custom["custom"])
 			},
 		},
 	}
@@ -486,8 +598,9 @@ func TestParseClaimsMap_AllBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			// Simply verify that the claims map is valid input.
-			tt.verify(t, tt.claimsMap)
+
+			claims := svc.parseClaimsMap(tt.claimsMap)
+			tt.verify(t, claims)
 		})
 	}
 }
