@@ -195,22 +195,28 @@ This comparison evaluates four key services against the service-template pattern
 
 ### 8.1 Opportunities for Extraction
 
-**High Priority**:
+**High Priority** (KMS-Specific - Other Services Already Use Extracted Patterns):
 
-1. **Database Setup** (KMS custom → ServerBuilder pattern)
-   - KMS uses raw database/sql
-   - All others use GORM via ServerBuilder
-   - **Action**: Migrate KMS to ServerBuilder pattern
+1. **Database Setup** (~500 lines in KMS only)
+   - **Issue**: KMS uses raw database/sql (pre-template pattern)
+   - **Status**: Service-template, cipher-im, JOSE-JA ✅ ALREADY use ServerBuilder with GORM
+   - **Action**: Migrate KMS to ServerBuilder pattern (shared utility extraction already complete)
+   - **Duplication**: KMS duplicates ~500 lines of database setup that service-template provides via ServerBuilder
+   - **Rationale**: This is NOT unextracted code - service-template already provides this pattern. KMS just hasn't migrated yet.
 
-2. **Registration Flow** (KMS pre-registration → unified /auth/register)
-   - KMS requires pre-created default tenant
-   - Template/cipher-im use registration endpoint
-   - **Action**: Add registration flow to KMS
+2. **Registration Flow** (~400 lines in KMS only)
+   - **Issue**: KMS requires pre-created default tenant (pre-template pattern)
+   - **Status**: Service-template, cipher-im ✅ ALREADY have /auth/register endpoint, JOSE-JA migration pending
+   - **Action**: Add registration flow to KMS (template already provides default implementation)
+   - **Duplication**: KMS custom tenant setup vs template's registration pattern
+   - **Rationale**: Template already provides registration flow. KMS hasn't migrated, JOSE-JA migration in progress.
 
-3. **Browser APIs** (KMS missing → add dual path support)
-   - KMS only has `/service/**` paths
-   - Template/cipher-im have `/service/**` + `/browser/**`
-   - **Action**: Add browser path support to KMS
+3. **Browser APIs** (~400 lines in KMS only)
+   - **Issue**: KMS only has `/service/**` paths (missing `/browser/**`)
+   - **Status**: Service-template, cipher-im ✅ ALREADY have dual path support (`/service/**` + `/browser/**`)
+   - **Action**: Add browser path support to KMS (template already exposes pattern)
+   - **Duplication**: KMS missing browser APIs that template/cipher-im already implement
+   - **Rationale**: Template already exposes browser API pattern. KMS needs migration to adopt it.
 
 **Medium Priority**:
 
@@ -219,9 +225,11 @@ This comparison evaluates four key services against the service-template pattern
    - Template/cipher-im use merged template+domain migrations
    - **Action**: Refactor KMS migrations to merged pattern
 
-5. **Docker Compose** (13 files → 5-7 files with .env)
+5. **Docker Compose** (13 files → 5-7 files with YAML configs + Docker secrets)
    - Multiple compose files per service (environment variations)
-   - **Action**: Consolidate to one compose.yml per service + .env files
+   - **Action**: Consolidate to one compose.yml per service + environment-specific YAML configs + Docker secrets
+   - **Pattern**: Use YAML configuration files (primary) + Docker secrets (sensitive data), .env as LAST RESORT only
+   - **Rationale**: Copilot instructions mandate YAML configs + Docker secrets, NOT environment variables
 
 **Low Priority**:
 
@@ -312,41 +320,64 @@ This comparison evaluates four key services against the service-template pattern
 
 Based on gap analysis and duplication opportunities:
 
-### Phase Order Rationale
+### Phase Order Rationale (Updated per User Feedback)
 
-1. **Complete Coverage Improvement** (Phases 8-12, 43 tasks)
-   - ALL services below 95% minimum
-   - Addresses most critical quality gap
-   - Enables confident refactoring
+**Priority Order**: Template → Cipher-IM → JOSE-JA → Shared Packages → Infra → KMS (last)
 
-2. **Complete JOSE-JA Migration** (V3 Phases 2-9)
-   - Highest coverage (92.5%), closest to complete
-   - Validates template pattern for complex services
-   - Unblocks future service migrations
+**Rationale**: User plans to refactor KMS last to leverage fully-validated service-template. Template must reach 95%+ first, followed by cipher-im and JOSE-JA to provide 2 fully working template-based services. KMS leverages lessons learned.
 
-3. **Fix Cipher-IM Mutation Testing** (Docker infrastructure)
-   - Unblocks mutation testing for all containerized services
-   - Validates template mutation testing patterns
+1. **Service-Template Coverage** (Phases 8-12, highest priority)
+   - **Current**: 82.5% coverage (-12.5% below minimum)
+   - **Target**: ≥95% minimum (≥98% ideal)
+   - **Why First**: Reference implementation must be exemplary before other services adopt patterns
+   - **Impact**: Validates template quality, enables confident adoption by other services
 
-4. **Migrate KMS to Template Pattern**
-   - Largest duplication elimination opportunity
-   - Standardizes oldest service
-   - Requires JOSE-JA completion (validates pattern)
+2. **Cipher-IM Coverage + Mutation** (before JOSE-JA)
+   - **Current**: 78.9% coverage (-16.1%), mutation blocked
+   - **Target**: ≥95% coverage, ≥98% mutation ideal
+   - **Why Before JOSE-JA**: Cipher-IM has FEWER architectural issues than JOSE-JA (already fully template-conformant)
+   - **JOSE-JA Issues**: Partial migration, multi-tenancy pending, SQLite pending, Docker compose pending, config pending
+   - **Why This Order**: Fix cipher-im first (simpler, fewer blockers) → provides 1st fully-working template service → THEN tackle JOSE-JA's extensive migration work
 
-5. **Consolidate Docker Compose** (13 → 5-7 files)
-   - Reduces maintenance burden
-   - Improves deployment clarity
-   - Low risk, high benefit
+3. **JOSE-JA Migration + Coverage** (after cipher-im proves template)
+   - **Current**: 92.5% coverage (-2.5%), 97.20% mutation (below 98% ideal)
+   - **Target**: ≥95% coverage, ≥98% mutation ideal, complete migration to template
+   - **Why After Cipher-IM**: JOSE-JA has MORE architectural issues (partial migration, multi-tenancy pending, SQLite pending)
+   - **Critical Issues to Address**:
+     - ⏳ Multi-tenancy implementation pending
+     - ⏳ SQLite support pending
+     - ⏳ ServerBuilder migration pending
+     - ⏳ Merged migrations pending
+     - ⏳ Registration flow pending
+     - ⏳ Docker Compose config pending
+     - ⏳ Browser API patterns pending
+   - **User Concern**: "extremely concerned with all of the architectural conformance and infrastructure components and authn/authz and crypto services and docker secrets and api organization and config files, issues you found for jose-ja; all of those need to be addressed after cipher-im to catch up with cipher-im compliance"
 
-### Estimated Impact
+4. **Shared Packages Coverage** (used by service-template)
+   - **Why**: Service-template depends on shared packages, must be ≥98% for infrastructure/utility
+   - **Includes**: barrier, crypto, telemetry, pool, hash, jose utilities
 
-| Priority | Tasks | LOE Range | Quality Impact | Duplication Reduction |
-|----------|-------|-----------|----------------|----------------------|
-| **Coverage Improvement** | 43 tasks | High | ✅ ALL services → ≥95% | N/A |
-| **JOSE-JA Migration** | V3 remaining | High | ✅ Validates template pattern | ~800 lines |
-| **Cipher-IM Mutation** | ~5 tasks | Low | ✅ Mutation testing unblocked | N/A |
-| **KMS Migration** | ~40 tasks | Very High | ✅ Oldest service standardized | ~1,500 lines |
-| **Compose Consolidation** | ~10 tasks | Medium | ⏳ Deployment simplified | ~500 lines config |
+5. **Infrastructure Code Coverage**
+   - **Why**: Foundation for all services, must meet ≥98% infrastructure/utility standard
+
+6. **KMS Modernization** (LAST - leverages validated template)
+   - **Current**: 75.2% coverage (-19.8%)
+   - **Why Last**: User explicitly planning to refactor KMS last after service-template fully validated
+   - **Benefits**: Learns from cipher-im + JOSE-JA migrations, leverages stable template
+   - **Impact**: Largest duplication elimination (~1,500 lines)
+
+### Estimated Impact (Updated Priority Order)
+
+| Priority | Focus Area | Quality Impact | Duplication Reduction |
+|----------|-----------|----------------|----------------------|
+| **1. Template Coverage** | Service-template to ≥95% | ✅ Reference implementation validated | N/A |
+| **2. Cipher-IM Complete** | Coverage + mutation unblocked | ✅ 1st fully-working template service | N/A |
+| **3. JOSE-JA Migration** | Complete migration + coverage | ✅ 2nd fully-working template service, catches up to cipher-im | ~800 lines |
+| **4. Shared Packages** | Infrastructure/utility ≥98% | ✅ Foundation quality assured | N/A |
+| **5. KMS Migration** | Full modernization (LAST) | ✅ Oldest service standardized | ~1,500 lines |
+| **6. Compose Consolidation** | 13→5-7 files (YAML+secrets) | ⏳ Deployment simplified | ~500 lines config |
+
+**Note**: Time allocations removed per Part 3 - quality over speed
 
 **Note**: LOE removed per Part 3 (violates copilot instructions - quality over speed)
 
@@ -446,11 +477,12 @@ Based on gap analysis and duplication opportunities:
 
 ### Quality Standards (Updated Part 2)
 
-**BREAKING CHANGE** (commit 8036cc01):
+**Quality Standards Update** (commit 8036cc01):
 - Mutation efficacy: ≥98% ideal, ≥95% mandatory minimum (was 85%)
 - Coverage: ≥98% ideal, ≥95% minimum (production)
 - Coverage: ≥98% (NO EXCEPTIONS) for infrastructure/utility
 - Philosophy: "95% is floor, not target. 98% is achievable standard."
+- Note: NOT a breaking change - no products/services have been released yet
 
 ### Evidence Collection (Part 6 COMPLETE)
 
@@ -488,16 +520,16 @@ Based on gap analysis and duplication opportunities:
 - Cipher-IM: First template-based service, validation complete
 - JOSE-JA: Partial migration, 97.20% mutation (below ideal), closest to 95% coverage
 
-**V4 Priorities**:
-1. Coverage improvement (Phases 8-12, 43 tasks) - ALL services below 95%
-2. JOSE-JA migration completion - Validates template for complex services
-3. Cipher-IM mutation fix - Unblocks mutation testing
-4. KMS modernization - Largest duplication elimination
-5. Compose consolidation - Deployment simplification
+**V4 Priorities** (Updated per User Feedback):
+1. Service-template coverage to ≥95% (reference implementation first)
+2. Cipher-IM coverage + mutation (BEFORE JOSE-JA - fewer architectural issues)
+3. JOSE-JA migration completion (AFTER cipher-im - extensive architectural work needed)
+4. Shared packages + infrastructure to ≥98% (foundation quality)
+5. KMS modernization LAST (leverages validated template)
+6. Compose consolidation (YAML configs + Docker secrets, NOT .env)
 
 **V3 Deletion**: ✅ Safe (all lessons in copilot instructions, unfinished work in V4)
 
 **V4 Readiness**: ✅ Implementation-ready (user review/decisions pending)
 
 **Recommendation**: User reviews comparison table, approves/modifies plan, begins V4 execution
-

@@ -21,6 +21,14 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 **Remaining Work**: 111 tasks across 12 phases (68 legacy + 43 coverage improvement)
 
+**Priority Order** (Updated per User Feedback):
+1. Service-template coverage to ≥95% (reference must be exemplary first)
+2. Cipher-IM coverage + mutation (BEFORE JOSE-JA - fewer architectural issues, fully template-conformant)
+3. JOSE-JA migration + coverage (AFTER cipher-im - extensive architectural work needed to catch up)
+4. Shared packages + infrastructure to ≥98% (foundation quality)
+5. KMS modernization LAST (leverages fully-validated template)
+6. Compose consolidation (YAML configs + Docker secrets, NOT .env)
+
 ## Technical Context
 
 - **Language**: Go 1.25.5
@@ -35,322 +43,368 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 ## Phases
 
-### Phase 0: Research & Discovery
+### Phase 1: Service-Template Coverage (HIGHEST PRIORITY)
 
-**Objective**: Clarify ambiguities before implementation
+**Objective**: Bring service-template (reference implementation) to ≥95% coverage minimum (≥98% ideal)
 
-**Tasks**:
-- [ ] 0.1: Service template comparison analysis
-  - Compare KMS vs service-template vs cipher-im vs JOSE-JA
-  - Identify duplication opportunities
-  - Create comparison table in research.md
-- [ ] 0.2: Mutation efficacy standards clarification
-  - Document 98% ideal vs 95% minimum distinction
-  - Update plan.md quality gates
-- [ ] 0.3: CI/CD mutation workflow research
-  - Linux execution requirements
-  - Timeout configuration per package
-  - Artifact collection patterns
+**Current Status**: 82.5% coverage (-12.5% below minimum)
 
-**Deliverables**:
-- research.md with comparison table
-- Updated plan.md quality gates section
-- CI/CD execution checklist
+**Rationale**: Reference implementation MUST be exemplary before other services adopt patterns. Template quality validates patterns for cipher-im, JOSE-JA, and eventual KMS migration.
 
-### Phase 1: JOSE-JA Service Error Coverage
-
-**Objective**: Achieve 95% coverage for jose/service (currently 87.3%, gap: 7.7%)
-
-**Current Status**:
-- Coverage: 87.3% (target: 95%)
-- Blocker: Closed DB testing limitation (documented in 4.2.10)
-- Discovery: Multi-step error paths need decomposition
-
-**Tasks** (6 tasks):
-- [ ] 1.1: Add createMaterialJWK error tests
-- [ ] 1.2: Add Encrypt error tests
-- [ ] 1.3: Add RotateMaterial error tests
-- [ ] 1.4: Add CreateEncryptedJWT error tests
-- [ ] 1.5: Add EncryptWithKID error tests
-- [ ] 1.6: Verify 95% coverage achieved
+**Tasks** (8 tasks from Phase 8-12):
+- [ ] 1.1: Add tests for template server/application lifecycle (StartBasic, Shutdown, InitializeServicesOnCore)
+- [ ] 1.2: Add tests for template server/builder (server builder pattern)
+- [ ] 1.3: Add tests for template server/listener (application listeners)
+- [ ] 1.4: Add tests for template service/client (authentication client)
+- [ ] 1.5: Add tests for template config parsing and validation
+- [ ] 1.6: Add integration tests for template dual HTTPS servers
+- [ ] 1.7: Add tests for template middleware stack (/service vs /browser paths)
+- [ ] 1.8: Verify template ≥95% coverage (≥98% ideal)
 
 **Success Criteria**:
-- Coverage ≥95% for jose/service
-- All error paths tested independently
-- No skipped tests without documentation
+- Template ≥95% coverage minimum (≥98% ideal)
+- Infrastructure testing patterns documented for reuse
+- All previously 0% template packages ≥95%
 
-### Phase 2: Cipher-IM Infrastructure Fixes
+---
 
-**Objective**: Unblock cipher-im mutation testing (currently 0% - UNACCEPTABLE)
+### Phase 2: Cipher-IM Coverage + Mutation (BEFORE JOSE-JA)
 
-**Root Cause**: Docker compose unhealthy, E2E tag bypass, repository timeouts
+**Objective**: Complete cipher-im coverage improvement AND unblock mutation testing
 
-**Tasks** (5 tasks):
-- [ ] 2.1: Fix cipher-im Docker infrastructure
+**Current Status**:
+- Coverage: 78.9% (-16.1% below minimum)
+- Mutation: BLOCKED (Docker infrastructure issues)
+
+**Rationale**: Cipher-IM has FEWER architectural issues than JOSE-JA (already fully template-conformant). Completing cipher-im provides 1st fully-working template service before tackling JOSE-JA's extensive migration work.
+
+**User Decision**: "cipher-im is closer to architecture conformance. it has less issues, like Docker issues and test coverage; that should be worked on before jose-ja"
+
+**Tasks** (7 tasks):
+
+**Coverage Improvement**:
+- [ ] 2.1: Add tests for cipher-im message repository edge cases
+- [ ] 2.2: Add tests for cipher-im message service business logic
+- [ ] 2.3: Add tests for cipher-im server configuration
+- [ ] 2.4: Add integration tests for cipher-im dual HTTPS servers
+- [ ] 2.5: Verify cipher-im ≥95% coverage
+
+**Mutation Testing Unblocking**:
+- [ ] 2.6: Fix cipher-im Docker infrastructure
   - OTEL HTTP/gRPC mismatch resolution
   - E2E tag bypass fix
   - Health check verification
-- [ ] 2.2: Run gremlins baseline on cipher-im
-- [ ] 2.3: Analyze cipher-im lived mutations
-- [ ] 2.4: Kill cipher-im mutations for 98% efficacy (HIGH)
-- [ ] 2.5: Verify cipher-im mutation testing complete
+- [ ] 2.7: Run gremlins on cipher-im, analyze lived mutations, kill for ≥98% efficacy
 
 **Success Criteria**:
+- Cipher-IM ≥95% coverage minimum (≥98% ideal)
+- Cipher-IM ≥98% mutation efficacy (ideal target)
 - Docker compose healthy (all services pass health checks)
-- Gremlins runs successfully without timeouts
-- Mutation efficacy ≥98% (ideal target)
+- Provides 1st fully-working template service (validates template patterns)
 
-### Phase 3: Template Mutation Cleanup
+---
 
-**Objective**: Address remaining template mutations (currently 98.91% efficacy)
+### Phase 3: JOSE-JA Migration + Coverage (AFTER Cipher-IM)
 
-**Status**: Template already exceeds 98% target, but 1 lived mutation remains
+**Objective**: Complete JOSE-JA migration to template pattern AND improve coverage to ≥95%
 
-**Tasks** (Optional - deferred LOW priority):
-- [ ] 3.1: Analyze remaining tls_generator.go mutation
-- [ ] 3.2: Determine if killable or inherent limitation
-- [ ] 3.3: Implement test if feasible
+**Current Status**:
+- Coverage: 92.5% (-2.5% below minimum, closest to 95%)
+- Mutation: 97.20% (below 98% ideal, above 95% minimum)
+- Architecture: Partial migration, extensive work needed
 
-**Success Criteria**:
-- Document mutation as killable or inherent limitation
-- Update mutation-analysis.md with findings
+**Rationale**: JOSE-JA has MORE architectural issues than cipher-im. Must catch up to cipher-im's architectural conformance.
 
-### Phase 4: Continuous Mutation Testing
+**User Concern**: "i am extremely concerned with all of the architectural conformance and infrastructure components and authn/authz and crypto services and docker secrets and api organization and config files, issues you found for jose-ja; all of those need to be addressed after cipher-im to catch up with cipher-im compliance"
 
-**Objective**: Enable automated mutation testing in CI/CD
+**Critical Architectural Issues**:
+- ⏳ Multi-tenancy implementation pending
+- ⏳ SQLite support pending (PostgreSQL only currently)
+- ⏳ ServerBuilder migration pending
+- ⏳ Merged migrations pending
+- ⏳ Registration flow pending
+- ⏳ Docker Compose config pending (YAML + secrets, NOT .env)
+- ⏳ Browser API patterns pending (/browser/** paths)
+- ⏳ Session management pending
+- ⏳ Realm service pending
 
-**Dependencies**: Phase 2 complete (cipher-im unblocked)
+**Tasks** (15 tasks):
 
-**Tasks** (6 tasks):
-- [ ] 4.1: Verify ci-mutation.yml workflow
-- [ ] 4.2: Configure timeout (per package)
-- [ ] 4.3: Set efficacy threshold enforcement (95% required)
-- [ ] 4.4: Test workflow with actual PR
-- [ ] 4.5: Document in README.md and DEV-SETUP.md
-- [ ] 4.6: Commit continuous mutation testing
+**Coverage Improvement** (6 tasks from Phase 1):
+- [ ] 3.1: Add createMaterialJWK error tests
+- [ ] 3.2: Add Encrypt error tests
+- [ ] 3.3: Add RotateMaterial error tests
+- [ ] 3.4: Add CreateEncryptedJWT error tests
+- [ ] 3.5: Add EncryptWithKID error tests
+- [ ] 3.6: Verify JOSE-JA service ≥95% coverage
 
-**Success Criteria**:
-- ci-mutation.yml runs on every PR
-- Enforces 95% minimum efficacy
-- Documents workflow in README
-
-### Phase 5: CI/CD Mutation Campaign
-
-**Objective**: Execute first Linux-based mutation testing campaign
-
-**Dependencies**: Phase 4 complete
-
-**Tasks** (11 tasks):
-- [ ] 5.1: Monitor workflow execution at GitHub Actions
-- [ ] 5.2: Download mutation-test-results artifact
-- [ ] 5.3: Analyze gremlins output
-- [ ] 5.4: Populate mutation-baseline-results.md
-- [ ] 5.5: Commit baseline analysis
-- [ ] 5.6: Review survived mutations
-- [ ] 5.7: Categorize by mutation type
-- [ ] 5.8: Write targeted tests for survived mutations
-- [ ] 5.9: Re-run ci-mutation.yml workflow
-- [ ] 5.10: Verify efficacy ≥95% for all packages
-- [ ] 5.11: Commit mutation-killing tests
+**Architectural Migration** (9 tasks - NEW):
+- [ ] 3.7: Migrate JOSE-JA to ServerBuilder pattern
+- [ ] 3.8: Implement JOSE-JA merged migrations (template 1001-1004 + domain 2001+)
+- [ ] 3.9: Add SQLite support to JOSE-JA (cross-DB compatibility)
+- [ ] 3.10: Implement multi-tenancy (schema-level isolation)
+- [ ] 3.11: Add registration flow endpoint (/auth/register)
+- [ ] 3.12: Add session management (SessionManagerService)
+- [ ] 3.13: Add realm service (RealmService)
+- [ ] 3.14: Add browser API patterns (/browser/** paths with CSRF/CORS/CSP)
+- [ ] 3.15: Migrate Docker Compose to YAML configs + Docker secrets (NOT .env)
 
 **Success Criteria**:
-- All packages ≥95% efficacy (minimum)
-- Baseline results documented
-- CI/CD workflow passing
+- JOSE-JA ≥95% coverage minimum (≥98% ideal)
+- JOSE-JA ≥98% mutation efficacy (from current 97.20%)
+- ALL architectural conformance issues resolved (catches up to cipher-im)
+- Provides 2nd fully-working template service
 
-### Phase 6: Automation & Branch Protection
+---
 
-**Objective**: Enforce mutation testing on every PR
+### Phase 4: Shared Packages Coverage (Foundation Quality)
 
-**Dependencies**: Phase 5 complete
-
-**Tasks** (6 tasks):
-- [ ] 6.1: Add workflow trigger: on: [push, pull_request]
-- [ ] 6.2: Configure path filters (code changes only)
-- [ ] 6.3: Add status check requirement in branch protection
-- [ ] 6.4: Document in README.md and DEV-SETUP.md
-- [ ] 6.5: Test with actual PR
-- [ ] 6.6: Commit automation
-
-**Success Criteria**:
-- Mutation testing runs on every code change
-- Branch protection enforces passing mutation tests
-- Documented in project README
-
-### Phase 7: Race Condition Testing
-
-**Objective**: Verify thread-safety on Linux with race detector
-
-**Current Status**: 35 tasks UNMARKED for Linux re-testing
-
-**Tasks** (35 tasks organized by category):
-
-**Repository Layer** (7 tasks):
-- [ ] 7.1: Run race detector on jose-ja repository
-- [ ] 7.2: Run race detector on cipher-im repository
-- [ ] 7.3: Run race detector on template repository
-- [ ] 7.4: Document any race conditions found
-- [ ] 7.5: Fix races with proper mutex/channel usage
-- [ ] 7.6: Re-run until clean (0 races detected)
-- [ ] 7.7: Commit repository thread-safety verified on Linux
-
-**Service Layer** (7 tasks):
-- [ ] 7.8: Run race detector on jose-ja service
-- [ ] 7.9: Run race detector on cipher-im service
-- [ ] 7.10: Run race detector on template service
-- [ ] 7.11: Document races
-- [ ] 7.12: Fix races
-- [ ] 7.13: Re-run until clean
-- [ ] 7.14: Commit service thread-safety
-
-**APIs Layer** (7 tasks):
-- [ ] 7.15-7.21: Similar pattern for APIs layer
-
-**Config Layer** (7 tasks):
-- [ ] 7.22-7.28: Similar pattern for config layer
-
-**Integration Tests** (7 tasks):
-- [ ] 7.29-7.35: Similar pattern for integration tests
-
-**Success Criteria**:
-- All packages pass race detector (0 races)
-- Fixes documented and committed
-- Linux CI/CD race testing enabled
-
-### Phase 8: Zero Coverage Packages
-
-**Objective**: Establish test infrastructure for 0% coverage packages (infrastructure code)
-
-**Current Status**: Application lifecycle, server builders, and infrastructure packages untested (0% coverage)
-
-**Evidence**: test-output/coverage-analysis/gaps-analysis.md
-
-**Tasks**:
-- [ ] 8.1: Add tests for shared/container utilities
-- [ ] 8.2: Add tests for shared/magic crypto functions
-- [ ] 8.3: Add tests for apps/*/server/application lifecycle (StartBasic, Shutdown, InitializeServicesOnCore)
-- [ ] 8.4: Add tests for apps/*/server/builder (server builder pattern)
-- [ ] 8.5: Add tests for apps/*/server/listener (application listeners)
-- [ ] 8.6: Add tests for apps/template/service/client (authentication client)
-- [ ] 8.7: Document test patterns for infrastructure testing
-- [ ] 8.8: Verify all previously 0% packages now ≥95%
-
-**Success Criteria**:
-- All previously 0% packages ≥95% coverage (≥98% ideal)
-- Infrastructure testing patterns documented
-- Test patterns reusable across services
-
-**Note**: E2E infrastructure (apps/template/testing/e2e) excluded - test utilities expected to have lower coverage
-
-### Phase 9: Severe Coverage Gaps
-
-**Objective**: Improve pool and telemetry packages to ≥98% coverage
+**Objective**: Bring shared packages to ≥98% coverage (infrastructure/utility standard)
 
 **Current Status**:
 - shared/pool: 61.5% (need +36.5%)
 - shared/telemetry: 67.5% (need +30.5%)
 
-**Critical Functions Identified** (from function-level analysis):
-- pool: closeChannelsThread 42.9%
-- telemetry: initMetrics 48.9%, initTraces 48.6%, checkSidecarHealth 40.0%
+**Rationale**: Service-template depends on shared packages. Foundation must meet ≥98% infrastructure/utility standard.
 
-**Tasks**:
-- [ ] 9.1: Add unit tests for pool worker thread management
-- [ ] 9.2: Add tests for pool cleanup (closeChannelsThread edge cases)
-- [ ] 9.3: Add tests for pool error paths
-- [ ] 9.4: Add tests for telemetry initMetrics with all backends
-- [ ] 9.5: Add tests for telemetry initTraces with all configurations
-- [ ] 9.6: Add tests for telemetry checkSidecarHealth (failure scenarios)
-- [ ] 9.7: Add integration tests for telemetry with otel-collector
-- [ ] 9.8: Verify pool ≥98% coverage
-- [ ] 9.9: Verify telemetry ≥98% coverage
+**Tasks** (9 tasks from Phase 9):
+- [ ] 4.1: Add unit tests for pool worker thread management
+- [ ] 4.2: Add tests for pool cleanup (closeChannelsThread edge cases)
+- [ ] 4.3: Add tests for pool error paths
+- [ ] 4.4: Add tests for telemetry initMetrics with all backends
+- [ ] 4.5: Add tests for telemetry initTraces with all configurations
+- [ ] 4.6: Add tests for telemetry checkSidecarHealth (failure scenarios)
+- [ ] 4.7: Add integration tests for telemetry with otel-collector
+- [ ] 4.8: Verify pool ≥98% coverage
+- [ ] 4.9: Verify telemetry ≥98% coverage
 
 **Success Criteria**:
 - shared/pool ≥98% coverage (from 61.5%)
 - shared/telemetry ≥98% coverage (from 67.5%)
 - All critical functions (currently <50%) ≥95%
 
-### Phase 10: Barrier Services Coverage
+---
 
-**Objective**: Improve barrier service packages to ≥98% coverage
+### Phase 5: Infrastructure Code Coverage
+
+**Objective**: Bring barrier services and crypto core to ≥98% coverage
 
 **Current Status**:
-- barrier/intermediatekeysservice: 76.8% (need +21.2%)
-- barrier/rootkeysservice: 79.0% (need +19.0%)
-- barrier/unsealkeysservice: 89.8% (need +8.2%)
+- barrier services: 76-90% (need +8-22%)
+- crypto packages: 78-85% (need +13-20%)
 
-**Critical Functions Identified**:
-- intermediate_keys_service: EncryptKey 72.7%, DecryptKey 70.0%
-- root_keys_service: EncryptKey 72.7%
-- unseal_keys_service: encryptKey 75.0%
+**Rationale**: Infrastructure code must meet ≥98% standard for infrastructure/utility packages.
 
-**Tasks**:
-- [ ] 10.1: Add unit tests for intermediate key encryption/decryption edge cases
-- [ ] 10.2: Add unit tests for root key encryption/decryption edge cases
-- [ ] 10.3: Add unit tests for unseal key encryption/decryption edge cases
-- [ ] 10.4: Add integration tests for key hierarchy (unseal → root → intermediate)
-- [ ] 10.5: Add error path tests (invalid keys, corrupted ciphertext)
-- [ ] 10.6: Add concurrent operation tests (thread-safety verification)
-- [ ] 10.7: Verify intermediatekeysservice ≥98%
-- [ ] 10.8: Verify rootkeysservice ≥98%
-- [ ] 10.9: Verify unsealkeysservice ≥98%
+**Tasks** (17 tasks from Phases 10-11):
+
+**Barrier Services** (9 tasks):
+- [ ] 5.1: Add unit tests for intermediate key encryption/decryption edge cases
+- [ ] 5.2: Add unit tests for root key encryption/decryption edge cases
+- [ ] 5.3: Add unit tests for unseal key encryption/decryption edge cases
+- [ ] 5.4: Add integration tests for key hierarchy (unseal → root → intermediate)
+- [ ] 5.5: Add error path tests (invalid keys, corrupted ciphertext)
+- [ ] 5.6: Add concurrent operation tests (thread-safety verification)
+- [ ] 5.7: Verify intermediatekeysservice ≥98%
+- [ ] 5.8: Verify rootkeysservice ≥98%
+- [ ] 5.9: Verify unsealkeysservice ≥98%
+
+**Crypto Core** (8 tasks):
+- [ ] 5.10: Add tests for crypto/jose key creation functions (CreateJWKFromKey, CreateJWEJWKFromKey)
+- [ ] 5.11: Add tests for crypto/jose algorithm validation (EnsureSignatureAlgorithmType)
+- [ ] 5.12: Add tests for crypto/certificate TLS server utilities
+- [ ] 5.13: Add tests for crypto/password edge cases
+- [ ] 5.14: Add tests for crypto/pbkdf2 parameter variations
+- [ ] 5.15: Add tests for crypto/tls configuration edge cases
+- [ ] 5.16: Add tests for crypto/keygen error paths
+- [ ] 5.17: Verify all crypto packages ≥98%
 
 **Success Criteria**:
 - All barrier services ≥98% coverage
-- Key hierarchy integration tests passing
-- Encryption/decryption edge cases covered
-
-### Phase 11: Crypto Core Coverage
-
-**Objective**: Improve crypto packages to ≥98% coverage
-
-**Current Status**:
-- crypto/certificate: 78.2% (need +19.8%)
-- crypto/jose: 82.6% (need +15.4%)
-- crypto/password: 81.8% (need +16.2%)
-- crypto/pbkdf2: 85.4% (need +12.6%)
-- crypto/tls: 85.8% (need +12.2%)
-- crypto/keygen: 85.2% (need +12.8%)
-
-**Critical Functions Identified**:
-- jose: CreateJWEJWKFromKey 60.4%, CreateJWKFromKey 59.1%, EnsureSignatureAlgorithmType 23.1%
-- certificate: startTLSEchoServer 56.5%
-
-**Tasks**:
-- [ ] 11.1: Add tests for crypto/jose key creation functions (CreateJWKFromKey, CreateJWEJWKFromKey)
-- [ ] 11.2: Add tests for crypto/jose algorithm validation (EnsureSignatureAlgorithmType)
-- [ ] 11.3: Add tests for crypto/certificate TLS server utilities
-- [ ] 11.4: Add tests for crypto/password edge cases
-- [ ] 11.5: Add tests for crypto/pbkdf2 parameter variations
-- [ ] 11.6: Add tests for crypto/tls configuration edge cases
-- [ ] 11.7: Add tests for crypto/keygen error paths
-- [ ] 11.8: Verify all crypto packages ≥98%
-
-**Success Criteria**:
 - All crypto packages ≥98% coverage
-- Key creation functions (currently <60%) ≥95%
-- Algorithm validation comprehensive
+- Key hierarchy integration tests passing
 
-### Phase 12: Near-Ideal Package Polish
+---
 
-**Objective**: Bring near-ideal packages (96-97%) to ≥99% coverage
+### Phase 6: KMS Modernization (LAST - Leverages Validated Template)
+
+**Objective**: Migrate KMS to service-template pattern (largest duplication elimination)
 
 **Current Status**:
-- crypto/digests: 96.9% (need +2.1% for 99%)
-- shared/util/network: 96.8% (need +2.2% for 99%)
+- Coverage: 75.2% (-19.8% below minimum)
+- Architecture: Pre-template, extensive custom infrastructure
+- Duplication: ~1,500 lines (database setup, registration, browser APIs)
 
-**Tasks**:
-- [ ] 12.1: Identify remaining uncovered lines in crypto/digests
-- [ ] 12.2: Add tests for identified gaps in crypto/digests
-- [ ] 12.3: Identify remaining uncovered lines in shared/util/network
-- [ ] 12.4: Add tests for identified gaps in shared/util/network
-- [ ] 12.5: Verify crypto/digests ≥99%
-- [ ] 12.6: Verify shared/util/network ≥99%
+**Rationale**: User explicitly planning to refactor KMS LAST after service-template fully validated by template, cipher-im, and JOSE-JA.
+
+**Benefits of Last**: Learns from cipher-im + JOSE-JA migrations, leverages stable template, confidence in patterns
+
+**Tasks** (40+ tasks - TBD based on lessons from Phases 1-5):
+- [ ] 6.1-6.N: Database migration (raw database/sql → GORM via ServerBuilder)
+- [ ] Registration flow migration
+- [ ] Browser API addition (/browser/** paths)
+- [ ] Merged migrations pattern
+- [ ] Multi-tenancy validation
+- [ ] Coverage improvement to ≥95%
+- [ ] Mutation testing to ≥98%
 
 **Success Criteria**:
-- crypto/digests ≥99% coverage
-- shared/util/network ≥99% coverage
-- Demonstrates ≥99% ideal achievable
+- KMS ≥95% coverage minimum (≥98% ideal)
+- KMS ≥98% mutation efficacy
+- All architectural conformance issues resolved
+- ~1,500 lines duplication eliminated
+
+---
+
+### Phase 7: Docker Compose Consolidation
+
+**Objective**: Consolidate 13 compose files to 5-7 with YAML configs + Docker secrets
+
+**Current Status**: 13 files (Identity 4, CA 3, KMS 2, duplicated patterns)
+
+**User Requirement**: "Docker Compose should be using yaml configurations and docker secrets, ENV is last resort not first option; that violates copilot instructions again"
+
+**Tasks** (10 tasks from Phase 5):
+- [ ] 7.1: Consolidate Identity compose files (4 → 1 + YAML configs + Docker secrets)
+- [ ] 7.2: Consolidate CA compose files (3 → 1 + YAML configs + Docker secrets)
+- [ ] 7.3: Consolidate KMS compose files (2 → 1 + YAML configs + Docker secrets)
+- [ ] 7.4: Create environment-specific YAML config files (dev, prod, test)
+- [ ] 7.5: Migrate sensitive values to Docker secrets (NOT .env)
+- [ ] 7.6: Document YAML + Docker secrets pattern (primary), .env as LAST RESORT
+- [ ] 7.7: Update all compose files to use YAML configs + secrets
+- [ ] 7.8: Test all environments (dev, prod, test)
+- [ ] 7.9: Update documentation
+- [ ] 7.10: Verify 13 → 5-7 files achieved
+
+**Success Criteria**:
+- 13 files → 5-7 files
+- Uses YAML configs (primary) + Docker secrets (sensitive)
+- .env as LAST RESORT only
+- Deployment clarity improved
+
+---
+
+### Phase 8: Template Mutation Cleanup (Optional - Deferred)
+
+**Objective**: Address remaining template mutation (currently 98.91% efficacy)
+
+**Status**: Template already exceeds 98% ideal, but 1 lived mutation remains
+
+**Tasks**:
+- [ ] 8.1: Analyze remaining tls_generator.go mutation
+- [ ] 8.2: Determine if killable or inherent limitation
+- [ ] 8.3: Implement test if feasible
+
+**Priority**: LOW (deferred) - template already exceeds 98% ideal
+
+---
+
+### Phase 9: Continuous Mutation Testing
+
+**Objective**: Enable automated mutation testing in CI/CD
+
+**Dependencies**: Phases 1-3 complete (template, cipher-im, JOSE-JA all ≥98% mutation)
+
+**Tasks** (6 tasks from Phase 4):
+- [ ] 9.1: Verify ci-mutation.yml workflow
+- [ ] 9.2: Configure timeout (per package)
+- [ ] 9.3: Set efficacy threshold enforcement (95% required)
+- [ ] 9.4: Test workflow with actual PR
+- [ ] 9.5: Document in README.md and DEV-SETUP.md
+- [ ] 9.6: Commit continuous mutation testing
+
+**Success Criteria**:
+- ci-mutation.yml runs on every PR
+- Enforces 95% minimum efficacy
+- Documents workflow in README
+
+---
+
+### Phase 10: CI/CD Mutation Campaign
+
+**Objective**: Execute first Linux-based mutation testing campaign
+
+**Dependencies**: Phase 9 complete
+
+**Tasks** (11 tasks from Phase 5):
+- [ ] 10.1: Monitor workflow execution at GitHub Actions
+- [ ] 10.2: Download mutation-test-results artifact
+- [ ] 10.3: Analyze gremlins output
+- [ ] 10.4: Populate mutation-baseline-results.md
+- [ ] 10.5: Commit baseline analysis
+- [ ] 10.6: Review survived mutations
+- [ ] 10.7: Categorize by mutation type
+- [ ] 10.8: Write targeted tests for survived mutations
+- [ ] 10.9: Re-run ci-mutation.yml workflow
+- [ ] 10.10: Verify efficacy ≥95% for all packages
+- [ ] 10.11: Commit mutation-killing tests
+
+**Success Criteria**:
+- All packages ≥95% efficacy (minimum)
+- Baseline results documented
+- CI/CD workflow passing
+
+---
+
+### Phase 11: Automation & Branch Protection
+
+**Objective**: Enforce mutation testing on every PR
+
+**Dependencies**: Phase 10 complete
+
+**Tasks** (6 tasks from Phase 6):
+- [ ] 11.1: Add workflow trigger: on: [push, pull_request]
+- [ ] 11.2: Configure path filters (code changes only)
+- [ ] 11.3: Add status check requirement in branch protection
+- [ ] 11.4: Document in README.md and DEV-SETUP.md
+- [ ] 11.5: Test with actual PR
+- [ ] 11.6: Commit automation
+
+**Success Criteria**:
+- Mutation testing runs on every code change
+- Branch protection enforces passing mutation tests
+- Documented in project README
+
+---
+
+### Phase 12: Race Condition Testing
+
+**Objective**: Verify thread-safety on Linux with race detector
+
+**Current Status**: 35 tasks UNMARKED for Linux re-testing
+
+**Tasks** (35 tasks from Phase 7):
+
+**Repository Layer** (7 tasks):
+- [ ] 12.1: Run race detector on jose-ja repository
+- [ ] 12.2: Run race detector on cipher-im repository
+- [ ] 12.3: Run race detector on template repository
+- [ ] 12.4: Document any race conditions found
+- [ ] 12.5: Fix races with proper mutex/channel usage
+- [ ] 12.6: Re-run until clean (0 races detected)
+- [ ] 12.7: Commit repository thread-safety verified on Linux
+
+**Service Layer** (7 tasks):
+- [ ] 12.8: Run race detector on jose-ja service
+- [ ] 12.9: Run race detector on cipher-im service
+- [ ] 12.10: Run race detector on template service
+- [ ] 12.11: Document races
+- [ ] 12.12: Fix races
+- [ ] 12.13: Re-run until clean
+- [ ] 12.14: Commit service thread-safety
+
+**APIs Layer** (7 tasks):
+- [ ] 12.15-12.21: Similar pattern for APIs layer
+
+**Config Layer** (7 tasks):
+- [ ] 12.22-12.28: Similar pattern for config layer
+
+**Integration Tests** (7 tasks):
+- [ ] 12.29-12.35: Similar pattern for integration tests
+
+**Success Criteria**:
+- All packages pass race detector (0 races)
+- Fixes documented and committed
+- Linux CI/CD race testing enabled
 
 ## Technical Decisions
 
