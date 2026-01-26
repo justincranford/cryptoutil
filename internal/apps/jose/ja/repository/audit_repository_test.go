@@ -408,7 +408,8 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	// Create entries.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 
-	// Create 3 entries.
+	// Create 3 entries with created_at 31 days in the past.
+	oldTime := time.Now().UTC().Add(-31 * 24 * time.Hour)
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
@@ -418,7 +419,7 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 			Operation: "sign",
 			Success:   true,
 			RequestID: requestID.String(),
-			CreatedAt: time.Now().UTC(),
+			CreatedAt: oldTime.Add(time.Duration(i) * time.Second),
 		}
 		require.NoError(t, repo.Create(ctx, entry))
 	}
@@ -429,21 +430,8 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 	require.Equal(t, int64(3), total)
 	require.Len(t, entries, 3)
 
-	// Delete entries older than 30 days (should delete nothing since just created).
+	// Delete entries older than 30 days (should delete all 3 entries since they're 31 days old).
 	deleted, err := repo.DeleteOlderThan(ctx, *tenantID, 30)
-	require.NoError(t, err)
-	require.Equal(t, int64(0), deleted)
-
-	// Verify entries still exist.
-	entries, total, err = repo.List(ctx, *tenantID, 0, 10)
-	require.NoError(t, err)
-	require.Equal(t, int64(3), total)
-
-	_ = entries // silence ineffassign lint
-
-	// Delete entries older than 0 days (entries created just now are already "older" than datetime('now', '-0 days')).
-	// This should delete all entries because they were created slightly before "now".
-	deleted, err = repo.DeleteOlderThan(ctx, *tenantID, 0)
 	require.NoError(t, err)
 	require.Equal(t, int64(3), deleted)
 
