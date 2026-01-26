@@ -28,9 +28,9 @@ func TestHandleGetBarrierKeysStatus_Success(t *testing.T) {
 	// Register status routes.
 	RegisterStatusRoutes(app, statusService)
 
-	// Make HTTP request.
+	// Make HTTP request with increased timeout (SQLite GORM can have slow queries).
 	req := httptest.NewRequest("GET", "/admin/api/v1/barrier/keys/status", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, 5000) // 5-second timeout for SQLite contention
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -76,16 +76,16 @@ func TestRegisterStatusRoutes_Integration(t *testing.T) {
 	app := fiber.New()
 	RegisterStatusRoutes(app, statusService)
 
-	// Verify route is registered (GET request succeeds).
+	// Verify route is registered (GET request succeeds with increased timeout for SQLite).
 	req := httptest.NewRequest("GET", "/admin/api/v1/barrier/keys/status", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, 5000) // 5-second timeout for SQLite contention
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
 
 	// Verify wrong HTTP method returns 405 Method Not Allowed.
 	req = httptest.NewRequest("POST", "/admin/api/v1/barrier/keys/status", bytes.NewReader([]byte(`{}`)))
-	resp, err = app.Test(req)
+	resp, err = app.Test(req, 5000) // 5-second timeout for SQLite contention
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusMethodNotAllowed, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
