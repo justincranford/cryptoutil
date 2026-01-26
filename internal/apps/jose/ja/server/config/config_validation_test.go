@@ -132,38 +132,38 @@ func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string
-		args    []string
-		wantMax int
-		wantAud bool
+		name     string
+		args     []string
+		wantMax  int
+		wantAud  bool
 		wantRate int
 	}{
 		{
-			name:    "override max materials",
-			args:    []string{"start", "--max-materials", "50"},
-			wantMax: 50,
-			wantAud: true,
+			name:     "override max materials",
+			args:     []string{"start", "--max-materials", "50"},
+			wantMax:  50,
+			wantAud:  true,
 			wantRate: 100,
 		},
 		{
-			name:    "disable audit",
-			args:    []string{"start", "--audit-enabled=false"},
-			wantMax: 10,
-			wantAud: false,
+			name:     "disable audit",
+			args:     []string{"start", "--audit-enabled=false"},
+			wantMax:  10,
+			wantAud:  false,
 			wantRate: 100,
 		},
 		{
-			name:    "override sampling rate",
-			args:    []string{"start", "--audit-sampling-rate", "25"},
-			wantMax: 10,
-			wantAud: true,
+			name:     "override sampling rate",
+			args:     []string{"start", "--audit-sampling-rate", "25"},
+			wantMax:  10,
+			wantAud:  true,
 			wantRate: 25,
 		},
 		{
-			name:    "override all jose-ja flags",
-			args:    []string{"start", "--max-materials", "100", "--audit-enabled=false", "--audit-sampling-rate", "50"},
-			wantMax: 100,
-			wantAud: false,
+			name:     "override all jose-ja flags",
+			args:     []string{"start", "--max-materials", "100", "--audit-enabled=false", "--audit-sampling-rate", "50"},
+			wantMax:  100,
+			wantAud:  false,
 			wantRate: 50,
 		},
 	}

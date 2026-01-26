@@ -21,7 +21,7 @@ This plan contains the **remaining incomplete work** from v3, reorganized for cl
 - **Language**: Go 1.25.5
 - **Framework**: Service template pattern with dual HTTPS servers
 - **Database**: PostgreSQL OR SQLite with GORM
-- **Testing**: 95% coverage target, 98% mutation efficacy ideal
+- **Testing**: ≥98% coverage ideal (≥95% minimum), ≥98% mutation efficacy ideal (≥95% mandatory minimum)
 - **Services**:
   - Template: ✅ 98.91% efficacy
   - JOSE-JA: ✅ 97.20% efficacy
@@ -216,9 +216,9 @@ This plan contains the **remaining incomplete work** from v3, reorganized for cl
 
 ### Decision 1: Mutation Efficacy Standards
 
-**Chosen**: 98% IDEAL target, 95% MINIMUM acceptable
-**Rationale**: V3 achieved 98.91% (Template) and 97.20% (JOSE-JA), proving 98% is achievable
-**Alternatives**: 95% universal target (rejected - sets bar too low)
+**Chosen**: 98% IDEAL target (all packages), 95% MANDATORY MINIMUM (documented blockers only)
+**Rationale**: V3 achieved 98.91% (Template) and 97.20% (JOSE-JA), proving 98% is achievable. 95% is floor, not target.
+**Alternatives**: 85% minimum (REJECTED - too low), 95% universal target (REJECTED - sets bar at floor)
 **Impact**: Higher quality standard, but v3 proves feasibility
 
 **Documentation Needed**: Update plan.md quality gates to clarify distinction
