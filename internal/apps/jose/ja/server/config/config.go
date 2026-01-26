@@ -60,24 +60,27 @@ var (
 	})
 )
 
-// Parse parses command line arguments and returns jose-ja settings.
-func Parse(args []string, exitIfHelp bool) (*JoseJAServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns jose-ja settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*JoseJAServerSettings, error) {
+	// Parse base template settings first using the same FlagSet.
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register jose-ja specific flags.
-	pflag.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
-	pflag.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
-	pflag.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
+	// Register jose-ja specific flags on the provided FlagSet.
+	fs.IntP(maxMaterialsSetting.Name, maxMaterialsSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(maxMaterialsSetting), maxMaterialsSetting.Description)
+	fs.BoolP(auditEnabledSetting.Name, auditEnabledSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(auditEnabledSetting), auditEnabledSetting.Description)
+	fs.IntP(auditSamplingRateSetting.Name, auditSamplingRateSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(auditSamplingRateSetting), auditSamplingRateSetting.Description)
 
-	// Parse flags.
-	pflag.Parse()
+	// Parse flags using the provided FlagSet.
+	if err := fs.Parse(args); err != nil {
+		return nil, fmt.Errorf("failed to parse flags: %w", err)
+	}
 
 	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+	if err := viper.BindPFlags(fs); err != nil {
 		return nil, fmt.Errorf("failed to bind flags: %w", err)
 	}
 
@@ -103,6 +106,12 @@ func Parse(args []string, exitIfHelp bool) (*JoseJAServerSettings, error) {
 	logJoseJASettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command line arguments and returns jose-ja settings.
+// Uses global pflag.CommandLine for backward compatibility.
+func Parse(args []string, exitIfHelp bool) (*JoseJAServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateJoseJASettings validates jose-ja specific configuration.
