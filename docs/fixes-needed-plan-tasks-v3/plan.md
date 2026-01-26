@@ -1,3 +1,24 @@
+# Unified Implementation Plan - Cryptoutil Service Template & Coverage
+
+**Last Updated**: 2026-01-25
+**Purpose**: Merged plan combining service-template migration (V1) and test coverage implementation (V2)
+**Status**: Service template migration 74% complete, test coverage 79% complete
+
+---
+
+## Overview
+
+This unified plan combines two complementary implementation tracks:
+
+1. **Service-Template Migration (V1)**: JOSE-JA, cipher-im, and shared infrastructure
+2. **Test Coverage Implementation (V2)**: Container mode, mTLS, configuration validation
+
+Both tracks share common infrastructure (service-template pattern) and quality gates (95% coverage, 85% mutation efficacy).
+
+---
+
+## V1: Service-Template Migration
+
 # JOSE-JA Refactoring Plan V4
 
 **Last Updated**: 2026-01-18
@@ -10,19 +31,19 @@
 
 **Critical Fixes from V3**:
 
-- ✅ Port 9090 for admin endpoints (was incorrectly 8080)
-- ✅ PostgreSQL 18+ requirement (was incorrectly 16+)
-- ✅ Directory structure: deployments/jose-ja/, configs/jose-ja/ (was jose/)
-- ✅ Removed CGO_ENABLED mentions (implied by project)
-- ✅ Docker secrets > YAML config > ENV (was promoting ENVs)
-- ✅ Separate browser vs service session configs
-- ✅ OTLP only (removed Prometheus scraping endpoint)
-- ✅ Consistent API paths: /admin/api/v1, /service/api/v1, /browser/api/v1
-- ✅ No service name in paths (was /service/api/v1/jose/*)
-- ✅ Realms are authn only (removed from repository WHERE clauses)
-- ✅ No hardcoded passwords in tests (use magic constants or UUIDv7)
-- ✅ key_type implied by algorithm (simplified API)
-- ✅ All requirements mandatory (no "Future" deferrals)
+- âœ… Port 9090 for admin endpoints (was incorrectly 8080)
+- âœ… PostgreSQL 18+ requirement (was incorrectly 16+)
+- âœ… Directory structure: deployments/jose-ja/, configs/jose-ja/ (was jose/)
+- âœ… Removed CGO_ENABLED mentions (implied by project)
+- âœ… Docker secrets > YAML config > ENV (was promoting ENVs)
+- âœ… Separate browser vs service session configs
+- âœ… OTLP only (removed Prometheus scraping endpoint)
+- âœ… Consistent API paths: /admin/api/v1, /service/api/v1, /browser/api/v1
+- âœ… No service name in paths (was /service/api/v1/jose/*)
+- âœ… Realms are authn only (removed from repository WHERE clauses)
+- âœ… No hardcoded passwords in tests (use magic constants or UUIDv7)
+- âœ… key_type implied by algorithm (simplified API)
+- âœ… All requirements mandatory (no "Future" deferrals)
 
 ---
 
@@ -30,13 +51,13 @@
 
 **Quality Over Speed (NO EXCEPTIONS)**:
 
-- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
-- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
-- ✅ **Thoroughness**: Evidence-based validation at every step (build, lint, test, coverage, mutation)
-- ✅ **Reliability**: ≥95% coverage production, ≥98% infrastructure/utility, ≥85% mutation production, ≥98% mutation infrastructure
-- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
-- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- ❌ **Premature Completion**: NEVER mark tasks complete without objective evidence
+- âœ… **Correctness**: ALL code must be functionally correct with comprehensive tests
+- âœ… **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- âœ… **Thoroughness**: Evidence-based validation at every step (build, lint, test, coverage, mutation)
+- âœ… **Reliability**: â‰¥95% coverage production, â‰¥98% infrastructure/utility, â‰¥85% mutation production, â‰¥98% mutation infrastructure
+- âœ… **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- âŒ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- âŒ **Premature Completion**: NEVER mark tasks complete without objective evidence
 
 **Continuous Execution (NO STOPPING)**:
 
@@ -45,7 +66,7 @@
 - NEVER pause for status updates or celebrations ("Here's what we did...")
 - NEVER give up when encountering complexity (find solutions, refactor, investigate)
 - NEVER skip tasks to "save time" or because they seem "less important"
-- Task complete → Commit → IMMEDIATELY start next task (zero pause, zero text to user)
+- Task complete â†’ Commit â†’ IMMEDIATELY start next task (zero pause, zero text to user)
 
 ---
 
@@ -90,11 +111,11 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 **Changes**:
 
-- ❌ REMOVE: `WithDefaultTenant(tenantID, realmID)` method
-- ❌ REMOVE: Call to `ensureDefaultTenant()` in `Build()` method
-- ❌ REMOVE: `ensureDefaultTenant()` helper method
-- ❌ REMOVE: `defaultTenantID` and `defaultRealmID` fields from ServerBuilder struct
-- ❌ REMOVE: Passing defaultTenantID/defaultRealmID to SessionManagerService constructor
+- âŒ REMOVE: `WithDefaultTenant(tenantID, realmID)` method
+- âŒ REMOVE: Call to `ensureDefaultTenant()` in `Build()` method
+- âŒ REMOVE: `ensureDefaultTenant()` helper method
+- âŒ REMOVE: `defaultTenantID` and `defaultRealmID` fields from ServerBuilder struct
+- âŒ REMOVE: Passing defaultTenantID/defaultRealmID to SessionManagerService constructor
 
 **Quality Gates**:
 
@@ -111,7 +132,7 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 **Changes**:
 
-- ❌ DELETE entire file (contains only EnsureDefaultTenant function)
+- âŒ DELETE entire file (contains only EnsureDefaultTenant function)
 
 **Quality Gates**:
 
@@ -127,17 +148,17 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 **Changes**:
 
-- ❌ REMOVE: `defaultTenantID` field
-- ❌ REMOVE: `defaultRealmID` field
-- ❌ REMOVE: `IssueBrowserSession(ctx, userID)` method (single-tenant version)
-- ❌ REMOVE: `ValidateBrowserSession(ctx, token)` method (single-tenant version)
-- ❌ REMOVE: `IssueServiceSession(ctx, clientID)` method (single-tenant version)
-- ❌ REMOVE: `ValidateServiceSession(ctx, token)` method (single-tenant version)
-- ✅ KEEP: `IssueBrowserSessionWithTenant(ctx, userID, tenantID, realmID)` (multi-tenant version)
-- ✅ KEEP: `ValidateBrowserSessionWithTenant(ctx, token)` (multi-tenant version)
-- ✅ KEEP: `IssueServiceSessionWithTenant(ctx, clientID, tenantID, realmID)` (multi-tenant version)
-- ✅ KEEP: `ValidateServiceSessionWithTenant(ctx, token)` (multi-tenant version)
-- ✅ UPDATE: Constructor `NewSessionManagerService()` to remove defaultTenantID/defaultRealmID params
+- âŒ REMOVE: `defaultTenantID` field
+- âŒ REMOVE: `defaultRealmID` field
+- âŒ REMOVE: `IssueBrowserSession(ctx, userID)` method (single-tenant version)
+- âŒ REMOVE: `ValidateBrowserSession(ctx, token)` method (single-tenant version)
+- âŒ REMOVE: `IssueServiceSession(ctx, clientID)` method (single-tenant version)
+- âŒ REMOVE: `ValidateServiceSession(ctx, token)` method (single-tenant version)
+- âœ… KEEP: `IssueBrowserSessionWithTenant(ctx, userID, tenantID, realmID)` (multi-tenant version)
+- âœ… KEEP: `ValidateBrowserSessionWithTenant(ctx, token)` (multi-tenant version)
+- âœ… KEEP: `IssueServiceSessionWithTenant(ctx, clientID, tenantID, realmID)` (multi-tenant version)
+- âœ… KEEP: `ValidateServiceSessionWithTenant(ctx, token)` (multi-tenant version)
+- âœ… UPDATE: Constructor `NewSessionManagerService()` to remove defaultTenantID/defaultRealmID params
 
 **Quality Gates**:
 
@@ -154,10 +175,10 @@ This plan covers **THREE sequential phases** required for jose-ja implementation
 
 **Changes**:
 
-- ❌ REMOVE: `TemplateDefaultTenantID` constant (if exists)
-- ❌ REMOVE: `TemplateDefaultRealmID` constant (if exists)
-- ✅ VERIFY: `grep -r "TemplateDefaultTenantID" internal/` returns 0 results
-- ✅ VERIFY: `grep -r "TemplateDefaultRealmID" internal/` returns 0 results
+- âŒ REMOVE: `TemplateDefaultTenantID` constant (if exists)
+- âŒ REMOVE: `TemplateDefaultRealmID` constant (if exists)
+- âœ… VERIFY: `grep -r "TemplateDefaultTenantID" internal/` returns 0 results
+- âœ… VERIFY: `grep -r "TemplateDefaultRealmID" internal/` returns 0 results
 
 **Quality Gates**:
 
@@ -223,9 +244,9 @@ DROP TABLE IF EXISTS pending_users;
 
 **Email Validation**:
 
-- ❌ NO email validation on username field (username can be non-email)
-- ✅ Email/password authentication is a DIFFERENT realm (not implemented yet)
-- ✅ Username field accepts any string (simplified registration flow)
+- âŒ NO email validation on username field (username can be non-email)
+- âœ… Email/password authentication is a DIFFERENT realm (not implemented yet)
+- âœ… Username field accepts any string (simplified registration flow)
 
 **Expiration Configuration**:
 
@@ -260,16 +281,16 @@ pending_users_expiration_hours: 72  # Default 72 hours (3 days)
 
 **Admin Dashboard**:
 
-- ✅ **Q2.1**: Template infrastructure provides admin dashboard APIs (NOT domain-specific)
-- ❌ **Q2.2**: NO email notifications (users poll status via login attempts)
-- ❌ **Q2.3**: NO webhook callbacks (keep template simple)
-- ❌ **Q2.4**: NO unauthenticated status API (users poll via login: HTTP 403=pending, HTTP 401=rejected, HTTP 200=approved)
+- âœ… **Q2.1**: Template infrastructure provides admin dashboard APIs (NOT domain-specific)
+- âŒ **Q2.2**: NO email notifications (users poll status via login attempts)
+- âŒ **Q2.3**: NO webhook callbacks (keep template simple)
+- âŒ **Q2.4**: NO unauthenticated status API (users poll via login: HTTP 403=pending, HTTP 401=rejected, HTTP 200=approved)
 
 **Rate Limiting**:
 
-- ✅ **Q3.1**: Per IP address only (10 registrations per IP per hour)
-- ✅ **Q3.2**: In-memory (sync.Map) - simple, single-node, lost on restart
-- ✅ **Q3.3**: Configurable thresholds with low defaults
+- âœ… **Q3.1**: Per IP address only (10 registrations per IP per hour)
+- âœ… **Q3.2**: In-memory (sync.Map) - simple, single-node, lost on restart
+- âœ… **Q3.3**: Configurable thresholds with low defaults
 
 **Rate Limiting Configuration**:
 
@@ -383,17 +404,17 @@ Response 200:
 
 **CRITICAL: API Path Consistency**:
 
-- ✅ Admin endpoints: `/admin/api/v1/*`
-- ✅ Service endpoints: `/service/api/v1/*`
-- ✅ Browser endpoints: `/browser/api/v1/*`
-- ❌ NEVER use `/admin/v1/*` (inconsistent with /service/api/v1 and /browser/api/v1)
-- ❌ NEVER include service name in paths (e.g., `/service/api/v1/jose/*` is WRONG)
+- âœ… Admin endpoints: `/admin/api/v1/*`
+- âœ… Service endpoints: `/service/api/v1/*`
+- âœ… Browser endpoints: `/browser/api/v1/*`
+- âŒ NEVER use `/admin/v1/*` (inconsistent with /service/api/v1 and /browser/api/v1)
+- âŒ NEVER include service name in paths (e.g., `/service/api/v1/jose/*` is WRONG)
 
 **Quality Gates**:
 
 1. Build: `go build ./internal/apps/template/...`
 2. Tests: Integration tests for ALL endpoints
-3. Coverage: ≥95% (handler code)
+3. Coverage: â‰¥95% (handler code)
 4. Security: CSRF protection on browser endpoints
 5. Evidence: Test output + commit hash
 
@@ -405,9 +426,9 @@ Response 200:
 
 **Changes**:
 
-- ✅ ADD: Registration handler routes in `Build()` method
-- ✅ ADD: Join request handler routes in `Build()` method
-- ✅ VERIFY: No `WithDefaultTenant()` calls remain
+- âœ… ADD: Registration handler routes in `Build()` method
+- âœ… ADD: Join request handler routes in `Build()` method
+- âœ… VERIFY: No `WithDefaultTenant()` calls remain
 
 **Routes**:
 
@@ -438,8 +459,8 @@ adminServer.PUT("/admin/api/v1/join-requests/:id", joinRequestHandlers.Authorize
 - [ ] Build: `go build ./...` (zero errors)
 - [ ] Linting: `golangci-lint run ./...` (zero warnings)
 - [ ] Tests: `go test ./internal/apps/template/... -cover` (100% pass)
-- [ ] Coverage: ≥95% production, ≥98% infrastructure
-- [ ] Mutation: ≥85% production, ≥98% infrastructure
+- [ ] Coverage: â‰¥95% production, â‰¥98% infrastructure
+- [ ] Mutation: â‰¥85% production, â‰¥98% infrastructure
 - [ ] E2E: Registration flow works (browser + service)
 - [ ] E2E: Join request flow works (create, list, approve)
 - [ ] Security: NO hardcoded passwords in tests
@@ -468,9 +489,9 @@ adminServer.PUT("/admin/api/v1/join-requests/:id", joinRequestHandlers.Authorize
 
 **Changes**:
 
-- ❌ REMOVE: Any `WithDefaultTenant()` calls (if exist)
-- ✅ VERIFY: `grep -r "WithDefaultTenant" internal/apps/cipher/` returns 0 results
-- ✅ VERIFY: All tests use `registerUser()` or `registerClient()` for tenant creation
+- âŒ REMOVE: Any `WithDefaultTenant()` calls (if exist)
+- âœ… VERIFY: `grep -r "WithDefaultTenant" internal/apps/cipher/` returns 0 results
+- âœ… VERIFY: All tests use `registerUser()` or `registerClient()` for tenant creation
 
 **Quality Gates**:
 
@@ -532,9 +553,9 @@ func TestMain(m *testing.M) {
 
 **CRITICAL: Password Handling**:
 
-- ❌ NEVER: `registerUser(server, "user1", "pass1", ...)`
-- ✅ ALWAYS: `registerUser(server, "user1", cryptoutilMagic.TestPassword, ...)`
-- ✅ ALTERNATIVE: `registerUser(server, "user1", googleUuid.NewV7().String(), ...)`
+- âŒ NEVER: `registerUser(server, "user1", "pass1", ...)`
+- âœ… ALWAYS: `registerUser(server, "user1", cryptoutilMagic.TestPassword, ...)`
+- âœ… ALTERNATIVE: `registerUser(server, "user1", googleUuid.NewV7().String(), ...)`
 
 **Migration Strategy**:
 
@@ -558,7 +579,7 @@ func TestMain(m *testing.M) {
 - [ ] Build: `go build ./internal/apps/cipher/...` (zero errors)
 - [ ] Linting: `golangci-lint run ./internal/apps/cipher/...` (zero warnings)
 - [ ] Tests: `go test ./internal/apps/cipher/... -cover` (100% pass)
-- [ ] Coverage: ≥95% production, ≥98% infrastructure
+- [ ] Coverage: â‰¥95% production, â‰¥98% infrastructure
 - [ ] Grep: 0 WithDefaultTenant usages
 - [ ] Security: NO hardcoded passwords in tests
 - [ ] Git: Conventional commits with evidence
@@ -630,9 +651,9 @@ type AuditLog struct {
 
 **CRITICAL: Multi-Tenancy**:
 
-- ✅ ALL models MUST include `TenantID googleUuid.UUID` field
-- ✅ Repository queries MUST filter by `tenant_id`
-- ❌ Repository queries MUST NOT filter by `realm_id` (realms are authn only, NOT data scope)
+- âœ… ALL models MUST include `TenantID googleUuid.UUID` field
+- âœ… Repository queries MUST filter by `tenant_id`
+- âŒ Repository queries MUST NOT filter by `realm_id` (realms are authn only, NOT data scope)
 
 **Quality Gates**:
 
@@ -677,10 +698,10 @@ CREATE INDEX IF NOT EXISTS idx_elastic_jwks_status ON elastic_jwks(status);
 
 **CRITICAL: Cross-Database Compatibility**:
 
-- ✅ Use `TEXT` for UUIDs (NOT `uuid` type - SQLite doesn't support)
-- ✅ Use `TIMESTAMP` for dates (NOT `timestamptz` - SQLite doesn't support)
-- ✅ Use `CHECK` constraints for enums (portable)
-- ✅ Use `DEFAULT CURRENT_TIMESTAMP` (portable)
+- âœ… Use `TEXT` for UUIDs (NOT `uuid` type - SQLite doesn't support)
+- âœ… Use `TIMESTAMP` for dates (NOT `timestamptz` - SQLite doesn't support)
+- âœ… Use `CHECK` constraints for enums (portable)
+- âœ… Use `DEFAULT CURRENT_TIMESTAMP` (portable)
 
 **Quality Gates**:
 
@@ -717,10 +738,10 @@ type ElasticJWKRepository interface {
 **CRITICAL: Repository WHERE Clauses**:
 
 ```go
-// ✅ CORRECT: Filter by tenant_id only
+// âœ… CORRECT: Filter by tenant_id only
 db.Where("id = ? AND tenant_id = ?", id, tenantID).First(&jwk)
 
-// ❌ WRONG: NEVER filter by realm_id (realms are authn only)
+// âŒ WRONG: NEVER filter by realm_id (realms are authn only)
 db.Where("id = ? AND tenant_id = ? AND realm_id = ?", id, tenantID, realmID).First(&jwk)
 ```
 
@@ -728,8 +749,8 @@ db.Where("id = ? AND tenant_id = ? AND realm_id = ?", id, tenantID, realmID).Fir
 
 1. Build: `go build ./internal/apps/jose/...`
 2. Tests: `go test ./internal/apps/jose/ja/repository/... -cover`
-3. Coverage: ≥98% (infrastructure code)
-4. Mutation: ≥98% (gremlins score)
+3. Coverage: â‰¥98% (infrastructure code)
+4. Mutation: â‰¥98% (gremlins score)
 5. Security: SQL injection prevention (parameterized queries)
 6. Evidence: Coverage + mutation reports + commit hash
 
@@ -742,8 +763,8 @@ db.Where("id = ? AND tenant_id = ? AND realm_id = ?", id, tenantID, realmID).Fir
 - [ ] Build: `go build ./internal/apps/jose/...`
 - [ ] Linting: `golangci-lint run ./internal/apps/jose/...`
 - [ ] Tests: `go test ./internal/apps/jose/ja/repository/... -cover` (100% pass)
-- [ ] Coverage: ≥98% (infrastructure)
-- [ ] Mutation: ≥98% (gremlins)
+- [ ] Coverage: â‰¥98% (infrastructure)
+- [ ] Mutation: â‰¥98% (gremlins)
 - [ ] Migrations: Apply to PostgreSQL 18+ and SQLite
 - [ ] Repository: NO realm_id filtering in WHERE clauses
 - [ ] Git: Conventional commits
@@ -861,10 +882,10 @@ func NewFromConfig(ctx context.Context, cfg *config.Settings) (*JoseServer, erro
 
 **CRITICAL: API Paths**:
 
-- ✅ CORRECT: `/service/api/v1/jwk/generate` (no service name)
-- ❌ WRONG: `/service/api/v1/jose/jwk/generate` (includes service name)
-- ✅ CORRECT: `/admin/api/v1/audit/config` (consistent /admin/api/v1 prefix)
-- ❌ WRONG: `/admin/v1/audit/config` (inconsistent with /service/api/v1)
+- âœ… CORRECT: `/service/api/v1/jwk/generate` (no service name)
+- âŒ WRONG: `/service/api/v1/jose/jwk/generate` (includes service name)
+- âœ… CORRECT: `/admin/api/v1/audit/config` (consistent /admin/api/v1 prefix)
+- âŒ WRONG: `/admin/v1/audit/config` (inconsistent with /service/api/v1)
 
 **Quality Gates**:
 
@@ -926,9 +947,9 @@ type GenerateJWKRequest struct {
 
 **CRITICAL: Request Parameter Simplification**:
 
-- ✅ `algorithm` is REQUIRED (determines key_type and key_size)
-- ❌ `key_type` is REMOVED (implied by algorithm: RS256 → RSA, ES256 → EC, EdDSA → OKP)
-- ❌ `key_size` is REMOVED (implied by algorithm: RS256 → 2048, ES256 → P-256, EdDSA → Ed25519)
+- âœ… `algorithm` is REQUIRED (determines key_type and key_size)
+- âŒ `key_type` is REMOVED (implied by algorithm: RS256 â†’ RSA, ES256 â†’ EC, EdDSA â†’ OKP)
+- âŒ `key_size` is REMOVED (implied by algorithm: RS256 â†’ 2048, ES256 â†’ P-256, EdDSA â†’ Ed25519)
 
 **Quality Gates**:
 
@@ -954,8 +975,8 @@ type GenerateJWKRequest struct {
 **Quality Gates**:
 
 1. Build: `go build ./internal/apps/jose/...`
-2. Tests: Service unit tests (≥95% coverage)
-3. Mutation: ≥85% (gremlins score)
+2. Tests: Service unit tests (â‰¥95% coverage)
+3. Mutation: â‰¥85% (gremlins score)
 4. Evidence: Coverage + mutation reports + commit hash
 
 ---
@@ -967,8 +988,8 @@ type GenerateJWKRequest struct {
 - [ ] Build: `go build ./internal/apps/jose/...`
 - [ ] Linting: `golangci-lint run ./internal/apps/jose/...`
 - [ ] Tests: `go test ./internal/apps/jose/... -cover` (100% pass)
-- [ ] Coverage: ≥95% production, ≥98% infrastructure
-- [ ] Mutation: ≥85% production, ≥98% infrastructure
+- [ ] Coverage: â‰¥95% production, â‰¥98% infrastructure
+- [ ] Mutation: â‰¥85% production, â‰¥98% infrastructure
 - [ ] Paths: No service name in request paths
 - [ ] Config: Docker secrets > YAML > ENV priority
 - [ ] Git: Conventional commits
@@ -981,9 +1002,9 @@ type GenerateJWKRequest struct {
 
 **See V3 for detailed tasks** - NO substantive changes beyond:
 
-- ✅ Fix repository WHERE clauses (remove realm_id filtering)
-- ✅ Fix test passwords (use cryptoutilMagic.TestPassword)
-- ✅ Simplify Generate API (remove key_type, key_size)
+- âœ… Fix repository WHERE clauses (remove realm_id filtering)
+- âœ… Fix test passwords (use cryptoutilMagic.TestPassword)
+- âœ… Simplify Generate API (remove key_type, key_size)
 
 ---
 
@@ -991,8 +1012,8 @@ type GenerateJWKRequest struct {
 
 **See V3 for detailed tasks** - NO substantive changes beyond:
 
-- ✅ Cross-tenant JWKS access via tenant management API (not DB config)
-- ✅ Fix API paths (no service name)
+- âœ… Cross-tenant JWKS access via tenant management API (not DB config)
+- âœ… Fix API paths (no service name)
 
 ---
 
@@ -1006,9 +1027,9 @@ type GenerateJWKRequest struct {
 
 **CRITICAL Changes**:
 
-- ✅ Migrate from `/api/jose/*` to `/service/api/v1/*` and `/browser/api/v1/*`
-- ✅ Remove service name from paths (was `/api/jose/jwk/*`, now `/api/v1/jwk/*`)
-- ✅ Consistent admin paths: `/admin/api/v1/*` (NOT `/admin/v1/*`)
+- âœ… Migrate from `/api/jose/*` to `/service/api/v1/*` and `/browser/api/v1/*`
+- âœ… Remove service name from paths (was `/api/jose/jwk/*`, now `/api/v1/jwk/*`)
+- âœ… Consistent admin paths: `/admin/api/v1/*` (NOT `/admin/v1/*`)
 
 ---
 
@@ -1024,22 +1045,22 @@ type GenerateJWKRequest struct {
 
 ```
 internal/apps/jose/ja/
-├── domain/
-├── repository/
-├── service/
-├── server/
-└── e2e/              # E2E tests in product-service subdirectory
-    ├── registration_test.go
-    ├── jwk_generation_test.go
-    ├── elastic_key_rotation_test.go
-    └── audit_logging_test.go
+â”œâ”€â”€ domain/
+â”œâ”€â”€ repository/
+â”œâ”€â”€ service/
+â”œâ”€â”€ server/
+â””â”€â”€ e2e/              # E2E tests in product-service subdirectory
+    â”œâ”€â”€ registration_test.go
+    â”œâ”€â”€ jwk_generation_test.go
+    â”œâ”€â”€ elastic_key_rotation_test.go
+    â””â”€â”€ audit_logging_test.go
 ```
 
 **See V3 for detailed tasks** - CRITICAL changes:
 
-- ✅ TestMain pattern with registration flow
-- ✅ NO hardcoded passwords
-- ✅ Test both `/service/api/v1/*` and `/browser/api/v1/*` paths
+- âœ… TestMain pattern with registration flow
+- âœ… NO hardcoded passwords
+- âœ… Test both `/service/api/v1/*` and `/browser/api/v1/*` paths
 
 ---
 
@@ -1071,9 +1092,9 @@ internal/apps/jose/ja/
 
 **CRITICAL Changes**:
 
-- ❌ NO MIGRATION-GUIDE.md (pre-alpha project)
-- ✅ API-REFERENCE.md (fix paths, simplify params)
-- ✅ DEPLOYMENT.md (no ENVs, no K8s, OTLP only, port 9090)
+- âŒ NO MIGRATION-GUIDE.md (pre-alpha project)
+- âœ… API-REFERENCE.md (fix paths, simplify params)
+- âœ… DEPLOYMENT.md (no ENVs, no K8s, OTLP only, port 9090)
 
 ---
 
@@ -1087,10 +1108,10 @@ internal/apps/jose/ja/
 
 **Current State**: `server_builder.go` contains mixed concerns:
 
-- HTTPS listener configuration ✅ (correct responsibility)
-- Route registration ✅ (correct responsibility)
-- Internal service initialization ❌ (wrong layer)
-- Repository bootstrap ❌ (wrong layer)
+- HTTPS listener configuration âœ… (correct responsibility)
+- Route registration âœ… (correct responsibility)
+- Internal service initialization âŒ (wrong layer)
+- Repository bootstrap âŒ (wrong layer)
 
 **Desired State**: Clear separation of concerns:
 
@@ -1185,7 +1206,7 @@ type CoreServices struct {
 1. Build: `go build ./internal/apps/template/...`
 2. Linting: `golangci-lint run --fix ./internal/apps/template/...`
 3. Tests: `go test ./internal/apps/template/... -cover`
-4. Coverage: ≥85% maintained
+4. Coverage: â‰¥85% maintained
 5. Mutation: Deferred to Phase Y
 6. Commit: `refactor(service-template): move bootstrap logic to ApplicationCore`
 
@@ -1195,27 +1216,27 @@ type CoreServices struct {
 
 ```
 cryptoutil/
-├── deployments/
-│   └── jose-ja/          # Product-service naming (NOT jose/)
-│       ├── compose.yml
-│       └── Dockerfile
-├── configs/
-│   └── jose-ja/          # Product-service naming (NOT jose/)
-│       └── jose-ja-server.yaml
-├── internal/
-│   └── apps/
-│       └── jose/
-│           └── ja/
-│               ├── domain/
-│               ├── repository/
-│               ├── service/
-│               └── server/
-└── docs/
-    └── jose-ja/
-        ├── JOSE-JA-REFACTORING-PLAN-V4.md
-        ├── JOSE-JA-REFACTORING-TASKS-V4.md
-        ├── API-REFERENCE.md
-        └── DEPLOYMENT.md
+â”œâ”€â”€ deployments/
+â”‚   â””â”€â”€ jose-ja/          # Product-service naming (NOT jose/)
+â”‚       â”œâ”€â”€ compose.yml
+â”‚       â””â”€â”€ Dockerfile
+â”œâ”€â”€ configs/
+â”‚   â””â”€â”€ jose-ja/          # Product-service naming (NOT jose/)
+â”‚       â””â”€â”€ jose-ja-server.yaml
+â”œâ”€â”€ internal/
+â”‚   â””â”€â”€ apps/
+â”‚       â””â”€â”€ jose/
+â”‚           â””â”€â”€ ja/
+â”‚               â”œâ”€â”€ domain/
+â”‚               â”œâ”€â”€ repository/
+â”‚               â”œâ”€â”€ service/
+â”‚               â””â”€â”€ server/
+â””â”€â”€ docs/
+    â””â”€â”€ jose-ja/
+        â”œâ”€â”€ JOSE-JA-REFACTORING-PLAN-V4.md
+        â”œâ”€â”€ JOSE-JA-REFACTORING-TASKS-V4.md
+        â”œâ”€â”€ API-REFERENCE.md
+        â””â”€â”€ DEPLOYMENT.md
 ```
 
 ---
@@ -1254,3 +1275,568 @@ cryptoutil/
 | Phase 8: JOSE E2E Testing | 3-4 days | Phase 7 |
 | Phase 9: JOSE Documentation | 2-3 days | Phase 8 |
 | **TOTAL** | **30-41 days** | Sequential |
+
+---
+
+## V2: Test Coverage Implementation
+
+# Merged Plan: Workflow Fixes + Documentation Improvements
+
+**Last Updated**: 2026-01-24
+**Purpose**: Combined analysis of workflow fixes (V2) and documentation improvements (V3)
+**Status**: V3 100% complete, V2 issues fixed but tests incomplete
+
+## Session Overview
+
+This document merges two distinct but complementary sessions:
+
+- **V2**: Workflow test fixes for container mode, mTLS, DAST diagnostics
+- **V3**: Documentation clarification, lessons extraction, prompt enhancements
+
+---
+
+## V2: Workflow Fixes Analysis
+
+### Executive Summary
+
+**Primary Fixes Made**:
+
+1. **SQLite Container Mode** (commit 9e9da31c): Added `sqlite://` URL support for containerized environments
+2. **mTLS Container Mode** (commit f58c6ff6): Disabled mTLS for container mode (0.0.0.0 binding) to fix healthchecks
+3. **DAST Diagnostics** (commit 80a69d18): Improved artifact upload and diagnostic output for workflow failures
+4. **DAST Configuration** (ongoing investigation): Potential YAML field mapping issue with `dev-mode` config
+
+**Shift-Left Strategy**:
+
+- Maximize reusability through service-template tests (shared across 9 product-services)
+- Prioritize security-critical code coverage (mTLS, TLS client auth)
+- Add comprehensive validation testing (config combinations, deployment modes)
+- Implement integration tests for cross-module interactions
+
+---
+
+## Issue #1: Container Mode - Explicit Database URL Support
+
+### Problem Statement
+
+Containers needed:
+
+- `0.0.0.0` bind address (Docker networking requirement - container ports must be exposed)
+- Explicit database URL configuration (SQLite OR PostgreSQL - independent choice)
+
+However, the only path to SQLite required `dev: true`, which was REJECTED when combined with `0.0.0.0` binding (security restriction to prevent Windows Firewall prompts in local development).
+
+**Key Insight**: Database choice (SQLite vs PostgreSQL) is INDEPENDENT of bind address (127.0.0.1 vs 0.0.0.0).
+
+### Root Cause
+
+Configuration logic coupled database selection to mode flags instead of providing explicit URL configuration:
+
+- `dev: true` â†’ SQLite (implicit) + MUST use 127.0.0.1 (security restriction)
+- Production â†’ PostgreSQL (explicit URL) + MAY use 0.0.0.0
+
+No explicit path existed for: Container networking (0.0.0.0) + SQLite database.
+
+**Validation Logic**:
+
+- Dev mode + 0.0.0.0 â†’ FAIL (intentional security restriction for local development)
+- Container mode detection: `isContainerMode := settings.BindPublicAddress == "0.0.0.0"`
+
+### Fix Implemented
+
+Added explicit `sqlite://` URL support in `sql_settings_mapper.go`:
+
+```go
+if strings.HasPrefix(databaseURL, "sqlite://") {
+    sqliteURL := strings.TrimPrefix(databaseURL, "sqlite://")
+    telemetryService.Slogger.Debug("using SQLite database from explicit URL", "url", sqliteURL)
+    return DBTypeSQLite, sqliteURL, nil
+}
+```
+
+Updated container configs to use `database-url: "sqlite://file::memory:?cache=shared"` instead of `dev: true`.
+
+**Result**: Containers can now use SQLite with 0.0.0.0 binding WITHOUT enabling dev mode (which would fail validation).
+
+**Orthogonal Concerns Clarified**:
+
+- **Database type** (SQLite vs PostgreSQL): Deployment choice, now explicitly configurable via URL
+- **Bind address** (127.0.0.1 vs 0.0.0.0): Networking requirement
+  - Dev mode: MUST use 127.0.0.1 (security restriction)
+  - Container mode: MUST use 0.0.0.0 (Docker port mapping)
+  - Production: Configurable based on deployment
+- **Dev mode**: Security restriction for local development (prevents Windows Firewall prompts)
+
+### Test Coverage Gap Analysis
+
+**Existing Tests** (`sql_settings_mapper_test.go`):
+âœ… Good unit test coverage (6 test cases)
+
+- dev mode â†’ SQLite in-memory
+- sqlite:// in-memory URL
+- sqlite:// file-based URL
+- postgres:// URL parsing
+- Unsupported URL schemes
+- Empty URL error handling
+
+**Missing Tests**:
+âŒ Integration tests validating config validation interactions:
+
+- Container mode (0.0.0.0) + SQLite URL should pass validation
+- Container mode (0.0.0.0) + dev mode should fail validation
+- Container mode (0.0.0.0) + PostgreSQL URL should pass validation
+
+âŒ Integration tests for complete configuration flow:
+
+- Load config from YAML â†’ validate â†’ map database type â†’ initialize DB
+
+### Lessons Learned
+
+- Unit tests for individual functions are necessary but NOT sufficient
+- Configuration validation needs tests for valid AND invalid combinations:
+  - Valid: Container mode (0.0.0.0) + SQLite URL
+  - Valid: Container mode (0.0.0.0) + PostgreSQL URL
+  - Valid: Dev mode + 127.0.0.1 + (any database)
+  - Invalid: Dev mode + 0.0.0.0 (security restriction)
+- Database choice and bind address validation are ORTHOGONAL concerns
+- Container mode should be treated as first-class deployment environment
+- Integration tests needed to verify cross-module validation interactions
+
+---
+
+## Issue #2: mTLS Container Mode
+
+### Problem Statement
+
+Private admin server (port 9090) was configured with `tls.RequireAndVerifyClientCert` by default. This broke ALL healthchecks in container deployments because:
+
+- Docker healthchecks use `wget` without client certificates
+- `RequireAndVerifyClientCert` rejects connections without valid client certs
+- Result: Healthcheck failures â†’ containers marked unhealthy â†’ workflow failures
+
+### Root Cause
+
+**CRITICAL: Zero unit tests for security-critical mTLS configuration logic.**
+
+The `application_listener.go` code (lines 145-165) contains conditional logic for mTLS:
+
+```go
+privateClientAuth := tls.RequireAndVerifyClientCert
+isContainerMode := settings.BindPublicAddress == cryptoutilSharedMagic.IPv4AnyAddress
+if settings.DevMode || isContainerMode {
+    privateClientAuth = tls.NoClientCert
+}
+```
+
+grep search confirms: **ZERO tests** exist for this logic (searched for "mTLS|ClientAuth|RequireAndVerifyClientCert" in `internal/kms/server/application/*_test.go` - no matches found).
+
+### Fix Implemented
+
+Added container mode detection:
+
+```go
+isContainerMode := settings.BindPublicAddress == "0.0.0.0"
+if settings.DevMode || isContainerMode {
+    privateClientAuth = tls.NoClientCert
+}
+```
+
+Removed `dev: true` from `postgresql-1.yml` and `postgresql-2.yml` configs since container mode now handles mTLS disable automatically.
+
+### Test Coverage Gap Analysis
+
+**Existing Tests**:
+âŒ **ZERO tests for mTLS configuration logic** (most critical gap)
+
+- No tests verifying `DevMode â†’ NoClientCert`
+- No tests verifying container mode detection (`0.0.0.0` â†’ `NoClientCert`)
+- No tests verifying production mode â†’ `RequireAndVerifyClientCert`
+- No tests for private vs public server TLS client auth differences
+
+âœ… Some middleware tests exist (`service_auth_test.go`) but DON'T test application-level TLS configuration
+
+**Missing Tests (HIGH PRIORITY)**:
+âŒ Unit tests for container mode detection:
+
+- `BindPublicAddress == "0.0.0.0"` â†’ `isContainerMode = true`
+- `BindPublicAddress == "127.0.0.1"` â†’ `isContainerMode = false`
+- `BindPrivateAddress == "0.0.0.0"` â†’ should NOT affect container mode detection
+
+âŒ Unit tests for mTLS configuration:
+
+- `DevMode=true` â†’ `privateClientAuth = NoClientCert`
+- Container mode (0.0.0.0) â†’ `privateClientAuth = NoClientCert`
+- Production (127.0.0.1, DevMode=false) â†’ `privateClientAuth = RequireAndVerifyClientCert`
+- Public server should NEVER use RequireAndVerifyClientCert (browser compatibility)
+
+âŒ Integration tests:
+
+- Container mode with SQLite â†’ healthcheck succeeds (wget without client cert)
+- Container mode with PostgreSQL â†’ healthcheck succeeds
+- Production mode â†’ healthcheck requires client cert OR uses different healthcheck method
+
+### Lessons Learned
+
+- Security-critical code (TLS/mTLS) MUST have comprehensive test coverage
+- Configuration logic affecting security posture needs explicit testing
+- Container mode detection is deployment-critical and needs dedicated tests
+- Healthcheck compatibility should be validated in integration tests
+
+---
+
+## Issue #3: DAST Workflow Diagnostics
+
+### Problem Statement
+
+DAST workflow failures didn't upload artifacts, making diagnosis impossible. When containers failed to start, we had no stderr/stdout logs to determine root cause.
+
+### Root Cause
+
+Artifact upload step lacked `if: always()` condition, so it only ran when previous steps succeeded.
+
+### Fix Implemented
+
+Added `always()` condition and inline diagnostics:
+
+```yaml
+- name: GitHub Workflow artifacts
+  if: always()  # Upload even on failure
+  uses: actions/upload-artifact@v4
+
+- name: Wait for servers ready
+  run: |
+    # ... health check logic ...
+    if [ $? -ne 0 ]; then
+      echo "âŒ Health check failed - Diagnostic output:"
+      cat /tmp/kms-stderr.txt
+      cat /tmp/kms-stdout.txt
+      exit 1
+    fi
+```
+
+### Test Coverage Gap Analysis
+
+**Not applicable** - This is a workflow/CI/CD configuration issue, not application code.
+
+However, it highlights the need for:
+
+- Better local testing tools (`act` workflow runner, Docker Compose health checks)
+- Diagnostic logging in application startup (already exists, just needed to be surfaced)
+
+---
+
+## Issue #4: DAST Configuration - dev-mode Field Mapping (UNDER INVESTIGATION)
+
+### Problem Statement
+
+DAST workflow config file shows `dev-mode: true` (kebab-case) in YAML, but application startup logs show `Dev mode (-d): false` (DevMode field not set).
+
+**Evidence**:
+
+```yaml
+# Config file generation (ci-dast.yml)
+dev-mode: true
+bind-public-address: 127.0.0.1
+bind-public-port: 8080
+```
+
+**Application logs**:
+
+```
+Dev mode (-d): false
+Bind public address: 127.0.0.1
+Bind public port: 8080
+```
+
+### Suspected Root Cause
+
+YAML field mapping may not handle kebab-case â†’ PascalCase conversion correctly:
+
+- `dev-mode` (YAML kebab-case) should map to `DevMode` (Go struct PascalCase)
+- Other fields work: `bind-public-address` â†’ `BindPublicAddress` âœ…
+- But `dev-mode` â†’ `DevMode` appears to fail âŒ
+
+Possible issues:
+
+1. Viper library mapstructure tag mismatch
+2. Field name collision or override
+3. Config loading order issue (CLI flag overriding YAML value)
+4. Boolean field handling issue
+
+### Investigation Needed
+
+- Verify YAML â†’ struct field mapping for all boolean fields
+- Check if other kebab-case fields map correctly
+- Test config loading from file vs CLI flags vs environment variables
+- Add debug logging to show config loading steps
+
+### Test Coverage Gap Analysis
+
+**Existing Tests**:
+âŒ **ZERO tests for config file loading** (all existing tests use in-memory configs)
+
+- No tests loading config from actual YAML files
+- No tests verifying kebab-case â†’ PascalCase field mapping
+- No tests checking config precedence (file vs CLI vs env vars)
+
+**Missing Tests**:
+âŒ YAML config loading tests:
+
+- Load config from YAML file with kebab-case field names
+- Verify all fields map correctly to struct (especially boolean fields)
+- Test all casing styles: kebab-case, camelCase, PascalCase, snake_case
+
+âŒ Config precedence tests:
+
+- YAML file with `dev-mode: true` + CLI flag `-d=false` â†’ should use CLI value
+- Environment variable overrides
+- Default value fallbacks
+
+âŒ Field validation tests:
+
+- Boolean field parsing: `true`, `false`, `1`, `0`, `yes`, `no`
+- Integer field parsing with ranges
+- String field validation (bind address, log level enums)
+
+### Lessons Learned
+
+- Config loading from files needs explicit testing (not just in-memory configs)
+- Field mapping (kebab-case, camelCase, PascalCase) should be validated
+- Config precedence and overrides need test coverage
+- Boolean fields are particularly error-prone (type coercion, string parsing)
+
+---
+
+## Cross-Cutting Issues
+
+### Configuration Validation
+
+**Problem**: Validation didn't account for valid container mode combinations (explicit database URLs with 0.0.0.0 binding)
+
+**Key Clarification**: Database choice (SQLite vs PostgreSQL) is INDEPENDENT of bind address (127.0.0.1 vs 0.0.0.0). The validation rule is about dev-mode security restriction, NOT database type.
+
+**Missing Tests**:
+
+- Valid combinations:
+  - Container + explicit SQLite URL + 0.0.0.0 binding
+  - Container + PostgreSQL URL + 0.0.0.0 binding
+  - Dev mode + 127.0.0.1 + (any database)
+  - Production + configurable binding + (any database)
+- Invalid combinations:
+  - Dev mode + 0.0.0.0 binding (security restriction)
+- Edge cases: empty fields, invalid IP addresses, out-of-range ports
+
+### Container Mode Detection
+
+**Problem**: Container mode not recognized as distinct deployment environment
+
+**Missing Tests**:
+
+- Container mode detection based on bind address (0.0.0.0)
+- Container mode effects: mTLS disable, healthcheck compatibility, logging behavior
+- Container mode validation interactions
+
+### Health Check Compatibility
+
+**Problem**: mTLS configuration broke healthchecks without detecting incompatibility
+
+**Missing Tests**:
+
+- Healthcheck endpoints (livez, readyz) should be accessible without client certs
+- Container healthcheck commands should succeed (wget without TLS client cert)
+- TLS client auth should NOT apply to health check endpoints
+
+---
+
+## Test Coverage Categories
+
+### HAPPY Path Tests (Valid Configurations)
+
+**1. Container Mode + SQLite**
+
+- Bind: 0.0.0.0 (public), 127.0.0.1 (private)
+- Database: sqlite://file::memory:?cache=shared
+- DevMode: false
+- Expected: mTLS disabled, validation passes, healthchecks work
+
+**2. Container Mode + PostgreSQL**
+
+- Bind: 0.0.0.0 (public), 127.0.0.1 (private)
+- Database: postgres://...
+- DevMode: false
+- Expected: mTLS disabled, validation passes, healthchecks work
+
+**3. Development Mode**
+
+- Bind: 127.0.0.1 (both)
+- Database: implicit SQLite (devMode=true)
+- DevMode: true
+- Expected: mTLS disabled, validation passes
+
+**4. Production Mode**
+
+- Bind: 127.0.0.1 or specific IP (NOT 0.0.0.0)
+- Database: postgres://...
+- DevMode: false
+- Expected: mTLS enabled on private server, validation passes
+
+### SAD Path Tests (Invalid Configurations)
+
+**1. Dev Mode + 0.0.0.0 Binding**
+
+- Should: Reject (Windows Firewall prevention)
+- Error message: "bind address cannot be 0.0.0.0 in dev mode"
+
+**2. Production + SQLite (Policy)**
+
+- If policy disallows SQLite in production
+- Should: Reject with clear error
+- Error message: "SQLite not allowed in production (use PostgreSQL)"
+
+**3. Empty/Invalid Database URL**
+
+- Empty string, unsupported scheme, malformed URL
+- Should: Reject with validation error
+
+**4. Invalid Bind Addresses**
+
+- Invalid IP format, out-of-range ports
+- Should: Reject with validation error
+
+**5. Missing Required Config Fields**
+
+- Empty log level, missing TLS DNS names
+- Should: Reject with validation error
+
+---
+
+## Service-Template Integration Strategy
+
+**Goal**: Maximize test reusability across 9 product-services by placing tests in service-template where possible.
+
+### Tests for Service Template (Reusable)
+
+**Unit Tests** (`internal/apps/template/service/server/application/application_listener_test.go`):
+
+- Container mode detection (0.0.0.0 â†’ isContainerMode)
+- mTLS configuration (dev/container/production modes)
+- TLS client auth logic (public vs private servers)
+
+**Integration Tests** (`internal/apps/template/service/server/application/application_integration_test.go`):
+
+- Config validation combinations (valid and invalid)
+- TLS material generation for all modes (static, mixed, auto)
+- Healthcheck endpoint accessibility
+
+**Config Tests** (`internal/apps/template/service/config/config_loading_test.go`):
+
+- YAML file loading with kebab-case field names
+- Config precedence (file vs CLI vs env)
+- Boolean/integer/string field parsing
+
+### Tests for KMS-Specific Logic
+
+**Unit Tests** (`internal/kms/server/repository/sqlrepository/sql_settings_mapper_test.go`):
+
+- Database URL mapping (postgres://, sqlite://, dev mode)
+- Container mode mapping (disabled, preferred, required)
+- **ADD**: SQLite URL with query parameters
+- **ADD**: Absolute file paths for SQLite
+
+**Integration Tests** (`internal/kms/server/application/application_integration_test.go`):
+
+- Complete config flow: load â†’ validate â†’ map DB â†’ initialize
+- Container mode + SQLite integration
+- Container mode + PostgreSQL integration
+
+### Benefits of Service Template Tests
+
+- **Reusability**: 1 test suite validates 9 services
+- **Consistency**: All services use same patterns and validation logic
+- **Maintainability**: Fix once, benefit everywhere
+- **Coverage**: Higher effective coverage with less duplication
+
+---
+
+## Recommendations
+
+### Immediate Actions (P0)
+
+1. **Add mTLS Unit Tests** (CRITICAL - zero coverage for security code)
+   - Test dev mode disables mTLS
+   - Test container mode disables mTLS
+   - Test production mode enables mTLS
+   - Test public server never uses RequireAndVerifyClientCert
+
+2. **Add Container Mode Detection Tests**
+   - Test 0.0.0.0 detection on public address
+   - Test 0.0.0.0 on private address (should NOT trigger container mode)
+   - Test 127.0.0.1 (should NOT trigger container mode)
+
+3. **Add YAML Config Loading Tests**
+   - Load config from actual YAML file
+   - Verify kebab-case â†’ PascalCase field mapping
+   - Test boolean field parsing (dev-mode: true)
+
+### Short-Term Actions (P1)
+
+1. **Add Config Validation Integration Tests**
+   - Valid combinations: container+SQLite, container+PostgreSQL, dev+SQLite, production+PostgreSQL
+   - Invalid combinations: dev+0.0.0.0, missing required fields
+
+2. **Add Database URL Parsing Tests**
+   - SQLite with query parameters (?cache=shared&mode=rwc)
+   - Absolute file paths (/var/lib/cryptoutil/db.sqlite)
+
+3. **Add Healthcheck Integration Tests**
+   - livez endpoint accessible without client cert
+   - readyz endpoint dependency validation
+   - Docker healthcheck commands (wget) succeed
+
+### Long-Term Actions (P2)
+
+1. **Add TLS Client Auth Integration Tests**
+   - Container mode: wget healthcheck succeeds (no client cert)
+   - Production mode: admin endpoints require client cert
+   - Public endpoints never require client cert
+
+2. **Add Config Precedence Tests**
+   - YAML < Environment Variables < CLI Flags
+   - Default value fallbacks
+   - Config hot-reload (if supported)
+
+3. **Add E2E Docker Tests**
+   - Docker Compose stack startup
+   - Healthcheck passes in containers
+   - Service-to-service communication with/without mTLS
+
+---
+
+## Success Criteria
+
+**Test Coverage Targets**:
+
+- mTLS configuration logic: â‰¥95% coverage (currently 0%)
+- Container mode detection: â‰¥95% coverage
+- Config validation: â‰¥95% coverage
+- Database URL mapping: â‰¥98% coverage (currently ~85%)
+
+**Integration Test Goals**:
+
+- All valid config combinations tested
+- All invalid config combinations tested
+- Container mode + SQLite integration verified
+- Container mode + PostgreSQL integration verified
+
+**Quality Gates**:
+
+- All P0 tests implemented and passing
+- Mutation testing â‰¥85% on affected modules
+- No new TODOs or FIXMEs in test files
+- All tests run in <15 seconds per package
+
+**Workflow Impact**:
+
+- DAST workflow should pass consistently
+- Load testing workflow should pass consistently
+- No config-related failures in CI/CD
