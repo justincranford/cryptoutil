@@ -410,6 +410,7 @@ func TestAuditLogRepository_DeleteOlderThan(t *testing.T) {
 
 	// Create 3 entries with created_at 31 days in the past.
 	oldTime := time.Now().UTC().Add(-31 * 24 * time.Hour)
+
 	for i := 0; i < 3; i++ {
 		id, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
 		requestID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
