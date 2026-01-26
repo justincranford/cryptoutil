@@ -548,44 +548,62 @@ After reviewing jose-ja/service code and tests, determined that the 12.7% gap is
 
 ---
 
-## Phase 6: Mutation Testing
+## Phase 6: Mutation Testing - ❌ BLOCKED (Windows Compatibility)
 
 **Purpose**: Achieve 85% gremlins efficacy for all packages
 
-**From V1 Phase Z - BLOCKED ON PHASES 4-5 COMPLETION**
+**From V1 Phase Z**
 
-**Prerequisites**: Phase 4 complete (95% baseline coverage)
+**Prerequisites**: Phase 4-5 complete (95% baseline coverage) ✅
+
+**BLOCKER DISCOVERED**: Gremlins v0.6.0 has Windows compatibility issues
+- **Evidence**: ALL mutations timeout (186 timeouts with 180s limit on jose-ja/service)
+- **Root Cause**: Known issue per 03-02.testing.instructions.md - "gremlins v0.6.0 panics on Windows"
+- **Impact**: Cannot run mutation testing locally on Windows
+- **Solution**: Create CI/CD workflow for Linux-based mutation testing (see Phase 7 below)
+
+**Work Completed**:
+- [x] Created .gremlins.yml configuration (180s timeout, 85% efficacy threshold)
+- [x] Documented mutators (ARITHMETIC, CONDITIONALS, INCREMENT_DECREMENT, etc.)
+- [x] Attempted jose-ja/service baseline (confirmed Windows incompatibility)
+- [x] Commit: 8a916312 (gremlins config for CI/CD use)
 
 ---
 
-### 6.1: Run Mutation Testing Baseline
+### 6.1: Run Mutation Testing Baseline - ❌ BLOCKED (Windows)
 
 **Estimated**: 2h
+**Status**: ❌ BLOCKED - Windows incompatibility discovered
+**Resolution**: See Phase 7 for CI/CD workflow creation
 
-**Process**:
-- [ ] 6.1.1 Run gremlins on cipher-im: `gremlins unleash ./internal/apps/cipher/im/...`
-- [ ] 6.1.2 Run gremlins on JOSE-JA: `gremlins unleash ./internal/apps/jose/ja/...`
-- [ ] 6.1.3 Run gremlins on service-template: `gremlins unleash ./internal/apps/template/...`
-- [ ] 6.1.4 Run gremlins on KMS: `gremlins unleash ./internal/kms/...`
-- [ ] 6.1.5 Document baseline efficacy scores
+**Attempted**:
+- [x] 6.1.1 Created .gremlins.yml configuration
+- [ ] 6.1.2 Run gremlins on jose-ja (FAILED - all mutations timeout on Windows)
+- [ ] 6.1.3 Run gremlins on cipher-im (BLOCKED - Windows issue)
+- [ ] 6.1.4 Run gremlins on template (BLOCKED - Windows issue)
+- [ ] 6.1.5 Document baseline efficacy scores (BLOCKED - no results)
 
 ---
 
-### 6.2: Analyze Mutation Results
+### 6.2: Analyze Mutation Results - ❌ BLOCKED (Phase 6.1)
 
 **Estimated**: 3h
+**Status**: ❌ BLOCKED - Phase 6.1 blocked on Windows compatibility
+**Resolution**: See Phase 7
 
 **Process**:
-- [ ] 6.2.1 Identify survived mutants
+- [ ] 6.2.1 Identify survived mutants (requires Phase 6.1 results)
 - [ ] 6.2.2 Categorize survival reasons (weak assertions, missing edge cases)
 - [ ] 6.2.3 Document in mutation-gaps.md
 - [ ] 6.2.4 Create targeted tasks
 
 ---
 
-### 6.3: Implement Mutation-Killing Tests
+### 6.3: Implement Mutation-Killing Tests - ❌ BLOCKED (Phase 6.2)
 
 **Estimated**: 8h
+**Status**: ❌ BLOCKED - Phase 6.2 not started
+**Resolution**: See Phase 7
 
 **Process**:
 - [ ] 6.3.1 Write tests for arithmetic operator mutations
@@ -596,15 +614,91 @@ After reviewing jose-ja/service code and tests, determined that the 12.7% gap is
 
 ---
 
-### 6.4: Continuous Mutation Testing
+### 6.4: Continuous Mutation Testing - ❌ BLOCKED (Phase 6.3)
 
 **Estimated**: 2h
+**Status**: ❌ BLOCKED - Phase 6.3 not started  
+**Resolution**: See Phase 7
 
 **Process**:
 - [ ] 6.4.1 Add gremlins to CI/CD (run on merge)
 - [ ] 6.4.2 Configure timeout (15min per package)
 - [ ] 6.4.3 Set efficacy threshold (85% required)
 - [ ] 6.4.4 Document in README.md
+
+---
+
+## Phase 7: CI/CD Mutation Testing Workflow (NEW - Resolves Phase 6 Blocker)
+
+**Purpose**: Execute mutation testing on Linux CI/CD runners (Windows incompatibility workaround)
+
+**Prerequisites**: Phase 5 complete ✅, .gremlins.yml created ✅
+
+---
+
+### 7.1: Create ci-mutation.yml Workflow
+
+**Objective**: GitHub Actions workflow for Linux-based mutation testing
+**Estimated**: 3h
+
+**Process**:
+- [ ] 7.1.1 Create .github/workflows/ci-mutation.yml
+- [ ] 7.1.2 Configure ubuntu-latest runner (Linux environment)
+- [ ] 7.1.3 Install gremlins: `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest`
+- [ ] 7.1.4 Run mutation testing per package (matrix strategy):
+  - jose-ja/service (87.3% coverage baseline)
+  - jose-ja/repository (96.3% coverage baseline)
+  - cipher/im/repository (98.1% coverage baseline)
+  - template/server/service (95.6% coverage baseline)
+  - template/server/middleware (94.9% coverage baseline)
+- [ ] 7.1.5 Upload gremlins-report.json as artifact
+- [ ] 7.1.6 Fail workflow if efficacy <85%
+- [ ] 7.1.7 Test workflow locally with `act` (if possible)
+- [ ] 7.1.8 Commit workflow file
+
+---
+
+### 7.2: Run Initial CI/CD Mutation Testing
+
+**Objective**: Execute first mutation testing campaign via CI/CD
+**Estimated**: 2h (waiting for CI/CD execution)
+
+**Process**:
+- [ ] 7.2.1 Push workflow to GitHub
+- [ ] 7.2.2 Trigger workflow manually (workflow_dispatch)
+- [ ] 7.2.3 Monitor execution (expect 15-30 min per package)
+- [ ] 7.2.4 Download gremlins-report.json artifacts
+- [ ] 7.2.5 Analyze results (killed vs lived mutations)
+- [ ] 7.2.6 Document efficacy scores per package
+
+---
+
+### 7.3: Implement Mutation-Killing Tests (From 6.3)
+
+**Objective**: Write tests to kill survived mutations
+**Estimated**: 6-10h (depends on mutation count)
+
+**Process**:
+- [ ] 7.3.1 Review survived mutations from 7.2 results
+- [ ] 7.3.2 Categorize by mutation type (arithmetic, conditionals, etc.)
+- [ ] 7.3.3 Write targeted tests for each survived mutation
+- [ ] 7.3.4 Re-run ci-mutation.yml workflow
+- [ ] 7.3.5 Verify efficacy ≥85% for all packages
+- [ ] 7.3.6 Commit test improvements
+
+---
+
+### 7.4: Automate Mutation Testing in CI/CD (From 6.4)
+
+**Objective**: Run mutation testing on every PR/merge
+**Estimated**: 1h
+
+**Process**:
+- [ ] 7.4.1 Add workflow trigger: `on: [push, pull_request]`
+- [ ] 7.4.2 Configure path filters (only run on code changes)
+- [ ] 7.4.3 Add status check requirement in branch protection
+- [ ] 7.4.4 Document in README.md and DEV-SETUP.md
+- [ ] 7.4.5 Test with actual PR
 
 ---
 
@@ -662,4 +756,4 @@ After reviewing jose-ja/service code and tests, determined that the 12.7% gap is
 
 ---
 
-**Summary**: 235 of 295 tasks complete (80%). Phases 0-5 complete. Phase 6 (mutation testing) remaining.
+**Summary**: 237 of 312 tasks complete (76%). Phases 0-5 complete. Phase 6 BLOCKED (Windows), Phase 7 created (CI/CD mutation testing workaround).
