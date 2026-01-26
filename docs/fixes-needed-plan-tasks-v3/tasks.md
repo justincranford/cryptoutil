@@ -104,12 +104,12 @@ Update pre-commit hooks configuration to run time.Now().UTC() formatter automati
 Document the new formatter in copilot instructions as a defensive measure against LLM agent mistakes.
 
 **Acceptance Criteria**:
-- [ ] 1.3.1 Add section to `.github/instructions/03-02.testing.instructions.md`:
+- [x] 1.3.1 Add section to `.github/instructions/03-02.testing.instructions.md`:
   - Anti-pattern: Using `time.Now()` without `.UTC()` in GORM/SQLite contexts
   - Solution: Formatter enforces `.UTC()` automatically
   - Rationale: Prevents timezone-related test failures
-- [ ] 1.3.2 Add reference to formatter in SQLite DateTime UTC Comparison section
-- [ ] 1.3.3 Commit: "docs(instructions): document time.Now().UTC() formatter"
+- [x] 1.3.2 Add reference to formatter in SQLite DateTime UTC Comparison section
+- [x] 1.3.3 Commit: "docs(instructions): document time.Now().UTC() formatter"
 
 **Files**:
 - Modified: `.github/instructions/03-02.testing.instructions.md`
