@@ -412,15 +412,51 @@ Document app.Test() pattern as best practice for handler testing without HTTPS l
 
 **Objective**: Write tests for RED lines from 4.3
 **Dependencies**: 4.3
-**Estimated**: 8h
+**Estimated**: 8h → 6h (in progress)
+**Status**: ⚠️ IN PROGRESS
 
-**Process**:
-- [ ] 4.4.1 Implement tests for error paths
-- [ ] 4.4.2 Implement tests for edge cases
-- [ ] 4.4.3 Implement tests for concurrency gaps
-- [ ] 4.4.4 Implement tests for validation gaps
-- [ ] 4.4.5 Re-run coverage reports
-- [ ] 4.4.6 Validate 95% target met
+**Priority 1: template/service/server/listener (70.7% → 95%+)**:
+- [x] 4.4.1.1 Analyze existing admin_test.go coverage
+- [ ] 4.4.1.2 Add error path tests for admin server Start()
+  - [ ] Test listener.Addr() type assertion failure
+  - [ ] Test invalid port range (< 0, > 65535)
+  - [ ] Test ctx cancellation during startup
+- [ ] 4.4.1.3 Add error path tests for public server Start()
+  - [ ] Test listener creation errors
+  - [ ] Test port allocation errors
+- [ ] 4.4.1.4 Add shutdown error path tests
+  - [ ] Test Shutdown() with nil context
+  - [ ] Test Shutdown() called twice (already shutdown)
+
+**Priority 2: template/service/server/barrier (72.6% → 95%+)**:
+- [ ] 4.4.2.1 Add barrier service error path tests
+  - [ ] Test encryption errors (invalid keys, corrupted data)
+  - [ ] Test decryption errors (key not found, decryption failure)
+  - [ ] Test key rotation error paths
+- [ ] 4.4.2.2 Add barrier repository error path tests
+  - [ ] Test database constraint violations
+  - [ ] Test key retrieval with missing keys
+
+**Priority 3: template/service/server/businesslogic (75.2% → 95%+)**:
+- [ ] 4.4.3.1 Add session manager service error path tests
+  - [ ] Test nil parameter validations
+  - [ ] Test empty string validations
+  - [ ] Test session token validation errors
+- [ ] 4.4.3.2 Add tenant registration service error path tests
+  - [ ] Test duplicate tenant registration
+  - [ ] Test invalid tenant IDs
+
+**Priority 4: jose-ja/service (87.3% → 95%+)**:
+- [ ] 4.4.4.1 Add JOSE service layer error path tests
+  - [ ] Test JWK generation errors
+  - [ ] Test JWE encryption/decryption errors
+  - [ ] Test JWS signing/verification errors
+
+**Final Validation**:
+- [ ] 4.4.5 Re-run coverage reports for all modified packages
+- [ ] 4.4.6 Verify all packages meet 95% threshold
+- [ ] 4.4.7 Document remaining gaps with justification (Parse(), logging)
+- [ ] 4.4.8 Commit all test improvements with coverage evidence
 
 ---
 
