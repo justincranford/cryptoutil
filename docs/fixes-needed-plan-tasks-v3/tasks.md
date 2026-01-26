@@ -210,13 +210,13 @@ func TestHealthcheck_CompletesWithinTimeout(t *testing.T) {
 Document app.Test() pattern as best practice for handler testing without HTTPS listeners.
 
 **Acceptance Criteria**:
-- [ ] 2.2.1 Add section to `.github/instructions/03-02.testing.instructions.md`:
-  - Anti-pattern: Starting/stopping HTTPS listeners in tests (Windows Firewall warnings)
+- [x] 2.2.1 Add section to `.github/instructions/03-02.testing.instructions.md`:
+  - Anti-pattern: Starting HTTPS listeners repeatedly to test handlers
   - Solution: Use `app.Test(req)` for handler testing without listeners
   - Rationale: Avoids firewall prompts, faster execution, respects TestMain pattern
-- [ ] 2.2.2 Add reference examples from CA handler tests
-- [ ] 2.2.3 Update TestMain section to emphasize app.Test() for handler-level tests
-- [ ] 2.2.4 Commit: "docs(instructions): document app.Test() pattern for handler testing"
+- [x] 2.2.2 Add reference examples from CA handler tests
+- [x] 2.2.3 Update TestMain section to emphasize app.Test() for handler-level tests
+- [x] 2.2.4 Commit: "docs(instructions): document app.Test() pattern for handler testing"
 
 **Files**:
 - Modified: `.github/instructions/03-02.testing.instructions.md`
