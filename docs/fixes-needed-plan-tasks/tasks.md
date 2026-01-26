@@ -107,7 +107,66 @@
 
 ---
 
-## Phase Y: Mutation Testing - NOT STARTED (BLOCKED ON PHASE X)
+## Phase Y: Resolve Blockers - PARTIALLY COMPLETE
+
+### Y.1: Template Service TestMain Implementation - COMPLETE
+
+**Status**:  COMPLETE (8 tasks)
+
+---
+
+### Y.2: Template Config Hot-Reload and Health Endpoints - PARTIAL
+
+**Status**: 10 tasks (9 complete, 1 blocked)
+
+**Y.2.3 BLOCKED**: Healthcheck timeout tests skipped (ApplicationCore architecture limitation)
+
+**Note**: Y.2.3 moved to Phase P5 (P3.2 Resolution - ApplicationCore Refactoring) in V2 tasks.md
+
+---
+
+### Y.3: Template Benchmarks and Barrier Migration - COMPLETE
+
+**Status**:  COMPLETE (9 tasks)
+
+---
+
+### Y.4: JOSE Services Coverage - INCOMPLETE
+
+**Objective**: Increase JOSE service layer coverage to 95%
+
+**Current**: JWK service ~85%, Registration service ~90%, Rotation service ~88%
+
+**Missing Test Cases**:
+- [ ] Y.4.1 JWK service error paths (database failures, validation errors)
+- [ ] Y.4.2 Registration service edge cases (duplicate keys, invalid algorithms)
+- [ ] Y.4.3 Rotation service concurrency (parallel rotation requests)
+- [ ] Y.4.4 Service transaction rollback scenarios
+- [ ] Y.4.5 Service-layer validation logic (input sanitization, business rules)
+
+**Estimated**: 6h
+
+---
+
+### Y.5: Phase X Validation and Completion - INCOMPLETE
+
+**Objective**: Ensure ALL Phase X tasks complete, 95% coverage verified
+
+**Dependencies**: X.1.2, X.2, X.5, X.6
+
+**Process**:
+- [ ] Y.5.1 Run comprehensive coverage report (`go test -coverprofile=coverage.out ./...`)
+- [ ] Y.5.2 Generate HTML report (`go tool cover -html=coverage.out -o coverage.html`)
+- [ ] Y.5.3 Review ALL packages for 95% target
+- [ ] Y.5.4 Identify any remaining gaps
+- [ ] Y.5.5 Write final coverage report in coverage-report.md
+- [ ] Y.5.6 Mark Phase X complete with evidence
+
+**Estimated**: 2h
+
+---
+
+## Phase Z: Mutation Testing - NOT STARTED (BLOCKED ON PHASE X)
 
 **Objective**: Achieve 85% gremlins score (efficacy) for ALL packages
 
@@ -116,110 +175,51 @@
 
 **Context**: Mutation testing without high baseline coverage yields misleading results. Low coverage = many uncovered mutants = inflated kill rate.
 
-### Y.1: Run Mutation Testing Baseline
+### Z.1: Run Mutation Testing Baseline
 
 **Process**:
-- [ ] Y.1.1 Run gremlins on cipher-im: `gremlins unleash ./internal/apps/cipher/im/...`
-- [ ] Y.1.2 Run gremlins on JOSE-JA: `gremlins unleash ./internal/apps/jose/ja/...`
-- [ ] Y.1.3 Run gremlins on service-template: `gremlins unleash ./internal/apps/template/...`
-- [ ] Y.1.4 Run gremlins on KMS: `gremlins unleash ./internal/kms/...`
-- [ ] Y.1.5 Document baseline efficacy scores
+- [ ] Z.1.1 Run gremlins on cipher-im: `gremlins unleash ./internal/apps/cipher/im/...`
+- [ ] Z.1.2 Run gremlins on JOSE-JA: `gremlins unleash ./internal/apps/jose/ja/...`
+- [ ] Z.1.3 Run gremlins on service-template: `gremlins unleash ./internal/apps/template/...`
+- [ ] Z.1.4 Run gremlins on KMS: `gremlins unleash ./internal/kms/...`
+- [ ] Z.1.5 Document baseline efficacy scores
 
 **Estimated**: 2h
 
 ---
 
-### Y.2: Analyze Mutation Testing Results
+### Z.2: Analyze Mutation Testing Results
 
 **Process**:
-- [ ] Y.2.1 Identify survived mutants (not detected by tests)
-- [ ] Y.2.2 Categorize survival reasons (weak assertions, missing edge cases, dead code)
-- [ ] Y.2.3 Document mutation gaps in mutation-gaps.md
-- [ ] Y.2.4 Create targeted tasks for each gap category
+- [ ] Z.2.1 Identify survived mutants (not detected by tests)
+- [ ] Z.2.2 Categorize survival reasons (weak assertions, missing edge cases, dead code)
+- [ ] Z.2.3 Document mutation gaps in mutation-gaps.md
+- [ ] Z.2.4 Create targeted tasks for each gap category
 
 **Estimated**: 3h
 
 ---
 
-### Y.3: Implement Mutation-Killing Tests
+### Z.3: Implement Mutation-Killing Tests
 
 **Process**:
-- [ ] Y.3.1 Write tests to detect arithmetic operator mutations
-- [ ] Y.3.2 Write tests to detect conditional boundary mutations
-- [ ] Y.3.3 Write tests to detect logical operator mutations
-- [ ] Y.3.4 Write tests to detect increment/decrement mutations
-- [ ] Y.3.5 Verify gremlins efficacy 85% for ALL packages
+- [ ] Z.3.1 Write tests to detect arithmetic operator mutations
+- [ ] Z.3.2 Write tests to detect conditional boundary mutations
+- [ ] Z.3.3 Write tests to detect logical operator mutations
+- [ ] Z.3.4 Write tests to detect increment/decrement mutations
+- [ ] Z.3.5 Verify gremlins efficacy 85% for ALL packages
 
 **Estimated**: 8h
 
 ---
 
-### Y.4: Continuous Mutation Testing
+### Z.4: Continuous Mutation Testing
 
 **Process**:
-- [ ] Y.4.1 Add gremlins to CI/CD workflow (run on merge to main)
-- [ ] Y.4.2 Configure mutation testing timeout (15 min per package)
-- [ ] Y.4.3 Set efficacy threshold (85% required for CI pass)
-- [ ] Y.4.4 Document mutation testing workflow in README.md
-
-**Estimated**: 2h
-
----
-
-## Phase Z: Resolve Blockers - PARTIALLY COMPLETE
-
-### Z.1: Template Service TestMain Implementation - COMPLETE
-
-**Status**:  COMPLETE (8 tasks)
-
----
-
-### Z.2: Template Config Hot-Reload and Health Endpoints - PARTIAL
-
-**Status**: 10 tasks (9 complete, 1 blocked)
-
-**Z.2.3 BLOCKED**: Healthcheck timeout tests skipped (ApplicationCore architecture limitation)
-
-**Note**: Z.2.3 moved to Phase P5 (P3.2 Resolution - ApplicationCore Refactoring) in V2 tasks.md
-
----
-
-### Z.3: Template Benchmarks and Barrier Migration - COMPLETE
-
-**Status**:  COMPLETE (9 tasks)
-
----
-
-### Z.4: JOSE Services Coverage - INCOMPLETE
-
-**Objective**: Increase JOSE service layer coverage to 95%
-
-**Current**: JWK service ~85%, Registration service ~90%, Rotation service ~88%
-
-**Missing Test Cases**:
-- [ ] Z.4.1 JWK service error paths (database failures, validation errors)
-- [ ] Z.4.2 Registration service edge cases (duplicate keys, invalid algorithms)
-- [ ] Z.4.3 Rotation service concurrency (parallel rotation requests)
-- [ ] Z.4.4 Service transaction rollback scenarios
-- [ ] Z.4.5 Service-layer validation logic (input sanitization, business rules)
-
-**Estimated**: 6h
-
----
-
-### Z.5: Phase X Validation and Completion - INCOMPLETE
-
-**Objective**: Ensure ALL Phase X tasks complete, 95% coverage verified
-
-**Dependencies**: X.1.2, X.2, X.5, X.6
-
-**Process**:
-- [ ] Z.5.1 Run comprehensive coverage report (`go test -coverprofile=coverage.out ./...`)
-- [ ] Z.5.2 Generate HTML report (`go tool cover -html=coverage.out -o coverage.html`)
-- [ ] Z.5.3 Review ALL packages for 95% target
-- [ ] Z.5.4 Identify any remaining gaps
-- [ ] Z.5.5 Write final coverage report in coverage-report.md
-- [ ] Z.5.6 Mark Phase X complete with evidence
+- [ ] Z.4.1 Add gremlins to CI/CD workflow (run on merge to main)
+- [ ] Z.4.2 Configure mutation testing timeout (15 min per package)
+- [ ] Z.4.3 Set efficacy threshold (85% required for CI pass)
+- [ ] Z.4.4 Document mutation testing workflow in README.md
 
 **Estimated**: 2h
 
@@ -233,7 +233,7 @@
 - [x] All linting passes (`golangci-lint run`)
 - [x] All tests pass (`go test ./...`)
 - [ ] Coverage 95% for ALL packages (Phase X incomplete)
-- [ ] Mutation testing 85% efficacy (Phase Y not started)
+- [ ] Mutation testing 85% efficacy (Phase Z not started)
 - [ ] No new TODOs without tracking
 - [ ] Build clean (`go build ./...`)
 
@@ -253,7 +253,7 @@
 **CI/CD**:
 - [x] All workflows passing (build, test, lint, format)
 - [ ] Coverage reports generated (Phase X comprehensive analysis pending)
-- [ ] Mutation testing integrated (Phase Y not started)
+- [ ] Mutation testing integrated (Phase Z not started)
 - [ ] E2E workflows functional (4 test failures require fixing)
 
 ### Known Issues
@@ -271,11 +271,11 @@
 ### Estimated Timeline
 
 **Phase X Completion**: 17h (X.1.2: 2h, X.2: 3h, X.5: 4h, X.6: 8h)
-**Phase Y Completion**: 15h (Y.1: 2h, Y.2: 3h, Y.3: 8h, Y.4: 2h)
-**Phase Z Completion**: 8h (Z.4: 6h, Z.5: 2h)
+**Phase Y Completion**: 8h (Y.4: 6h, Y.5: 2h)
+**Phase Z Completion**: 15h (Z.1: 2h, Z.2: 3h, Z.3: 8h, Z.4: 2h)
 **E2E Fixes**: 1h
 **Total Remaining**: 41 hours (~5-8 days)
 
 ---
 
-**Note**: 196 of 266 tasks complete (74%). Phases 0-3, 9, W, partial X, partial Z complete. Phases X, Y, Z partial/incomplete. Final validation pending.
+**Note**: 196 of 266 tasks complete (74%). Phases 0-3, 9, W, partial X, partial Y complete. Phases X, Y, Z partial/incomplete. Final validation pending.
