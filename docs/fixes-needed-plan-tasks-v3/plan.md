@@ -13,7 +13,14 @@ This unified plan combines two complementary implementation tracks:
 1. **Service-Template Migration (V1)**: JOSE-JA, cipher-im, and shared infrastructure
 2. **Test Coverage Implementation (V2)**: Container mode, mTLS, configuration validation
 
-Both tracks share common infrastructure (service-template pattern) and quality gates (95% coverage, 85% mutation efficacy).
+Both tracks share common infrastructure (service-template pattern) and quality gates (95% coverage, **98% mutation efficacy IDEAL** / 85% minimum with documented blockers).
+
+**CRITICAL Quality Standards Clarification**:
+
+- **Mutation Efficacy Ideal Goal**: **≥98%** - This is the target we ALWAYS strive for
+- **Mutation Efficacy Absolute Minimum**: ≥85% - Only acceptable when blocked by external factors with comprehensive documented justification
+- **Quality Over Speed Principle**: NEVER settle for 85% when 98% is achievable
+- **NO Services May Be Skipped**: ALL services must achieve mutation testing (cipher-im being skipped was UNACCEPTABLE and violated this plan)
 
 ---
 
