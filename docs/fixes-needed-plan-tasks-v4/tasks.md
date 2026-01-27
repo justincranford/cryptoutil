@@ -1,6 +1,6 @@
 # Tasks - Remaining Work (V4)
 
-**Status**: 2 of 111 tasks complete (1.8%)
+**Status**: 3 of 111 tasks complete (2.7%)
 **Last Updated**: 2026-01-27
 **Priority Order**: Template → Cipher-IM → JOSE-JA → Shared → Infra → KMS → Compose → Mutation CI/CD → Race Testing
 
@@ -91,7 +91,7 @@
 - [x] 1.3.2: Add tests for listener start/stop
 - [x] 1.3.3: Add tests for listener error handling
 - [x] 1.3.4: Verify coverage ≥95% for listener package (87.1% achieved - see Findings)
-- [ ] 1.3.5: Commit: "test(template): add application listener tests"
+- [x] 1.3.5: Commit: "test(template): add application listener tests"
 
 **Findings**:
 - Listener package reached 87.1% coverage (baseline was 82.6%)

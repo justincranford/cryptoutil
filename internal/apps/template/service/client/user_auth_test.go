@@ -16,6 +16,14 @@ import (
 	cryptoutilAppsTemplateServiceClient "cryptoutil/internal/apps/template/service/client"
 )
 
+// Test path constants.
+const (
+	serviceRegisterPath = "/service/api/v1/users/register"
+	serviceLoginPath    = "/service/api/v1/users/login"
+	browserRegisterPath = "/browser/api/v1/users/register"
+	browserLoginPath    = "/browser/api/v1/users/login"
+)
+
 // TestRegisterServiceUser_Success verifies successful user registration via /service path.
 func TestRegisterServiceUser_Success(t *testing.T) {
 	t.Parallel()
@@ -26,7 +34,7 @@ func TestRegisterServiceUser_Success(t *testing.T) {
 	// Mock server for registration and login.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/service/api/v1/users/register":
+		case serviceRegisterPath:
 			require.Equal(t, http.MethodPost, r.Method)
 			require.Equal(t, "application/json", r.Header.Get("Content-Type"))
 
@@ -35,7 +43,7 @@ func TestRegisterServiceUser_Success(t *testing.T) {
 				"user_id": userID.String(),
 			})
 
-		case "/service/api/v1/users/login":
+		case serviceLoginPath:
 			require.Equal(t, http.MethodPost, r.Method)
 
 			w.WriteHeader(http.StatusOK)
@@ -85,13 +93,13 @@ func TestRegisterBrowserUser_Success(t *testing.T) {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/browser/api/v1/users/register":
+		case browserRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
 				"user_id": userID.String(),
 			})
 
-		case "/browser/api/v1/users/login":
+		case browserLoginPath:
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]string{
 				"token": token,
@@ -179,12 +187,13 @@ func TestRegisterTestUserService_Success(t *testing.T) {
 	userID := googleUuid.New()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/service/api/v1/users/register" {
+		switch r.URL.Path {
+		case serviceRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
 				"user_id": userID.String(),
 			})
-		} else if r.URL.Path == "/service/api/v1/users/login" {
+		case serviceLoginPath:
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]string{
 				"token": "random-user-token",
@@ -210,12 +219,13 @@ func TestRegisterTestUserBrowser_Success(t *testing.T) {
 	userID := googleUuid.New()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/browser/api/v1/users/register" {
+		switch r.URL.Path {
+		case browserRegisterPath:
 			w.WriteHeader(http.StatusCreated)
 			_ = json.NewEncoder(w).Encode(map[string]string{
 				"user_id": userID.String(),
 			})
-		} else if r.URL.Path == "/browser/api/v1/users/login" {
+		case browserLoginPath:
 			w.WriteHeader(http.StatusOK)
 			_ = json.NewEncoder(w).Encode(map[string]string{
 				"token": "browser-random-token",
@@ -285,9 +295,11 @@ func TestDecodeJSONResponse_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	resp, _ := http.Get(server.URL)
+	req, _ := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
+	resp, _ := http.DefaultClient.Do(req) //nolint:bodyclose // DecodeJSONResponse closes body internally.
 
 	var target map[string]string
+
 	err := cryptoutilAppsTemplateServiceClient.DecodeJSONResponse(resp, &target)
 
 	require.NoError(t, err)
@@ -304,9 +316,11 @@ func TestDecodeJSONResponse_InvalidJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	resp, _ := http.Get(server.URL)
+	req, _ := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
+	resp, _ := http.DefaultClient.Do(req) //nolint:bodyclose // DecodeJSONResponse closes body internally.
 
 	var target map[string]string
+
 	err := cryptoutilAppsTemplateServiceClient.DecodeJSONResponse(resp, &target)
 
 	require.Error(t, err)
@@ -427,4 +441,318 @@ func TestVerifyHealthEndpoint_MissingStatusField(t *testing.T) {
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "health response missing status field")
+}
+
+// TestRegisterServiceUser_InvalidUserIDInResponse verifies error when user_id is malformed.
+func TestRegisterServiceUser_InvalidUserIDInResponse(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == serviceRegisterPath {
+			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"user_id": "not-a-valid-uuid",
+			})
+		}
+	}))
+	defer server.Close()
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterServiceUser(server.Client(), server.URL, "testuser", "testpass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "invalid user_id in response")
+}
+
+// TestRegisterServiceUser_DecodeResponseError verifies error when response body is invalid JSON.
+func TestRegisterServiceUser_DecodeResponseError(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == serviceRegisterPath {
+			w.WriteHeader(http.StatusCreated)
+			_, _ = w.Write([]byte("not valid json"))
+		}
+	}))
+	defer server.Close()
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterServiceUser(server.Client(), server.URL, "testuser", "testpass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to decode response")
+}
+
+// TestRegisterServiceUser_LoginFailsAfterRegistration verifies error when login fails after successful registration.
+func TestRegisterServiceUser_LoginFailsAfterRegistration(t *testing.T) {
+	t.Parallel()
+
+	userID := googleUuid.New()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case serviceRegisterPath:
+			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"user_id": userID.String(),
+			})
+		case serviceLoginPath:
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("invalid credentials"))
+		}
+	}))
+	defer server.Close()
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterServiceUser(server.Client(), server.URL, "testuser", "testpass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to login after registration")
+}
+
+// TestRegisterBrowserUser_RegistrationFails verifies error handling when registration returns non-201.
+func TestRegisterBrowserUser_RegistrationFails(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte("username already exists"))
+	}))
+	defer server.Close()
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterBrowserUser(server.Client(), server.URL, "existing", "pass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "registration failed with status 400")
+}
+
+// TestRegisterBrowserUser_InvalidUserIDInResponse verifies error when user_id is malformed.
+func TestRegisterBrowserUser_InvalidUserIDInResponse(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == browserRegisterPath {
+			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"user_id": "not-a-valid-uuid",
+			})
+		}
+	}))
+	defer server.Close()
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterBrowserUser(server.Client(), server.URL, "testuser", "testpass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "invalid user_id in response")
+}
+
+// TestRegisterBrowserUser_DecodeResponseError verifies error when response body is invalid JSON.
+func TestRegisterBrowserUser_DecodeResponseError(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == browserRegisterPath {
+			w.WriteHeader(http.StatusCreated)
+			_, _ = w.Write([]byte("not valid json"))
+		}
+	}))
+	defer server.Close()
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterBrowserUser(server.Client(), server.URL, "testuser", "testpass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to decode response")
+}
+
+// TestRegisterBrowserUser_LoginFailsAfterRegistration verifies error when login fails after successful registration.
+func TestRegisterBrowserUser_LoginFailsAfterRegistration(t *testing.T) {
+	t.Parallel()
+
+	userID := googleUuid.New()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case browserRegisterPath:
+			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"user_id": userID.String(),
+			})
+		case browserLoginPath:
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte("invalid credentials"))
+		}
+	}))
+	defer server.Close()
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterBrowserUser(server.Client(), server.URL, "testuser", "testpass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to login after registration")
+}
+
+// TestLoginUser_DecodeResponseError verifies error when response body is invalid JSON.
+func TestLoginUser_DecodeResponseError(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("not valid json"))
+	}))
+	defer server.Close()
+
+	token, err := cryptoutilAppsTemplateServiceClient.LoginUser(server.Client(), server.URL, "/login", "user", "pass")
+
+	require.Error(t, err)
+	require.Empty(t, token)
+	require.Contains(t, err.Error(), "failed to decode response")
+}
+
+// TestVerifyHealthEndpoint_DecodeResponseError verifies error when response body is invalid JSON.
+func TestVerifyHealthEndpoint_DecodeResponseError(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("not valid json"))
+	}))
+	defer server.Close()
+
+	err := cryptoutilAppsTemplateServiceClient.VerifyHealthEndpoint(server.Client(), server.URL, "/health")
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to decode health response")
+}
+
+// TestRegisterServiceUser_ConnectionError verifies error when server is unreachable.
+func TestRegisterServiceUser_ConnectionError(t *testing.T) {
+	t.Parallel()
+
+	// Use a port that nothing is listening on.
+	client := &http.Client{}
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterServiceUser(client, "http://127.0.0.1:59999", "user", "pass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to send request")
+}
+
+// TestRegisterBrowserUser_ConnectionError verifies error when server is unreachable.
+func TestRegisterBrowserUser_ConnectionError(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterBrowserUser(client, "http://127.0.0.1:59999", "user", "pass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to send request")
+}
+
+// TestLoginUser_ConnectionError verifies error when server is unreachable.
+func TestLoginUser_ConnectionError(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	token, err := cryptoutilAppsTemplateServiceClient.LoginUser(client, "http://127.0.0.1:59999", "/login", "user", "pass")
+
+	require.Error(t, err)
+	require.Empty(t, token)
+	require.Contains(t, err.Error(), "failed to send request")
+}
+
+// TestSendAuthenticatedRequest_ConnectionError verifies error when server is unreachable.
+func TestSendAuthenticatedRequest_ConnectionError(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, "http://127.0.0.1:59999/api", "token", nil) //nolint:bodyclose // resp is nil on connection error.
+
+	require.Error(t, err)
+	require.Nil(t, resp)
+	require.Contains(t, err.Error(), "failed to send request")
+}
+
+// TestVerifyHealthEndpoint_ConnectionError verifies error when server is unreachable.
+func TestVerifyHealthEndpoint_ConnectionError(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	err := cryptoutilAppsTemplateServiceClient.VerifyHealthEndpoint(client, "http://127.0.0.1:59999", "/health")
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to send health request")
+}
+
+// TestRegisterServiceUser_InvalidURL verifies error when URL is malformed.
+func TestRegisterServiceUser_InvalidURL(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	// Use invalid URL with control characters to trigger NewRequestWithContext error.
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterServiceUser(client, "http://invalid\x00url", "user", "pass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to create request")
+}
+
+// TestRegisterBrowserUser_InvalidURL verifies error when URL is malformed.
+func TestRegisterBrowserUser_InvalidURL(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	user, err := cryptoutilAppsTemplateServiceClient.RegisterBrowserUser(client, "http://invalid\x00url", "user", "pass")
+
+	require.Error(t, err)
+	require.Nil(t, user)
+	require.Contains(t, err.Error(), "failed to create request")
+}
+
+// TestLoginUser_InvalidURL verifies error when URL is malformed.
+func TestLoginUser_InvalidURL(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	token, err := cryptoutilAppsTemplateServiceClient.LoginUser(client, "http://invalid\x00url", "/login", "user", "pass")
+
+	require.Error(t, err)
+	require.Empty(t, token)
+	require.Contains(t, err.Error(), "failed to create request")
+}
+
+// TestSendAuthenticatedRequest_InvalidURL verifies error when URL is malformed.
+func TestSendAuthenticatedRequest_InvalidURL(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	resp, err := cryptoutilAppsTemplateServiceClient.SendAuthenticatedRequest(client, http.MethodGet, "http://invalid\x00url/api", "token", nil) //nolint:bodyclose // resp is nil on invalid URL.
+
+	require.Error(t, err)
+	require.Nil(t, resp)
+	require.Contains(t, err.Error(), "failed to create request")
+}
+
+// TestVerifyHealthEndpoint_InvalidURL verifies error when URL is malformed.
+func TestVerifyHealthEndpoint_InvalidURL(t *testing.T) {
+	t.Parallel()
+
+	client := &http.Client{}
+
+	err := cryptoutilAppsTemplateServiceClient.VerifyHealthEndpoint(client, "http://invalid\x00url", "/health")
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to create health request")
 }
