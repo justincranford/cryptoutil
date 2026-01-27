@@ -2106,3 +2106,73 @@ func TestOpenSQLite_FileMode(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestStartCoreWithServices_Success(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:                  true,
+		VerboseMode:              false,
+		DatabaseURL:              cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:              "template-test-cws",
+		OTLPEnabled:              false,
+		OTLPEndpoint:             "grpc://127.0.0.1:4317",
+		LogLevel:                 "INFO",
+		BrowserSessionAlgorithm:  "JWS",
+		BrowserSessionJWSAlgorithm: "RS256",
+		BrowserSessionJWEAlgorithm: "RSA-OAEP",
+		BrowserSessionExpiration: 15 * time.Minute,
+		ServiceSessionAlgorithm:  "JWS",
+		ServiceSessionJWSAlgorithm: "RS256",
+		ServiceSessionJWEAlgorithm: "RSA-OAEP",
+		ServiceSessionExpiration: 1 * time.Hour,
+		SessionIdleTimeout:       30 * time.Minute,
+		SessionCleanupInterval:   1 * time.Hour,
+	}
+
+	// FIRST create just Core to get DB.
+	core, err := StartCore(ctx, settings)
+	require.NoError(t, err)
+	require.NotNil(t, core)
+	defer core.Shutdown()
+
+	// THEN run migrations (required for BarrierService).
+	err = core.DB.AutoMigrate(
+		&cryptoutilAppsTemplateServiceServerBarrier.RootKey{},
+		&cryptoutilAppsTemplateServiceServerBarrier.IntermediateKey{},
+		&cryptoutilAppsTemplateServiceServerBarrier.ContentKey{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{},
+	)
+	require.NoError(t, err)
+
+	// FINALLY initialize services on migrated Core.
+	coreWithSvcs, err := InitializeServicesOnCore(ctx, core, settings)
+	require.NoError(t, err)
+	require.NotNil(t, coreWithSvcs)
+
+	// Verify all services initialized.
+	require.NotNil(t, coreWithSvcs.Repository)
+	require.NotNil(t, coreWithSvcs.BarrierService)
+	require.NotNil(t, coreWithSvcs.RealmRepository)
+	require.NotNil(t, coreWithSvcs.RealmService)
+	require.NotNil(t, coreWithSvcs.SessionManager)
+	require.NotNil(t, coreWithSvcs.TenantRepository)
+	require.NotNil(t, coreWithSvcs.UserRepository)
+	require.NotNil(t, coreWithSvcs.JoinRequestRepository)
+	require.NotNil(t, coreWithSvcs.RegistrationService)
+	require.NotNil(t, coreWithSvcs.RotationService)
+	require.NotNil(t, coreWithSvcs.StatusService)
+}
+
+func TestStartCoreWithServices_StartCoreFails(t *testing.T) {
+	t.Parallel()
+
+	coreWithSvcs, err := StartCoreWithServices(nil, nil)
+	require.Error(t, err)
+	require.Nil(t, coreWithSvcs)
+	require.Contains(t, err.Error(), "failed to start application core")
+}
