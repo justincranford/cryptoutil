@@ -17,6 +17,7 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedContainer "cryptoutil/internal/shared/container"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -1706,6 +1707,244 @@ func TestStartCore_Variations(t *testing.T) {
 				if core != nil {
 					core.Shutdown()
 				}
+			}
+		})
+	}
+}
+
+// TestOpenSQLite_DebugMode tests openSQLite with debug mode enabled.
+func TestOpenSQLite_DebugMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name        string
+		databaseURL string
+		debugMode   bool
+		expectError bool
+	}{
+		{
+			name:        "In-memory with debug mode",
+			databaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+			debugMode:   true,
+			expectError: false,
+		},
+		{
+			name:        "File URL with debug mode",
+			databaseURL: "file:///tmp/test-debug.db",
+			debugMode:   true,
+			expectError: false,
+		},
+		{
+			name:        "In-memory without debug mode",
+			databaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+			debugMode:   false,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db, err := openSQLite(ctx, tt.databaseURL, tt.debugMode)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Nil(t, db)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, db)
+
+				// Clean up.
+				sqlDB, dbErr := db.DB()
+				require.NoError(t, dbErr)
+				_ = sqlDB.Close()
+			}
+		})
+	}
+}
+
+// TestOpenPostgreSQL_WithContainer tests openPostgreSQL with a real container.
+func TestOpenPostgreSQL_WithContainer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create a basic telemetry service for the container.
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		LogLevel:        "info",
+		OTLPEndpoint:    "grpc://localhost:4317",
+		OTLPService:     "test-container",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "sysinfo",
+		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	basic, err := StartBasic(ctx, settings)
+	require.NoError(t, err)
+	defer basic.Shutdown()
+
+	// Start a real PostgreSQL container for testing.
+	containerURL, cleanup, err := cryptoutilSharedContainer.StartPostgres(
+		ctx,
+		basic.TelemetryService,
+		"test_db",
+		"test_user",
+		"test_password",
+	)
+	if err != nil {
+		t.Skipf("Skipping PostgreSQL test - container unavailable: %v", err)
+	}
+	defer cleanup()
+
+	tests := []struct {
+		name        string
+		debugMode   bool
+		expectError bool
+	}{
+		{
+			name:        "Debug mode enabled",
+			debugMode:   true,
+			expectError: false,
+		},
+		{
+			name:        "Debug mode disabled",
+			debugMode:   false,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db, err := openPostgreSQL(ctx, containerURL, tt.debugMode)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Nil(t, db)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, db)
+
+				// Clean up.
+				sqlDB, dbErr := db.DB()
+				require.NoError(t, dbErr)
+				_ = sqlDB.Close()
+			}
+		})
+	}
+}
+
+// TestStartBasic_VerboseMode tests StartBasic with verbose mode variations.
+func TestStartBasic_VerboseMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name        string
+		verboseMode bool
+		expectError bool
+	}{
+		{
+			name:        "Verbose mode enabled",
+			verboseMode: true,
+			expectError: false,
+		},
+		{
+			name:        "Verbose mode disabled",
+			verboseMode: false,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				LogLevel:        "info",
+				OTLPEndpoint:    "grpc://localhost:4317",
+				OTLPService:     "test-service",
+				OTLPVersion:     "1.0.0",
+				OTLPEnvironment: "test",
+				UnsealMode:      "sysinfo",
+				VerboseMode:     tt.verboseMode,
+				DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
+			}
+
+			basic, err := StartBasic(ctx, settings)
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Nil(t, basic)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, basic)
+				defer basic.Shutdown()
+			}
+		})
+	}
+}
+
+// TestProvisionDatabase_PostgreSQLContainerModes tests container mode variations.
+func TestProvisionDatabase_PostgreSQLContainerModes(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name          string
+		containerMode string
+		databaseURL   string
+		expectError   bool
+	}{
+		{
+			name:          "Container mode disabled with SQLite",
+			containerMode: "disabled",
+			databaseURL:   cryptoutilSharedMagic.SQLiteInMemoryDSN,
+			expectError:   false,
+		},
+		{
+			name:          "Container mode empty string with SQLite",
+			containerMode: "",
+			databaseURL:   cryptoutilSharedMagic.SQLiteInMemoryDSN,
+			expectError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				LogLevel:          "info",
+				OTLPEndpoint:      "grpc://localhost:4317",
+				OTLPService:       "test-container-modes",
+				OTLPVersion:       "1.0.0",
+				OTLPEnvironment:   "test",
+				UnsealMode:        "sysinfo",
+				DatabaseURL:       tt.databaseURL,
+				DatabaseContainer: tt.containerMode,
+			}
+
+			basic, err := StartBasic(ctx, settings)
+			require.NoError(t, err)
+			defer basic.Shutdown()
+
+			db, cleanup, err := provisionDatabase(ctx, basic, settings)
+			if cleanup != nil {
+				defer cleanup()
+			}
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Nil(t, db)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, db)
 			}
 		})
 	}
