@@ -6,12 +6,18 @@ package builder
 
 import (
 	"context"
+	"crypto/elliptic"
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
 	"testing"
 	"testing/fstest"
 	"time"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
+	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -206,6 +212,96 @@ func TestBuild_EarlyError(t *testing.T) {
 	require.Nil(t, resources)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "config cannot be nil")
+}
+
+// TestBuild_AdminTLSError tests Build failure when admin TLS configuration fails.
+func TestBuild_AdminTLSError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := getMinimalSettings()
+
+	// Set invalid TLS mode to trigger error in generateTLSConfig.
+	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSMode("invalid-mode")
+
+	builder := NewServerBuilder(ctx, settings)
+	resources, err := builder.Build()
+
+	require.Nil(t, resources)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported TLS admin mode")
+}
+
+// TestBuild_PublicRouteRegistrationError tests Build failure when route registration fails.
+// Note: This test cannot run in parallel with other Build tests due to shared in-memory SQLite cache.
+func TestBuild_PublicRouteRegistrationError(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+
+	builder := NewServerBuilder(ctx, settings)
+	builder.WithPublicRouteRegistration(func(
+		_ *cryptoutilAppsTemplateServiceServer.PublicServerBase,
+		_ *ServiceResources,
+	) error {
+		return fmt.Errorf("intentional route registration failure")
+	})
+
+	resources, err := builder.Build()
+
+	require.Nil(t, resources)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to register public routes")
+	require.Contains(t, err.Error(), "intentional route registration failure")
+}
+
+// TestBuild_PublicTLSError tests Build failure when public TLS config fails.
+// This covers the error path after services are initialized but before public server creation.
+// Note: This test cannot run in parallel due to shared in-memory SQLite cache.
+func TestBuild_PublicTLSError(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+	// Valid admin TLS mode (auto).
+	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSModeAuto
+	// Invalid public TLS mode causes error AFTER services are initialized.
+	settings.TLSPublicMode = cryptoutilAppsTemplateServiceConfig.TLSMode("invalid_mode")
+
+	builder := NewServerBuilder(ctx, settings)
+
+	resources, err := builder.Build()
+
+	require.Nil(t, resources)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported TLS public mode: invalid_mode")
+}
+
+// TestBuild_MigrationError tests Build failure when migration fails.
+func TestBuild_MigrationError(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	settings := getMinimalSettings()
+
+	// Create invalid migration that will fail.
+	invalidMigrations := fstest.MapFS{
+		"migrations/9999_invalid.up.sql": {
+			Data: []byte("INVALID SQL SYNTAX THAT WILL FAIL;"),
+		},
+	}
+
+	builder := NewServerBuilder(ctx, settings)
+	builder.WithDomainMigrations(invalidMigrations, "migrations")
+
+	resources, err := builder.Build()
+
+	require.Nil(t, resources)
+	require.Error(t, err)
+	// Migration error should propagate.
 }
 
 // TestBuild_Success tests full Build pipeline with domain migrations and route registration.
@@ -440,6 +536,356 @@ func TestMergedMigrations_Stat(t *testing.T) {
 	// Stat non-existent file.
 	_, err = merged.Stat("9999_missing.up.sql")
 	require.Error(t, err)
+}
+
+// TestGenerateTLSConfig_StaticMode tests TLS config generation in static mode.
+func TestGenerateTLSConfig_StaticMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := getMinimalSettings()
+	settings.TLSPrivateMode = cryptoutilAppsTemplateServiceConfig.TLSModeStatic
+	settings.TLSStaticCertPEM = []byte("test-cert-pem")
+	settings.TLSStaticKeyPEM = []byte("test-key-pem")
+
+	builder := NewServerBuilder(ctx, settings)
+
+	cfg, err := builder.generateTLSConfig(
+		cryptoutilAppsTemplateServiceConfig.TLSModeStatic,
+		[]byte("test-cert-pem"),
+		[]byte("test-key-pem"),
+		nil,
+		nil,
+		[]string{"localhost"},
+		[]string{"127.0.0.1"},
+		"admin",
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+	require.Equal(t, []byte("test-cert-pem"), cfg.StaticCertPEM)
+	require.Equal(t, []byte("test-key-pem"), cfg.StaticKeyPEM)
+}
+
+// TestGenerateTLSConfig_MixedMode tests TLS config generation in mixed mode.
+func TestGenerateTLSConfig_MixedMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := getMinimalSettings()
+
+	builder := NewServerBuilder(ctx, settings)
+
+	// Generate a valid CA certificate and key for mixed mode testing.
+	caCertPEM, caKeyPEM := generateTestCA(t)
+
+	cfg, err := builder.generateTLSConfig(
+		cryptoutilAppsTemplateServiceConfig.TLSModeMixed,
+		nil,
+		nil,
+		caCertPEM,
+		caKeyPEM,
+		[]string{"localhost"},
+		[]string{"127.0.0.1"},
+		"public",
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+}
+
+// TestGenerateTLSConfig_MixedModeError tests TLS config error handling in mixed mode.
+func TestGenerateTLSConfig_MixedModeError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := getMinimalSettings()
+
+	builder := NewServerBuilder(ctx, settings)
+
+	// Invalid CA certificate should cause error.
+	cfg, err := builder.generateTLSConfig(
+		cryptoutilAppsTemplateServiceConfig.TLSModeMixed,
+		nil,
+		nil,
+		[]byte("invalid-ca-cert"),
+		[]byte("invalid-ca-key"),
+		[]string{"localhost"},
+		[]string{"127.0.0.1"},
+		"admin",
+	)
+
+	require.Error(t, err)
+	require.Nil(t, cfg)
+	require.Contains(t, err.Error(), "failed to generate admin TLS config (mixed mode)")
+}
+
+// TestGenerateTLSConfig_AutoModeError tests TLS config error handling in auto mode.
+// The auto mode fails when GenerateAutoTLSGeneratedSettings receives invalid IP addresses.
+func TestGenerateTLSConfig_AutoModeError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := getMinimalSettings()
+
+	builder := NewServerBuilder(ctx, settings)
+
+	// Invalid IP address triggers GenerateAutoTLSGeneratedSettings error.
+	cfg, err := builder.generateTLSConfig(
+		cryptoutilAppsTemplateServiceConfig.TLSModeAuto,
+		nil,
+		nil,
+		nil,
+		nil,
+		[]string{"localhost"},
+		[]string{"not-a-valid-ip"}, // Invalid IP address causes error
+		"public",
+	)
+
+	require.Error(t, err)
+	require.Nil(t, cfg)
+	require.Contains(t, err.Error(), "failed to generate public TLS config (auto mode)")
+}
+
+// TestGenerateTLSConfig_UnsupportedMode tests error handling for unsupported TLS mode.
+func TestGenerateTLSConfig_UnsupportedMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := getMinimalSettings()
+
+	builder := NewServerBuilder(ctx, settings)
+
+	cfg, err := builder.generateTLSConfig(
+		cryptoutilAppsTemplateServiceConfig.TLSMode("unsupported"),
+		nil,
+		nil,
+		nil,
+		nil,
+		[]string{"localhost"},
+		[]string{"127.0.0.1"},
+		"admin",
+	)
+
+	require.Error(t, err)
+	require.Nil(t, cfg)
+	require.Contains(t, err.Error(), "unsupported TLS admin mode: unsupported")
+}
+
+// TestGenerateTLSConfig_DefaultMode tests that empty mode defaults to auto.
+func TestGenerateTLSConfig_DefaultMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := getMinimalSettings()
+
+	builder := NewServerBuilder(ctx, settings)
+
+	// Empty string mode should default to auto.
+	cfg, err := builder.generateTLSConfig(
+		"", // Empty mode
+		nil,
+		nil,
+		nil,
+		nil,
+		[]string{"localhost"},
+		[]string{"127.0.0.1"},
+		"public",
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+}
+
+// TestMergedMigrations_ReadDir_SubPath tests ReadDir with a sub-path.
+func TestMergedMigrations_ReadDir_SubPath(t *testing.T) {
+	t.Parallel()
+
+	templateFS := fstest.MapFS{
+		"migrations/subdir/1001_template.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE template_sub (id TEXT);"),
+		},
+	}
+
+	domainFS := fstest.MapFS{
+		"migrations/subdir/2001_domain.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE domain_sub (id TEXT);"),
+		},
+	}
+
+	merged := &mergedMigrations{
+		templateFS:   templateFS,
+		templatePath: "migrations",
+		domainFS:     domainFS,
+		domainPath:   "migrations",
+	}
+
+	// Read merged subdirectory.
+	entries, err := merged.ReadDir("subdir")
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(entries), 1)
+}
+
+// TestMergedMigrations_Open_RootDir tests Open with current directory.
+func TestMergedMigrations_Open_RootDir(t *testing.T) {
+	t.Parallel()
+
+	templateFS := fstest.MapFS{
+		"migrations/1001_template.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE template (id TEXT);"),
+		},
+	}
+
+	domainFS := fstest.MapFS{
+		"migrations/2001_domain.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE domain (id TEXT);"),
+		},
+	}
+
+	merged := &mergedMigrations{
+		templateFS:   templateFS,
+		templatePath: "migrations",
+		domainFS:     domainFS,
+		domainPath:   "migrations",
+	}
+
+	// Open root directory (should work for both "." and "").
+	rootFile, err := merged.Open(".")
+	require.NoError(t, err)
+	require.NotNil(t, rootFile)
+	defer rootFile.Close()
+
+	emptyPathFile, err := merged.Open("")
+	require.NoError(t, err)
+	require.NotNil(t, emptyPathFile)
+	defer emptyPathFile.Close()
+}
+
+// TestMergedMigrations_ReadDir_NilDomainFS tests ReadDir when domainFS is nil.
+func TestMergedMigrations_ReadDir_NilDomainFS(t *testing.T) {
+	t.Parallel()
+
+	templateFS := fstest.MapFS{
+		"migrations/1001_template.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE template (id TEXT);"),
+		},
+	}
+
+	merged := &mergedMigrations{
+		templateFS:   templateFS,
+		templatePath: "migrations",
+		domainFS:     nil, // No domain FS
+		domainPath:   "",
+	}
+
+	// Read merged directory with nil domainFS.
+	entries, err := merged.ReadDir(".")
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(entries), 1)
+}
+
+// TestMergedMigrations_Open_NilDomainFS tests Open when domainFS is nil.
+func TestMergedMigrations_Open_NilDomainFS(t *testing.T) {
+	t.Parallel()
+
+	templateFS := fstest.MapFS{
+		"migrations/1001_template.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE template (id TEXT);"),
+		},
+	}
+
+	merged := &mergedMigrations{
+		templateFS:   templateFS,
+		templatePath: "migrations",
+		domainFS:     nil, // No domain FS
+		domainPath:   "",
+	}
+
+	// Open template file when domain FS is nil.
+	templateFile, err := merged.Open("1001_template.up.sql")
+	require.NoError(t, err)
+	require.NotNil(t, templateFile)
+	defer templateFile.Close()
+}
+
+// TestMergedMigrations_ReadFile_NilDomainFS tests ReadFile when domainFS is nil.
+func TestMergedMigrations_ReadFile_NilDomainFS(t *testing.T) {
+	t.Parallel()
+
+	templateFS := fstest.MapFS{
+		"migrations/1001_template.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE template_only (id TEXT);"),
+		},
+	}
+
+	merged := &mergedMigrations{
+		templateFS:   templateFS,
+		templatePath: "migrations",
+		domainFS:     nil, // No domain FS
+		domainPath:   "",
+	}
+
+	// Read template file when domain FS is nil.
+	templateData, err := merged.ReadFile("1001_template.up.sql")
+	require.NoError(t, err)
+	require.Contains(t, string(templateData), "CREATE TABLE template_only")
+}
+
+// TestMergedMigrations_Stat_NilDomainFS tests Stat when domainFS is nil.
+func TestMergedMigrations_Stat_NilDomainFS(t *testing.T) {
+	t.Parallel()
+
+	templateFS := fstest.MapFS{
+		"migrations/1001_template.up.sql": &fstest.MapFile{
+			Data: []byte("CREATE TABLE template_stat (id TEXT);"),
+		},
+	}
+
+	merged := &mergedMigrations{
+		templateFS:   templateFS,
+		templatePath: "migrations",
+		domainFS:     nil, // No domain FS
+		domainPath:   "",
+	}
+
+	// Stat template file when domain FS is nil.
+	templateInfo, err := merged.Stat("1001_template.up.sql")
+	require.NoError(t, err)
+	require.NotNil(t, templateInfo)
+}
+
+// generateTestCA generates a valid CA certificate and key for testing.
+func generateTestCA(t *testing.T) (caCertPEM, caKeyPEM []byte) {
+	t.Helper()
+
+	// Generate CA key pair.
+	caKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
+	require.NoError(t, err)
+
+	// Generate CA certificate.
+	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour //nolint:mnd // Duration calculation.
+	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects([]*cryptoutilSharedCryptoKeygen.KeyPair{caKeyPair}, "Test CA", duration)
+	require.NoError(t, err)
+	require.Len(t, caSubjects, 1)
+
+	caCert := caSubjects[0].KeyMaterial.CertificateChain[0]
+
+	// Serialize CA certificate to PEM.
+	caCertPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: caCert.Raw,
+	})
+
+	// Serialize CA private key to PEM.
+	caKeyBytes, err := x509.MarshalPKCS8PrivateKey(caKeyPair.Private)
+	require.NoError(t, err)
+
+	caKeyPEM = pem.EncodeToMemory(&pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: caKeyBytes,
+	})
+
+	return caCertPEM, caKeyPEM
 }
 
 // getMinimalSettings returns minimal valid settings for testing.
