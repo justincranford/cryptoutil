@@ -22,7 +22,7 @@
 #
 # Health Checks:
 #   - Public health endpoint: https://localhost:8888/health (external clients)
-#   - Admin livez endpoint: https://127.0.0.1:9090/admin/v1/livez (internal container only)
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal container only)
 
 name: cipher-im
 

@@ -55,7 +55,7 @@ EXPOSE 8888 9090
 
 # Health check (admin server livez endpoint)
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
-    CMD wget --no-check-certificate --quiet --tries=1 --spider https://127.0.0.1:9090/admin/v1/livez || exit 1
+    CMD wget --no-check-certificate --quiet --tries=1 --spider https://127.0.0.1:9090/admin/api/v1/livez || exit 1
 
 # Run the application
 ENTRYPOINT ["/app/cipher-im"]
