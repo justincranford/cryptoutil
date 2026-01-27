@@ -426,4 +426,3 @@ func TestSessionManager_ValidateBrowserSession_JWE_InvalidExpType(t *testing.T) 
 	require.Nil(t, session)
 	require.Contains(t, validateErr.Error(), "Missing or invalid exp claim")
 }
-
