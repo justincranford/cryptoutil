@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -478,10 +479,16 @@ func TestInitializeServicesOnCore_Success(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
+	
+	// Use unique temporary file database to avoid shared state pollution.
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "test.db")
+	dbName := fmt.Sprintf("file://%s?mode=rwc&cache=shared", dbPath)
+	
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:                     true,
 		VerboseMode:                 false,
-		DatabaseURL:                 cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		DatabaseURL:                 dbName,
 		OTLPService:                 "template-service-test",
 		OTLPEnabled:                 false,
 		OTLPEndpoint:                "grpc://127.0.0.1:4317",
