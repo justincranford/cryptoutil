@@ -215,3 +215,20 @@ func TestMergedFS_ReadDir(t *testing.T) {
 	// Check for cipher-im migrations.
 	require.True(t, fileNames["2001_init.up.sql"], "should contain 2001_init.up.sql")
 }
+
+// TestMergedFS_ReadDir_NonExistentDirectory tests ReadDir with a directory that doesn't exist in either filesystem.
+func TestMergedFS_ReadDir_NonExistentDirectory(t *testing.T) {
+	t.Parallel()
+
+	mergedFS := GetMergedMigrationsFS()
+
+	// Type assert to ReadDirFS to test ReadDir method.
+	readDirFS, ok := mergedFS.(fs.ReadDirFS)
+	require.True(t, ok, "mergedFS should implement fs.ReadDirFS")
+
+	// Try to read a directory that doesn't exist in either filesystem.
+	entries, err := readDirFS.ReadDir("nonexistent_directory")
+	require.Error(t, err)
+	require.Nil(t, entries)
+	require.Contains(t, err.Error(), "directory not found")
+}
