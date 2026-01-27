@@ -2085,3 +2085,24 @@ func TestProvisionDatabase_ErrorPaths(t *testing.T) {
 	}
 }
 
+func TestOpenSQLite_FileMode(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create temporary database file.
+	tmpDir := t.TempDir()
+	dbPath := tmpDir + "/test.db"
+
+	db, err := openSQLite(ctx, dbPath, false)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	require.NotNil(t, sqlDB)
+
+	err = sqlDB.Close()
+	require.NoError(t, err)
+}
+
