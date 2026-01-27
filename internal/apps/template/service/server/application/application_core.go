@@ -12,6 +12,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
@@ -343,7 +344,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
-		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
+		gormConfig.Logger = logger.Default.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
 	}
 
 	db, err := gorm.Open(dialector, gormConfig)
@@ -370,7 +371,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 func openPostgreSQL(_ context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
 	gormConfig := &gorm.Config{SkipDefaultTransaction: true}
 	if debugMode {
-		gormConfig.Logger = gormConfig.Logger.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
+		gormConfig.Logger = logger.Default.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
 	}
 
 	db, err := gorm.Open(postgres.Open(databaseURL), gormConfig)

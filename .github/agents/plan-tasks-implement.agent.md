@@ -493,6 +493,8 @@ Do NOT create:
 TERMINATION CONDITIONS (EXHAUSTIVE)
 --------------------------------------------
 
+**CRITICAL: DO NOT STOP UNTIL ALL WORK IS DONE**
+
 Execution must continue until ONE of the following is true:
 
 1. ALL tasks in tasks.md marked `[x]` with objective evidence
@@ -500,6 +502,20 @@ Execution must continue until ONE of the following is true:
 3. User clicks STOP button explicitly
 
 These are the ONLY valid stopping conditions.
+
+**NEVER STOP FOR:**
+- ❌ Reaching token limits (token budget is unlimited)
+- ❌ Context summarization (just continue after summary)
+- ❌ Completing partial work (continue until ALL tasks done)
+- ❌ Waiting for approval (autonomous execution - no approval needed)
+- ❌ Taking a break (no breaks - continuous execution required)
+- ❌ Asking "should I continue" (ALWAYS continue until all tasks done)
+
+**IF SUMMARIZATION OCCURS:**
+- Resume immediately with next incomplete task
+- Do NOT ask for permission to continue
+- Do NOT provide status updates
+- Just continue working until ALL tasks complete
 
 --------------------------------------------
 
