@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -1018,4 +1019,112 @@ func TestListener_Start_ContextCancelled(t *testing.T) {
 	err = <-errChan
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "application startup cancelled")
+}
+
+// TestStartCore_NilContext tests StartCore with nil context.
+func TestStartCore_NilContext(t *testing.T) {
+	t.Parallel()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:     true,
+		DatabaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	core, err := StartCore(nil, settings) //nolint:staticcheck // Testing nil context.
+	require.Error(t, err)
+	require.Nil(t, core)
+	require.Contains(t, err.Error(), "ctx cannot be nil")
+}
+
+// TestStartCore_NilSettings tests StartCore with nil settings.
+func TestStartCore_NilSettings(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	core, err := StartCore(ctx, nil)
+	require.Error(t, err)
+	require.Nil(t, core)
+	require.Contains(t, err.Error(), "settings cannot be nil")
+}
+
+// TestProvisionDatabase_UnsupportedScheme tests provisionDatabase with unsupported database URL.
+func TestProvisionDatabase_UnsupportedScheme(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  "mysql://localhost:3306/test", // Unsupported scheme.
+		OTLPService:  "test-unsupported-db",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	basic, err := StartBasic(ctx, settings)
+	require.NoError(t, err)
+	defer basic.Shutdown()
+
+	db, cleanup, err := provisionDatabase(ctx, basic, settings)
+	require.Error(t, err)
+	require.Nil(t, db)
+	require.Nil(t, cleanup)
+	require.Contains(t, err.Error(), "unsupported database URL scheme")
+}
+
+// TestProvisionDatabase_SQLiteFileURL tests SQLite with file:// URL.
+func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use temp file for SQLite database.
+	dbFile := "/tmp/test_sqlite_" + time.Now().Format("20060102150405") + ".db"
+	defer func() {
+		// Cleanup.
+		_ = os.Remove(dbFile)
+	}()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  "file://" + dbFile,
+		OTLPService:  "test-sqlite-file",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	basic, err := StartBasic(ctx, settings)
+	require.NoError(t, err)
+	defer basic.Shutdown()
+
+	db, cleanup, err := provisionDatabase(ctx, basic, settings)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer cleanup()
+
+	// Verify database works.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	require.NotNil(t, sqlDB)
+}
+
+// TestOpenSQLite_InvalidDSN tests openSQLite with valid DSN and WAL mode.
+func TestOpenSQLite_InvalidDSN(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Test successful operation with in-memory DSN.
+	db, err := openSQLite(ctx, cryptoutilSharedMagic.SQLiteInMemoryDSN, false)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+
+	// Verify PRAGMA settings were applied (WAL mode for file databases, memory for in-memory).
+	var busyTimeout int
+	sqlDB, _ := db.DB()
+	err = sqlDB.QueryRow("PRAGMA busy_timeout").Scan(&busyTimeout)
+	require.NoError(t, err)
+	require.Equal(t, 30000, busyTimeout) // 30 seconds as configured.
 }
