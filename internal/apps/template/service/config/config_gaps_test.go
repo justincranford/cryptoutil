@@ -177,8 +177,6 @@ func TestGetTLSPEMBytes_Base64DecodeError(t *testing.T) {
 
 // TestGetTLSPEMBytes_EmptyString tests getTLSPEMBytes with empty string.
 func TestGetTLSPEMBytes_EmptyString(t *testing.T) {
-	t.Parallel()
-
 	viper.Set("test-empty-string", "")
 	defer viper.Reset()
 
@@ -188,8 +186,6 @@ func TestGetTLSPEMBytes_EmptyString(t *testing.T) {
 
 // TestGetTLSPEMBytes_ByteSliceValue tests getTLSPEMBytes with []byte value.
 func TestGetTLSPEMBytes_ByteSliceValue(t *testing.T) {
-	t.Parallel()
-
 	expected := []byte("test-bytes")
 	viper.Set("test-byte-slice", expected)
 	defer viper.Reset()
@@ -200,8 +196,6 @@ func TestGetTLSPEMBytes_ByteSliceValue(t *testing.T) {
 
 // TestGetTLSPEMBytes_ValidBase64 tests getTLSPEMBytes with valid base64 string.
 func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
-	t.Parallel()
-
 	original := []byte("test-pem-content")
 	encoded := base64.StdEncoding.EncodeToString(original)
 	viper.Set("test-valid-base64", encoded)
