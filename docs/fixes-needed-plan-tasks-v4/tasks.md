@@ -983,43 +983,17 @@
 
 ---
 
-## Phase 6: KMS Modernization (LAST - Leverages Validated Template)
+## Phase 6: KMS Modernization (LAST - Largest Migration)
 
-**Objective**: Migrate KMS to service-template pattern
-**Status**: ⏳ NOT STARTED
-**Current**: 75.2% coverage, pre-template architecture
-**Tasks**: 40+ tasks TBD based on lessons from Phases 1-5
+**Objective**: Migrate KMS to service-template pattern, ≥95% coverage, ≥95% mutation
+**Status**: ⏳ NOT STARTED - Tasks TBD after Phases 1-5
+**Dependencies**: Phases 1-5 complete (all lessons learned, template proven)
 
-**Rationale**: User explicitly planning to refactor KMS LAST after service-template fully validated by template, cipher-im, and JOSE-JA. Learns from all migrations, leverages stable template.
+**Note**: KMS is intentionally LAST - it's the largest service, most complex, and should benefit from all learnings from Phases 1-5. Detailed tasks will be defined after completing Phases 1-5.
 
-### Task 6.1-6.N: KMS Migration Tasks (TBD)
-
-**Status**: ⏳ NOT STARTED
-**Owner**: LLM Agent
-**Dependencies**: Phases 1-5 complete
-**Priority**: HIGH
-
-**Description**: Task breakdown will be defined after completing Phases 1-5, learning from migration patterns.
-
-**High-Level Scope**:
-- Database migration (raw database/sql → GORM via ServerBuilder)
-- Registration flow implementation (/auth/register)
-- Browser API addition (/browser/** paths)
-- Merged migrations pattern implementation
-- Multi-tenancy validation
-- Coverage improvement to ≥95% minimum (≥98% ideal)
-- Mutation testing to ≥98%
-- Docker Compose YAML+secrets migration
-
-**Acceptance Criteria**:
-- [ ] KMS ≥95% coverage minimum (≥98% ideal)
-- [ ] KMS ≥98% mutation efficacy
-- [ ] All architectural conformance issues resolved
-- [ ] ~1,500 lines duplication eliminated
-- [ ] ServerBuilder pattern fully integrated
-- [ ] TestMain pattern for all integration tests
-
-**Files**: TBD after Phases 1-5 complete
+**Placeholder Tasks**:
+- Task 6.1: TBD - Plan KMS migration strategy
+- Tasks 6.2-6.N: TBD - Implementation tasks
 
 ---
 
@@ -1028,6 +1002,7 @@
 **Objective**: Consolidate 13 compose files to 5-7 with YAML configs + Docker secrets
 **Status**: ⏳ NOT STARTED
 **Current**: 13 files (Identity 4, CA 3, KMS 2, duplicated patterns)
+**Dependencies**: Phases 1-3 complete (template-conformant services needed for Docker validation)
 
 ### Task 7.1: Consolidate Identity Compose Files
 
@@ -1063,11 +1038,11 @@
 **Description**: Consolidate CA compose files (3 → 1) with YAML configs + Docker secrets.
 
 **Acceptance Criteria**:
-- [ ] 7.2.1: Identify common patterns across 3 CA files
-- [ ] 7.2.2: Create unified compose file
-- [ ] 7.2.3: Extract configs to YAML
-- [ ] 7.2.4: Migrate sensitive values to Docker secrets
-- [ ] 7.2.5: Commit: "refactor(compose): consolidate CA compose files"
+- [ ] 6.2.1: Identify common patterns across 3 CA files
+- [ ] 6.2.2: Create unified compose file
+- [ ] 6.2.3: Extract configs to YAML
+- [ ] 6.2.4: Migrate sensitive values to Docker secrets
+- [ ] 6.2.5: Commit: "refactor(compose): consolidate CA compose files"
 
 **Files**:
 - deployments/ca/compose.yml (create)
@@ -1080,7 +1055,7 @@
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
-**Dependencies**: Task 7.2, Phase 6 complete
+**Dependencies**: Task 7.2
 **Priority**: MEDIUM
 
 **Description**: Consolidate KMS compose files (2 → 1) with YAML configs + Docker secrets.

@@ -225,7 +225,37 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 ---
 
-### Phase 6: KMS Modernization (LAST - Leverages Validated Template)
+### Phase 6: Docker Compose Consolidation
+
+**Objective**: Consolidate 13 compose files to 5-7 with YAML configs + Docker secrets
+
+**Current Status**: 13 files (Identity 4, CA 3, KMS 2, duplicated patterns)
+
+**User Requirement**: "Docker Compose should be using yaml configurations and docker secrets, ENV is last resort not first option; that violates copilot instructions again"
+
+**Dependencies**: Phases 1-3 complete (template-conformant services needed for Docker validation)
+
+**Tasks** (10 tasks):
+- [ ] 6.1: Consolidate Identity compose files (4 → 1 + YAML configs + Docker secrets)
+- [ ] 6.2: Consolidate CA compose files (3 → 1 + YAML configs + Docker secrets)
+- [ ] 6.3: Consolidate KMS compose files (2 → 1 + YAML configs + Docker secrets)
+- [ ] 6.4: Create environment-specific YAML config files (dev, prod, test)
+- [ ] 6.5: Migrate sensitive values to Docker secrets (NOT .env)
+- [ ] 6.6: Document YAML + Docker secrets pattern (primary), .env as LAST RESORT
+- [ ] 6.7: Update all compose files to use YAML configs + secrets
+- [ ] 6.8: Test all environments (dev, prod, test)
+- [ ] 6.9: Update documentation
+- [ ] 6.10: Verify 13 → 5-7 files achieved
+
+**Success Criteria**:
+- 13 files → 5-7 files
+- Uses YAML configs (primary) + Docker secrets (sensitive)
+- .env as LAST RESORT only
+- Deployment clarity improved
+
+---
+
+### Phase 7: KMS Modernization (LAST - Leverages Validated Template)
 
 **Objective**: Migrate KMS to service-template pattern (largest duplication elimination)
 
@@ -238,8 +268,10 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 **Benefits of Last**: Learns from cipher-im + JOSE-JA migrations, leverages stable template, confidence in patterns
 
-**Tasks** (40+ tasks - TBD based on lessons from Phases 1-5):
-- [ ] 6.1-6.N: Database migration (raw database/sql → GORM via ServerBuilder)
+**Dependencies**: Phases 1-6 complete (validated template + compose infrastructure)
+
+**Tasks** (40+ tasks - TBD based on lessons from Phases 1-6):
+- [ ] 7.1-7.N: Database migration (raw database/sql → GORM via ServerBuilder)
 - [ ] Registration flow migration
 - [ ] Browser API addition (/browser/** paths)
 - [ ] Merged migrations pattern
@@ -252,34 +284,6 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 - KMS ≥98% mutation efficacy
 - All architectural conformance issues resolved
 - ~1,500 lines duplication eliminated
-
----
-
-### Phase 7: Docker Compose Consolidation
-
-**Objective**: Consolidate 13 compose files to 5-7 with YAML configs + Docker secrets
-
-**Current Status**: 13 files (Identity 4, CA 3, KMS 2, duplicated patterns)
-
-**User Requirement**: "Docker Compose should be using yaml configurations and docker secrets, ENV is last resort not first option; that violates copilot instructions again"
-
-**Tasks** (10 tasks from Phase 5):
-- [ ] 7.1: Consolidate Identity compose files (4 → 1 + YAML configs + Docker secrets)
-- [ ] 7.2: Consolidate CA compose files (3 → 1 + YAML configs + Docker secrets)
-- [ ] 7.3: Consolidate KMS compose files (2 → 1 + YAML configs + Docker secrets)
-- [ ] 7.4: Create environment-specific YAML config files (dev, prod, test)
-- [ ] 7.5: Migrate sensitive values to Docker secrets (NOT .env)
-- [ ] 7.6: Document YAML + Docker secrets pattern (primary), .env as LAST RESORT
-- [ ] 7.7: Update all compose files to use YAML configs + secrets
-- [ ] 7.8: Test all environments (dev, prod, test)
-- [ ] 7.9: Update documentation
-- [ ] 7.10: Verify 13 → 5-7 files achieved
-
-**Success Criteria**:
-- 13 files → 5-7 files
-- Uses YAML configs (primary) + Docker secrets (sensitive)
-- .env as LAST RESORT only
-- Deployment clarity improved
 
 ---
 
@@ -302,7 +306,7 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 **Objective**: Enable automated mutation testing in CI/CD
 
-**Dependencies**: Phases 1-3 complete (template, cipher-im, JOSE-JA all ≥98% mutation)
+**Dependencies**: Phases 1-3, 7 complete (template, cipher-im, JOSE-JA, KMS all ≥98% mutation)
 
 **Tasks** (6 tasks from Phase 4):
 - [ ] 9.1: Verify ci-mutation.yml workflow
@@ -455,16 +459,11 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 **Per-Phase**:
 - ✅ Phase objectives achieved
 - ✅ Success criteria verified with evidence
-- ✅ Documentation updated (research.md, tasks.md, completed.md)
 - ✅ Quality gates enforced
 
 **Overall Project**:
-- ✅ Mutation efficacy ≥98% ideal for ALL services (Template ✅, JOSE-JA ✅, Cipher-IM ⏳, KMS ⏳)
-- ✅ Coverage ≥98% minimum (≥99% ideal) for ALL packages (currently 52.2%)
-- ✅ Zero packages below ≥95% minimum (currently 15+ packages below)
-- ✅ Infrastructure packages (pool, telemetry, barrier) ≥98%
-- ✅ Crypto core packages ≥98%
-- ✅ Application lifecycle and server builders ≥95%
+- ✅ Mutation efficacy ≥98% ideal for ALL services
+- ✅ Coverage ≥95% minimum (≥98% ideal) for ALL packages
 - ✅ Race detector clean on Linux (0 races)
 - ✅ CI/CD mutation testing automated
 - ✅ Service template maximally reusable
@@ -473,13 +472,12 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 - [ ] All 111 tasks complete (68 legacy + 43 coverage)
 - [ ] Quality gates pass
-- [ ] All services ≥98% mutation efficacy (ideal target)
-- [ ] **ALL packages ≥98% coverage minimum (≥99% ideal)**
-- [ ] **Project total coverage ≥95% (from current 52.2%)**
+- [ ] All services ≥98% mutation efficacy
+- [ ] All packages ≥95% coverage minimum (≥98% ideal)
 - [ ] Race detector clean on Linux
 - [ ] CI/CD enforces mutation testing
-- [ ] Service template comparison documented
-- [ ] Documentation updated (README, DEV-SETUP, research.md)
+- [ ] Docker Compose consolidated (13 → 5-7 files)
+- [ ] Documentation updated (README, DEV-SETUP)
 
 ## RECENT ACHIEVEMENTS (from V3)
 
