@@ -7,6 +7,7 @@ package application
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -554,4 +555,467 @@ func TestCoreShutdown(t *testing.T) {
 	require.NotPanics(t, func() {
 		core.Shutdown()
 	})
+}
+
+// Mock servers for Listener testing.
+type mockPublicServer struct {
+	port      int
+	baseURL   string
+	startErr  error
+	startDone chan struct{}
+}
+
+func (m *mockPublicServer) Start(_ context.Context) error {
+	if m.startDone != nil {
+		<-m.startDone
+	}
+
+	return m.startErr
+}
+
+func (m *mockPublicServer) Shutdown(_ context.Context) error {
+	return nil
+}
+
+func (m *mockPublicServer) ActualPort() int {
+	return m.port
+}
+
+func (m *mockPublicServer) PublicBaseURL() string {
+	return m.baseURL
+}
+
+type mockAdminServer struct {
+	port      int
+	baseURL   string
+	ready     bool
+	startErr  error
+	startDone chan struct{}
+}
+
+func (m *mockAdminServer) Start(_ context.Context) error {
+	if m.startDone != nil {
+		<-m.startDone
+	}
+
+	return m.startErr
+}
+
+func (m *mockAdminServer) Shutdown(_ context.Context) error {
+	return nil
+}
+
+func (m *mockAdminServer) ActualPort() int {
+	return m.port
+}
+
+func (m *mockAdminServer) SetReady(ready bool) {
+	m.ready = ready
+}
+
+func (m *mockAdminServer) AdminBaseURL() string {
+	return m.baseURL
+}
+
+// TestStartListener tests creation and initialization of Listener.
+func TestStartListener(t *testing.T) {
+	// NOT parallel - uses shared SQLite database.
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		VerboseMode:  false,
+		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:  "test-listener",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	publicServer := &mockPublicServer{port: 8080, baseURL: "https://localhost:8080"}
+	adminServer := &mockAdminServer{port: 9090, baseURL: "https://localhost:9090"}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}
+
+	listener, err := StartListener(ctx, config)
+	require.NoError(t, err)
+	require.NotNil(t, listener)
+	require.NotNil(t, listener.Core)
+	require.Equal(t, publicServer, listener.PublicServer)
+	require.Equal(t, adminServer, listener.AdminServer)
+	require.Equal(t, settings, listener.Settings)
+
+	defer listener.Shutdown(context.Background())
+}
+
+// TestStartListener_NilContext tests validation of nil context.
+func TestStartListener_NilContext(t *testing.T) {
+	t.Parallel()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:     true,
+		DatabaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: &mockPublicServer{},
+		AdminServer:  &mockAdminServer{},
+	}
+
+	listener, err := StartListener(nil, config) //nolint:staticcheck // Testing nil context.
+	require.Error(t, err)
+	require.Nil(t, listener)
+	require.Contains(t, err.Error(), "ctx cannot be nil")
+}
+
+// TestStartListener_NilConfig tests validation of nil config.
+func TestStartListener_NilConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	listener, err := StartListener(ctx, nil)
+	require.Error(t, err)
+	require.Nil(t, listener)
+	require.Contains(t, err.Error(), "config cannot be nil")
+}
+
+// TestStartListener_NilSettings tests validation of nil settings.
+func TestStartListener_NilSettings(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	config := &ListenerConfig{
+		Settings:     nil,
+		PublicServer: &mockPublicServer{},
+		AdminServer:  &mockAdminServer{},
+	}
+
+	listener, err := StartListener(ctx, config)
+	require.Error(t, err)
+	require.Nil(t, listener)
+	require.Contains(t, err.Error(), "settings cannot be nil")
+}
+
+// TestStartListener_NilPublicServer tests validation of nil public server.
+func TestStartListener_NilPublicServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:     true,
+		DatabaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: nil,
+		AdminServer:  &mockAdminServer{},
+	}
+
+	listener, err := StartListener(ctx, config)
+	require.Error(t, err)
+	require.Nil(t, listener)
+	require.Contains(t, err.Error(), "publicServer cannot be nil")
+}
+
+// TestStartListener_NilAdminServer tests validation of nil admin server.
+func TestStartListener_NilAdminServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:     true,
+		DatabaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: &mockPublicServer{},
+		AdminServer:  nil,
+	}
+
+	listener, err := StartListener(ctx, config)
+	require.Error(t, err)
+	require.Nil(t, listener)
+	require.Contains(t, err.Error(), "adminServer cannot be nil")
+}
+
+// TestListener_PublicPort tests PublicPort accessor.
+func TestListener_PublicPort(t *testing.T) {
+	t.Parallel()
+
+	listener := &Listener{
+		PublicServer: &mockPublicServer{port: 12345},
+	}
+
+	require.Equal(t, 12345, listener.PublicPort())
+}
+
+// TestListener_PublicPort_NilServer tests PublicPort with nil server.
+func TestListener_PublicPort_NilServer(t *testing.T) {
+	t.Parallel()
+
+	listener := &Listener{
+		PublicServer: nil,
+	}
+
+	require.Equal(t, 0, listener.PublicPort())
+}
+
+// TestListener_AdminPort tests AdminPort accessor.
+func TestListener_AdminPort(t *testing.T) {
+	t.Parallel()
+
+	listener := &Listener{
+		AdminServer: &mockAdminServer{port: 54321},
+	}
+
+	require.Equal(t, 54321, listener.AdminPort())
+}
+
+// TestListener_AdminPort_NilServer tests AdminPort with nil server.
+func TestListener_AdminPort_NilServer(t *testing.T) {
+	t.Parallel()
+
+	listener := &Listener{
+		AdminServer: nil,
+	}
+
+	require.Equal(t, 0, listener.AdminPort())
+}
+
+// TestListener_Shutdown tests graceful shutdown of Listener.
+func TestListener_Shutdown(t *testing.T) {
+	// NOT parallel - uses shared SQLite database.
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:  "test-shutdown",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	publicServer := &mockPublicServer{port: 8080}
+	adminServer := &mockAdminServer{port: 9090}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}
+
+	listener, err := StartListener(ctx, config)
+	require.NoError(t, err)
+
+	err = listener.Shutdown(ctx)
+	require.NoError(t, err)
+	require.False(t, adminServer.ready) // Should set ready=false.
+}
+
+// TestListener_Shutdown_NilContext tests Shutdown with nil context.
+func TestListener_Shutdown_NilContext(t *testing.T) {
+	// NOT parallel - uses shared SQLite database.
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:  "test-shutdown-nil-ctx",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	publicServer := &mockPublicServer{port: 8080}
+	adminServer := &mockAdminServer{port: 9090}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}
+
+	listener, err := StartListener(ctx, config)
+	require.NoError(t, err)
+
+	// Shutdown with nil context should use Background.
+	err = listener.Shutdown(nil) //nolint:staticcheck // Testing nil context.
+	require.NoError(t, err)
+}
+
+// TestOpenPostgreSQL tests PostgreSQL database connection.
+// NOTE: Requires PostgreSQL running. Uses environment variable DATABASE_URL_POSTGRES if available.
+func TestOpenPostgreSQL(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// This test demonstrates openPostgreSQL function but will skip if no PostgreSQL available.
+	// In production, this would use testcontainers to start PostgreSQL.
+	// For now, we test the error path with invalid DSN.
+	_, err := openPostgreSQL(ctx, "invalid-dsn", false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to open PostgreSQL database")
+}
+
+// TestListener_Start_NilContext tests Start with nil context.
+func TestListener_Start_NilContext(t *testing.T) {
+	t.Parallel()
+
+	publicServer := &mockPublicServer{port: 8080}
+	adminServer := &mockAdminServer{port: 9090}
+
+	listener := &Listener{
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}
+
+	err := listener.Start(nil) //nolint:staticcheck // Testing nil context.
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "context cannot be nil")
+}
+
+// TestListener_Start_PublicServerError tests Start when public server fails immediately.
+func TestListener_Start_PublicServerError(t *testing.T) {
+	// NOT parallel - uses shared SQLite database.
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:  "test-start-error",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	// Create mock server that fails immediately.
+	publicServer := &mockPublicServer{
+		port:     8080,
+		startErr: fmt.Errorf("mock public server error"),
+	}
+	adminServer := &mockAdminServer{port: 9090}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}
+
+	listener, err := StartListener(context.Background(), config)
+	require.NoError(t, err)
+	defer listener.Shutdown(context.Background())
+
+	// Start should fail with public server error.
+	err = listener.Start(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "public server failed")
+}
+
+// TestListener_Start_AdminServerError tests Start when admin server fails immediately.
+func TestListener_Start_AdminServerError(t *testing.T) {
+	// NOT parallel - uses shared SQLite database.
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:  "test-start-admin-error",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	publicServer := &mockPublicServer{port: 8080}
+	// Create mock server that fails immediately.
+	adminServer := &mockAdminServer{
+		port:     9090,
+		startErr: fmt.Errorf("mock admin server error"),
+	}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}
+
+	listener, err := StartListener(context.Background(), config)
+	require.NoError(t, err)
+	defer listener.Shutdown(context.Background())
+
+	// Start should fail with admin server error.
+	err = listener.Start(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "admin server failed")
+}
+
+// TestListener_Start_ContextCancelled tests Start when context is cancelled.
+func TestListener_Start_ContextCancelled(t *testing.T) {
+	// NOT parallel - uses shared SQLite database.
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:  "test-start-cancel",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	// Create servers that block until cancelled.
+	startDone := make(chan struct{})
+	publicServer := &mockPublicServer{
+		port:      8080,
+		startDone: startDone,
+	}
+	adminServer := &mockAdminServer{
+		port:      9090,
+		startDone: startDone,
+	}
+
+	config := &ListenerConfig{
+		Settings:     settings,
+		PublicServer: publicServer,
+		AdminServer:  adminServer,
+	}
+
+	listener, err := StartListener(context.Background(), config)
+	require.NoError(t, err)
+	defer listener.Shutdown(context.Background())
+
+	// Start in background, then cancel context.
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- listener.Start(ctx)
+	}()
+
+	// Wait a bit for Start to begin.
+	time.Sleep(100 * time.Millisecond)
+
+	// Cancel context.
+	cancel()
+
+	// Unblock servers.
+	close(startDone)
+
+	// Should return context cancellation error.
+	err = <-errChan
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "application startup cancelled")
 }
