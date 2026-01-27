@@ -1,6 +1,6 @@
 # Tasks - Remaining Work (V4)
 
-**Status**: 5 of 111 tasks complete (4.5%)
+**Status**: 6 of 111 tasks complete (5.4%)
 **Last Updated**: 2026-01-27
 **Priority Order**: Template → Cipher-IM → JOSE-JA → Shared → Infra → KMS → Compose → Mutation CI/CD → Race Testing
 
@@ -204,23 +204,33 @@
 
 ### Task 1.6: Add Integration Tests for Dual HTTPS Servers
 
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE (87.1% listener coverage maintained)
 **Owner**: LLM Agent
 **Dependencies**: Task 1.5 complete
 **Priority**: HIGH
+**Actual**: 1h (2026-01-27)
 
 **Description**: Add integration tests for template dual HTTPS servers (public + admin).
 
 **Acceptance Criteria**:
-- [ ] 1.6.1: Add tests for public server endpoints
-- [ ] 1.6.2: Add tests for admin server endpoints
-- [ ] 1.6.3: Add tests for health checks
-- [ ] 1.6.4: Add tests for graceful shutdown
-- [ ] 1.6.5: Verify both servers accessible
-- [ ] 1.6.6: Commit: "test(template): add dual HTTPS server integration tests"
+- [x] 1.6.1: Add tests for public server endpoints
+- [x] 1.6.2: Add tests for admin server endpoints
+- [x] 1.6.3: Add tests for health checks
+- [x] 1.6.4: Add tests for graceful shutdown
+- [x] 1.6.5: Verify both servers accessible
+- [x] 1.6.6: Commit: "test(template): add dual HTTPS server integration tests"
+
+**Findings**:
+- Added 4 comprehensive dual HTTPS server integration tests in servers_test.go:
+  - TestDualServers_StartBothServers: Verifies both servers start with different ports
+  - TestDualServers_HealthEndpoints: Tests all health check endpoints on both servers (admin livez/readyz, public service/browser health)
+  - TestDualServers_GracefulShutdown: Tests clean shutdown of both servers and verifies they stop responding
+  - TestDualServers_BothServersAccessibleSimultaneously: Tests concurrent requests to both servers using goroutines
+- Listener package maintains 87.1% coverage
+- Tests validate full dual HTTPS server architecture with TLS
 
 **Files**:
-- internal/apps/template/service/server/integration_test.go (new)
+- internal/apps/template/service/server/listener/servers_test.go (expanded)
 
 ---
 
