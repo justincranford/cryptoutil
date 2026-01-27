@@ -52,7 +52,8 @@ func (r *GormRepository) WithTransaction(ctx context.Context, function func(tx T
 
 // Shutdown releases any resources held by the repository.
 func (r *GormRepository) Shutdown() {
-	// No resources to release for gorm.DB adapter
+	// No resources to release for gorm.DB adapter - this is a no-op
+	_ = r.db // Reference to prevent linting issues; no actual work needed
 }
 
 // GormTransaction implements Transaction using gorm.DB transaction.

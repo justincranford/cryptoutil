@@ -464,6 +464,225 @@ func TestSessionManager_GenerateJWEKey(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported JWE algorithm")
 }
 
+// TestSessionManager_Initialize_JWS_AllAlgorithms tests initialization with all JWS algorithm variants.
+// This exercises initializeSessionJWK for JWS algorithms via Initialize().
+func TestSessionManager_Initialize_JWS_AllAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		jwsAlg    string
+		isBrowser bool
+	}{
+		{"Browser_RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256, true},
+		{"Browser_RS384", cryptoutilSharedMagic.SessionJWSAlgorithmRS384, true},
+		{"Browser_RS512", cryptoutilSharedMagic.SessionJWSAlgorithmRS512, true},
+		{"Browser_ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256, true},
+		{"Browser_ES384", cryptoutilSharedMagic.SessionJWSAlgorithmES384, true},
+		{"Browser_ES512", cryptoutilSharedMagic.SessionJWSAlgorithmES512, true},
+		{"Browser_EdDSA", cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA, true},
+		// HMAC algorithms (HS256/HS384/HS512) are supported in initializeSessionJWK
+		// but constants are not exported; test with raw strings
+		{"Browser_HS256", "HS256", true},
+		{"Browser_HS384", "HS384", true},
+		{"Browser_HS512", "HS512", true},
+		{"Service_RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256, false},
+		{"Service_ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256, false},
+		{"Service_HS256", "HS256", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := setupTestDB(t)
+			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				BrowserSessionExpiration: 24 * time.Hour,
+				ServiceSessionExpiration: 7 * 24 * time.Hour,
+				SessionIdleTimeout:       2 * time.Hour,
+				SessionCleanupInterval:   time.Hour,
+			}
+
+			if tt.isBrowser {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWS)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.BrowserSessionJWSAlgorithm = tt.jwsAlg
+			} else {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWS)
+				config.ServiceSessionJWSAlgorithm = tt.jwsAlg
+			}
+
+			sm := NewSessionManager(db, nil, config)
+			err := sm.Initialize(context.Background())
+			require.NoError(t, err, "Initialize should succeed for %s", tt.name)
+
+			// Verify JWK was created
+			if tt.isBrowser {
+				require.NotNil(t, sm.browserJWKID, "browserJWKID should be set for %s", tt.name)
+			} else {
+				require.NotNil(t, sm.serviceJWKID, "serviceJWKID should be set for %s", tt.name)
+			}
+		})
+	}
+}
+
+// TestSessionManager_Initialize_JWE_AllAlgorithms tests initialization with all JWE algorithm variants.
+// This exercises initializeSessionJWK for JWE algorithms via Initialize().
+func TestSessionManager_Initialize_JWE_AllAlgorithms(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		jweAlg    string
+		isBrowser bool
+	}{
+		{"Browser_DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM, true},
+		{"Browser_A256GCMKWA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM, true},
+		{"Service_DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM, false},
+		{"Service_A256GCMKWA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := setupTestDB(t)
+			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				BrowserSessionExpiration: 24 * time.Hour,
+				ServiceSessionExpiration: 7 * 24 * time.Hour,
+				SessionIdleTimeout:       2 * time.Hour,
+				SessionCleanupInterval:   time.Hour,
+			}
+
+			if tt.isBrowser {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWE)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.BrowserSessionJWEAlgorithm = tt.jweAlg
+			} else {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWE)
+				config.ServiceSessionJWEAlgorithm = tt.jweAlg
+			}
+
+			sm := NewSessionManager(db, nil, config)
+			err := sm.Initialize(context.Background())
+			require.NoError(t, err, "Initialize should succeed for %s", tt.name)
+
+			// Verify JWK was created
+			if tt.isBrowser {
+				require.NotNil(t, sm.browserJWKID, "browserJWKID should be set for %s", tt.name)
+			} else {
+				require.NotNil(t, sm.serviceJWKID, "serviceJWKID should be set for %s", tt.name)
+			}
+		})
+	}
+}
+
+// TestSessionManager_Initialize_UnsupportedAlgorithm tests error handling for unsupported algorithms.
+func TestSessionManager_Initialize_UnsupportedAlgorithm(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		browserAlg    cryptoutilSharedMagic.SessionAlgorithmType
+		serviceAlg    cryptoutilSharedMagic.SessionAlgorithmType
+		browserJWSAlg string
+		browserJWEAlg string
+		serviceJWSAlg string
+		serviceJWEAlg string
+		expectErrPart string
+	}{
+		{
+			name:          "UnsupportedBrowserJWSAlg",
+			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmJWS,
+			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
+			browserJWSAlg: "INVALID_ALG",
+			expectErrPart: "unsupported JWS algorithm",
+		},
+		{
+			name:          "UnsupportedBrowserJWEAlg",
+			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmJWE,
+			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
+			browserJWEAlg: "INVALID_ALG",
+			expectErrPart: "unsupported JWE algorithm",
+		},
+		{
+			name:          "UnsupportedServiceJWSAlg",
+			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
+			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmJWS,
+			serviceJWSAlg: "INVALID_ALG",
+			expectErrPart: "unsupported JWS algorithm",
+		},
+		{
+			name:          "UnsupportedServiceJWEAlg",
+			browserAlg:    cryptoutilSharedMagic.SessionAlgorithmOPAQUE,
+			serviceAlg:    cryptoutilSharedMagic.SessionAlgorithmJWE,
+			serviceJWEAlg: "INVALID_ALG",
+			expectErrPart: "unsupported JWE algorithm",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := setupTestDB(t)
+			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				BrowserSessionAlgorithm:    string(tt.browserAlg),
+				ServiceSessionAlgorithm:    string(tt.serviceAlg),
+				BrowserSessionExpiration:   24 * time.Hour,
+				ServiceSessionExpiration:   7 * 24 * time.Hour,
+				SessionIdleTimeout:         2 * time.Hour,
+				SessionCleanupInterval:     time.Hour,
+				BrowserSessionJWSAlgorithm: tt.browserJWSAlg,
+				BrowserSessionJWEAlgorithm: tt.browserJWEAlg,
+				ServiceSessionJWSAlgorithm: tt.serviceJWSAlg,
+				ServiceSessionJWEAlgorithm: tt.serviceJWEAlg,
+			}
+
+			sm := NewSessionManager(db, nil, config)
+			err := sm.Initialize(context.Background())
+			require.Error(t, err, "Initialize should fail for %s", tt.name)
+			require.Contains(t, err.Error(), tt.expectErrPart, "Error should contain '%s' for %s", tt.expectErrPart, tt.name)
+		})
+	}
+}
+
+// TestSessionManager_Initialize_ExistingJWK tests reusing existing JWK from database.
+func TestSessionManager_Initialize_ExistingJWK(t *testing.T) {
+	t.Parallel()
+
+	// Create database and first session manager
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
+		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
+	}
+
+	// First initialization creates JWK
+	sm1 := NewSessionManager(db, nil, config)
+	err1 := sm1.Initialize(context.Background())
+	require.NoError(t, err1)
+	require.NotNil(t, sm1.browserJWKID)
+	firstJWKID := *sm1.browserJWKID
+
+	// Second initialization should reuse existing JWK
+	sm2 := NewSessionManager(db, nil, config)
+	err2 := sm2.Initialize(context.Background())
+	require.NoError(t, err2)
+	require.NotNil(t, sm2.browserJWKID)
+	secondJWKID := *sm2.browserJWKID
+
+	// Both should use the same JWK
+	require.Equal(t, firstJWKID, secondJWKID, "Second initialization should reuse existing JWK")
+}
+
 // TestSessionManager_StartCleanupTask tests the cleanup task startup.
 func TestSessionManager_StartCleanupTask(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
@@ -522,4 +741,619 @@ func TestSessionManager_ErrorCases(t *testing.T) {
 
 	_, err = sm.ValidateServiceSession(ctx, "not-a-valid-uuid-format-that-is-long-enough")
 	require.Error(t, err) // Should fail validation
+}
+
+// TestSessionManager_JWS_Issue_Validate tests JWS session issue and validation lifecycle.
+func TestSessionManager_JWS_Issue_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		isBrowser bool
+		jwsAlg    string
+	}{
+		{"Browser_RS256", true, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+		{"Browser_ES256", true, cryptoutilSharedMagic.SessionJWSAlgorithmES256},
+		{"Browser_EdDSA", true, cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
+		{"Service_RS256", false, cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := setupTestDB(t)
+			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				BrowserSessionExpiration: 24 * time.Hour,
+				ServiceSessionExpiration: 7 * 24 * time.Hour,
+				SessionIdleTimeout:       2 * time.Hour,
+				SessionCleanupInterval:   time.Hour,
+			}
+
+			if tt.isBrowser {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWS)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.BrowserSessionJWSAlgorithm = tt.jwsAlg
+			} else {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWS)
+				config.ServiceSessionJWSAlgorithm = tt.jwsAlg
+			}
+
+			sm := NewSessionManager(db, nil, config)
+			err := sm.Initialize(context.Background())
+			require.NoError(t, err)
+
+			ctx := context.Background()
+			userID := googleUuid.Must(googleUuid.NewV7()).String()
+			tenantID := googleUuid.Must(googleUuid.NewV7())
+			realmID := googleUuid.Must(googleUuid.NewV7())
+
+			// Issue session
+			var token string
+			if tt.isBrowser {
+				token, err = sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+			} else {
+				token, err = sm.IssueServiceSession(ctx, userID, tenantID, realmID)
+			}
+
+			require.NoError(t, err)
+			require.NotEmpty(t, token)
+
+			// Validate session
+			var session any
+			if tt.isBrowser {
+				session, err = sm.ValidateBrowserSession(ctx, token)
+			} else {
+				session, err = sm.ValidateServiceSession(ctx, token)
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, session)
+		})
+	}
+}
+
+// TestSessionManager_JWE_Issue_Validate tests JWE session issue and validation lifecycle.
+func TestSessionManager_JWE_Issue_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		isBrowser bool
+		jweAlg    string
+	}{
+		{"Browser_DirA256GCM", true, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+		{"Browser_A256GCMKW", true, cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
+		{"Service_DirA256GCM", false, cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := setupTestDB(t)
+			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				BrowserSessionExpiration: 24 * time.Hour,
+				ServiceSessionExpiration: 7 * 24 * time.Hour,
+				SessionIdleTimeout:       2 * time.Hour,
+				SessionCleanupInterval:   time.Hour,
+			}
+
+			if tt.isBrowser {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWE)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.BrowserSessionJWEAlgorithm = tt.jweAlg
+			} else {
+				config.BrowserSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+				config.ServiceSessionAlgorithm = string(cryptoutilSharedMagic.SessionAlgorithmJWE)
+				config.ServiceSessionJWEAlgorithm = tt.jweAlg
+			}
+
+			sm := NewSessionManager(db, nil, config)
+			err := sm.Initialize(context.Background())
+			require.NoError(t, err)
+
+			ctx := context.Background()
+			userID := googleUuid.Must(googleUuid.NewV7()).String()
+			tenantID := googleUuid.Must(googleUuid.NewV7())
+			realmID := googleUuid.Must(googleUuid.NewV7())
+
+			// Issue session
+			var token string
+			if tt.isBrowser {
+				token, err = sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+			} else {
+				token, err = sm.IssueServiceSession(ctx, userID, tenantID, realmID)
+			}
+
+			require.NoError(t, err)
+			require.NotEmpty(t, token)
+
+			// Validate session
+			var session any
+			if tt.isBrowser {
+				session, err = sm.ValidateBrowserSession(ctx, token)
+			} else {
+				session, err = sm.ValidateServiceSession(ctx, token)
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, session)
+		})
+	}
+}
+
+// TestSessionManager_JWS_Validation_InvalidToken tests JWS validation error paths.
+func TestSessionManager_JWS_Validation_InvalidToken(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
+		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Test with completely invalid token
+	_, err = sm.ValidateBrowserSession(ctx, "invalid-token")
+	require.Error(t, err)
+
+	// Test with malformed JWT (wrong structure)
+	_, err = sm.ValidateBrowserSession(ctx, "eyJhbGciOiJSUzI1NiJ9.invalid.signature")
+	require.Error(t, err)
+
+	// Test with empty token
+	_, err = sm.ValidateBrowserSession(ctx, "")
+	require.Error(t, err)
+}
+
+// TestSessionManager_JWE_Validation_InvalidToken tests JWE validation error paths.
+func TestSessionManager_JWE_Validation_InvalidToken(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWE),
+		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM,
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Test with completely invalid token
+	_, err = sm.ValidateBrowserSession(ctx, "invalid-token")
+	require.Error(t, err)
+
+	// Test with empty token
+	_, err = sm.ValidateBrowserSession(ctx, "")
+	require.Error(t, err)
+}
+
+// TestSessionManager_JWS_ExpiredSession tests JWS session expiration handling.
+func TestSessionManager_JWS_ExpiredSession(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
+		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWSAlgorithm: cryptoutilSharedMagic.SessionJWSAlgorithmRS256,
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+
+	// Issue session
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+	require.NoError(t, err)
+
+	// Manually expire the session in database
+	var session cryptoutilAppsTemplateServiceServerRepository.BrowserSession
+
+	findErr := sm.db.Where("user_id = ?", userID).First(&session).Error
+	require.NoError(t, findErr)
+
+	pastTime := time.Now().UTC().Add(-1 * time.Hour)
+	updateErr := sm.db.Model(&session).Update("expiration", pastTime).Error
+	require.NoError(t, updateErr)
+
+	// Validation should fail because database session is expired
+	// (Even though JWT exp claim might still be valid, DB lookup filters by expiration > now)
+	_, validateErr := sm.ValidateBrowserSession(ctx, token)
+	require.Error(t, validateErr)
+}
+
+// TestSessionManager_JWE_ExpiredSession tests JWE session revocation handling (delete session from DB).
+func TestSessionManager_JWE_ExpiredSession(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWE),
+		ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWEAlgorithm: cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM,
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+
+	// Issue session
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+	require.NoError(t, err)
+
+	// Validate works initially
+	session, validateErr := sm.ValidateBrowserSession(ctx, token)
+	require.NoError(t, validateErr)
+	require.NotNil(t, session)
+
+	// Revoke session by deleting from database (JWE validates jti lookup)
+	deleteErr := sm.db.Where("user_id = ?", userID).Delete(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).Error
+	require.NoError(t, deleteErr)
+
+	// Validation should fail because session is revoked (not found in DB)
+	_, validateErr2 := sm.ValidateBrowserSession(ctx, token)
+	require.Error(t, validateErr2)
+}
+
+// TestSessionManager_CleanupExpiredSessions tests cleanup of expired and idle sessions.
+func TestSessionManager_CleanupExpiredSessions(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration: 24 * time.Hour,
+		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		SessionIdleTimeout:       2 * time.Hour,
+		SessionCleanupInterval:   time.Hour,
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Issue sessions
+	userID1 := googleUuid.Must(googleUuid.NewV7()).String()
+	userID2 := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+
+	token1, err := sm.IssueBrowserSession(ctx, userID1, tenantID, realmID)
+	require.NoError(t, err)
+	require.NotEmpty(t, token1)
+
+	token2, err := sm.IssueBrowserSession(ctx, userID2, tenantID, realmID)
+	require.NoError(t, err)
+	require.NotEmpty(t, token2)
+
+	// Manually expire session 1
+	expiredTime := time.Now().UTC().Add(-1 * time.Hour)
+	updateErr := sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).
+		Where("user_id = ?", userID1).
+		Update("expiration", expiredTime).
+		Error
+	require.NoError(t, updateErr)
+
+	// Run cleanup
+	cleanupErr := sm.CleanupExpiredSessions(ctx)
+	require.NoError(t, cleanupErr)
+
+	// Session 1 should be cleaned up
+	var count1 int64
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).
+		Where("user_id = ?", userID1).
+		Count(&count1)
+	require.Equal(t, int64(0), count1, "Expired session should be cleaned up")
+
+	// Session 2 should still exist
+	var count2 int64
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).
+		Where("user_id = ?", userID2).
+		Count(&count2)
+	require.Equal(t, int64(1), count2, "Non-expired session should remain")
+}
+
+// TestSessionManager_CleanupIdleSessions tests cleanup of idle sessions.
+func TestSessionManager_CleanupIdleSessions(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration: 24 * time.Hour,
+		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		SessionIdleTimeout:       2 * time.Hour,
+		SessionCleanupInterval:   time.Hour,
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Issue session
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+
+	// Set last_activity to be beyond idle timeout
+	idleTime := time.Now().UTC().Add(-3 * time.Hour) // 3 hours ago, exceeds 2 hour timeout
+	updateErr := sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).
+		Where("user_id = ?", userID).
+		Update("last_activity", idleTime).
+		Error
+	require.NoError(t, updateErr)
+
+	// Run cleanup
+	cleanupErr := sm.CleanupExpiredSessions(ctx)
+	require.NoError(t, cleanupErr)
+
+	// Session should be cleaned up due to idle timeout
+	var count int64
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).
+		Where("user_id = ?", userID).
+		Count(&count)
+	require.Equal(t, int64(0), count, "Idle session should be cleaned up")
+}
+
+// TestSessionManager_StartCleanupTask_CleansExpiredSessions tests cleanup task removes expired sessions.
+func TestSessionManager_StartCleanupTask_CleansExpiredSessions(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration: 24 * time.Hour,
+		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		SessionIdleTimeout:       2 * time.Hour,
+		SessionCleanupInterval:   100 * time.Millisecond, // Very short for testing
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Issue an expired session
+	userID := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+
+	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+
+	// Expire the session immediately
+	expiredTime := time.Now().UTC().Add(-1 * time.Hour)
+	updateErr := sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).
+		Where("user_id = ?", userID).
+		Update("expiration", expiredTime).
+		Error
+	require.NoError(t, updateErr)
+
+	// Start cleanup task in background
+	go sm.StartCleanupTask(ctx)
+
+	// Wait for at least 2 cleanup cycles
+	time.Sleep(300 * time.Millisecond)
+
+	// Cancel context to stop the task
+	cancel()
+
+	// Give task time to stop
+	time.Sleep(50 * time.Millisecond)
+
+	// Session should have been cleaned up
+	var count int64
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).
+		Where("user_id = ?", userID).
+		Count(&count)
+	require.Equal(t, int64(0), count, "Expired session should be cleaned up by background task")
+}
+
+// TestSessionManager_ServiceSession_JWS_FullCycle tests service session JWS full lifecycle.
+func TestSessionManager_ServiceSession_JWS_FullCycle(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		jwsAlg string
+	}{
+		{"RS256", cryptoutilSharedMagic.SessionJWSAlgorithmRS256},
+		{"RS384", cryptoutilSharedMagic.SessionJWSAlgorithmRS384},
+		{"RS512", cryptoutilSharedMagic.SessionJWSAlgorithmRS512},
+		{"ES256", cryptoutilSharedMagic.SessionJWSAlgorithmES256},
+		{"ES384", cryptoutilSharedMagic.SessionJWSAlgorithmES384},
+		{"ES512", cryptoutilSharedMagic.SessionJWSAlgorithmES512},
+		{"EdDSA", cryptoutilSharedMagic.SessionJWSAlgorithmEdDSA},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := setupTestDB(t)
+			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+				ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWS),
+				BrowserSessionExpiration:   24 * time.Hour,
+				ServiceSessionExpiration:   7 * 24 * time.Hour,
+				SessionIdleTimeout:         2 * time.Hour,
+				SessionCleanupInterval:     time.Hour,
+				ServiceSessionJWSAlgorithm: tt.jwsAlg,
+			}
+
+			sm := NewSessionManager(db, nil, config)
+			err := sm.Initialize(context.Background())
+			require.NoError(t, err)
+
+			ctx := context.Background()
+			clientID := googleUuid.Must(googleUuid.NewV7()).String()
+			tenantID := googleUuid.Must(googleUuid.NewV7())
+			realmID := googleUuid.Must(googleUuid.NewV7())
+
+			// Issue
+			token, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
+			require.NoError(t, err)
+			require.NotEmpty(t, token)
+
+			// Validate
+			session, err := sm.ValidateServiceSession(ctx, token)
+			require.NoError(t, err)
+			require.NotNil(t, session)
+
+			// Validate again (should update last_activity)
+			session2, err := sm.ValidateServiceSession(ctx, token)
+			require.NoError(t, err)
+			require.NotNil(t, session2)
+		})
+	}
+}
+
+// TestSessionManager_ServiceSession_JWE_FullCycle tests service session JWE full lifecycle.
+func TestSessionManager_ServiceSession_JWE_FullCycle(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		jweAlg string
+	}{
+		{"DirA256GCM", cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM},
+		{"A256GCMKW", cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			db := setupTestDB(t)
+			config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				BrowserSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+				ServiceSessionAlgorithm:    string(cryptoutilSharedMagic.SessionAlgorithmJWE),
+				BrowserSessionExpiration:   24 * time.Hour,
+				ServiceSessionExpiration:   7 * 24 * time.Hour,
+				SessionIdleTimeout:         2 * time.Hour,
+				SessionCleanupInterval:     time.Hour,
+				ServiceSessionJWEAlgorithm: tt.jweAlg,
+			}
+
+			sm := NewSessionManager(db, nil, config)
+			err := sm.Initialize(context.Background())
+			require.NoError(t, err)
+
+			ctx := context.Background()
+			clientID := googleUuid.Must(googleUuid.NewV7()).String()
+			tenantID := googleUuid.Must(googleUuid.NewV7())
+			realmID := googleUuid.Must(googleUuid.NewV7())
+
+			// Issue
+			token, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
+			require.NoError(t, err)
+			require.NotEmpty(t, token)
+
+			// Validate
+			session, err := sm.ValidateServiceSession(ctx, token)
+			require.NoError(t, err)
+			require.NotNil(t, session)
+		})
+	}
+}
+
+// TestSessionManager_CleanupServiceSessions tests cleanup of expired service sessions.
+func TestSessionManager_CleanupServiceSessions(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		ServiceSessionAlgorithm:  string(cryptoutilSharedMagic.SessionAlgorithmOPAQUE),
+		BrowserSessionExpiration: 24 * time.Hour,
+		ServiceSessionExpiration: 7 * 24 * time.Hour,
+		SessionIdleTimeout:       2 * time.Hour,
+		SessionCleanupInterval:   time.Hour,
+	}
+
+	sm := NewSessionManager(db, nil, config)
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Issue service session
+	clientID := googleUuid.Must(googleUuid.NewV7()).String()
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	realmID := googleUuid.Must(googleUuid.NewV7())
+
+	token, err := sm.IssueServiceSession(ctx, clientID, tenantID, realmID)
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
+
+	// Manually expire the session
+	expiredTime := time.Now().UTC().Add(-1 * time.Hour)
+	updateErr := sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{}).
+		Where("client_id = ?", clientID).
+		Update("expiration", expiredTime).
+		Error
+	require.NoError(t, updateErr)
+
+	// Run cleanup
+	cleanupErr := sm.CleanupExpiredSessions(ctx)
+	require.NoError(t, cleanupErr)
+
+	// Session should be cleaned up
+	var count int64
+	sm.db.Model(&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{}).
+		Where("client_id = ?", clientID).
+		Count(&count)
+	require.Equal(t, int64(0), count, "Expired service session should be cleaned up")
 }
