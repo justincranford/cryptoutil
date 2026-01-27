@@ -5,12 +5,15 @@
 package application
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
@@ -281,4 +284,167 @@ func TestHealthcheck_TimeoutExceeded(t *testing.T) {
 			require.Error(t, err)
 		})
 	}
+}
+
+// TestStartBasic_Success tests successful initialization of basic infrastructure.
+func TestStartBasic_Success(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		VerboseMode:  false,
+		OTLPService:  "template-service-test",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	basic, err := StartBasic(ctx, settings)
+	require.NoError(t, err)
+	require.NotNil(t, basic)
+
+	defer basic.Shutdown()
+
+	// Verify services initialized.
+	require.NotNil(t, basic.TelemetryService)
+	require.NotNil(t, basic.UnsealKeysService)
+	require.NotNil(t, basic.JWKGenService)
+	require.Equal(t, settings, basic.Settings)
+}
+
+// TestStartBasic_NilContext tests error when context is nil.
+func TestStartBasic_NilContext(t *testing.T) {
+	t.Parallel()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{}
+
+	basic, err := StartBasic(nil, settings)
+	require.Error(t, err)
+	require.Nil(t, basic)
+	require.Contains(t, err.Error(), "ctx cannot be nil")
+}
+
+// TestStartBasic_NilSettings tests error when settings is nil.
+func TestStartBasic_NilSettings(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	basic, err := StartBasic(ctx, nil)
+	require.Error(t, err)
+	require.Nil(t, basic)
+	require.Contains(t, err.Error(), "settings cannot be nil")
+}
+
+// TestBasicShutdown tests graceful shutdown of basic infrastructure.
+func TestBasicShutdown(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		VerboseMode:  false,
+		OTLPService:  "template-service-test",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	basic, err := StartBasic(ctx, settings)
+	require.NoError(t, err)
+	require.NotNil(t, basic)
+
+	// Shutdown should not panic.
+	require.NotPanics(t, func() {
+		basic.Shutdown()
+	})
+}
+
+// TestInitializeServicesOnCore_Success tests successful service initialization.
+func TestInitializeServicesOnCore_Success(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:                     true,
+		VerboseMode:                 false,
+		DatabaseURL:                 cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:                 "template-service-test",
+		OTLPEnabled:                 false,
+		OTLPEndpoint:                "grpc://127.0.0.1:4317",
+		LogLevel:                    "INFO",
+		BrowserSessionAlgorithm:     "JWS",
+		BrowserSessionJWSAlgorithm:  "RS256",
+		BrowserSessionJWEAlgorithm:  "RSA-OAEP",
+		BrowserSessionExpiration:    15 * time.Minute,
+		ServiceSessionAlgorithm:     "JWS",
+		ServiceSessionJWSAlgorithm:  "RS256",
+		ServiceSessionJWEAlgorithm:  "RSA-OAEP",
+		ServiceSessionExpiration:    1 * time.Hour,
+		SessionIdleTimeout:          30 * time.Minute,
+		SessionCleanupInterval:      1 * time.Hour,
+	}
+
+	// Start core with database.
+	core, err := StartCore(ctx, settings)
+	require.NoError(t, err)
+	require.NotNil(t, core)
+
+	defer core.Shutdown()
+
+	// Run migrations (required for all services).
+	err = core.DB.AutoMigrate(
+		&cryptoutilAppsTemplateServiceServerBarrier.RootKey{},
+		&cryptoutilAppsTemplateServiceServerBarrier.IntermediateKey{},
+		&cryptoutilAppsTemplateServiceServerBarrier.ContentKey{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{},
+	)
+	require.NoError(t, err)
+
+	// Initialize services on core.
+	services, err := InitializeServicesOnCore(ctx, core, settings)
+	require.NoError(t, err)
+	require.NotNil(t, services)
+
+	// Verify all services initialized.
+	require.NotNil(t, services.Repository)
+	require.NotNil(t, services.BarrierService)
+	require.NotNil(t, services.RealmRepository)
+	require.NotNil(t, services.RealmService)
+	require.NotNil(t, services.SessionManager)
+	require.NotNil(t, services.TenantRepository)
+	require.NotNil(t, services.UserRepository)
+	require.NotNil(t, services.JoinRequestRepository)
+	require.NotNil(t, services.RegistrationService)
+	require.NotNil(t, services.RotationService)
+	require.NotNil(t, services.StatusService)
+}
+
+// TestCoreShutdown tests graceful shutdown of core infrastructure.
+func TestCoreShutdown(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		VerboseMode:  false,
+		DatabaseURL:  cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:  "template-service-test",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	core, err := StartCore(ctx, settings)
+	require.NoError(t, err)
+	require.NotNil(t, core)
+
+	// Shutdown should not panic.
+	require.NotPanics(t, func() {
+		core.Shutdown()
+	})
 }
