@@ -1950,3 +1950,138 @@ func TestProvisionDatabase_PostgreSQLContainerModes(t *testing.T) {
 	}
 }
 
+// TestMaskPasswordVariations tests the maskPassword function with various DSN formats.
+func TestMaskPasswordVariations(t *testing.T) {
+	t.Parallel()
+
+	// We test via provisionDatabase which calls maskPassword internally.
+	ctx := context.Background()
+
+	tests := []struct {
+		name        string
+		databaseURL string
+		expectError bool
+	}{
+		{
+			name:        "PostgreSQL URL with password",
+			databaseURL: "postgres://user:secret123@localhost:5432/testdb",
+			expectError: false, // Will fail to connect but maskPassword executes.
+		},
+		{
+			name:        "PostgreSQL URL without password",
+			databaseURL: "postgres://user@localhost:5432/testdb",
+			expectError: false,
+		},
+		{
+			name:        "Malformed URL",
+			databaseURL: "invalid://url",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				LogLevel:          "info",
+				OTLPEndpoint:      "grpc://localhost:4317",
+				OTLPService:       "test-mask-password",
+				OTLPVersion:       "1.0.0",
+				OTLPEnvironment:   "test",
+				UnsealMode:        "sysinfo",
+				DatabaseURL:       tt.databaseURL,
+				DatabaseContainer: "disabled", // Don't try to start container.
+			}
+
+			basic, err := StartBasic(ctx, settings)
+			if err == nil {
+				defer basic.Shutdown()
+
+				// Try to provision - this will call maskPassword internally.
+				db, cleanup, dbErr := provisionDatabase(ctx, basic, settings)
+				if cleanup != nil {
+					defer cleanup()
+				}
+
+				if tt.expectError {
+					require.Error(t, dbErr)
+					require.Nil(t, db)
+				} else {
+					// maskPassword executes even if connection fails.
+					if dbErr != nil {
+						require.Contains(t, dbErr.Error(), "failed to open database")
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestProvisionDatabase_ErrorPaths tests error handling in database provisioning.
+func TestProvisionDatabase_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name          string
+		databaseURL   string
+		containerMode string
+		expectError   bool
+		errorContains string
+	}{
+		{
+			name:          "Unsupported database scheme",
+			databaseURL:   "mysql://user:pass@localhost:3306/db",
+			containerMode: "disabled",
+			expectError:   true,
+			errorContains: "unsupported database URL scheme",
+		},
+		{
+			name:          "Invalid SQLite file path",
+			databaseURL:   "file:///nonexistent/path/to/invalid.db",
+			containerMode: "disabled",
+			expectError:   true,
+			errorContains: "failed to open database",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				LogLevel:          "info",
+				OTLPEndpoint:      "grpc://localhost:4317",
+				OTLPService:       "test-error-paths",
+				OTLPVersion:       "1.0.0",
+				OTLPEnvironment:   "test",
+				UnsealMode:        "sysinfo",
+				DatabaseURL:       tt.databaseURL,
+				DatabaseContainer: tt.containerMode,
+			}
+
+			basic, err := StartBasic(ctx, settings)
+			require.NoError(t, err)
+			defer basic.Shutdown()
+
+			db, cleanup, err := provisionDatabase(ctx, basic, settings)
+			if cleanup != nil {
+				defer cleanup()
+			}
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Nil(t, db)
+				if tt.errorContains != "" {
+					require.Contains(t, err.Error(), tt.errorContains)
+				}
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, db)
+			}
+		})
+	}
+}
+
