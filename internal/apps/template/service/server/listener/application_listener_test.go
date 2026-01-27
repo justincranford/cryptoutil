@@ -28,9 +28,9 @@ func TestStartApplicationListener_NilContext(t *testing.T) {
 
 	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(),
-		DB:                             &gorm.DB{},
-		DBType:                         cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
-		PublicServerFactory:            mockPublicServerFactory,
+		DB:                            &gorm.DB{},
+		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
+		PublicServerFactory:           mockPublicServerFactory,
 	}
 
 	listener, err := cryptoutilAppsTemplateServiceServerListener.StartApplicationListener(nil, cfg) //nolint:staticcheck // Testing nil context.
@@ -60,9 +60,9 @@ func TestStartApplicationListener_NilServiceTemplateServerSettings(t *testing.T)
 	ctx := context.Background()
 	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: nil,
-		DB:                             &gorm.DB{},
-		DBType:                         cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
-		PublicServerFactory:            mockPublicServerFactory,
+		DB:                            &gorm.DB{},
+		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
+		PublicServerFactory:           mockPublicServerFactory,
 	}
 
 	listener, err := cryptoutilAppsTemplateServiceServerListener.StartApplicationListener(ctx, cfg)
@@ -79,9 +79,9 @@ func TestStartApplicationListener_NilDB(t *testing.T) {
 	ctx := context.Background()
 	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(),
-		DB:                             nil,
-		DBType:                         cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
-		PublicServerFactory:            mockPublicServerFactory,
+		DB:                            nil,
+		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
+		PublicServerFactory:           mockPublicServerFactory,
 	}
 
 	listener, err := cryptoutilAppsTemplateServiceServerListener.StartApplicationListener(ctx, cfg)
@@ -98,9 +98,9 @@ func TestStartApplicationListener_NilPublicServerFactory(t *testing.T) {
 	ctx := context.Background()
 	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(),
-		DB:                             &gorm.DB{},
-		DBType:                         cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
-		PublicServerFactory:            nil,
+		DB:                            &gorm.DB{},
+		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
+		PublicServerFactory:           nil,
 	}
 
 	listener, err := cryptoutilAppsTemplateServiceServerListener.StartApplicationListener(ctx, cfg)
@@ -118,15 +118,15 @@ func TestStartApplicationListener_ReturnsNotImplementedError(t *testing.T) {
 
 	// Use valid settings with all required fields to pass template initialization.
 	settings := cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings()
-	settings.LogLevel = "info"                       // Valid log level.
-	settings.OTLPService = "test-service"            // Ensure service name is set.
+	settings.LogLevel = "info"                      // Valid log level.
+	settings.OTLPService = "test-service"           // Ensure service name is set.
 	settings.OTLPEndpoint = "http://localhost:4318" // Valid OTLP endpoint.
 
 	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: settings,
-		DB:                             &gorm.DB{},
-		DBType:                         cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
-		PublicServerFactory:            mockPublicServerFactory,
+		DB:                            &gorm.DB{},
+		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
+		PublicServerFactory:           mockPublicServerFactory,
 	}
 
 	listener, err := cryptoutilAppsTemplateServiceServerListener.StartApplicationListener(ctx, cfg)
