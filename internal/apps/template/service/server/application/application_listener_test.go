@@ -2183,3 +2183,42 @@ func TestStartCoreWithServices_StartCoreFails(t *testing.T) {
 	require.Nil(t, coreWithSvcs)
 	require.Contains(t, err.Error(), "failed to start application core")
 }
+// TestStartCoreWithServices_InitializeServicesFails tests StartCoreWithServices when InitializeServicesOnCore fails.
+// This tests the error path where StartCore succeeds but service initialization fails.
+func TestStartCoreWithServices_InitializeServicesFails(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use temporary file database for test isolation.
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "test.db")
+	dbName := fmt.Sprintf("file://%s?mode=rwc&cache=shared", dbPath)
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:                    true,
+		VerboseMode:                false,
+		DatabaseURL:                dbName,
+		OTLPService:                "template-service-test",
+		OTLPEnabled:                false,
+		OTLPEndpoint:               "grpc://127.0.0.1:4317",
+		LogLevel:                   "INFO",
+		BrowserSessionAlgorithm:    "JWS",
+		BrowserSessionJWSAlgorithm: "RS256",
+		BrowserSessionJWEAlgorithm: "RSA-OAEP",
+		BrowserSessionExpiration:   15 * time.Minute,
+		ServiceSessionAlgorithm:    "JWS",
+		ServiceSessionJWSAlgorithm: "RS256",
+		ServiceSessionJWEAlgorithm: "RSA-OAEP",
+		ServiceSessionExpiration:   1 * time.Hour,
+		SessionIdleTimeout:         30 * time.Minute,
+		SessionCleanupInterval:     1 * time.Hour,
+	}
+
+	// StartCoreWithServices without running migrations.
+	// This will cause BarrierService initialization to fail when it queries barrier_root_keys table.
+	coreWithSvcs, err := StartCoreWithServices(ctx, settings)
+	require.Error(t, err)
+	require.Nil(t, coreWithSvcs)
+	require.Contains(t, err.Error(), "barrier service")
+}
