@@ -1,8 +1,8 @@
 # Implementation Plan - Remaining Work (V4)
 
-**Status**: Planning (111 tasks total - 68 from v3 + 43 new coverage tasks)
+**Status**: Planning (115 tasks total - 68 from v3 + 43 new coverage tasks + 4 Phase 1.5 tasks)
 **Created**: 2026-01-26
-**Last Updated**: 2026-01-26
+**Last Updated**: 2026-01-27
 **Previous Version**: docs/fixes-needed-plan-tasks-v3/ (47/115 tasks complete, 40.9%)
 
 ## Overview
@@ -18,8 +18,9 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 - ✅ Coverage analysis complete: 52.2% total (test-output/coverage-analysis/)
 - ✅ Gap identification: 15+ packages below ≥98% minimum
 - 🆕 Phases 8-12: Coverage improvement to reach ≥98% minimum (≥99% ideal) for ALL packages
+- 🆕 Phase 1.5: Template coverage gap resolution (84.2% → 95% target)
 
-**Remaining Work**: 111 tasks across 12 phases (68 legacy + 43 coverage improvement)
+**Remaining Work**: 115 tasks across 13 phases (68 legacy + 43 coverage improvement + 4 Phase 1.5)
 
 **Priority Order** (Updated per User Feedback):
 1. Service-template coverage to ≥95% (reference must be exemplary first)
@@ -65,6 +66,36 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 - Template ≥95% coverage minimum (≥98% ideal)
 - Infrastructure testing patterns documented for reuse
 - All previously 0% template packages ≥95%
+
+---
+
+### Phase 1.5: Template Coverage Gap Resolution
+
+**Objective**: Bring template from 84.2% to ≥95% coverage by addressing identified gaps
+
+**Current Status**: 84.2% production coverage (identified in Task 1.8)
+
+**Rationale**: Task 1.8 analysis revealed specific gaps preventing ≥95% target:
+1. **Dead code** in barrier package (`orm_barrier_repository.go` at 0% - 13+ unused functions)
+2. **Low coverage** in businesslogic (46-78% for session manager functions)
+3. **Low coverage** in tls_generator (75-76% for certificate generation)
+
+**Root Cause Analysis**:
+- barrier (72.6%): Contains completely unused `orm_barrier_repository.go` dragging down average
+- businesslogic (75.2%): Complex session validation paths need more tests
+- tls_generator (80.6%): Error paths in certificate generation need coverage
+
+**Tasks** (4 tasks):
+- [ ] 1.5.1: Remove or test dead code in barrier package (orm_barrier_repository.go)
+- [ ] 1.5.2: Add tests for businesslogic session manager gaps (initializeSessionJWK at 46.4%)
+- [ ] 1.5.3: Add tests for TLS generator gaps (generateTLSMaterialStatic at 75%)
+- [ ] 1.5.4: Verify template ≥95% coverage after gap resolution
+
+**Success Criteria**:
+- Template ≥95% production coverage (from 84.2%)
+- Dead code removed or tested
+- Session manager ≥90% coverage
+- TLS generator ≥85% coverage
 
 ---
 

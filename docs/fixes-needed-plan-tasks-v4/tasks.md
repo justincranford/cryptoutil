@@ -1,12 +1,14 @@
 # Tasks - Remaining Work (V4)
 
-**Status**: 7 of 111 tasks complete (6.3%)
+**Status**: 7 of 115 tasks complete (6.1%)
 **Last Updated**: 2026-01-27
 **Priority Order**: Template → Cipher-IM → JOSE-JA → Shared → Infra → KMS → Compose → Mutation CI/CD → Race Testing
 
 **Previous Version**: docs/fixes-needed-plan-tasks-v3/ (47/115 tasks complete, 40.9%)
 
 **User Feedback**: Phase ordering updated to prioritize template quality first, then services in architectural conformance order (cipher-im before JOSE-JA), KMS last to leverage validated patterns.
+
+**Note**: Phase 1.5 added to address 84.2% → 95% coverage gap identified in Task 1.8.
 
 ## Phase 1: Service-Template Coverage (HIGHEST PRIORITY)
 
@@ -270,20 +272,151 @@
 
 ### Task 1.8: Verify Template ≥95% Coverage Achieved
 
-**Status**: ⏳ NOT STARTED
+**Status**: ⚠️ BLOCKED - 84.2% achieved, below 95% target
 **Owner**: LLM Agent
 **Dependencies**: Task 1.7 complete
 **Priority**: CRITICAL
+**Actual**: 0.5h (2026-01-27)
 
 **Description**: Run coverage analysis and verify service-template achieves ≥95% coverage minimum (≥98% ideal).
 
 **Acceptance Criteria**:
-- [ ] 1.8.1: Run coverage: `go test -cover ./internal/apps/template/...`
-- [ ] 1.8.2: Verify ≥95% coverage (≥98% ideal)
-- [ ] 1.8.3: Generate HTML report for gap analysis
-- [ ] 1.8.4: Document actual coverage achieved
-- [ ] 1.8.5: Update plan.md with Phase 1 completion
-- [ ] 1.8.6: Commit: "docs(v4): Phase 1 complete - template ≥95% coverage"
+- [x] 1.8.1: Run coverage: `go test -cover ./internal/apps/template/...`
+- [ ] 1.8.2: Verify ≥95% coverage (≥98% ideal) - **BLOCKED: 84.2% achieved**
+- [x] 1.8.3: Generate HTML report for gap analysis
+- [x] 1.8.4: Document actual coverage achieved
+- [ ] 1.8.5: Update plan.md with Phase 1 completion - **DEFERRED to Phase 1.5**
+- [ ] 1.8.6: Commit: "docs(v4): Phase 1 complete - template ≥95% coverage" - **DEFERRED to Phase 1.5**
+
+**Findings - Production Coverage Analysis (84.2% total)**:
+
+| Package | Coverage | Status |
+|---------|----------|--------|
+| domain | 100.0% | ✅ |
+| service | 95.6% | ✅ |
+| realms | 95.1% | ✅ |
+| middleware | 94.9% | ⚠️ -0.1% (dead code) |
+| client | 94.8% | ⚠️ -0.2% |
+| apis | 94.2% | ⚠️ -0.8% |
+| builder | 90.8% | ⚠️ -4.2% |
+| application | 88.1% | ⚠️ -6.9% |
+| listener | 87.1% | ⚠️ -7.9% |
+| repository | 84.8% | ⚠️ -10.2% |
+| config | 84.6% | ⚠️ -10.4% (practical limit per Task 1.5) |
+| tls_generator | 80.6% | ❌ -14.4% |
+| businesslogic | 75.2% | ❌ -19.8% |
+| barrier | 72.6% | ❌ -22.4% (contains dead code) |
+
+**Root Cause Analysis**:
+
+1. **Dead Code in barrier package** - `orm_barrier_repository.go` at 0% coverage:
+   - 13+ functions completely unused (NewOrmRepository, WithTransaction, Shutdown, Context, GetRootKeyLatest, GetRootKey, AddRootKey, GetIntermediateKeyLatest, GetIntermediateKey, AddIntermediateKey, GetContentKey, AddContentKey)
+   - Only `gorm_barrier_repository.go` is used in production
+   - This alone drags barrier from ~85% to 72.6%
+
+2. **Complex integration paths** - Many uncovered functions require:
+   - PostgreSQL container (applyMigrations postgres path)
+   - Deep dependency mocking (StartCore, InitializeServicesOnCore)
+   - Error injection (crypto/rand failures, JSON marshal errors)
+
+3. **Practical limits already documented** - Tasks 1.1-1.7 each noted practical limits:
+   - application: 88.1% (deep integration paths)
+   - builder: 90.8% (PostgreSQL required for full coverage)
+   - config: 84.6% (already 2040 lines of tests)
+
+**Resolution**: See Phase 1.5 below for coverage improvement tasks
+
+**Files**:
+- test-output/coverage-analysis/template_phase1.html (generated)
+- test-output/coverage-analysis/template_prod.cov (generated)
+- docs/fixes-needed-plan-tasks-v4/tasks.md (this update)
+
+---
+
+## Phase 1.5: Template Coverage Gap Resolution
+
+**Objective**: Bring template to ≥95% coverage by addressing identified gaps
+**Status**: ⏳ NOT STARTED
+**Current**: 84.2% production coverage
+**Target**: ≥95% production coverage
+
+### Task 1.5.1: Remove or Test Dead Code in Barrier Package
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 1.8 analysis complete
+**Priority**: HIGH
+
+**Description**: Either remove unused `orm_barrier_repository.go` OR add tests for it.
+
+**Acceptance Criteria**:
+- [ ] 1.5.1.1: Analyze if orm_barrier_repository.go is intentional dead code or future feature
+- [ ] 1.5.1.2: If dead code: Remove file (recommend - not used anywhere)
+- [ ] 1.5.1.3: If future feature: Add comprehensive tests
+- [ ] 1.5.1.4: Verify barrier package coverage improves to ≥85%
+- [ ] 1.5.1.5: Commit: "refactor(template): remove/test dead barrier repository code"
+
+**Files**:
+- internal/apps/template/service/server/barrier/orm_barrier_repository.go (remove or test)
+
+---
+
+### Task 1.5.2: Add Tests for Businesslogic Session Manager Gaps
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 1.5.1 complete
+**Priority**: HIGH
+
+**Description**: Add tests for session manager functions at 46-78% coverage.
+
+**Acceptance Criteria**:
+- [ ] 1.5.2.1: Add tests for initializeSessionJWK (46.4% → ≥90%)
+- [ ] 1.5.2.2: Add tests for validateJWSSession error paths (72.7% → ≥90%)
+- [ ] 1.5.2.3: Add tests for validateJWESession error paths (74.6% → ≥90%)
+- [ ] 1.5.2.4: Verify businesslogic package coverage improves to ≥85%
+- [ ] 1.5.2.5: Commit: "test(template): add session manager edge case tests"
+
+**Files**:
+- internal/apps/template/service/server/businesslogic/session_manager_test.go (expand)
+
+---
+
+### Task 1.5.3: Add Tests for TLS Generator Gaps
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Task 1.5.2 complete
+**Priority**: MEDIUM
+
+**Description**: Add tests for TLS generator functions at 75-80% coverage.
+
+**Acceptance Criteria**:
+- [ ] 1.5.3.1: Add tests for generateTLSMaterialStatic error paths (75.0% → ≥90%)
+- [ ] 1.5.3.2: Add tests for GenerateServerCertFromCA error paths (76.6% → ≥90%)
+- [ ] 1.5.3.3: Verify tls_generator package coverage improves to ≥85%
+- [ ] 1.5.3.4: Commit: "test(template): add TLS generator error tests"
+
+**Files**:
+- internal/apps/template/service/config/tls_generator/tls_generator_test.go (expand)
+
+---
+
+### Task 1.5.4: Verify Template ≥95% Coverage After Gap Resolution
+
+**Status**: ⏳ NOT STARTED
+**Owner**: LLM Agent
+**Dependencies**: Tasks 1.5.1-1.5.3 complete
+**Priority**: CRITICAL
+
+**Description**: Re-run coverage analysis and verify ≥95% achieved after gap resolution.
+
+**Acceptance Criteria**:
+- [ ] 1.5.4.1: Run coverage: `go test -cover ./internal/apps/template/service/...`
+- [ ] 1.5.4.2: Verify ≥95% coverage achieved
+- [ ] 1.5.4.3: If still below 95%, document remaining practical limits
+- [ ] 1.5.4.4: Update plan.md with Phase 1 + Phase 1.5 completion
+- [ ] 1.5.4.5: Commit: "docs(v4): Phase 1 complete - template coverage achieved"
 
 **Files**:
 - docs/fixes-needed-plan-tasks-v4/plan.md (update)
