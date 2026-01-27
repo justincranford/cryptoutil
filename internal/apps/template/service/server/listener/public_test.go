@@ -520,3 +520,100 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	// Wait for port to be fully released.
 	time.Sleep(500 * time.Millisecond)
 }
+// TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory tests that /service/api/v1/health returns 503 during shutdown.
+// Uses app.Test() for deterministic in-memory testing without HTTPS listener.
+func TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
+
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	// Call Shutdown to set server state to shutdown.
+	err = server.Shutdown(context.Background())
+	require.NoError(t, err)
+
+	// Use app.Test() to make in-memory request after shutdown.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/service/api/v1/health", nil)
+	require.NoError(t, err)
+
+	resp, err := server.App().Test(req, -1)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
+
+	// Verify service unavailable during shutdown.
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var result map[string]any
+
+	err = json.Unmarshal(body, &result)
+	require.NoError(t, err)
+	assert.Equal(t, "shutting down", result["status"])
+}
+
+// TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory tests that /browser/api/v1/health returns 503 during shutdown.
+// Uses app.Test() for deterministic in-memory testing without HTTPS listener.
+func TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
+
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	// Call Shutdown to set server state to shutdown.
+	err = server.Shutdown(context.Background())
+	require.NoError(t, err)
+
+	// Use app.Test() to make in-memory request after shutdown.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/browser/api/v1/health", nil)
+	require.NoError(t, err)
+
+	resp, err := server.App().Test(req, -1)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+
+	defer func() {
+		require.NoError(t, resp.Body.Close())
+	}()
+
+	// Verify service unavailable during shutdown.
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var result map[string]any
+
+	err = json.Unmarshal(body, &result)
+	require.NoError(t, err)
+	assert.Equal(t, "shutting down", result["status"])
+}
+
+// TestPublicHTTPServer_Shutdown_Idempotent tests that shutdown behavior is consistent.
+// Note: Public server returns error on subsequent shutdown calls (different from admin server).
+func TestPublicHTTPServer_Shutdown_Idempotent(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PublicTLS()
+
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	// First shutdown call should succeed.
+	err = server.Shutdown(context.Background())
+	require.NoError(t, err)
+
+	// Subsequent shutdown calls should return error (server already shutdown).
+	err = server.Shutdown(context.Background())
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "already shutdown")
+}

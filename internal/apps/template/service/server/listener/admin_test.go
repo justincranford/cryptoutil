@@ -735,8 +735,7 @@ func TestAdminServer_ConcurrentRequests(t *testing.T) {
 
 // TestAdminServer_TimeoutsConfigured tests that server timeouts are properly configured.
 func TestAdminServer_TimeoutsConfigured(t *testing.T) {
-	t.Parallel()
-
+	// NOT parallel - server startup timing is unpredictable when running with other tests.
 	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
 	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
@@ -752,8 +751,19 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 		_ = server.Start(context.Background())
 	}()
 
-	// Wait for server to start.
-	time.Sleep(1 * time.Second)
+	// Wait for server to be ready with retry logic.
+	var port int
+
+	for i := 0; i < 20; i++ {
+		time.Sleep(50 * time.Millisecond)
+
+		port = server.ActualPort()
+		if port > 0 {
+			break
+		}
+	}
+
+	require.Greater(t, port, 0, "Expected dynamic port allocation")
 	server.SetReady(true)
 
 	// Create HTTP client with shorter timeout to test server's idle timeout.
@@ -767,8 +777,6 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 	}
 
 	// Make request to verify timeouts are working.
-	port := server.ActualPort()
-
 	baseURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
 	url := fmt.Sprintf("%s/admin/api/v1/readyz", baseURL)
 
@@ -804,8 +812,7 @@ func TestAdminServer_TimeoutsConfigured(t *testing.T) {
 
 // TestAdminServer_AdminBaseURL tests AdminBaseURL returns correct URL format.
 func TestAdminServer_AdminBaseURL(t *testing.T) {
-	t.Parallel()
-
+	// NOT parallel - server startup timing is unpredictable when running with other tests.
 	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
 	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
 	require.NoError(t, err)
@@ -827,7 +834,7 @@ func TestAdminServer_AdminBaseURL(t *testing.T) {
 	// Wait for server to be ready with retry logic.
 	var port int
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		time.Sleep(50 * time.Millisecond)
 
 		port = server.ActualPort()
@@ -867,4 +874,104 @@ func TestAdminServer_App(t *testing.T) {
 	// App should return the underlying fiber.App.
 	app := server.App()
 	require.NotNil(t, app, "App() should return non-nil fiber.App")
+}
+
+// TestAdminServer_Livez_DuringShutdown_InMemory tests livez returns 503 during shutdown using app.Test().
+func TestAdminServer_Livez_DuringShutdown_InMemory(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	// Trigger shutdown via context cancellation to set shutdown flag.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = server.Shutdown(shutdownCtx)
+	require.NoError(t, err)
+
+	// Use app.Test() for in-memory request (no HTTPS listener needed).
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/api/v1/livez", nil)
+	require.NoError(t, err)
+
+	resp, err := server.App().Test(req, -1) // -1 = no timeout
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// During shutdown, livez should return 503.
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var result map[string]any
+
+	err = json.Unmarshal(body, &result)
+	require.NoError(t, err)
+	assert.Equal(t, "shutting down", result["status"])
+}
+
+// TestAdminServer_Readyz_DuringShutdown_InMemory tests readyz returns 503 during shutdown using app.Test().
+func TestAdminServer_Readyz_DuringShutdown_InMemory(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	// Mark ready first.
+	server.SetReady(true)
+
+	// Trigger shutdown.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = server.Shutdown(shutdownCtx)
+	require.NoError(t, err)
+
+	// Use app.Test() for in-memory request.
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/admin/api/v1/readyz", nil)
+	require.NoError(t, err)
+
+	resp, err := server.App().Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	// During shutdown, readyz should return 503.
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var result map[string]any
+
+	err = json.Unmarshal(body, &result)
+	require.NoError(t, err)
+	assert.Equal(t, "shutting down", result["status"])
+}
+
+// TestAdminServer_Shutdown_Idempotent tests multiple shutdown calls are safe.
+func TestAdminServer_Shutdown_Idempotent(t *testing.T) {
+	t.Parallel()
+
+	tlsCfg := cryptoutilAppsTemplateServiceServerTestutil.PrivateTLS()
+	server, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg)
+	require.NoError(t, err)
+
+	// Call shutdown multiple times - should not panic or error.
+	ctx := context.Background()
+
+	err = server.Shutdown(ctx)
+	require.NoError(t, err)
+
+	// Second call should also succeed (idempotent).
+	err = server.Shutdown(ctx)
+	require.NoError(t, err)
+
+	// Third call with nil context should also succeed.
+	err = server.Shutdown(nil) //nolint:staticcheck // Testing nil context handling in Shutdown.
+	require.NoError(t, err)
 }

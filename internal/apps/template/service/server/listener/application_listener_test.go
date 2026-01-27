@@ -18,6 +18,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test constants for OTLP configuration.
+const (
+	testLogLevel     = "info"
+	testOTLPService  = "test-service"
+	testOTLPEndpoint = "http://localhost:4318"
+)
+
 // ===========================
 // StartApplicationListener Tests
 // ===========================
@@ -118,9 +125,9 @@ func TestStartApplicationListener_ReturnsNotImplementedError(t *testing.T) {
 
 	// Use valid settings with all required fields to pass template initialization.
 	settings := cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings()
-	settings.LogLevel = "info"                      // Valid log level.
-	settings.OTLPService = "test-service"           // Ensure service name is set.
-	settings.OTLPEndpoint = "http://localhost:4318" // Valid OTLP endpoint.
+	settings.LogLevel = testLogLevel          // Valid log level.
+	settings.OTLPService = testOTLPService    // Ensure service name is set.
+	settings.OTLPEndpoint = testOTLPEndpoint  // Valid OTLP endpoint.
 
 	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: settings,
@@ -178,6 +185,41 @@ func TestApplicationListener_Shutdown_NoApp(t *testing.T) {
 	listener := &cryptoutilAppsTemplateServiceServerListener.ApplicationListener{}
 
 	// Shutdown should not panic with nil app.
+	require.NotPanics(t, func() {
+		listener.Shutdown()
+	})
+}
+
+// TestApplicationListener_Shutdown_WithShutdownFunc tests shutdown when shutdownFunc is set.
+// Uses StartApplicationListener which sets up the shutdownFunc internally.
+func TestApplicationListener_Shutdown_WithShutdownFunc(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use valid settings with all required fields to pass template initialization.
+	settings := cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings()
+	settings.LogLevel = testLogLevel
+	settings.OTLPService = testOTLPService
+	settings.OTLPEndpoint = testOTLPEndpoint
+
+	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
+		ServiceTemplateServerSettings: settings,
+		DB:                            &gorm.DB{},
+		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
+		PublicServerFactory:           mockPublicServerFactory,
+	}
+
+	listener, err := cryptoutilAppsTemplateServiceServerListener.StartApplicationListener(ctx, cfg)
+	require.Error(t, err) // Expected: "implementation in progress".
+	require.NotNil(t, listener)
+
+	// Shutdown should call the internal shutdownFunc (covers shutdownFunc != nil branch).
+	require.NotPanics(t, func() {
+		listener.Shutdown()
+	})
+
+	// Second shutdown call should also be safe (idempotent).
 	require.NotPanics(t, func() {
 		listener.Shutdown()
 	})
