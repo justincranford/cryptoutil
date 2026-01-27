@@ -2,7 +2,7 @@
 
 **Status**: Planning (111 tasks total - 68 from v3 + 43 new coverage tasks)
 **Created**: 2026-01-26
-**Last Updated**: 2026-01-27
+**Last Updated**: 2026-01-26
 **Previous Version**: docs/fixes-needed-plan-tasks-v3/ (47/115 tasks complete, 40.9%)
 
 ## Overview
@@ -255,7 +255,7 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 ---
 
-### Phase 7: KMS Modernization (LAST - Leverages Validated Template)
+### Phase 6: KMS Modernization (LAST - Leverages Validated Template)
 
 **Objective**: Migrate KMS to service-template pattern (largest duplication elimination)
 
@@ -268,7 +268,7 @@ This plan contains the **remaining incomplete work** from v3 PLUS **new coverage
 
 **Benefits of Last**: Learns from cipher-im + JOSE-JA migrations, leverages stable template, confidence in patterns
 
-**Dependencies**: Phases 1-6 complete (validated template + compose infrastructure)
+**Dependencies**: Phases 1-7 complete (validated template + compose infrastructure)
 
 **Tasks** (40+ tasks - TBD based on lessons from Phases 1-6):
 - [ ] 7.1-7.N: Database migration (raw database/sql → GORM via ServerBuilder)
