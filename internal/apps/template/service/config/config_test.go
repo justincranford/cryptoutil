@@ -774,7 +774,7 @@ log-level: INFO
 bind-public-port: 8080
 browser-ip-rate-limit: 100
 `
-	err := os.WriteFile(configFile1, []byte(config1Content), 0o644)
+	err := os.WriteFile(configFile1, []byte(config1Content), 0o600)
 	require.NoError(t, err)
 
 	// Write second config file (overrides).
@@ -783,7 +783,7 @@ log-level: DEBUG
 bind-public-port: 9080
 service-rate-limit: 200
 `
-	err = os.WriteFile(configFile2, []byte(config2Content), 0o644)
+	err = os.WriteFile(configFile2, []byte(config2Content), 0o600)
 	require.NoError(t, err)
 
 	// Parse with multiple config files (second should override first).
@@ -883,6 +883,7 @@ func TestParse_BooleanEnvironmentVariableBinding(t *testing.T) {
 	// Verify that flag overrides environment variable (precedence test)
 	resetFlags()
 	t.Setenv("CRYPTOUTIL_DEV", "true")
+
 	commandParameters = []string{"start", "--dev=false"}
 	s, err = Parse(commandParameters, true)
 	require.NoError(t, err)

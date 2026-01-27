@@ -192,3 +192,327 @@ func TestValidateConfiguration_PortEdgeCases(t *testing.T) {
 		})
 	}
 }
+
+// TestValidateConfiguration_InvalidProtocol tests that invalid protocol is rejected.
+func TestValidateConfiguration_InvalidProtocol(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		publicProtocol   string
+		privateProtocol  string
+		wantErrorMessage string
+	}{
+		{
+			name:             "invalid public protocol",
+			publicProtocol:   "ftp",
+			privateProtocol:  "https",
+			wantErrorMessage: "invalid public protocol 'ftp'",
+		},
+		{
+			name:             "invalid private protocol",
+			publicProtocol:   "https",
+			privateProtocol:  "ftp",
+			wantErrorMessage: "invalid private protocol 'ftp'",
+		},
+		{
+			name:             "http protocol is valid",
+			publicProtocol:   "http",
+			privateProtocol:  "http",
+			wantErrorMessage: "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &ServiceTemplateServerSettings{
+				DevMode:             false,
+				BindPublicAddress:   "127.0.0.1",
+				BindPublicPort:      8080,
+				BindPrivateAddress:  "127.0.0.1",
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  tc.publicProtocol,
+				BindPrivateProtocol: tc.privateProtocol,
+				LogLevel:            "INFO",
+				DatabaseURL:         "sqlite://file::memory:",
+				TLSPublicDNSNames:   []string{"localhost"},
+				TLSPrivateDNSNames:  []string{"localhost"},
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+				OTLPEndpoint:        "http://localhost:4317",
+			}
+
+			err := validateConfiguration(s)
+
+			if tc.wantErrorMessage != "" {
+				require.Error(t, err, "Test case %s should fail", tc.name)
+				require.Contains(t, err.Error(), tc.wantErrorMessage)
+			} else {
+				require.NoError(t, err, "Test case %s should pass", tc.name)
+			}
+		})
+	}
+}
+
+// TestValidateConfiguration_InvalidLogLevel tests that invalid log level is rejected.
+func TestValidateConfiguration_InvalidLogLevel(t *testing.T) {
+	t.Parallel()
+
+	s := &ServiceTemplateServerSettings{
+		DevMode:             false,
+		BindPublicAddress:   "127.0.0.1",
+		BindPublicPort:      8080,
+		BindPrivateAddress:  "127.0.0.1",
+		BindPrivatePort:     9090,
+		BindPublicProtocol:  "https",
+		BindPrivateProtocol: "https",
+		LogLevel:            "INVALID_LEVEL",
+		DatabaseURL:         "sqlite://file::memory:",
+		TLSPublicDNSNames:   []string{"localhost"},
+		TLSPrivateDNSNames:  []string{"localhost"},
+		BrowserIPRateLimit:  100,
+		ServiceIPRateLimit:  100,
+		OTLPEndpoint:        "http://localhost:4317",
+	}
+
+	err := validateConfiguration(s)
+	require.Error(t, err, "Should reject invalid log level")
+	require.Contains(t, err.Error(), "invalid log level 'INVALID_LEVEL'")
+}
+
+// TestValidateConfiguration_RateLimitEdgeCases tests rate limit validation.
+func TestValidateConfiguration_RateLimitEdgeCases(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name              string
+		browserRateLimit  uint16
+		serviceRateLimit  uint16
+		wantErrorMessage  string
+		wantWarning       bool
+	}{
+		{
+			name:             "zero browser rate limit rejected",
+			browserRateLimit: 0,
+			serviceRateLimit: 100,
+			wantErrorMessage: "browser rate limit cannot be 0",
+		},
+		{
+			name:             "zero service rate limit rejected",
+			browserRateLimit: 100,
+			serviceRateLimit: 0,
+			wantErrorMessage: "service rate limit cannot be 0",
+		},
+		{
+			name:             "very high browser rate limit warning",
+			browserRateLimit: 65000, // Above MaxIPRateLimit
+			serviceRateLimit: 100,
+			wantErrorMessage: "browser rate limit 65000 is very high",
+		},
+		{
+			name:             "very high service rate limit warning",
+			browserRateLimit: 100,
+			serviceRateLimit: 65000, // Above MaxIPRateLimit
+			wantErrorMessage: "service rate limit 65000 is very high",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &ServiceTemplateServerSettings{
+				DevMode:             false,
+				BindPublicAddress:   "127.0.0.1",
+				BindPublicPort:      8080,
+				BindPrivateAddress:  "127.0.0.1",
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				LogLevel:            "INFO",
+				DatabaseURL:         "sqlite://file::memory:",
+				TLSPublicDNSNames:   []string{"localhost"},
+				TLSPrivateDNSNames:  []string{"localhost"},
+				BrowserIPRateLimit:  tc.browserRateLimit,
+				ServiceIPRateLimit:  tc.serviceRateLimit,
+				OTLPEndpoint:        "http://localhost:4317",
+			}
+
+			err := validateConfiguration(s)
+
+			if tc.wantErrorMessage != "" {
+				require.Error(t, err, "Test case %s should fail", tc.name)
+				require.Contains(t, err.Error(), tc.wantErrorMessage)
+			} else {
+				require.NoError(t, err, "Test case %s should pass", tc.name)
+			}
+		})
+	}
+}
+
+// TestValidateConfiguration_InvalidCORSOrigin tests that invalid CORS origin format is rejected.
+func TestValidateConfiguration_InvalidCORSOrigin(t *testing.T) {
+	t.Parallel()
+
+	s := &ServiceTemplateServerSettings{
+		DevMode:             false,
+		BindPublicAddress:   "127.0.0.1",
+		BindPublicPort:      8080,
+		BindPrivateAddress:  "127.0.0.1",
+		BindPrivatePort:     9090,
+		BindPublicProtocol:  "https",
+		BindPrivateProtocol: "https",
+		LogLevel:            "INFO",
+		DatabaseURL:         "sqlite://file::memory:",
+		TLSPublicDNSNames:   []string{"localhost"},
+		TLSPrivateDNSNames:  []string{"localhost"},
+		BrowserIPRateLimit:  100,
+		ServiceIPRateLimit:  100,
+		OTLPEndpoint:        "http://localhost:4317",
+		CORSAllowedOrigins:  []string{"invalid-origin-no-scheme"},
+	}
+
+	err := validateConfiguration(s)
+	require.Error(t, err, "Should reject invalid CORS origin format")
+	require.Contains(t, err.Error(), "invalid CORS origin format")
+}
+
+// TestValidateConfiguration_InvalidOTLPEndpoint tests that invalid OTLP endpoint format is rejected.
+func TestValidateConfiguration_InvalidOTLPEndpoint(t *testing.T) {
+	t.Parallel()
+
+	s := &ServiceTemplateServerSettings{
+		DevMode:             false,
+		BindPublicAddress:   "127.0.0.1",
+		BindPublicPort:      8080,
+		BindPrivateAddress:  "127.0.0.1",
+		BindPrivatePort:     9090,
+		BindPublicProtocol:  "https",
+		BindPrivateProtocol: "https",
+		LogLevel:            "INFO",
+		DatabaseURL:         "sqlite://file::memory:",
+		TLSPublicDNSNames:   []string{"localhost"},
+		TLSPrivateDNSNames:  []string{"localhost"},
+		BrowserIPRateLimit:  100,
+		ServiceIPRateLimit:  100,
+		OTLPEnabled:         true,
+		OTLPEndpoint:        "invalid-endpoint-no-scheme",
+	}
+
+	err := validateConfiguration(s)
+	require.Error(t, err, "Should reject invalid OTLP endpoint format")
+	require.Contains(t, err.Error(), "invalid OTLP endpoint format")
+}
+
+// TestValidateConfiguration_BlankAddresses tests blank address validation.
+func TestValidateConfiguration_BlankAddresses(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		publicAddress    string
+		privateAddress   string
+		wantErrorMessage string
+	}{
+		{
+			name:             "blank public address",
+			publicAddress:    "",
+			privateAddress:   "127.0.0.1",
+			wantErrorMessage: "bind public address cannot be blank",
+		},
+		{
+			name:             "blank private address",
+			publicAddress:    "127.0.0.1",
+			privateAddress:   "",
+			wantErrorMessage: "bind private address cannot be blank",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &ServiceTemplateServerSettings{
+				DevMode:             false,
+				BindPublicAddress:   tc.publicAddress,
+				BindPublicPort:      8080,
+				BindPrivateAddress:  tc.privateAddress,
+				BindPrivatePort:     9090,
+				BindPublicProtocol:  "https",
+				BindPrivateProtocol: "https",
+				LogLevel:            "INFO",
+				DatabaseURL:         "sqlite://file::memory:",
+				TLSPublicDNSNames:   []string{"localhost"},
+				TLSPrivateDNSNames:  []string{"localhost"},
+				BrowserIPRateLimit:  100,
+				ServiceIPRateLimit:  100,
+			}
+
+			err := validateConfiguration(s)
+			require.Error(t, err, "Test case %s should fail", tc.name)
+			require.Contains(t, err.Error(), tc.wantErrorMessage)
+		})
+	}
+}
+
+// TestValidateConfiguration_HTTPSWithoutTLSConfig tests HTTPS protocol validation.
+func TestValidateConfiguration_HTTPSWithoutTLSConfig(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name             string
+		publicProtocol   string
+		privateProtocol  string
+		publicDNS        []string
+		privateDNS       []string
+		wantErrorMessage string
+	}{
+		{
+			name:             "HTTPS public without TLS config",
+			publicProtocol:   "https",
+			privateProtocol:  "http",
+			publicDNS:        nil,
+			privateDNS:       []string{"localhost"},
+			wantErrorMessage: "HTTPS public protocol requires TLS DNS names or IP addresses",
+		},
+		{
+			name:             "HTTPS private without TLS config",
+			publicProtocol:   "http",
+			privateProtocol:  "https",
+			publicDNS:        []string{"localhost"},
+			privateDNS:       nil,
+			wantErrorMessage: "HTTPS private protocol requires TLS DNS names or IP addresses",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			s := &ServiceTemplateServerSettings{
+				DevMode:                false,
+				BindPublicAddress:      "127.0.0.1",
+				BindPublicPort:         8080,
+				BindPrivateAddress:     "127.0.0.1",
+				BindPrivatePort:        9090,
+				BindPublicProtocol:     tc.publicProtocol,
+				BindPrivateProtocol:    tc.privateProtocol,
+				LogLevel:               "INFO",
+				DatabaseURL:            "sqlite://file::memory:",
+				TLSPublicDNSNames:      tc.publicDNS,
+				TLSPrivateDNSNames:     tc.privateDNS,
+				TLSPublicIPAddresses:   nil,
+				TLSPrivateIPAddresses:  nil,
+				BrowserIPRateLimit:     100,
+				ServiceIPRateLimit:     100,
+				OTLPEndpoint:           "http://localhost:4317",
+			}
+
+			err := validateConfiguration(s)
+			require.Error(t, err, "Test case %s should fail", tc.name)
+			require.Contains(t, err.Error(), tc.wantErrorMessage)
+		})
+	}
+}

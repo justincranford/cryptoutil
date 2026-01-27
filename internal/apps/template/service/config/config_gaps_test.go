@@ -73,7 +73,9 @@ func TestRegisterAsBoolSetting_WrongType(t *testing.T) {
 	defer func() {
 		r := recover()
 		require.NotNil(t, r, "expected panic when value is not bool")
-		require.Contains(t, r.(string), "value is not bool")
+		panicMsg, ok := r.(string)
+		require.True(t, ok, "panic value should be a string")
+		require.Contains(t, panicMsg, "value is not bool")
 	}()
 
 	setting := Setting{Name: "test-setting", Value: "not-a-bool"}
@@ -87,7 +89,9 @@ func TestRegisterAsStringSetting_WrongType(t *testing.T) {
 	defer func() {
 		r := recover()
 		require.NotNil(t, r, "expected panic when value is not string")
-		require.Contains(t, r.(string), "value is not string")
+		panicMsg, ok := r.(string)
+		require.True(t, ok, "panic value should be a string")
+		require.Contains(t, panicMsg, "value is not string")
 	}()
 
 	setting := Setting{Name: "test-setting", Value: 123}
@@ -101,7 +105,9 @@ func TestRegisterAsUint16Setting_WrongType(t *testing.T) {
 	defer func() {
 		r := recover()
 		require.NotNil(t, r, "expected panic when value is not uint16")
-		require.Contains(t, r.(string), "value is not uint16")
+		panicMsg, ok := r.(string)
+		require.True(t, ok, "panic value should be a string")
+		require.Contains(t, panicMsg, "value is not uint16")
 	}()
 
 	setting := Setting{Name: "test-setting", Value: "not-a-uint16"}
@@ -115,7 +121,9 @@ func TestRegisterAsStringSliceSetting_WrongType(t *testing.T) {
 	defer func() {
 		r := recover()
 		require.NotNil(t, r, "expected panic when value is not []string")
-		require.Contains(t, r.(string), "value is not []string")
+		panicMsg, ok := r.(string)
+		require.True(t, ok, "panic value should be a string")
+		require.Contains(t, panicMsg, "value is not []string")
 	}()
 
 	setting := Setting{Name: "test-setting", Value: "not-a-slice"}
@@ -129,7 +137,9 @@ func TestRegisterAsStringArraySetting_WrongType(t *testing.T) {
 	defer func() {
 		r := recover()
 		require.NotNil(t, r, "expected panic when value is not []string")
-		require.Contains(t, r.(string), "value is not []string")
+		panicMsg, ok := r.(string)
+		require.True(t, ok, "panic value should be a string")
+		require.Contains(t, panicMsg, "value is not []string")
 	}()
 
 	setting := Setting{Name: "test-setting", Value: 123}
@@ -143,7 +153,9 @@ func TestRegisterAsDurationSetting_WrongType(t *testing.T) {
 	defer func() {
 		r := recover()
 		require.NotNil(t, r, "expected panic when value is not time.Duration")
-		require.Contains(t, r.(string), "value is not time.Duration")
+		panicMsg, ok := r.(string)
+		require.True(t, ok, "panic value should be a string")
+		require.Contains(t, panicMsg, "value is not time.Duration")
 	}()
 
 	setting := Setting{Name: "test-setting", Value: "not-a-duration"}
@@ -157,7 +169,9 @@ func TestRegisterAsIntSetting_WrongType(t *testing.T) {
 	defer func() {
 		r := recover()
 		require.NotNil(t, r, "expected panic when value is not int")
-		require.Contains(t, r.(string), "value is not int")
+		panicMsg, ok := r.(string)
+		require.True(t, ok, "panic value should be a string")
+		require.Contains(t, panicMsg, "value is not int")
 	}()
 
 	setting := Setting{Name: "test-setting", Value: "not-an-int"}
@@ -169,6 +183,7 @@ func TestGetTLSPEMBytes_Base64DecodeError(t *testing.T) {
 	t.Parallel()
 
 	viper.Set("test-invalid-base64", "!!!invalid-base64!!!")
+
 	defer viper.Reset()
 
 	result := getTLSPEMBytes("test-invalid-base64")
@@ -178,6 +193,7 @@ func TestGetTLSPEMBytes_Base64DecodeError(t *testing.T) {
 // TestGetTLSPEMBytes_EmptyString tests getTLSPEMBytes with empty string.
 func TestGetTLSPEMBytes_EmptyString(t *testing.T) {
 	viper.Set("test-empty-string", "")
+
 	defer viper.Reset()
 
 	result := getTLSPEMBytes("test-empty-string")
@@ -188,6 +204,7 @@ func TestGetTLSPEMBytes_EmptyString(t *testing.T) {
 func TestGetTLSPEMBytes_ByteSliceValue(t *testing.T) {
 	expected := []byte("test-bytes")
 	viper.Set("test-byte-slice", expected)
+
 	defer viper.Reset()
 
 	result := getTLSPEMBytes("test-byte-slice")
@@ -199,6 +216,7 @@ func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
 	original := []byte("test-pem-content")
 	encoded := base64.StdEncoding.EncodeToString(original)
 	viper.Set("test-valid-base64", encoded)
+
 	defer viper.Reset()
 
 	result := getTLSPEMBytes("test-valid-base64")

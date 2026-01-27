@@ -21,16 +21,27 @@ import (
 // correctly map to PascalCase struct fields (DevMode, BindPublicAddress).
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_KebabCase(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
+	// which causes race conditions with other parallel tests
 	yamlContent := `
 dev: true
+bind-public-protocol: https
 bind-public-address: 127.0.0.1
 bind-public-port: 8080
+bind-private-protocol: https
 bind-private-address: 127.0.0.1
 bind-private-port: 9090
 browser-rate-limit: 100
 service-rate-limit: 25
+log-level: INFO
+tls-public-dns-names:
+  - localhost
+tls-public-ip-addresses:
+  - 127.0.0.1
+tls-private-dns-names:
+  - localhost
+tls-private-ip-addresses:
+  - 127.0.0.1
 `
 
 	tmpDir := t.TempDir()
@@ -115,14 +126,27 @@ bind-private-port: 6666
 // TestYAMLFieldMapping_FalseBooleans tests that false boolean values are correctly parsed.
 // Priority: P1.3 (Critical - Must Have).
 func TestYAMLFieldMapping_FalseBooleans(t *testing.T) {
-	t.Parallel()
-
+	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
+	// which causes race conditions with other parallel tests
 	yamlContent := `
 dev: false
+bind-public-protocol: https
 bind-public-address: 0.0.0.0
 bind-public-port: 8080
+bind-private-protocol: https
 bind-private-address: 127.0.0.1
 bind-private-port: 9090
+browser-rate-limit: 100
+service-rate-limit: 25
+log-level: INFO
+tls-public-dns-names:
+  - localhost
+tls-public-ip-addresses:
+  - 127.0.0.1
+tls-private-dns-names:
+  - localhost
+tls-private-ip-addresses:
+  - 127.0.0.1
 `
 
 	tmpDir := t.TempDir()
