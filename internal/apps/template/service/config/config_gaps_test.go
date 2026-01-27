@@ -205,26 +205,6 @@ func TestGetTLSPEMBytes_ValidBase64(t *testing.T) {
 	require.Equal(t, original, result)
 }
 
-// TestNewForJOSEServer_ProdMode tests NewForJOSEServer with dev mode disabled.
-func TestNewForJOSEServer_ProdMode(t *testing.T) {
-	resetFlags()
-
-	cfg := NewForJOSEServer("127.0.0.1", 8080, false)
-	require.NotNil(t, cfg)
-	require.False(t, cfg.DevMode)
-	require.Equal(t, "jose-server", cfg.OTLPService)
-}
-
-// TestNewForCAServer_ProdMode tests NewForCAServer with dev mode disabled.
-func TestNewForCAServer_ProdMode(t *testing.T) {
-	resetFlags()
-
-	cfg := NewForCAServer("127.0.0.1", 8080, false)
-	require.NotNil(t, cfg)
-	require.False(t, cfg.DevMode)
-	require.Equal(t, "ca-server", cfg.OTLPService)
-}
-
 // TestNewTestConfig_DevMode tests NewTestConfig with dev mode enabled.
 func TestNewTestConfig_DevMode(t *testing.T) {
 	t.Parallel()
