@@ -479,30 +479,30 @@ func TestInitializeServicesOnCore_Success(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	// Use unique temporary file database to avoid shared state pollution.
 	tmpDir := t.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
 	dbName := fmt.Sprintf("file://%s?mode=rwc&cache=shared", dbPath)
-	
+
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
-		DevMode:                     true,
-		VerboseMode:                 false,
-		DatabaseURL:                 dbName,
-		OTLPService:                 "template-service-test",
-		OTLPEnabled:                 false,
-		OTLPEndpoint:                "grpc://127.0.0.1:4317",
-		LogLevel:                    "INFO",
-		BrowserSessionAlgorithm:     "JWS",
-		BrowserSessionJWSAlgorithm:  "RS256",
-		BrowserSessionJWEAlgorithm:  "RSA-OAEP",
-		BrowserSessionExpiration:    15 * time.Minute,
-		ServiceSessionAlgorithm:     "JWS",
-		ServiceSessionJWSAlgorithm:  "RS256",
-		ServiceSessionJWEAlgorithm:  "RSA-OAEP",
-		ServiceSessionExpiration:    1 * time.Hour,
-		SessionIdleTimeout:          30 * time.Minute,
-		SessionCleanupInterval:      1 * time.Hour,
+		DevMode:                    true,
+		VerboseMode:                false,
+		DatabaseURL:                dbName,
+		OTLPService:                "template-service-test",
+		OTLPEnabled:                false,
+		OTLPEndpoint:               "grpc://127.0.0.1:4317",
+		LogLevel:                   "INFO",
+		BrowserSessionAlgorithm:    "JWS",
+		BrowserSessionJWSAlgorithm: "RS256",
+		BrowserSessionJWEAlgorithm: "RSA-OAEP",
+		BrowserSessionExpiration:   15 * time.Minute,
+		ServiceSessionAlgorithm:    "JWS",
+		ServiceSessionJWSAlgorithm: "RS256",
+		ServiceSessionJWEAlgorithm: "RSA-OAEP",
+		ServiceSessionExpiration:   1 * time.Hour,
+		SessionIdleTimeout:         30 * time.Minute,
+		SessionCleanupInterval:     1 * time.Hour,
 	}
 
 	// Start core with database.
@@ -1708,13 +1708,13 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 			t.Parallel()
 
 			settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
-				LogLevel:         "info",
-				OTLPEndpoint:     "grpc://localhost:4317",
-				OTLPService:      "test-service",
-				OTLPVersion:      "1.0.0",
-				OTLPEnvironment:  "test",
-				UnsealMode:       "sysinfo",
-				DatabaseURL:      tt.databaseURL,
+				LogLevel:          "info",
+				OTLPEndpoint:      "grpc://localhost:4317",
+				OTLPService:       "test-service",
+				OTLPVersion:       "1.0.0",
+				OTLPEnvironment:   "test",
+				UnsealMode:        "sysinfo",
+				DatabaseURL:       tt.databaseURL,
 				DatabaseContainer: "disabled",
 			}
 
@@ -2194,23 +2194,23 @@ func TestStartCoreWithServices_Success(t *testing.T) {
 	ctx := context.Background()
 
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
-		DevMode:                  true,
-		VerboseMode:              false,
-		DatabaseURL:              cryptoutilSharedMagic.SQLiteInMemoryDSN,
-		OTLPService:              "template-test-cws",
-		OTLPEnabled:              false,
-		OTLPEndpoint:             "grpc://127.0.0.1:4317",
-		LogLevel:                 "INFO",
-		BrowserSessionAlgorithm:  "JWS",
+		DevMode:                    true,
+		VerboseMode:                false,
+		DatabaseURL:                cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		OTLPService:                "template-test-cws",
+		OTLPEnabled:                false,
+		OTLPEndpoint:               "grpc://127.0.0.1:4317",
+		LogLevel:                   "INFO",
+		BrowserSessionAlgorithm:    "JWS",
 		BrowserSessionJWSAlgorithm: "RS256",
 		BrowserSessionJWEAlgorithm: "RSA-OAEP",
-		BrowserSessionExpiration: 15 * time.Minute,
-		ServiceSessionAlgorithm:  "JWS",
+		BrowserSessionExpiration:   15 * time.Minute,
+		ServiceSessionAlgorithm:    "JWS",
 		ServiceSessionJWSAlgorithm: "RS256",
 		ServiceSessionJWEAlgorithm: "RSA-OAEP",
-		ServiceSessionExpiration: 1 * time.Hour,
-		SessionIdleTimeout:       30 * time.Minute,
-		SessionCleanupInterval:   1 * time.Hour,
+		ServiceSessionExpiration:   1 * time.Hour,
+		SessionIdleTimeout:         30 * time.Minute,
+		SessionCleanupInterval:     1 * time.Hour,
 	}
 
 	// FIRST create just Core to get DB.
@@ -2258,6 +2258,7 @@ func TestStartCoreWithServices_StartCoreFails(t *testing.T) {
 	require.Nil(t, coreWithSvcs)
 	require.Contains(t, err.Error(), "failed to start application core")
 }
+
 // TestStartCoreWithServices_InitializeServicesFails tests StartCoreWithServices when InitializeServicesOnCore fails.
 // This tests the error path where StartCore succeeds but service initialization fails.
 func TestStartCoreWithServices_InitializeServicesFails(t *testing.T) {

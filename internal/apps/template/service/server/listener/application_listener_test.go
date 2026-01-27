@@ -125,9 +125,9 @@ func TestStartApplicationListener_ReturnsNotImplementedError(t *testing.T) {
 
 	// Use valid settings with all required fields to pass template initialization.
 	settings := cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings()
-	settings.LogLevel = testLogLevel          // Valid log level.
-	settings.OTLPService = testOTLPService    // Ensure service name is set.
-	settings.OTLPEndpoint = testOTLPEndpoint  // Valid OTLP endpoint.
+	settings.LogLevel = testLogLevel         // Valid log level.
+	settings.OTLPService = testOTLPService   // Ensure service name is set.
+	settings.OTLPEndpoint = testOTLPEndpoint // Valid OTLP endpoint.
 
 	cfg := &cryptoutilAppsTemplateServiceServerListener.ApplicationConfig{
 		ServiceTemplateServerSettings: settings,

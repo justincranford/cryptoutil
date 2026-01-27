@@ -254,6 +254,7 @@ func (s *PublicHTTPServer) PublicBaseURL() string {
 
 	return fmt.Sprintf("%s://%s:%d", s.settings.BindPublicProtocol, s.settings.BindPublicAddress, s.actualPort)
 }
+
 // App returns the underlying fiber.App for in-memory testing.
 // This allows tests to use app.Test() without starting an HTTPS listener.
 func (s *PublicHTTPServer) App() *fiber.App {

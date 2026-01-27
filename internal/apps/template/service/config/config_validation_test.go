@@ -287,11 +287,11 @@ func TestValidateConfiguration_RateLimitEdgeCases(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name              string
-		browserRateLimit  uint16
-		serviceRateLimit  uint16
-		wantErrorMessage  string
-		wantWarning       bool
+		name             string
+		browserRateLimit uint16
+		serviceRateLimit uint16
+		wantErrorMessage string
+		wantWarning      bool
 	}{
 		{
 			name:             "zero browser rate limit rejected",
@@ -492,22 +492,22 @@ func TestValidateConfiguration_HTTPSWithoutTLSConfig(t *testing.T) {
 			t.Parallel()
 
 			s := &ServiceTemplateServerSettings{
-				DevMode:                false,
-				BindPublicAddress:      "127.0.0.1",
-				BindPublicPort:         8080,
-				BindPrivateAddress:     "127.0.0.1",
-				BindPrivatePort:        9090,
-				BindPublicProtocol:     tc.publicProtocol,
-				BindPrivateProtocol:    tc.privateProtocol,
-				LogLevel:               "INFO",
-				DatabaseURL:            "sqlite://file::memory:",
-				TLSPublicDNSNames:      tc.publicDNS,
-				TLSPrivateDNSNames:     tc.privateDNS,
-				TLSPublicIPAddresses:   nil,
-				TLSPrivateIPAddresses:  nil,
-				BrowserIPRateLimit:     100,
-				ServiceIPRateLimit:     100,
-				OTLPEndpoint:           "http://localhost:4317",
+				DevMode:               false,
+				BindPublicAddress:     "127.0.0.1",
+				BindPublicPort:        8080,
+				BindPrivateAddress:    "127.0.0.1",
+				BindPrivatePort:       9090,
+				BindPublicProtocol:    tc.publicProtocol,
+				BindPrivateProtocol:   tc.privateProtocol,
+				LogLevel:              "INFO",
+				DatabaseURL:           "sqlite://file::memory:",
+				TLSPublicDNSNames:     tc.publicDNS,
+				TLSPrivateDNSNames:    tc.privateDNS,
+				TLSPublicIPAddresses:  nil,
+				TLSPrivateIPAddresses: nil,
+				BrowserIPRateLimit:    100,
+				ServiceIPRateLimit:    100,
+				OTLPEndpoint:          "http://localhost:4317",
 			}
 
 			err := validateConfiguration(s)

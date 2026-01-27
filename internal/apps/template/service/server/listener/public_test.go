@@ -520,6 +520,7 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	// Wait for port to be fully released.
 	time.Sleep(500 * time.Millisecond)
 }
+
 // TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory tests that /service/api/v1/health returns 503 during shutdown.
 // Uses app.Test() for deterministic in-memory testing without HTTPS listener.
 func TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory(t *testing.T) {
