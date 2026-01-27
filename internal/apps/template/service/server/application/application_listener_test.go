@@ -1587,3 +1587,127 @@ func TestShutdown_PartialInitialization(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestProvisionDatabase_SQLiteVariations tests provisionDatabase with different SQLite URL formats.
+func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name        string
+		databaseURL string
+		expectError bool
+	}{
+		{
+			name:        "Empty URL (defaults to in-memory)",
+			databaseURL: "",
+			expectError: false,
+		},
+		{
+			name:        "In-memory placeholder",
+			databaseURL: cryptoutilSharedMagic.SQLiteMemoryPlaceholder,
+			expectError: false,
+		},
+		{
+			name:        "File URL",
+			databaseURL: "file:///tmp/test.db",
+			expectError: false,
+		},
+		{
+			name:        "Invalid URL scheme",
+			databaseURL: "mysql://user:pass@localhost:3306/db",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				LogLevel:         "info",
+				OTLPEndpoint:     "grpc://localhost:4317",
+				OTLPService:      "test-service",
+				OTLPVersion:      "1.0.0",
+				OTLPEnvironment:  "test",
+				UnsealMode:       "sysinfo",
+				DatabaseURL:      tt.databaseURL,
+				DatabaseContainer: "disabled",
+			}
+
+			basic, err := StartBasic(ctx, settings)
+			require.NoError(t, err)
+			defer basic.Shutdown()
+
+			db, cleanup, err := provisionDatabase(ctx, basic, settings)
+			if cleanup != nil {
+				defer cleanup()
+			}
+
+			if tt.expectError {
+				require.Error(t, err)
+				require.Nil(t, db)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, db)
+			}
+		})
+	}
+}
+
+// TestStartCore_Variations tests StartCore with different unseal modes and database URLs.
+func TestStartCore_Variations(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name        string
+		unsealMode  string
+		databaseURL string
+		expectError bool
+	}{
+		{
+			name:        "sysinfo mode with in-memory",
+			unsealMode:  "sysinfo",
+			databaseURL: cryptoutilSharedMagic.SQLiteInMemoryDSN,
+			expectError: false,
+		},
+		{
+			name:        "sysinfo mode with empty URL",
+			unsealMode:  "sysinfo",
+			databaseURL: "",
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				LogLevel:        "info",
+				OTLPEndpoint:    "grpc://localhost:4317",
+				OTLPService:     "test-service",
+				OTLPVersion:     "1.0.0",
+				OTLPEnvironment: "test",
+				UnsealMode:      tt.unsealMode,
+				DatabaseURL:     tt.databaseURL,
+			}
+
+			core, err := StartCore(ctx, settings)
+			if tt.expectError {
+				require.Error(t, err)
+				require.Nil(t, core)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, core)
+
+				if core != nil {
+					core.Shutdown()
+				}
+			}
+		})
+	}
+}
+
