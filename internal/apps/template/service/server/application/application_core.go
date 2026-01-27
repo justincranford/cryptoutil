@@ -113,6 +113,10 @@ func InitializeServicesOnCore(
 	core *Core,
 	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
 ) (*CoreWithServices, error) {
+	if core == nil {
+		return nil, fmt.Errorf("core is nil")
+	}
+
 	services := &CoreWithServices{
 		Core: core,
 	}

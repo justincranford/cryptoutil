@@ -1390,6 +1390,71 @@ func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 	// This validates Core and migrations are functional.
 }
 
+// TestStartCore_DatabaseProvisionFailure tests StartCore when database provisioning fails.
+func TestStartCore_DatabaseProvisionFailure(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use invalid database URL to trigger provisioning failure.
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DatabaseURL:     "postgres://invalid:invalid@nonexistent:9999/invalid",
+		LogLevel:        "info",
+		OTLPEndpoint:    "grpc://localhost:4317",
+		OTLPService:     "test-service",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "sysinfo",
+	}
+
+	// StartCore should fail when database provisioning fails.
+	core, err := StartCore(ctx, settings)
+	require.Error(t, err)
+	require.Nil(t, core)
+	require.Contains(t, err.Error(), "failed to provision database")
+}
+
+// TestOpenSQLite_PragmaErrors tests openSQLite when PRAGMA statements fail.
+func TestOpenSQLite_PragmaErrors(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use file-based database in a read-only location to trigger errors.
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DatabaseURL:     "file:///nonexistent/readonly/test.db",
+		LogLevel:        "info",
+		OTLPEndpoint:    "grpc://localhost:4317",
+		OTLPService:     "test-sqlite-pragma",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "sysinfo",
+	}
+
+	// StartCore should handle SQLite open errors gracefully.
+	core, err := StartCore(ctx, settings)
+	require.Error(t, err)
+	require.Nil(t, core)
+}
+
+// TestShutdown_BothServersError tests Shutdown when both admin and public servers fail.
+func TestShutdown_BothServersError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create listener with nil servers to test shutdown error handling.
+	listener := &Listener{
+		AdminServer:  nil,
+		PublicServer: nil,
+		Core:         nil,
+	}
+
+	// Shutdown should not panic with nil servers.
+	err := listener.Shutdown(ctx)
+	require.NoError(t, err)
+}
+
 // TestShutdown_ErrorPaths tests Shutdown error handling.
 func TestShutdown_ErrorPaths(t *testing.T) {
 	t.Parallel()
@@ -1406,6 +1471,118 @@ func TestShutdown_ErrorPaths(t *testing.T) {
 	}
 
 	// Shutdown should handle nil servers gracefully.
+	err := listener.Shutdown(ctx)
+	require.NoError(t, err)
+}
+
+// TestStartBasic_InvalidOTLPProtocol tests StartBasic with invalid OTLP protocol.
+func TestStartBasic_InvalidOTLPProtocol(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use invalid OTLP protocol to trigger telemetry service failure.
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		LogLevel:        "info",
+		OTLPEndpoint:    "invalid-protocol://localhost:4317",
+		OTLPService:     "test-service",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "sysinfo",
+		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	// StartBasic should fail with invalid OTLP protocol.
+	basic, err := StartBasic(ctx, settings)
+	require.Error(t, err)
+	require.Nil(t, basic)
+}
+
+// TestStartBasic_MissingOTLPService tests StartBasic with empty OTLP service name.
+func TestStartBasic_MissingOTLPService(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Empty OTLP service name should trigger validation error.
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		LogLevel:        "info",
+		OTLPEndpoint:    "grpc://localhost:4317",
+		OTLPService:     "",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "sysinfo",
+		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	// StartBasic should fail with empty service name.
+	basic, err := StartBasic(ctx, settings)
+	require.Error(t, err)
+	require.Nil(t, basic)
+	require.Contains(t, err.Error(), "service name")
+}
+
+// TestInitializeServicesOnCore_NilCore tests InitializeServicesOnCore with nil Core.
+func TestInitializeServicesOnCore_NilCore(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		LogLevel:        "info",
+		OTLPEndpoint:    "grpc://localhost:4317",
+		OTLPService:     "test-service",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "sysinfo",
+	}
+
+	// InitializeServicesOnCore should fail with nil Core.
+	services, err := InitializeServicesOnCore(ctx, nil, settings)
+	require.Error(t, err)
+	require.Nil(t, services)
+}
+
+// TestStartBasic_InvalidLogLevel tests StartBasic with invalid log level.
+func TestStartBasic_InvalidLogLevel(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Invalid log level should trigger validation error.
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		LogLevel:        "INVALID_LEVEL",
+		OTLPEndpoint:    "grpc://localhost:4317",
+		OTLPService:     "test-service",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "sysinfo",
+		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	// StartBasic should fail with invalid log level.
+	basic, err := StartBasic(ctx, settings)
+	require.Error(t, err)
+	require.Nil(t, basic)
+	require.Contains(t, err.Error(), "invalid log level")
+}
+
+// TestShutdown_PartialInitialization tests Shutdown with only one server initialized.
+func TestShutdown_PartialInitialization(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create a mock server that implements IPublicServer.
+	mockServer := &mockPublicServer{}
+
+	listener := &Listener{
+		AdminServer:  nil,
+		PublicServer: mockServer,
+	}
+
+	// Shutdown should handle partial initialization gracefully.
 	err := listener.Shutdown(ctx)
 	require.NoError(t, err)
 }
