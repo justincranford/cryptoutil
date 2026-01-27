@@ -570,10 +570,11 @@ func TestCoreShutdown(t *testing.T) {
 
 // Mock servers for Listener testing.
 type mockPublicServer struct {
-	port      int
-	baseURL   string
-	startErr  error
-	startDone chan struct{}
+	port        int
+	baseURL     string
+	startErr    error
+	shutdownErr error
+	startDone   chan struct{}
 }
 
 func (m *mockPublicServer) Start(_ context.Context) error {
@@ -585,7 +586,7 @@ func (m *mockPublicServer) Start(_ context.Context) error {
 }
 
 func (m *mockPublicServer) Shutdown(_ context.Context) error {
-	return nil
+	return m.shutdownErr
 }
 
 func (m *mockPublicServer) ActualPort() int {
@@ -597,11 +598,12 @@ func (m *mockPublicServer) PublicBaseURL() string {
 }
 
 type mockAdminServer struct {
-	port      int
-	baseURL   string
-	ready     bool
-	startErr  error
-	startDone chan struct{}
+	port        int
+	baseURL     string
+	ready       bool
+	startErr    error
+	shutdownErr error
+	startDone   chan struct{}
 }
 
 func (m *mockAdminServer) Start(_ context.Context) error {
@@ -613,7 +615,7 @@ func (m *mockAdminServer) Start(_ context.Context) error {
 }
 
 func (m *mockAdminServer) Shutdown(_ context.Context) error {
-	return nil
+	return m.shutdownErr
 }
 
 func (m *mockAdminServer) ActualPort() int {
@@ -1481,6 +1483,79 @@ func TestShutdown_ErrorPaths(t *testing.T) {
 	// Shutdown should handle nil servers gracefully.
 	err := listener.Shutdown(ctx)
 	require.NoError(t, err)
+}
+
+// TestShutdown_AdminServerError tests Shutdown when admin server fails.
+func TestShutdown_AdminServerError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	adminServer := &mockAdminServer{
+		port:        9090,
+		shutdownErr: fmt.Errorf("admin server shutdown failed"),
+	}
+
+	listener := &Listener{
+		AdminServer:  adminServer,
+		PublicServer: nil,
+		Core:         nil,
+	}
+
+	err := listener.Shutdown(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to shutdown admin server")
+}
+
+// TestShutdown_PublicServerError tests Shutdown when public server fails.
+func TestShutdown_PublicServerError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	publicServer := &mockPublicServer{
+		port:        8080,
+		shutdownErr: fmt.Errorf("public server shutdown failed"),
+	}
+
+	listener := &Listener{
+		AdminServer:  nil,
+		PublicServer: publicServer,
+		Core:         nil,
+	}
+
+	err := listener.Shutdown(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to shutdown public server")
+}
+
+// TestShutdown_BothServersShutdownError tests Shutdown when both servers fail.
+func TestShutdown_BothServersShutdownError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	adminServer := &mockAdminServer{
+		port:        9090,
+		shutdownErr: fmt.Errorf("admin server shutdown failed"),
+	}
+
+	publicServer := &mockPublicServer{
+		port:        8080,
+		shutdownErr: fmt.Errorf("public server shutdown failed"),
+	}
+
+	listener := &Listener{
+		AdminServer:  adminServer,
+		PublicServer: publicServer,
+		Core:         nil,
+	}
+
+	err := listener.Shutdown(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "multiple shutdown errors")
+	require.Contains(t, err.Error(), "admin")
+	require.Contains(t, err.Error(), "public")
 }
 
 // TestStartBasic_InvalidOTLPProtocol tests StartBasic with invalid OTLP protocol.
