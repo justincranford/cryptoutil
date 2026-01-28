@@ -6247,3 +6247,88 @@ Service coverage gap (12.3%) is dominated by database error paths, similar to re
 2. Verify coverage improvements after each package
 3. Target: All 26 packages ≥95% coverage
 4. Duration estimate: 23 hours for Phase 4.4, 2 hours for Phase 5.1 (JOSE service)
+
+---
+
+### 2026-01-28: Phase 0 Task Verification and Test Failure Fix
+
+**Work Completed**:
+
+1. **Task 0.1.1 Verification - COMPLETE**:
+   - Verified table-driven refactoring commits (0812ad10, 673527b3)
+   - Line count validation:
+     * config_validation_test.go: 518→460 lines (-11%)
+     * session_manager_jws_test.go: 451→435 lines (-3.5%)
+     * session_manager_jwe_test.go: 428→417 lines (-2.6%)
+   - All standalone test functions successfully removed
+   - Tests passing with table-driven pattern implemented
+
+2. **Task 0.3.1 Verification - COMPLETE**:
+   - Verified global mutation target fix (commit 234372f5)
+   - 20 replacements across 7 files
+   - Corrected 85% → ≥95% minimum (98% ideal) globally
+
+3. **Test Failure Found and Fixed**:
+   - Issue: `TestIntegration_ListJoinRequests_WithData` failing with empty results
+   - Root Cause: Auth middleware sets `tenant_id` from `testTenantID` (line 218), but test created unique tenant
+   - API filters join requests by `tenant_id` from session context
+   - First attempt fix: Used unique tenant ID → caused different failure (UNIQUE constraint)
+   - Second attempt fix: Reverted to `testTenantID` with `FirstOrCreate` → SUCCESS
+   - Commit: 3fef55cf
+
+4. **Task 0.1.3 Status - NOT COMPLETE** (CRITICAL VIOLATION):
+   - Found: 4 TestDualServers_* functions still using real HTTPS listeners
+   - Functions: TestDualServers_StartBothServers, TestDualServers_HealthEndpoints, TestDualServers_GracefulShutdown, TestDualServers_BothServersAccessibleSimultaneously
+   - Location: internal/apps/template/service/server/listener/servers_test.go
+   - Anti-Pattern: Start real servers, bind ports, use time.Sleep(), make network calls
+   - Required Fix: DELETE and rewrite using app.Test() in-memory pattern per copilot instructions
+
+5. **Coverage Analysis - Template Service**:
+   - Full test suite run (with integration tag): ALL PASSING
+   - Total coverage: 75.6% (FAILS ≥95% requirement by 19.4%)
+   - Packages below 95%:
+     * config: 84.6% (need +10.4%)
+     * application: 88.1% (need +6.9%)
+     * businesslogic: 85.3% (need +9.7%)
+     * barrier: 79.5% (need +15.5%)
+     * listener: 87.1% (need +7.9%)
+     * repository: 84.8% (need +10.2%)
+     * server (root): 50.3% (need +44.7%)
+
+6. **Mutation Testing - BLOCKED** (All Timeouts):
+   - apis package (with integration tag): 39 TIMED OUT, 0 killed, 0.00% efficacy
+   - apis package (unit tests only): 39 TIMED OUT, 0 killed, 0.00% efficacy
+   - businesslogic package: 110 TIMED OUT, 6 NOT COVERED, 0.00% efficacy
+   - Root Cause: Tests use TestMain with database setup (SQLite), too slow for mutation timeout
+   - Pattern: Even "unit" tests in template service are integration-style (real database, TestMain setup)
+   - Impact: Cannot verify ≥95% mutation efficacy requirement until fast unit tests created
+
+**Findings**:
+
+**Coverage Gaps**:
+- Template service 19.4% below requirement (75.6% vs ≥95%)
+- Largest gaps: server root (44.7%), barrier (15.5%), config (10.4%), repository (10.2%)
+- Need new phase to add missing tests for gap remediation
+
+**Test Architecture Issues**:
+- All template tests use TestMain with database (real SQLite)
+- Mutation testing requires fast tests (<100ms per test)
+- Current "unit" tests run at integration speed (database I/O)
+- Need separation: True unit tests (mocks, fast) vs integration tests (real DB, slower)
+
+**Pattern Violations**:
+- 4 real HTTPS listener tests remain (Task 0.1.3)
+- Windows Firewall prompts, >1s execution time vs <1ms with app.Test()
+
+**Commits This Session**:
+- caf67d3c: "docs(tasks): mark Task 0.1.1 and 0.3.1 complete - table-driven refactoring done"
+- 3fef55cf: "fix(template): use testTenantID for join request integration test"
+
+**Next Steps** (per user directive):
+1. Append coverage gap remediation phase to tasks.md
+2. Append workflow fixing phases per fix-github-workflows.agent.md
+3. Complete all remaining tasks without stopping per PRIMARY DIRECTIVE
+
+**Evidence**:
+- Test results: test-output/mutation-template-apis.txt, test-output/mutation-template-apis-unit.txt, test-output/mutation-template-businesslogic.txt
+- Coverage reports: template_coverage_full.out (75.6% total)
