@@ -44,6 +44,217 @@ func TestMain(m *testing.M) {
 	os.Exit(rc)
 }
 
+func TestNewService_ValidationErrors(t *testing.T) {
+	// Create isolated resources for this test
+	sqlRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	defer sqlRepository.Shutdown()
+
+	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJWKGenService, testSettings)
+	defer ormRepository.Shutdown()
+
+	_, nonPublicJWEJWK, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKForEncAndAlg(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
+	require.NoError(t, err)
+	defer unsealKeysService.Shutdown()
+
+	tests := []struct {
+		name             string
+		ctx              context.Context
+		telemetryService *cryptoutilSharedTelemetry.TelemetryService
+		jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
+		ormRepository    *cryptoutilOrmRepository.OrmRepository
+		unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
+		expectedError    string
+	}{
+		{
+			name:             "nil ctx",
+			ctx:              nil,
+			telemetryService: testTelemetryService,
+			jwkGenService:    testJWKGenService,
+			ormRepository:    ormRepository,
+			unsealKeysService: unsealKeysService,
+			expectedError:    "ctx must be non-nil",
+		},
+		{
+			name:             "nil telemetryService",
+			ctx:              testCtx,
+			telemetryService: nil,
+			jwkGenService:    testJWKGenService,
+			ormRepository:    ormRepository,
+			unsealKeysService: unsealKeysService,
+			expectedError:    "telemetryService must be non-nil",
+		},
+		{
+			name:             "nil jwkGenService",
+			ctx:              testCtx,
+			telemetryService: testTelemetryService,
+			jwkGenService:    nil,
+			ormRepository:    ormRepository,
+			unsealKeysService: unsealKeysService,
+			expectedError:    "jwkGenService must be non-nil",
+		},
+		{
+			name:             "nil ormRepository",
+			ctx:              testCtx,
+			telemetryService: testTelemetryService,
+			jwkGenService:    testJWKGenService,
+			ormRepository:    nil,
+			unsealKeysService: unsealKeysService,
+			expectedError:    "ormRepository must be non-nil",
+		},
+		{
+			name:             "nil unsealKeysService",
+			ctx:              testCtx,
+			telemetryService: testTelemetryService,
+			jwkGenService:    testJWKGenService,
+			ormRepository:    ormRepository,
+			unsealKeysService: nil,
+			expectedError:    "unsealKeysService must be non-nil",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			service, err := NewService(tc.ctx, tc.telemetryService, tc.jwkGenService, tc.ormRepository, tc.unsealKeysService)
+			require.Error(t, err)
+			require.Nil(t, service)
+			require.Contains(t, err.Error(), tc.expectedError)
+		})
+	}
+}
+
+func TestNewService_Success(t *testing.T) {
+	// Create isolated resources for this test
+	sqlRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	defer sqlRepository.Shutdown()
+
+	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJWKGenService, testSettings)
+	defer ormRepository.Shutdown()
+
+	_, nonPublicJWEJWK, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKForEncAndAlg(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
+	require.NoError(t, err)
+	defer unsealKeysService.Shutdown()
+
+	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
+	require.NoError(t, err)
+	require.NotNil(t, service)
+	defer service.Shutdown()
+
+	// Verify service is initialized correctly
+	require.NotNil(t, service.telemetryService)
+	require.NotNil(t, service.jwkGenService)
+	require.NotNil(t, service.ormRepository)
+	require.NotNil(t, service.unsealKeysService)
+	require.NotNil(t, service.rootKeysService)
+	require.NotNil(t, service.intermediateKeysService)
+	require.NotNil(t, service.contentKeysService)
+	require.False(t, service.closed)
+}
+
+func TestBarrierService_EncryptContent_ServiceClosed(t *testing.T) {
+	// Create isolated resources for this test
+	sqlRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	defer sqlRepository.Shutdown()
+
+	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJWKGenService, testSettings)
+	defer ormRepository.Shutdown()
+
+	_, nonPublicJWEJWK, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKForEncAndAlg(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
+	require.NoError(t, err)
+	defer unsealKeysService.Shutdown()
+
+	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	// Shutdown the service first
+	service.Shutdown()
+	require.True(t, service.closed)
+
+	// Try to encrypt after shutdown
+	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		_, err := service.EncryptContent(sqlTransaction, []byte("test content"))
+		return err
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "barrier service is closed")
+}
+
+func TestBarrierService_DecryptContent_ServiceClosed(t *testing.T) {
+	// Create isolated resources for this test
+	sqlRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	defer sqlRepository.Shutdown()
+
+	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJWKGenService, testSettings)
+	defer ormRepository.Shutdown()
+
+	_, nonPublicJWEJWK, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKForEncAndAlg(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
+	require.NoError(t, err)
+	defer unsealKeysService.Shutdown()
+
+	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	// Shutdown the service first
+	service.Shutdown()
+	require.True(t, service.closed)
+
+	// Try to decrypt after shutdown
+	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		_, err := service.DecryptContent(sqlTransaction, []byte("encrypted content"))
+		return err
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "barrier service is closed")
+}
+
+func TestBarrierService_Shutdown_MultipleTimesIdempotent(t *testing.T) {
+	// Create isolated resources for this test
+	sqlRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	defer sqlRepository.Shutdown()
+
+	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJWKGenService, testSettings)
+	defer ormRepository.Shutdown()
+
+	_, nonPublicJWEJWK, _, _, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKForEncAndAlg(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
+	require.NoError(t, err)
+	defer unsealKeysService.Shutdown()
+
+	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	// Shutdown multiple times - should be idempotent
+	service.Shutdown()
+	require.True(t, service.closed)
+	require.Nil(t, service.contentKeysService)
+	require.Nil(t, service.intermediateKeysService)
+	require.Nil(t, service.rootKeysService)
+
+	// Second shutdown should be safe (no panic)
+	service.Shutdown()
+	require.True(t, service.closed)
+
+	// Third shutdown should also be safe
+	service.Shutdown()
+	require.True(t, service.closed)
+}
+
 func Test_HappyPath_SameUnsealJWKs(t *testing.T) {
 	// initialize repositories, will be reused by original and restarted unseal service
 	sqlRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
