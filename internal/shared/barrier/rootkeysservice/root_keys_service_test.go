@@ -122,12 +122,12 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 	defer unsealKeysService.Shutdown()
 
 	tests := []struct {
-		name             string
-		telemetrySvc     *cryptoutilSharedTelemetry.TelemetryService
-		jwkGenSvc        *cryptoutilSharedCryptoJose.JWKGenService
-		ormRepo          *cryptoutilOrmRepository.OrmRepository
-		unsealKeysSvc    cryptoutilUnsealKeysService.UnsealKeysService
-		expectedErrMsg   string
+		name           string
+		telemetrySvc   *cryptoutilSharedTelemetry.TelemetryService
+		jwkGenSvc      *cryptoutilSharedCryptoJose.JWKGenService
+		ormRepo        *cryptoutilOrmRepository.OrmRepository
+		unsealKeysSvc  cryptoutilUnsealKeysService.UnsealKeysService
+		expectedErrMsg string
 	}{
 		{
 			name:           "nil telemetryService",

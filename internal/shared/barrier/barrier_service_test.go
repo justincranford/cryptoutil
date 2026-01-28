@@ -60,58 +60,58 @@ func TestNewService_ValidationErrors(t *testing.T) {
 	defer unsealKeysService.Shutdown()
 
 	tests := []struct {
-		name             string
-		ctx              context.Context
-		telemetryService *cryptoutilSharedTelemetry.TelemetryService
-		jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
-		ormRepository    *cryptoutilOrmRepository.OrmRepository
+		name              string
+		ctx               context.Context
+		telemetryService  *cryptoutilSharedTelemetry.TelemetryService
+		jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
+		ormRepository     *cryptoutilOrmRepository.OrmRepository
 		unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
-		expectedError    string
+		expectedError     string
 	}{
 		{
-			name:             "nil ctx",
-			ctx:              nil,
-			telemetryService: testTelemetryService,
-			jwkGenService:    testJWKGenService,
-			ormRepository:    ormRepository,
+			name:              "nil ctx",
+			ctx:               nil,
+			telemetryService:  testTelemetryService,
+			jwkGenService:     testJWKGenService,
+			ormRepository:     ormRepository,
 			unsealKeysService: unsealKeysService,
-			expectedError:    "ctx must be non-nil",
+			expectedError:     "ctx must be non-nil",
 		},
 		{
-			name:             "nil telemetryService",
-			ctx:              testCtx,
-			telemetryService: nil,
-			jwkGenService:    testJWKGenService,
-			ormRepository:    ormRepository,
+			name:              "nil telemetryService",
+			ctx:               testCtx,
+			telemetryService:  nil,
+			jwkGenService:     testJWKGenService,
+			ormRepository:     ormRepository,
 			unsealKeysService: unsealKeysService,
-			expectedError:    "telemetryService must be non-nil",
+			expectedError:     "telemetryService must be non-nil",
 		},
 		{
-			name:             "nil jwkGenService",
-			ctx:              testCtx,
-			telemetryService: testTelemetryService,
-			jwkGenService:    nil,
-			ormRepository:    ormRepository,
+			name:              "nil jwkGenService",
+			ctx:               testCtx,
+			telemetryService:  testTelemetryService,
+			jwkGenService:     nil,
+			ormRepository:     ormRepository,
 			unsealKeysService: unsealKeysService,
-			expectedError:    "jwkGenService must be non-nil",
+			expectedError:     "jwkGenService must be non-nil",
 		},
 		{
-			name:             "nil ormRepository",
-			ctx:              testCtx,
-			telemetryService: testTelemetryService,
-			jwkGenService:    testJWKGenService,
-			ormRepository:    nil,
+			name:              "nil ormRepository",
+			ctx:               testCtx,
+			telemetryService:  testTelemetryService,
+			jwkGenService:     testJWKGenService,
+			ormRepository:     nil,
 			unsealKeysService: unsealKeysService,
-			expectedError:    "ormRepository must be non-nil",
+			expectedError:     "ormRepository must be non-nil",
 		},
 		{
-			name:             "nil unsealKeysService",
-			ctx:              testCtx,
-			telemetryService: testTelemetryService,
-			jwkGenService:    testJWKGenService,
-			ormRepository:    ormRepository,
+			name:              "nil unsealKeysService",
+			ctx:               testCtx,
+			telemetryService:  testTelemetryService,
+			jwkGenService:     testJWKGenService,
+			ormRepository:     ormRepository,
 			unsealKeysService: nil,
-			expectedError:    "unsealKeysService must be non-nil",
+			expectedError:     "unsealKeysService must be non-nil",
 		},
 	}
 
