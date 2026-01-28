@@ -368,26 +368,35 @@
 **Est. LOE**: 15-20 hours
 **Priority**: HIGH - Coverage gates block completion
 
-**Current State** (2026-01-28):
-- Template service total coverage: 75.6% (FAILS ≥95% requirement by 19.4%)
+**Current State** (2026-01-28 16:00 - Latest Analysis):
+- Template service total coverage: 78.9% (FAILS ≥95% requirement by 16.1%)
 - Packages below 95%:
-  * server (root): 50.3% (need +44.7%) - 8-10h estimated
-  * barrier: 79.5% (need +15.5%) - 3-4h estimated
+  * server (root): 92.5% (need +2.5%) - 1-2h estimated
+  * barrier: 79.5% (need +15.5%) - 3-4h estimated (LARGEST GAP)
   * config: 84.6% (need +10.4%) - 2h estimated
   * businesslogic: 85.3% (need +9.7%) - 2-3h estimated
   * listener: 87.1% (need +7.9%) - 1-2h estimated
   * application: 88.1% (need +6.9%) - 1-2h estimated
   * repository: 84.8% (need +10.2%) - 2h estimated
+  * builder: 90.8% (need +4.2%) - 1-2h estimated
+  * middleware: 94.9% (need +0.1%) - 15min estimated (SMALLEST GAP)
+  * client: 94.8% (need +0.2%) - 15min estimated
+  * apis: 94.2% (need +0.8%) - 30min estimated
+- Packages meeting ≥95%:
+  * domain: 100.0% ✅
+  * service: 95.6% ✅
+  * realms: 95.1% ✅
+- Total coverage gap: +66.2 percentage points across 11 packages
 
 ### Task 0.6.1: Add Coverage for Server Root Package
 
 **Status**: ⏳ NOT STARTED
 **Owner**: LLM Agent
 **Dependencies**: None
-**Priority**: HIGH (largest gap: 44.7%)
-**Est. LOE**: 8-10 hours
+**Priority**: MEDIUM (2.5% gap, down from original 44.7% after Task 0.1.2 work)
+**Est. LOE**: 1-2 hours
 
-**Description**: Add tests to achieve ≥95% coverage for internal/apps/template/service/server package (currently 50.3%).
+**Description**: Add tests to achieve ≥95% coverage for internal/apps/template/service/server package (currently 92.5%, improved from 50.3%).
 
 **Target Files** (based on go tool cover -func):
 - server.go (main server struct and methods)
