@@ -681,3 +681,93 @@ func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 	// Will get 500 because join request doesn't exist.
 	require.Equal(t, 500, resp.StatusCode)
 }
+
+// TestHandleProcessJoinRequest_SuccessMessages tests lines 211-218 (success response with message variations).
+// This uses integration testing with the real database to create actual join requests and process them.
+func TestHandleProcessJoinRequest_SuccessMessages(t *testing.T) {
+	// Uses testGormDB from TestMain - cannot use t.Parallel() safely.
+	tests := []struct {
+		name            string
+		approved        bool
+		expectedMessage string
+	}{
+		{
+			name:            "Approved",
+			approved:        true,
+			expectedMessage: "Join request approved",
+		},
+		{
+			name:            "Rejected",
+			approved:        false,
+			expectedMessage: "Join request rejected",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Cannot use t.Parallel() - shares testGormDB.
+
+			// Create real repositories and service with testGormDB.
+			tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
+			userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
+			joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
+			registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
+			handlers := NewRegistrationHandlers(registrationService)
+
+			// Create actual tenant and join request in database.
+			tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
+				ID:   googleUuid.New(),
+				Name: "test-tenant-" + googleUuid.New().String(),
+			}
+			require.NoError(t, tenantRepo.Create(context.Background(), tenant))
+
+			adminUserID := googleUuid.New()
+			adminUser := &cryptoutilAppsTemplateServiceServerRepository.User{
+				ID:       adminUserID,
+				TenantID: tenant.ID,
+				Username: "admin-" + googleUuid.New().String(),
+			}
+			require.NoError(t, userRepo.Create(context.Background(), adminUser))
+
+			clientID := googleUuid.New()
+			joinRequest := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
+				ID:          googleUuid.New(),
+				TenantID:    tenant.ID,
+				ClientID:    &clientID,
+				Status:      cryptoutilAppsTemplateServiceServerDomain.JoinRequestStatusPending,
+				RequestedAt: time.Now().UTC(),
+			}
+			require.NoError(t, joinRequestRepo.Create(context.Background(), joinRequest))
+
+			// Test processing.
+			app := fiber.New()
+			app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
+				c.Locals("tenant_id", tenant.ID)
+				c.Locals("user_id", adminUserID)
+
+				return handlers.HandleProcessJoinRequest(c)
+			})
+
+			reqBody := ProcessJoinRequestRequest{Approved: tt.approved}
+			bodyBytes, _ := json.Marshal(reqBody)
+
+			req := httptest.NewRequest("PUT", "/admin/join-requests/"+joinRequest.ID.String(), bytes.NewReader(bodyBytes))
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+
+			defer func() { require.NoError(t, resp.Body.Close()) }()
+
+			// Verify 200 with correct message.
+			require.Equal(t, 200, resp.StatusCode)
+
+			var respBody map[string]interface{}
+			err = json.NewDecoder(resp.Body).Decode(&respBody)
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedMessage, respBody["message"])
+
+			// No cleanup needed - test database will be cleared between test runs.
+		})
+	}
+}
