@@ -415,5 +415,3 @@ func TestSessionManager_ValidateServiceSession_JWE_Success(t *testing.T) {
 	require.Equal(t, tenantID, session.TenantID)
 	require.Equal(t, realmID, session.RealmID)
 }
-
-

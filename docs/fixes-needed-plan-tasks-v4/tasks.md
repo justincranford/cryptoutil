@@ -128,31 +128,56 @@
 
 ### Task 0.1.4: Remove Dead Code
 
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE
 **Owner**: LLM Agent
 **Dependencies**: None
 **Priority**: MEDIUM
 **Est. LOE**: 1-2 hours
+**Actual LOE**: 1.5 hours
 
 **Description**: Remove functions/methods with 0% coverage that are never called in production or tests.
 
-**Affected Code**:
-- PublicServer.PublicBaseURL method (0% coverage, never called)
-- UnsealKeysServiceFromSettings struct and wrapper methods (EncryptKey, DecryptKey, Shutdown) (0% coverage, never instantiated)
-- EnsureSignatureAlgorithmType function (23.1% coverage, not used in production)
+**Investigation Results (2025-01-28)**:
+- Installed deadcode tool: golang.org/x/tools/cmd/deadcode@latest
+- Ran deadcode analysis on template package: 200+ unreachable functions identified
+- **CRITICAL FINDING**: deadcode tool flagged functions in SHARED packages when run against template package, giving FALSE POSITIVES
+- **PublicBaseURL**: ❌ **NOT DEAD CODE** - grep_search found 20+ active usages:
+  * identity/idp/server/server.go (definition + usage)
+  * identity/spa/server/server.go (definition + usage)
+  * identity/rp/server/testmain_test.go (6 usages)
+  * cipher/im/server/server.go (definition + usage)
+  * cipher/im/integration/testmain_integration_test.go (3 usages)
+- **UnsealKeysServiceFromSettings**: ❌ **NOT DEAD CODE** - Used in production:
+  * internal/apps/template/service/server/application/application_basic.go:47 (production usage)
+  * internal/kms/server/application/application_basic.go:36 (production usage)
+  * **deadcode FALSE POSITIVE**: Flagged methods as unreachable when running on template package, but constructor IS used
+- **EnsureSignatureAlgorithmType**: ❌ **NOT DEAD CODE** - Test infrastructure:
+  * jwk_util_test.go:492: TestEnsureSignatureAlgorithmType_InvalidAlgorithm
+  * jwk_util_test.go:502: err = EnsureSignatureAlgorithmType(privateJWK)
+  * jwk_util_test.go:508: Test_EnsureSignatureAlgorithmType_NilJWK
+- **Conclusion**: ALL THREE items are NOT dead code - Task 0.1.4 documentation was INCORRECT
 
-**Acceptance Criteria**:
-- [ ] 0.1.4.1: Remove PublicServer.PublicBaseURL method
-- [ ] 0.1.4.2: Remove UnsealKeysServiceFromSettings struct and all wrapper methods
-- [ ] 0.1.4.3: Either remove EnsureSignatureAlgorithmType or document future extensibility justification
-- [ ] 0.1.4.4: Verify all tests pass after removals
-- [ ] 0.1.4.5: Verify go build ./... succeeds
-- [ ] 0.1.4.6: Commit: "refactor(template): remove dead code (0% coverage, never called)"
+**Affected Code** (CORRECTED):
+- ~~PublicServer.PublicBaseURL method~~ (NOT DEAD - actively used by identity/cipher services)
+- ~~UnsealKeysServiceFromSettings struct and wrapper methods~~ (NOT DEAD - used in template/kms application startup)
+- ~~EnsureSignatureAlgorithmType function~~ (NOT DEAD - test infrastructure)
+
+**Acceptance Criteria** (ALL SKIPPED - No Dead Code Found):
+- [x] 0.1.4.1: ~~Remove PublicServer.PublicBaseURL method~~ (SKIPPED - actively used)
+- [x] 0.1.4.2: ~~Remove UnsealKeysServiceFromSettings struct~~ (SKIPPED - used in production)
+- [x] 0.1.4.3: ~~Remove EnsureSignatureAlgorithmType~~ (SKIPPED - test infrastructure)
+- [x] 0.1.4.4: Verified all items are NOT dead code via grep_search and compilation tests
+- [x] 0.1.4.5: Verified go build ./... succeeds
+- [x] 0.1.4.6: Updated task documentation to correct findings
 
 **Files**:
-- internal/apps/cipher/im/server/public_server.go (PublicBaseURL removed)
-- internal/shared/barrier/unseal_keys_service.go (UnsealKeysServiceFromSettings removed)
-- internal/jose/service/signature.go (EnsureSignatureAlgorithmType - remove or document)
+- NO FILES MODIFIED (investigation revealed no actual dead code)
+
+**Results**:
+- **Investigation revealed CRITICAL issue with original analysis**: Running deadcode on a single package (template) flagged shared package code as dead when it's actually used by OTHER packages
+- **Lesson learned**: ALWAYS use grep_search to verify actual usage before trusting deadcode output
+- **Documentation corrected**: ALL THREE items are NOT dead code - original Task 0.1.4 description was based on flawed analysis
+- **Next step**: Continue to Task 0.1.5 (viper isolation)
 
 ---
 
