@@ -351,7 +351,7 @@ EOF
 
 - ✅ All tests pass (`runTests`)
 - ✅ Coverage ≥95% production, ≥98% infrastructure
-- ✅ Mutation testing ≥85% (early), ≥98% (infrastructure)
+- ✅ Mutation testing ≥95% minimum (98% ideal early), ≥98% (infrastructure)
 - ✅ Linting clean (`golangci-lint run`)
 - ✅ No new TODOs without tracking
 - ✅ Docker Compose E2E passes
@@ -435,7 +435,7 @@ EOF
 - [ ] Unit tests ≥95% coverage
 - [ ] Integration tests pass
 - [ ] E2E tests pass
-- [ ] Mutation testing ≥85%
+- [ ] Mutation testing ≥95% minimum (98% ideal)
 
 ### Quality
 - [ ] Linting passes

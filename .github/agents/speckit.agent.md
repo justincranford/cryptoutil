@@ -40,7 +40,7 @@ description: "Autonomous SpecKit methodology agent for spec-driven LLM developme
 - Never mark tasks complete without objective evidence:
   - Code: build, lint, no new TODOs, coverage ≥95%/98%
   - Test: all tests pass, no skips, coverage reports
-  - Mutation: gremlins score ≥85%/98%
+  - Mutation: gremlins score ≥95%/98% (minimum/ideal production, infrastructure/utility)
   - Git: conventional commits, clean tree, task-aligned changes
   - Hooks: pre-commit and pre-push pass
 

@@ -211,7 +211,7 @@
 **V3 Standards** (BEFORE):
 - Production: ≥95% coverage minimum
 - Infrastructure: ≥98% coverage minimum
-- Mutation: ≥85% efficacy production, ≥98% infrastructure
+- Mutation: ≥95% efficacy minimum production (98% ideal), ≥98% infrastructure
 
 **V4 Standards** (NEW - BREAKING CHANGE):
 - **All Packages: ≥98% coverage IDEAL** (≥95% mandatory minimum)

@@ -368,7 +368,7 @@ Run multiple tasks simultaneously in separate terminals, but limit concurrency t
 
 **Baseline Targets by Package Type**:
 
-- Business logic: ≥85% (KMS, Identity authz, CA issuer)
+- Business logic: ≥95% minimum (98% ideal) (KMS, Identity authz, CA issuer)
 - Mappers/validators: ≥90% (oam_orm_mapper, domain models)
 - Handlers/middleware: ≥80% (OpenAPI handlers, middleware)
 - Utilities: ≥90% (shared crypto, validation)

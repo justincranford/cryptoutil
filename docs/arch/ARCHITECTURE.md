@@ -14,7 +14,7 @@
 - ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
 - ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step (build, lint, test, coverage, mutation)
-- ✅ **Reliability**: ≥95% coverage production, ≥98% infrastructure/utility, ≥85% mutation production, ≥98% mutation infrastructure
+- ✅ **Reliability**: ≥95% coverage production, ≥98% infrastructure/utility, ≥95% mutation minimum production (98% ideal), ≥98% mutation infrastructure
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ **Premature Completion**: NEVER mark tasks complete without objective evidence
@@ -634,7 +634,7 @@ func TestMain(m *testing.M) {
 - Parallel in CI: GitHub Actions matrix (4-6 packages per job, 15-minute timeout)
 
 **Coverage Requirements** (MANDATORY):
-- ≥85% production code mutation efficacy
+- ≥95% production code mutation efficacy minimum (98% ideal)
 - ≥98% infrastructure/utility code mutation efficacy
 - EXEMPT generated code (OpenAPI stubs, protobuf, GORM models)
 
@@ -774,7 +774,7 @@ readinessProbe:
 
 **Mutation Workflow**:
 - gremlins (parallel by package)
-- ≥85%/≥98% efficacy
+- ≥95%/≥98% efficacy (minimum/ideal production, infrastructure/utility)
 
 **E2E Workflow**:
 - Docker Compose deployment
@@ -786,7 +786,7 @@ readinessProbe:
 **ALL MUST PASS**:
 - [ ] Quality gates (linting, formatting)
 - [ ] Unit tests (≥95%/≥98% coverage)
-- [ ] Mutation tests (≥85%/≥98% efficacy)
+- [ ] Mutation tests (≥95%/≥98% efficacy minimum/ideal production, infrastructure/utility)
 - [ ] E2E tests (BOTH paths)
 - [ ] Conventional commit format
 - [ ] Documentation updated
