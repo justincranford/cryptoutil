@@ -1,10 +1,10 @@
 # Tasks - Remaining Work (V4)
 
-**Status**: 31 of 115 tasks remaining (27.0% incomplete) - Phases 0.1, 0.2, 0.4, 0.5
-**Last Updated**: 2026-01-28
-**Priority Order**: Violation Remediation (Phase 0.1) → Documentation Updates (Phase 0.2) → KMS Modernization (Phase 0.4) → Template Mutation (Phase 0.5, DEFERRED)
+**Status**: 29 of 115 tasks remaining (25.2% incomplete) - Phases 0.1, 0.2, 0.4, 0.5
+**Last Updated**: 2026-01-28 17:30
+**Priority Order**: Violation Remediation (Phase 0.1) → Documentation Updates (Phase 0.2) → Coverage/Mutation Gaps → Workflow Fixes → KMS Modernization (Phase 0.4) → Template Mutation (Phase 0.5, DEFERRED)
 
-**Completed Work**: See completed.md (92 of 115 tasks, 80.0%) - Phases 1, 1.5, 2, 3, 4, 5, 7, 0.3 COMPLETE
+**Completed Work**: See completed.md (94 of 115 tasks, 81.7%) - Phases 1, 1.5, 2, 3, 4, 5, 7, 0.3 COMPLETE, 0.1.1 COMPLETE
 
 **User Feedback Resolution**: Task 0.3.1 COMPLETE ✅ (commit 234372f5) - Global mutation target fix: 20 replacements across 7 files correcting 85% → >=95% minimum (98% ideal)
 
@@ -21,11 +21,12 @@
 
 ### Task 0.1.1: Refactor Standalone Tests to Table-Driven Pattern
 
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE
 **Owner**: LLM Agent
 **Dependencies**: None
 **Priority**: HIGH
-**Est. LOE**: 4-6 hours
+**Actual LOE**: 4 hours (2026-01-28)
+**Commits**: 0812ad10, 673527b3
 
 **Description**: Refactor all standalone test variants into table-driven tests following copilot instructions pattern.
 
@@ -35,11 +36,18 @@
 - internal/apps/template/service/server/businesslogic/session_manager_jwe_test.go (TestSessionManager_ValidateBrowserSession_JWE_* functions)
 
 **Acceptance Criteria**:
-- [ ] 0.1.1.1: Refactor config_validation_test.go to use `tests := []struct{name, input, wantErr}` pattern
-- [ ] 0.1.1.2: Refactor session_manager_jws_test.go to use table-driven pattern
-- [ ] 0.1.1.3: Refactor session_manager_jwe_test.go to use table-driven pattern
-- [ ] 0.1.1.4: Verify all tests pass after refactoring
-- [ ] 0.1.1.5: Commit: "refactor(template): convert standalone test variants to table-driven pattern"
+- [x] 0.1.1.1: Refactor config_validation_test.go to use `tests := []struct{name, input, wantErr}` pattern (518→460 lines, -11%)
+- [x] 0.1.1.2: Refactor session_manager_jws_test.go to use table-driven pattern (451→435 lines)
+- [x] 0.1.1.3: Refactor session_manager_jwe_test.go to use table-driven pattern (428→417 lines)
+- [x] 0.1.1.4: Verify all tests pass after refactoring
+- [x] 0.1.1.5: Commit: "refactor(template): convert standalone test variants to table-driven pattern"
+
+**Results**:
+- config_validation_test.go: 518→460 lines (-11%)
+- session_manager_jws_test.go: 451→435 lines (-3.5%)
+- session_manager_jwe_test.go: 428→417 lines (-2.6%)
+- All tests passing
+- Table-driven pattern successfully implemented
 
 **Files**:
 - internal/apps/template/service/config/config_validation_test.go (refactored)
@@ -224,10 +232,10 @@
 
 **Description**: Search entire project for "85%" mutation/coverage references and replace with ">=95% minimum, 98% ideal".
 
-**Acceptance Criteria**:
-- [x] 0.3.1.1: Search project for "85%" in mutation context: `grep -r "85" . --include="*.md" | grep -i "mutation\|efficacy\|coverage"`
-- [x] 0.3.1.2: Replace with ">=95% minimum, 98% ideal" in: plan.md, completed.md, ARCHITECTURE.md, coverage docs, agent files (20 replacements across 7 files)
-- [x] 0.3.1.3: Verify no instances of "≥85%" remain in mutation/coverage context (grep verification passed)
+**Acceptance Criteria**: ALL COMPLETE ✅
+- [x] 0.3.1.1: Search project for "85%" in mutation context
+- [x] 0.3.1.2: Replace with ">=95% minimum, 98% ideal" (20 replacements across 7 files)
+- [x] 0.3.1.3: Verify no "≥85%" remains in mutation context
 - [x] 0.3.1.4: Update Phase objectives to reflect >=95% minimum, 98% ideal
 - [x] 0.3.1.5: Commit: "fix(docs): update mutation efficacy targets to >=95% minimum (98% ideal) globally - USER CORRECTION"
 
