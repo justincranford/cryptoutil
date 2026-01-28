@@ -1877,35 +1877,57 @@ command:
 
 ### Task 7.5: Document Docker Secrets as MANDATORY Pattern
 
-**Status**: ⏳ NOT STARTED
+**Status**: ✅ COMPLETE
 **Owner**: LLM Agent
 **Dependencies**: Task 7.4
 **Priority**: HIGH
+**Estimated**: 60-90 minutes
+**Actual**: 75 minutes (2026-01-27)
 
 **Description**: Update copilot instructions and documentation to mandate Docker secrets for ALL credentials.
 
 **Acceptance Criteria**:
-- [ ] 7.5.1: Update .github/instructions/04-02.docker.instructions.md:
-  - Add "Docker Secrets MANDATORY" section
+- [x] 7.5.1: Update .github/instructions/04-02.docker.instructions.md:
+  - Add "Docker Secrets MANDATORY" section (expanded 4L → ~150L)
   - Document pattern: `file: ./secrets/name.secret`
-  - Add examples from CA compose.yml
-  - Add anti-pattern: inline environment variables
-- [ ] 7.5.2: Update .github/instructions/03-06.security.instructions.md:
-  - Add Docker secrets to Secret Management section
-  - Document priority: Docker/K8s secrets > YAML > CLI (NO env vars)
+  - Add examples from CA compose.yml (PostgreSQL official + 2 app patterns)
+  - Add anti-pattern: inline environment variables (side-by-side ❌ WRONG vs ✅ CORRECT)
+- [x] 7.5.2: Update .github/instructions/03-06.security.instructions.md:
+  - Add Docker secrets to Secret Management section (expanded ~25L → ~115L, 4.6× expansion)
+  - Document priority: Docker/K8s secrets > YAML > CLI (NO env vars) - 4-tier hierarchy with use cases
   - Add validation command: `grep -E "PASSWORD|SECRET|TOKEN" compose.yml` → zero inline matches
-- [ ] 7.5.3: Create docs/docker-secrets-pattern.md:
-  - Comprehensive guide with examples
-  - Migration steps from inline to secrets
-  - Troubleshooting section
-- [ ] 7.5.4: Update README.md with Docker secrets requirement
-- [ ] 7.5.5: Commit: "docs(security): mandate Docker secrets for all credentials"
+  - Added Kubernetes secrets patterns (secretKeyRef + volume mounts with full pod specs)
+- [x] 7.5.3: Create docs/docker-secrets-pattern.md:
+  - Comprehensive guide with examples (485 lines total)
+  - Migration steps from inline to secrets (5 concrete steps with BEFORE/AFTER)
+  - Troubleshooting section (5 common issues with symptom/cause/fix)
+  - Validation checklist (9 checkboxes)
+  - References (official docs + cryptoutil docs + 7 reference implementations)
+- [x] 7.5.4: Update README.md with Docker secrets requirement
+  - Added security requirement statement with link to pattern guide
+  - Added complete Docker secrets example (4 secrets: postgres_url + 3 unseal keys)
+- [x] 7.5.5: Commit: "docs(security): mandate Docker secrets for all credentials" (commit b849e509)
+
+**Findings**:
+- Docker secrets now MANDATORY across 4 documentation types:
+  * Copilot Docker instructions: ~150 lines comprehensive patterns
+  * Copilot security instructions: ~115 lines priority hierarchy + Kubernetes patterns
+  * Standalone pattern guide: 485 lines complete reference (overview, syntax, PostgreSQL 3 patterns, unseal keys, migration, examples, troubleshooting, checklist, references)
+  * README: Brief user-facing requirement with link to comprehensive guide
+- Priority hierarchy documented: Docker/K8s secrets HIGHEST → YAML configs MEDIUM → CLI args LOW → Inline env vars NEVER (SECURITY VIOLATION)
+- Multi-platform coverage: Both Docker Compose and Kubernetes patterns documented (secretKeyRef + volume mounts)
+- All Phase 7 patterns documented: PostgreSQL official image + 2 app patterns (file reference + command interpolation, both equally secure), unseal keys KMS 5-of-5, SQLite no credentials
+- Migration guide provided: 5 concrete steps from inline to secrets (create dir, create files with echo -n, add top-level section, update service config BEFORE/AFTER, validate)
+- Validation commands provided: Docker Compose inline detection + Kubernetes inline detection + syntax validation
+- Troubleshooting section: 5 common issues (secret not found, incorrect credentials, permission denied, visible in docker inspect, YAML syntax error)
+- Validation checklist: 9 checkboxes for deployment/commit readiness
+- Reference implementations: All 7 compose files listed with descriptions
 
 **Files**:
-- .github/instructions/04-02.docker.instructions.md (update)
-- .github/instructions/03-06.security.instructions.md (update)
-- docs/docker-secrets-pattern.md (create)
-- README.md (update)
+- .github/instructions/04-02.docker.instructions.md (update - 4L → ~150L Docker Secrets section)
+- .github/instructions/03-06.security.instructions.md (update - ~25L → ~115L Secret Management section)
+- docs/docker-secrets-pattern.md (create - 485L comprehensive standalone guide)
+- README.md (update - added Docker secrets requirement + example + link)
 
 
 ### Task 7.6: Verify Zero Inline Credentials Across All Compose Files
