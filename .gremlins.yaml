@@ -7,9 +7,9 @@ threshold-efficacy: 70.0    # Minimum percentage of killed mutants vs total kill
 threshold-mcover: 60.0      # Minimum percentage of mutant coverage (focus on quality over quantity)
 
 # Performance settings
-workers: 2                  # Conservative worker count for stability
+workers: 1                  # Single worker for stability (prevents race conditions)
 test-cpu: 1                 # Single CPU per test to avoid resource contention
-timeout-coefficient: 10     # Much higher timeout for Windows (was 3, causing timeouts)
+timeout-coefficient: 30     # High timeout for complex test setups
 
 # Mutation operators (enable comprehensive coverage)
 arithmetic-base: true       # Change +, -, *, /, % operators
