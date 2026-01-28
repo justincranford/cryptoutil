@@ -691,13 +691,13 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create or find existing tenant using the same tenant ID from auth middleware.
+	// Use testTenantID since the auth middleware sets tenant_id from this global.
+	// Create tenant if it doesn't exist (FirstOrCreate handles both cases).
 	tenant := &cryptoutilTemplateRepository.Tenant{
 		ID:   testTenantID,
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
-	dbResult := testDB.Where("id = ?", testTenantID).FirstOrCreate(tenant)
-	require.NoError(t, dbResult.Error)
+	require.NoError(t, testDB.WithContext(ctx).Where("id = ?", testTenantID).FirstOrCreate(tenant).Error)
 
 	// Create join request with unique ID.
 	userID := googleUuid.New()
