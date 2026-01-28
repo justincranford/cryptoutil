@@ -840,33 +840,34 @@ Server package is HTTP handling layer - coverage validated at 85.6% via go test.
 
 ### Task 3.1: Add createMaterialJWK Error Tests
 
-**Status**: ⏳ NOT STARTED
+**Status**: ⏳ IN PROGRESS
 **Owner**: LLM Agent
 **Dependencies**: None
 **Priority**: HIGH
 
-**Description**: Create comprehensive comparison table analyzing kms, service-template, cipher-im, and jose-ja implementations to identify code duplication, inconsistencies, and opportunities for service-template extraction.
+**Description**: Add error path tests for createMaterialJWK function in elastic_jwk_service.go and material_rotation_service.go. Current coverage: 76.7% (elastic) and 78.6% (rotation).
+
+**Error Paths to Test**:
+1. `unsupported algorithm for key generation` - unsupported algorithm
+2. `failed to generate JWK` - JWK generation failure
+3. `failed to set private JWK kid` - JWK key ID setting failure
+4. `failed to set public JWK kid` - JWK key ID setting failure
+5. `failed to encrypt private JWK` - barrier encryption failure
+6. `failed to encrypt public JWK` - barrier encryption failure
+7. `failed to create material JWK` - repository creation failure
 
 **Acceptance Criteria**:
-- [ ] 0.1.1: Read all four service implementations
-  - internal/kms/server/ (reference KMS implementation)
-  - internal/apps/template/service/ (extracted template)
-  - internal/apps/cipher/im/service/ (cipher-im service)
-  - internal/apps/jose/ja/service/ (jose-ja service)
-- [ ] 0.1.2: Create comparison table with columns:
-  - Component (Server struct, Config, Handlers, Middleware, TLS setup, etc.)
-  - KMS implementation (file location, pattern used)
-  - Service-template implementation (file location, pattern used)
-  - Cipher-IM implementation (file location, pattern used)
-  - JOSE-JA implementation (file location, pattern used)
-  - Duplication analysis (identical, similar, different)
-  - Reusability recommendation (extract to template, keep service-specific, etc.)
-- [ ] 0.1.3: Document findings in research.md
-- [ ] 0.1.4: Identify top 10 duplication candidates for extraction
-- [ ] 0.1.5: Estimate effort to extract each candidate
+- [ ] 3.1.1: Analyze createMaterialJWK error paths in both files
+- [ ] 3.1.2: Write test for unsupported algorithm
+- [ ] 3.1.3: Write test for JWK generation failure
+- [ ] 3.1.4: Write test for barrier encryption failures
+- [ ] 3.1.5: Write test for repository creation failure
+- [ ] 3.1.6: Verify coverage improvement
+- [ ] 3.1.7: Commit: "test(jose): add createMaterialJWK error tests"
 
 **Files**:
-- docs/fixes-needed-plan-tasks-v4/research.md (new)
+- internal/apps/jose/ja/service/elastic_jwk_service_test.go (add)
+- internal/apps/jose/ja/service/material_rotation_service_test.go (add)
 
 ---
 

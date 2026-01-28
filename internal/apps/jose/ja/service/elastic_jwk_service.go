@@ -289,7 +289,7 @@ func mapToGenerateAlgorithm(algorithm string) *cryptoutilOpenapiModel.GenerateAl
 		alg = cryptoutilOpenapiModel.Oct192
 	case cryptoutilSharedMagic.JoseKeyTypeOct256, cryptoutilSharedMagic.JoseEncA256GCM:
 		alg = cryptoutilOpenapiModel.Oct256
-	case cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseEncA128CBCHS256:
+	case cryptoutilSharedMagic.JoseKeyTypeOct384, cryptoutilSharedMagic.JoseEncA128CBCHS256, cryptoutilSharedMagic.JoseEncA192CBCHS384:
 		alg = cryptoutilOpenapiModel.Oct384
 	case cryptoutilSharedMagic.JoseKeyTypeOct512, cryptoutilSharedMagic.JoseEncA256CBCHS512:
 		alg = cryptoutilOpenapiModel.Oct512
