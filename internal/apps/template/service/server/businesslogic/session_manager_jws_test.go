@@ -79,139 +79,295 @@ func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	require.True(t, time.Now().UTC().Before(exp), "Expiration should be in future")
 }
 
-func TestSessionManager_ValidateBrowserSession_JWS_Success(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
+func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
+	t.Parallel()
 
-	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	tenantID := googleUuid.Must(googleUuid.NewV7())
-	realmID := googleUuid.Must(googleUuid.NewV7())
+	tests := []struct {
+		name             string
+		setupToken       func(t *testing.T, sm *SessionManager, ctx context.Context) string
+		wantErr          bool
+		wantErrorMessage string
+	}{
+		{
+			name: "success - valid JWT token",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				userID := googleUuid.Must(googleUuid.NewV7()).String()
+				tenantID := googleUuid.Must(googleUuid.NewV7())
+				realmID := googleUuid.Must(googleUuid.NewV7())
+				token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+				require.NoError(t, err)
+				return token
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid signature - malformed JWT",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				return "invalid.jwt.token"
+			},
+			wantErr:          true,
+			wantErrorMessage: "",
+		},
+		{
+			name: "expired JWT",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				// Load JWK from database
+				var browserJWK struct {
+					EncryptedJWK string
+				}
+				findErr := sm.db.Table("browser_session_jwks").
+					Where("id = ?", sm.browserJWKID).
+					Select("encrypted_jwk").
+					First(&browserJWK).Error
+				require.NoError(t, findErr)
 
-	// Issue session
-	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
-	require.NoError(t, err)
+				jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+				require.NoError(t, parseErr)
 
-	// Validate session
-	session, validateErr := sm.ValidateBrowserSession(ctx, token)
-	require.NoError(t, validateErr)
-	require.NotNil(t, session)
-	require.NotNil(t, session.UserID)
-	require.Equal(t, userID, *session.UserID)
-	require.Equal(t, tenantID, session.TenantID)
-	require.Equal(t, realmID, session.RealmID)
-}
+				// Create expired JWT manually
+				now := time.Now().UTC()
+				exp := now.Add(-1 * time.Hour) // Already expired
+				jti := googleUuid.Must(googleUuid.NewV7())
 
-func TestSessionManager_ValidateBrowserSession_JWS_InvalidSignature(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
+				claims := map[string]any{
+					"jti":       jti.String(),
+					"iat":       now.Add(-2 * time.Hour).Unix(),
+					"exp":       exp.Unix(),
+					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+				}
 
-	// Create invalid JWT (malformed token)
-	invalidToken := "invalid.jwt.token"
+				claimsBytes, _ := json.Marshal(claims)
+				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+				require.NoError(t, signErr)
+				return string(jwsBytes)
+			},
+			wantErr:          true,
+			wantErrorMessage: "JWT expired",
+		},
+		{
+			name: "revoked session",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				userID := googleUuid.Must(googleUuid.NewV7()).String()
+				tenantID := googleUuid.Must(googleUuid.NewV7())
+				realmID := googleUuid.Must(googleUuid.NewV7())
 
-	session, err := sm.ValidateBrowserSession(ctx, invalidToken)
-	require.Error(t, err)
-	require.Nil(t, session)
-}
+				// Issue session
+				token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
+				require.NoError(t, err)
 
-func TestSessionManager_ValidateBrowserSession_JWS_ExpiredJWT(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
+				// Parse token to extract jti
+				var browserJWK struct {
+					EncryptedJWK string
+				}
+				findErr := sm.db.Table("browser_session_jwks").
+					Where("id = ?", sm.browserJWKID).
+					Select("encrypted_jwk").
+					First(&browserJWK).Error
+				require.NoError(t, findErr)
 
-	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	tenantID := googleUuid.Must(googleUuid.NewV7())
-	realmID := googleUuid.Must(googleUuid.NewV7())
+				privateJWK, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+				require.NoError(t, parseErr)
 
-	// Load JWK from database
-	var browserJWK struct {
-		EncryptedJWK string
+				publicJWK, publicKeyErr := privateJWK.PublicKey()
+				require.NoError(t, publicKeyErr)
+
+				claimsBytes, verifyErr := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+				require.NoError(t, verifyErr)
+
+				var claims map[string]any
+				unmarshalErr := json.Unmarshal(claimsBytes, &claims)
+				require.NoError(t, unmarshalErr)
+
+				jtiStr, ok := claims["jti"].(string)
+				require.True(t, ok, "jti claim should be string")
+
+				// Delete session from database (simulate revocation)
+				jti, parseJTIErr := googleUuid.Parse(jtiStr)
+				require.NoError(t, parseJTIErr)
+
+				deleteErr := sm.db.Where("id = ?", jti).Delete(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).Error
+				require.NoError(t, deleteErr)
+
+				return token
+			},
+			wantErr:          true,
+			wantErrorMessage: "Session revoked or not found",
+		},
+		{
+			name: "missing exp claim",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				// Load JWK from database
+				var browserJWK struct {
+					EncryptedJWK string
+				}
+				findErr := sm.db.Table("browser_session_jwks").
+					Where("id = ?", sm.browserJWKID).
+					Select("encrypted_jwk").
+					First(&browserJWK).Error
+				require.NoError(t, findErr)
+
+				jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+				require.NoError(t, parseErr)
+
+				// Create JWT without exp claim
+				now := time.Now().UTC()
+				jti := googleUuid.Must(googleUuid.NewV7())
+
+				claims := map[string]any{
+					"jti": jti.String(),
+					"iat": now.Unix(),
+					// No exp claim - intentionally missing
+					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+				}
+
+				claimsBytes, _ := json.Marshal(claims)
+				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+				require.NoError(t, signErr)
+				return string(jwsBytes)
+			},
+			wantErr:          true,
+			wantErrorMessage: "Missing or invalid exp claim",
+		},
+		{
+			name: "missing jti claim",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				// Load JWK from database
+				var browserJWK struct {
+					EncryptedJWK string
+				}
+				findErr := sm.db.Table("browser_session_jwks").
+					Where("id = ?", sm.browserJWKID).
+					Select("encrypted_jwk").
+					First(&browserJWK).Error
+				require.NoError(t, findErr)
+
+				jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+				require.NoError(t, parseErr)
+
+				// Create JWT without jti claim
+				now := time.Now().UTC()
+				exp := now.Add(24 * time.Hour)
+
+				claims := map[string]any{
+					// No jti claim - intentionally missing
+					"iat":       now.Unix(),
+					"exp":       exp.Unix(),
+					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+				}
+
+				claimsBytes, _ := json.Marshal(claims)
+				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+				require.NoError(t, signErr)
+				return string(jwsBytes)
+			},
+			wantErr:          true,
+			wantErrorMessage: "Missing or invalid jti claim",
+		},
+		{
+			name: "invalid jti format - not a UUID",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				// Load JWK from database
+				var browserJWK struct {
+					EncryptedJWK string
+				}
+				findErr := sm.db.Table("browser_session_jwks").
+					Where("id = ?", sm.browserJWKID).
+					Select("encrypted_jwk").
+					First(&browserJWK).Error
+				require.NoError(t, findErr)
+
+				jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+				require.NoError(t, parseErr)
+
+				// Create JWT with invalid jti format
+				now := time.Now().UTC()
+				exp := now.Add(24 * time.Hour)
+
+				claims := map[string]any{
+					"jti":       "not-a-valid-uuid",
+					"iat":       now.Unix(),
+					"exp":       exp.Unix(),
+					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+				}
+
+				claimsBytes, _ := json.Marshal(claims)
+				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+				require.NoError(t, signErr)
+				return string(jwsBytes)
+			},
+			wantErr:          true,
+			wantErrorMessage: "Invalid jti format",
+		},
+		{
+			name: "invalid exp type - not a number",
+			setupToken: func(t *testing.T, sm *SessionManager, ctx context.Context) string {
+				// Load JWK from database
+				var browserJWK struct {
+					EncryptedJWK string
+				}
+				findErr := sm.db.Table("browser_session_jwks").
+					Where("id = ?", sm.browserJWKID).
+					Select("encrypted_jwk").
+					First(&browserJWK).Error
+				require.NoError(t, findErr)
+
+				jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
+				require.NoError(t, parseErr)
+
+				// Create JWT with non-numeric exp claim
+				now := time.Now().UTC()
+				jti := googleUuid.Must(googleUuid.NewV7())
+
+				claims := map[string]any{
+					"jti":       jti.String(),
+					"iat":       now.Unix(),
+					"exp":       "not-a-number", // Invalid type
+					"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
+					"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
+					"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
+				}
+
+				claimsBytes, _ := json.Marshal(claims)
+				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+				require.NoError(t, signErr)
+				return string(jwsBytes)
+			},
+			wantErr:          true,
+			wantErrorMessage: "Missing or invalid exp claim",
+		},
 	}
 
-	findErr := sm.db.Table("browser_session_jwks").
-		Where("id = ?", sm.browserJWKID).
-		Select("encrypted_jwk").
-		First(&browserJWK).Error
-	require.NoError(t, findErr)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
-	require.NoError(t, parseErr)
+			sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+			ctx := context.Background()
 
-	// Create expired JWT manually
-	now := time.Now().UTC()
-	exp := now.Add(-1 * time.Hour) // Already expired
-	jti := googleUuid.Must(googleUuid.NewV7())
+			token := tc.setupToken(t, sm, ctx)
 
-	claims := map[string]any{
-		"jti":       jti.String(),
-		"iat":       now.Add(-2 * time.Hour).Unix(),
-		"exp":       exp.Unix(),
-		"sub":       userID,
-		"tenant_id": tenantID.String(),
-		"realm_id":  realmID.String(),
+			session, validateErr := sm.ValidateBrowserSession(ctx, token)
+
+			if tc.wantErr {
+				require.Error(t, validateErr)
+				require.Nil(t, session)
+				if tc.wantErrorMessage != "" {
+					require.Contains(t, validateErr.Error(), tc.wantErrorMessage)
+				}
+			} else {
+				require.NoError(t, validateErr)
+				require.NotNil(t, session)
+			}
+		})
 	}
-
-	claimsBytes, _ := json.Marshal(claims)
-	_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
-	require.NoError(t, signErr)
-
-	// Validate should fail due to expiration
-	session, validateErr := sm.ValidateBrowserSession(ctx, string(jwsBytes))
-	require.Error(t, validateErr)
-	require.Nil(t, session)
-	require.Contains(t, validateErr.Error(), "JWT expired")
-}
-
-func TestSessionManager_ValidateBrowserSession_JWS_RevokedSession(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
-
-	userID := googleUuid.Must(googleUuid.NewV7()).String()
-	tenantID := googleUuid.Must(googleUuid.NewV7())
-	realmID := googleUuid.Must(googleUuid.NewV7())
-
-	// Issue session
-	token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
-	require.NoError(t, err)
-
-	// Parse token to extract jti
-	var browserJWK struct {
-		EncryptedJWK string
-	}
-
-	findErr := sm.db.Table("browser_session_jwks").
-		Where("id = ?", sm.browserJWKID).
-		Select("encrypted_jwk").
-		First(&browserJWK).Error
-	require.NoError(t, findErr)
-
-	privateJWK, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
-	require.NoError(t, parseErr)
-
-	publicJWK, publicKeyErr := privateJWK.PublicKey()
-	require.NoError(t, publicKeyErr)
-
-	claimsBytes, verifyErr := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
-	require.NoError(t, verifyErr)
-
-	var claims map[string]any
-
-	unmarshalErr := json.Unmarshal(claimsBytes, &claims)
-	require.NoError(t, unmarshalErr)
-
-	jtiStr, ok := claims["jti"].(string)
-	require.True(t, ok, "jti claim should be string")
-
-	// Delete session from database (simulate revocation).
-	jti, parseJTIErr := googleUuid.Parse(jtiStr)
-	require.NoError(t, parseJTIErr)
-
-	deleteErr := sm.db.Where("id = ?", jti).Delete(&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{}).Error
-	require.NoError(t, deleteErr)
-
-	// Validate should fail (session revoked)
-	session, validateErr := sm.ValidateBrowserSession(ctx, token)
-	require.Error(t, validateErr)
-	require.Nil(t, session)
-	require.Contains(t, validateErr.Error(), "Session revoked or not found")
 }
 
 func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
@@ -276,176 +432,4 @@ func TestSessionManager_ValidateServiceSession_JWS_Success(t *testing.T) {
 	require.Equal(t, clientID, *session.ClientID)
 	require.Equal(t, tenantID, session.TenantID)
 	require.Equal(t, realmID, session.RealmID)
-}
-
-// TestSessionManager_ValidateBrowserSession_JWS_MissingExpClaim tests validation when exp claim is missing.
-func TestSessionManager_ValidateBrowserSession_JWS_MissingExpClaim(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
-
-	// Load JWK from database to sign custom token.
-	var browserJWK struct {
-		EncryptedJWK string
-	}
-
-	findErr := sm.db.Table("browser_session_jwks").
-		Where("id = ?", sm.browserJWKID).
-		Select("encrypted_jwk").
-		First(&browserJWK).Error
-	require.NoError(t, findErr)
-
-	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
-	require.NoError(t, parseErr)
-
-	// Create JWT without exp claim.
-	now := time.Now().UTC()
-	jti := googleUuid.Must(googleUuid.NewV7())
-
-	claims := map[string]any{
-		"jti": jti.String(),
-		"iat": now.Unix(),
-		// No exp claim - intentionally missing
-		"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
-		"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-		"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
-	}
-
-	claimsBytes, _ := json.Marshal(claims)
-	_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
-	require.NoError(t, signErr)
-
-	// Validate should fail due to missing exp claim.
-	session, validateErr := sm.ValidateBrowserSession(ctx, string(jwsBytes))
-	require.Error(t, validateErr)
-	require.Nil(t, session)
-	require.Contains(t, validateErr.Error(), "Missing or invalid exp claim")
-}
-
-// TestSessionManager_ValidateBrowserSession_JWS_MissingJtiClaim tests validation when jti claim is missing.
-func TestSessionManager_ValidateBrowserSession_JWS_MissingJtiClaim(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
-
-	// Load JWK from database to sign custom token.
-	var browserJWK struct {
-		EncryptedJWK string
-	}
-
-	findErr := sm.db.Table("browser_session_jwks").
-		Where("id = ?", sm.browserJWKID).
-		Select("encrypted_jwk").
-		First(&browserJWK).Error
-	require.NoError(t, findErr)
-
-	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
-	require.NoError(t, parseErr)
-
-	// Create JWT without jti claim.
-	now := time.Now().UTC()
-	exp := now.Add(24 * time.Hour)
-
-	claims := map[string]any{
-		// No jti claim - intentionally missing
-		"iat":       now.Unix(),
-		"exp":       exp.Unix(),
-		"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
-		"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-		"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
-	}
-
-	claimsBytes, _ := json.Marshal(claims)
-	_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
-	require.NoError(t, signErr)
-
-	// Validate should fail due to missing jti claim.
-	session, validateErr := sm.ValidateBrowserSession(ctx, string(jwsBytes))
-	require.Error(t, validateErr)
-	require.Nil(t, session)
-	require.Contains(t, validateErr.Error(), "Missing or invalid jti claim")
-}
-
-// TestSessionManager_ValidateBrowserSession_JWS_InvalidJtiFormat tests validation when jti is not a valid UUID.
-func TestSessionManager_ValidateBrowserSession_JWS_InvalidJtiFormat(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
-
-	// Load JWK from database to sign custom token.
-	var browserJWK struct {
-		EncryptedJWK string
-	}
-
-	findErr := sm.db.Table("browser_session_jwks").
-		Where("id = ?", sm.browserJWKID).
-		Select("encrypted_jwk").
-		First(&browserJWK).Error
-	require.NoError(t, findErr)
-
-	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
-	require.NoError(t, parseErr)
-
-	// Create JWT with invalid jti format.
-	now := time.Now().UTC()
-	exp := now.Add(24 * time.Hour)
-
-	claims := map[string]any{
-		"jti":       "not-a-valid-uuid",
-		"iat":       now.Unix(),
-		"exp":       exp.Unix(),
-		"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
-		"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-		"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
-	}
-
-	claimsBytes, _ := json.Marshal(claims)
-	_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
-	require.NoError(t, signErr)
-
-	// Validate should fail due to invalid jti format.
-	session, validateErr := sm.ValidateBrowserSession(ctx, string(jwsBytes))
-	require.Error(t, validateErr)
-	require.Nil(t, session)
-	require.Contains(t, validateErr.Error(), "Invalid jti format")
-}
-
-// TestSessionManager_ValidateBrowserSession_JWS_InvalidExpType tests validation when exp claim is not a number.
-func TestSessionManager_ValidateBrowserSession_JWS_InvalidExpType(t *testing.T) {
-	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
-	ctx := context.Background()
-
-	// Load JWK from database to sign custom token.
-	var browserJWK struct {
-		EncryptedJWK string
-	}
-
-	findErr := sm.db.Table("browser_session_jwks").
-		Where("id = ?", sm.browserJWKID).
-		Select("encrypted_jwk").
-		First(&browserJWK).Error
-	require.NoError(t, findErr)
-
-	jwk, parseErr := joseJwk.ParseKey([]byte(browserJWK.EncryptedJWK))
-	require.NoError(t, parseErr)
-
-	// Create JWT with non-numeric exp claim.
-	now := time.Now().UTC()
-	jti := googleUuid.Must(googleUuid.NewV7())
-
-	claims := map[string]any{
-		"jti":       jti.String(),
-		"iat":       now.Unix(),
-		"exp":       "not-a-number", // Invalid type
-		"sub":       googleUuid.Must(googleUuid.NewV7()).String(),
-		"tenant_id": googleUuid.Must(googleUuid.NewV7()).String(),
-		"realm_id":  googleUuid.Must(googleUuid.NewV7()).String(),
-	}
-
-	claimsBytes, _ := json.Marshal(claims)
-	_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
-	require.NoError(t, signErr)
-
-	// Validate should fail due to invalid exp type.
-	session, validateErr := sm.ValidateBrowserSession(ctx, string(jwsBytes))
-	require.Error(t, validateErr)
-	require.Nil(t, session)
-	require.Contains(t, validateErr.Error(), "Missing or invalid exp claim")
 }
