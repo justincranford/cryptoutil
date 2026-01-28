@@ -130,87 +130,88 @@ func TestSessionValidateResponse_Struct(t *testing.T) {
 	require.Equal(t, resp.Valid, decoded.Valid)
 }
 
-// TestIssueSession_InvalidJSON tests that IssueSession returns error for malformed JSON.
+// TestIssueSession_ValidationErrors tests error handling using table-driven pattern.
 // NOTE: The handler uses cryptoutilAppErr types which Fiber's default error handler converts to 500.
-// The key is that we exercise the JSON parsing error path.
-func TestIssueSession_InvalidJSON(t *testing.T) {
+// Tests focus on early validation failures before reaching session manager.
+func TestIssueSession_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
-	handler := NewSessionHandler(nil)
-	app := fiber.New()
-	app.Post("/session/issue", handler.IssueSession)
-
-	req := httptest.NewRequest("POST", "/session/issue", bytes.NewReader([]byte("not-json")))
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, resp.Body.Close()) }()
-
-	// Fiber's default error handler converts cryptoutilAppErr to 500.
-	// The important thing is that we exercised the JSON parse error path.
-	require.True(t, resp.StatusCode >= 400, "Expected error status code")
-}
-
-// TestIssueSession_InvalidTenantID tests IssueSession with invalid tenant ID.
-// NOTE: The handler uses cryptoutilAppErr types which Fiber's default error handler converts to 500.
-func TestIssueSession_InvalidTenantID(t *testing.T) {
-	t.Parallel()
-
-	handler := NewSessionHandler(nil)
-	app := fiber.New()
-	app.Post("/session/issue", handler.IssueSession)
-
-	reqBody := SessionIssueRequest{
-		UserID:      "user-123",
-		TenantID:    "not-a-valid-uuid",
-		RealmID:     googleUuid.New().String(),
-		SessionType: sessionTypeBrowser,
+	tests := []struct {
+		name        string
+		requestBody interface{}
+		setupApp    func() *fiber.App
+		wantErr     bool
+	}{
+		{
+			name:        "invalid JSON",
+			requestBody: "not-json",
+			setupApp: func() *fiber.App {
+				handler := NewSessionHandler(nil)
+				app := fiber.New()
+				app.Post("/session/issue", handler.IssueSession)
+				return app
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid tenant ID",
+			requestBody: SessionIssueRequest{
+				UserID:      "user-123",
+				TenantID:    "not-a-valid-uuid",
+				RealmID:     googleUuid.New().String(),
+				SessionType: sessionTypeBrowser,
+			},
+			setupApp: func() *fiber.App {
+				handler := NewSessionHandler(nil)
+				app := fiber.New()
+				app.Post("/session/issue", handler.IssueSession)
+				return app
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid realm ID",
+			requestBody: SessionIssueRequest{
+				UserID:      "user-123",
+				TenantID:    googleUuid.New().String(),
+				RealmID:     "not-a-valid-uuid",
+				SessionType: sessionTypeBrowser,
+			},
+			setupApp: func() *fiber.App {
+				handler := NewSessionHandler(nil)
+				app := fiber.New()
+				app.Post("/session/issue", handler.IssueSession)
+				return app
+			},
+			wantErr: true,
+		},
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest("POST", "/session/issue", bytes.NewReader(bodyBytes))
-	req.Header.Set("Content-Type", "application/json")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	resp, err := app.Test(req)
-	require.NoError(t, err)
+			app := tt.setupApp()
 
-	defer func() { require.NoError(t, resp.Body.Close()) }()
+			var reqBody []byte
+			if str, ok := tt.requestBody.(string); ok {
+				reqBody = []byte(str)
+			} else {
+				reqBody, _ = json.Marshal(tt.requestBody)
+			}
 
-	// Fiber's default error handler converts cryptoutilAppErr to 500.
-	// The important thing is that we exercised the tenant_id validation error path.
-	require.True(t, resp.StatusCode >= 400, "Expected error status code")
-}
+			req := httptest.NewRequest("POST", "/session/issue", bytes.NewReader(reqBody))
+			req.Header.Set("Content-Type", "application/json")
 
-// TestIssueSession_InvalidRealmID tests IssueSession with invalid realm ID.
-// NOTE: The handler uses cryptoutilAppErr types which Fiber's default error handler converts to 500.
-func TestIssueSession_InvalidRealmID(t *testing.T) {
-	t.Parallel()
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer func() { require.NoError(t, resp.Body.Close()) }()
 
-	handler := NewSessionHandler(nil)
-	app := fiber.New()
-	app.Post("/session/issue", handler.IssueSession)
-
-	reqBody := SessionIssueRequest{
-		UserID:      "user-123",
-		TenantID:    googleUuid.New().String(),
-		RealmID:     "not-a-valid-uuid",
-		SessionType: sessionTypeBrowser,
+			if tt.wantErr {
+				require.True(t, resp.StatusCode >= 400, "Expected error status code")
+			}
+		})
 	}
-	bodyBytes, _ := json.Marshal(reqBody)
-
-	req := httptest.NewRequest("POST", "/session/issue", bytes.NewReader(bodyBytes))
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-
-	defer func() { require.NoError(t, resp.Body.Close()) }()
-
-	// Fiber's default error handler converts cryptoutilAppErr to 500.
-	// The important thing is that we exercised the realm_id validation error path.
-	require.True(t, resp.StatusCode >= 400, "Expected error status code")
 }
 
 // TestValidateSession_InvalidJSON tests ValidateSession with invalid JSON body.

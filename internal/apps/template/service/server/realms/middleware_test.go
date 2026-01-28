@@ -37,133 +37,72 @@ func createTestToken(t *testing.T, userID string, username string, secret string
 	return tokenString
 }
 
-func TestJWTMiddleware_MissingAuthorizationHeader(t *testing.T) {
+// TestJWTMiddleware_AuthenticationErrors tests JWT middleware error handling for authentication failures.
+func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 	t.Parallel()
 
-	app := fiber.New()
-	app.Use(JWTMiddleware(testJWTSecret))
-	app.Get("/protected", func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
+	tests := []struct {
+		name        string
+		setupAuth   func() string
+		wantStatus  int
+	}{
+		{
+			name: "missing authorization header",
+			setupAuth: func() string {
+				return "" // No Authorization header
+			},
+			wantStatus: fiber.StatusUnauthorized,
+		},
+		{
+			name: "invalid authorization format",
+			setupAuth: func() string {
+				return "Basic dXNlcjpwYXNz" // Basic auth instead of Bearer
+			},
+			wantStatus: fiber.StatusUnauthorized,
+		},
+		{
+			name: "invalid token",
+			setupAuth: func() string {
+				return "Bearer invalid-token-string"
+			},
+			wantStatus: fiber.StatusUnauthorized,
+		},
+		{
+			name: "invalid user_id",
+			setupAuth: func() string {
+				// Token with invalid UUID format for user_id
+				token := createTestToken(t, "not-a-valid-uuid", "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
+				return "Bearer " + token
+			},
+			wantStatus: fiber.StatusUnauthorized,
+		},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	err = resp.Body.Close()
-	require.NoError(t, err)
+			app := fiber.New()
+			app.Use(JWTMiddleware(testJWTSecret))
+			app.Get("/protected", func(c *fiber.Ctx) error {
+				return c.SendString("success")
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+			authHeader := tt.setupAuth()
+			if authHeader != "" {
+				req.Header.Set("Authorization", authHeader)
+			}
+
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer func() { require.NoError(t, resp.Body.Close()) }()
+
+			require.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
 }
 
-func TestJWTMiddleware_InvalidAuthorizationFormat(t *testing.T) {
-	t.Parallel()
-
-	app := fiber.New()
-	app.Use(JWTMiddleware(testJWTSecret))
-	app.Get("/protected", func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Basic dXNlcjpwYXNz") // Basic auth instead of Bearer
-
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	err = resp.Body.Close()
-	require.NoError(t, err)
-}
-
-func TestJWTMiddleware_InvalidToken(t *testing.T) {
-	t.Parallel()
-
-	app := fiber.New()
-	app.Use(JWTMiddleware(testJWTSecret))
-	app.Get("/protected", func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer invalid-token-string")
-
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	err = resp.Body.Close()
-	require.NoError(t, err)
-}
-
-func TestJWTMiddleware_ExpiredToken(t *testing.T) {
-	t.Parallel()
-
-	userID := googleUuid.New()
-	expiredToken := createTestToken(t, userID.String(), "testuser", testJWTSecret, time.Now().UTC().Add(-1*time.Hour))
-
-	app := fiber.New()
-	app.Use(JWTMiddleware(testJWTSecret))
-	app.Get("/protected", func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer "+expiredToken)
-
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	err = resp.Body.Close()
-	require.NoError(t, err)
-}
-
-func TestJWTMiddleware_WrongSecret(t *testing.T) {
-	t.Parallel()
-
-	userID := googleUuid.New()
-	// Token signed with different secret.
-	tokenWithWrongSecret := createTestToken(t, userID.String(), "testuser", "wrong-secret", time.Now().UTC().Add(1*time.Hour))
-
-	app := fiber.New()
-	app.Use(JWTMiddleware(testJWTSecret))
-	app.Get("/protected", func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer "+tokenWithWrongSecret)
-
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	err = resp.Body.Close()
-	require.NoError(t, err)
-}
-
-func TestJWTMiddleware_InvalidUserID(t *testing.T) {
-	t.Parallel()
-
-	// Token with invalid UUID format for user_id.
-	invalidUserIDToken := createTestToken(t, "not-a-valid-uuid", "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
-
-	app := fiber.New()
-	app.Use(JWTMiddleware(testJWTSecret))
-	app.Get("/protected", func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
-	req.Header.Set("Authorization", "Bearer "+invalidUserIDToken)
-
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	err = resp.Body.Close()
-	require.NoError(t, err)
-}
 
 func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	t.Parallel()

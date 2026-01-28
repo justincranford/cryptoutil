@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"io/fs"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -38,30 +39,43 @@ func TestNewServerBuilder_Success(t *testing.T) {
 	require.Equal(t, settings, builder.config)
 }
 
-// TestNewServerBuilder_NilContext tests error handling for nil context.
-func TestNewServerBuilder_NilContext(t *testing.T) {
+// TestNewServerBuilder_ValidationErrors tests error handling for invalid inputs using table-driven pattern.
+func TestNewServerBuilder_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
 	settings := getMinimalSettings()
 
-	builder := NewServerBuilder(nil, settings)
+	tests := []struct {
+		name          string
+		ctx           context.Context
+		config        *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+		wantErrSubstr string
+	}{
+		{
+			name:          "nil context",
+			ctx:           nil,
+			config:        settings,
+			wantErrSubstr: "context cannot be nil",
+		},
+		{
+			name:          "nil config",
+			ctx:           context.Background(),
+			config:        nil,
+			wantErrSubstr: "config cannot be nil",
+		},
+	}
 
-	require.NotNil(t, builder)
-	require.Error(t, builder.err)
-	require.Contains(t, builder.err.Error(), "context cannot be nil")
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-// TestNewServerBuilder_NilConfig tests error handling for nil configuration.
-func TestNewServerBuilder_NilConfig(t *testing.T) {
-	t.Parallel()
+			builder := NewServerBuilder(tt.ctx, tt.config)
 
-	ctx := context.Background()
-
-	builder := NewServerBuilder(ctx, nil)
-
-	require.NotNil(t, builder)
-	require.Error(t, builder.err)
-	require.Contains(t, builder.err.Error(), "config cannot be nil")
+			require.NotNil(t, builder)
+			require.Error(t, builder.err)
+			require.Contains(t, builder.err.Error(), tt.wantErrSubstr)
+		})
+	}
 }
 
 // TestWithDomainMigrations_Success tests successful domain migration registration.
@@ -90,23 +104,8 @@ func TestWithDomainMigrations_Success(t *testing.T) {
 	require.Equal(t, "migrations", builder.migrationsPath)
 }
 
-// TestWithDomainMigrations_NilFS tests error handling for nil migration filesystem.
-func TestWithDomainMigrations_NilFS(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	settings := getMinimalSettings()
-
-	builder := NewServerBuilder(ctx, settings).
-		WithDomainMigrations(nil, "migrations")
-
-	require.NotNil(t, builder)
-	require.Error(t, builder.err)
-	require.Contains(t, builder.err.Error(), "migration FS cannot be nil")
-}
-
-// TestWithDomainMigrations_EmptyPath tests error handling for empty migration path.
-func TestWithDomainMigrations_EmptyPath(t *testing.T) {
+// TestWithDomainMigrations_ValidationErrors tests error handling using table-driven pattern.
+func TestWithDomainMigrations_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -118,12 +117,38 @@ func TestWithDomainMigrations_EmptyPath(t *testing.T) {
 		},
 	}
 
-	builder := NewServerBuilder(ctx, settings).
-		WithDomainMigrations(migrationFS, "")
+	tests := []struct {
+		name          string
+		fs            fs.FS
+		path          string
+		wantErrSubstr string
+	}{
+		{
+			name:          "nil filesystem",
+			fs:            nil,
+			path:          "migrations",
+			wantErrSubstr: "migration FS cannot be nil",
+		},
+		{
+			name:          "empty path",
+			fs:            migrationFS,
+			path:          "",
+			wantErrSubstr: "migrations path cannot be empty",
+		},
+	}
 
-	require.NotNil(t, builder)
-	require.Error(t, builder.err)
-	require.Contains(t, builder.err.Error(), "migrations path cannot be empty")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			builder := NewServerBuilder(ctx, settings).
+				WithDomainMigrations(tt.fs, tt.path)
+
+			require.NotNil(t, builder)
+			require.Error(t, builder.err)
+			require.Contains(t, builder.err.Error(), tt.wantErrSubstr)
+		})
+	}
 }
 
 // TestWithDomainMigrations_ErrorAccumulation tests error accumulation in fluent chain.
