@@ -243,6 +243,8 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/historical/u
 
 ### KMS Server: Running with Docker Compose
 
+**Security Requirement**: All services use Docker secrets for credentials (NO inline environment variables). See [Docker Secrets Pattern Guide](docs/docker-secrets-pattern.md) for comprehensive documentation.
+
 ```sh
 # Start full stack: PostgreSQL, cryptoutil, and observability
 cd deployments/compose
@@ -256,6 +258,42 @@ docker compose logs -f cryptoutil-postgres-1
 # cryptoutil API: https://localhost:8081 (PostgreSQL instance 1), https://localhost:8082 (PostgreSQL instance 2), or https://localhost:8080 (SQLite)
 # Swagger UI: https://localhost:8081/ui/swagger, https://localhost:8082/ui/swagger, or https://localhost:8080/ui/swagger
 ```
+
+#### Docker Secrets Example
+
+All deployment configurations use Docker secrets for sensitive data:
+
+```yaml
+services:
+  cryptoutil-postgres-1:
+    image: cryptoutil:latest
+    secrets:
+      - postgres_url.secret
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+    command:
+      - -u
+      - file:///run/secrets/postgres_url.secret
+      - --unseal-key
+      - file:///run/secrets/unseal_1of5.secret
+      - --unseal-key
+      - file:///run/secrets/unseal_2of5.secret
+      - --unseal-key
+      - file:///run/secrets/unseal_3of5.secret
+
+secrets:
+  postgres_url.secret:
+    file: ./secrets/postgres_url.secret
+  unseal_1of5.secret:
+    file: ./secrets/unseal_1of5.secret
+  unseal_2of5.secret:
+    file: ./secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ./secrets/unseal_3of5.secret
+```
+
+For complete examples, migration steps, and troubleshooting, see the [Docker Secrets Pattern Guide](docs/docker-secrets-pattern.md).
 
 ### Running with Go (Development)
 
