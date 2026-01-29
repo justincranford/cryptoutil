@@ -494,7 +494,7 @@ func TestApplication_PublicServerBase_MockServer(t *testing.T) {
 	// When public server is NOT *PublicServerBase, should return nil.
 	base := app.PublicServerBase()
 	require.Nil(t, base, "Expected nil when public server is not *PublicServerBase")
-	
+
 	// Verify the type assertion actually failed.
 	// The mock is definitely not a PublicServerBase from package server.
 	// This test covers application.go:294 (return nil path).
@@ -509,7 +509,7 @@ func TestApplication_PublicServerBase_RealServer(t *testing.T) {
 	// Create a real PublicServerBase.
 	publicServer, err := cryptoutilAppsTemplateServiceServer.NewPublicServerBase(&cryptoutilAppsTemplateServiceServer.PublicServerConfig{
 		BindAddress: "127.0.0.1",
-		Port:        0,  // Dynamic allocation.
+		Port:        0, // Dynamic allocation.
 		TLSMaterial: createTestTLSMaterial(t),
 	})
 	require.NoError(t, err)
@@ -523,7 +523,7 @@ func TestApplication_PublicServerBase_RealServer(t *testing.T) {
 	base := app.PublicServerBase()
 	require.NotNil(t, base, "Expected non-nil when public server is *PublicServerBase")
 	require.Same(t, publicServer, base, "Expected same instance")
-	
+
 	// This test covers application.go:290 (return base path).
 }
 

@@ -571,16 +571,16 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 ```go
 func TestHealthcheck_Handler(t *testing.T) {
     t.Parallel()
-    
+
     // Create standalone Fiber app - NO listener started
     app := fiber.New(fiber.Config{DisableStartupMessage: true})
     app.Get("/admin/api/v1/livez", healthcheckHandler)
-    
+
     req := httptest.NewRequest("GET", "/admin/api/v1/livez", nil)
     resp, err := app.Test(req, -1)  // ← In-memory, <1ms, no network binding
     require.NoError(t, err)
     defer resp.Body.Close()
-    
+
     require.Equal(t, 200, resp.StatusCode)
 }
 ```
@@ -602,7 +602,7 @@ var testDB *gorm.DB
 func TestMain(m *testing.M) {
     container, _ := postgres.RunContainer(ctx, ...)
     defer container.Terminate(ctx)
-    
+
     testDB, _ = gorm.Open(...)  // ← Created ONCE
     os.Exit(m.Run())
 }
