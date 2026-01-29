@@ -32,6 +32,10 @@ services:
     container_name: identity-authz-e2e
     hostname: identity-authz-e2e
     command:
+      - /app/cryptoutil
+      - identity
+      - authz
+      - start
       - --config=/etc/identity/authz-e2e.yml
     ports:
       - "18000:18000"  # Public HTTPS API
@@ -80,6 +84,10 @@ services:
     container_name: identity-idp-e2e
     hostname: identity-idp-e2e
     command:
+      - /app/cryptoutil
+      - identity
+      - idp
+      - start
       - --config=/etc/identity/idp-e2e.yml
     ports:
       - "18100:18100"  # Public HTTPS API
@@ -128,6 +136,10 @@ services:
     container_name: identity-rs-e2e
     hostname: identity-rs-e2e
     command:
+      - /app/cryptoutil
+      - identity
+      - rs
+      - start
       - --config=/etc/identity/rs-e2e.yml
     ports:
       - "18200:18200"  # Public HTTPS API
@@ -176,6 +188,10 @@ services:
     container_name: identity-rp-e2e
     hostname: identity-rp-e2e
     command:
+      - /app/cryptoutil
+      - identity
+      - rp
+      - start
       - --config=/etc/identity/rp-e2e.yml
     ports:
       - "18300:18300"  # Public HTTPS API
@@ -224,6 +240,10 @@ services:
     container_name: identity-spa-e2e
     hostname: identity-spa-e2e
     command:
+      - /app/cryptoutil
+      - identity
+      - spa
+      - start
       - --config=/etc/identity/spa-e2e.yml
     ports:
       - "18400:18400"  # Public HTTPS API

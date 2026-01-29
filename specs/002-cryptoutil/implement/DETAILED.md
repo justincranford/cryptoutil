@@ -6404,10 +6404,10 @@ Service coverage gap (12.3%) is dominated by database error paths, similar to re
 **Tests Added**:
 1. **TestApplication_PublicServerBase_MockServer**: Tests PublicServerBase() type assertion failure → nil return path
    - **Coverage impact**: application.go:287 improved from 0.0% → 66.7%
-   
+
 2. **TestApplication_IsShutdown**: Tests IsShutdown() accessor state transition (false → true)
 
-3. **Enhanced TestServiceTemplate_AccessorMethods**: 
+3. **Enhanced TestServiceTemplate_AccessorMethods**:
    - Original: 7 accessor methods (Config, DB, SQLDB, DBType, Telemetry, JWKGen, Barrier)
    - Added: Shutdown() method to cover nil checks for telemetry, jwkGen, barrier
    - Coverage target: service_template.go:141 Shutdown() at 83.3%
@@ -6417,7 +6417,7 @@ Service coverage gap (12.3%) is dominated by database error paths, similar to re
    - Added: Double shutdown test to cover "already shutdown" error path
    - Coverage target: public_server_base.go:164 Shutdown() at 90.9%
 
-**Test Strategy**: 
+**Test Strategy**:
 - Accessor methods (easy coverage wins for simple getters)
 - Error paths (nil checks, double shutdown)
 - Integration tests leverage existing server_coverage_test.go for complex paths
@@ -6493,7 +6493,7 @@ applyMigrations() function uncovered paths (8.3%):
 
 The builder package orchestrates complex initialization of multiple deep dependencies:
 - Admin HTTPS server with TLS
-- Database connection and migrations  
+- Database connection and migrations
 - Core services (Telemetry, JWKGen, UnsealKeys, Barrier)
 - Business logic services (SessionManager, Realm, Registration, Rotation, Status)
 - Public HTTPS server with TLS
@@ -6583,7 +6583,7 @@ openSQLite() uncovered paths (23.1%):
 
 openPostgreSQL() uncovered paths (8.3%):
 1. postgres.Open() error
-2. DB.DB() error  
+2. DB.DB() error
 3. Connection pool configuration errors
 
 **Architectural Constraints**:
@@ -6932,4 +6932,3 @@ This is a test infrastructure issue (port allocation), NOT a regression from Pha
 7. Remaining gaps represent architectural constraints, not missing test scenarios
 
 **Next Steps**: Resume main project work (Phase 6.2.1 E2E tests)
-
