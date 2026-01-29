@@ -353,11 +353,13 @@ func TestBuild_Success(t *testing.T) {
 	builder.WithDomainMigrations(domainMigrations, "migrations")
 
 	routeRegistered := false
+
 	builder.WithPublicRouteRegistration(func(
 		base *cryptoutilAppsTemplateServiceServer.PublicServerBase,
 		res *ServiceResources,
 	) error {
 		routeRegistered = true
+
 		require.NotNil(t, base)
 		require.NotNil(t, res)
 		require.NotNil(t, res.DB)
@@ -399,12 +401,14 @@ func TestBuild_Success(t *testing.T) {
 
 	// Verify domain migration was applied.
 	var domainTableName string
+
 	err = resources.DB.Raw("SELECT name FROM sqlite_master WHERE type='table' AND name='test_domain'").Scan(&domainTableName).Error
 	require.NoError(t, err)
 	require.Equal(t, "test_domain", domainTableName)
 
 	// Verify template migrations were applied (check for any template table - barrier_root_keys is created by template).
 	var barrierTableName string
+
 	err = resources.DB.Raw("SELECT name FROM sqlite_master WHERE type='table' AND name='barrier_root_keys'").Scan(&barrierTableName).Error
 	require.NoError(t, err)
 	require.Equal(t, "barrier_root_keys", barrierTableName)
@@ -413,6 +417,7 @@ func TestBuild_Success(t *testing.T) {
 	if resources.ShutdownCore != nil {
 		resources.ShutdownCore()
 	}
+
 	if resources.ShutdownContainer != nil {
 		resources.ShutdownContainer()
 	}
@@ -444,14 +449,16 @@ func TestMergedMigrations_Open(t *testing.T) {
 	// Test opening domain file (higher priority).
 	domainFile, err := merged.Open("2001_domain.up.sql")
 	require.NoError(t, err)
+
 	require.NotNil(t, domainFile)
-	defer domainFile.Close()
+	defer func() { _ = domainFile.Close() }()
 
 	// Test opening template file (fallback).
 	templateFile, err := merged.Open("1001_template.up.sql")
 	require.NoError(t, err)
+
 	require.NotNil(t, templateFile)
-	defer templateFile.Close()
+	defer func() { _ = templateFile.Close() }()
 
 	// Test opening non-existent file.
 	_, err = merged.Open("9999_missing.up.sql")
@@ -777,13 +784,15 @@ func TestMergedMigrations_Open_RootDir(t *testing.T) {
 	// Open root directory (should work for both "." and "").
 	rootFile, err := merged.Open(".")
 	require.NoError(t, err)
+
 	require.NotNil(t, rootFile)
-	defer rootFile.Close()
+	defer func() { _ = rootFile.Close() }()
 
 	emptyPathFile, err := merged.Open("")
 	require.NoError(t, err)
+
 	require.NotNil(t, emptyPathFile)
-	defer emptyPathFile.Close()
+	defer func() { _ = emptyPathFile.Close() }()
 }
 
 // TestMergedMigrations_ReadDir_NilDomainFS tests ReadDir when domainFS is nil.
@@ -829,8 +838,9 @@ func TestMergedMigrations_Open_NilDomainFS(t *testing.T) {
 	// Open template file when domain FS is nil.
 	templateFile, err := merged.Open("1001_template.up.sql")
 	require.NoError(t, err)
+
 	require.NotNil(t, templateFile)
-	defer templateFile.Close()
+	defer func() { _ = templateFile.Close() }()
 }
 
 // TestMergedMigrations_ReadFile_NilDomainFS tests ReadFile when domainFS is nil.

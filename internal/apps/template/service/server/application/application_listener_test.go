@@ -30,7 +30,6 @@ import (
 // IMPORTANT: StartCoreWithServices doesn't run migrations (Phase W TODO), so we test the components separately.
 func TestStartCoreWithServices_FullIntegration(t *testing.T) {
 	// NOT parallel - shares SQLite in-memory database with other tests.
-
 	ctx := context.Background()
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:                    true,
@@ -55,6 +54,7 @@ func TestStartCoreWithServices_FullIntegration(t *testing.T) {
 	// Start core infrastructure.
 	core, err := StartCore(ctx, settings)
 	require.NoError(t, err)
+
 	require.NotNil(t, core)
 	defer core.Shutdown()
 
@@ -633,7 +633,6 @@ func (m *mockAdminServer) AdminBaseURL() string {
 // TestStartListener tests creation and initialization of Listener.
 func TestStartListener(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-
 	ctx := context.Background()
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:      true,
@@ -662,7 +661,7 @@ func TestStartListener(t *testing.T) {
 	require.Equal(t, adminServer, listener.AdminServer)
 	require.Equal(t, settings, listener.Settings)
 
-	defer listener.Shutdown(context.Background())
+	defer func() { _ = listener.Shutdown(context.Background()) }()
 }
 
 // TestStartListener_NilContext tests validation of nil context.
@@ -807,7 +806,6 @@ func TestListener_AdminPort_NilServer(t *testing.T) {
 // TestListener_Shutdown tests graceful shutdown of Listener.
 func TestListener_Shutdown(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-
 	ctx := context.Background()
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:      true,
@@ -838,7 +836,6 @@ func TestListener_Shutdown(t *testing.T) {
 // TestListener_Shutdown_NilContext tests Shutdown with nil context.
 func TestListener_Shutdown_NilContext(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-
 	ctx := context.Background()
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:      true,
@@ -901,7 +898,6 @@ func TestListener_Start_NilContext(t *testing.T) {
 // TestListener_Start_PublicServerError tests Start when public server fails immediately.
 func TestListener_Start_PublicServerError(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -929,7 +925,8 @@ func TestListener_Start_PublicServerError(t *testing.T) {
 
 	listener, err := StartListener(context.Background(), config)
 	require.NoError(t, err)
-	defer listener.Shutdown(context.Background())
+
+	defer func() { _ = listener.Shutdown(context.Background()) }()
 
 	// Start should fail with public server error.
 	err = listener.Start(ctx)
@@ -940,7 +937,6 @@ func TestListener_Start_PublicServerError(t *testing.T) {
 // TestListener_Start_AdminServerError tests Start when admin server fails immediately.
 func TestListener_Start_AdminServerError(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -968,7 +964,8 @@ func TestListener_Start_AdminServerError(t *testing.T) {
 
 	listener, err := StartListener(context.Background(), config)
 	require.NoError(t, err)
-	defer listener.Shutdown(context.Background())
+
+	defer func() { _ = listener.Shutdown(context.Background()) }()
 
 	// Start should fail with admin server error.
 	err = listener.Start(ctx)
@@ -979,7 +976,6 @@ func TestListener_Start_AdminServerError(t *testing.T) {
 // TestListener_Start_ContextCancelled tests Start when context is cancelled.
 func TestListener_Start_ContextCancelled(t *testing.T) {
 	// NOT parallel - uses shared SQLite database.
-
 	ctx, cancel := context.WithCancel(context.Background())
 
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
@@ -1010,10 +1006,12 @@ func TestListener_Start_ContextCancelled(t *testing.T) {
 
 	listener, err := StartListener(context.Background(), config)
 	require.NoError(t, err)
-	defer listener.Shutdown(context.Background())
+
+	defer func() { _ = listener.Shutdown(context.Background()) }()
 
 	// Start in background, then cancel context.
 	errChan := make(chan error, 1)
+
 	go func() {
 		errChan <- listener.Start(ctx)
 	}()
@@ -1076,6 +1074,7 @@ func TestProvisionDatabase_UnsupportedScheme(t *testing.T) {
 
 	basic, err := StartBasic(ctx, settings)
 	require.NoError(t, err)
+
 	defer basic.Shutdown()
 
 	db, cleanup, err := provisionDatabase(ctx, basic, settings)
@@ -1093,6 +1092,7 @@ func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
 
 	// Use temp file for SQLite database.
 	dbFile := "/tmp/test_sqlite_" + time.Now().Format("20060102150405") + ".db"
+
 	defer func() {
 		// Cleanup.
 		_ = os.Remove(dbFile)
@@ -1109,11 +1109,13 @@ func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
 
 	basic, err := StartBasic(ctx, settings)
 	require.NoError(t, err)
+
 	defer basic.Shutdown()
 
 	db, cleanup, err := provisionDatabase(ctx, basic, settings)
 	require.NoError(t, err)
 	require.NotNil(t, db)
+
 	defer cleanup()
 
 	// Verify database works.
@@ -1135,6 +1137,7 @@ func TestOpenSQLite_InvalidDSN(t *testing.T) {
 
 	// Verify PRAGMA settings were applied (WAL mode for file databases, memory for in-memory).
 	var busyTimeout int
+
 	sqlDB, _ := db.DB()
 	err = sqlDB.QueryRow("PRAGMA busy_timeout").Scan(&busyTimeout)
 	require.NoError(t, err)
@@ -1182,8 +1185,8 @@ func TestOpenPostgreSQL_DebugMode(t *testing.T) {
 
 	// Use valid DSN format but won't connect.
 	dsn := "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
-	db, err := openPostgreSQL(ctx, dsn, true) // Debug mode = true.
 
+	db, err := openPostgreSQL(ctx, dsn, true) // Debug mode = true.
 	if err != nil {
 		require.Error(t, err)
 	} else {
@@ -1194,7 +1197,6 @@ func TestOpenPostgreSQL_DebugMode(t *testing.T) {
 // TestProvisionDatabase_PostgreSQLContainerRequired tests PostgreSQL container in "required" mode.
 func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 	// Cannot use t.Parallel() due to shared Basic instance.
-
 	ctx := context.Background()
 
 	// Start basic infrastructure.
@@ -1212,11 +1214,11 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 
 	basic, err := StartBasic(ctx, settings)
 	require.NoError(t, err)
+
 	defer basic.Shutdown()
 
 	// Attempt to provision with required container (will fail if Docker not available or connection fails).
 	db, cleanup, err := provisionDatabase(ctx, basic, settings)
-
 	if err != nil {
 		// Expected failure if Docker not running OR connection fails.
 		require.Error(t, err)
@@ -1229,6 +1231,7 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 		)
 	} else {
 		require.NotNil(t, db)
+
 		defer cleanup()
 	}
 }
@@ -1236,7 +1239,6 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 // TestProvisionDatabase_PostgreSQLContainerPreferred tests PostgreSQL container in "preferred" mode with fallback.
 func TestProvisionDatabase_PostgreSQLContainerPreferred(t *testing.T) {
 	// Cannot use t.Parallel() due to shared Basic instance.
-
 	ctx := context.Background()
 
 	// Start basic infrastructure.
@@ -1254,6 +1256,7 @@ func TestProvisionDatabase_PostgreSQLContainerPreferred(t *testing.T) {
 
 	basic, err := StartBasic(ctx, settings)
 	require.NoError(t, err)
+
 	defer basic.Shutdown()
 
 	// Attempt to provision with preferred container (should fallback to external DB if container fails).
@@ -1264,6 +1267,7 @@ func TestProvisionDatabase_PostgreSQLContainerPreferred(t *testing.T) {
 		require.Error(t, err)
 	} else {
 		require.NotNil(t, db)
+
 		defer cleanup()
 	}
 }
@@ -1276,8 +1280,9 @@ func TestOpenSQLite_FileBasedWithWAL(t *testing.T) {
 
 	// Create temporary SQLite file.
 	uuid, _ := googleUuid.NewV7()
+
 	tmpFile := "/tmp/test_sqlite_wal_" + uuid.String() + ".db"
-	defer os.Remove(tmpFile)
+	defer func() { _ = os.Remove(tmpFile) }()
 
 	db, err := openSQLite(ctx, "file://"+tmpFile, false)
 	require.NoError(t, err)
@@ -1285,13 +1290,16 @@ func TestOpenSQLite_FileBasedWithWAL(t *testing.T) {
 
 	// Verify WAL mode enabled for file-based database.
 	sqlDB, _ := db.DB()
+
 	var journalMode string
+
 	err = sqlDB.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
 	require.NoError(t, err)
 	require.Equal(t, "wal", journalMode)
 
 	// Verify busy timeout.
 	var busyTimeout int
+
 	err = sqlDB.QueryRow("PRAGMA busy_timeout").Scan(&busyTimeout)
 	require.NoError(t, err)
 	require.Equal(t, 30000, busyTimeout)
@@ -1312,7 +1320,9 @@ func TestOpenSQLite_WALModeFailure(t *testing.T) {
 
 	// Verify journal mode is NOT wal for in-memory.
 	sqlDB, _ := db.DB()
+
 	var journalMode string
+
 	err = sqlDB.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
 	require.NoError(t, err)
 	require.NotEqual(t, "wal", journalMode) // Should be "memory" for in-memory databases.
@@ -1348,7 +1358,6 @@ func TestStartBasic_TelemetryFailure(t *testing.T) {
 // TestInitializeServicesOnCore_ErrorPaths tests error paths in service initialization.
 func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 	// Cannot use t.Parallel() due to shared Core instance.
-
 	ctx := context.Background()
 
 	// Start core infrastructure.
@@ -1365,6 +1374,7 @@ func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 
 	core, err := StartCore(ctx, settings)
 	require.NoError(t, err)
+
 	defer core.Shutdown()
 
 	// Verify Core database is functional.
@@ -1381,18 +1391,22 @@ func TestInitializeServicesOnCore_ErrorPaths(t *testing.T) {
 
 	// Verify migrations succeeded by querying tables.
 	var rootKeyCount int64
+
 	err = core.DB.Model(&cryptoutilAppsTemplateServiceServerBarrier.RootKey{}).Count(&rootKeyCount).Error
 	require.NoError(t, err)
 
 	var intermediateKeyCount int64
+
 	err = core.DB.Model(&cryptoutilAppsTemplateServiceServerBarrier.IntermediateKey{}).Count(&intermediateKeyCount).Error
 	require.NoError(t, err)
 
 	var browserSessionCount int64
+
 	err = core.DB.Model(&cryptoutilAppsTemplateServiceServerRepository.BrowserSessionJWK{}).Count(&browserSessionCount).Error
 	require.NoError(t, err)
 
 	var serviceSessionCount int64
+
 	err = core.DB.Model(&cryptoutilAppsTemplateServiceServerRepository.ServiceSessionJWK{}).Count(&serviceSessionCount).Error
 	require.NoError(t, err)
 
@@ -1720,6 +1734,7 @@ func TestProvisionDatabase_SQLiteVariations(t *testing.T) {
 
 			basic, err := StartBasic(ctx, settings)
 			require.NoError(t, err)
+
 			defer basic.Shutdown()
 
 			db, cleanup, err := provisionDatabase(ctx, basic, settings)
@@ -1842,6 +1857,7 @@ func TestOpenSQLite_DebugMode(t *testing.T) {
 				// Clean up.
 				sqlDB, dbErr := db.DB()
 				require.NoError(t, dbErr)
+
 				_ = sqlDB.Close()
 			}
 		})
@@ -1867,6 +1883,7 @@ func TestOpenPostgreSQL_WithContainer(t *testing.T) {
 
 	basic, err := StartBasic(ctx, settings)
 	require.NoError(t, err)
+
 	defer basic.Shutdown()
 
 	// Start a real PostgreSQL container for testing.
@@ -1913,6 +1930,7 @@ func TestOpenPostgreSQL_WithContainer(t *testing.T) {
 				// Clean up.
 				sqlDB, dbErr := db.DB()
 				require.NoError(t, dbErr)
+
 				_ = sqlDB.Close()
 			}
 		})
@@ -1964,6 +1982,7 @@ func TestStartBasic_VerboseMode(t *testing.T) {
 				require.Nil(t, basic)
 			} else {
 				require.NoError(t, err)
+
 				require.NotNil(t, basic)
 				defer basic.Shutdown()
 			}
@@ -2014,6 +2033,7 @@ func TestProvisionDatabase_PostgreSQLContainerModes(t *testing.T) {
 
 			basic, err := StartBasic(ctx, settings)
 			require.NoError(t, err)
+
 			defer basic.Shutdown()
 
 			db, cleanup, err := provisionDatabase(ctx, basic, settings)
@@ -2146,6 +2166,7 @@ func TestProvisionDatabase_ErrorPaths(t *testing.T) {
 
 			basic, err := StartBasic(ctx, settings)
 			require.NoError(t, err)
+
 			defer basic.Shutdown()
 
 			db, cleanup, err := provisionDatabase(ctx, basic, settings)
@@ -2156,6 +2177,7 @@ func TestProvisionDatabase_ErrorPaths(t *testing.T) {
 			if tt.expectError {
 				require.Error(t, err)
 				require.Nil(t, db)
+
 				if tt.errorContains != "" {
 					require.Contains(t, err.Error(), tt.errorContains)
 				}
@@ -2216,6 +2238,7 @@ func TestStartCoreWithServices_Success(t *testing.T) {
 	// FIRST create just Core to get DB.
 	core, err := StartCore(ctx, settings)
 	require.NoError(t, err)
+
 	require.NotNil(t, core)
 	defer core.Shutdown()
 
