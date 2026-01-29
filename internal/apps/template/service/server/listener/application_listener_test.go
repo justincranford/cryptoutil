@@ -190,6 +190,29 @@ func TestApplicationListener_Shutdown_NoApp(t *testing.T) {
 	})
 }
 
+// TestApplicationListener_Shutdown_WithApp verifies shutdown properly calls app.Shutdown.
+// This test covers the l.app != nil branch in Shutdown().
+func TestApplicationListener_Shutdown_WithApp(t *testing.T) {
+	t.Parallel()
+
+	// Create a mock public server.
+	mockPublicServer := &mockPublicServerImpl{}
+	// Create a mock admin server.
+	mockAdminServer := &mockAdminServerImpl{}
+
+	// Create Application with mock servers.
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(context.Background(), mockPublicServer, mockAdminServer)
+	require.NoError(t, err)
+
+	listener := &cryptoutilAppsTemplateServiceServerListener.ApplicationListener{}
+	listener.SetApplicationForTesting(app)
+
+	// Shutdown should call app.Shutdown and not panic.
+	require.NotPanics(t, func() {
+		listener.Shutdown()
+	})
+}
+
 // TestApplicationListener_Shutdown_WithShutdownFunc tests shutdown when shutdownFunc is set.
 // Uses StartApplicationListener which sets up the shutdownFunc internally.
 func TestApplicationListener_Shutdown_WithShutdownFunc(t *testing.T) {
@@ -283,3 +306,20 @@ func mockPublicServerFactory(
 ) (cryptoutilAppsTemplateServiceServer.IPublicServer, error) {
 	return nil, nil // Minimal mock for validation tests.
 }
+
+// mockPublicServerImpl implements IPublicServer for testing.
+type mockPublicServerImpl struct{}
+
+func (m *mockPublicServerImpl) Start(_ context.Context) error    { return nil }
+func (m *mockPublicServerImpl) Shutdown(_ context.Context) error { return nil }
+func (m *mockPublicServerImpl) ActualPort() int                  { return 8080 }
+func (m *mockPublicServerImpl) PublicBaseURL() string            { return "https://127.0.0.1:8080" }
+
+// mockAdminServerImpl implements IAdminServer for testing.
+type mockAdminServerImpl struct{}
+
+func (m *mockAdminServerImpl) Start(_ context.Context) error    { return nil }
+func (m *mockAdminServerImpl) Shutdown(_ context.Context) error { return nil }
+func (m *mockAdminServerImpl) ActualPort() int                  { return 9090 }
+func (m *mockAdminServerImpl) SetReady(_ bool)                  {}
+func (m *mockAdminServerImpl) AdminBaseURL() string             { return "https://127.0.0.1:9090" }

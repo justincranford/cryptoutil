@@ -347,3 +347,10 @@ func (l *ApplicationListener) ActualPrivatePort() uint16 {
 func (l *ApplicationListener) Config() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
 	return l.config
 }
+
+// SetApplicationForTesting sets the application field for testing purposes.
+// This method enables testing the shutdown path when app != nil.
+// ONLY USE IN TESTS - not for production code.
+func (l *ApplicationListener) SetApplicationForTesting(app *cryptoutilAppsTemplateServiceServer.Application) {
+	l.app = app
+}
