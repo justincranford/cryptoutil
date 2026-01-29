@@ -2321,3 +2321,32 @@ func TestStartCoreWithServices_InitializeServicesFails(t *testing.T) {
 	require.Nil(t, coreWithSvcs)
 	require.Contains(t, err.Error(), "barrier service")
 }
+
+// TestStartBasic_UnsealKeysServiceFailure tests StartBasic when unseal keys service initialization fails.
+// This triggers the error path at lines 47-52 in application_basic.go.
+func TestStartBasic_UnsealKeysServiceFailure(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Use invalid unseal mode to trigger unseal keys service failure.
+	// "invalid-mode" is not "sysinfo", not a number, and not "M-of-N" format.
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:         false, // Must be false to use UnsealMode
+		VerboseMode:     false,
+		LogLevel:        "info", // Required for telemetry to succeed
+		OTLPEnabled:     false,  // Disable OTLP to avoid endpoint issues
+		OTLPEndpoint:    "grpc://localhost:4317",
+		OTLPService:     "test-service",
+		OTLPVersion:     "1.0.0",
+		OTLPEnvironment: "test",
+		UnsealMode:      "invalid-mode", // Invalid mode triggers unseal service error
+		DatabaseURL:     cryptoutilSharedMagic.SQLiteInMemoryDSN,
+	}
+
+	// StartBasic should fail because unseal keys service initialization fails.
+	basic, err := StartBasic(ctx, settings)
+	require.Error(t, err)
+	require.Nil(t, basic)
+	require.Contains(t, err.Error(), "failed to create unseal repository")
+}
