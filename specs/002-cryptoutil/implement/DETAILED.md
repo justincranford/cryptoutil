@@ -2,8 +2,8 @@
 
 **Project**: cryptoutil
 **Spec**: 002-cryptoutil
-**Status**: Phase 1.1 (Move JOSE Crypto) - CURRENT PHASE
-**Last Updated**: 2025-12-25
+**Status**: Phase 0.6 Template Coverage - COMPLETE | Phase 6.2.1 E2E Tests - IN PROGRESS
+**Last Updated**: 2026-01-28
 
 ---
 
@@ -6888,4 +6888,48 @@ This is a test infrastructure issue (port allocation), NOT a regression from Pha
 4. Resume main project work (Phase 2.1 Template Extraction)
 
 **Duration**: Phase 0.6 complete ~5 hours total (across multiple sessions)
+
+
+### 2026-01-28: Phase 0.6 Template Coverage Gap Remediation - CLEANUP COMPLETE
+
+**Linting Fixes Completed**:
+
+- **Issue**: 10 errcheck violations in test files (defer cleanup not checking errors)
+- **Locations**:
+  - `application/application_listener_test.go`: 5 violations (lines 665, 932, 971, 1013, 1280)
+  - `builder/server_builder_test.go`: 5 violations (lines 448, 454, 781, 786, 833)
+- **Pattern**: `defer listener.Shutdown(...)`, `defer file.Close()`, `defer os.Remove(...)` not checking errors
+- **Fix Pattern**: Changed to `defer func() { _ = call() }()` to explicitly ignore cleanup errors
+- **Commit**: 671e2de5 ("test(template): fix errcheck linting violations in defer cleanup")
+- **Verification**:
+  - ✅ Zero errcheck violations remaining
+  - ✅ All template tests passing (12 packages)
+  - ✅ Coverage maintained: 83.5% (up +0.1% from 83.4%)
+  - ⚠️ Minor linting issues remain (goconst, noctx) - non-critical
+
+**Phase 0.6 Final Status**: ✅ COMPLETE & CLEAN
+
+- **Overall coverage**: 83.5% (baseline: 75.6%, improvement: +7.9 percentage points)
+- **Code quality**: Linting clean (critical violations resolved)
+- **Test health**: All tests passing
+- **Documentation**: Comprehensive (DETAILED.md +437 lines, EXECUTIVE.md +12 lines)
+- **Commits**: 5 total
+  1. 5246feb2: Builder package analysis (88 lines docs)
+  2. dc026392: Application package analysis (97 lines docs)
+  3. 3d4b57b1: Strategic reassessment + final measurements (252 lines docs)
+  4. a8afa495: EXECUTIVE.md update (12 insertions)
+  5. 671e2de5: Linting fixes (10 errcheck violations resolved)
+
+**Unblocking Decision**: Phase 0.6 sufficient to proceed with main project work (Phase 6.2.1 E2E tests)
+
+**Rationale**:
+1. Coverage improved 75.6% → 83.5% (+7.9%, exceeds +7.8% target)
+2. API handlers (critical) all ≥95%
+3. Infrastructure packages meet pragmatic baselines
+4. Business logic packages exceed baselines
+5. Code quality clean (critical violations resolved)
+6. All tests passing
+7. Remaining gaps represent architectural constraints, not missing test scenarios
+
+**Next Steps**: Resume main project work (Phase 6.2.1 E2E tests)
 
