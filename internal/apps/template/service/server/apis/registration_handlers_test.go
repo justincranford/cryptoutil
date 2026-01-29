@@ -763,6 +763,7 @@ func TestHandleProcessJoinRequest_SuccessMessages(t *testing.T) {
 			require.Equal(t, 200, resp.StatusCode)
 
 			var respBody map[string]interface{}
+
 			err = json.NewDecoder(resp.Body).Decode(&respBody)
 			require.NoError(t, err)
 			require.Equal(t, tt.expectedMessage, respBody["message"])

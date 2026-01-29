@@ -149,6 +149,7 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 				handler := NewSessionHandler(nil)
 				app := fiber.New()
 				app.Post("/session/issue", handler.IssueSession)
+
 				return app
 			},
 			wantErr: true,
@@ -165,6 +166,7 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 				handler := NewSessionHandler(nil)
 				app := fiber.New()
 				app.Post("/session/issue", handler.IssueSession)
+
 				return app
 			},
 			wantErr: true,
@@ -181,6 +183,7 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 				handler := NewSessionHandler(nil)
 				app := fiber.New()
 				app.Post("/session/issue", handler.IssueSession)
+
 				return app
 			},
 			wantErr: true,
@@ -205,6 +208,7 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 
 			resp, err := app.Test(req)
 			require.NoError(t, err)
+
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
 			if tt.wantErr {

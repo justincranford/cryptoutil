@@ -42,9 +42,9 @@ func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		setupAuth   func() string
-		wantStatus  int
+		name       string
+		setupAuth  func() string
+		wantStatus int
 	}{
 		{
 			name: "missing authorization header",
@@ -72,6 +72,7 @@ func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 			setupAuth: func() string {
 				// Token with invalid UUID format for user_id
 				token := createTestToken(t, "not-a-valid-uuid", "testuser", testJWTSecret, time.Now().UTC().Add(1*time.Hour))
+
 				return "Bearer " + token
 			},
 			wantStatus: fiber.StatusUnauthorized,
@@ -89,6 +90,7 @@ func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 			})
 
 			req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+
 			authHeader := tt.setupAuth()
 			if authHeader != "" {
 				req.Header.Set("Authorization", authHeader)
@@ -96,13 +98,13 @@ func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 
 			resp, err := app.Test(req)
 			require.NoError(t, err)
+
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
 			require.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
 	}
 }
-
 
 func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	t.Parallel()

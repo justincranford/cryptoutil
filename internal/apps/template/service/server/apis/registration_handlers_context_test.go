@@ -20,10 +20,10 @@ func TestHandleListJoinRequests_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name              string
-		setupLocals       func(*fiber.Ctx)
-		wantStatusCode    int
-		wantErrorMessage  string
+		name             string
+		setupLocals      func(*fiber.Ctx)
+		wantStatusCode   int
+		wantErrorMessage string
 	}{
 		{
 			name: "missing tenant_id",
@@ -58,17 +58,20 @@ func TestHandleListJoinRequests_ValidationErrors(t *testing.T) {
 			app := fiber.New()
 			app.Get("/admin/join-requests", func(c *fiber.Ctx) error {
 				tt.setupLocals(c)
+
 				return handlers.HandleListJoinRequests(c)
 			})
 
 			req := httptest.NewRequest("GET", "/admin/join-requests", nil)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
+
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
 			require.Equal(t, tt.wantStatusCode, resp.StatusCode)
 
 			var result map[string]string
+
 			err = json.NewDecoder(resp.Body).Decode(&result)
 			require.NoError(t, err)
 			require.Contains(t, result, "error")
@@ -82,10 +85,10 @@ func TestHandleProcessJoinRequest_ValidationErrors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name              string
-		setupLocals       func(*fiber.Ctx)
-		wantStatusCode    int
-		wantErrorMessage  string
+		name             string
+		setupLocals      func(*fiber.Ctx)
+		wantStatusCode   int
+		wantErrorMessage string
 	}{
 		{
 			name: "missing user_id",
@@ -120,6 +123,7 @@ func TestHandleProcessJoinRequest_ValidationErrors(t *testing.T) {
 			app := fiber.New()
 			app.Put("/admin/join-requests/:id", func(c *fiber.Ctx) error {
 				tt.setupLocals(c)
+
 				return handlers.HandleProcessJoinRequest(c)
 			})
 
@@ -132,11 +136,13 @@ func TestHandleProcessJoinRequest_ValidationErrors(t *testing.T) {
 
 			resp, err := app.Test(req)
 			require.NoError(t, err)
+
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
 			require.Equal(t, tt.wantStatusCode, resp.StatusCode)
 
 			var result map[string]string
+
 			err = json.NewDecoder(resp.Body).Decode(&result)
 			require.NoError(t, err)
 			require.Contains(t, result, "error")
@@ -144,4 +150,3 @@ func TestHandleProcessJoinRequest_ValidationErrors(t *testing.T) {
 		})
 	}
 }
-

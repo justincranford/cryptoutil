@@ -96,6 +96,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				realmID := googleUuid.Must(googleUuid.NewV7())
 				token, err := sm.IssueBrowserSession(ctx, userID, tenantID, realmID)
 				require.NoError(t, err)
+
 				return token
 			},
 			wantErr: false,
@@ -115,6 +116,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				var browserJWK struct {
 					EncryptedJWK string
 				}
+
 				findErr := sm.db.Table("browser_session_jwks").
 					Where("id = ?", sm.browserJWKID).
 					Select("encrypted_jwk").
@@ -141,6 +143,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				claimsBytes, _ := json.Marshal(claims)
 				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
 				require.NoError(t, signErr)
+
 				return string(jwsBytes)
 			},
 			wantErr:          true,
@@ -161,6 +164,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				var browserJWK struct {
 					EncryptedJWK string
 				}
+
 				findErr := sm.db.Table("browser_session_jwks").
 					Where("id = ?", sm.browserJWKID).
 					Select("encrypted_jwk").
@@ -177,6 +181,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				require.NoError(t, verifyErr)
 
 				var claims map[string]any
+
 				unmarshalErr := json.Unmarshal(claimsBytes, &claims)
 				require.NoError(t, unmarshalErr)
 
@@ -202,6 +207,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				var browserJWK struct {
 					EncryptedJWK string
 				}
+
 				findErr := sm.db.Table("browser_session_jwks").
 					Where("id = ?", sm.browserJWKID).
 					Select("encrypted_jwk").
@@ -227,6 +233,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				claimsBytes, _ := json.Marshal(claims)
 				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
 				require.NoError(t, signErr)
+
 				return string(jwsBytes)
 			},
 			wantErr:          true,
@@ -239,6 +246,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				var browserJWK struct {
 					EncryptedJWK string
 				}
+
 				findErr := sm.db.Table("browser_session_jwks").
 					Where("id = ?", sm.browserJWKID).
 					Select("encrypted_jwk").
@@ -264,6 +272,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				claimsBytes, _ := json.Marshal(claims)
 				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
 				require.NoError(t, signErr)
+
 				return string(jwsBytes)
 			},
 			wantErr:          true,
@@ -276,6 +285,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				var browserJWK struct {
 					EncryptedJWK string
 				}
+
 				findErr := sm.db.Table("browser_session_jwks").
 					Where("id = ?", sm.browserJWKID).
 					Select("encrypted_jwk").
@@ -301,6 +311,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				claimsBytes, _ := json.Marshal(claims)
 				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
 				require.NoError(t, signErr)
+
 				return string(jwsBytes)
 			},
 			wantErr:          true,
@@ -313,6 +324,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				var browserJWK struct {
 					EncryptedJWK string
 				}
+
 				findErr := sm.db.Table("browser_session_jwks").
 					Where("id = ?", sm.browserJWKID).
 					Select("encrypted_jwk").
@@ -338,6 +350,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 				claimsBytes, _ := json.Marshal(claims)
 				_, jwsBytes, signErr := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
 				require.NoError(t, signErr)
+
 				return string(jwsBytes)
 			},
 			wantErr:          true,
@@ -359,6 +372,7 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 			if tc.wantErr {
 				require.Error(t, validateErr)
 				require.Nil(t, session)
+
 				if tc.wantErrorMessage != "" {
 					require.Contains(t, validateErr.Error(), tc.wantErrorMessage)
 				}
