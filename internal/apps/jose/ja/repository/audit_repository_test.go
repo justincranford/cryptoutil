@@ -493,8 +493,9 @@ func TestShouldAudit_FallbackSamplingBoundary(t *testing.T) {
 	operation := "test-operation"
 
 	// Run sampling decision multiple times to verify statistical behavior.
-	// With 0.5 fallback sampling rate, expect ~50% true results.
-	const iterations = 1000
+	// With JoseJAAuditFallbackSamplingRate (1%) fallback sampling rate, expect ~1% true results.
+	// Use 10000 iterations for 1% rate to get enough samples for statistical validity.
+	const iterations = 10000
 	trueCount := 0
 
 	for i := 0; i < iterations; i++ {
@@ -506,8 +507,10 @@ func TestShouldAudit_FallbackSamplingBoundary(t *testing.T) {
 		}
 	}
 
-	// Verify sampling rate is approximately 50% (allow ±10% tolerance).
+	// Verify sampling rate is approximately 1% (allow generous tolerance for low sample rates).
+	// Expected: ~100 hits out of 10000 (1%).
+	// Tolerance: 0.3% to 3% (0.003 to 0.03) to account for statistical variance.
 	samplingRate := float64(trueCount) / float64(iterations)
-	require.Greater(t, samplingRate, 0.4, "sampling rate should be > 40%%")
-	require.Less(t, samplingRate, 0.6, "sampling rate should be < 60%%")
+	require.Greater(t, samplingRate, 0.003, "sampling rate should be > 0.3%% (got %.4f)", samplingRate)
+	require.Less(t, samplingRate, 0.03, "sampling rate should be < 3%% (got %.4f)", samplingRate)
 }
