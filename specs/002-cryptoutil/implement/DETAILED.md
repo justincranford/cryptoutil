@@ -6332,3 +6332,65 @@ Service coverage gap (12.3%) is dominated by database error paths, similar to re
 **Evidence**:
 - Test results: test-output/mutation-template-apis.txt, test-output/mutation-template-apis-unit.txt, test-output/mutation-template-businesslogic.txt
 - Coverage reports: template_coverage_full.out (75.6% total)
+
+---
+
+### 2026-01-28: Phase 0.6 Template Coverage Gap Remediation - APIs Package COMPLETE
+
+**Objective**: Achieve ≥95% coverage for all template service packages (Phase 0.6)
+
+**APIs Package Work - COMPLETE**:
+
+**Coverage Achievement**:
+- Baseline: 94.2%
+- Target: ≥95.0%
+- Final: **96.8%** (+2.6%, exceeds target by 1.8%)
+- **Status**: ✅ COMPLETE
+
+**Test Added**:
+- `TestHandleProcessJoinRequest_SuccessMessages`: Integration test for success message variation
+  - Table-driven with 2 cases (Approved/Rejected)
+  - Uses testGormDB pattern with real Tenant/User/JoinRequest entities
+  - Covers lines 211-218 (success response with message paths)
+  - Both subtests PASSING ✅
+
+**Lines Covered**:
+- Lines 211-218: Success response with message variation ("Join request approved" vs "Join request rejected")
+
+**Lines Uncovered**:
+- Lines 118-122: Service error path in HandleListJoinRequests (0.8% of package)
+- Attempted 3 different approaches to trigger service error (nil UUID, SetMaxOpenConns(0), connection breaking)
+- All attempts unsuccessful - repository error path difficult to trigger in test environment
+- Decision: Accept 96.8% coverage (exceeds 95% target, pragmatic acceptance)
+
+**Test Approach**:
+- Integration testing with testGormDB (not unit testing with mocks)
+- Rationale: Handlers use concrete `*TenantRegistrationService` types, not interfaces
+- Pattern: Create real database entities (Tenant, User, TenantJoinRequest)
+- No cleanup needed: TestMain clears test database automatically
+
+**Architectural Insights**:
+- Cannot use mock-based unit testing (handlers require concrete service types)
+- Integration tests more suitable for this architecture
+- Not all error paths easily testable in integration environment (acceptable tradeoff)
+
+**Commits**:
+- 62cf0e4c: "test(apis): add success path coverage for join request processing (94.2% → 96.8%)"
+
+**Duration**: ~2 hours (attempted mock tests → pivot to integration → 3 error path attempts → accept 96.8%)
+
+**Phase 0.6 Progress**:
+- ✅ APIs: 96.8% (1 of 11 packages complete)
+- ⏳ Server: 92.5% → ≥95% (next package, +2.5% needed)
+- [ ] Middleware: 94.9% → ≥95% (+0.1% needed, previously blocked)
+- [ ] Builder: 90.8% → ≥95% (+4.2% needed)
+- [ ] Application: 88.1% → ≥95% (+6.9% needed)
+- [ ] Listener: 87.1% → ≥95% (+7.9% needed)
+- [ ] Businesslogic: 85.3% → ≥95% (+9.7% needed)
+- [ ] Repository: 84.8% → ≥95% (+10.2% needed)
+- [ ] Config: 84.6% → ≥95% (+10.4% needed)
+- [ ] Barrier: 79.5% → ≥95% (+15.5% needed)
+- [ ] Client: 94.8% (SKIP - test utilities only)
+
+**Next Step**: Proceed to server package (92.5% → 95%, estimated 1-2 hours)
+
