@@ -258,7 +258,7 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 	if databaseURL == "" || databaseURL == cryptoutilSharedMagic.SQLiteInMemoryDSN || databaseURL == cryptoutilSharedMagic.SQLiteMemoryPlaceholder {
 		isSQLite = true
 		databaseURL = cryptoutilSharedMagic.SQLiteInMemoryDSN // Normalize SQLite in-memory URL.
-	} else if len(databaseURL) >= 9 && (databaseURL[:9] == "postgres:" || databaseURL[:9] == "postgres:") {
+	} else if len(databaseURL) >= 9 && databaseURL[:9] == "postgres:" {
 		isPostgres = true
 	} else if len(databaseURL) >= 9 && databaseURL[:9] == "sqlite://" {
 		// Handle sqlite:// scheme (e.g., sqlite://file::memory:?cache=shared).
