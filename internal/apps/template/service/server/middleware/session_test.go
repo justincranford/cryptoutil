@@ -105,17 +105,20 @@ func TestSessionMiddleware_EmptyToken(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("Authorization", "Bearer   ")
+	// Note: "Bearer " (Bearer + space) gets trimmed by Fiber to "Bearer" (no space),
+	// which triggers the "invalid format" check before reaching the "empty token" check.
+	// The empty token check (session.go:75-79) is defensive dead code that can't be
+	// triggered due to HTTP library header trimming behavior.
+	req.Header.Set("Authorization", "Bearer ")
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
+	// Returns 401 from "invalid format" check (not "empty token" check)
+	// because Fiber trims "Bearer " to "Bearer" (1 part, not 2 parts)
 	require.Equal(t, 401, resp.StatusCode)
-
-	// Note: Cannot reliably test which specific 401 error we get
-	// because HTTP libraries may canonicalize header values
 }
 
 func TestSessionMiddleware_BrowserSession_ValidationError(t *testing.T) {
