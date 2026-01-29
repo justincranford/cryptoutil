@@ -525,6 +525,142 @@ db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 
 ## Testing Strategy
 
+### Testing Patterns - ARCHITECTURAL STANDARDS
+
+**MANDATORY: ALL tests MUST follow these architectural patterns**
+
+#### Table-Driven Test Pattern
+
+**ALWAYS use table-driven tests for multiple test cases**
+
+**Rationale**: Single test function per error category (not per error variant), easy to add new error cases (just add table row), reduced code duplication (~200 lines saved per consolidation), faster execution (shared setup runs once)
+
+**Pattern**:
+```go
+func TestIssueSession_ValidationErrors(t *testing.T) {
+    t.Parallel()
+    tests := []struct {
+        name    string
+        setup   func() context.Context
+        wantErr string
+    }{
+        {name: "missing realm", setup: ctxWithoutRealm, wantErr: "realm"},
+        {name: "missing tenant", setup: ctxWithoutTenant, wantErr: "tenant"},
+        {name: "invalid request", setup: ctxWithInvalid, wantErr: "invalid"},
+    }
+    for _, tc := range tests {
+        t.Run(tc.name, func(t *testing.T) {
+            t.Parallel()
+            // Test logic using tc
+        })
+    }
+}
+```
+
+**FORBIDDEN**: ❌ Creating multiple standalone test functions for similar test cases (e.g., `TestFunc_Variant1`, `TestFunc_Variant2`, `TestFunc_Variant3`)
+
+**Reference**: See `.github/instructions/03-02.testing.instructions.md` Section "FORBIDDEN #1: Standalone Test Functions for Variants"
+
+#### app.Test() Pattern for HTTP Handlers
+
+**ALL HTTP handler tests (unit and integration) MUST use Fiber's app.Test() for in-memory testing**
+
+**Rationale**: In-memory testing is fast (<1ms), reliable, no network binding, prevents Windows Firewall popups (blocks CI/CD automation), TestMain ONLY for instance setup (NOT for handler tests)
+
+**Pattern**:
+```go
+func TestHealthcheck_Handler(t *testing.T) {
+    t.Parallel()
+    
+    // Create standalone Fiber app - NO listener started
+    app := fiber.New(fiber.Config{DisableStartupMessage: true})
+    app.Get("/admin/api/v1/livez", healthcheckHandler)
+    
+    req := httptest.NewRequest("GET", "/admin/api/v1/livez", nil)
+    resp, err := app.Test(req, -1)  // ← In-memory, <1ms, no network binding
+    require.NoError(t, err)
+    defer resp.Body.Close()
+    
+    require.Equal(t, 200, resp.StatusCode)
+}
+```
+
+**FORBIDDEN**: ❌ Starting real HTTPS servers or binding to network ports in unit/integration tests
+
+**Reference**: See `.github/instructions/03-02.testing.instructions.md` Section "FORBIDDEN #2: Real HTTPS Listeners in Tests"
+
+#### TestMain Pattern for Heavyweight Dependencies
+
+**ALWAYS use TestMain to start heavyweight services once per package**
+
+**Rationale**: PostgreSQL containers take 10-30s startup (do ONCE, not per test), shared resources (testDB, testServer) across all tests, fast test execution (no per-test overhead)
+
+**Pattern**:
+```go
+var testDB *gorm.DB
+
+func TestMain(m *testing.M) {
+    container, _ := postgres.RunContainer(ctx, ...)
+    defer container.Terminate(ctx)
+    
+    testDB, _ = gorm.Open(...)  // ← Created ONCE
+    os.Exit(m.Run())
+}
+
+func TestSomething(t *testing.T) {
+    // Use shared testDB - instant startup
+}
+```
+
+**FORBIDDEN**: ❌ Creating database per test (repeated 10-30s overhead)
+
+**Reference**: See `.github/instructions/03-02.testing.instructions.md` Section "FORBIDDEN #3: Per-Test Database Creation"
+
+#### Test Isolation with t.Parallel()
+
+**ALL test functions and subtests MUST use t.Parallel()**
+
+**Rationale**: Reveals race conditions, deadlocks, data conflicts, if tests can't run concurrently production code can't either, faster test execution (utilizes all CPU cores)
+
+**Pattern**:
+```go
+func TestSomething(t *testing.T) {
+    t.Parallel()  // ← Parent test parallel
+    tests := []struct{ ... }{ ... }
+    for _, tc := range tests {
+        t.Run(tc.name, func(t *testing.T) {
+            t.Parallel()  // ← Subtest parallel
+        })
+    }
+}
+```
+
+**FORBIDDEN**: ❌ Omitting t.Parallel() from test functions or subtests
+
+**Reference**: See `.github/instructions/03-02.testing.instructions.md` Section "FORBIDDEN #5: Missing t.Parallel() in Subtests"
+
+#### Dynamic Test Data with UUIDv7
+
+**ALWAYS use UUIDv7 for test data (NEVER hardcoded UUIDs/strings)**
+
+**Rationale**: Thread-safe, process-safe, time-ordered, prevents UNIQUE constraint violations in parallel tests
+
+**Pattern**:
+```go
+func TestCreate(t *testing.T) {
+    t.Parallel()
+    id := googleUuid.NewV7()  // ← Unique per test, generate ONCE and reuse
+    user := &User{ID: id, Name: fmt.Sprintf("user_%s", id)}
+    repo.Create(ctx, user)
+}
+```
+
+**FORBIDDEN**: ❌ Hardcoded UUIDs/strings (causes UNIQUE constraint failures in parallel tests)
+
+**Reference**: See `.github/instructions/03-02.testing.instructions.md` Section "FORBIDDEN #4: Hardcoded Test Data"
+
+---
+
 ### Unit/Integration Tests
 
 **Coverage**: ≥95% production, ≥98% infrastructure/utility
