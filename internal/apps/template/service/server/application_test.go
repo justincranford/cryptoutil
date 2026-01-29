@@ -13,7 +13,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockPublicServer is a mock implementation of IPublicServer for testing.
@@ -149,6 +152,27 @@ func (m *mockAdminServer) isReady() bool {
 	defer m.mu.RUnlock()
 
 	return m.ready
+}
+
+// createTestTLSMaterial creates test TLS material for testing.
+func createTestTLSMaterial(t *testing.T) *cryptoutilAppsTemplateServiceConfig.TLSMaterial {
+	t.Helper()
+
+	// Generate TLS settings with auto-generated CA hierarchy.
+	tlsSettings, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateAutoTLSGeneratedSettings(
+		[]string{"localhost"},
+		[]string{cryptoutilSharedMagic.IPv4Loopback},
+		cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tlsSettings)
+
+	// Convert TLSGeneratedSettings (PEM bytes) to TLSMaterial (parsed tls.Config).
+	tlsMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(tlsSettings)
+	require.NoError(t, err)
+	require.NotNil(t, tlsMaterial)
+
+	return tlsMaterial
 }
 
 // TestNewApplication_HappyPath tests successful application creation.
@@ -470,6 +494,37 @@ func TestApplication_PublicServerBase_MockServer(t *testing.T) {
 	// When public server is NOT *PublicServerBase, should return nil.
 	base := app.PublicServerBase()
 	require.Nil(t, base, "Expected nil when public server is not *PublicServerBase")
+	
+	// Verify the type assertion actually failed.
+	// The mock is definitely not a PublicServerBase from package server.
+	// This test covers application.go:294 (return nil path).
+}
+
+// TestApplication_PublicServerBase_RealServer tests PublicServerBase when public server is a real PublicServerBase.
+func TestApplication_PublicServerBase_RealServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	// Create a real PublicServerBase.
+	publicServer, err := cryptoutilAppsTemplateServiceServer.NewPublicServerBase(&cryptoutilAppsTemplateServiceServer.PublicServerConfig{
+		BindAddress: "127.0.0.1",
+		Port:        0,  // Dynamic allocation.
+		TLSMaterial: createTestTLSMaterial(t),
+	})
+	require.NoError(t, err)
+
+	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
+	require.NoError(t, err)
+
+	// When public server IS *PublicServerBase, should return it.
+	base := app.PublicServerBase()
+	require.NotNil(t, base, "Expected non-nil when public server is *PublicServerBase")
+	require.Same(t, publicServer, base, "Expected same instance")
+	
+	// This test covers application.go:290 (return base path).
 }
 
 // TestApplication_IsShutdown tests IsShutdown method.

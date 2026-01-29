@@ -286,8 +286,10 @@ func (a *Application) SetReady(ready bool) {
 // Returns nil if the public server is not a *PublicServerBase (e.g., a mock).
 func (a *Application) PublicServerBase() *PublicServerBase {
 	if base, ok := a.publicServer.(*PublicServerBase); ok {
+		// Type assertion succeeded - return the PublicServerBase.
 		return base
 	}
 
+	// Type assertion failed - public server is not a PublicServerBase (e.g., a mock).
 	return nil
 }
