@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -39,6 +40,60 @@ func TestPublicServerBase_StartContextCancellation(t *testing.T) {
 	err = base.Start(ctx)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "public server stopped")
+}
+
+// TestPublicServerBase_StartListenError tests Start when port is already in use.
+// Target: public_server_base.go:120-122 (Listen error path).
+func TestPublicServerBase_StartListenError(t *testing.T) {
+	t.Parallel()
+
+	// Create first server to occupy a specific port.
+	config1 := &PublicServerConfig{
+		BindAddress: "127.0.0.1",
+		Port:        0, // Dynamic allocation.
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+
+	base1, err := NewPublicServerBase(config1)
+	require.NoError(t, err)
+
+	// Start first server in background.
+	ctx1 := context.Background()
+
+	errChan := make(chan error, 1)
+
+	go func() {
+		errChan <- base1.Start(ctx1)
+	}()
+
+	// Wait for first server to start and get its port.
+	// Use a small sleep to allow server to bind.
+	require.Eventually(t, func() bool {
+		return base1.ActualPort() != 0
+	}, 1*time.Second, 10*time.Millisecond)
+
+	occupiedPort := base1.ActualPort()
+
+	// Try to create second server on same port.
+	config2 := &PublicServerConfig{
+		BindAddress: "127.0.0.1",
+		Port:        occupiedPort, // Use same port.
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+
+	base2, err := NewPublicServerBase(config2)
+	require.NoError(t, err)
+
+	// Start second server should fail with "address already in use".
+	err = base2.Start(context.Background())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to create listener")
+
+	// Clean up first server.
+	_ = base1.Shutdown(context.Background())
+
+	// Wait for goroutine to finish.
+	<-errChan
 }
 
 // TestPublicServerBase_ShutdownTwice tests Shutdown called twice.
