@@ -12,30 +12,11 @@ authz:
   admin_bind_address: 0.0.0.0
   admin_port: 9090
 
-database:
-  type: sqlite
-  dsn: ":memory:"
-  max_open_conns: 5
-  max_idle_conns: 2
-  conn_max_lifetime: 60m
-  conn_max_idle_time: 10m
-  auto_migrate: true
+database-url: "sqlite://file::memory:?cache=shared"
 
-tokens:
-  access_token_lifetime: 3600s
-  access_token_format: jws
-  id_token_lifetime: 3600s
-  id_token_format: jws
-  refresh_token_lifetime: 86400s
-  refresh_token_format: uuid
-  issuer: https://localhost:18000
-  signing_algorithm: RS256
-  code_lifetime: 600s
-
-observability:
-  enabled: true
-  otlp_endpoint: "opentelemetry-collector-contrib:4317"
-  service_name: identity-authz-e2e
+# Session configuration
+service-session-jws-algorithm: "RS256"
+browser-session-jws-algorithm: "RS256"
 
 logging:
   level: debug

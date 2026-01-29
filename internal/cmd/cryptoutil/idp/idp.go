@@ -213,6 +213,18 @@ func healthService(parameters []string) { //nolint:wsl_v5
 // parseConfigFlag extracts config file path from parameters.
 func parseConfigFlag(parameters []string, defaultValue string) string {
 	for i, param := range parameters {
+		// Handle --config=/path/to/file format (single element with =).
+		if strings.HasPrefix(param, configFlag+"=") {
+			value := strings.TrimPrefix(param, configFlag+"=")
+
+			return strings.TrimPrefix(value, fileURLPrefix)
+		}
+		if strings.HasPrefix(param, configFlagShort+"=") {
+			value := strings.TrimPrefix(param, configFlagShort+"=")
+
+			return strings.TrimPrefix(value, fileURLPrefix)
+		}
+		// Handle --config /path/to/file format (two elements).
 		if (param == configFlag || param == configFlagShort) && i+1 < len(parameters) {
 			// Handle file:// prefix for Docker secrets.
 			return strings.TrimPrefix(parameters[i+1], fileURLPrefix)

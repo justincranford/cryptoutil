@@ -101,14 +101,22 @@ RUN mkdir -p /app/run && chmod 775 /app/run && chown -R 65532:65532 /app/run
 RUN mkdir -p /app/cache && chmod 775 /app/cache && chown -R 65532:65532 /app/cache
 
 #############################################################################################
+FROM alpine:${ALPINE_VERSION} AS runtime-deps
+WORKDIR /root/ssl
+# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates.
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk --no-cache add ca-certificates tzdata tini && \
+    update-ca-certificates
+
+#############################################################################################
 FROM alpine:${ALPINE_VERSION} AS runtime
 ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 
-# Install CA certificates for HTTPS requests.
-RUN apk add --no-cache ca-certificates && \
-    update-ca-certificates
+# Copy apk installed dependencies from runtime-deps.
+COPY --from=runtime-deps /sbin/tini /sbin/tini
+COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Create application user with UID 65532 (non-root).
 RUN addgroup -g 65532 -S appgroup && \
@@ -137,8 +145,11 @@ EXPOSE 18400 9090
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:18400/health || exit 1
 
-# Set default command to run the SPA application.
-CMD ["/app/cryptoutil", "identity-spa", "start"]
+# Use tini for proper signal handling and zombie process reaping.
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "identity-spa", "start"]
+
+# Switch to non-root user for security.
+# USER 65532:65532
 
 #############################################################################################
 # Labels for container metadata.

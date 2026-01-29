@@ -6,10 +6,11 @@ server:
   bind-admin-address: 0.0.0.0
   bind-admin-port: 9090
 
-database:
-  type: sqlite
-  dsn: ":memory:"
-  auto-migrate: true
+database-url: "sqlite://file::memory:?cache=shared"
+
+# Session configuration
+service-session-jws-algorithm: "RS256"
+browser-session-jws-algorithm: "RS256"
 
 telemetry:
   enabled: true

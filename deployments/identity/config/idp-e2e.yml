@@ -12,14 +12,11 @@ idp:
   admin_bind_address: 0.0.0.0
   admin_port: 9090
 
-database:
-  type: sqlite
-  dsn: ":memory:"
-  max_open_conns: 5
-  max_idle_conns: 2
-  conn_max_lifetime: 60m
-  conn_max_idle_time: 10m
-  auto_migrate: true
+database-url: "sqlite://file::memory:?cache=shared"
+
+# Session configuration
+service-session-jws-algorithm: "RS256"
+browser-session-jws-algorithm: "RS256"
 
 tokens:
   access_token_lifetime: 3600s

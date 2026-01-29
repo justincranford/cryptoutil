@@ -326,7 +326,11 @@ func (b *ServerBuilder) generateTLSConfig(
 func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	// Determine database type from URL.
 	var databaseType string
-	if b.config.DatabaseURL == "" || b.config.DatabaseURL == "file::memory:?cache=shared" || b.config.DatabaseURL == ":memory:" || (len(b.config.DatabaseURL) >= 7 && b.config.DatabaseURL[:7] == "file://") {
+	if b.config.DatabaseURL == "" ||
+		b.config.DatabaseURL == "file::memory:?cache=shared" ||
+		b.config.DatabaseURL == ":memory:" ||
+		(len(b.config.DatabaseURL) >= 7 && b.config.DatabaseURL[:7] == "file://") ||
+		(len(b.config.DatabaseURL) >= 9 && b.config.DatabaseURL[:9] == "sqlite://") {
 		databaseType = "sqlite"
 	} else {
 		databaseType = "postgres"
