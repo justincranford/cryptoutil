@@ -157,11 +157,6 @@ func TestNewSessionManagerService_NilTelemetry(t *testing.T) {
 	require.Contains(t, err.Error(), "telemetry service cannot be nil")
 }
 
-// Note: Testing NilJWKGenService, NilBarrierService, NilConfig requires creating real
-// TelemetryService, JWKGenService, and BarrierService instances, which are complex to
-// instantiate. Those validation paths are tested implicitly via the SessionManager tests
-// or integration tests.
-
 // --- Method Validation Tests ---
 // These tests verify the input validation in the SessionManagerService wrapper methods.
 // They bypass the constructor by directly creating a SessionManagerService with a valid SessionManager.
@@ -480,4 +475,33 @@ func TestNewSessionManagerService_NilConfig(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, svc)
 	require.Contains(t, err.Error(), "config cannot be nil")
+}
+
+// TestNewSessionManagerService_HappyPath tests successful creation of SessionManagerService.
+func TestNewSessionManagerService_HappyPath(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := setupTestDB(t)
+	telemetrySvc := setupTelemetryService(t)
+	jwkGenSvc := setupJWKGenService(t, telemetrySvc)
+	barrierSvc := setupBarrierService(t, db, telemetrySvc, jwkGenSvc)
+
+	// Create config with valid session settings.
+	config := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+
+	svc, err := NewSessionManagerService(ctx, db, telemetrySvc, jwkGenSvc, barrierSvc, config)
+
+	require.NoError(t, err)
+	require.NotNil(t, svc)
+
+	// Verify the service is functional by calling a simple method.
+	// Use IssueBrowserSessionWithTenant which validates the session manager is initialized.
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	token, err := svc.IssueBrowserSessionWithTenant(ctx, "test-user-123", tenantID, realmID)
+
+	require.NoError(t, err)
+	require.NotEmpty(t, token)
 }
