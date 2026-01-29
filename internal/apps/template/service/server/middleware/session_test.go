@@ -105,7 +105,7 @@ func TestSessionMiddleware_EmptyToken(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("Authorization", "Bearer ")
+	req.Header.Set("Authorization", "Bearer   ")
 
 	resp, err := app.Test(req)
 	require.NoError(t, err)
@@ -113,6 +113,9 @@ func TestSessionMiddleware_EmptyToken(t *testing.T) {
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 401, resp.StatusCode)
+
+	// Note: Cannot reliably test which specific 401 error we get
+	// because HTTP libraries may canonicalize header values
 }
 
 func TestSessionMiddleware_BrowserSession_ValidationError(t *testing.T) {
@@ -201,12 +204,18 @@ func TestSessionMiddleware_BrowserSession_NilUserID(t *testing.T) {
 		},
 	}
 
-	var capturedSession any
+	var (
+		capturedSession  any
+		capturedTenantID any
+		capturedRealmID  any
+	)
 
 	app := createTestApp()
 
 	app.Get("/test", SessionMiddleware(validator, true), func(c *fiber.Ctx) error {
 		capturedSession = c.Locals(ContextKeySession)
+		capturedTenantID = c.Locals(ContextKeyTenantID)
+		capturedRealmID = c.Locals(ContextKeyRealmID)
 
 		return c.SendString("OK")
 	})
@@ -221,6 +230,8 @@ func TestSessionMiddleware_BrowserSession_NilUserID(t *testing.T) {
 
 	require.Equal(t, 200, resp.StatusCode)
 	require.NotNil(t, capturedSession)
+	require.Equal(t, tenantID, capturedTenantID, "tenant_id should be set even when UserID is nil")
+	require.Equal(t, realmID, capturedRealmID, "realm_id should be set even when UserID is nil")
 }
 
 func TestSessionMiddleware_ServiceSession_ValidationError(t *testing.T) {
@@ -264,15 +275,19 @@ func TestSessionMiddleware_ServiceSession_Success(t *testing.T) {
 	}
 
 	var (
+		capturedUserID   any
 		capturedClientID any
 		capturedTenantID any
+		capturedRealmID  any
 	)
 
 	app := createTestApp()
 
 	app.Get("/test", SessionMiddleware(validator, false), func(c *fiber.Ctx) error {
+		capturedUserID = c.Locals(ContextKeyUserID)
 		capturedClientID = c.Locals(ContextKeyClientID)
 		capturedTenantID = c.Locals(ContextKeyTenantID)
+		capturedRealmID = c.Locals(ContextKeyRealmID)
 
 		return c.SendString("OK")
 	})
@@ -286,8 +301,10 @@ func TestSessionMiddleware_ServiceSession_Success(t *testing.T) {
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 200, resp.StatusCode)
+	require.NotNil(t, capturedUserID, "user_id should be set when ClientID is valid UUID")
 	require.Equal(t, clientID, capturedClientID)
 	require.Equal(t, tenantID, capturedTenantID)
+	require.Equal(t, realmID, capturedRealmID)
 }
 
 func TestSessionMiddleware_ServiceSession_NilClientID(t *testing.T) {
@@ -306,12 +323,18 @@ func TestSessionMiddleware_ServiceSession_NilClientID(t *testing.T) {
 		},
 	}
 
-	var capturedSession any
+	var (
+		capturedSession  any
+		capturedTenantID any
+		capturedRealmID  any
+	)
 
 	app := createTestApp()
 
 	app.Get("/test", SessionMiddleware(validator, false), func(c *fiber.Ctx) error {
 		capturedSession = c.Locals(ContextKeySession)
+		capturedTenantID = c.Locals(ContextKeyTenantID)
+		capturedRealmID = c.Locals(ContextKeyRealmID)
 
 		return c.SendString("OK")
 	})
@@ -326,6 +349,8 @@ func TestSessionMiddleware_ServiceSession_NilClientID(t *testing.T) {
 
 	require.Equal(t, 200, resp.StatusCode)
 	require.NotNil(t, capturedSession)
+	require.Equal(t, tenantID, capturedTenantID, "tenant_id should be set even when ClientID is nil")
+	require.Equal(t, realmID, capturedRealmID, "realm_id should be set even when ClientID is nil")
 }
 
 func TestBrowserSessionMiddleware(t *testing.T) {
