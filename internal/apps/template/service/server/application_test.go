@@ -455,3 +455,39 @@ func TestApplication_SetReady(t *testing.T) {
 	app.SetReady(false)
 	require.False(t, adminServer.isReady())
 }
+
+// TestApplication_PublicServerBase_MockServer tests PublicServerBase when public server is a mock (not PublicServerBase).
+func TestApplication_PublicServerBase_MockServer(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
+	require.NoError(t, err)
+
+	// When public server is NOT *PublicServerBase, should return nil.
+	base := app.PublicServerBase()
+	require.Nil(t, base, "Expected nil when public server is not *PublicServerBase")
+}
+
+// TestApplication_IsShutdown tests IsShutdown method.
+func TestApplication_IsShutdown(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	publicServer := newMockPublicServer(8080, "https://localhost:8080")
+	adminServer := newMockAdminServer(9090, "https://localhost:9090")
+
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
+	require.NoError(t, err)
+
+	// Initially not shutdown.
+	require.False(t, app.IsShutdown())
+
+	// After shutdown.
+	err = app.Shutdown(ctx)
+	require.NoError(t, err)
+	require.True(t, app.IsShutdown())
+}

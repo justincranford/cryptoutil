@@ -282,3 +282,53 @@ func TestStartApplicationCore_NilSettings(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "settings cannot be nil")
 }
+
+// TestServiceTemplate_AccessorMethods tests all accessor methods for coverage.
+func TestServiceTemplate_AccessorMethods(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := initTestDB(t)
+	cfg := defaultTestConfig()
+
+	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
+	require.NoError(t, err)
+	require.NotNil(t, st)
+
+	// Test Config() accessor.
+	config := st.Config()
+	require.NotNil(t, config)
+	require.Equal(t, cfg, config)
+
+	// Test DB() accessor.
+	dbFromAccessor := st.DB()
+	require.NotNil(t, dbFromAccessor)
+	require.Equal(t, db, dbFromAccessor)
+
+	// Test SQLDB() accessor.
+	sqlDB, err := st.SQLDB()
+	require.NoError(t, err)
+	require.NotNil(t, sqlDB)
+
+	// Test DBType() accessor.
+	dbType := st.DBType()
+	require.Equal(t, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, dbType)
+
+	// Test Telemetry() accessor.
+	telemetry := st.Telemetry()
+	require.NotNil(t, telemetry)
+
+	// Test JWKGen() accessor.
+	jwkGen := st.JWKGen()
+	require.NotNil(t, jwkGen)
+
+	// Test Barrier() accessor (initially nil, can be set with WithBarrier option).
+	barrier := st.Barrier()
+	require.Nil(t, barrier)
+
+	// Test Shutdown to cover nil checks for all three services (telemetry, jwkGen, barrier).
+	st.Shutdown()
+	// After shutdown, verify services are still accessible (shutdown is graceful, not destructive).
+	require.NotNil(t, st.Telemetry())
+	require.NotNil(t, st.JWKGen())
+}

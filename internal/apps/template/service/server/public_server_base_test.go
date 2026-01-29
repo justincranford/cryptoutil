@@ -451,6 +451,43 @@ func TestPublicServerBase_StartAndMakeRequest(t *testing.T) {
 	}
 }
 
+// TestPublicServerBase_AccessorMethods tests all accessor methods for coverage.
+func TestPublicServerBase_AccessorMethods(t *testing.T) {
+	t.Parallel()
+
+	cfg := &PublicServerConfig{
+		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
+		Port:        8888,
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+
+	base, err := NewPublicServerBase(cfg)
+	require.NoError(t, err)
+	require.NotNil(t, base)
+
+	// Test ActualPort() accessor (before Start, should be 0).
+	actualPort := base.ActualPort()
+	require.Equal(t, 0, actualPort, "Port should be 0 before Start")
+
+	// Test PublicBaseURL() accessor (uses actualPort which is 0 before Start).
+	baseURL := base.PublicBaseURL()
+	require.Equal(t, "https://127.0.0.1:0", baseURL)
+
+	// Test App() accessor.
+	app := base.App()
+	require.NotNil(t, app, "Fiber app should not be nil")
+
+	// Test Shutdown when already shutdown (covers "already shutdown" error path).
+	ctx := context.Background()
+	err = base.Shutdown(ctx)
+	require.NoError(t, err)
+
+	// Second shutdown should return error.
+	err = base.Shutdown(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "already shutdown")
+}
+
 // createTestHTTPClient creates an HTTP client that trusts the test CA.
 func createTestHTTPClient(t *testing.T, tlsMaterial *cryptoutilAppsTemplateServiceConfig.TLSMaterial) *http.Client {
 	t.Helper()
