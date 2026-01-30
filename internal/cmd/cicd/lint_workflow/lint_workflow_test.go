@@ -307,6 +307,42 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 	require.Equal(t, "Test exception", exceptions.Exceptions["actions/checkout"].Reason)
 }
 
+func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
+	if os.Getuid() == 0 {
+		t.Skip("Skipping test when running as root (root can read all files)")
+	}
+
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+
+	githubDir := filepath.Join(tmpDir, ".github")
+	err = os.MkdirAll(githubDir, 0o755)
+	require.NoError(t, err)
+
+	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
+	content := `{"exceptions":{}}`
+	err = os.WriteFile(exceptionsFile, []byte(content), 0o000)
+	require.NoError(t, err)
+
+	defer func() {
+		// Restore permissions so cleanup can delete the file.
+		_ = os.Chmod(exceptionsFile, 0o644)
+	}()
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
+
+	exceptions, err := loadWorkflowActionExceptions()
+	require.Error(t, err, "Should fail when file exists but is unreadable")
+	require.Nil(t, exceptions)
+	require.Contains(t, err.Error(), "failed to read exceptions file")
+}
+
 func TestValidateAndParseWorkflowFile_InvalidFile(t *testing.T) {
 	t.Parallel()
 
@@ -982,4 +1018,157 @@ jobs:
 	require.Len(t, actionDetails, 1)
 	require.Contains(t, actionDetails, "actions/checkout@v4")
 	require.Len(t, actionDetails["actions/checkout@v4"].WorkflowFiles, 2, "Should merge workflow files list")
+}
+
+// TestLintGitHubWorkflows_WithExemptedActions tests the exempted actions reporting path
+// by setting up an exceptions file and a workflow with matching exempted actions.
+func TestLintGitHubWorkflows_WithExemptedActions(t *testing.T) {
+	// Note: Not parallel - modifies working directory.
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
+
+	// Create .github directory with exceptions file.
+	githubDir := filepath.Join(tmpDir, ".github")
+	err = os.MkdirAll(githubDir, 0o755)
+	require.NoError(t, err)
+
+	// Create exceptions file with exempted action.
+	exceptionsContent := `{
+  "exceptions": {
+    "actions/checkout": {
+      "version": "v3",
+      "reason": "Legacy compatibility required"
+    }
+  }
+}`
+	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
+	err = os.WriteFile(exceptionsFile, []byte(exceptionsContent), 0o600)
+	require.NoError(t, err)
+
+	// Create workflows directory with workflow using exempted action.
+	workflowDir := filepath.Join(githubDir, "workflows")
+	err = os.MkdirAll(workflowDir, 0o755)
+	require.NoError(t, err)
+
+	// Create workflow file using the exempted version.
+	workflowContent := `name: CI
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+`
+	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	err = os.WriteFile(workflowFile, []byte(workflowContent), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = lintGitHubWorkflows(logger, []string{workflowFile})
+	require.NoError(t, err, "Should succeed with exempted actions")
+}
+
+// TestLintGitHubWorkflows_SuccessPath tests the success message path when
+// there are actions but none are exempted or outdated.
+func TestLintGitHubWorkflows_SuccessPath(t *testing.T) {
+	// Note: Not parallel - modifies working directory.
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
+
+	// Create .github/workflows directory.
+	githubDir := filepath.Join(tmpDir, ".github")
+	workflowDir := filepath.Join(githubDir, "workflows")
+	err = os.MkdirAll(workflowDir, 0o755)
+	require.NoError(t, err)
+
+	// Create workflow file with actions (no exceptions file means no exemptions).
+	workflowContent := `name: CI
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+`
+	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	err = os.WriteFile(workflowFile, []byte(workflowContent), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = lintGitHubWorkflows(logger, []string{workflowFile})
+	require.NoError(t, err, "Should succeed and print success message")
+}
+
+// TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed tests when some actions
+// are exempted and others are not.
+func TestLintGitHubWorkflows_ExemptedAndNonExemptedMixed(t *testing.T) {
+	// Note: Not parallel - modifies working directory.
+	tmpDir := t.TempDir()
+	originalWd, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
+
+	// Create .github directory with exceptions file.
+	githubDir := filepath.Join(tmpDir, ".github")
+	err = os.MkdirAll(githubDir, 0o755)
+	require.NoError(t, err)
+
+	// Create exceptions file with one exempted action.
+	exceptionsContent := `{
+  "exceptions": {
+    "actions/checkout": {
+      "version": "v3",
+      "reason": "Legacy compatibility"
+    }
+  }
+}`
+	exceptionsFile := filepath.Join(githubDir, "workflow-action-exceptions.json")
+	err = os.WriteFile(exceptionsFile, []byte(exceptionsContent), 0o600)
+	require.NoError(t, err)
+
+	// Create workflows directory.
+	workflowDir := filepath.Join(githubDir, "workflows")
+	err = os.MkdirAll(workflowDir, 0o755)
+	require.NoError(t, err)
+
+	// Create workflow with both exempted and non-exempted actions.
+	workflowContent := `name: CI
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v5
+`
+	workflowFile := filepath.Join(workflowDir, "ci.yml")
+	err = os.WriteFile(workflowFile, []byte(workflowContent), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = lintGitHubWorkflows(logger, []string{workflowFile})
+	require.NoError(t, err, "Should succeed with mixed exempted and non-exempted actions")
 }
