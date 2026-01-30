@@ -121,6 +121,11 @@ func TestMaskPassword(t *testing.T) {
 			dsn:      "scheme/:password@host",
 			expected: "scheme/:***@host",
 		},
+		{
+			name:     "DSN with /: but no @ symbol - covers end == start branch",
+			dsn:      "scheme/:password_without_at",
+			expected: "scheme/:password_without_at", // No @ means end == start, return dsn unchanged
+		},
 	}
 
 	for _, tc := range tests {
@@ -1102,6 +1107,38 @@ func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
 		DevMode:      true,
 		DatabaseURL:  "file://" + dbFile,
 		OTLPService:  "test-sqlite-file",
+		OTLPEnabled:  false,
+		OTLPEndpoint: "grpc://127.0.0.1:4317",
+		LogLevel:     "INFO",
+	}
+
+	basic, err := StartBasic(ctx, settings)
+	require.NoError(t, err)
+
+	defer basic.Shutdown()
+
+	db, cleanup, err := provisionDatabase(ctx, basic, settings)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+
+	defer cleanup()
+
+	// Verify database works.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	require.NotNil(t, sqlDB)
+}
+
+// TestProvisionDatabase_SQLiteSchemePrefixURL tests SQLite with sqlite:// URL prefix.
+// This covers the sqlite:// scheme detection branch in provisionDatabase.
+func TestProvisionDatabase_SQLiteSchemePrefixURL(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		DevMode:      true,
+		DatabaseURL:  "sqlite://file::memory:?cache=shared", // sqlite:// prefix with in-memory DSN
+		OTLPService:  "test-sqlite-scheme",
 		OTLPEnabled:  false,
 		OTLPEndpoint: "grpc://127.0.0.1:4317",
 		LogLevel:     "INFO",
