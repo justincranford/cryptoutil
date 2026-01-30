@@ -162,3 +162,14 @@ func TestCheckFileEncoding(t *testing.T) {
 		})
 	}
 }
+
+// TestCheckFileEncoding_FileOpenError tests the error path when file cannot be opened.
+func TestCheckFileEncoding_FileOpenError(t *testing.T) {
+	t.Parallel()
+
+	// Pass a non-existent file path.
+	issues := checkFileEncoding("/nonexistent/path/to/file.txt")
+
+	require.Len(t, issues, 1, "Should return one issue")
+	require.Contains(t, issues[0], "failed to open file", "Issue should indicate file open failure")
+}
