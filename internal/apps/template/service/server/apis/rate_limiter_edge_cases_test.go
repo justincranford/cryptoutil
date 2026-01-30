@@ -84,3 +84,39 @@ func TestRateLimiter_StopCleanupLoop(t *testing.T) {
 	// Test passes if no deadlock occurs.
 	// This verifies cleanupLoop received stopCleanup signal and exited.
 }
+
+// TestRateLimiter_TokenCapAfterLongIdle tests token cap after long idle period (line 73).
+func TestRateLimiter_TokenCapAfterLongIdle(t *testing.T) {
+	t.Parallel()
+
+	// Create limiter with burstSize=3 and requestsPerMin=60 (1 token/sec).
+	limiter := NewRateLimiter(60, 3)
+	ipAddress := "192.168.1.400"
+
+	// First request creates bucket with full tokens (burstSize=3).
+	require.True(t, limiter.Allow(ipAddress))
+
+	// Now artificially age the bucket back in time to simulate long idle period.
+	// This will cause tokensToAdd to exceed remaining capacity, triggering the cap.
+	limiter.mu.Lock()
+	if bucket, ok := limiter.buckets[ipAddress]; ok {
+		// Set lastRefillTime to 10 seconds ago.
+		// With 60 req/min = 1 token/sec, this should add ~10 tokens.
+		// But bucket already has 2 tokens (3 - 1 used), so cap at 3.
+		bucket.lastRefillTime = time.Now().UTC().Add(-10 * time.Second)
+	}
+	limiter.mu.Unlock()
+
+	// Next request triggers refill calculation.
+	// tokensToAdd would be ~10, but tokens would exceed burstSize (3).
+	// This triggers the cap: if bucket.tokens > rl.burstSize (line 73).
+	require.True(t, limiter.Allow(ipAddress))
+
+	// Verify bucket has exactly burstSize tokens after cap (minus 1 for this request).
+	limiter.mu.Lock()
+	bucket := limiter.buckets[ipAddress]
+	require.Equal(t, 2, bucket.tokens) // burstSize(3) - 1(used) = 2
+	limiter.mu.Unlock()
+
+	limiter.Stop()
+}
