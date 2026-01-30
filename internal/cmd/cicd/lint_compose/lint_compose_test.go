@@ -295,3 +295,42 @@ services:
 	require.Error(t, err, "lint should fail with multiple violations")
 	require.Contains(t, err.Error(), "2 admin port exposure violations")
 }
+
+// TestCheckComposeFile_FileOpenError tests the error path when compose file cannot be opened.
+func TestCheckComposeFile_FileOpenError(t *testing.T) {
+	t.Parallel()
+
+	violations, err := checkComposeFile("/nonexistent/path/to/compose.yml")
+	require.Error(t, err, "should return error for non-existent file")
+	require.Nil(t, violations, "should return nil violations on error")
+	require.Contains(t, err.Error(), "failed to open file", "error should indicate file open failure")
+}
+
+// TestLint_FileOpenErrorContinues tests that Lint continues processing when one file cannot be opened.
+func TestLint_FileOpenErrorContinues(t *testing.T) {
+	t.Parallel()
+
+	// Create temp dir with one valid compose file.
+	tempDir := t.TempDir()
+	composeFile := filepath.Join(tempDir, "compose.yml")
+
+	validContent := `version: '3.8'
+services:
+  app:
+    image: myapp:latest
+    ports:
+      - "8080:8080"
+`
+	err := os.WriteFile(composeFile, []byte(validContent), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	// Include both a valid file and a non-existent file.
+	filesByExtension := map[string][]string{
+		"yml": {composeFile, "/nonexistent/compose.yml"},
+	}
+
+	// Lint should succeed (warning for non-existent file, but no violations).
+	err = Lint(logger, filesByExtension)
+	require.NoError(t, err, "lint should pass even with one file error")
+}
