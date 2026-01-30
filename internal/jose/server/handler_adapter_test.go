@@ -267,3 +267,62 @@ func TestHandleJWKDelete_Success(t *testing.T) {
 	_, exists := keyStore.Get(kid.String())
 	require.False(t, exists)
 }
+
+// TestHandleElasticJWKS_EmptyKID tests handleElasticJWKS with empty KID.
+func TestHandleElasticJWKS_EmptyKID(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: NewKeyStore(),
+	}
+	app.Get("/elastic-jwks/:kid", handler.handleElasticJWKS)
+
+	req := httptest.NewRequest("GET", "/elastic-jwks/", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Empty KID results in 404 from Fiber routing (no match).
+	require.Equal(t, 404, resp.StatusCode)
+}
+
+// TestHandleElasticJWKS_InvalidKID tests handleElasticJWKS with invalid UUID format.
+func TestHandleElasticJWKS_InvalidKID(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: NewKeyStore(),
+	}
+	app.Get("/elastic-jwks/:kid", handler.handleElasticJWKS)
+
+	req := httptest.NewRequest("GET", "/elastic-jwks/not-a-valid-uuid", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Invalid UUID format should return 400 Bad Request.
+	require.Equal(t, 400, resp.StatusCode)
+}
+
+// TestHandleElasticJWKS_NilService tests handleElasticJWKS when elasticJWKService is nil.
+func TestHandleElasticJWKS_NilService(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore:          NewKeyStore(),
+		elasticJWKService: nil, // Service not configured.
+	}
+	app.Get("/elastic-jwks/:kid", handler.handleElasticJWKS)
+
+	validUUID := googleUuid.New().String()
+	req := httptest.NewRequest("GET", "/elastic-jwks/"+validUUID, nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Nil service should return 500 Internal Server Error.
+	require.Equal(t, 500, resp.StatusCode)
+}
