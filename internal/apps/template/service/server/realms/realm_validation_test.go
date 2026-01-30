@@ -200,6 +200,15 @@ func TestValidateUsernameForRealm(t *testing.T) {
 	}
 }
 
+// TestValidateUsernameForRealm_NilRealm tests error when realm is nil.
+func TestValidateUsernameForRealm_NilRealm(t *testing.T) {
+	t.Parallel()
+
+	err := ValidateUsernameForRealm("validuser", nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "realm configuration is nil")
+}
+
 func TestDefaultAndEnterpriseRealmDefaults(t *testing.T) {
 	t.Parallel()
 
