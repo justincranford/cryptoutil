@@ -1,4 +1,4 @@
-﻿# Gremlins Mutation Testing Configuration
+# Gremlins Mutation Testing Configuration
 unleash:
   # Test command configuration
   test-cpu: 4           # Number of CPUs for test execution

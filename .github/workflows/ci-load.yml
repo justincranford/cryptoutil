@@ -234,6 +234,7 @@ jobs:
 
         # Run all simulations with configured parameters
         if ./mvnw gatling:test \
+          -Dgatling.runMultipleSimulations=true \
           -Dprofile=${{ env.LOAD_PROFILE }} \
           -Dport=8080 \
           -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
