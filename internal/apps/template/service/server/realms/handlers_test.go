@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	json "encoding/json"
+	"fmt"
 	"io"
 	"net/http/httptest"
 	"testing"
@@ -250,6 +251,126 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "testuser", response["username"])
 	require.NotEmpty(t, response["user_id"])
+}
+
+// TestHandleRegisterUser_DuplicateUsernameSQLite tests 409 Conflict for SQLite duplicate username.
+func TestHandleRegisterUser_DuplicateUsernameSQLite(t *testing.T) {
+	t.Parallel()
+
+	repo := newMockUserRepository()
+	// Set the createErr to simulate SQLite unique constraint violation.
+	repo.createErr = fmt.Errorf("UNIQUE constraint failed: users.username")
+	factory := func() UserModel { return &BasicUser{} }
+	svc := NewUserService(repo, factory)
+
+	app := fiber.New()
+	app.Post("/register", svc.HandleRegisterUser())
+
+	bodyBytes, err := json.Marshal(map[string]string{
+		"username": "existinguser",
+		"password": "SecurePass123!",
+	})
+	require.NoError(t, err)
+
+	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	// Should get 409 Conflict for duplicate username.
+	require.Equal(t, fiber.StatusConflict, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var response map[string]string
+
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+	require.Equal(t, "Username already exists", response["error"])
+}
+
+// TestHandleRegisterUser_DuplicateUsernamePostgreSQL tests 409 Conflict for PostgreSQL duplicate username.
+func TestHandleRegisterUser_DuplicateUsernamePostgreSQL(t *testing.T) {
+	t.Parallel()
+
+	repo := newMockUserRepository()
+	// Set the createErr to simulate PostgreSQL unique constraint violation.
+	repo.createErr = fmt.Errorf("duplicate key value violates unique constraint \"users_username_key\"")
+	factory := func() UserModel { return &BasicUser{} }
+	svc := NewUserService(repo, factory)
+
+	app := fiber.New()
+	app.Post("/register", svc.HandleRegisterUser())
+
+	bodyBytes, err := json.Marshal(map[string]string{
+		"username": "existinguser",
+		"password": "SecurePass123!",
+	})
+	require.NoError(t, err)
+
+	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	// Should get 409 Conflict for duplicate username.
+	require.Equal(t, fiber.StatusConflict, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var response map[string]string
+
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+	require.Equal(t, "Username already exists", response["error"])
+}
+
+// TestHandleRegisterUser_GenericError tests 500 Internal Server Error for non-duplicate errors.
+func TestHandleRegisterUser_GenericError(t *testing.T) {
+	t.Parallel()
+
+	repo := newMockUserRepository()
+	// Set the createErr to simulate a generic database error (not duplicate).
+	repo.createErr = fmt.Errorf("database connection lost")
+	factory := func() UserModel { return &BasicUser{} }
+	svc := NewUserService(repo, factory)
+
+	app := fiber.New()
+	app.Post("/register", svc.HandleRegisterUser())
+
+	bodyBytes, err := json.Marshal(map[string]string{
+		"username": "newuser",
+		"password": "SecurePass123!",
+	})
+	require.NoError(t, err)
+
+	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	// Should get 500 Internal Server Error for generic errors.
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	var response map[string]string
+
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+	require.Equal(t, "Failed to create user", response["error"])
 }
 
 // TestHandleLoginUser_InvalidJSON tests login with invalid JSON body.
