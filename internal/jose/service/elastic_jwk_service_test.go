@@ -525,3 +525,70 @@ func TestMapToJWAEncryptionAlgorithms(t *testing.T) {
 		})
 	}
 }
+
+// TestWithAuditLogging tests the WithAuditLogging method.
+func TestWithAuditLogging(t *testing.T) {
+	t.Parallel()
+
+	// Create a minimal service.
+	svc := NewElasticJWKService(
+		testElasticRepo,
+		testMaterialRepo,
+		testJWKGenService,
+		testBarrierService,
+	)
+
+	// Verify no audit logging initially.
+	require.Nil(t, svc.auditLogSvc)
+
+	// Create audit log service.
+	auditRepo := cryptoutilJoseRepository.NewAuditLogGormRepository(testDB)
+	auditConfigRepo := cryptoutilJoseRepository.NewAuditConfigGormRepository(testDB)
+	auditConfigSvc := NewAuditConfigService(auditConfigRepo)
+	auditLogSvc := NewAuditLogService(auditConfigSvc, auditRepo)
+
+	// Set audit logging.
+	result := svc.WithAuditLogging(auditLogSvc)
+
+	// Verify audit logging is set and returns same service.
+	require.NotNil(t, svc.auditLogSvc)
+	require.Same(t, svc, result)
+}
+
+// TestLogAuditFailure_NilService tests logAuditFailure with nil audit service.
+func TestLogAuditFailure_NilService(t *testing.T) {
+	t.Parallel()
+
+	// Create a service without audit logging.
+	svc := NewElasticJWKService(
+		testElasticRepo,
+		testMaterialRepo,
+		testJWKGenService,
+		testBarrierService,
+	)
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Should not panic with nil audit service.
+	svc.logAuditFailure(testCtx, tenantID, realmID, "test-operation", "test-resource", "test-id", fmt.Errorf("test error"), nil)
+}
+
+// TestLogAuditSuccess_NilService tests logAuditSuccess with nil audit service.
+func TestLogAuditSuccess_NilService(t *testing.T) {
+	t.Parallel()
+
+	// Create a service without audit logging.
+	svc := NewElasticJWKService(
+		testElasticRepo,
+		testMaterialRepo,
+		testJWKGenService,
+		testBarrierService,
+	)
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+
+	// Should not panic with nil audit service.
+	svc.logAuditSuccess(testCtx, tenantID, realmID, "test-operation", "test-resource", "test-id", nil)
+}
