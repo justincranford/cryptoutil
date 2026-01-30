@@ -210,3 +210,34 @@ func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	err = server.Shutdown(nil)
 	require.NoError(t, err)
 }
+
+// TestAdminServer_ActualPort_NilListener tests ActualPort returns 0 when listener is nil.
+func TestAdminServer_ActualPort_NilListener(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	tlsCfg := createTestTLSConfig()
+
+	server, err := NewAdminHTTPServer(ctx, settings, tlsCfg)
+	require.NoError(t, err)
+
+	// Before Start(), listener is nil, so ActualPort should return 0.
+	port := server.ActualPort()
+	require.Equal(t, 0, port)
+}
+
+// TestAdminServer_AdminBaseURL_BeforeStart tests AdminBaseURL returns expected format before start.
+func TestAdminServer_AdminBaseURL_BeforeStart(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	tlsCfg := createTestTLSConfig()
+
+	server, err := NewAdminHTTPServer(ctx, settings, tlsCfg)
+	require.NoError(t, err)
+
+	// Before Start(), port is 0, so URL should contain :0.
+	baseURL := server.AdminBaseURL()
+	require.Contains(t, baseURL, ":0")
+	require.Contains(t, baseURL, "https://")
+}
