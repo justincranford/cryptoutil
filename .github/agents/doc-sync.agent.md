@@ -33,6 +33,73 @@ tools:
 
 # Documentation Synchronization Prompt
 
+## Documentation Reference Table
+
+Quick reference for all synchronization-eligible documentation across the cryptoutil project.
+
+| Document Path | Type | Purpose | Update Triggers | Propagates To |
+|---------------|------|---------|----------------|---------------|
+| **Source of Truth (NEVER delete, ALWAYS update)** |
+| `.github/copilot-instructions.md` | Entrypoint | Main agent instruction loader | New instruction files, instruction reorganization | All agents, instruction files |
+| `.github/constitution.md` | Constitutional | Overarching project principles | Fundamental principle changes, new constitutional rules | All docs, all code |
+| `.github/instructions/*.instructions.md` | Constitutional | Domain-specific detailed rules | Pattern discovery, anti-pattern identification, new best practices | READMEs, agent prompts, templates |
+| `docs/arch/ARCHITECTURE.md` | Architectural | System design, service patterns, quality gates | Architectural changes, pattern discovery, quality gate adjustments | Service templates, agent prompts, copilot instructions |
+| **Spec Kit (Update frequently, specialized content)** |
+| `docs/speckit/constitution.md` | Constitutional | Spec Kit principles and rules | Constitution changes, Spec Kit workflow updates | Spec Kit templates, workflows |
+| `docs/speckit/templates/*.md` | Templates | Reusable Spec Kit document templates | Template improvements, new document types | New spec documents |
+| `specs/*/spec.md` | Specifications | Product/feature specifications | Requirement changes, scope changes | Implementation plans, tasks |
+| `specs/*/clarify.md` | Clarifications | Q&A for ambiguities | Unknowns discovered during planning, user answers | Plans, tasks |
+| `specs/*/plan.md` | Plans | High-level implementation plans | Scope changes, phase adjustments, new blockers discovered | Tasks, DETAILED |
+| `specs/*/tasks.md` | Tasks | Detailed actionable checklists | Task completion, blocker discovery, mid-execution phase creation | Plan (checkbox sync), DETAILED |
+| `specs/*/analyze/*.md` | Analysis | Deep-dive investigations | Complex technical analysis needed | Plans, tasks, DETAILED |
+| `specs/*/DETAILED.md` | Timeline | Chronological work log (Section 2 append-only) | Every work session, every task completion, every blocker | EXECUTIVE (summaries) |
+| `specs/*/EXECUTIVE.md` | Executive | High-level summaries for stakeholders | Major milestones, phase completions | External reporting |
+| **Custom Plans (Ephemeral, delete after completion)** |
+| `docs/fixes-needed-plan-tasks-v*/plan.md` | Plans | Custom fix campaign plans | Mid-execution phase discovery, blocker resolution | tasks.md (checkbox sync), completed.md |
+| `docs/fixes-needed-plan-tasks-v*/tasks.md` | Tasks | Custom fix campaign task lists | Task completion, checkbox updates | plan.md (checkbox sync), completed.md |
+| `docs/fixes-needed-plan-tasks-v*/completed.md` | Archive | Completed tasks with evidence | Task completion with evidence | Lessons learned extraction |
+| **Reference (Update as needed, user-facing)** |
+| `README.md` | Reference | Project overview, quick start, core concepts | Major feature additions, architecture changes, setup process changes | DEV-SETUP, other READMEs |
+| `docs/README.md` | Reference | Developer deep-dive, architecture details | Architecture changes, workflow changes | Project README, DEV-SETUP |
+| `docs/DEV-SETUP.md` | Reference | Development environment setup | Tool version updates, new dependencies, setup process changes | README, workflow docs |
+| `docs/arch/SERVICE-TEMPLATE-*.md` | Architectural | Service template patterns | Template pattern changes, new template features | Service implementations, copilot instructions |
+| `docs/pre-commit-hooks.md` | Reference | Pre-commit hook documentation | Hook configuration changes, new hooks, formatter updates | .pre-commit-config.yaml, copilot instructions |
+| `.github/agents/*.agent.md` | Agent Prompts | Custom agent workflows | Workflow improvements, pattern discovery, anti-pattern identification | Copilot instructions, constitution |
+| **Evidence (Temporary, test-output/ only, NEVER commit)** |
+| `test-output/<analysis-type>/*.md` | Analysis | Session-specific analysis artifacts | Every analysis session | Lessons learned, copilot instructions (as needed) |
+| `test-output/<analysis-type>/*.{cov,html,log,txt}` | Artifacts | Coverage, mutation, benchmark results | Every test/analysis run | Analysis documents, completion evidence |
+
+### Document Type Definitions
+
+- **Entrypoint**: First file read by agents, loads all other instructions
+- **Constitutional**: Fundamental rules that apply to all work
+- **Architectural**: System design and service patterns
+- **Templates**: Reusable document structures
+- **Specifications**: Detailed product/feature requirements
+- **Clarifications**: Q&A for ambiguities (unknowns/risks/inefficiencies)
+- **Plans**: High-level implementation strategies
+- **Tasks**: Detailed actionable checklists with acceptance criteria
+- **Analysis**: Deep-dive technical investigations
+- **Timeline**: Chronological work log (DETAILED.md Section 2, append-only)
+- **Executive**: High-level summaries for stakeholders
+- **Archive**: Completed work with evidence
+- **Reference**: User-facing guides and documentation
+- **Agent Prompts**: Custom workflow automation
+- **Evidence**: Temporary analysis artifacts (NEVER commit)
+
+### Quick Reference: Common Update Scenarios
+
+| Change Type | Start Here | Then Update |
+|-------------|-----------|-------------|
+| New quality gate | `docs/arch/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `docs/speckit/constitution.md`, `.github/agents/plan-tasks-implement.agent.md` |
+| New execution rule | `.github/constitution.md` | `.github/instructions/01-02.beast-mode.md`, `.github/agents/plan-tasks-implement.agent.md`, `docs/speckit/constitution.md` |
+| New architectural pattern | `docs/arch/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), `docs/arch/SERVICE-TEMPLATE-*.md`, service implementations |
+| New testing pattern | `.github/instructions/03-02.testing.md` | `docs/arch/SERVICE-TEMPLATE-TESTING.md`, `README.md`, `.github/agents/*.agent.md` (if workflow change) |
+| New pre-commit hook | `.pre-commit-config.yaml` | `docs/pre-commit-hooks.md`, `.github/instructions/03-07.linting.md` |
+| Lessons learned discovered | `test-output/<session>/lessons-learned.md` | Copilot instructions (anti-patterns), README (best practices), agent prompts (validation steps) |
+
+---
+
 ## Purpose
 
 Systematically identify and synchronize related documentation across the cryptoutil project to prevent documentation sprawl and ensure consistency.
