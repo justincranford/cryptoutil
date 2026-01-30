@@ -493,3 +493,48 @@ func TestElasticJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "elastic JWK not found")
 }
+
+func TestElasticJWKGormRepository_GetByID(t *testing.T) {
+	db := setupTestDB(t)
+	tenantID, realmID := createTestTenantAndRealm(t, db)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
+
+	ctx := context.Background()
+
+	// Create test data.
+	elasticJWKID := googleUuid.New()
+	elasticJWK := &cryptoutilJoseDomain.ElasticJWK{
+		ID:                   elasticJWKID,
+		TenantID:             tenantID,
+		RealmID:              realmID,
+		KID:                  "getbyid-test-kid",
+		KTY:                  "EC",
+		ALG:                  "ES256",
+		USE:                  "sig",
+		MaxMaterials:         500,
+		CurrentMaterialCount: 0,
+	}
+	require.NoError(t, repo.Create(ctx, elasticJWK))
+
+	// Test GetByID.
+	result, err := repo.GetByID(ctx, elasticJWKID)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, elasticJWK.ID, result.ID)
+	require.Equal(t, elasticJWK.KID, result.KID)
+	require.Equal(t, elasticJWK.KTY, result.KTY)
+	require.Equal(t, elasticJWK.TenantID, result.TenantID)
+}
+
+func TestElasticJWKGormRepository_GetByID_NotFound(t *testing.T) {
+	db := setupTestDB(t)
+	repo := cryptoutilJoseRepository.NewElasticJWKRepository(db)
+
+	ctx := context.Background()
+
+	// Test GetByID non-existent ID.
+	result, err := repo.GetByID(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "elastic JWK not found")
+}

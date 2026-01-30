@@ -526,3 +526,90 @@ func TestMaterialJWKGormRepository_WithTransaction_Rollback(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "material JWK not found")
 }
+
+func TestMaterialJWKGormRepository_GetByID(t *testing.T) {
+	db := setupMaterialJWKTestDB(t)
+	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
+	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
+
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
+	ctx := context.Background()
+
+	// Create test data.
+	materialJWKID := googleUuid.New()
+	materialJWK := &cryptoutilJoseDomain.MaterialJWK{
+		ID:             materialJWKID,
+		ElasticJWKID:   elasticJWK.ID,
+		MaterialKID:    "getbyid-material-kid",
+		PrivateJWKJWE:  "encrypted-private-key",
+		PublicJWKJWE:   "encrypted-public-key",
+		Active:         true,
+		BarrierVersion: 1,
+	}
+
+	err := repo.Create(ctx, materialJWK)
+	require.NoError(t, err)
+
+	// Test GetByID.
+	result, err := repo.GetByID(ctx, materialJWKID)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, materialJWK.ID, result.ID)
+	require.Equal(t, materialJWK.MaterialKID, result.MaterialKID)
+	require.Equal(t, materialJWK.ElasticJWKID, result.ElasticJWKID)
+}
+
+func TestMaterialJWKGormRepository_GetByID_NotFound(t *testing.T) {
+	db := setupMaterialJWKTestDB(t)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
+	ctx := context.Background()
+
+	// Test GetByID non-existent ID.
+	result, err := repo.GetByID(ctx, googleUuid.New())
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "material JWK not found")
+}
+
+func TestMaterialJWKGormRepository_GetByMaterialKIDGlobal(t *testing.T) {
+	db := setupMaterialJWKTestDB(t)
+	tenantID, realmID := createMaterialJWKTestTenantAndRealm(t, db)
+	elasticJWK := createTestElasticJWK(t, db, tenantID, realmID)
+
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
+	ctx := context.Background()
+
+	// Create test data with unique global material_kid (UUID format).
+	materialKID := googleUuid.New().String()
+	materialJWK := &cryptoutilJoseDomain.MaterialJWK{
+		ID:             googleUuid.New(),
+		ElasticJWKID:   elasticJWK.ID,
+		MaterialKID:    materialKID,
+		PrivateJWKJWE:  "encrypted-private-key",
+		PublicJWKJWE:   "encrypted-public-key",
+		Active:         true,
+		BarrierVersion: 1,
+	}
+
+	err := repo.Create(ctx, materialJWK)
+	require.NoError(t, err)
+
+	// Test GetByMaterialKIDGlobal.
+	result, err := repo.GetByMaterialKIDGlobal(ctx, materialKID)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, materialJWK.ID, result.ID)
+	require.Equal(t, materialKID, result.MaterialKID)
+}
+
+func TestMaterialJWKGormRepository_GetByMaterialKIDGlobal_NotFound(t *testing.T) {
+	db := setupMaterialJWKTestDB(t)
+	repo := cryptoutilJoseRepository.NewMaterialJWKRepository(db)
+	ctx := context.Background()
+
+	// Test GetByMaterialKIDGlobal non-existent KID.
+	result, err := repo.GetByMaterialKIDGlobal(ctx, "non-existent-kid")
+	require.Error(t, err)
+	require.Nil(t, result)
+	require.Contains(t, err.Error(), "material JWK not found")
+}
