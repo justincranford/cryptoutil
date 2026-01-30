@@ -387,9 +387,9 @@ func TestIsNotFoundAuditConfigError(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name   string
-		err    error
-		want   bool
+		name string
+		err  error
+		want bool
 	}{
 		{
 			name: "nil error returns false",

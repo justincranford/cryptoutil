@@ -82,6 +82,11 @@ func TestIsGoVersionSupported(t *testing.T) {
 		{"go1.20", "go1.20", false},
 		{"invalid", "invalid", false},
 		{"empty", "", false},
+		{"no_separator", "go122", false},            // No dot separator
+		{"non_numeric_major", "goX.22", false},      // Non-numeric major version
+		{"non_numeric_minor", "go1.X", false},       // Non-numeric minor version
+		{"major_only", "go2", false},                // Only major version, no minor
+		{"major_gt_1", "go2.0", true},               // Major version > 1
 	}
 
 	for _, tc := range tests {
@@ -150,12 +155,44 @@ func Process(data interface{}) interface{} {
 	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
 }
 
+func TestEnforceAny_ViaEnforceAny_WithModifications(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "server.go")
+
+	// File with interface{} that needs replacement with any.
+	oldContent := `package server
+
+func Process(data interface{}) interface{} {
+	return data
+}
+`
+	err := os.WriteFile(testFile, []byte(oldContent), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"go": {testFile}, // Note: key is "go" without dot - this is how GetGoFiles expects it
+	}
+
+	// enforceAny should return an error when files are modified.
+	err = enforceAny(logger, filesByExtension)
+	require.Error(t, err, "enforceAny should return error when files modified")
+	require.Contains(t, err.Error(), "modified", "Error should mention modifications")
+
+	// Verify file was actually modified.
+	modifiedContent, readErr := os.ReadFile(testFile)
+	require.NoError(t, readErr)
+	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
+}
+
 func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		".go": {"/nonexistent/path/to/file.go"},
+		"go": {"/nonexistent/path/to/file.go"}, // Note: key is "go" without dot
 	}
 
 	err := enforceAny(logger, filesByExtension)
@@ -234,6 +271,112 @@ func main() {
 	require.NoError(t, err)
 	require.False(t, changed, "File should not be changed")
 	require.Equal(t, 0, fixes, "Should have no fixes")
+}
+
+func TestIsLoopVarCopy_VariousBranches(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		content       string
+		expectChanged bool
+		expectFixes   int
+	}{
+		{
+			name: "assignment_not_define",
+			content: `package main
+
+func main() {
+	items := []int{1, 2, 3}
+	var v int
+	for _, v = range items {
+		println(v)
+	}
+}
+`,
+			expectChanged: false,
+			expectFixes:   0,
+		},
+		{
+			name: "multiple_lhs",
+			content: `package main
+
+func main() {
+	items := []int{1, 2, 3}
+	for _, v := range items {
+		a, b := v, v
+		println(a, b)
+	}
+}
+`,
+			expectChanged: false,
+			expectFixes:   0,
+		},
+		{
+			name: "different_names",
+			content: `package main
+
+func main() {
+	items := []int{1, 2, 3}
+	for _, v := range items {
+		w := v
+		println(w)
+	}
+}
+`,
+			expectChanged: false,
+			expectFixes:   0,
+		},
+		{
+			name: "key_copy_pattern",
+			content: `package main
+
+func main() {
+	items := []int{1, 2, 3}
+	for i := range items {
+		i := i
+		println(i)
+	}
+}
+`,
+			expectChanged: true,
+			expectFixes:   1,
+		},
+		{
+			name: "non_identifier_rhs",
+			content: `package main
+
+func main() {
+	items := []int{1, 2, 3}
+	for _, v := range items {
+		x := v + 1
+		println(x)
+	}
+}
+`,
+			expectChanged: false,
+			expectFixes:   0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := t.TempDir()
+			testFile := filepath.Join(tmpDir, "test.go")
+
+			err := os.WriteFile(testFile, []byte(tc.content), 0o600)
+			require.NoError(t, err)
+
+			logger := cryptoutilCmdCicdCommon.NewLogger("test")
+			changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+
+			require.NoError(t, err)
+			require.Equal(t, tc.expectChanged, changed, "Changed mismatch for %s", tc.name)
+			require.Equal(t, tc.expectFixes, fixes, "Fixes mismatch for %s", tc.name)
+		})
+	}
 }
 
 const testGoContentWithLoopVarCopy = `package main
@@ -399,4 +542,25 @@ func TestProcessGoFile_ReadError(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, 0, replacements)
 	require.Contains(t, err.Error(), "failed to read file")
+}
+
+func TestFormat_WithModifications(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "server.go")
+
+	// File with interface{} that should trigger modification.
+	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"go": {testFile}, // Note: key is "go" without dot
+	}
+
+	// Format should return error because files were modified.
+	err = Format(logger, filesByExtension)
+	require.Error(t, err, "Format should return error when files are modified")
+	require.Contains(t, err.Error(), "completed with modifications")
 }
