@@ -112,6 +112,7 @@ func TestValidateJoseSettings_MultipleErrors(t *testing.T) {
 
 // TestNewDevSettings_Defaults tests NewDevSettings creates settings with defaults.
 func TestNewDevSettings_Defaults(t *testing.T) {
+	t.Parallel()
 	settings := NewDevSettings()
 
 	require.NotNil(t, settings)
@@ -123,4 +124,34 @@ func TestNewDevSettings_Defaults(t *testing.T) {
 	// Also validate the settings are valid.
 	err := validateJoseSettings(settings)
 	require.NoError(t, err)
+}
+
+// TestNewTestSettings_Defaults tests NewTestSettings creates settings with defaults.
+func TestNewTestSettings_Defaults(t *testing.T) {
+	t.Parallel()
+	settings := NewTestSettings()
+
+	require.NotNil(t, settings)
+	require.NotNil(t, settings.ServiceTemplateServerSettings)
+	require.Equal(t, defaultMaxMaterialsPerElasticKey, settings.MaxMaterialsPerElasticKey)
+	require.Equal(t, defaultAuditEnabled, settings.AuditEnabled)
+	require.Equal(t, defaultAuditSamplingRate, settings.AuditSamplingRate)
+
+	// Port should be 0 for dynamic allocation in tests.
+	require.Equal(t, uint16(0), settings.BindPublicPort)
+
+	// Also validate the settings are valid.
+	err := validateJoseSettings(settings)
+	require.NoError(t, err)
+}
+
+// TestLogJoseSettings_Logs tests logJoseSettings does not panic.
+func TestLogJoseSettings_Logs(t *testing.T) {
+	t.Parallel()
+	settings := NewTestSettings()
+
+	// logJoseSettings should not panic.
+	require.NotPanics(t, func() {
+		logJoseSettings(settings)
+	})
 }
