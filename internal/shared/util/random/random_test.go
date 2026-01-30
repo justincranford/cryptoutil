@@ -60,3 +60,57 @@ func TestNegativeLength(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, "length can't be less than 1", err.Error())
 }
+
+// TestGenerateUsernameSimple tests the GenerateUsernameSimple function.
+func TestGenerateUsernameSimple(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: "generates username with user_ prefix"},
+		{name: "generates unique usernames"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			username1, err := GenerateUsernameSimple()
+			require.NoError(t, err)
+			require.True(t, len(username1) > 5, "username should have prefix + UUID")
+			require.Contains(t, username1, "user_", "username should have user_ prefix")
+
+			username2, err := GenerateUsernameSimple()
+			require.NoError(t, err)
+			require.NotEqual(t, username1, username2, "usernames should be unique")
+		})
+	}
+}
+
+// TestGeneratePasswordSimple tests the GeneratePasswordSimple function.
+func TestGeneratePasswordSimple(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: "generates password with pass_ prefix"},
+		{name: "generates unique passwords"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			password1, err := GeneratePasswordSimple()
+			require.NoError(t, err)
+			require.True(t, len(password1) > 5, "password should have prefix + UUID")
+			require.Contains(t, password1, "pass_", "password should have pass_ prefix")
+
+			password2, err := GeneratePasswordSimple()
+			require.NoError(t, err)
+			require.NotEqual(t, password1, password2, "passwords should be unique")
+		})
+	}
+}
