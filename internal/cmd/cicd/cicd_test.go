@@ -303,3 +303,26 @@ func TestGetFailedCommands_NoFailures(t *testing.T) {
 	failed := cryptoutilCmdCicdCommon.GetFailedCommands(results)
 	require.Empty(t, failed)
 }
+
+// TestRun_LintComposeCommand tests that lint-compose command executes.
+func TestRun_LintComposeCommand(t *testing.T) {
+	t.Parallel()
+
+	err := Run([]string{"lint-compose"})
+	// Command may pass or fail depending on compose files in project.
+	// We're testing that the switch case executes without panic.
+	if err != nil {
+		require.Contains(t, err.Error(), "failed commands:", "Error should indicate failed commands")
+	}
+}
+
+// TestValidateCommands_OnlyFlags tests the edge case where only flags are provided.
+func TestValidateCommands_OnlyFlags(t *testing.T) {
+	t.Parallel()
+
+	// Pass only flags with values (no actual commands).
+	actualCommands, err := validateCommands([]string{"-v", "true", "-debug", "enabled"})
+	require.Error(t, err, "Expected error when only flags provided")
+	require.Nil(t, actualCommands, "Expected nil actual commands")
+	require.Contains(t, err.Error(), "Usage: cicd <command>", "Error should contain usage info")
+}
