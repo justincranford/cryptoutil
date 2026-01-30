@@ -601,3 +601,54 @@ func TestNewPaths_AdminEndpoints(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 }
+
+// TestJoseServer_Accessors tests the accessor methods on JoseServer.
+func TestJoseServer_Accessors(t *testing.T) {
+	t.Parallel()
+
+	require.NoError(t, setupJoseTestServer())
+
+	t.Run("DB_NotNil", func(t *testing.T) {
+		t.Parallel()
+
+		db := joseTestServer.DB()
+		require.NotNil(t, db, "DB() should return non-nil GORM database")
+	})
+
+	t.Run("App_NotNil", func(t *testing.T) {
+		t.Parallel()
+
+		app := joseTestServer.App()
+		require.NotNil(t, app, "App() should return non-nil Application")
+	})
+
+	t.Run("JWKGen_NotNil", func(t *testing.T) {
+		t.Parallel()
+
+		jwkGen := joseTestServer.JWKGen()
+		require.NotNil(t, jwkGen, "JWKGen() should return non-nil JWK generation service")
+	})
+
+	t.Run("Telemetry_NotNil", func(t *testing.T) {
+		t.Parallel()
+
+		telemetry := joseTestServer.Telemetry()
+		require.NotNil(t, telemetry, "Telemetry() should return non-nil telemetry service")
+	})
+
+	t.Run("AdminPort_Valid", func(t *testing.T) {
+		t.Parallel()
+
+		port := joseTestServer.AdminPort()
+		require.Greater(t, port, 0, "AdminPort() should return a valid port number")
+	})
+
+	t.Run("AdminBaseURL_Valid", func(t *testing.T) {
+		t.Parallel()
+
+		url := joseTestServer.AdminBaseURL()
+		require.NotEmpty(t, url, "AdminBaseURL() should return non-empty URL")
+		require.Contains(t, url, "https://", "AdminBaseURL() should use HTTPS")
+		require.Contains(t, url, "127.0.0.1:", "AdminBaseURL() should bind to loopback")
+	})
+}
