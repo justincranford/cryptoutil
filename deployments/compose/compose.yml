@@ -34,7 +34,7 @@
 
 #   - grafana-otel-lgtm:     http://localhost:3000
 
-#   - opentelemetry-collector-contrib: localhost:4317 (gRPC), localhost:4318 (HTTP)
+#   - opentelemetry-collector-contrib: localhost:4317 (gRPC), localhost:4318 (HTTP), localhost:13133 (health)
 
 
 
@@ -45,6 +45,24 @@ include:
 
 
 services:
+
+  # Override otel collector from telemetry/compose.yml to expose ports for E2E tests.
+  # The base definition has ports commented out for multi-deployment support,
+  # but E2E tests run from host and need to reach the health endpoint.
+  opentelemetry-collector-contrib:
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "13133:13133" # Health check endpoint for E2E tests
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
+      start_period: 10s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - e2e-network
+      - telemetry-network
 
   # Healthcheck for Docker secrets availability.
 
