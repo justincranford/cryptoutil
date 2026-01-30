@@ -122,6 +122,39 @@ func TestSessionManager_Initialize_OPAQUE(t *testing.T) {
 	require.Equal(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, sm.serviceAlgorithm)
 }
 
+// TestSessionManager_Initialize_EmptyAlgorithm_UsesDefaults tests that empty algorithm strings
+// fall back to default algorithms (OPAQUE for browser, JWS for service sessions).
+func TestSessionManager_Initialize_EmptyAlgorithm_UsesDefaults(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+
+	// Create config with empty algorithm strings - should use defaults.
+	// Note: Must provide JWS/JWE algorithm settings since default service algorithm is JWS.
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		BrowserSessionAlgorithm:    "", // Empty - should default to OPAQUE
+		ServiceSessionAlgorithm:    "", // Empty - should default to JWS
+		BrowserSessionExpiration:   24 * time.Hour,
+		ServiceSessionExpiration:   7 * 24 * time.Hour,
+		SessionIdleTimeout:         2 * time.Hour,
+		SessionCleanupInterval:     time.Hour,
+		BrowserSessionJWSAlgorithm: "RS256", // Needed if browser default changes to JWS
+		ServiceSessionJWSAlgorithm: "RS256", // Required since default service algorithm is JWS
+	}
+
+	// Use nil barrier service for tests (enables plain text JWK storage for testing).
+	sm := NewSessionManager(db, nil, config)
+
+	err := sm.Initialize(context.Background())
+	require.NoError(t, err)
+
+	// Verify defaults were applied.
+	require.Equal(t, cryptoutilSharedMagic.SessionAlgorithmType(cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm), sm.browserAlgorithm,
+		"Empty browser algorithm should default to %s", cryptoutilSharedMagic.DefaultBrowserSessionAlgorithm)
+	require.Equal(t, cryptoutilSharedMagic.SessionAlgorithmType(cryptoutilSharedMagic.DefaultServiceSessionAlgorithm), sm.serviceAlgorithm,
+		"Empty service algorithm should default to %s", cryptoutilSharedMagic.DefaultServiceSessionAlgorithm)
+}
+
 func TestSessionManager_IssueBrowserSession_OPAQUE_Success(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
 	ctx := context.Background()

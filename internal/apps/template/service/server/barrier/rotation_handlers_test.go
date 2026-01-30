@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
@@ -332,6 +333,107 @@ func TestRotateKey_ShortReason(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, "validation_error", errResp["error"])
 			require.Contains(t, errResp["message"], "at least 10 characters")
+		})
+	}
+}
+
+// TestRegisterRotationRoutes_NilAdminServer tests that RegisterRotationRoutes panics with nil adminServer.
+func TestRegisterRotationRoutes_NilAdminServer(t *testing.T) {
+	t.Parallel()
+
+	// Create a mock rotation service.
+	rotationService := &RotationService{}
+
+	// Should panic with nil adminServer.
+	require.PanicsWithValue(t, "adminServer must be non-nil", func() {
+		RegisterRotationRoutes(nil, rotationService)
+	})
+}
+
+// TestRegisterRotationRoutes_NilRotationService tests that RegisterRotationRoutes panics with nil rotationService.
+func TestRegisterRotationRoutes_NilRotationService(t *testing.T) {
+	t.Parallel()
+
+	// Create a Fiber app.
+	app := fiber.New()
+
+	// Should panic with nil rotationService.
+	require.PanicsWithValue(t, "rotationService must be non-nil", func() {
+		RegisterRotationRoutes(app, nil)
+	})
+}
+
+// TestRotateKey_TooLongReason tests that rotation requests fail with too long reason.
+func TestRotateKey_TooLongReason(t *testing.T) {
+	app, _, _ := setupRotationTestEnvironment(t)
+
+	// Create a reason that exceeds MaxRotationReasonLength (500 characters).
+	longReason := strings.Repeat("a", MaxRotationReasonLength+1)
+
+	// Test all three endpoints.
+	endpoints := []string{
+		"/admin/api/v1/barrier/rotate/root",
+		"/admin/api/v1/barrier/rotate/intermediate",
+		"/admin/api/v1/barrier/rotate/content",
+	}
+
+	for _, endpoint := range endpoints {
+		t.Run(fmt.Sprintf("endpoint=%s", endpoint), func(t *testing.T) {
+			reqBody := map[string]string{
+				"reason": longReason,
+			}
+			reqJSON, _ := json.Marshal(reqBody)
+
+			req := httptest.NewRequest("POST", endpoint, bytes.NewReader(reqJSON))
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := app.Test(req, -1)
+			require.NoError(t, err)
+			require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+			// Parse error response.
+			respBody, _ := io.ReadAll(resp.Body)
+
+			var errResp map[string]string
+
+			err = json.Unmarshal(respBody, &errResp)
+			require.NoError(t, err)
+			require.Equal(t, "validation_error", errResp["error"])
+			require.Contains(t, errResp["message"], "at most 500 characters")
+		})
+	}
+}
+
+// TestRotateKey_InvalidJSON tests that rotation requests fail with invalid JSON body.
+func TestRotateKey_InvalidJSON(t *testing.T) {
+	app, _, _ := setupRotationTestEnvironment(t)
+
+	// Test all three endpoints.
+	endpoints := []string{
+		"/admin/api/v1/barrier/rotate/root",
+		"/admin/api/v1/barrier/rotate/intermediate",
+		"/admin/api/v1/barrier/rotate/content",
+	}
+
+	for _, endpoint := range endpoints {
+		t.Run(fmt.Sprintf("endpoint=%s", endpoint), func(t *testing.T) {
+			// Send invalid JSON.
+			req := httptest.NewRequest("POST", endpoint, bytes.NewReader([]byte("{invalid json")))
+			req.Header.Set("Content-Type", "application/json")
+
+			resp, err := app.Test(req, -1)
+			require.NoError(t, err)
+			require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+
+			// Parse error response.
+			respBody, _ := io.ReadAll(resp.Body)
+
+			var errResp map[string]string
+
+			err = json.Unmarshal(respBody, &errResp)
+			require.NoError(t, err)
+			require.Equal(t, "invalid_request_body", errResp["error"])
+			require.Contains(t, errResp["message"], "Failed to parse request body")
 		})
 	}
 }
