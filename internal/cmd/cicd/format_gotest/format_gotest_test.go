@@ -13,6 +13,18 @@ import (
 	cryptoutilCmdCicdFormatGotest "cryptoutil/internal/cmd/cicd/format_gotest"
 )
 
+// testHelperNeedingFix is a test file content with a helper function missing t.Helper().
+const testHelperNeedingFix = `package example
+
+import "testing"
+
+func setupTest(t *testing.T) {
+	doSomething()
+}
+
+func doSomething() {}
+`
+
 func TestFormat_NoTestFiles(t *testing.T) {
 	t.Parallel()
 
@@ -36,17 +48,7 @@ func TestFormat_WithHelperNeedingFix(t *testing.T) {
 
 	// File with helper function missing t.Helper().
 	testFile := filepath.Join(tmpDir, "helper_test.go")
-	content := `package example
-
-import "testing"
-
-func setupTest(t *testing.T) {
-	doSomething()
-}
-
-func doSomething() {}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+	err := os.WriteFile(testFile, []byte(testHelperNeedingFix), 0o600)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -348,6 +350,146 @@ func TestExample(t *testing.T) {
 	require.NoError(t, err, "FormatDir should succeed")
 
 	// Verify t.Helper() was NOT added (non-pointer param).
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
+	require.NotContains(t, string(modifiedContent), ".Helper", "File should NOT contain .Helper call")
+}
+
+// TestFormat_FileCreateError tests error handling when file cannot be created for writing.
+func TestFormat_FileCreateError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// Create a test file that will need fixing.
+	testFile := filepath.Join(tmpDir, "helper_test.go")
+	err := os.WriteFile(testFile, []byte(testHelperNeedingFix), 0o600)
+	require.NoError(t, err)
+
+	// Make the file read-only so os.Create fails.
+	err = os.Chmod(testFile, 0o400)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = cryptoutilCmdCicdFormatGotest.FormatDir(logger, tmpDir)
+
+	require.Error(t, err, "FormatDir should fail when file cannot be written")
+	require.Contains(t, err.Error(), "format-go-test failed", "Error should indicate format failure")
+
+	// Cleanup: restore write permission so t.TempDir can clean up.
+	_ = os.Chmod(testFile, 0o600)
+}
+
+// TestFormat_HelperWithNoParams tests helper function with no parameters.
+func TestFormat_HelperWithNoParams(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// File with helper function that has no parameters.
+	testFile := filepath.Join(tmpDir, "noparams_test.go")
+	content := `package example
+
+import "testing"
+
+// setupNoParams is a helper function with no parameters at all.
+func setupNoParams() {
+	doSomething()
+}
+
+func doSomething() {}
+
+func TestExample(t *testing.T) {
+	setupNoParams()
+}
+`
+	err := os.WriteFile(testFile, []byte(content), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = cryptoutilCmdCicdFormatGotest.FormatDir(logger, tmpDir)
+
+	require.NoError(t, err, "FormatDir should succeed")
+
+	// Verify t.Helper() was NOT added (no testing.T param).
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
+	require.NotContains(t, string(modifiedContent), ".Helper", "File should NOT contain .Helper call")
+}
+
+// TestFormat_HelperWithNonTestingPointer tests helper with pointer to non-testing type.
+func TestFormat_HelperWithNonTestingPointer(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// File with helper function that has pointer to non-testing type.
+	testFile := filepath.Join(tmpDir, "nontest_ptr_test.go")
+	content := `package example
+
+import "testing"
+
+type MyType struct{ Name string }
+
+// setupWithPointer is a helper function with non-testing pointer.
+func setupWithPointer(m *MyType) {
+	doSomething()
+}
+
+func doSomething() {}
+
+func TestExample(t *testing.T) {
+	m := &MyType{Name: "test"}
+	setupWithPointer(m)
+}
+`
+	err := os.WriteFile(testFile, []byte(content), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = cryptoutilCmdCicdFormatGotest.FormatDir(logger, tmpDir)
+
+	require.NoError(t, err, "FormatDir should succeed")
+
+	// Verify t.Helper() was NOT added (no testing.T param).
+	modifiedContent, err := os.ReadFile(testFile)
+	require.NoError(t, err)
+	require.NotContains(t, string(modifiedContent), ".Helper", "File should NOT contain .Helper call")
+}
+
+// TestFormat_HelperWithArrayPointer tests helper with pointer to array element type.
+func TestFormat_HelperWithArrayPointer(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// File with helper function that has pointer with array element type.
+	testFile := filepath.Join(tmpDir, "array_ptr_test.go")
+	content := `package example
+
+import "testing"
+
+// setupWithArray is a helper function with array pointer param.
+func setupWithArray(arr *[3]int) {
+	doSomething()
+}
+
+func doSomething() {}
+
+func TestExample(t *testing.T) {
+	arr := [3]int{1, 2, 3}
+	setupWithArray(&arr)
+}
+`
+	err := os.WriteFile(testFile, []byte(content), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = cryptoutilCmdCicdFormatGotest.FormatDir(logger, tmpDir)
+
+	require.NoError(t, err, "FormatDir should succeed")
+
+	// Verify t.Helper() was NOT added (pointer to array, not testing.T).
 	modifiedContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
 	require.NotContains(t, string(modifiedContent), ".Helper", "File should NOT contain .Helper call")
