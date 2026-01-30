@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -241,4 +242,59 @@ func TestNewTestConfig_ProdMode(t *testing.T) {
 	require.NotNil(t, cfg)
 	require.False(t, cfg.DevMode)
 	require.Contains(t, cfg.DatabaseURL, "postgres://")
+}
+
+// TestParseWithFlagSet_EmptyCommandParameters tests error when command parameters is empty.
+func TestParseWithFlagSet_EmptyCommandParameters(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
+	viper.Reset()
+
+	defer viper.Reset()
+
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	_, err := ParseWithFlagSet(fs, []string{}, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing subcommand")
+}
+
+// TestParseWithFlagSet_InvalidFlagSyntax tests error when parsing invalid flag syntax.
+func TestParseWithFlagSet_InvalidFlagSyntax(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
+	viper.Reset()
+
+	defer viper.Reset()
+
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	// Invalid flag syntax: --unknown-flag will cause pflag.Parse to fail when flag doesn't exist
+	// Actually need to test flag parsing error - use --bind-public-port with invalid value type
+	_, err := ParseWithFlagSet(fs, []string{"start", "--bind-public-port=not-a-number"}, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error parsing flags")
+}
+
+// TestParseWithFlagSet_ProfileKnown tests configuration profiles.
+func TestParseWithFlagSet_ProfileKnown(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
+	viper.Reset()
+
+	defer viper.Reset()
+
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	// Use a known profile (dev, stg, prod, test)
+	settings, err := ParseWithFlagSet(fs, []string{"start", "--profile=dev"}, false)
+	require.NoError(t, err)
+	require.NotNil(t, settings)
+}
+
+// TestParseWithFlagSet_ProfileUnknown tests error for unknown configuration profile.
+func TestParseWithFlagSet_ProfileUnknown(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
+	viper.Reset()
+
+	defer viper.Reset()
+
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	_, err := ParseWithFlagSet(fs, []string{"start", "--profile=nonexistent"}, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unknown configuration profile")
 }
