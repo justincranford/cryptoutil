@@ -244,8 +244,7 @@ func TestLintGitHubWorkflows_WithActions(t *testing.T) {
 }
 
 func TestLoadWorkflowActionExceptions_NotExists(t *testing.T) {
-	t.Parallel()
-
+	// Note: Not parallel - uses relative path from current working directory.
 	exceptions, err := loadWorkflowActionExceptions()
 	require.NoError(t, err, "Should succeed when file doesn't exist")
 	require.NotNil(t, exceptions)
