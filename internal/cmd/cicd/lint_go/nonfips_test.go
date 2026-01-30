@@ -202,3 +202,32 @@ func main() {
 	require.Contains(t, violationsStr, "sha1", "Should detect sha1")
 	require.Contains(t, violationsStr, "bcrypt", "Should detect bcrypt")
 }
+
+func TestPrintNonFIPSViolations(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
+
+	oldStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+
+	violations := map[string][]string{
+		"file1.go": {"Line 5: Found 'bcrypt' (non-FIPS) - use PBKDF2-HMAC-SHA256 instead"},
+		"file2.go": {"Line 10: Found 'md5.New' (non-FIPS) - use SHA-256/384/512 instead"},
+	}
+
+	printNonFIPSViolations(violations)
+
+	w.Close()
+	os.Stderr = oldStderr
+
+	var buf [8192]byte
+	n, _ := r.Read(buf[:])
+	output := string(buf[:n])
+
+	require.Contains(t, output, "non-FIPS algorithm violations")
+	require.Contains(t, output, "file1.go")
+	require.Contains(t, output, "file2.go")
+	require.Contains(t, output, "bcrypt")
+	require.Contains(t, output, "md5")
+	require.Contains(t, output, "FIPS 140-3")
+}
