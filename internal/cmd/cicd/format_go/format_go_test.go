@@ -82,11 +82,11 @@ func TestIsGoVersionSupported(t *testing.T) {
 		{"go1.20", "go1.20", false},
 		{"invalid", "invalid", false},
 		{"empty", "", false},
-		{"no_separator", "go122", false},            // No dot separator
-		{"non_numeric_major", "goX.22", false},      // Non-numeric major version
-		{"non_numeric_minor", "go1.X", false},       // Non-numeric minor version
-		{"major_only", "go2", false},                // Only major version, no minor
-		{"major_gt_1", "go2.0", true},               // Major version > 1
+		{"no_separator", "go122", false},       // No dot separator
+		{"non_numeric_major", "goX.22", false}, // Non-numeric major version
+		{"non_numeric_minor", "go1.X", false},  // Non-numeric minor version
+		{"major_only", "go2", false},           // Only major version, no minor
+		{"major_gt_1", "go2.0", true},          // Major version > 1
 	}
 
 	for _, tc := range tests {

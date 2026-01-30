@@ -205,7 +205,6 @@ func main() {
 
 func TestPrintNonFIPSViolations(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
-
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w
@@ -217,10 +216,12 @@ func TestPrintNonFIPSViolations(t *testing.T) {
 
 	printNonFIPSViolations(violations)
 
-	w.Close()
+	_ = w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf [8192]byte
+
 	n, _ := r.Read(buf[:])
 	output := string(buf[:n])
 

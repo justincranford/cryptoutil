@@ -3,6 +3,7 @@
 package lint_go
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,6 +15,14 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
+)
+
+// Test constants for repeated string literals.
+const (
+	testCleanGoFile    = "clean.go"
+	testCleanContent   = "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
+	testMainContent    = "package main\n\nfunc main() {}\n"
+	testPackageMainDef = "package main\n"
 )
 
 func TestCheckDependencies_NoCycles(t *testing.T) {
@@ -234,6 +243,20 @@ func TestCheckDependencies_MultipleDisconnectedGraphs(t *testing.T) {
 
 	err := CheckDependencies(goListOutput)
 	require.NoError(t, err)
+}
+
+func TestCheckDependencies_MixedModulePrefixes(t *testing.T) {
+	t.Parallel()
+
+	// Test with packages from different module prefixes.
+	// Only the "example.com" packages should be checked for cycles.
+	// The "other.org" package should be skipped (line 183-184).
+	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/b"]}
+{"ImportPath": "example.com/pkg/b", "Imports": []}
+{"ImportPath": "other.org/different/pkg", "Imports": ["other.org/different/another"]}`
+
+	err := CheckDependencies(goListOutput)
+	require.NoError(t, err, "Packages from different module prefixes should be handled")
 }
 
 func TestGetModulePath_MultiplePackages(t *testing.T) {
@@ -531,7 +554,7 @@ func TestPrintCGOViolations_AllTypes(t *testing.T) {
 
 	printCGOViolations(goModViolations, importViolations, hasRequired)
 
-	w.Close()
+	_ = w.Close()
 	os.Stderr = oldStderr
 
 	output, _ := io.ReadAll(r)
@@ -544,14 +567,13 @@ func TestPrintCGOViolations_AllTypes(t *testing.T) {
 
 func TestPrintCGOViolations_GoModOnly(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
-
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w
 
 	printCGOViolations([]string{"go.mod:5: banned module"}, nil, true)
 
-	w.Close()
+	_ = w.Close()
 	os.Stderr = oldStderr
 
 	output, _ := io.ReadAll(r)
@@ -563,14 +585,13 @@ func TestPrintCGOViolations_GoModOnly(t *testing.T) {
 
 func TestPrintCGOViolations_ImportOnly(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
-
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w
 
 	printCGOViolations(nil, []string{"file.go:10: banned import"}, true)
 
-	w.Close()
+	_ = w.Close()
 	os.Stderr = oldStderr
 
 	output, _ := io.ReadAll(r)
@@ -664,7 +685,6 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_FileNotFound(t *testing.T) {
 
 func TestPrintCryptoutilImportViolations(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
-
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
 	os.Stderr = w
@@ -676,7 +696,7 @@ func TestPrintCryptoutilImportViolations(t *testing.T) {
 
 	printCryptoutilImportViolations(violations)
 
-	w.Close()
+	_ = w.Close()
 	os.Stderr = oldStderr
 
 	output, _ := io.ReadAll(r)
@@ -687,21 +707,294 @@ func TestPrintCryptoutilImportViolations(t *testing.T) {
 	require.Contains(t, string(output), "golangci-lint run --fix")
 }
 
-func TestCheckCircularDeps_Integration(t *testing.T) {
-	t.Parallel()
-
-	// This test needs to run from the project root where go.mod exists.
-	// If go.mod doesn't exist in current directory, skip the test.
-	if _, err := os.Stat("go.mod"); err != nil {
-		t.Skip("Skipping integration test - not running from project root (no go.mod)")
+// findProjectRoot finds the project root by looking for go.mod.
+func findProjectRoot() (string, error) {
+	// Start from current directory and walk up.
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("failed to get working directory: %w", err)
 	}
+
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Reached filesystem root.
+			return "", os.ErrNotExist
+		}
+
+		dir = parent
+	}
+}
+
+func TestCheckCircularDeps_Integration(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - modifies shared cache file and changes working directory.
+
+	// Find and change to project root.
+	projectRoot, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping integration test - cannot find project root (no go.mod)")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(projectRoot))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	// Remove cache file to force fresh check.
+	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
+	_ = os.Remove(cacheFile)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
-	// The actual project should not have circular dependencies.
-	// This tests the full flow including caching.
-	err := checkCircularDeps(logger)
+	// First call: cache miss - performs actual check.
+	err = checkCircularDeps(logger)
 	require.NoError(t, err, "Project should have no circular dependencies")
+
+	// Second call: cache hit - uses cached result.
+	err = checkCircularDeps(logger)
+	require.NoError(t, err, "Cached result should indicate no circular dependencies")
+
+	// Clean up cache file.
+	_ = os.Remove(cacheFile)
+}
+
+func TestCheckCircularDeps_CachedWithCircularDeps(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - modifies shared cache file and changes working directory.
+
+	// Find and change to project root.
+	projectRoot, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping integration test - cannot find project root (no go.mod)")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(projectRoot))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
+
+	// Create cache indicating circular deps exist.
+	goModStat, err := os.Stat("go.mod")
+	require.NoError(t, err)
+
+	cache := cryptoutilSharedMagic.CircularDepCache{
+		LastCheck:       time.Now().UTC(),
+		GoModModTime:    goModStat.ModTime(),
+		HasCircularDeps: true,
+		CircularDeps:    []string{"pkg/a -> pkg/b -> pkg/a"},
+	}
+
+	err = saveCircularDepCache(cacheFile, cache)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(cacheFile)
+	}()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
+
+	// Call should use cached result and return error.
+	err = checkCircularDeps(logger)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "circular dependencies detected (cached)")
+}
+
+func TestCheckCircularDeps_ExpiredCache(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - modifies shared cache file and changes working directory.
+
+	// Find and change to project root.
+	projectRoot, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping integration test - cannot find project root (no go.mod)")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(projectRoot))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
+
+	// Create expired cache.
+	goModStat, err := os.Stat("go.mod")
+	require.NoError(t, err)
+
+	// Set LastCheck to be older than cache validity duration.
+	expiredTime := time.Now().UTC().Add(-cryptoutilSharedMagic.CircularDepCacheValidDuration - time.Hour)
+	cache := cryptoutilSharedMagic.CircularDepCache{
+		LastCheck:       expiredTime,
+		GoModModTime:    goModStat.ModTime(),
+		HasCircularDeps: false,
+		CircularDeps:    []string{},
+	}
+
+	err = saveCircularDepCache(cacheFile, cache)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(cacheFile)
+	}()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
+
+	// Call should detect expired cache and perform fresh check.
+	err = checkCircularDeps(logger)
+	require.NoError(t, err, "Fresh check should pass (project has no circular deps)")
+}
+
+func TestCheckCircularDeps_GoModChanged(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - modifies shared cache file and changes working directory.
+
+	// Find and change to project root.
+	projectRoot, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping integration test - cannot find project root (no go.mod)")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(projectRoot))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
+
+	// Create cache with old go.mod mod time.
+	oldModTime := time.Now().UTC().Add(-time.Hour * 24 * 365) // 1 year ago
+	cache := cryptoutilSharedMagic.CircularDepCache{
+		LastCheck:       time.Now().UTC(),
+		GoModModTime:    oldModTime, // go.mod was "modified" since cache was created
+		HasCircularDeps: false,
+		CircularDeps:    []string{},
+	}
+
+	err = saveCircularDepCache(cacheFile, cache)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = os.Remove(cacheFile)
+	}()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
+
+	// Call should detect go.mod change and perform fresh check.
+	err = checkCircularDeps(logger)
+	require.NoError(t, err, "Fresh check should pass (project has no circular deps)")
+}
+
+func TestCheckCircularDeps_GoListError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+
+	// Save current directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	// Create a temp directory with a go.mod that references a nonexistent module.
+	tempDir := t.TempDir()
+	require.NoError(t, os.Chdir(tempDir))
+
+	// Create go.mod with a require for a nonexistent module.
+	goModContent := `module testmodule
+
+go 1.21
+
+require nonexistent.example.com/fake/module v999.999.999
+`
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+
+	// Create a Go file that imports the nonexistent module.
+	goFileContent := `package main
+
+import "nonexistent.example.com/fake/module"
+
+func main() { module.Do() }
+`
+	require.NoError(t, os.WriteFile("main.go", []byte(goFileContent), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
+
+	// Call should fail because go list will fail on missing module.
+	err = checkCircularDeps(logger)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to run go list")
+}
+
+func TestCheckCircularDeps_FreshCheckWithActualCircularDeps(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+
+	// Save current directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
+
+	// Create temp directory with actual circular dependencies.
+	tempDir := t.TempDir()
+	require.NoError(t, os.Chdir(tempDir))
+
+	// Create go.mod.
+	goModContent := "module testcircular\n\ngo 1.21\n"
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+
+	// Create package a that imports package b.
+	require.NoError(t, os.MkdirAll("internal/a", 0o755))
+
+	pkgAContent := `package a
+
+import "testcircular/internal/b"
+
+func A() { b.B() }
+`
+	require.NoError(t, os.WriteFile("internal/a/a.go", []byte(pkgAContent), 0o600))
+
+	// Create package b that imports package a (circular!).
+	require.NoError(t, os.MkdirAll("internal/b", 0o755))
+
+	pkgBContent := `package b
+
+import "testcircular/internal/a"
+
+func B() { a.A() }
+`
+	require.NoError(t, os.WriteFile("internal/b/b.go", []byte(pkgBContent), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
+
+	// Call should detect circular dependencies during fresh check.
+	// Note: go list may fail with import cycle error before CheckDependencies runs,
+	// so we accept either "failed to run go list" or "circular dependency".
+	err = checkCircularDeps(logger)
+	require.Error(t, err)
+	// The Go toolchain detects import cycles at compile time, so go list fails.
+	require.True(t, strings.Contains(err.Error(), "failed to run go list") ||
+		strings.Contains(err.Error(), "circular"),
+		"Expected error about go list failure or circular deps, got: %v", err)
 }
 
 func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
@@ -720,10 +1013,7 @@ func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create clean Go file.
-	cleanFile := "clean.go"
-	cleanContent := "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
-
-	require.NoError(t, os.WriteFile(cleanFile, []byte(cleanContent), 0o644))
+	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
 
 	// Test with clean file - should have no violations.
 	violations, err := checkGoFilesForCGO()
@@ -755,7 +1045,7 @@ func TestCheckGoFilesForCGO_WithBannedImport(t *testing.T) {
 	bannedFile := "banned.go"
 	bannedContent := "package main\n\nimport _ \"" + banned.String() + "\"\n\nfunc main() {}\n"
 
-	require.NoError(t, os.WriteFile(bannedFile, []byte(bannedContent), 0o644))
+	require.NoError(t, os.WriteFile(bannedFile, []byte(bannedContent), 0o600))
 
 	// Test - should find the violation.
 	violations, err := checkGoFilesForCGO()
@@ -789,13 +1079,12 @@ func TestCheckGoFilesForCGO_SkipsVendor(t *testing.T) {
 	vendorFile := "vendor/dep.go"
 	vendorContent := "package vendor\n\nimport _ \"" + banned.String() + "\"\n\nfunc init() {}\n"
 
-	require.NoError(t, os.WriteFile(vendorFile, []byte(vendorContent), 0o644))
+	require.NoError(t, os.WriteFile(vendorFile, []byte(vendorContent), 0o600))
 
 	// Create clean main file.
 	mainFile := "main.go"
-	mainContent := "package main\n\nfunc main() {}\n"
 
-	require.NoError(t, os.WriteFile(mainFile, []byte(mainContent), 0o644))
+	require.NoError(t, os.WriteFile(mainFile, []byte(testMainContent), 0o600))
 
 	// Test - vendor should be skipped, no violations.
 	violations, err := checkGoFilesForCGO()
@@ -819,10 +1108,7 @@ func TestFindUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create clean Go file with no cryptoutil imports.
-	cleanFile := "clean.go"
-	cleanContent := "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
-
-	require.NoError(t, os.WriteFile(cleanFile, []byte(cleanContent), 0o644))
+	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
 
 	// Test - should have no violations.
 	violations, err := findUnaliasedCryptoutilImports()
@@ -846,13 +1132,13 @@ func TestFindGoFiles_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create Go files.
-	require.NoError(t, os.WriteFile("main.go", []byte("package main\n"), 0o644))
-	require.NoError(t, os.WriteFile("util.go", []byte("package main\n"), 0o644))
-	require.NoError(t, os.WriteFile("main_test.go", []byte("package main\n"), 0o644))
+	require.NoError(t, os.WriteFile("main.go", []byte(testPackageMainDef), 0o600))
+	require.NoError(t, os.WriteFile("util.go", []byte(testPackageMainDef), 0o600))
+	require.NoError(t, os.WriteFile("main_test.go", []byte(testPackageMainDef), 0o600))
 
 	// Create excluded directories.
 	require.NoError(t, os.MkdirAll("vendor", 0o755))
-	require.NoError(t, os.WriteFile("vendor/vendored.go", []byte("package vendor\n"), 0o644))
+	require.NoError(t, os.WriteFile("vendor/vendored.go", []byte("package vendor\n"), 0o600))
 
 	// Test - should find main.go and util.go, but NOT test files, vendor files.
 	files, err := findGoFiles()
@@ -876,10 +1162,7 @@ func TestCheckNoUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create clean Go file with no cryptoutil imports.
-	cleanFile := "clean.go"
-	cleanContent := "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
-
-	require.NoError(t, os.WriteFile(cleanFile, []byte(cleanContent), 0o644))
+	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -910,11 +1193,10 @@ func TestCheckCGOFreeSQLite_WithTempDir(t *testing.T) {
 
 	// Create go.mod with required CGO-free module.
 	goModContent := "module testmod\n\ngo 1.21\n\nrequire (\n\t" + required.String() + " v1.30.0\n)\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o644))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
 
 	// Create clean Go file.
-	mainContent := "package main\n\nfunc main() {}\n"
-	require.NoError(t, os.WriteFile("main.go", []byte(mainContent), 0o644))
+	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), 0o600))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -940,11 +1222,10 @@ func TestCheckCGOFreeSQLite_MissingRequired(t *testing.T) {
 
 	// Create go.mod WITHOUT required CGO-free module.
 	goModContent := "module testmod\n\ngo 1.21\n"
-	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o644))
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
 
 	// Create clean Go file.
-	mainContent := "package main\n\nfunc main() {}\n"
-	require.NoError(t, os.WriteFile("main.go", []byte(mainContent), 0o644))
+	require.NoError(t, os.WriteFile("main.go", []byte(testMainContent), 0o600))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -971,7 +1252,7 @@ func TestCheckNonFIPS_WithTempDir(t *testing.T) {
 
 	// Create clean Go file without banned algorithms.
 	cleanContent := "package main\n\nimport (\n\t\"crypto/sha256\"\n)\n\nfunc main() { sha256.New() }\n"
-	require.NoError(t, os.WriteFile("main.go", []byte(cleanContent), 0o644))
+	require.NoError(t, os.WriteFile("main.go", []byte(cleanContent), 0o600))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -996,14 +1277,50 @@ func TestSaveCircularDepCache_DirectoryCreationError(t *testing.T) {
 	tempFile, err := os.CreateTemp("", "notadir")
 	require.NoError(t, err)
 
-	defer os.Remove(tempFile.Name())
-	tempFile.Close()
+	defer func() { _ = os.Remove(tempFile.Name()) }()
+
+	_ = tempFile.Close()
 
 	// Try to save cache to a path inside the file (impossible).
 	invalidPath := tempFile.Name() + "/cache.json"
 	err = saveCircularDepCache(invalidPath, cache)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create output directory")
+}
+
+func TestSaveCircularDepCache_WriteFileError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test uses filesystem permissions.
+
+	// Create a cache object.
+	cache := cryptoutilSharedMagic.CircularDepCache{
+		LastCheck:       time.Now().UTC(),
+		GoModModTime:    time.Now().UTC(),
+		HasCircularDeps: false,
+		CircularDeps:    nil,
+	}
+
+	// Create a temp directory that we can make read-only.
+	tempDir := t.TempDir()
+	cacheDir := filepath.Join(tempDir, "subdir")
+	require.NoError(t, os.MkdirAll(cacheDir, 0o755))
+
+	cacheFile := filepath.Join(cacheDir, "cache.json")
+
+	// Create an existing file to write to.
+	require.NoError(t, os.WriteFile(cacheFile, []byte("existing"), 0o600))
+
+	// Make the cache file read-only.
+	require.NoError(t, os.Chmod(cacheFile, 0o000))
+
+	defer func() {
+		// Restore permissions for cleanup.
+		_ = os.Chmod(cacheFile, 0o600)
+	}()
+
+	// Try to save - MkdirAll succeeds (dir exists) but WriteFile should fail.
+	err := saveCircularDepCache(cacheFile, cache)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to write cache file")
 }
 
 func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
@@ -1028,7 +1345,7 @@ func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
 
 	// Create Go file with unaliased cryptoutil import.
 	badContent := "package main\n\nimport \"" + importPath.String() + "\"\n\nfunc main() {}\n"
-	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), 0o644))
+	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), 0o600))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -1055,14 +1372,14 @@ func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
 
 	// Create a file (not a directory) that will be treated as a directory during walk.
 	// This will cause an error in filepath.Walk.
-	require.NoError(t, os.WriteFile("main.go", []byte("package main\n"), 0o644))
+	require.NoError(t, os.WriteFile("main.go", []byte("package main\n"), 0o600))
 
 	// Make main.go unreadable to trigger error.
 	require.NoError(t, os.Chmod("main.go", 0o000))
 
 	defer func() {
 		// Restore permissions for cleanup.
-		os.Chmod(filepath.Join(tempDir, "main.go"), 0o644)
+		_ = os.Chmod(filepath.Join(tempDir, "main.go"), 0o600)
 	}()
 
 	// Test - should get error from reading file.
@@ -1087,7 +1404,7 @@ func TestCheckNonFIPS_WithViolations(t *testing.T) {
 
 	// Create Go file with banned algorithm (bcrypt).
 	badContent := "package main\n\nimport \"golang.org/x/crypto/bcrypt\"\n\nfunc main() { bcrypt.GenerateFromPassword(nil, 0) }\n"
-	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), 0o644))
+	require.NoError(t, os.WriteFile("bad.go", []byte(badContent), 0o600))
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
@@ -1115,14 +1432,14 @@ func TestFindGoFiles_ErrorPath(t *testing.T) {
 	// Create a subdirectory that will trigger walk error.
 	subDir := "subdir"
 	require.NoError(t, os.MkdirAll(subDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), 0o600))
 
 	// Make subdirectory unreadable.
 	require.NoError(t, os.Chmod(subDir, 0o000))
 
 	defer func() {
 		// Restore permissions for cleanup.
-		os.Chmod(filepath.Join(tempDir, subDir), 0o755)
+		_ = os.Chmod(filepath.Join(tempDir, subDir), 0o755)
 	}()
 
 	// Test - should get error from walking directory.
@@ -1146,11 +1463,11 @@ func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Create an unreadable Go file.
-	require.NoError(t, os.WriteFile("unreadable.go", []byte("package main\n"), 0o644))
+	require.NoError(t, os.WriteFile("unreadable.go", []byte("package main\n"), 0o600))
 	require.NoError(t, os.Chmod("unreadable.go", 0o000))
 
 	defer func() {
-		os.Chmod(filepath.Join(tempDir, "unreadable.go"), 0o644)
+		_ = os.Chmod(filepath.Join(tempDir, "unreadable.go"), 0o600)
 	}()
 
 	// Test - should get error.
@@ -1161,14 +1478,24 @@ func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
 func TestLint_Integration(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
 
-	// This test needs to run from the project root where go.mod exists.
-	if _, err := os.Stat("go.mod"); err != nil {
-		t.Skip("Skipping integration test - not running from project root (no go.mod)")
+	// Find and change to project root.
+	projectRoot, err := findProjectRoot()
+	if err != nil {
+		t.Skip("Skipping integration test - cannot find project root (no go.mod)")
 	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chdir(projectRoot))
+
+	defer func() {
+		require.NoError(t, os.Chdir(origDir))
+	}()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-lint")
 
 	// The actual project should pass all lint checks.
-	err := Lint(logger)
+	err = Lint(logger)
 	require.NoError(t, err, "Project should pass all lint checks")
 }
