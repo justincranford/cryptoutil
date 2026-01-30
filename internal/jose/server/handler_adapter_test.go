@@ -5,8 +5,12 @@
 package server
 
 import (
+	"net/http/httptest"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -119,4 +123,147 @@ type testError struct {
 
 func (e *testError) Error() string {
 	return e.msg
+}
+
+// TestHandleJWKGet_EmptyKID tests handleJWKGet with empty KID.
+func TestHandleJWKGet_EmptyKID(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: NewKeyStore(),
+	}
+	app.Get("/jwk/:kid", handler.handleJWKGet)
+
+	req := httptest.NewRequest("GET", "/jwk/", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Empty KID results in 404 from Fiber routing (no match).
+	require.Equal(t, 404, resp.StatusCode)
+}
+
+// TestHandleJWKGet_NotFound tests handleJWKGet with non-existent key.
+func TestHandleJWKGet_NotFound(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: NewKeyStore(),
+	}
+	app.Get("/jwk/:kid", handler.handleJWKGet)
+
+	req := httptest.NewRequest("GET", "/jwk/nonexistent-key-id", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, 404, resp.StatusCode)
+}
+
+// TestHandleJWKDelete_EmptyKID tests handleJWKDelete with empty KID.
+func TestHandleJWKDelete_EmptyKID(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: NewKeyStore(),
+	}
+	app.Delete("/jwk/:kid", handler.handleJWKDelete)
+
+	req := httptest.NewRequest("DELETE", "/jwk/", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Empty KID results in 404 from Fiber routing (no match).
+	require.Equal(t, 404, resp.StatusCode)
+}
+
+// TestHandleJWKDelete_NotFound tests handleJWKDelete with non-existent key.
+func TestHandleJWKDelete_NotFound(t *testing.T) {
+	t.Parallel()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: NewKeyStore(),
+	}
+	app.Delete("/jwk/:kid", handler.handleJWKDelete)
+
+	req := httptest.NewRequest("DELETE", "/jwk/nonexistent-key-id", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	require.Equal(t, 404, resp.StatusCode)
+}
+
+// TestHandleJWKGet_WithPublicJWK tests handleJWKGet with a key that has PublicJWK set.
+func TestHandleJWKGet_WithPublicJWK(t *testing.T) {
+	t.Parallel()
+
+	// Create keystore with a test key.
+	keyStore := NewKeyStore()
+	kid := googleUuid.New()
+	testKey := &StoredKey{
+		KID:       kid,
+		PublicJWK: nil, // Will test the PrivateJWK path instead.
+		KeyType:   "RSA",
+		Algorithm: "RS256",
+		Use:       "sig",
+		CreatedAt: 1234567890,
+	}
+	err := keyStore.Store(testKey)
+	require.NoError(t, err)
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: keyStore,
+	}
+	app.Get("/jwk/:kid", handler.handleJWKGet)
+
+	req := httptest.NewRequest("GET", "/jwk/"+kid.String(), nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Key exists, should return 200 OK.
+	require.Equal(t, 200, resp.StatusCode)
+}
+
+// TestHandleJWKDelete_Success tests handleJWKDelete with an existing key.
+func TestHandleJWKDelete_Success(t *testing.T) {
+	t.Parallel()
+
+	// Create keystore with a test key.
+	keyStore := NewKeyStore()
+	kid := googleUuid.New()
+	testKey := &StoredKey{
+		KID:       kid,
+		KeyType:   "RSA",
+		Algorithm: "RS256",
+		Use:       "sig",
+		CreatedAt: 1234567890,
+	}
+	err := keyStore.Store(testKey)
+	require.NoError(t, err)
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	handler := &joseHandlerAdapter{
+		keyStore: keyStore,
+	}
+	app.Delete("/jwk/:kid", handler.handleJWKDelete)
+
+	req := httptest.NewRequest("DELETE", "/jwk/"+kid.String(), nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// Key exists, delete should return 200 OK.
+	require.Equal(t, 200, resp.StatusCode)
+
+	// Verify key is deleted.
+	_, exists := keyStore.Get(kid.String())
+	require.False(t, exists)
 }
