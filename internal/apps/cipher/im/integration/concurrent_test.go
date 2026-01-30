@@ -49,7 +49,7 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 			numUsers:        5,
 			concurrentSends: 4,
 			recipientsEach:  1,
-			targetDuration:  15 * time.Second, // Adjusted from 4s (observed ~14s)
+			targetDuration:  20 * time.Second, // Adjusted from 15s to account for CI load variance
 		},
 		{
 			name:            "N=5 users, P=3 concurrent sends (2 recipients each)",

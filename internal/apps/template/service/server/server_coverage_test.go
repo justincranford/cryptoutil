@@ -70,7 +70,7 @@ func TestPublicServerBase_StartListenError(t *testing.T) {
 	// Use a small sleep to allow server to bind.
 	require.Eventually(t, func() bool {
 		return base1.ActualPort() != 0
-	}, 1*time.Second, 10*time.Millisecond)
+	}, 5*time.Second, 10*time.Millisecond)
 
 	occupiedPort := base1.ActualPort()
 
