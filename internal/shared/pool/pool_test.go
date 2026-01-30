@@ -166,6 +166,7 @@ func TestGetMany(t *testing.T) {
 				require.Nil(t, values)
 			} else {
 				require.Len(t, values, tc.expectLen)
+
 				for _, v := range values {
 					require.NotNil(t, v)
 				}
@@ -257,6 +258,7 @@ func TestCancelIdempotent(t *testing.T) {
 func TestValidateConfig_NilContext(t *testing.T) {
 	t.Parallel()
 
+	//nolint:staticcheck // SA1012: intentionally passing nil context to test validation
 	_, err := NewValueGenPool(NewValueGenPoolConfig(nil, testTelemetryService, "test", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context can't be nil")
@@ -360,6 +362,7 @@ func TestNewValueGenPoolConfigError(t *testing.T) {
 	t.Parallel()
 
 	// Create a config that returns an error (nil context)
+	//nolint:staticcheck // SA1012: intentionally passing nil context to test error propagation
 	cfg, err := NewValueGenPoolConfig(nil, testTelemetryService, "test", 1, 1, 10, time.Second, cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), false)
 	require.Error(t, err)
 	require.Nil(t, cfg)

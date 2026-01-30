@@ -449,15 +449,15 @@ func TestMergedMigrations_Open(t *testing.T) {
 	// Test opening domain file (higher priority).
 	domainFile, err := merged.Open("2001_domain.up.sql")
 	require.NoError(t, err)
-
 	require.NotNil(t, domainFile)
+
 	defer func() { _ = domainFile.Close() }()
 
 	// Test opening template file (fallback).
 	templateFile, err := merged.Open("1001_template.up.sql")
 	require.NoError(t, err)
-
 	require.NotNil(t, templateFile)
+
 	defer func() { _ = templateFile.Close() }()
 
 	// Test opening non-existent file.
@@ -784,14 +784,14 @@ func TestMergedMigrations_Open_RootDir(t *testing.T) {
 	// Open root directory (should work for both "." and "").
 	rootFile, err := merged.Open(".")
 	require.NoError(t, err)
-
 	require.NotNil(t, rootFile)
+
 	defer func() { _ = rootFile.Close() }()
 
 	emptyPathFile, err := merged.Open("")
 	require.NoError(t, err)
-
 	require.NotNil(t, emptyPathFile)
+
 	defer func() { _ = emptyPathFile.Close() }()
 }
 
@@ -838,8 +838,8 @@ func TestMergedMigrations_Open_NilDomainFS(t *testing.T) {
 	// Open template file when domain FS is nil.
 	templateFile, err := merged.Open("1001_template.up.sql")
 	require.NoError(t, err)
-
 	require.NotNil(t, templateFile)
+
 	defer func() { _ = templateFile.Close() }()
 }
 

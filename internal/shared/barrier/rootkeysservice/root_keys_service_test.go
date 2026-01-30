@@ -119,6 +119,7 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	tests := []struct {
@@ -162,11 +163,9 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 			expectedErrMsg: "unsealKeysService must be non-nil",
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// NOTE: t.Parallel() removed due to shared in-memory SQLite database
-
 			rootKeysService, err := NewRootKeysService(tt.telemetrySvc, tt.jwkGenSvc, tt.ormRepo, tt.unsealKeysSvc)
 			require.Error(t, err)
 			require.Nil(t, rootKeysService)
@@ -190,11 +189,13 @@ func TestRootKeysService_EncryptKey_HappyPath(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, rootKeysService)
+
 	defer rootKeysService.Shutdown()
 
 	// Generate an intermediate key to encrypt.
@@ -208,6 +209,7 @@ func TestRootKeysService_EncryptKey_HappyPath(t *testing.T) {
 		require.NotNil(t, encryptedKeyBytes)
 		require.NotNil(t, rootKeyUUID)
 		require.Greater(t, len(encryptedKeyBytes), 0)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -228,11 +230,13 @@ func TestRootKeysService_EncryptAndDecryptKey_RoundTrip(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, rootKeysService)
+
 	defer rootKeysService.Shutdown()
 
 	// Generate an intermediate key to encrypt.
@@ -244,7 +248,9 @@ func TestRootKeysService_EncryptAndDecryptKey_RoundTrip(t *testing.T) {
 	// Encrypt the intermediate key.
 	err = ormRepository.WithTransaction(testCtx, cryptoutilOrmRepository.ReadWrite, func(tx *cryptoutilOrmRepository.OrmTransaction) error {
 		var encryptErr error
+
 		encryptedKeyBytes, _, encryptErr = rootKeysService.EncryptKey(tx, originalKey)
+
 		return encryptErr
 	})
 	require.NoError(t, err)
@@ -283,11 +289,13 @@ func TestRootKeysService_DecryptKey_InvalidFormat(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, rootKeysService)
+
 	defer rootKeysService.Shutdown()
 
 	// Try to decrypt invalid data.
@@ -296,6 +304,7 @@ func TestRootKeysService_DecryptKey_InvalidFormat(t *testing.T) {
 		require.Error(t, decryptErr)
 		require.Nil(t, decryptedKey)
 		require.Contains(t, decryptErr.Error(), "failed to parse encrypted intermediate key message")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -316,6 +325,7 @@ func TestRootKeysService_Shutdown_Idempotent(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)

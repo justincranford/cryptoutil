@@ -102,6 +102,7 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 
 	// Parse with subcommand + no additional flags.
 	args := []string{"start"}
+
 	settings, err := ParseWithFlagSet(fs, args, false)
 	if err != nil {
 		t.Fatalf("ParseWithFlagSet() error = %v, want nil", err)
@@ -111,9 +112,11 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 	if settings.DefaultMaxMaterials != 10 {
 		t.Errorf("DefaultMaxMaterials = %d, want 10", settings.DefaultMaxMaterials)
 	}
+
 	if settings.AuditEnabled != true {
 		t.Errorf("AuditEnabled = %v, want true", settings.AuditEnabled)
 	}
+
 	if settings.AuditSamplingRate != 100 {
 		t.Errorf("AuditSamplingRate = %d, want 100", settings.AuditSamplingRate)
 	}
@@ -122,6 +125,7 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 	if settings.BindPublicPort != 9443 { // cryptoutilSharedMagic.JoseJAServicePort.
 		t.Errorf("BindPublicPort = %d, want 9443", settings.BindPublicPort)
 	}
+
 	if settings.OTLPService != "jose-ja" {
 		t.Errorf("OTLPService = %q, want %q", settings.OTLPService, "jose-ja")
 	}
@@ -183,9 +187,11 @@ func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 			if settings.DefaultMaxMaterials != tt.wantMax {
 				t.Errorf("DefaultMaxMaterials = %d, want %d", settings.DefaultMaxMaterials, tt.wantMax)
 			}
+
 			if settings.AuditEnabled != tt.wantAud {
 				t.Errorf("AuditEnabled = %v, want %v", settings.AuditEnabled, tt.wantAud)
 			}
+
 			if settings.AuditSamplingRate != tt.wantRate {
 				t.Errorf("AuditSamplingRate = %d, want %d", settings.AuditSamplingRate, tt.wantRate)
 			}

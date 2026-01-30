@@ -10,7 +10,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -138,7 +138,8 @@ func TestHandleJWKGet_EmptyKID(t *testing.T) {
 	req := httptest.NewRequest("GET", "/jwk/", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Empty KID results in 404 from Fiber routing (no match).
 	require.Equal(t, 404, resp.StatusCode)
@@ -157,7 +158,8 @@ func TestHandleJWKGet_NotFound(t *testing.T) {
 	req := httptest.NewRequest("GET", "/jwk/nonexistent-key-id", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 404, resp.StatusCode)
 }
@@ -175,7 +177,8 @@ func TestHandleJWKDelete_EmptyKID(t *testing.T) {
 	req := httptest.NewRequest("DELETE", "/jwk/", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Empty KID results in 404 from Fiber routing (no match).
 	require.Equal(t, 404, resp.StatusCode)
@@ -194,7 +197,8 @@ func TestHandleJWKDelete_NotFound(t *testing.T) {
 	req := httptest.NewRequest("DELETE", "/jwk/nonexistent-key-id", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 404, resp.StatusCode)
 }
@@ -226,7 +230,8 @@ func TestHandleJWKGet_WithPublicJWK(t *testing.T) {
 	req := httptest.NewRequest("GET", "/jwk/"+kid.String(), nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Key exists, should return 200 OK.
 	require.Equal(t, 200, resp.StatusCode)
@@ -258,7 +263,8 @@ func TestHandleJWKDelete_Success(t *testing.T) {
 	req := httptest.NewRequest("DELETE", "/jwk/"+kid.String(), nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Key exists, delete should return 200 OK.
 	require.Equal(t, 200, resp.StatusCode)
@@ -281,7 +287,8 @@ func TestHandleElasticJWKS_EmptyKID(t *testing.T) {
 	req := httptest.NewRequest("GET", "/elastic-jwks/", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Empty KID results in 404 from Fiber routing (no match).
 	require.Equal(t, 404, resp.StatusCode)
@@ -300,7 +307,8 @@ func TestHandleElasticJWKS_InvalidKID(t *testing.T) {
 	req := httptest.NewRequest("GET", "/elastic-jwks/not-a-valid-uuid", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Invalid UUID format should return 400 Bad Request.
 	require.Equal(t, 400, resp.StatusCode)
@@ -321,7 +329,8 @@ func TestHandleElasticJWKS_NilService(t *testing.T) {
 	req := httptest.NewRequest("GET", "/elastic-jwks/"+validUUID, nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	// Nil service should return 500 Internal Server Error.
 	require.Equal(t, 500, resp.StatusCode)

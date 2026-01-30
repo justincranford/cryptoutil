@@ -57,6 +57,7 @@ func TestNewService_ValidationErrors(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	tests := []struct {
@@ -138,11 +139,13 @@ func TestNewService_Success(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// Verify service is initialized correctly
@@ -169,6 +172,7 @@ func TestBarrierService_EncryptContent_ServiceClosed(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
@@ -182,6 +186,7 @@ func TestBarrierService_EncryptContent_ServiceClosed(t *testing.T) {
 	// Try to encrypt after shutdown
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		_, err := service.EncryptContent(sqlTransaction, []byte("test content"))
+
 		return err
 	})
 	require.Error(t, err)
@@ -201,6 +206,7 @@ func TestBarrierService_DecryptContent_ServiceClosed(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)
@@ -214,6 +220,7 @@ func TestBarrierService_DecryptContent_ServiceClosed(t *testing.T) {
 	// Try to decrypt after shutdown
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		_, err := service.DecryptContent(sqlTransaction, []byte("encrypted content"))
+
 		return err
 	})
 	require.Error(t, err)
@@ -233,6 +240,7 @@ func TestBarrierService_Shutdown_MultipleTimesIdempotent(t *testing.T) {
 
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysService.Shutdown()
 
 	service, err := NewService(testCtx, testTelemetryService, testJWKGenService, ormRepository, unsealKeysService)

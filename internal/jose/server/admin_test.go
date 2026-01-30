@@ -10,17 +10,18 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
 // TestNewAdminHTTPServer_NilContext tests that nil context returns error.
 func TestNewAdminHTTPServer_NilContext(t *testing.T) {
 	t.Parallel()
+
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := createTestTLSConfig()
 
-	_, err := NewAdminHTTPServer(nil, settings, tlsCfg)
+	_, err := NewAdminHTTPServer(nil, settings, tlsCfg) //nolint:staticcheck // Testing nil context error handling
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -28,6 +29,7 @@ func TestNewAdminHTTPServer_NilContext(t *testing.T) {
 // TestNewAdminHTTPServer_NilSettings tests that nil settings returns error.
 func TestNewAdminHTTPServer_NilSettings(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	tlsCfg := createTestTLSConfig()
 
@@ -39,6 +41,7 @@ func TestNewAdminHTTPServer_NilSettings(t *testing.T) {
 // TestNewAdminHTTPServer_NilTLSConfig tests that nil TLS config returns error.
 func TestNewAdminHTTPServer_NilTLSConfig(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
@@ -50,6 +53,7 @@ func TestNewAdminHTTPServer_NilTLSConfig(t *testing.T) {
 // TestNewAdminHTTPServer_Success tests successful creation.
 func TestNewAdminHTTPServer_Success(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := createTestTLSConfig()
@@ -76,7 +80,8 @@ func TestAdminServer_HandleLivez_Alive(t *testing.T) {
 	req := httptest.NewRequest("GET", "/admin/api/v1/livez", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 200, resp.StatusCode)
 }
@@ -95,7 +100,8 @@ func TestAdminServer_HandleLivez_ShuttingDown(t *testing.T) {
 	req := httptest.NewRequest("GET", "/admin/api/v1/livez", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 503, resp.StatusCode)
 }
@@ -114,7 +120,8 @@ func TestAdminServer_HandleReadyz_Ready(t *testing.T) {
 	req := httptest.NewRequest("GET", "/admin/api/v1/readyz", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 200, resp.StatusCode)
 }
@@ -133,7 +140,8 @@ func TestAdminServer_HandleReadyz_NotReady(t *testing.T) {
 	req := httptest.NewRequest("GET", "/admin/api/v1/readyz", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 503, resp.StatusCode)
 }
@@ -152,7 +160,8 @@ func TestAdminServer_HandleReadyz_ShuttingDown(t *testing.T) {
 	req := httptest.NewRequest("GET", "/admin/api/v1/readyz", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 503, resp.StatusCode)
 }
@@ -171,7 +180,8 @@ func TestAdminServer_HandleShutdown(t *testing.T) {
 	req := httptest.NewRequest("POST", "/admin/api/v1/shutdown", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, 200, resp.StatusCode)
 
@@ -184,6 +194,7 @@ func TestAdminServer_HandleShutdown(t *testing.T) {
 // TestAdminServer_Start_NilContext tests Start with nil context returns error.
 func TestAdminServer_Start_NilContext(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := createTestTLSConfig()
@@ -191,7 +202,7 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 	server, err := NewAdminHTTPServer(ctx, settings, tlsCfg)
 	require.NoError(t, err)
 
-	err = server.Start(nil)
+	err = server.Start(nil) //nolint:staticcheck // Testing nil context error handling
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context cannot be nil")
 }
@@ -199,6 +210,7 @@ func TestAdminServer_Start_NilContext(t *testing.T) {
 // TestAdminServer_Shutdown_NilContext tests Shutdown with nil context handles gracefully.
 func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := createTestTLSConfig()
@@ -207,13 +219,14 @@ func TestAdminServer_Shutdown_NilContext(t *testing.T) {
 	require.NoError(t, err)
 
 	// Shutdown with nil context should not return error (uses context.Background()).
-	err = server.Shutdown(nil)
+	err = server.Shutdown(nil) //nolint:staticcheck // Testing nil context graceful handling
 	require.NoError(t, err)
 }
 
 // TestAdminServer_ActualPort_NilListener tests ActualPort returns 0 when listener is nil.
 func TestAdminServer_ActualPort_NilListener(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := createTestTLSConfig()
@@ -229,6 +242,7 @@ func TestAdminServer_ActualPort_NilListener(t *testing.T) {
 // TestAdminServer_AdminBaseURL_BeforeStart tests AdminBaseURL returns expected format before start.
 func TestAdminServer_AdminBaseURL_BeforeStart(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 	tlsCfg := createTestTLSConfig()

@@ -219,6 +219,7 @@ func parseConfigFlag(parameters []string, defaultValue string) string {
 
 			return strings.TrimPrefix(value, fileURLPrefix)
 		}
+
 		if strings.HasPrefix(param, configFlagShort+"=") {
 			value := strings.TrimPrefix(param, configFlagShort+"=")
 

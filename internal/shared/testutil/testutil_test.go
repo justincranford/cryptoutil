@@ -413,22 +413,22 @@ func TestCaptureOutput(t *testing.T) {
 		{
 			name: "captures stdout",
 			fn: func() {
-				os.Stdout.WriteString("stdout output")
+				_, _ = os.Stdout.WriteString("stdout output")
 			},
 			expected: "stdout output",
 		},
 		{
 			name: "captures stderr",
 			fn: func() {
-				os.Stderr.WriteString("stderr output")
+				_, _ = os.Stderr.WriteString("stderr output")
 			},
 			expected: "stderr output",
 		},
 		{
 			name: "captures both stdout and stderr",
 			fn: func() {
-				os.Stdout.WriteString("stdout")
-				os.Stderr.WriteString("stderr")
+				_, _ = os.Stdout.WriteString("stdout")
+				_, _ = os.Stderr.WriteString("stderr")
 			},
 			expected: "stdout",
 		},

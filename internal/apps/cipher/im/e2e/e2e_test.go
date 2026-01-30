@@ -260,7 +260,9 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 
 		resp, err := sharedHTTPClient.Do(req)
 		require.NoError(t, err, "User registration should succeed in pg-1")
+
 		defer func() { _ = resp.Body.Close() }()
+
 		require.Equal(t, http.StatusCreated, resp.StatusCode, "User should be created in pg-1")
 
 		// Verify user does NOT exist in SQLite.

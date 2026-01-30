@@ -833,10 +833,10 @@ func TestPrintSummary(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name             string
-		result           *SimulationResult
-		wantContains     []string
-		wantNotContains  []string
+		name            string
+		result          *SimulationResult
+		wantContains    []string
+		wantNotContains []string
 	}{
 		{
 			name: "basic summary with all sections",

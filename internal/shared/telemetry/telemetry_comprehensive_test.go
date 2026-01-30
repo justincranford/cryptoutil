@@ -13,6 +13,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test constants for telemetry endpoint tests.
+const (
+	testHTTPEndpoint       = "http://localhost:4318"
+	testHTTPSEndpoint      = "https://localhost:4318"
+	testGRPCEndpoint       = "grpc://localhost:4317"
+	testGRPCSEndpoint      = "grpcs://localhost:4317"
+	testInvalidFTPEndpoint = "ftp://invalid:1234"
+)
+
 // TestNewTelemetryService_NilContext tests that NewTelemetryService fails with nil context.
 func TestNewTelemetryService_NilContext(t *testing.T) {
 	t.Parallel()
@@ -264,7 +273,7 @@ func TestTelemetryService_OTLPEnabled(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_otlp_enabled")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "http://localhost:4318" // HTTP endpoint
+	settings.OTLPEndpoint = testHTTPEndpoint // HTTP endpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
@@ -438,10 +447,10 @@ func TestParseProtocolAndEndpoint_AllProtocols(t *testing.T) {
 		wantAddr  string
 		wantErr   bool
 	}{
-		{"HTTP", "http://localhost:4318", true, false, false, false, "localhost:4318", false},
-		{"HTTPS", "https://localhost:4318", false, true, false, false, "localhost:4318", false},
-		{"gRPC", "grpc://localhost:4317", false, false, true, false, "localhost:4317", false},
-		{"gRPCS", "grpcs://localhost:4317", false, false, false, true, "localhost:4317", false},
+		{"HTTP", testHTTPEndpoint, true, false, false, false, "localhost:4318", false},
+		{"HTTPS", testHTTPSEndpoint, false, true, false, false, "localhost:4318", false},
+		{"gRPC", testGRPCEndpoint, false, false, true, false, "localhost:4317", false},
+		{"gRPCS", testGRPCSEndpoint, false, false, false, true, "localhost:4317", false},
 		{"Invalid", "ftp://localhost:4318", false, false, false, false, "", true},
 		{"NoProtocol", "localhost:4318", false, false, false, false, "", true},
 	}
@@ -526,6 +535,7 @@ func TestTelemetryService_CheckSidecarHealth_OTLPDisabled(t *testing.T) {
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// With OTLP disabled, CheckSidecarHealth should return nil
@@ -540,11 +550,12 @@ func TestTelemetryService_CheckSidecarHealth_OTLPEnabled(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_enabled")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "http://localhost:4318" // Non-existent endpoint
+	settings.OTLPEndpoint = testHTTPEndpoint // Non-existent endpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// With OTLP enabled but no sidecar, CheckSidecarHealth may succeed (connection is lazy)
@@ -559,11 +570,12 @@ func TestTelemetryService_GRPCEndpoint(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_grpc")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "grpc://localhost:4317"
+	settings.OTLPEndpoint = testGRPCEndpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 }
 
@@ -574,11 +586,12 @@ func TestTelemetryService_GRPCSEndpoint(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_grpcs")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "grpcs://localhost:4317"
+	settings.OTLPEndpoint = testGRPCSEndpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 }
 
@@ -589,11 +602,12 @@ func TestTelemetryService_HTTPSEndpoint(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_https")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "https://localhost:4318"
+	settings.OTLPEndpoint = testHTTPSEndpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 }
 
@@ -609,6 +623,7 @@ func TestTelemetryService_OTLPConsole(t *testing.T) {
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 }
 
@@ -619,7 +634,7 @@ func TestTelemetryService_InvalidEndpoint(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_invalid_endpoint")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "ftp://invalid:1234" // Invalid protocol
+	settings.OTLPEndpoint = testInvalidFTPEndpoint // Invalid protocol
 
 	_, err := NewTelemetryService(ctx, settings)
 	require.Error(t, err)
@@ -634,12 +649,13 @@ func TestTelemetryService_VerboseModeWithOTLP(t *testing.T) {
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_verbose_otlp")
 	settings.VerboseMode = true
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "http://localhost:4318"
+	settings.OTLPEndpoint = testHTTPEndpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
 	require.True(t, service.VerboseMode)
+
 	defer service.Shutdown()
 }
 
@@ -665,7 +681,7 @@ func TestCheckSidecarHealth_HTTP(t *testing.T) {
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_http")
-	settings.OTLPEndpoint = "http://localhost:4318"
+	settings.OTLPEndpoint = testHTTPEndpoint
 
 	// This should not panic, may return error since no sidecar is running
 	_ = checkSidecarHealth(ctx, settings)
@@ -677,7 +693,7 @@ func TestCheckSidecarHealth_HTTPS(t *testing.T) {
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_https")
-	settings.OTLPEndpoint = "https://localhost:4318"
+	settings.OTLPEndpoint = testHTTPSEndpoint
 
 	// This should not panic, may return error since no sidecar is running
 	_ = checkSidecarHealth(ctx, settings)
@@ -689,7 +705,7 @@ func TestCheckSidecarHealth_GRPC(t *testing.T) {
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_grpc")
-	settings.OTLPEndpoint = "grpc://localhost:4317"
+	settings.OTLPEndpoint = testGRPCEndpoint
 
 	// This should not panic, may return error since no sidecar is running
 	_ = checkSidecarHealth(ctx, settings)
@@ -701,7 +717,7 @@ func TestCheckSidecarHealth_GRPCS(t *testing.T) {
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_grpcs")
-	settings.OTLPEndpoint = "grpcs://localhost:4317"
+	settings.OTLPEndpoint = testGRPCSEndpoint
 
 	// This should not panic, may return error since no sidecar is running
 	_ = checkSidecarHealth(ctx, settings)
@@ -726,7 +742,7 @@ func TestCheckSidecarHealthWithRetry_ContextCancellation(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_cancel")
-	settings.OTLPEndpoint = "http://localhost:4318"
+	settings.OTLPEndpoint = testHTTPEndpoint
 
 	// Cancel context immediately
 	cancel()
@@ -746,7 +762,7 @@ func TestCheckSidecarHealthWithRetry_AllRetriesFail(t *testing.T) {
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_all_fail")
-	settings.OTLPEndpoint = "ftp://invalid:1234" // Invalid protocol will fail on all retries
+	settings.OTLPEndpoint = testInvalidFTPEndpoint // Invalid protocol will fail on all retries
 
 	intermediateErrs, err := checkSidecarHealthWithRetry(ctx, settings)
 	require.Error(t, err)
@@ -765,6 +781,7 @@ func TestTelemetryService_ExampleTracesSpans(t *testing.T) {
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// Service was created with verbose mode, which triggers doExampleTracesSpans
@@ -814,11 +831,12 @@ func TestTelemetryService_OTLPEnabledWithGRPC(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_otlp_grpc")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "grpc://localhost:4317"
+	settings.OTLPEndpoint = testGRPCEndpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// Use the service
@@ -832,11 +850,12 @@ func TestTelemetryService_OTLPEnabledWithGRPCS(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_otlp_grpcs")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "grpcs://localhost:4317"
+	settings.OTLPEndpoint = testGRPCSEndpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// Use the service
@@ -850,11 +869,12 @@ func TestTelemetryService_OTLPEnabledWithHTTPS(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_otlp_https")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "https://localhost:4318"
+	settings.OTLPEndpoint = testHTTPSEndpoint
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// Use the service
@@ -868,12 +888,13 @@ func TestTelemetryService_OTLPConsoleWithOTLP(t *testing.T) {
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_console_otlp")
 	settings.OTLPEnabled = true
-	settings.OTLPEndpoint = "http://localhost:4318"
+	settings.OTLPEndpoint = testHTTPEndpoint
 	settings.OTLPConsole = true
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
 	require.NotNil(t, service)
+
 	defer service.Shutdown()
 
 	// Use the service with both outputs

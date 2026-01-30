@@ -26,6 +26,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test constants for database DSN.
+const testPostgresDSN = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
+
 // TestStartCoreWithServices_FullIntegration tests the complete service initialization path.
 // IMPORTANT: StartCoreWithServices doesn't run migrations (Phase W TODO), so we test the components separately.
 func TestStartCoreWithServices_FullIntegration(t *testing.T) {
@@ -437,7 +440,7 @@ func TestStartBasic_NilContext(t *testing.T) {
 
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{}
 
-	basic, err := StartBasic(nil, settings)
+	basic, err := StartBasic(nil, settings) //nolint:staticcheck // Testing nil context error handling
 	require.Error(t, err)
 	require.Nil(t, basic)
 	require.Contains(t, err.Error(), "ctx cannot be nil")
@@ -1176,7 +1179,7 @@ func TestOpenSQLite_InvalidDSN(t *testing.T) {
 	var busyTimeout int
 
 	sqlDB, _ := db.DB()
-	err = sqlDB.QueryRow("PRAGMA busy_timeout").Scan(&busyTimeout)
+	err = sqlDB.QueryRowContext(ctx, "PRAGMA busy_timeout").Scan(&busyTimeout)
 	require.NoError(t, err)
 	require.Equal(t, 30000, busyTimeout) // 30 seconds as configured.
 }
@@ -1188,7 +1191,7 @@ func TestOpenPostgreSQL_Success(t *testing.T) {
 	ctx := context.Background()
 
 	// Use valid PostgreSQL DSN (won't connect but tests code path).
-	dsn := "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
+	dsn := testPostgresDSN
 	db, err := openPostgreSQL(ctx, dsn, false)
 
 	// Note: Will fail to connect since no actual PostgreSQL server.
@@ -1221,7 +1224,7 @@ func TestOpenPostgreSQL_DebugMode(t *testing.T) {
 	ctx := context.Background()
 
 	// Use valid DSN format but won't connect.
-	dsn := "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
+	dsn := testPostgresDSN
 
 	db, err := openPostgreSQL(ctx, dsn, true) // Debug mode = true.
 	if err != nil {
@@ -1245,7 +1248,7 @@ func TestProvisionDatabase_PostgreSQLContainerRequired(t *testing.T) {
 		OTLPVersion:       "1.0.0",
 		OTLPEnvironment:   "test",
 		UnsealMode:        "sysinfo",
-		DatabaseURL:       "postgres://user:pass@localhost:5432/testdb?sslmode=disable",
+		DatabaseURL:       testPostgresDSN,
 		DatabaseContainer: "required",
 	}
 
@@ -1287,7 +1290,7 @@ func TestProvisionDatabase_PostgreSQLContainerPreferred(t *testing.T) {
 		OTLPVersion:       "1.0.0",
 		OTLPEnvironment:   "test",
 		UnsealMode:        "sysinfo",
-		DatabaseURL:       "postgres://user:pass@localhost:5432/testdb?sslmode=disable",
+		DatabaseURL:       testPostgresDSN,
 		DatabaseContainer: "preferred",
 	}
 
@@ -1319,6 +1322,7 @@ func TestOpenSQLite_FileBasedWithWAL(t *testing.T) {
 	uuid, _ := googleUuid.NewV7()
 
 	tmpFile := "/tmp/test_sqlite_wal_" + uuid.String() + ".db"
+
 	defer func() { _ = os.Remove(tmpFile) }()
 
 	db, err := openSQLite(ctx, "file://"+tmpFile, false)
@@ -1330,14 +1334,14 @@ func TestOpenSQLite_FileBasedWithWAL(t *testing.T) {
 
 	var journalMode string
 
-	err = sqlDB.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
+	err = sqlDB.QueryRowContext(ctx, "PRAGMA journal_mode").Scan(&journalMode)
 	require.NoError(t, err)
 	require.Equal(t, "wal", journalMode)
 
 	// Verify busy timeout.
 	var busyTimeout int
 
-	err = sqlDB.QueryRow("PRAGMA busy_timeout").Scan(&busyTimeout)
+	err = sqlDB.QueryRowContext(ctx, "PRAGMA busy_timeout").Scan(&busyTimeout)
 	require.NoError(t, err)
 	require.Equal(t, 30000, busyTimeout)
 }
@@ -1360,7 +1364,7 @@ func TestOpenSQLite_WALModeFailure(t *testing.T) {
 
 	var journalMode string
 
-	err = sqlDB.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
+	err = sqlDB.QueryRowContext(ctx, "PRAGMA journal_mode").Scan(&journalMode)
 	require.NoError(t, err)
 	require.NotEqual(t, "wal", journalMode) // Should be "memory" for in-memory databases.
 }
@@ -2313,7 +2317,7 @@ func TestStartCoreWithServices_Success(t *testing.T) {
 func TestStartCoreWithServices_StartCoreFails(t *testing.T) {
 	t.Parallel()
 
-	coreWithSvcs, err := StartCoreWithServices(nil, nil)
+	coreWithSvcs, err := StartCoreWithServices(nil, nil) //nolint:staticcheck // Testing nil context error handling
 	require.Error(t, err)
 	require.Nil(t, coreWithSvcs)
 	require.Contains(t, err.Error(), "failed to start application core")

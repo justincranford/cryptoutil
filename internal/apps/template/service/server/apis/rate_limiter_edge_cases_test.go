@@ -99,12 +99,14 @@ func TestRateLimiter_TokenCapAfterLongIdle(t *testing.T) {
 	// Now artificially age the bucket back in time to simulate long idle period.
 	// This will cause tokensToAdd to exceed remaining capacity, triggering the cap.
 	limiter.mu.Lock()
+
 	if bucket, ok := limiter.buckets[ipAddress]; ok {
 		// Set lastRefillTime to 10 seconds ago.
 		// With 60 req/min = 1 token/sec, this should add ~10 tokens.
 		// But bucket already has 2 tokens (3 - 1 used), so cap at 3.
 		bucket.lastRefillTime = time.Now().UTC().Add(-10 * time.Second)
 	}
+
 	limiter.mu.Unlock()
 
 	// Next request triggers refill calculation.

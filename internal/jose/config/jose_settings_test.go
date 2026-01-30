@@ -113,6 +113,7 @@ func TestValidateJoseSettings_MultipleErrors(t *testing.T) {
 // TestNewDevSettings_Defaults tests NewDevSettings creates settings with defaults.
 func TestNewDevSettings_Defaults(t *testing.T) {
 	t.Parallel()
+
 	settings := NewDevSettings()
 
 	require.NotNil(t, settings)
@@ -129,6 +130,7 @@ func TestNewDevSettings_Defaults(t *testing.T) {
 // TestNewTestSettings_Defaults tests NewTestSettings creates settings with defaults.
 func TestNewTestSettings_Defaults(t *testing.T) {
 	t.Parallel()
+
 	settings := NewTestSettings()
 
 	require.NotNil(t, settings)
@@ -148,6 +150,7 @@ func TestNewTestSettings_Defaults(t *testing.T) {
 // TestLogJoseSettings_Logs tests logJoseSettings does not panic.
 func TestLogJoseSettings_Logs(t *testing.T) {
 	t.Parallel()
+
 	settings := NewTestSettings()
 
 	// logJoseSettings should not panic.

@@ -16,6 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Test constants for audit repository tests.
+const testOperation = "test-operation"
+
 // =============================================================================
 // AuditConfigRepository Tests
 // =============================================================================
@@ -28,7 +31,7 @@ func TestAuditConfigRepository_Get(t *testing.T) {
 
 	// Create config.
 	tenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	operation := "test-operation"
+	operation := testOperation
 	config := &cryptoutilAppsJoseJaDomain.AuditConfig{
 		TenantID:     *tenantID,
 		Operation:    operation,
@@ -461,7 +464,7 @@ func TestShouldAudit_DatabaseErrorPropagation(t *testing.T) {
 	// Use invalid tenant ID to trigger database error (foreign key constraint).
 	// This will cause a non-ErrRecordNotFound error when querying audit config.
 	invalidTenantID := googleUuid.Nil
-	operation := "test-operation"
+	operation := testOperation
 
 	repo := NewAuditConfigRepository(testDB)
 
@@ -490,12 +493,13 @@ func TestShouldAudit_FallbackSamplingBoundary(t *testing.T) {
 
 	// Use non-existent tenant to trigger ErrRecordNotFound → fallback sampling.
 	nonExistentTenantID, _ := cryptoutilSharedUtilRandom.GenerateUUIDv7()
-	operation := "test-operation"
+	operation := testOperation
 
 	// Run sampling decision multiple times to verify statistical behavior.
 	// With JoseJAAuditFallbackSamplingRate (1%) fallback sampling rate, expect ~1% true results.
 	// Use 10000 iterations for 1% rate to get enough samples for statistical validity.
 	const iterations = 10000
+
 	trueCount := 0
 
 	for i := 0; i < iterations; i++ {
