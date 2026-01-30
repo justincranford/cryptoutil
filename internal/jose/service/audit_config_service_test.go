@@ -381,3 +381,48 @@ func TestIsValidOperation(t *testing.T) {
 		})
 	}
 }
+
+// TestIsNotFoundAuditConfigError tests the isNotFoundAuditConfigError helper function.
+func TestIsNotFoundAuditConfigError(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		err    error
+		want   bool
+	}{
+		{
+			name: "nil error returns false",
+			err:  nil,
+			want: false,
+		},
+		{
+			name: "error containing 'not found' returns true",
+			err:  &testAuditError{msg: "audit config not found"},
+			want: true,
+		},
+		{
+			name: "unrelated error returns false",
+			err:  &testAuditError{msg: "database connection failed"},
+			want: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := isNotFoundAuditConfigError(tc.err)
+			require.Equal(t, tc.want, result)
+		})
+	}
+}
+
+// testAuditError is a simple error type for testing.
+type testAuditError struct {
+	msg string
+}
+
+func (e *testAuditError) Error() string {
+	return e.msg
+}
