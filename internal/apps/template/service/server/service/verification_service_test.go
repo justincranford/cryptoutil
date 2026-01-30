@@ -458,3 +458,58 @@ func TestVerificationService_CleanupExpiredRegistrations(t *testing.T) {
 	db.Model(&cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{}).Where("id = ?", validUser.ID).Count(&validUserCount)
 	require.Equal(t, int64(1), validUserCount)
 }
+
+// TestVerificationService_ApproveUser_RoleFromWrongTenant tests approval with role from different tenant.
+func TestVerificationService_ApproveUser_RoleFromWrongTenant(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupVerificationService(t)
+	ctx := context.Background()
+
+	// Create two tenants with their roles.
+	tenant1, _ := createTestTenantAndRole(t, db, "tenant1-"+googleUuid.NewString()[:8])
+	_, role2 := createTestTenantAndRole(t, db, "tenant2-"+googleUuid.NewString()[:8])
+
+	// Create unverified user in tenant1.
+	unverifiedUser := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser{
+		ID:           googleUuid.New(),
+		TenantID:     tenant1.ID,
+		Username:     "roletenantuser" + googleUuid.NewString()[:8],
+		Email:        "roleuser" + googleUuid.NewString()[:8] + "@example.com",
+		PasswordHash: "hashedpassword",
+		ExpiresAt:    time.Now().UTC().Add(72 * time.Hour),
+	}
+	require.NoError(t, db.Create(unverifiedUser).Error)
+
+	// Try to approve with role from tenant2 - should fail.
+	_, err := svc.ApproveUser(ctx, tenant1.ID, unverifiedUser.ID, []googleUuid.UUID{role2.ID})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "does not belong to the specified tenant")
+}
+
+// TestVerificationService_ApproveClient_RoleFromWrongTenant tests client approval with role from different tenant.
+func TestVerificationService_ApproveClient_RoleFromWrongTenant(t *testing.T) {
+	t.Parallel()
+
+	svc, db := setupVerificationService(t)
+	ctx := context.Background()
+
+	// Create two tenants with their roles.
+	tenant1, _ := createTestTenantAndRole(t, db, "tenant1-"+googleUuid.NewString()[:8])
+	_, role2 := createTestTenantAndRole(t, db, "tenant2-"+googleUuid.NewString()[:8])
+
+	// Create unverified client in tenant1.
+	unverifiedClient := &cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient{
+		ID:               googleUuid.New(),
+		TenantID:         tenant1.ID,
+		ClientID:         "roleclient" + googleUuid.NewString()[:8],
+		ClientSecretHash: "hashedsecret",
+		ExpiresAt:        time.Now().UTC().Add(72 * time.Hour),
+	}
+	require.NoError(t, db.Create(unverifiedClient).Error)
+
+	// Try to approve with role from tenant2 - should fail.
+	_, err := svc.ApproveClient(ctx, tenant1.ID, unverifiedClient.ID, []googleUuid.UUID{role2.ID})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "does not belong to the specified tenant")
+}
