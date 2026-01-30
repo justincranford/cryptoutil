@@ -1099,7 +1099,7 @@ func TestProvisionDatabase_SQLiteFileURL(t *testing.T) {
 	ctx := context.Background()
 
 	// Use temp file for SQLite database.
-	dbFile := "/tmp/test_sqlite_" + time.Now().Format("20060102150405") + ".db"
+	dbFile := "/tmp/test_sqlite_" + time.Now().UTC().Format("20060102150405") + ".db"
 
 	defer func() {
 		// Cleanup.

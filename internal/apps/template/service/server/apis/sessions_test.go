@@ -138,7 +138,7 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		requestBody interface{}
+		requestBody any
 		setupApp    func() *fiber.App
 		wantErr     bool
 	}{
