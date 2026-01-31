@@ -26,6 +26,7 @@ type Service struct {
 	clientAuth      *cryptoutilIdentityClientAuth.Registry
 	authReqStore    AuthorizationRequestStore
 	emailOTPService *cryptoutilIdentityMfa.EmailOTPService
+	totpService     *cryptoutilIdentityMfa.TOTPService
 }
 
 // NewService creates a new authorization server service.
@@ -46,6 +47,9 @@ func NewService(
 		emailService,
 	)
 
+	// Create TOTP service.
+	totpService := cryptoutilIdentityMfa.NewTOTPService(repoFactory.DB())
+
 	return &Service{
 		config:          config,
 		repoFactory:     repoFactory,
@@ -53,6 +57,7 @@ func NewService(
 		clientAuth:      cryptoutilIdentityClientAuth.NewRegistry(repoFactory, config, rotationService),
 		authReqStore:    NewInMemoryAuthorizationRequestStore(),
 		emailOTPService: emailOTPService,
+		totpService:     totpService,
 	}
 }
 

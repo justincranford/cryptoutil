@@ -7,7 +7,7 @@ package authz
 
 import (
 	"errors"
-
+	"strings"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -310,7 +310,7 @@ func (s *Service) handleGenerateTOTPBackupCodes(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"codes": codes,
+		"backup_codes": codes,
 	})
 }
 
@@ -355,7 +355,17 @@ func (s *Service) handleVerifyTOTPBackupCode(c *fiber.Ctx) error {
 
 	err = service.VerifyBackupCode(c.Context(), userID, req.Code)
 	if err != nil {
+		// Check for specific errors.
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrBackupCodeNotFound) {
+			return c.Status(fiber.StatusOK).JSON(VerifyBackupCodeResponse{
+				Verified: false,
+			})
+		}
+
+		// Generic errors (invalid code, already used, etc.) return verified=false, not 500.
+		// Only database/internal errors should return 500.
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "invalid backup code") || strings.Contains(errMsg, "failed to get backup codes") {
 			return c.Status(fiber.StatusOK).JSON(VerifyBackupCodeResponse{
 				Verified: false,
 			})

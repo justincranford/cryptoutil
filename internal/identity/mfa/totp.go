@@ -23,6 +23,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 )
 
@@ -101,7 +102,7 @@ func (s *TOTPService) VerifyTOTP(ctx context.Context, userID googleUuid.UUID, co
 
 	// Check if locked due to too many failed attempts.
 	if time.Now().UTC().Before(totpSecret.LockedUntil) {
-		return fmt.Errorf("TOTP locked until %s", totpSecret.LockedUntil.Format(time.RFC3339))
+		return cryptoutilIdentityAppErr.ErrTOTPAccountLocked
 	}
 
 	// Verify code with ±1 time window (90s tolerance).
