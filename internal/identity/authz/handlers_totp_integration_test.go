@@ -23,7 +23,7 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityMFA "cryptoutil/internal/identity/mfa"
+	cryptoutilIdentityMfa "cryptoutil/internal/identity/mfa"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
@@ -36,7 +36,7 @@ func TestTOTPEnrollment_HappyPath(t *testing.T) {
 	db := repoFactory.DB()
 
 	// Create TOTP service.
-	totpSvc := cryptoutilIdentityMFA.NewTOTPService(db)
+	totpSvc := cryptoutilIdentityMfa.NewTOTPService(db)
 	require.NotNil(t, totpSvc, "TOTP service should not be nil")
 
 	// Create AuthZ service.
@@ -72,7 +72,7 @@ func TestTOTPEnrollment_HappyPath(t *testing.T) {
 	require.Len(t, backupCodes, 10, "Should generate 10 backup codes")
 
 	// ========== STEP 2: Verify Secret Stored in Database ==========
-	var secret cryptoutilIdentityMFA.TOTPSecret
+	var secret cryptoutilIdentityMfa.TOTPSecret
 
 	err := db.Where("user_id = ?", userID).First(&secret).Error
 	require.NoError(t, err, "Should retrieve TOTP secret")
@@ -81,7 +81,7 @@ func TestTOTPEnrollment_HappyPath(t *testing.T) {
 	require.Equal(t, 0, secret.FailedAttempts, "Should have zero failed attempts")
 
 	// ========== STEP 3: Verify Backup Codes Stored in Database ==========
-	var storedCodes []cryptoutilIdentityMFA.BackupCode
+	var storedCodes []cryptoutilIdentityMfa.BackupCode
 
 	err = db.Where("user_id = ?", userID).Find(&storedCodes).Error
 	require.NoError(t, err, "Should retrieve backup codes")
@@ -101,7 +101,7 @@ func TestTOTPVerification_ValidCode(t *testing.T) {
 	db := repoFactory.DB()
 
 	// Create TOTP service.
-	totpSvc := cryptoutilIdentityMFA.NewTOTPService(db)
+	totpSvc := cryptoutilIdentityMfa.NewTOTPService(db)
 	require.NotNil(t, totpSvc, "TOTP service should not be nil")
 
 	// Create AuthZ service.
@@ -137,7 +137,7 @@ func TestTOTPVerification_ValidCode(t *testing.T) {
 	require.True(t, verified, "Code should be verified")
 
 	// Verify last_used_at updated in database.
-	var totpSecret cryptoutilIdentityMFA.TOTPSecret
+	var totpSecret cryptoutilIdentityMfa.TOTPSecret
 
 	err = db.Where("user_id = ?", userID).First(&totpSecret).Error
 	require.NoError(t, err, "Should retrieve TOTP secret")
@@ -210,7 +210,7 @@ func TestTOTPLockout_FiveFailedAttempts(t *testing.T) {
 	}
 
 	// Verify account locked.
-	var totpSecret cryptoutilIdentityMFA.TOTPSecret
+	var totpSecret cryptoutilIdentityMfa.TOTPSecret
 
 	err := db.Where("user_id = ?", userID).First(&totpSecret).Error
 	require.NoError(t, err, "Should retrieve TOTP secret")
@@ -268,7 +268,7 @@ func TestMFAStepUp_ThirtyMinuteRequirement(t *testing.T) {
 	require.False(t, required1, "Step-up should not be required immediately after verification")
 
 	// Manually set last_used_at to 31 minutes ago.
-	var totpSecret cryptoutilIdentityMFA.TOTPSecret
+	var totpSecret cryptoutilIdentityMfa.TOTPSecret
 
 	err = db.Where("user_id = ?", userID).First(&totpSecret).Error
 	require.NoError(t, err, "Should retrieve TOTP secret")
@@ -324,17 +324,19 @@ func TestBackupCodes_GenerateAndVerify(t *testing.T) {
 	require.True(t, verified1, "Backup code should be verified")
 
 	// Verify code #1 marked as used in database.
-	var storedCodes []cryptoutilIdentityMFA.BackupCode
+	var storedCodes []cryptoutilIdentityMfa.BackupCode
 
 	err := db.Where("user_id = ?", userID).Find(&storedCodes).Error
 	require.NoError(t, err, "Should retrieve backup codes")
 
 	usedCount := 0
+
 	for _, code := range storedCodes {
 		if code.Used {
 			usedCount++
 		}
 	}
+
 	require.Equal(t, 1, usedCount, "Should have 1 used backup code")
 
 	// Verify same code again (should fail - already used).
@@ -352,7 +354,7 @@ func TestBackupCodes_GenerateAndVerify(t *testing.T) {
 	require.Len(t, newCodes, 10, "Should generate 10 new backup codes")
 
 	// Verify old codes invalidated.
-	var storedCodesAfterRegenerate []cryptoutilIdentityMFA.BackupCode
+	var storedCodesAfterRegenerate []cryptoutilIdentityMfa.BackupCode
 
 	err = db.Where("user_id = ?", userID).Find(&storedCodesAfterRegenerate).Error
 	require.NoError(t, err, "Should retrieve backup codes after regeneration")
@@ -388,8 +390,8 @@ func createTOTPIntegrationTestDependencies(t *testing.T) (*cryptoutilIdentityCon
 	db := repoFactory.DB()
 	err = db.AutoMigrate(
 		&cryptoutilIdentityDomain.User{},
-		&cryptoutilIdentityMFA.TOTPSecret{},
-		&cryptoutilIdentityMFA.BackupCode{},
+		&cryptoutilIdentityMfa.TOTPSecret{},
+		&cryptoutilIdentityMfa.BackupCode{},
 	)
 	require.NoError(t, err, "Failed to auto-migrate database tables")
 
@@ -576,9 +578,4 @@ func extractSecretFromQRCode(t *testing.T, qrCodeURI string) string {
 	t.Fatal("Secret not found in QR code URI")
 
 	return ""
-}
-
-// timePtr returns a pointer to time.Time.
-func timePtr(t time.Time) *time.Time {
-	return &t
 }

@@ -359,7 +359,7 @@ func TestParseWithFlagSet_ConfigFileReadError(t *testing.T) {
 
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	// Pass the directory as config file - should fail to read.
-	_, err = ParseWithFlagSet(fs, []string{"start", "--config=" + configDir}, false)
+	_, _ = ParseWithFlagSet(fs, []string{"start", "--config=" + configDir}, false)
 	// The error may be about reading config or may succeed if stat shows it's a directory.
 	// Either way, we're exercising the code path.
 	// Note: viper.ReadInConfig may not error for directories in all cases.
@@ -450,25 +450,6 @@ bind-public-port: [invalid yaml syntax
 	_, err = ParseWithFlagSet(fs, []string{"start", "--config=" + config1Path, "--config=" + config2Path}, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error merging config file")
-}
-
-// createValidTestSettings creates a ServiceTemplateServerSettings with all valid values for testing.
-func createValidTestSettings() *ServiceTemplateServerSettings {
-	return &ServiceTemplateServerSettings{
-		BindPublicAddress:   "127.0.0.1",
-		BindPrivateAddress:  "127.0.0.1",
-		BindPublicPort:      8080,
-		BindPrivatePort:     9090,
-		BindPublicProtocol:  "https",
-		BindPrivateProtocol: "https",
-		TLSPublicDNSNames:   []string{"localhost"},
-		TLSPrivateDNSNames:  []string{"localhost"},
-		DatabaseURL:         ":memory:",
-		LogLevel:            "INFO",
-		BrowserIPRateLimit:  100,
-		ServiceIPRateLimit:  200,
-		DevMode:             true,
-	}
 }
 
 // TestNewForJOSEServer_PanicOnInvalidArgs tests that NewForJOSEServer panics on invalid args.

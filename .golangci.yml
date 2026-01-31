@@ -65,6 +65,9 @@ linters:
       # Exclude nilnil from test files (mock implementations).
       - path: "_test\\.go$"
         linters: [nilnil]
+      # Exclude wrapcheck from test files (test error helpers don't require wrapping).
+      - path: "_test\\.go$"
+        linters: [wrapcheck]
       # Exclude nilnil from step_up_auth.go (intentional pattern).
       - path: "internal/identity/idp/userauth/step_up_auth\\.go$"
         linters: [nilnil]
@@ -103,6 +106,9 @@ linters:
         linters: [wrapcheck]
       # Exclude wrapcheck from template registration handlers (Fiber HTTP response helpers).
       - path: "internal/apps/template/service/server/apis/registration_handlers\\.go$"
+        linters: [wrapcheck]
+      # Exclude wrapcheck from identity-rs public server (Fiber HTTP response helpers).
+      - path: "internal/apps/identity/rs/server/public_server\\.go$"
         linters: [wrapcheck]
       # Exclude revive package-comments from doc.go (false positive with block comments).
       - path: "internal/shared/crypto/digests/doc\\.go$"

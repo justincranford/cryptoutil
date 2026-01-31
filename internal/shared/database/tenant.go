@@ -32,6 +32,7 @@ func GetTenantContext(ctx context.Context) *TenantContext {
 	if !ok {
 		return nil
 	}
+
 	return tc
 }
 
@@ -42,6 +43,7 @@ func GetTenantID(ctx context.Context) googleUuid.UUID {
 	if tc == nil {
 		return googleUuid.Nil
 	}
+
 	return tc.TenantID
 }
 
@@ -52,6 +54,7 @@ func MustGetTenantID(ctx context.Context) googleUuid.UUID {
 	if tc == nil || tc.TenantID == googleUuid.Nil {
 		panic("tenant ID not set in context")
 	}
+
 	return tc.TenantID
 }
 
@@ -61,8 +64,10 @@ func RequireTenantContext(ctx context.Context) (*TenantContext, error) {
 	if tc == nil {
 		return nil, ErrNoTenantContext
 	}
+
 	if tc.TenantID == googleUuid.Nil {
 		return nil, ErrInvalidTenantID
 	}
+
 	return tc, nil
 }

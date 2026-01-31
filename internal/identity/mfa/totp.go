@@ -8,7 +8,7 @@ import (
 	"context"
 	hmac "crypto/hmac"
 	crand "crypto/rand"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // G505: SHA1 required by RFC 6238 TOTP specification for interoperability
 	sha256 "crypto/sha256"
 	sha512 "crypto/sha512"
 	"encoding/base32"
@@ -264,7 +264,7 @@ func (s *TOTPService) generateTOTP(secret string, timeStep int64, algorithm stri
 
 	// Convert time step to byte array (big endian).
 	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(timeStep))
+	binary.BigEndian.PutUint64(timeBytes, uint64(timeStep)) //nolint:gosec // G115: timeStep is always positive (Unix timestamp / period)
 
 	// Generate HMAC based on algorithm.
 	var mac hash.Hash
@@ -284,8 +284,8 @@ func (s *TOTPService) generateTOTP(secret string, timeStep int64, algorithm stri
 	hmacResult := mac.Sum(nil)
 
 	// Dynamic truncation per RFC 4226 (HOTP).
-	offset := hmacResult[len(hmacResult)-1] & 0x0F
-	truncatedHash := binary.BigEndian.Uint32(hmacResult[offset:offset+4]) & 0x7FFFFFFF
+	offset := hmacResult[len(hmacResult)-1] & 0x0F              //nolint:mnd // RFC 4226 dynamic truncation mask
+	truncatedHash := binary.BigEndian.Uint32(hmacResult[offset:offset+4]) & 0x7FFFFFFF //nolint:mnd // RFC 4226 31-bit mask
 
 	// Generate code with specified digits.
 	code := truncatedHash % uint32(math.Pow10(digits))

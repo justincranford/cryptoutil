@@ -759,14 +759,17 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				t.Cleanup(func() { rootKeysSvc.Shutdown() })
 
 				var tx cryptoutilAppsTemplateServiceServerBarrier.Transaction
+
 				err = repo.WithTransaction(ctx, func(transaction cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 					tx = transaction
+
 					return nil
 				})
 				require.NoError(t, err)
 
 				// Return invalid JWE format (not a valid JWE at all)
 				invalidJWE := []byte("this is not a valid JWE format")
+
 				return tx, rootKeysSvc, invalidJWE
 			},
 			expectedErrContain: "failed to parse encrypted intermediate key message",
@@ -800,14 +803,17 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				t.Cleanup(func() { rootKeysSvc.Shutdown() })
 
 				var tx cryptoutilAppsTemplateServiceServerBarrier.Transaction
+
 				err = repo.WithTransaction(ctx, func(transaction cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 					tx = transaction
+
 					return nil
 				})
 				require.NoError(t, err)
 
 				// Return corrupted JSON (looks like JSON but invalid structure)
 				corruptedJWE := []byte(`{"protected":"invalid","encrypted_key":"data","iv":"data","ciphertext":"data","tag":"data"}`)
+
 				return tx, rootKeysSvc, corruptedJWE
 			},
 			expectedErrContain: "failed to parse encrypted intermediate key message",
@@ -841,8 +847,10 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				t.Cleanup(func() { rootKeysSvc.Shutdown() })
 
 				var tx cryptoutilAppsTemplateServiceServerBarrier.Transaction
+
 				err = repo.WithTransaction(ctx, func(transaction cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 					tx = transaction
+
 					return nil
 				})
 				require.NoError(t, err)
@@ -888,7 +896,7 @@ func TestRootKeysService_EncryptKey_GetLatestFails(t *testing.T) {
 	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", dbUUID.String())
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
-	t.Cleanup(func() { sqlDB.Close() })
+	t.Cleanup(func() { _ = sqlDB.Close() })
 
 	_, err = sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;")
 	require.NoError(t, err)
@@ -921,14 +929,8 @@ func TestRootKeysService_EncryptKey_GetLatestFails(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { unsealSvc.Shutdown() })
 
-	// Create service manually WITHOUT using NewRootKeysService (which would initialize a root key)
-	rootKeysSvc := &cryptoutilAppsTemplateServiceServerBarrier.RootKeysService{}
-	// Use reflection or create a helper to set private fields - for testing purposes
-	// Since we can't access private fields, we'll use a different approach:
-	// Create the service normally but then try to encrypt with an empty database
-
-	// Actually, let's create a proper service and then manually delete the root key from DB
-	rootKeysSvc, err = cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	// Create a proper service and then manually delete the root key from DB
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
 	require.NoError(t, err)
 	t.Cleanup(func() { rootKeysSvc.Shutdown() })
 
@@ -941,8 +943,10 @@ func TestRootKeysService_EncryptKey_GetLatestFails(t *testing.T) {
 	require.NoError(t, err)
 
 	var encryptErr error
+
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, _, encryptErr = rootKeysSvc.EncryptKey(tx, testKey)
+
 		return encryptErr
 	})
 
@@ -994,13 +998,16 @@ func TestIntermediateKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 				t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
 
 				var tx cryptoutilAppsTemplateServiceServerBarrier.Transaction
+
 				err = repo.WithTransaction(ctx, func(transaction cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 					tx = transaction
+
 					return nil
 				})
 				require.NoError(t, err)
 
 				invalidJWE := []byte("invalid JWE content")
+
 				return tx, intermediateKeysSvc, invalidJWE
 			},
 			expectedErrContain: "failed to parse encrypted content key message",
@@ -1062,6 +1069,7 @@ func TestContentKeysService_EncryptContent_NilInput(t *testing.T) {
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		// Try to encrypt nil data
 		_, _, encryptErr := contentKeysSvc.EncryptContent(tx, nil)
+
 		return encryptErr
 	})
 	// The function should handle nil gracefully - check actual behavior
@@ -1115,6 +1123,7 @@ func TestContentKeysService_DecryptContent_InvalidCiphertext(t *testing.T) {
 		// Try to decrypt invalid ciphertext
 		invalidCiphertext := []byte("this is not valid JWE ciphertext")
 		_, decryptErr := contentKeysSvc.DecryptContent(tx, invalidCiphertext)
+
 		return decryptErr
 	})
 
@@ -1125,6 +1134,7 @@ func TestContentKeysService_DecryptContent_InvalidCiphertext(t *testing.T) {
 // TestRootKeysService_DecryptKey_AdditionalErrorPaths tests additional error scenarios.
 func TestRootKeysService_DecryptKey_AdditionalErrorPaths(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	tests := []struct {
@@ -1162,13 +1172,16 @@ func TestRootKeysService_DecryptKey_AdditionalErrorPaths(t *testing.T) {
 
 				// Encrypt an intermediate key with a root key.
 				var encryptedBytes []byte
+
 				err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 					_, testKey, _, _, _, genErr := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 					if genErr != nil {
 						return genErr
 					}
+
 					encBytes, _, encErr := rootKeysSvc.EncryptKey(tx, testKey)
 					encryptedBytes = encBytes
+
 					return encErr
 				})
 				require.NoError(t, err)
@@ -1181,8 +1194,10 @@ func TestRootKeysService_DecryptKey_AdditionalErrorPaths(t *testing.T) {
 
 				// Return transaction and encrypted bytes.
 				var tx cryptoutilAppsTemplateServiceServerBarrier.Transaction
+
 				_ = repo.WithTransaction(ctx, func(txInner cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 					tx = txInner
+
 					return nil
 				})
 
@@ -1207,6 +1222,7 @@ func TestRootKeysService_DecryptKey_AdditionalErrorPaths(t *testing.T) {
 // TestRotationService_RotateRootKey_ErrorPaths tests rotation error scenarios.
 func TestRotationService_RotateRootKey_ErrorPaths(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Test: No root key exists.
@@ -1266,6 +1282,7 @@ func TestRotationService_RotateRootKey_ErrorPaths(t *testing.T) {
 // TestRotationService_RotateIntermediateKey_ErrorPaths tests intermediate key rotation errors.
 func TestRotationService_RotateIntermediateKey_ErrorPaths(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Test: No intermediate key exists.
@@ -1325,6 +1342,7 @@ func TestRotationService_RotateIntermediateKey_ErrorPaths(t *testing.T) {
 // TestRotationService_RotateContentKey_ErrorPaths tests content key rotation errors.
 func TestRotationService_RotateContentKey_ErrorPaths(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Test: No intermediate key exists (content key rotation requires intermediate key).
@@ -1387,6 +1405,7 @@ func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
 
 	t.Run("intermediate_key_encryption_fails", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1431,6 +1450,7 @@ func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
 		// Attempt to encrypt content - should fail because no intermediate key exists.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, _, encryptErr := contentKeysSvc.EncryptContent(tx, []byte("test data"))
+
 			return encryptErr
 		})
 		require.Error(t, err)
@@ -1439,6 +1459,7 @@ func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
 
 	t.Run("add_content_key_db_failure", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1476,9 +1497,11 @@ func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
 
 		// Create a content key first to establish UUID.
 		var firstKeyID *googleUuid.UUID
+
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, keyID, encryptErr := contentKeysSvc.EncryptContent(tx, []byte("test data"))
 			firstKeyID = keyID
+
 			return encryptErr
 		})
 		require.NoError(t, err)
@@ -1502,6 +1525,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 	t.Run("invalid_jwe_format", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1540,6 +1564,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		// Attempt to decrypt with invalid JWE format.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, decryptErr := contentKeysSvc.DecryptContent(tx, []byte("not-a-valid-jwe"))
+
 			return decryptErr
 		})
 		require.Error(t, err)
@@ -1548,6 +1573,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 	t.Run("content_key_not_found", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1585,9 +1611,12 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 		// First encrypt some content to get a valid JWE.
 		var ciphertext []byte
+
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			var encryptErr error
+
 			ciphertext, _, encryptErr = contentKeysSvc.EncryptContent(tx, []byte("test data"))
+
 			return encryptErr
 		})
 		require.NoError(t, err)
@@ -1601,6 +1630,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		// Attempt to decrypt - should fail because content key not found.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, decryptErr := contentKeysSvc.DecryptContent(tx, ciphertext)
+
 			return decryptErr
 		})
 		require.Error(t, err)
@@ -1609,6 +1639,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 	t.Run("missing_kid_header", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1652,6 +1683,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		// Attempt to decrypt - should fail because kid header is missing.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, decryptErr := contentKeysSvc.DecryptContent(tx, jweWithoutKid)
+
 			return decryptErr
 		})
 		require.Error(t, err)
@@ -1660,6 +1692,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 	t.Run("decrypt_content_key_failure", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1698,9 +1731,12 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 		// Encrypt content with the first barrier.
 		var ciphertext []byte
+
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			var encryptErr error
+
 			ciphertext, _, encryptErr = contentKeysSvc1.EncryptContent(tx, []byte("test data"))
+
 			return encryptErr
 		})
 		require.NoError(t, err)
@@ -1735,6 +1771,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		// Attempt to decrypt with second barrier - should fail because intermediate key used to encrypt content key is missing.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, decryptErr := contentKeysSvc2.DecryptContent(tx, ciphertext)
+
 			return decryptErr
 		})
 		require.Error(t, err)
@@ -1743,6 +1780,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 	t.Run("decrypt_bytes_failure", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1780,9 +1818,12 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 
 		// Encrypt content to get a valid JWE structure.
 		var validCiphertext []byte
+
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			var encryptErr error
+
 			validCiphertext, _, encryptErr = contentKeysSvc.EncryptContent(tx, []byte("test data"))
+
 			return encryptErr
 		})
 		require.NoError(t, err)
@@ -1793,6 +1834,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		dotCount := 0
 		thirdDotIdx := -1
 		fourthDotIdx := -1
+
 		for i := 0; i < len(parts); i++ {
 			if parts[i] == '.' {
 				dotCount++
@@ -1800,10 +1842,12 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 					thirdDotIdx = i
 				} else if dotCount == 4 {
 					fourthDotIdx = i
+
 					break
 				}
 			}
 		}
+
 		require.True(t, thirdDotIdx > 0 && fourthDotIdx > thirdDotIdx, "JWE compact serialization should have at least 4 dots")
 
 		// Replace the ciphertext portion (between 3rd and 4th dot) with valid base64url but wrong length/content.
@@ -1816,6 +1860,7 @@ func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
 		// Attempt to decrypt - should fail at DecryptBytesWithContext.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, decryptErr := contentKeysSvc.DecryptContent(tx, corruptedJWE)
+
 			return decryptErr
 		})
 		require.Error(t, err)
@@ -1829,6 +1874,7 @@ func TestIntermediateKeysService_EncryptKey_ErrorPaths(t *testing.T) {
 
 	t.Run("no_intermediate_key_exists", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1873,6 +1919,7 @@ func TestIntermediateKeysService_EncryptKey_ErrorPaths(t *testing.T) {
 		// Attempt to encrypt - should fail because no intermediate key exists.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, _, encryptErr := intermediateKeysSvc.EncryptKey(tx, testJWK)
+
 			return encryptErr
 		})
 		require.Error(t, err)
@@ -1881,6 +1928,7 @@ func TestIntermediateKeysService_EncryptKey_ErrorPaths(t *testing.T) {
 
 	t.Run("decrypt_intermediate_key_failure", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1936,6 +1984,7 @@ func TestIntermediateKeysService_EncryptKey_ErrorPaths(t *testing.T) {
 		// Try to encrypt - should fail because wrong unseal key means can't decrypt intermediate key.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, _, encErr := intermediateKeysSvc2.EncryptKey(tx, contentJWK)
+
 			return encErr
 		})
 		require.Error(t, err)
@@ -1946,6 +1995,7 @@ func TestIntermediateKeysService_EncryptKey_ErrorPaths(t *testing.T) {
 // TestNewService_NilParameters tests that NewService properly rejects nil parameters.
 func TestNewService_NilParameters(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2084,6 +2134,7 @@ func TestDecryptContent_InvalidKidFormat(t *testing.T) {
 	// Try to decrypt - should fail because kid is not a valid UUID.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decryptErr := contentKeysSvc.DecryptContent(tx, malformedJWE)
+
 		return decryptErr
 	})
 	require.Error(t, err)
@@ -2096,6 +2147,7 @@ func TestIntermediateKeysService_DecryptKey_RootKeyMissing(t *testing.T) {
 
 	t.Run("intermediate_key_not_found", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := context.Background()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2138,6 +2190,7 @@ func TestIntermediateKeysService_DecryptKey_RootKeyMissing(t *testing.T) {
 		// Try to decrypt - should fail because intermediate key not found.
 		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 			_, decryptErr := intermediateKeysSvc.DecryptKey(tx, jweBytes)
+
 			return decryptErr
 		})
 		require.Error(t, err)
@@ -2189,6 +2242,7 @@ func TestRootKeysService_EncryptKey_NoRootKey(t *testing.T) {
 	// Attempt to encrypt - should fail because no root key exists.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, _, encryptErr := rootKeysSvc.EncryptKey(tx, testJWK)
+
 		return encryptErr
 	})
 	require.Error(t, err)
@@ -2198,6 +2252,7 @@ func TestRootKeysService_EncryptKey_NoRootKey(t *testing.T) {
 // TestRotationService_RotateRootKey_NoExistingKey tests root key rotation when no key exists.
 func TestRotationService_RotateRootKey_NoExistingKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2235,6 +2290,7 @@ func TestRotationService_RotateRootKey_NoExistingKey(t *testing.T) {
 // TestRotationService_RotateIntermediateKey_NoExistingKey tests intermediate key rotation when no key exists.
 func TestRotationService_RotateIntermediateKey_NoExistingKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2272,6 +2328,7 @@ func TestRotationService_RotateIntermediateKey_NoExistingKey(t *testing.T) {
 // TestRotationService_RotateContentKey_NoExistingKey tests content key rotation when no key exists.
 func TestRotationService_RotateContentKey_NoExistingKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2309,6 +2366,7 @@ func TestRotationService_RotateContentKey_NoExistingKey(t *testing.T) {
 // TestRootKeysService_DecryptKey_InvalidJWE tests DecryptKey with invalid JWE format.
 func TestRootKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2339,6 +2397,7 @@ func TestRootKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 	// Try to decrypt invalid JWE format.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decryptErr := rootKeysSvc.DecryptKey(tx, []byte("not-a-valid-jwe"))
+
 		return decryptErr
 	})
 	require.Error(t, err)
@@ -2348,6 +2407,7 @@ func TestRootKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 // TestRootKeysService_DecryptKey_InvalidKidFormat tests DecryptKey with invalid kid format.
 func TestRootKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2381,6 +2441,7 @@ func TestRootKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 	// Try to decrypt - should fail because kid is not a valid UUID.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decryptErr := rootKeysSvc.DecryptKey(tx, malformedJWE)
+
 		return decryptErr
 	})
 	require.Error(t, err)
@@ -2390,6 +2451,7 @@ func TestRootKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 // TestRootKeysService_DecryptKey_RootKeyNotFound tests DecryptKey when root key doesn't exist.
 func TestRootKeysService_DecryptKey_RootKeyNotFound(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2428,6 +2490,7 @@ func TestRootKeysService_DecryptKey_RootKeyNotFound(t *testing.T) {
 	// Try to decrypt - should fail because root key not found.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decryptErr := rootKeysSvc.DecryptKey(tx, jweBytes)
+
 		return decryptErr
 	})
 	require.Error(t, err)
@@ -2437,6 +2500,7 @@ func TestRootKeysService_DecryptKey_RootKeyNotFound(t *testing.T) {
 // TestIntermediateKeysService_DecryptKey_InvalidJWE tests DecryptKey with invalid JWE format.
 func TestIntermediateKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2471,6 +2535,7 @@ func TestIntermediateKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 	// Try to decrypt invalid JWE format.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decryptErr := intermediateKeysSvc.DecryptKey(tx, []byte("not-a-valid-jwe"))
+
 		return decryptErr
 	})
 	require.Error(t, err)
@@ -2480,6 +2545,7 @@ func TestIntermediateKeysService_DecryptKey_InvalidJWE(t *testing.T) {
 // TestIntermediateKeysService_DecryptKey_InvalidKidFormat tests DecryptKey with invalid kid format.
 func TestIntermediateKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2517,6 +2583,7 @@ func TestIntermediateKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 	// Try to decrypt - should fail because kid is not a valid UUID.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decryptErr := intermediateKeysSvc.DecryptKey(tx, malformedJWE)
+
 		return decryptErr
 	})
 	require.Error(t, err)
@@ -2526,6 +2593,7 @@ func TestIntermediateKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
 // TestContentKeysService_DecryptContent_InvalidJWE tests DecryptContent with invalid JWE format.
 func TestContentKeysService_DecryptContent_InvalidJWE(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2564,6 +2632,7 @@ func TestContentKeysService_DecryptContent_InvalidJWE(t *testing.T) {
 	// Try to decrypt invalid JWE format.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decryptErr := contentKeysSvc.DecryptContent(tx, []byte("not-a-valid-jwe"))
+
 		return decryptErr
 	})
 	require.Error(t, err)
@@ -2573,6 +2642,7 @@ func TestContentKeysService_DecryptContent_InvalidJWE(t *testing.T) {
 // TestRotationService_RotateIntermediateKey_NoRootKey tests intermediate key rotation when no root key exists.
 func TestRotationService_RotateIntermediateKey_NoRootKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2627,6 +2697,7 @@ func TestRotationService_RotateIntermediateKey_NoRootKey(t *testing.T) {
 // TestRotationService_RotateContentKey_NoRootKey tests content key rotation when root key is missing.
 func TestRotationService_RotateContentKey_NoRootKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2681,6 +2752,7 @@ func TestRotationService_RotateContentKey_NoRootKey(t *testing.T) {
 // TestEncryptContent_InvalidInput tests EncryptContent with edge cases.
 func TestEncryptContent_InvalidInput(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2721,6 +2793,7 @@ func TestEncryptContent_InvalidInput(t *testing.T) {
 		_, _, encErr := contentKeysSvc.EncryptContent(tx, []byte{})
 		require.Error(t, encErr)
 		require.Contains(t, encErr.Error(), "clearBytes")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -2730,6 +2803,7 @@ func TestEncryptContent_InvalidInput(t *testing.T) {
 		_, _, encErr := contentKeysSvc.EncryptContent(tx, nil)
 		require.Error(t, encErr)
 		require.Contains(t, encErr.Error(), "clearBytes")
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -2739,16 +2813,20 @@ func TestEncryptContent_InvalidInput(t *testing.T) {
 	for i := range largeContent {
 		largeContent[i] = byte(i % 256)
 	}
+
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		encryptedLarge, _, encErr := contentKeysSvc.EncryptContent(tx, largeContent)
 		if encErr != nil {
 			return encErr
 		}
+
 		decrypted, decErr := contentKeysSvc.DecryptContent(tx, encryptedLarge)
 		if decErr != nil {
 			return decErr
 		}
+
 		require.Equal(t, largeContent, decrypted)
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -2757,6 +2835,7 @@ func TestEncryptContent_InvalidInput(t *testing.T) {
 // TestIntermediateKeysService_EncryptKey_NoIntermediateKey tests EncryptKey when no intermediate key exists.
 func TestIntermediateKeysService_EncryptKey_NoIntermediateKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2801,6 +2880,7 @@ func TestIntermediateKeysService_EncryptKey_NoIntermediateKey(t *testing.T) {
 
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, _, encErr := intermediateKeysSvc.EncryptKey(tx, testContentJWK)
+
 		return encErr
 	})
 	require.Error(t, err)
@@ -2810,6 +2890,7 @@ func TestIntermediateKeysService_EncryptKey_NoIntermediateKey(t *testing.T) {
 // TestRootKeysService_EncryptKey_NoRootKey_DeletedKey tests EncryptKey when no root key exists.
 func TestRootKeysService_EncryptKey_NoRootKey_DeletedKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2850,6 +2931,7 @@ func TestRootKeysService_EncryptKey_NoRootKey_DeletedKey(t *testing.T) {
 
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, _, encErr := rootKeysSvc.EncryptKey(tx, testIntermediateJWK)
+
 		return encErr
 	})
 	require.Error(t, err)
@@ -2859,6 +2941,7 @@ func TestRootKeysService_EncryptKey_NoRootKey_DeletedKey(t *testing.T) {
 // TestIntermediateKeysService_DecryptKey_NoRootKey tests DecryptKey when root key is missing.
 func TestIntermediateKeysService_DecryptKey_NoRootKey(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -2893,12 +2976,15 @@ func TestIntermediateKeysService_DecryptKey_NoRootKey(t *testing.T) {
 
 	// Encrypt a key first to get valid encrypted data.
 	var encryptedKeyBytes []byte
+
 	_, testContentJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		var encErr error
+
 		encryptedKeyBytes, _, encErr = intermediateKeysSvc.EncryptKey(tx, testContentJWK)
+
 		return encErr
 	})
 	require.NoError(t, err)
@@ -2912,6 +2998,7 @@ func TestIntermediateKeysService_DecryptKey_NoRootKey(t *testing.T) {
 	// Try to decrypt - should fail because root key is missing.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, decErr := intermediateKeysSvc.DecryptKey(tx, encryptedKeyBytes)
+
 		return decErr
 	})
 	require.Error(t, err)
@@ -2967,6 +3054,7 @@ func TestRepositoryGetKey_NilUUID(t *testing.T) {
 	// Test GetRootKey with nil UUID.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, getErr := tx.GetRootKey(nil)
+
 		return getErr
 	})
 	require.Error(t, err)
@@ -2975,6 +3063,7 @@ func TestRepositoryGetKey_NilUUID(t *testing.T) {
 	// Test GetIntermediateKey with nil UUID.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, getErr := tx.GetIntermediateKey(nil)
+
 		return getErr
 	})
 	require.Error(t, err)
@@ -2983,6 +3072,7 @@ func TestRepositoryGetKey_NilUUID(t *testing.T) {
 	// Test GetContentKey with nil UUID.
 	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, getErr := tx.GetContentKey(nil)
+
 		return getErr
 	})
 	require.Error(t, err)
@@ -3059,21 +3149,25 @@ func TestRootKeysService_EncryptKey_ErrorPaths(t *testing.T) {
 			rootKeysSvc, repo, jwkGenSvc := tc.setup(t)
 
 			var testJWK joseJwk.Key
+
 			if tc.name == "encrypt_bytes_failure" {
 				// Create signing key (Ed25519) which cannot be used for encryption.
 				_, _, signKey, _, _, err := jwkGenSvc.GenerateJWSJWK(cryptoutilSharedCryptoJose.AlgEdDSA)
 				require.NoError(t, err)
+
 				testJWK = signKey
 			} else {
 				// Generate intermediate JWK to encrypt.
 				_, intermediateJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 				require.NoError(t, err)
+
 				testJWK = intermediateJWK
 			}
 
 			// Try to encrypt - should fail.
 			err := repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 				_, _, encErr := rootKeysSvc.EncryptKey(tx, testJWK)
+
 				return encErr
 			})
 			require.Error(t, err)

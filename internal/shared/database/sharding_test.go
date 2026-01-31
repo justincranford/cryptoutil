@@ -18,17 +18,20 @@ import (
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
+
 	sqlDB, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
-	
+
 	dialector := sqlite.Dialector{Conn: sqlDB}
 	db, err := gorm.Open(dialector, &gorm.Config{})
 	require.NoError(t, err)
+
 	return db
 }
 
 func TestDefaultShardConfig(t *testing.T) {
 	t.Parallel()
+
 	cfg := DefaultShardConfig()
 	require.Equal(t, StrategyRowLevel, cfg.Strategy)
 	require.Equal(t, "tenant_", cfg.SchemaPrefix)
@@ -42,6 +45,7 @@ func TestNewShardManager(t *testing.T) {
 
 	t.Run("with config", func(t *testing.T) {
 		t.Parallel()
+
 		cfg := DefaultShardConfig()
 		m := NewShardManager(db, cfg)
 		require.NotNil(t, m)
@@ -50,6 +54,7 @@ func TestNewShardManager(t *testing.T) {
 
 	t.Run("nil config uses default", func(t *testing.T) {
 		t.Parallel()
+
 		m := NewShardManager(db, nil)
 		require.NotNil(t, m)
 		require.NotNil(t, m.config)
@@ -65,12 +70,14 @@ func TestShardManager_GetDBNContext(t *testing.T) {
 
 	t.Run("no tenant context", func(t *testing.T) {
 		t.Parallel()
+
 		_, err := m.GetDB(context.Background())
 		require.ErrorIs(t, err, ErrNoTenantContext)
 	})
 
 	t.Run("nil tenant id", func(t *testing.T) {
 		t.Parallel()
+
 		ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.Nil})
 		_, err := m.GetDB(ctx)
 		require.ErrorIs(t, err, ErrInvalidTenantID)
@@ -143,9 +150,10 @@ func TestShardManager_DropTenantSchema(t *testing.T) {
 
 func TestShardStrategyString(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		strategy ShardStrategy
-		expected  string
+		expected string
 	}{
 		{StrategyRowLevel, "row-level"},
 		{StrategySchemaLevel, "schema-level"},

@@ -60,8 +60,8 @@ func DefaultShardConfig() *ShardConfig {
 
 // ShardManager manages database connections and routing for multi-tenancy.
 type ShardManager struct {
-	config  *ShardConfig
-	baseDB  *gorm.DB
+	config *ShardConfig
+	baseDB *gorm.DB
 
 	// schemaCache caches GORM sessions per tenant schema.
 	schemaCache sync.Map
@@ -72,8 +72,9 @@ func NewShardManager(baseDB *gorm.DB, config *ShardConfig) *ShardManager {
 	if config == nil {
 		config = DefaultShardConfig()
 	}
+
 	return &ShardManager{
-		config:  config,
+		config: config,
 		baseDB: baseDB,
 	}
 }
@@ -109,7 +110,12 @@ func (sm *ShardManager) getSchemaLevelDB(ctx context.Context, tc *TenantContext)
 
 	// Check cache first.
 	if cached, ok := sm.schemaCache.Load(schemaName); ok {
-		return cached.(*gorm.DB).WithContext(ctx), nil
+		cachedDB, assertOk := cached.(*gorm.DB)
+		if !assertOk {
+			return nil, fmt.Errorf("invalid cached DB type for schema %s", schemaName)
+		}
+
+		return cachedDB.WithContext(ctx), nil
 	}
 
 	// Create schema if needed.
@@ -134,6 +140,7 @@ func (sm *ShardManager) getSchemaLevelDB(ctx context.Context, tc *TenantContext)
 // ensureSchema creates the schema if it doesn't exist.
 func (sm *ShardManager) ensureSchema(schemaName string) error {
 	query := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS \"%s\"", schemaName)
+
 	return sm.baseDB.Exec(query).Error
 }
 
@@ -149,5 +156,6 @@ func (sm *ShardManager) DropTenantSchema(tenantID googleUuid.UUID) error {
 	sm.schemaCache.Delete(schemaName)
 
 	query := fmt.Sprintf("DROP SCHEMA IF EXISTS \"%s\" CASCADE", schemaName)
+
 	return sm.baseDB.Exec(query).Error
 }

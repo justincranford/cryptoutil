@@ -48,9 +48,11 @@ func (m *mockServiceTransaction) GetRootKeyLatest() (*RootKey, error) {
 	if m.getRootKeyLatestErr != nil {
 		return nil, m.getRootKeyLatestErr
 	}
+
 	if m.getRootKeyLatestReturnsNil {
 		return nil, nil
 	}
+
 	return m.rootKey, nil
 }
 
@@ -58,6 +60,7 @@ func (m *mockServiceTransaction) GetRootKey(_ *googleUuid.UUID) (*RootKey, error
 	if m.getRootKeyErr != nil {
 		return nil, m.getRootKeyErr
 	}
+
 	return m.rootKey, nil
 }
 
@@ -69,9 +72,11 @@ func (m *mockServiceTransaction) GetIntermediateKeyLatest() (*IntermediateKey, e
 	if m.getIntermediateKeyLatestErr != nil {
 		return nil, m.getIntermediateKeyLatestErr
 	}
+
 	if m.getIntermediateKeyLatestReturnsNil {
 		return nil, nil
 	}
+
 	return m.intermediateKey, nil
 }
 
@@ -79,6 +84,7 @@ func (m *mockServiceTransaction) GetIntermediateKey(_ *googleUuid.UUID) (*Interm
 	if m.getIntermediateKeyErr != nil {
 		return nil, m.getIntermediateKeyErr
 	}
+
 	return m.intermediateKey, nil
 }
 
@@ -90,6 +96,7 @@ func (m *mockServiceTransaction) GetContentKey(_ *googleUuid.UUID) (*ContentKey,
 	if m.getContentKeyErr != nil {
 		return nil, m.getContentKeyErr
 	}
+
 	return m.contentKey, nil
 }
 
@@ -109,10 +116,13 @@ func (m *mockServiceRepository) WithTransaction(ctx context.Context, fn func(tx 
 	if m.withTxErr != nil {
 		return m.withTxErr
 	}
+
 	if m.shouldCallTxFn && m.tx != nil {
 		m.tx.ctx = ctx
+
 		return fn(m.tx)
 	}
+
 	return nil
 }
 
@@ -130,6 +140,7 @@ func newMockServiceRepository() *mockServiceRepository {
 // setupRotationServiceTestHelper creates test dependencies for rotation service testing.
 func setupRotationServiceTestHelper(t *testing.T) (*cryptoutilSharedCryptoJose.JWKGenService, cryptoutilUnsealKeysService.UnsealKeysService) {
 	t.Helper()
+
 	ctx := context.Background()
 
 	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))

@@ -578,6 +578,7 @@ func TestGormTransaction_GetRootKey_NilUUID(t *testing.T) {
 	// Test: GetRootKey with nil UUID should return error.
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, err := tx.GetRootKey(nil)
+
 		return err
 	})
 	require.Error(t, err)
@@ -601,6 +602,7 @@ func TestGormTransaction_GetIntermediateKey_NilUUID(t *testing.T) {
 	// Test: GetIntermediateKey with nil UUID should return error.
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, err := tx.GetIntermediateKey(nil)
+
 		return err
 	})
 	require.Error(t, err)
@@ -624,6 +626,7 @@ func TestGormTransaction_GetContentKey_NilUUID(t *testing.T) {
 	// Test: GetContentKey with nil UUID should return error.
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, err := tx.GetContentKey(nil)
+
 		return err
 	})
 	require.Error(t, err)
@@ -648,6 +651,7 @@ func TestGormTransaction_GetRootKey_NotFound(t *testing.T) {
 	nonExistentUUID, _ := googleUuid.NewV7()
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, err := tx.GetRootKey(&nonExistentUUID)
+
 		return err
 	})
 	require.Error(t, err)
@@ -672,6 +676,7 @@ func TestGormTransaction_GetIntermediateKey_NotFound(t *testing.T) {
 	nonExistentUUID, _ := googleUuid.NewV7()
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, err := tx.GetIntermediateKey(&nonExistentUUID)
+
 		return err
 	})
 	require.Error(t, err)
@@ -696,6 +701,7 @@ func TestGormTransaction_GetContentKey_NotFound(t *testing.T) {
 	nonExistentUUID, _ := googleUuid.NewV7()
 	err = barrierRepo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
 		_, err := tx.GetContentKey(&nonExistentUUID)
+
 		return err
 	})
 	require.Error(t, err)

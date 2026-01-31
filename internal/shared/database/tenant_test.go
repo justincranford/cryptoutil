@@ -56,6 +56,7 @@ func TestTenantContext(t *testing.T) {
 
 func TestGetTenantContext_Nil(t *testing.T) {
 	t.Parallel()
+
 	tc := GetTenantContext(context.Background())
 	require.Nil(t, tc)
 }
@@ -83,6 +84,7 @@ func TestGetTenantID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			result := GetTenantID(tt.ctx)
 			require.Equal(t, tt.expected, result)
 		})
@@ -118,6 +120,7 @@ func TestMustGetTenantID_Panic(t *testing.T) {
 
 func TestMustGetTenantID_Success(t *testing.T) {
 	t.Parallel()
+
 	tenantID := googleUuid.New()
 	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
 	result := MustGetTenantID(ctx)
@@ -128,9 +131,9 @@ func TestRequireTenantContext(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		ctx       context.Context
-		wantErr   error
+		name       string
+		ctx        context.Context
+		wantErr    error
 		wantTenant googleUuid.UUID
 	}{
 		{
@@ -144,9 +147,9 @@ func TestRequireTenantContext(t *testing.T) {
 			wantErr: ErrInvalidTenantID,
 		},
 		{
-			name:        "valid context",
-			ctx:         WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.MustParse("01234567-89ab-cdef-0123-456789abcdef")}),
-			wantErr:     nil,
+			name:       "valid context",
+			ctx:        WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.MustParse("01234567-89ab-cdef-0123-456789abcdef")}),
+			wantErr:    nil,
 			wantTenant: googleUuid.MustParse("01234567-89ab-cdef-0123-456789abcdef"),
 		},
 	}
@@ -154,6 +157,7 @@ func TestRequireTenantContext(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
 			tc, err := RequireTenantContext(tt.ctx)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
