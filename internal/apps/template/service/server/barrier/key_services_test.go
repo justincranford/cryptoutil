@@ -1167,7 +1167,7 @@ func TestRootKeysService_DecryptKey_AdditionalErrorPaths(t *testing.T) {
 					if genErr != nil {
 						return genErr
 					}
-					_, encBytes, encErr := rootKeysSvc.EncryptKey(tx, testKey)
+					encBytes, _, encErr := rootKeysSvc.EncryptKey(tx, testKey)
 					encryptedBytes = encBytes
 					return encErr
 				})
@@ -1327,8 +1327,8 @@ func TestRotationService_RotateContentKey_ErrorPaths(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	// Test: No content key exists.
-	t.Run("no_content_key_exists", func(t *testing.T) {
+	// Test: No intermediate key exists (content key rotation requires intermediate key).
+	t.Run("no_intermediate_key_exists", func(t *testing.T) {
 		t.Parallel()
 
 		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
@@ -1367,16 +1367,16 @@ func TestRotationService_RotateContentKey_ErrorPaths(t *testing.T) {
 		rotationSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(jwkGenSvc, repo, unsealSvc)
 		require.NoError(t, err)
 
-		// Delete all content keys.
+		// Delete all intermediate keys (content key rotation requires intermediate key).
 		sqlDB, err := db.DB()
 		require.NoError(t, err)
-		_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_content_keys")
+		_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_intermediate_keys")
 		require.NoError(t, err)
 
-		// Attempt rotation - should fail.
+		// Attempt rotation - should fail because no intermediate key exists.
 		_, err = rotationSvc.RotateContentKey(ctx, "test rotation")
 
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "failed to get")
+		require.Contains(t, err.Error(), "no intermediate key found")
 	})
 }
