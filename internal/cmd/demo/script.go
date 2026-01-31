@@ -77,10 +77,9 @@ type DemoScript struct {
 
 // NewDemoScript creates a new demo script runner.
 func NewDemoScript(config *Config) *DemoScript {
-	//nolint:gosec // Demo uses self-signed certs.
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: true, //nolint:gosec // G402: Demo uses self-signed certs
 		},
 	}
 
