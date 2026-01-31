@@ -17,33 +17,13 @@ This plan consolidates incomplete work from v6 analysis. It covers service-templ
 
 ## Phases
 
-### Phase 1: Critical Fixes (TODOs and Security) - 4-6h
+### Phase 1: Copilot Instructions Updates - 2-3h
 
-- Complete registration handler TODOs (password hashing, validation)
-- Add admin middleware to registration routes
-- Implement realm lookup for multi-tenant deployments
+- Update 02-02.service-template.instructions.md
+- Update 03-02.testing.instructions.md
+- Update 03-08.server-builder.instructions.md
 
-### Phase 2: Test Architecture Refactoring - 6-8h
-
-- Refactor listener tests to use app.Test() instead of real HTTPS listeners
-- Consolidate standalone tests to table-driven pattern
-- Ensure t.Parallel() in all tests
-
-### Phase 3: Coverage Improvements - 4-6h
-
-- Repository package: 84.8% → 95%
-- Application package: 89.8% → 95%
-- Businesslogic package: 87.4% → 95%
-- Config packages: 86.9%/87.1% → 95%
-- Other below-target packages
-
-### Phase 4: Code Cleanup - 2-3h
-
-- Investigate low-coverage functions (may need documentation vs removal)
-- Fix config bug acknowledged in tests
-- Fix healthcheck path mismatch in KMS compose.yml
-
-### Phase 5: CICD Enforcement Improvements - 6-8h (NEW)
+### Phase 2: CICD Enforcement Improvements - 6-8h
 
 HIGH Priority linters to add:
 - Docker secrets pattern enforcement (#15)
@@ -62,16 +42,36 @@ MEDIUM Priority:
 - TLS 1.3+ minimum (#24)
 - Test file size limits (#25)
 
-### Phase 6: Deployment Fixes - 1-2h
+### Phase 3: Deployment Fixes - 1-2h
 
 - Fix healthcheck path mismatch in KMS compose.yml (/admin/v1/ → /admin/api/v1/)
+- Create template deployment (deployments/template/compose.yml)
 - Review and fix any other deployment issues
 
-### Phase 7: Copilot Instructions Updates - 2-3h
+### Phase 4: Critical Fixes (TODOs and Security) - 4-6h
 
-- Update 02-02.service-template.instructions.md
-- Update 03-02.testing.instructions.md
-- Update 03-08.server-builder.instructions.md
+- Complete registration handler TODOs (password hashing, validation)
+- Add admin middleware to registration routes
+- Implement realm lookup for multi-tenant deployments
+
+### Phase 5: Test Architecture Refactoring - 6-8h
+
+- Refactor listener tests to use app.Test() instead of real HTTPS listeners
+- Consolidate standalone tests to table-driven pattern
+- Ensure t.Parallel() in all tests
+
+### Phase 6: Coverage Improvements - 4-6h
+
+- Repository package: 84.8% → 95%
+- Application package: 89.8% → 95%
+- Businesslogic package: 87.4% → 95%
+- Config packages: 86.9%/87.1% → 95%
+- Other below-target packages
+
+### Phase 7: Code Cleanup - 2-3h
+
+- Investigate low-coverage functions (may need documentation vs removal)
+- Fix config bug acknowledged in tests
 
 ## Technical Decisions
 

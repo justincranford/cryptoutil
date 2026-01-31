@@ -5,9 +5,139 @@
 
 ## Task Checklist
 
-### Phase 1: Critical Fixes (TODOs and Security)
+### Phase 1: Copilot Instructions Updates
 
-#### Task 1.1: Complete Registration Handler TODOs
+#### Task 1.1: Update service-template.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **File**: `.github/instructions/02-02.service-template.instructions.md`
+- **Description**: Add migration numbering section, TestMain pattern, registration flow, *FromSettings pattern
+- **Acceptance Criteria**:
+  - [ ] Migration versioning clear (1001-1004 vs 2001+)
+  - [ ] Complete TestMain pattern example
+  - [ ] Document *FromSettings factory pattern as preferred
+
+#### Task 1.2: Update testing.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **File**: `.github/instructions/03-02.testing.instructions.md`
+- **Description**: Move app.Test() pattern earlier, add cross-references
+- **Acceptance Criteria**:
+  - [ ] app.Test() pattern prominent
+  - [ ] Cross-reference to 07-01.testmain-integration-pattern.md
+
+#### Task 1.3: Update server-builder.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **File**: `.github/instructions/03-08.server-builder.instructions.md`
+- **Description**: Complete merged migrations docs, add troubleshooting
+- **Acceptance Criteria**:
+  - [ ] Merged migrations fully documented
+  - [ ] Troubleshooting section added
+
+---
+
+### Phase 2: CICD Enforcement Improvements
+
+#### Task 2.1: Docker Secrets Pattern Linter (#15)
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Add `lint-compose: docker-secrets` to detect inline credentials
+- **Acceptance Criteria**:
+  - [ ] Detects inline POSTGRES_PASSWORD, API_KEY, etc.
+  - [ ] Requires Docker secrets pattern
+
+#### Task 2.2: Testify Require Over Assert Linter (#16)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-go-test: testify-require` to enforce require over assert
+- **Acceptance Criteria**:
+  - [ ] Detects assert.NoError → require.NoError
+  - [ ] Pre-commit hook enforces
+
+#### Task 2.3: t.Parallel() Enforcement Linter (#17)
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Add `lint-go-test: t-parallel` to require t.Parallel() in tests
+- **Acceptance Criteria**:
+  - [ ] Detects missing t.Parallel() in test functions
+  - [ ] Detects missing t.Parallel() in subtests
+
+#### Task 2.4: Table-Driven Test Pattern Linter (#18)
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Add `lint-go-test: table-driven-tests` to detect standalone test functions that should be table-driven
+- **Acceptance Criteria**:
+  - [ ] Detects multiple similar standalone test functions
+  - [ ] Suggests table-driven refactoring
+
+#### Task 2.5: Hardcoded Test Passwords Linter (#19)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-go-test: no-hardcoded-passwords` to detect hardcoded passwords in tests
+- **Acceptance Criteria**:
+  - [ ] Detects `password := "test123"` patterns
+  - [ ] Suggests UUIDv7 or magic constants
+
+#### Task 2.6: crypto/rand Enforcement Linter (#20)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-go: crypto-rand` to detect math/rand in crypto code
+- **Acceptance Criteria**:
+  - [ ] Detects math/rand imports
+  - [ ] Suggests crypto/rand
+
+#### Task 2.7: No Inline Env Vars Linter (#26)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-compose: no-inline-env` to detect inline environment variables
+- **Acceptance Criteria**:
+  - [ ] Detects `POSTGRES_PASSWORD: value` (not _FILE pattern)
+  - [ ] Requires Docker secrets or _FILE pattern
+
+#### Task 2.8: No InsecureSkipVerify Linter (#28)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-go: tls-verify` to detect InsecureSkipVerify: true
+- **Acceptance Criteria**:
+  - [ ] Detects InsecureSkipVerify: true
+  - [ ] Fails CI if found
+
+#### Task 2.9: golangci-lint v2 Schema Linter (#29 - CRITICAL)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-golangci-config: golangci-v2-schema` to validate v2 config
+- **Acceptance Criteria**:
+  - [ ] Validates .golangci.yml against v2 schema
+  - [ ] Catches deprecated v1 options
+
+---
+
+### Phase 3: Deployment Fixes
+
+#### Task 3.1: Fix Healthcheck Path Mismatch
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **File**: `deployments/kms/compose.yml`
+- **Description**: Fix healthcheck path from `/admin/v1/livez` to `/admin/api/v1/livez`
+- **Acceptance Criteria**:
+  - [ ] Healthcheck uses `/admin/api/v1/livez` (matches service-template standard)
+
+#### Task 3.2: Create Template Deployment
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Location**: `deployments/template/`
+- **Description**: Create compose.yml, secrets/, test E2E helper
+- **Acceptance Criteria**:
+  - [ ] compose.yml exists and validates
+  - [ ] E2E tests can use template deployment
+  - [ ] Follows Docker secrets pattern
+
+---
+
+### Phase 4: Critical Fixes (TODOs and Security)
+
+#### Task 4.1: Complete Registration Handler TODOs
 - **Status**: ❌ Not Started
 - **Estimated**: 2h
 - **File**: `internal/apps/template/service/server/apis/registration_handlers.go`
@@ -18,7 +148,7 @@
   - [ ] Unit tests cover happy path and error cases
   - [ ] Coverage ≥95%
 
-#### Task 1.2: Add Admin Middleware to Registration Routes
+#### Task 4.2: Add Admin Middleware to Registration Routes
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/server/apis/registration_routes.go:48`
@@ -28,7 +158,7 @@
   - [ ] Admin routes protected
   - [ ] Tests verify 401/403 for non-admin access
 
-#### Task 1.3: Implement Realm Lookup for Multi-Tenant
+#### Task 4.3: Implement Realm Lookup for Multi-Tenant
 - **Status**: ❌ Not Started
 - **Estimated**: 2h
 - **File**: `internal/apps/template/service/server/realms/handlers.go:270`
@@ -40,9 +170,9 @@
 
 ---
 
-### Phase 2: Test Architecture Refactoring
+### Phase 5: Test Architecture Refactoring
 
-#### Task 2.1: Refactor Listener Tests to app.Test()
+#### Task 5.1: Refactor Listener Tests to app.Test()
 - **Status**: ❌ Not Started
 - **Estimated**: 3h
 - **Files**:
@@ -55,7 +185,7 @@
   - [ ] Tests run faster (<1ms vs 10-50ms)
   - [ ] All tests still pass
 
-#### Task 2.2: Consolidate config_validation_test.go
+#### Task 5.2: Consolidate config_validation_test.go
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/config/config_validation_test.go`
@@ -64,7 +194,7 @@
   - [ ] Single table-driven function
   - [ ] Line count reduced by ~50%
 
-#### Task 2.3: Consolidate session_manager_jws_test.go
+#### Task 5.3: Consolidate session_manager_jws_test.go
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/server/businesslogic/session_manager_jws_test.go`
@@ -73,7 +203,7 @@
   - [ ] Consolidated table-driven tests
   - [ ] t.Parallel() in all tests
 
-#### Task 2.4: Consolidate session_manager_jwe_test.go
+#### Task 5.4: Consolidate session_manager_jwe_test.go
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/server/businesslogic/session_manager_jwe_test.go`
@@ -82,7 +212,7 @@
   - [ ] Consolidated table-driven tests
   - [ ] t.Parallel() in all tests
 
-#### Task 2.5: Consolidate config_coverage_test.go (12 functions)
+#### Task 5.5: Consolidate config_coverage_test.go (12 functions)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/config/config_coverage_test.go`
@@ -91,7 +221,7 @@
   - [ ] Single table-driven test
   - [ ] ~80 lines reduced
 
-#### Task 2.6: Consolidate application_middleware_test.go (7 functions)
+#### Task 5.6: Consolidate application_middleware_test.go (7 functions)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `internal/kms/server/application/application_middleware_test.go`
@@ -100,7 +230,7 @@
   - [ ] Single table-driven test
   - [ ] ~100 lines reduced
 
-#### Task 2.7: Consolidate tenant_join_request_test.go (4 functions)
+#### Task 5.7: Consolidate tenant_join_request_test.go (4 functions)
 - **Status**: ❌ Not Started
 - **Estimated**: 0.5h
 - **File**: `internal/apps/template/service/server/domain/tenant_join_request_test.go`
@@ -108,7 +238,7 @@
 - **Acceptance Criteria**:
   - [ ] Single table-driven test
 
-#### Task 2.8: Consolidate jose-ja models_test.go (4 functions)
+#### Task 5.8: Consolidate jose-ja models_test.go (4 functions)
 - **Status**: ❌ Not Started
 - **Estimated**: 0.5h
 - **File**: `internal/jose/ja/domain/models_test.go`
@@ -116,7 +246,7 @@
 - **Acceptance Criteria**:
   - [ ] Single table-driven test
 
-#### Task 2.9: Consolidate kms seed_test.go (6 functions)
+#### Task 5.9: Consolidate kms seed_test.go (6 functions)
 - **Status**: ❌ Not Started
 - **Estimated**: 0.5h
 - **File**: `internal/kms/server/demo/seed_test.go`
@@ -126,9 +256,9 @@
 
 ---
 
-### Phase 3: Coverage Improvements
+### Phase 6: Coverage Improvements
 
-#### Task 3.1: Repository Package (84.8% → 95%)
+#### Task 6.1: Repository Package (84.8% → 95%)
 - **Status**: ❌ Not Started
 - **Estimated**: 1.5h
 - **Package**: `internal/apps/template/service/server/repository/`
@@ -137,7 +267,7 @@
   - [ ] Coverage ≥95%
   - [ ] All error paths tested
 
-#### Task 3.2: Application Package (89.8% → 95%)
+#### Task 6.2: Application Package (89.8% → 95%)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Package**: `internal/apps/template/service/server/application/`
@@ -145,7 +275,7 @@
 - **Acceptance Criteria**:
   - [ ] Coverage ≥95%
 
-#### Task 3.3: Businesslogic Package (87.4% → 95%)
+#### Task 6.3: Businesslogic Package (87.4% → 95%)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Package**: `internal/apps/template/service/server/businesslogic/`
@@ -153,14 +283,14 @@
 - **Acceptance Criteria**:
   - [ ] Coverage ≥95%
 
-#### Task 3.4: Config Packages (86.9%/87.1% → 95%)
+#### Task 6.4: Config Packages (86.9%/87.1% → 95%)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Packages**: `config/`, `config/tls_generator/`
 - **Acceptance Criteria**:
   - [ ] Both packages ≥95%
 
-#### Task 3.5: Remaining Packages
+#### Task 6.5: Remaining Packages
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Packages**: `server/builder/` (90.8%), `server/listener/` (88.2%), `server/barrier/` (91.2%)
@@ -169,9 +299,9 @@
 
 ---
 
-### Phase 4: Code Cleanup
+### Phase 7: Code Cleanup
 
-#### Task 4.1: Investigate Low-Coverage Functions
+#### Task 7.1: Investigate Low-Coverage Functions
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Description**: Check UnsealKeysServiceFromSettings (0% cov), EnsureSignatureAlgorithmType (23.1% cov) - determine if untested or actually unused
@@ -180,143 +310,13 @@
   - [ ] Functions investigated
   - [ ] If needed: tests added OR documented as deprecated
 
-#### Task 4.2: Fix Config Bug in config_gaps_test.go
+#### Task 7.2: Fix Config Bug in config_gaps_test.go
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/config/config_gaps_test.go:37-39`
 - **Description**: Fix acknowledged bug in NewFromFile or document as known limitation
 - **Acceptance Criteria**:
   - [ ] Bug fixed or documented with issue reference
-
-#### Task 4.3: Fix Healthcheck Path Mismatch
-- **Status**: ❌ Not Started
-- **Estimated**: 0.5h
-- **File**: `deployments/kms/compose.yml`
-- **Description**: Fix healthcheck path from `/admin/v1/livez` to `/admin/api/v1/livez`
-- **Acceptance Criteria**:
-  - [ ] Healthcheck uses `/admin/api/v1/livez` (matches service-template standard)
-
----
-
-### Phase 5: CICD Enforcement Improvements
-
-#### Task 5.1: Docker Secrets Pattern Linter (#15)
-- **Status**: ❌ Not Started
-- **Estimated**: 2h
-- **Description**: Add `lint-compose: docker-secrets` to detect inline credentials
-- **Acceptance Criteria**:
-  - [ ] Detects inline POSTGRES_PASSWORD, API_KEY, etc.
-  - [ ] Requires Docker secrets pattern
-
-#### Task 5.2: Testify Require Over Assert Linter (#16)
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **Description**: Add `lint-go-test: testify-require` to enforce require over assert
-- **Acceptance Criteria**:
-  - [ ] Detects assert.NoError → require.NoError
-  - [ ] Pre-commit hook enforces
-
-#### Task 5.3: t.Parallel() Enforcement Linter (#17)
-- **Status**: ❌ Not Started
-- **Estimated**: 2h
-- **Description**: Add `lint-go-test: t-parallel` to require t.Parallel() in tests
-- **Acceptance Criteria**:
-  - [ ] Detects missing t.Parallel() in test functions
-  - [ ] Detects missing t.Parallel() in subtests
-
-#### Task 5.4: Table-Driven Test Pattern Linter (#18)
-- **Status**: ❌ Not Started
-- **Estimated**: 2h
-- **Description**: Add `lint-go-test: table-driven-tests` to detect standalone test functions that should be table-driven
-- **Acceptance Criteria**:
-  - [ ] Detects multiple similar standalone test functions
-  - [ ] Suggests table-driven refactoring
-
-#### Task 5.5: Hardcoded Test Passwords Linter (#19)
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **Description**: Add `lint-go-test: no-hardcoded-passwords` to detect hardcoded passwords in tests
-- **Acceptance Criteria**:
-  - [ ] Detects `password := "test123"` patterns
-  - [ ] Suggests UUIDv7 or magic constants
-
-#### Task 5.6: crypto/rand Enforcement Linter (#20)
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **Description**: Add `lint-go: crypto-rand` to detect math/rand in crypto code
-- **Acceptance Criteria**:
-  - [ ] Detects math/rand imports
-  - [ ] Suggests crypto/rand
-
-#### Task 5.7: No Inline Env Vars Linter (#26)
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **Description**: Add `lint-compose: no-inline-env` to detect inline environment variables
-- **Acceptance Criteria**:
-  - [ ] Detects `POSTGRES_PASSWORD: value` (not _FILE pattern)
-  - [ ] Requires Docker secrets or _FILE pattern
-
-#### Task 5.8: No InsecureSkipVerify Linter (#28)
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **Description**: Add `lint-go: tls-verify` to detect InsecureSkipVerify: true
-- **Acceptance Criteria**:
-  - [ ] Detects InsecureSkipVerify: true
-  - [ ] Fails CI if found
-
-#### Task 5.9: golangci-lint v2 Schema Linter (#29 - CRITICAL)
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **Description**: Add `lint-golangci-config: golangci-v2-schema` to validate v2 config
-- **Acceptance Criteria**:
-  - [ ] Validates .golangci.yml against v2 schema
-  - [ ] Catches deprecated v1 options
-
----
-
-### Phase 6: Deployment Fixes
-
-#### Task 6.1: Create Template Deployment
-- **Status**: ❌ Not Started
-- **Estimated**: 2h
-- **Location**: `deployments/template/`
-- **Description**: Create compose.yml, secrets/, test E2E helper
-- **Acceptance Criteria**:
-  - [ ] compose.yml exists and validates
-  - [ ] E2E tests can use template deployment
-  - [ ] Follows Docker secrets pattern
-
----
-
-### Phase 7: Copilot Instructions Updates
-
-#### Task 7.1: Update service-template.instructions.md
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **File**: `.github/instructions/02-02.service-template.instructions.md`
-- **Description**: Add migration numbering section, TestMain pattern, registration flow, *FromSettings pattern
-- **Acceptance Criteria**:
-  - [ ] Migration versioning clear (1001-1004 vs 2001+)
-  - [ ] Complete TestMain pattern example
-  - [ ] Document *FromSettings factory pattern as preferred
-
-#### Task 7.2: Update testing.instructions.md
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **File**: `.github/instructions/03-02.testing.instructions.md`
-- **Description**: Move app.Test() pattern earlier, add cross-references
-- **Acceptance Criteria**:
-  - [ ] app.Test() pattern prominent
-  - [ ] Cross-reference to 07-01.testmain-integration-pattern.md
-
-#### Task 7.3: Update server-builder.instructions.md
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **File**: `.github/instructions/03-08.server-builder.instructions.md`
-- **Description**: Complete merged migrations docs, add troubleshooting
-- **Acceptance Criteria**:
-  - [ ] Merged migrations fully documented
-  - [ ] Troubleshooting section added
 
 ---
 
