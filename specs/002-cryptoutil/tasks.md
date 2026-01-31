@@ -554,3 +554,32 @@ Multi-layer key hierarchy with elastic rotation:
 - CRLDP: Immediate sign+publish to HTTPS URL with base64-url-encoded serial, one serial per URL
 - Service names: jose-ja (JA/JWK Authority), cipher-im (Cipher-InstantMessenger)
 - Template validation: cipher-im (Phase 3) MUST succeed before production migrations (Phases 4-6)
+
+**Phase 7.1.1 Update** (2026-01-28):
+
+- **Status**: ✅ COMPLETE (100%)
+- **Commits**: 6 total (02e01811, d43099c4, d33ef4ba, 65d7b8df, 4006845e, 2c29f973, b2f02bdd)
+- **Implementation**: All TOTP MFA components delivered
+  - Domain models + service layer (368 lines, 02e01811)
+  - API handlers + error constants + routes (385 lines, d43099c4)
+  - Handler unit tests (507 lines, 18 tests, d33ef4ba)
+  - Integration tests (586 lines, 6 tests, 65d7b8df)
+  - OpenAPI specification (307 lines, 4 endpoints, 4006845e)
+  - Database migrations (55 lines, 4 files, 2c29f973)
+  - Documentation (248 lines, b2f02bdd)
+- **Total Lines**: 2,456 committed
+- **Test Coverage**: 24 tests (18 unit + 6 integration), 100% passing
+- **Completion Date**: 2026-01-28
+
+**Completion Criteria Verification** (Phase 7.1.1):
+- [x] TOTP enrollment (QR code) - EnrollTOTPHandler implemented
+- [x] 6-digit code verification - VerifyTOTPHandler implemented
+- [x] Backup codes generation - GenerateBackupCodesHandler implemented
+- [x] Recovery flow - VerifyBackupCodeHandler implemented
+- [x] 30-minute MFA step-up enforced - last_used_at timestamp tracking
+- [x] Tests pass - 24/24 tests (100%)
+- [x] Coverage ≥95% - Handler unit tests + integration tests
+- [x] Database migrations - 4 files (0008_totp_secrets, 0009_backup_codes)
+- [x] OpenAPI documentation - 4 endpoints, 8 schemas
+- [x] User documentation - docs/identity/mfa-totp.md
+- [x] Commit: `docs(identity): add TOTP MFA documentation` (b2f02bdd)
