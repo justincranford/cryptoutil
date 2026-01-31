@@ -1,34 +1,12 @@
 ---
 name: fix-tool-names
-description: Fix Copilot Tool Names Agent
+description: Migrate deprecated Copilot tool names to namespaced identifiers
 tools:
-	- edit/editFiles
-	- execute/createAndRunTask
-	- execute/getTerminalOutput
-	- execute/runInTerminal
-	- execute/runNotebookCell
-	- execute/runTask
-	- execute/testFailure
-	- read/getNotebookSummary
-	- read/getTaskOutput
-	- read/problems
-	- read/readNotebookCellOutput
-	- read/terminalLastCommand
-	- read/terminalSelection
-	- search
-	- search/changes
-	- search/codebase
-	- search/searchResults
-	- search/usages
-	- vscode/extensions
-	- vscode/getProjectSetupInfo
-	- vscode/installExtension
-	- vscode/newWorkspace
-	- vscode/openSimpleBrowser
-	- vscode/runCommand
-	- vscode/vscodeAPI
-	- web/fetch
-	- web/githubRepo
+  - edit/editFiles
+  - search/codebase
+  - search/usages
+model: claude-sonnet-4
+argument-hint: "[file-path or 'all']"
 ---
 
 # Fix Copilot Tool Names Agent

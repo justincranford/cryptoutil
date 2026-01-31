@@ -1,35 +1,21 @@
 ---
-description: Autonomous Plan-Tasks Documentation Manager - Continuous Execution
 name: plan-tasks-quizme
-argument-hint: <directory-path> <action: create|update|review>
+description: Create, update, and review plan.md/tasks.md documentation autonomously
+argument-hint: "<directory-path> <create|update|review>"
 tools:
-	- edit/editFiles
-	- execute/createAndRunTask
-	- execute/getTerminalOutput
-	- execute/runInTerminal
-	- execute/runNotebookCell
-	- execute/runTask
-	- execute/testFailure
-	- read/getNotebookSummary
-	- read/getTaskOutput
-	- read/problems
-	- read/readNotebookCellOutput
-	- read/terminalLastCommand
-	- read/terminalSelection
-	- search
-	- search/changes
-	- search/codebase
-	- search/searchResults
-	- search/usages
-	- vscode/extensions
-	- vscode/getProjectSetupInfo
-	- vscode/installExtension
-	- vscode/newWorkspace
-	- vscode/openSimpleBrowser
-	- vscode/runCommand
-	- vscode/vscodeAPI
-	- web/fetch
-	- web/githubRepo
+  - edit/editFiles
+  - execute/runInTerminal
+  - execute/getTerminalOutput
+  - read/problems
+  - search/codebase
+  - search/usages
+  - search/changes
+model: claude-sonnet-4
+handoffs:
+  - label: Execute Plan
+    agent: plan-tasks-implement
+    prompt: Execute the plan in the specified directory.
+    send: false
 ---
 
 # AUTONOMOUS EXECUTION MODE - Plan-Tasks Documentation Manager

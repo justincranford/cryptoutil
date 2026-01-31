@@ -1,34 +1,18 @@
 ---
 name: beast-mode-custom
-description: Beast Mode Custom - Continuous Work with Zero Stopping
+description: Continuous autonomous work with zero stopping - quality over speed
 tools:
-	- edit/editFiles
-	- execute/createAndRunTask
-	- execute/getTerminalOutput
-	- execute/runInTerminal
-	- execute/runNotebookCell
-	- execute/runTask
-	- execute/testFailure
-	- read/getNotebookSummary
-	- read/getTaskOutput
-	- read/problems
-	- read/readNotebookCellOutput
-	- read/terminalLastCommand
-	- read/terminalSelection
-	- search
-	- search/changes
-	- search/codebase
-	- search/searchResults
-	- search/usages
-	- vscode/extensions
-	- vscode/getProjectSetupInfo
-	- vscode/installExtension
-	- vscode/newWorkspace
-	- vscode/openSimpleBrowser
-	- vscode/runCommand
-	- vscode/vscodeAPI
-	- web/fetch
-	- web/githubRepo
+  - edit/editFiles
+  - execute/runInTerminal
+  - execute/getTerminalOutput
+  - execute/testFailure
+  - read/problems
+  - search/codebase
+  - search/usages
+  - search/changes
+  - web/fetch
+  - web/githubRepo
+model: claude-sonnet-4
 ---
 
 # Beast Mode Custom - Continuous Work Directive

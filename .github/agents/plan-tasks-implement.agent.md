@@ -1,35 +1,28 @@
 ---
-description: Autonomous Continuous Execution - Execute plan/tasks without asking permission
 name: plan-tasks-implement
-argument-hint: <directory-path>
+description: Execute plan/tasks autonomously without asking permission - continuous execution
+argument-hint: "<directory-path>"
 tools:
-	- edit/editFiles
-	- execute/createAndRunTask
-	- execute/getTerminalOutput
-	- execute/runInTerminal
-	- execute/runNotebookCell
-	- execute/runTask
-	- execute/testFailure
-	- read/getNotebookSummary
-	- read/getTaskOutput
-	- read/problems
-	- read/readNotebookCellOutput
-	- read/terminalLastCommand
-	- read/terminalSelection
-	- search
-	- search/changes
-	- search/codebase
-	- search/searchResults
-	- search/usages
-	- vscode/extensions
-	- vscode/getProjectSetupInfo
-	- vscode/installExtension
-	- vscode/newWorkspace
-	- vscode/openSimpleBrowser
-	- vscode/runCommand
-	- vscode/vscodeAPI
-	- web/fetch
-	- web/githubRepo
+  - edit/editFiles
+  - execute/runInTerminal
+  - execute/getTerminalOutput
+  - execute/testFailure
+  - read/problems
+  - search/codebase
+  - search/usages
+  - search/changes
+  - web/fetch
+  - web/githubRepo
+model: claude-sonnet-4
+handoffs:
+  - label: Create/Update Plan
+    agent: plan-tasks-quizme
+    prompt: Create or update plan.md and tasks.md in the specified directory.
+    send: false
+  - label: Sync Documentation
+    agent: doc-sync
+    prompt: Synchronize documentation after implementation complete.
+    send: false
 ---
 
 # AUTONOMOUS EXECUTION MODE

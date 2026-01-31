@@ -1,34 +1,16 @@
 ---
-name: update-docs
-description: Documentation Synchronization - Keep all project docs consistent
+name: doc-sync
+description: Synchronize documentation across project - prevent sprawl and ensure consistency
 tools:
-	- edit/editFiles
-	- execute/createAndRunTask
-	- execute/getTerminalOutput
-	- execute/runInTerminal
-	- execute/runNotebookCell
-	- execute/runTask
-	- execute/testFailure
-	- read/getNotebookSummary
-	- read/getTaskOutput
-	- read/problems
-	- read/readNotebookCellOutput
-	- read/terminalLastCommand
-	- read/terminalSelection
-	- search
-	- search/changes
-	- search/codebase
-	- search/searchResults
-	- search/usages
-	- vscode/extensions
-	- vscode/getProjectSetupInfo
-	- vscode/installExtension
-	- vscode/newWorkspace
-	- vscode/openSimpleBrowser
-	- vscode/runCommand
-	- vscode/vscodeAPI
-	- web/fetch
-	- web/githubRepo
+  - edit/editFiles
+  - execute/runInTerminal
+  - execute/getTerminalOutput
+  - read/problems
+  - search/codebase
+  - search/usages
+  - search/changes
+model: claude-sonnet-4
+argument-hint: "[source-of-truth-file]"
 ---
 
 # Documentation Synchronization Prompt
