@@ -44,6 +44,7 @@
 | 26 | No inline env vars in compose | `lint-compose` | `no-inline-env` | 04-02.docker | HIGH |
 | 27 | GORM over raw database/sql | `lint-go` | `gorm-required` | 03-04.database | LOW |
 | 28 | No `InsecureSkipVerify: true` | `lint-go` | `tls-verify` | 02-09.pki | HIGH |
+| 29 | golangci-lint v2 schema | `lint-golangci-config` | `golangci-v2-schema` | 03-07.linting | **CRITICAL** |
 
 ---
 
@@ -313,7 +314,7 @@ func TestCreate_Empty(t *testing.T) { ... }
 # Detect inline credentials:
 environment:
   POSTGRES_PASSWORD: mypassword  # ← VIOLATION
-  
+
 # Require:
 secrets:
   - postgres_password
@@ -336,6 +337,64 @@ environment:
 | UTF-8 encoding | ✅ Yes | ✅ Yes | `lint-text: utf8` |
 | Zero linting errors | ✅ Yes | ✅ Yes | golangci-lint |
 | Domain isolation | ✅ Yes | ✅ Yes | `lint-go: circular-deps` |
+| golangci-lint v2 schema | ✅ Yes | ❌ No | `lint-golangci-config: golangci-v2-schema` |
+
+**Proposed Enhancement #29**: Enforce golangci-lint v2 configuration schema (**CRITICAL PRIORITY**)
+
+**Rationale**: LLM agents repeatedly hallucinate that they need to downgrade `.golangci.yml` to v1 configuration, breaking the build and requiring manual intervention.
+
+**Detection Rules**:
+```yaml
+# REQUIRED v2 indicators:
+version: "2"  # ← MUST be present
+# $schema: https://json.schemastore.org/golangci-lint.json  # ← SHOULD be present
+
+linters:
+  enable:
+    - wsl_v5  # ← v2 name (NOT "wsl")
+
+linters-settings:
+  wsl_v5:  # ← v2 config key (NOT "wsl")
+    # v2 does NOT support force-err-cuddling (always enabled)
+
+# VIOLATIONS to detect:
+linters:
+  enable:
+    - wsl  # ← v1 name (should be wsl_v5)
+
+linters-settings:
+  wsl:  # ← v1 config key (should be wsl_v5)
+    force-err-cuddling: true  # ← v1 setting (removed in v2)
+  misspell:
+    ignore-words: [...]  # ← v1 setting (use locale in v2)
+  wrapcheck:
+    ignoreSigs: [...]  # ← v1 setting (use ignorePackageGlobs in v2)
+```
+
+**Implementation**:
+```go
+// internal/cmd/cicd/lint_golangci_config/lint.go
+func validateGolangciV2Schema(configPath string) error {
+    // 1. Check version: "2" is present
+    // 2. Check wsl_v5 (not wsl) in linters.enable
+    // 3. Check linters-settings uses wsl_v5 key (not wsl)
+    // 4. Check for deprecated v1 settings:
+    //    - wsl.force-err-cuddling
+    //    - misspell.ignore-words
+    //    - wrapcheck.ignoreSigs
+    // 5. Return violations with line numbers
+}
+```
+
+**Exit Criteria**:
+- ✅ `.golangci.yml` contains `version: "2"`
+- ✅ Uses `wsl_v5` in linters.enable (NOT `wsl`)
+- ✅ Uses `wsl_v5:` in linters-settings (NOT `wsl:`)
+- ✅ No v1-specific deprecated settings detected
+- ✅ Pre-commit hook runs `cicd lint-golangci-config`
+- ✅ CI workflow enforces v2 schema validation
+
+**Historical Context**: See [03-07.linting.instructions.md](.github/instructions/03-07.linting.instructions.md) Section "golangci-lint Major Version Upgrades - CRITICAL" for migration patterns and common pitfalls.
 
 **Status**: Already fully enforced
 

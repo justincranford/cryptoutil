@@ -4,7 +4,8 @@ This guide covers setting up a complete development environment for the cryptout
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
+- [Prerequisites Overview](#prerequisites-overview)
+- [Why Each Tool is Required](#why-each-tool-is-required)
 - [Platform-Specific Setup](#platform-specific-setup)
   - [Windows](#windows)
   - [Linux](#linux)
@@ -15,21 +16,141 @@ This guide covers setting up a complete development environment for the cryptout
 - [Verification](#verification)
 - [Troubleshooting](#troubleshooting)
 
-## Prerequisites
+---
 
-### Core Requirements (All Platforms)
+## Prerequisites Overview
 
-## Prerequisites
+### Minimum Version Requirements
 
-- **Go 1.25.5+** - The project requires Go 1.25.5 or later
-- **Docker & Docker Compose** - Required for PostgreSQL database and containerized testing
-- **Git** - Version control (usually pre-installed on most systems)
+| Tool | Version | Purpose | Required For |
+|------|---------|---------|--------------|
+| **Go** | 1.25.5+ | Primary language | All development |
+| **Docker** | 24+ | Containerization | PostgreSQL, E2E tests, deployments |
+| **Docker Compose** | v2+ | Container orchestration | Multi-service deployments |
+| **Python** | 3.14+ | Pre-commit hooks, utilities | Code quality automation |
+| **Node.js** | 24.11.1+ LTS | Spell checking, markdown linting | Pre-commit hooks |
+| **Java** | 21 LTS | Gatling load tests | Performance testing (optional) |
+| **Maven** | 3.9+ | Java build tool | Gatling tests (optional) |
+| **Git** | 2.40+ | Version control | All development |
 
-### Development Tools
+### Go Development Tools
 
-- **Python 3.8+** - Required for utility scripts and pre-commit hooks
-- **pip** - Python package manager (usually comes with Python)
-- **VS Code** - Recommended IDE with Go extension
+| Tool | Installation | Purpose |
+|------|-------------|---------|
+| **golangci-lint** | `go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2` | Comprehensive linting (includes 50+ linters) |
+| **gofumpt** | `go install mvdan.cc/gofumpt@latest` | Strict Go formatting (gofmt superset) |
+| **goimports** | `go install golang.org/x/tools/cmd/goimports@latest` | Auto-import organization |
+| **gopls** | `go install golang.org/x/tools/gopls@latest` | Go language server for VS Code |
+| **staticcheck** | `go install honnef.co/go/tools/cmd/staticcheck@latest` | Advanced static analysis |
+| **govulncheck** | `go install golang.org/x/vuln/cmd/govulncheck@latest` | Go vulnerability scanning |
+| **gremlins** | `go install github.com/go-gremlins/gremlins/cmd/gremlins@latest` | Mutation testing |
+| **oapi-codegen** | `go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest` | OpenAPI code generation |
+
+### Security & Testing Tools
+
+| Tool | Installation | Purpose |
+|------|-------------|---------|
+| **Trivy** | Platform-specific | Container vulnerability scanning |
+| **Nuclei** | Platform-specific | Dynamic security scanning (DAST) |
+| **act** | Platform-specific | Local GitHub Actions testing |
+
+### Node.js Tools
+
+| Tool | Installation | Purpose |
+|------|-------------|---------|
+| **cspell** | `npm install -g cspell` | Spell checking in code/docs |
+| **markdownlint-cli2** | `npm install -g markdownlint-cli2` | Markdown linting with auto-fix |
+
+### Python Tools
+
+| Tool | Installation | Purpose |
+|------|-------------|---------|
+| **pre-commit** | `pip install pre-commit` | Git hooks framework |
+| **pytest** | `pip install pytest` | Python testing (if writing Python) |
+
+---
+
+## Why Each Tool is Required
+
+### Core Development (Go 1.25.5+)
+
+**Why this version?** Go 1.25.5 is required for:
+
+- Generic type improvements used in internal packages
+- Performance optimizations in crypto packages
+- Bug fixes in `modernc.org/sqlite` CGO-free driver
+
+**Project dependencies requiring Go 1.25.5+:**
+
+```text
+github.com/gofiber/fiber/v2       # HTTP framework
+gorm.io/gorm                       # ORM for PostgreSQL/SQLite
+modernc.org/sqlite                 # CGO-free SQLite driver
+go.opentelemetry.io/otel          # Observability (traces, metrics, logs)
+github.com/go-jose/go-jose/v4     # JOSE (JWK, JWS, JWE) operations
+github.com/testcontainers/testcontainers-go  # Integration testing
+```
+
+### Docker & Docker Compose
+
+**Why required?**
+
+- **PostgreSQL**: Primary production database runs in containers
+- **E2E Tests**: Integration tests use testcontainers-go
+- **Observability Stack**: OpenTelemetry Collector, Grafana LGTM in containers
+- **CI/CD Parity**: Local testing matches GitHub Actions environment
+
+### Python 3.14+
+
+**Why required?**
+
+- **pre-commit hooks**: Framework for automated code quality checks
+- **Custom CICD tools**: Some utility scripts use Python
+- **Type hints**: Python 3.14+ required for `pyproject.toml` configuration
+
+### Node.js 24.11.1+ LTS
+
+**Why required?**
+
+- **cspell**: Catches spelling errors in code comments and documentation
+- **markdownlint-cli2**: Enforces consistent markdown formatting
+
+### Java 21 LTS (Optional - Load Testing Only)
+
+**Why required?**
+
+- **Gatling**: Industry-standard load testing tool (Scala/Java-based)
+- **Maven**: Build tool for Gatling test projects
+- **Location**: `test/load/` directory
+
+**Skip if:** Not running performance/load tests.
+
+### golangci-lint v2.7.2+
+
+**Why this specific tool and version?**
+
+- Runs 50+ linters in a single pass (efficient CI/CD)
+- Built-in gofumpt and goimports with `--fix` flag
+- v2.x has breaking config changes from v1.x (see `.golangci.yml`)
+- Pre-commit hooks depend on this version
+
+### Gremlins (Mutation Testing)
+
+**Why required?**
+
+- Validates test quality by introducing code mutations
+- Ensures tests actually catch bugs (not just coverage theater)
+- CI/CD workflow `ci-mutation.yml` requires this tool
+
+### Security Tools (Trivy, Nuclei)
+
+**Why required?**
+
+- **Trivy**: Scans container images for CVEs before deployment
+- **Nuclei**: Dynamic security testing (DAST) for API endpoints
+- Used by CI/CD workflows `ci-sast.yml` and `ci-dast.yml`
+
+---
 
 ## Platform-Specific Setup
 
@@ -43,6 +164,10 @@ This guide covers setting up a complete development environment for the cryptout
 # Download and install from https://golang.org/dl/
 # Or use winget:
 winget install --id Google.Go --source winget
+
+# Verify installation
+go version
+# Expected: go version go1.25.5 windows/amd64
 ```
 
 **Docker Desktop**
@@ -51,14 +176,67 @@ winget install --id Google.Go --source winget
 # Download and install from https://www.docker.com/products/docker-desktop
 # Or use winget:
 winget install --id Docker.DockerDesktop --source winget
+
+# Verify installation
+docker --version
+docker compose version
 ```
 
-**Python 3.8+**
+**Python 3.14+**
 
 ```powershell
 # Download and install from https://python.org/downloads/
 # Or use winget:
-winget install --id Python.Python.3 --source winget
+winget install --id Python.Python.3.14 --source winget
+
+# Verify installation (may need to restart terminal)
+python --version
+# Expected: Python 3.14.x
+pip --version
+```
+
+**Node.js 24.11.1+ LTS**
+
+```powershell
+# Option 1: Download from https://nodejs.org/
+# Option 2: Use winget
+winget install --id OpenJS.NodeJS.LTS --source winget
+
+# Option 3: Use nvm-windows for version management
+# Download nvm-windows from: https://github.com/coreybutler/nvm-windows/releases
+nvm install 24.11.1
+nvm use 24.11.1
+
+# Verify installation
+node --version
+npm --version
+```
+
+**Java 21 LTS (Optional - For Gatling Load Tests)**
+
+```powershell
+# Download from https://adoptium.net/temurin/releases/?version=21
+# Or use winget:
+winget install --id EclipseAdoptium.Temurin.21.JDK --source winget
+
+# Set JAVA_HOME environment variable
+[System.Environment]::SetEnvironmentVariable("JAVA_HOME", "C:\Program Files\Eclipse Adoptium\jdk-21.0.x.x-hotspot", "User")
+
+# Verify installation (restart terminal)
+java -version
+# Expected: openjdk version "21.0.x"
+```
+
+**Maven 3.9+ (Optional - For Gatling Load Tests)**
+
+```powershell
+# Download from https://maven.apache.org/download.cgi
+# Or use winget:
+winget install --id Apache.Maven --source winget
+
+# Or use the Maven Wrapper included in test/load/ (recommended)
+cd test\load
+.\mvnw --version
 ```
 
 **Git**
@@ -66,13 +244,16 @@ winget install --id Python.Python.3 --source winget
 ```powershell
 # Usually pre-installed, otherwise:
 winget install --id Git.Git --source winget
+
+# Verify
+git --version
 ```
 
 #### 2. Install Go Development Tools
 
 ```powershell
-# Install golangci-lint (Go linting)
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+# Install golangci-lint (comprehensive linting)
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2
 
 # Install gofumpt (strict Go formatting)
 go install mvdan.cc/gofumpt@latest
@@ -80,33 +261,78 @@ go install mvdan.cc/gofumpt@latest
 # Install goimports (import organization)
 go install golang.org/x/tools/cmd/goimports@latest
 
+# Install gopls (Go language server)
+go install golang.org/x/tools/gopls@latest
+
 # Install staticcheck (advanced static analysis)
 go install honnef.co/go/tools/cmd/staticcheck@latest
 
 # Install govulncheck (vulnerability scanning)
 go install golang.org/x/vuln/cmd/govulncheck@latest
 
-# Install cspell (spell checking)
-npm install -g cspell
+# Install gremlins (mutation testing)
+go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+
+# Install oapi-codegen (OpenAPI code generation)
+go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+
+# Verify all tools
+golangci-lint --version
+gofumpt --version
+gopls version
+staticcheck --version
+govulncheck --version
+gremlins --version
 ```
 
-#### 3. Install Security & Testing Tools
+#### 3. Install Node.js Tools
+
+```powershell
+# Install cspell (spell checking)
+npm install -g cspell
+
+# Install markdownlint-cli2 (markdown linting)
+npm install -g markdownlint-cli2
+
+# Verify
+cspell --version
+markdownlint-cli2 --version
+```
+
+#### 4. Install Python Tools
+
+```powershell
+# Install pre-commit
+pip install pre-commit
+
+# Verify
+pre-commit --version
+```
+
+#### 5. Install Security & Testing Tools
 
 ```powershell
 # Install Trivy (container vulnerability scanning)
 # Download from: https://github.com/aquasecurity/trivy/releases
-# Add to PATH
+# Extract and add to PATH
 
-# Install act (GitHub Actions local testing)
+# Install Nuclei (DAST scanning)
+# Download from: https://github.com/projectdiscovery/nuclei/releases
+# Extract and add to PATH
+
+# Install act (local GitHub Actions testing)
 # Download from: https://github.com/nektos/act/releases
-# Add to PATH
+# Extract and add to PATH
 
-# Install Gremlins (mutation testing) - installed automatically by scripts
+# Verify
+trivy --version
+nuclei --version
+act --version
 ```
 
-#### 4. Configure PowerShell Execution Policy
+#### 6. Configure PowerShell Execution Policy
 
-**Important Security Requirement:** PowerShell's default execution policy prevents scripts from running, including Python virtual environment activation.
+**Important Security Requirement:** PowerShell's default execution policy prevents scripts from running.
 
 ```powershell
 # Check current policy
@@ -115,39 +341,26 @@ Get-ExecutionPolicy -List
 # Set policy to allow local scripts (recommended for development)
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
 
-# Alternative: Maximum security (requires all scripts to be signed)
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy AllSigned -Force
+# Verify
+Get-ExecutionPolicy -Scope CurrentUser
+# Expected: RemoteSigned
 ```
 
-**Security Note:** `RemoteSigned` allows locally created scripts while blocking unsigned downloads. This is the industry standard for development environments. The VS Code integrated terminal is configured with the same `RemoteSigned` policy for consistency.
-
-#### 5. Configure Go Environment Variables
-
-**Performance Optimization:** Go stores compiled executables and build cache in user directories that may trigger antivirus scanning. Configure Go to use your custom temp directory for faster development workflows.
+#### 7. Configure Go Environment Variables (Performance Optimization)
 
 ```powershell
-# Set Go temp directory for compilation artifacts
-setx GOTMPDIR "F:\go-tmp"
+# Set Go temp directory (avoids antivirus scanning delays)
+setx GOTMPDIR "C:\Temp\go-tmp"
 
-# Set Go cache directory for build artifacts and executables
-setx GOCACHE "F:\go-tmp"
+# Set Go cache directory
+setx GOCACHE "C:\Temp\go-tmp"
 
-# Verify settings (restart terminal or new session required)
+# Verify (restart terminal required)
 go env GOTMPDIR
 go env GOCACHE
 ```
 
-**Why This Matters:**
-
-- `GOTMPDIR`: Controls where Go stores temporary compilation files
-- `GOCACHE`: Controls where Go stores build cache and compiled executables
-- Setting both to your excluded temp directory prevents antivirus scanning delays
-- First run after changing may be slower (cache rebuild), subsequent runs are fast
-
-**Expected Performance:**
-
-- **Before**: `cicd` commands take 30-60+ seconds (antivirus scanning)
-- **After**: Same commands complete in 2-5 seconds (excluded directory)
+---
 
 ### Linux
 
@@ -162,34 +375,72 @@ sudo apt update
 # Install Go 1.25.5+
 wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
+source ~/.bashrc
+
+# Verify
+go version
 
 # Install Docker
-sudo apt install -y docker.io docker-compose
+sudo apt install -y docker.io docker-compose-plugin
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
 
-# Install Python 3.8+
-sudo apt install -y python3 python3-pip
+# Verify (logout/login required for group membership)
+docker --version
+docker compose version
+
+# Install Python 3.14+
+sudo apt install -y python3 python3-pip python3-venv
+
+# Verify
+python3 --version
+
+# Install Node.js 24.x LTS
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Verify
+node --version
+npm --version
 
 # Install Git
 sudo apt install -y git
+
+# Verify
+git --version
+```
+
+**Java 21 LTS (Optional - For Gatling Load Tests)**
+
+```bash
+# Install Java 21
+sudo apt install -y openjdk-21-jdk
+
+# Set JAVA_HOME
+echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >> ~/.bashrc
+source ~/.bashrc
+
+# Verify
+java -version
+
+# Maven is included via Maven Wrapper in test/load/
+# Or install globally:
+sudo apt install -y maven
 ```
 
 **Fedora/RHEL/CentOS:**
 
 ```bash
 # Install Go
-```bash
 wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
+source ~/.bashrc
 
 # Install Docker
-sudo dnf install -y docker docker-compose
+sudo dnf install -y docker docker-compose-plugin
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
@@ -197,55 +448,68 @@ sudo usermod -aG docker $USER
 # Install Python
 sudo dnf install -y python3 python3-pip
 
+# Install Node.js
+curl -fsSL https://rpm.nodesource.com/setup_24.x | sudo bash -
+sudo dnf install -y nodejs
+
 # Install Git
 sudo dnf install -y git
+
+# Install Java 21 (optional)
+sudo dnf install -y java-21-openjdk-devel
 ```
 
 #### 2. Install Go Development Tools
 
 ```bash
-# Install golangci-lint
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-# Install gofumpt
+# Install all Go tools
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2
 go install mvdan.cc/gofumpt@latest
-
-# Install goimports
 go install golang.org/x/tools/cmd/goimports@latest
-
-# Install staticcheck
+go install golang.org/x/tools/gopls@latest
 go install honnef.co/go/tools/cmd/staticcheck@latest
-
-# Install govulncheck
 go install golang.org/x/vuln/cmd/govulncheck@latest
+go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 
-# Install cspell
-npm install -g cspell
+# Verify
+golangci-lint --version
 ```
 
-#### 3. Install Security & Testing Tools
+#### 3. Install Node.js Tools
+
+```bash
+npm install -g cspell markdownlint-cli2
+```
+
+#### 4. Install Python Tools
+
+```bash
+pip3 install pre-commit
+```
+
+#### 5. Install Security & Testing Tools
 
 ```bash
 # Install Trivy
-sudo apt install -y wget apt-transport-https
+sudo apt install -y wget apt-transport-https gnupg lsb-release
 wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
 sudo apt update
 sudo apt install -y trivy
 
-# Install act (GitHub Actions)
-curl -s https://api.github.com/repos/nektos/act/releases/latest | grep "browser_download_url.*linux-amd64" | cut -d '"' -f 4 | wget -qi -
-sudo mv act /usr/local/bin/act
-sudo chmod +x /usr/local/bin/act
+# Install Nuclei
+go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
-# Gremlins installed automatically by project scripts
+# Install act (local GitHub Actions)
+curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
 ```
+
+---
 
 ### macOS
 
 #### 1. Install Core Prerequisites
-
-**Using Homebrew (Recommended):**
 
 ```bash
 # Install Homebrew if not already installed
@@ -257,543 +521,214 @@ brew install go
 # Install Docker Desktop
 brew install --cask docker
 
-# Install Python 3.8+
-brew install python
+# Install Python 3.14+
+brew install python@3.14
+
+# Install Node.js 24.x LTS
+brew install node@24
 
 # Install Git
 brew install git
-```
 
-**Manual Installation:**
+# Install Java 21 (optional - for Gatling)
+brew install openjdk@21
+sudo ln -sfn /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-21.jdk
 
-```bash
-# Go - Download from https://golang.org/dl/
-# Docker Desktop - Download from https://www.docker.com/products/docker-desktop
-# Python - Download from https://python.org/downloads/
-# Git - Usually pre-installed
+# Verify all
+go version
+docker --version
+python3 --version
+node --version
+git --version
+java -version  # if installed
 ```
 
 #### 2. Install Go Development Tools
 
 ```bash
-# Install golangci-lint
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-# Install gofumpt
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.7.2
 go install mvdan.cc/gofumpt@latest
-
-# Install goimports
 go install golang.org/x/tools/cmd/goimports@latest
-
-# Install staticcheck
+go install golang.org/x/tools/gopls@latest
 go install honnef.co/go/tools/cmd/staticcheck@latest
-
-# Install govulncheck
 go install golang.org/x/vuln/cmd/govulncheck@latest
-
-# Install cspell
-npm install -g cspell
+go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 ```
 
-#### 3. Install Security & Testing Tools
+#### 3. Install Node.js & Python Tools
 
 ```bash
-# Install Trivy
-brew install trivy
-
-# Install act (GitHub Actions)
-brew install act
-
-# Gremlins installed automatically by project scripts
+npm install -g cspell markdownlint-cli2
+pip3 install pre-commit
 ```
+
+#### 4. Install Security & Testing Tools
+
+```bash
+brew install trivy nuclei act
+```
+
+---
 
 ## Common Setup Steps
 
 ### 1. Clone the Repository
 
 ```bash
-# Clone the project
 git clone https://github.com/justincranford/cryptoutil.git
 cd cryptoutil
+```
 
-# Initialize Go modules
+### 2. Initialize Go Modules
+
+```bash
 go mod tidy
+go mod download
 ```
 
-## Pre-commit Hooks
-
-Install pre-commit hooks:
+### 3. Install Pre-commit Hooks
 
 ```bash
-pip install pre-commit
 pre-commit install
+pre-commit install --hook-type commit-msg
+pre-commit install --hook-type pre-push
 ```
 
-### Markdownlint Setup
-
-Install markdownlint-cli2 for markdown formatting:
+### 4. Generate OpenAPI Code
 
 ```bash
-npm install -g markdownlint-cli2
-```
-
-Pre-commit hook automatically fixes markdown issues.
-
-## Editor Setup
-
-#### Linux
-
-**1. Install pre-commit:**
-
-```bash
-# Install pre-commit globally
-pip3 install pre-commit
-```
-
-**2. Install pre-commit hooks:**
-
-```bash
-# Navigate to project root
-cd ~/cryptoutil
-
-# Install the hooks
-pre-commit install
-```
-
-**3. Test the setup:**
-
-```bash
-# Run all hooks on all files to verify installation
-pre-commit run --all-files
-```
-
-#### macOS
-
-**1. Install pre-commit:**
-
-```bash
-# Install pre-commit globally
-pip3 install pre-commit
-```
-
-**2. Install pre-commit hooks:**
-
-```bash
-# Navigate to project root
-cd ~/cryptoutil
-
-# Install the hooks
-pre-commit install
-```
-
-**3. Test the setup:**
-
-```bash
-# Run all hooks on all files to verify installation
-pre-commit run --all-files
-```
-
-**Pre-commit Hook Details:**
-
-- **Automatic execution**: Hooks run automatically on `git commit`
-- **Manual execution**: Run `pre-commit run --all-files` to check all files
-- **Selective execution**: Run `pre-commit run <hook-name>` for specific hooks
-- **Cache location**: Configured to avoid antivirus interference on Windows
-- **Performance**: First run may be slower (cache building), subsequent runs are fast
-
-### 3. Generate OpenAPI Code
-
-```bash
-# Generate OpenAPI client/server code
 go generate ./...
 ```
 
-### 4. Verify Installation
+### 5. Build and Test
 
 ```bash
-# Check Go version
-go version
+# Build all packages
+go build ./...
 
-# Check Docker
-docker --version
-docker compose version
+# Run tests
+go test ./... -cover
 
-# Check Python
-python3 --version
-
-# Check Go tools
-golangci-lint --version
-gofumpt --version
-goimports --version
-cspell --version
-
-# Check security tools
-trivy --version
-act --version
+# Run linting
+golangci-lint run --timeout=10m
 ```
+
+### 6. Verify Pre-commit Hooks
+
+```bash
+# Run all hooks on all files
+pre-commit run --all-files
+```
+
+---
 
 ## IDE Configuration
 
 ### VS Code Setup
 
-1. **Install VS Code**
-   - Download from <https://code.visualstudio.com/>
+1. **Install VS Code**: Download from <https://code.visualstudio.com/>
 
-2. **Install Go Extension**
-   - Open VS Code
-   - Go to Extensions (Ctrl+Shift+X)
-   - Search for "Go" by Google
-   - Install the extension
+2. **Install Go Extension**: Search "Go" by Google in Extensions
 
-3. **gopls Installation and Configuration**
+3. **gopls Configuration**: The project includes optimized `.vscode/settings.json`:
 
-   **gopls** is the official Go language server that powers VS Code's Go extension, providing intelligent code completion, navigation, and refactoring.
+```json
+{
+  "go.useLanguageServer": true,
+  "go.formatOnSave": true,
+  "gopls": {
+    "formatting.gofumpt": true,
+    "ui.inlayhint.hints": {
+      "assignVariableTypes": true,
+      "parameterNames": true,
+      "rangeVariableTypes": true
+    }
+  }
+}
+```
 
-   **Installation:**
+### Troubleshooting VS Code
 
-   ```bash
-   # Install gopls (Go language server)
-   go install golang.org/x/tools/gopls@latest
+```bash
+# If gopls not found, add to PATH
+export PATH=$PATH:$(go env GOPATH)/bin
 
-   # Verify installation
-   gopls version
-   # Expected output: gopls v0.X.X (or latest version)
-   ```
+# Clear gopls cache if slow
+rm -rf $(go env GOPATH)/pkg/mod/cache/gopls
 
-   **VS Code Configuration:**
+# Restart language server in VS Code
+# Ctrl+Shift+P → "Go: Restart Language Server"
+```
 
-   The project's `.vscode/settings.json` is pre-configured with optimal gopls settings:
-
-   ```json
-   {
-     "go.useLanguageServer": true,
-     "gopls": {
-       "formatting.gofumpt": true,
-       "ui.inlayhint.hints": {
-         "assignVariableTypes": true,
-         "parameterNames": true,
-         "rangeVariableTypes": true
-       }
-     }
-   }
-   ```
-
-   **Key Features Enabled:**
-   - **Auto-import**: Automatically adds/removes imports on save
-   - **Inlay Hints**: Shows type information inline for better readability
-   - **gofumpt Integration**: Stricter formatting than standard gofmt
-   - **Intelligent Refactoring**: F2 rename symbol with cross-file awareness
-
-   **Troubleshooting:**
-
-   1. **gopls not found**: Ensure `$(go env GOPATH)/bin` is in your PATH
-      ```bash
-      # Windows (PowerShell)
-      $env:PATH += ";$(go env GOPATH)\bin"
-
-      # Linux/macOS (Bash)
-      export PATH=$PATH:$(go env GOPATH)/bin
-      ```
-
-   2. **Slow performance**: Clear gopls cache and restart
-      ```bash
-      # Clear gopls cache
-      rm -rf $(go env GOPATH)/pkg/mod/cache/gopls
-
-      # Restart VS Code
-      # Or reload window: Ctrl+Shift+P → "Developer: Reload Window"
-      ```
-
-   3. **Import errors**: Run `go mod tidy` and restart gopls
-      ```bash
-      go mod tidy
-      # Restart gopls in VS Code: Ctrl+Shift+P → "Go: Restart Language Server"
-      ```
-
-4. **Workspace Settings**
-   The project includes optimized VS Code settings in `.vscode/settings.json` that provide:
-   - Intelligent Go language server configuration
-   - Automatic formatting and linting
-   - Enhanced code completion and inlay hints
-   - F2 rename symbol support for intelligent variable naming
-
-4. **Key VS Code Settings Applied:**
-
-   ```json
-   {
-     "go.useLanguageServer": true,
-     "go.formatOnSave": true,
-     "go.lintOnSave": "package",
-     "go.vetOnSave": "package",
-     "gopls": {
-       "formatting.gofumpt": true,
-       "ui.inlayhint.hints": {
-         "assignVariableTypes": true,
-         "parameterNames": true,
-         "rangeVariableTypes": true
-       }
-     }
-   }
-   ```
-
-### Alternative IDEs
-
-**GoLand/IntelliJ IDEA:**
-
-- Install Go plugin
-- Import project as Go module
-
-# Configure Go SDK to 1.25.5+
-
-**Vim/Neovim:**
-
-- Install vim-go plugin
-- Configure gopls integration
+---
 
 ## Project Setup
 
-### 1. Environment Configuration
-
-**Development with SQLite (Recommended for development):**
+### Development with SQLite (Recommended)
 
 ```bash
-# Copy SQLite config
-cp configs/test/config.yml configs/dev/config.yml
-
-# Edit as needed for your environment
+# SQLite uses in-memory database - no setup required
+go run ./cmd/cryptoutil/main.go --dev
 ```
 
-**Development with PostgreSQL:**
+### Development with PostgreSQL
 
 ```bash
 # Start PostgreSQL with Docker Compose
 cd deployments/compose
 docker compose up -d postgres
 
-# Use PostgreSQL config
-cp deployments/compose/cryptoutil/postgresql.yml configs/dev/config.yml
+# Run with PostgreSQL config
+go run ./cmd/cryptoutil/main.go --config=configs/dev/postgresql.yml
 ```
 
-### 2. Build and Test
+### Access the Application
 
-```bash
-# Build the project
-go build ./...
-
-# Run tests
-go test ./... -cover
-
-# Run with development config
-go run main.go --dev --config=configs/dev/config.yml
-```
-
-### 3. Access the Application
-
-- **API Documentation**: <http://localhost:8080/ui/swagger>
-- **Health Checks**: <http://localhost:9090/admin/v1/livez>, <http://localhost:9090/admin/v1/readyz>
+- **API Documentation**: <https://localhost:8080/ui/swagger>
+- **Health Checks**: <https://localhost:9090/admin/api/v1/livez>, <https://localhost:9090/admin/api/v1/readyz>
 - **Grafana**: <http://localhost:3000> (admin/admin)
 
-### 4. Documentation Maintenance
-
-**Keep these files up-to-date as the project evolves:**
-
-- **`.github/instructions/`** - **CRITICAL: All Copilot instruction files** that guide AI-assisted development:
-  - `copilot-customization.instructions.md` - VS Code Copilot behavior and tool usage
-  - `code-quality.instructions.md` - Code standards and linting compliance
-  - `testing.instructions.md` - Testing patterns and coverage requirements
-  - `architecture.instructions.md` - Application architecture and design patterns
-  - `security.instructions.md` - Security implementation guidelines
-  - `commits.instructions.md` - Conventional commit message standards
-  - `formatting.instructions.md` - Code formatting and encoding standards
-  - `project-layout.instructions.md` - Go project structure conventions
-  - And all other `.instructions.md` files for specific domains
-- **`README.md`** - Main project documentation and usage examples
-- **`docs/README.md`** - Deep-dive technical documentation and architecture details
-- **`docs/DEV-SETUP.md`** - This development setup guide
-- **`.vscode/settings.json`** - VS Code workspace configuration and Go language server settings
-- **`.github/workflows/`** - CI/CD pipeline configurations and GitHub Actions
-- **`scripts/`** - All utility scripts and their documentation
-
-**When making changes:**
-
-- Update tool versions and installation instructions when dependencies change
-- Document new setup requirements or configuration options
-- Keep platform-specific instructions current across Windows, Linux, and macOS
-- Test setup instructions on clean systems periodically
-- Update troubleshooting section with new common issues and solutions
-- **Especially important**: Keep Copilot instruction files current as development practices evolve
+---
 
 ## Verification
 
-### Run Full Test Suite
+### Run Full Verification
 
 ```bash
-# Run all tests with coverage
-go test ./... -coverprofile=coverage.out
-go tool cover -html=coverage.out -o coverage.html
+# Check all tool versions
+echo "=== Tool Versions ==="
+go version
+docker --version
+docker compose version
+python3 --version
+node --version
+golangci-lint --version
+gofumpt --version
+pre-commit --version
+cspell --version
 
-# Run linting
+# Optional tools
+java -version 2>/dev/null || echo "Java not installed (optional)"
+trivy --version 2>/dev/null || echo "Trivy not installed (optional)"
+nuclei --version 2>/dev/null || echo "Nuclei not installed (optional)"
+act --version 2>/dev/null || echo "Act not installed (optional)"
+
+# Project verification
+echo "=== Project Build ==="
+go build ./...
+
+echo "=== Tests ==="
+go test ./... -cover -short
+
+echo "=== Linting ==="
 golangci-lint run --timeout=10m
 
-# Run security scans (via GitHub Actions workflows)
-# Use: go run ./cmd/workflow -workflows=dast
+echo "=== Pre-commit Hooks ==="
+pre-commit run --all-files
 ```
 
-### Manual Security Testing with Nuclei
-
-[Nuclei](https://github.com/projectdiscovery/nuclei) is a fast, template-based vulnerability scanner included in the development environment for manual security testing.
-
-#### Prerequisites: Start cryptoutil Services
-
-Before running nuclei scans, start the cryptoutil services:
-
-```bash
-# Navigate to compose directory
-cd deployments/compose
-
-# Clean shutdown with volume removal
-docker compose down -v
-
-# Start all services
-docker compose up -d
-
-# Verify services are ready (may take 30-60 seconds)
-curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance
-curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1
-curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
-```
-
-#### Manual Nuclei Scan Examples
-
-**Service Endpoints:**
-
-- **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
-- **cryptoutil-postgres-1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
-- **cryptoutil-postgres-2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
-
-**Basic Security Scans:**
-
-```bash
-# Quick scan - Info and Low severity (fast, ~5-10 seconds)
-nuclei -target https://localhost:8080/ -severity info,low
-nuclei -target https://localhost:8081/ -severity info,low
-nuclei -target https://localhost:8082/ -severity info,low
-
-# Standard scan - Medium, High, and Critical severity (~10-30 seconds)
-nuclei -target https://localhost:8080/ -severity medium,high,critical
-nuclei -target https://localhost:8081/ -severity medium,high,critical
-nuclei -target https://localhost:8082/ -severity medium,high,critical
-
-# Full scan - All severity levels (~20-60 seconds)
-nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
-```
-
-**Targeted Vulnerability Scans:**
-
-```bash
-# CVE scanning (recent and historical vulnerabilities)
-nuclei -target https://localhost:8080/ -tags cves -severity high,critical
-
-# Security misconfigurations
-nuclei -target https://localhost:8080/ -tags security-misconfiguration
-
-# Information disclosure and exposure
-nuclei -target https://localhost:8080/ -tags exposure,misc
-
-# Technology detection and fingerprinting
-nuclei -target https://localhost:8080/ -tags tech-detect
-```
-
-**Performance-Optimized Scans:**
-
-```bash
-# High-performance scanning (adjust concurrency and rate limiting as needed)
-nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
-
-# Conservative scanning (lower resource usage)
-nuclei -target https://localhost:8080/ -c 10 -rl 25 -severity medium,high,critical
-```
-
-**Batch Scanning Script (PowerShell - Windows):**
-
-```powershell
-# Scan all three cryptoutil instances
-$targets = @(
-    "https://localhost:8080/",  # SQLite instance
-    "https://localhost:8081/",  # PostgreSQL instance 1
-    "https://localhost:8082/"   # PostgreSQL instance 2
-)
-
-foreach ($target in $targets) {
-    Write-Host "🔍 Scanning $target" -ForegroundColor Green
-    nuclei -target $target -severity medium,high,critical
-    Write-Host "✅ Completed scanning $target" -ForegroundColor Green
-    Write-Host ""
-}
-```
-
-**Batch Scanning Script (Bash - Linux/macOS):**
-
-```bash
-# Scan all three cryptoutil instances
-targets=(
-    "https://localhost:8080/"  # SQLite instance
-    "https://localhost:8081/"  # PostgreSQL instance 1
-    "https://localhost:8082/"  # PostgreSQL instance 2
-)
-
-for target in "${targets[@]}"; do
-    echo "🔍 Scanning $target"
-    nuclei -target "$target" -severity medium,high,critical
-    echo "✅ Completed scanning $target"
-    echo ""
-done
-```
-
-#### Nuclei Template Management
-
-```bash
-# Update nuclei templates to latest version
-nuclei -update-templates
-
-# Check current template version
-nuclei -templates-version
-
-# List available templates (shows first 20)
-nuclei -tl | head -20
-
-# Search for specific template types
-nuclei -tl | grep -i "http"     # Linux/macOS
-nuclei -tl | findstr http       # Windows PowerShell
-```
-
-#### Interpreting Scan Results
-
-**Expected Results:**
-
-- **✅ "No results found"**: Indicates no vulnerabilities detected - good security posture
-- **⚠️ Vulnerabilities found**: Review findings and address security issues
-- **🔄 Scan performance**: Typically 5-60 seconds per service depending on scan profile
-
-**Common False Positives to Ignore:**
-
-- Some generic web server detections that don't apply to cryptoutil's security model
-- Default credential checks (cryptoutil uses proper authentication)
-- Generic misconfiguration checks that don't apply to the custom security implementation
-
-### Test Key Features
-
-```bash
-# Test API endpoints
-curl http://localhost:8080/service/api/v1/elastickeys
-
-# Test health endpoints
-curl http://localhost:9090/admin/v1/livez
-curl http://localhost:9090/admin/v1/readyz
-
-# Test with Swagger UI
-open http://localhost:8080/ui/swagger
-```
+---
 
 ## Troubleshooting
 
@@ -802,7 +737,6 @@ open http://localhost:8080/ui/swagger
 **Go tools not found in PATH:**
 
 ```bash
-# Add Go bin to PATH
 export PATH=$PATH:$(go env GOPATH)/bin
 # Add to shell profile for persistence
 ```
@@ -811,64 +745,106 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
 ```bash
 sudo usermod -aG docker $USER
-# Logout and login again, or run: newgrp docker
+# Logout and login again
 ```
 
 **Pre-commit hooks not working:**
 
 ```bash
-# Reinstall hooks
 pre-commit install --force
-
-# Clear cache
 pre-commit clean
 ```
 
-**VS Code Go extension issues:**
-
-```bash
-# Restart gopls
-# In VS Code: Ctrl+Shift+P → "Go: Restart Language Server"
-
-# Check gopls version
-gopls version
-```
-
-**PowerShell execution policy reset after reboot:**
+**PowerShell execution policy reset after reboot (Windows):**
 
 ```powershell
-# If scripts stop working after system reboot
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+```
 
-# Verify the policy is set
-Get-ExecutionPolicy -List
+**testcontainers-go fails on Windows:**
+
+```text
+Error: "testcontainers-go does not support rootless Docker"
+Solution: Ensure Docker Desktop is running (not just installed)
 ```
 
 ### Getting Help
 
-- Check the main [README.md](../README.md) for application-specific documentation
+- Check [README.md](../README.md) for application documentation
 - Check GitHub Issues for known problems
-- Run diagnostic commands:
-
-  ```bash
-  # Check all tool versions
-  go version && docker --version && python3 --version && golangci-lint --version
-
-  # Test pre-commit
-  pre-commit run --all-files
-
-  # Test Go build
-  go build ./...
-  ```
-
-### Performance Tips
-
-- **Use SQLite for development** - faster than PostgreSQL for local development
-- **Enable Docker BuildKit** - add `export DOCKER_BUILDKIT=1` to your shell profile
-- **Use pre-commit hooks** - they run automatically and catch issues early
-- **Keep Go modules tidy** - run `go mod tidy` regularly
+- Run diagnostic commands shown in Verification section
 
 ---
 
-This setup guide ensures you have all the tools needed for cryptoutil development. The project includes automated scripts and configurations to make the setup process as smooth as possible across all supported platforms.</content>
-<parameter name="filePath">c:\Dev\Projects\cryptoutil\docs\DEV-SETUP.md
+## Gatling Load Tests (Optional)
+
+For performance testing, the project includes Gatling tests in `test/load/`.
+
+### Prerequisites
+
+- Java 21 LTS
+- Maven 3.9+ (or use included Maven Wrapper)
+
+### Running Load Tests
+
+```bash
+cd test/load
+
+# Using Maven Wrapper (recommended - no Maven install needed)
+./mvnw gatling:test
+
+# Or with Maven installed
+mvn gatling:test
+```
+
+### JDK Configuration for Gatling
+
+Create `.mvn/jvm.config` in `test/load/` directory:
+
+```properties
+--java-home
+/path/to/your/jdk21
+```
+
+Or set `JAVA_HOME`:
+
+```bash
+export JAVA_HOME=/path/to/jdk21
+```
+
+See [test/load/README.md](../test/load/README.md) for detailed Gatling documentation.
+
+---
+
+## Security Testing (Optional)
+
+### Manual Nuclei Scanning
+
+```bash
+# Start services first
+cd deployments/compose
+docker compose up -d
+
+# Wait for services to be ready (30-60 seconds)
+sleep 60
+
+# Quick scan
+nuclei -target https://localhost:8080/ -severity info,low
+
+# Comprehensive scan
+nuclei -target https://localhost:8080/ -severity medium,high,critical
+
+# Update templates before scanning
+nuclei -update-templates
+```
+
+### Container Vulnerability Scanning
+
+```bash
+# Scan Docker images
+trivy image cryptoutil:latest
+```
+
+---
+
+This setup guide ensures you have all the tools needed for cryptoutil development. The project includes automated scripts and configurations to make the setup process as smooth as possible across all supported platforms.
