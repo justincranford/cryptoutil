@@ -244,21 +244,30 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
 #### P6.2: E2E Path Coverage
 
 - ⚠️ **P6.2.1**: Browser path E2E tests
-  - **Status**: IN PROGRESS (infrastructure created, tests not yet verified)
+  - **Status**: IN PROGRESS (health checks FIXED, 3 endpoint implementation gaps remain)
   - **Effort**: M (5-7 days)
   - **Dependencies**: P6.1.3 - ✅ COMPLETE
   - **Coverage**: Target ≥95%
   - **Mutation**: Target ≥85%
-  - **Blockers**: None
+  - **Blockers**: 3 missing API endpoints (not config issues)
   - **Notes**: BOTH `/service/**` and `/browser/**` paths required
-  - **Commits**: 65cc1c90 (Dockerfiles), b8f56b6f (compose/config), 8ebad29a (E2E tests), 0163afcd (magic constants)
+  - **Commits**: 65cc1c90 (Dockerfiles), b8f56b6f (compose/config), 8ebad29a (E2E tests), 0163afcd (magic constants), acac634e (config structure fix)
   - **Progress**:
     - ✅ All 5 Dockerfiles updated for cryptoutil binary pattern
     - ✅ E2E compose file (deployments/identity/compose.e2e.yml) with all 5 services
-    - ✅ E2E config files for all 5 services (authz-e2e.yml, idp-e2e.yml, rs-e2e.yml, rp-e2e.yml, spa-e2e.yml)
+    - ✅ E2E config files flattened (authz-e2e.yml, idp-e2e.yml, rs-e2e.yml, rp-e2e.yml, spa-e2e.yml)
     - ✅ E2E test infrastructure (testmain_e2e_test.go, e2e_test.go)
     - ✅ Magic constants (IdentityE2E* ports, container names, paths)
-    - ⏳ E2E tests not yet run/verified (requires Docker)
+    - ✅ **BREAKTHROUGH**: Health checks FIXED (services binding to 0.0.0.0 instead of 127.0.0.1)
+    - ✅ All 5 services reachable from host (no more EOF timeouts)
+  - **Test Results** (commit acac634e):
+    - ✅ Health checks: 5/5 passing (was 0/5)
+    - ✅ Service path tests: 4/5 passing
+    - ❌ Browser path tests: 0/2 passing (implementation gaps, NOT config)
+  - **Remaining Work** (3 missing endpoints):
+    - ❌ `/service/api/v1/resources` in RS (expects 401, returns 404)
+    - ❌ `/browser/login` in IdP (expects HTML/redirect, returns 404)
+    - ❌ `/browser/api/v1/authorize` in AuthZ (expects auth flow, returns 404)
 
 ### Phase 7: Advanced Identity Features ⏸️ FUTURE
 
@@ -3841,6 +3850,196 @@ Task 0.10:
 6. Run mutation testing (≥85% target)
 
 **Phase Status**: P4.1.1 jose-ja → IN PROGRESS (infrastructure complete, tests pending)
+
+---
+
+### 2026-01-28: Phase 6.2.1 E2E Tests - CRITICAL BLOCKER RESOLVED 🎯 BREAKTHROUGH
+
+**BREAKTHROUGH: Health Check Crisis Resolved**
+
+After 3 failed fix attempts spanning multiple sessions, identified and resolved critical configuration issue blocking all E2E tests.
+
+**Root Cause Identified**:
+- **Problem**: Viper reads config keys from root level only (`viper.GetString("bind-public-address")`)
+- **Issue**: E2E configs had bind addresses nested under service-specific sections:
+  - AuthZ: nested under `authz:` wrapper
+  - IdP: nested under `idp:` wrapper  
+  - RP/RS/SPA: nested under `server:` wrapper
+- **Result**: Viper couldn't find keys → fell back to hardcoded default (`IPv4Loopback` = 127.0.0.1) → services bound to loopback → host connections failed with EOF errors
+
+**Failed Attempts** (Previous Sessions):
+1. **Attempt 1**: Changed key naming `bind_address` → `bind-public-address` (correct naming, wrong location)
+2. **Attempt 2**: Rebuilt Docker images with `--no-cache` (correct process, wrong fix)
+3. **Attempt 3**: Flattened YAML structure (CORRECT - addressed root cause)
+
+**Solution Implemented**:
+- Flattened all 5 E2E config files to move bind addresses to root level
+- Removed service-specific wrapper sections (`authz:`, `idp:`, `server:`)
+- Added explanatory comments documenting viper's expectations
+- Rebuilt Docker images with new configs
+- Validated services binding to 0.0.0.0 in container logs
+
+**Files Modified** (5 configs, commit acac634e):
+```
+deployments/identity/config/authz-e2e.yml   (11 → 9 lines, removed authz: wrapper)
+deployments/identity/config/idp-e2e.yml     (43 → 37 lines, removed idp: wrapper)
+deployments/identity/config/rp-e2e.yml      (~30 → ~24 lines, removed server: wrapper)
+deployments/identity/config/rs-e2e.yml      (~30 → ~24 lines, removed server: wrapper)
+deployments/identity/config/spa-e2e.yml     (~30 → ~24 lines, removed server: wrapper)
+
+Net change: +28 insertions, -39 deletions (-11 lines total)
+```
+
+**Before/After Pattern**:
+```yaml
+# BEFORE (nested - WRONG)
+authz:                            # Viper can't find keys here
+  bind-public-address: 0.0.0.0
+  bind-public-port: 18000
+
+# AFTER (flat - CORRECT)
+# Bind configuration (FLAT structure - viper expects root-level keys)
+bind-public-address: 0.0.0.0      # Viper finds at root level ✅
+bind-public-port: 18000
+```
+
+**Validation Evidence**:
+
+Container Logs Verified (all 5 services):
+```bash
+# AuthZ
+Public Server: https://0.0.0.0:18000  ✅ (was 127.0.0.1)
+
+# IdP  
+Public Server: https://0.0.0.0:18100  ✅ (was 127.0.0.1)
+
+# RP
+Public Server: https://0.0.0.0:18300  ✅ (was 127.0.0.1)
+
+# RS
+Public Server: https://0.0.0.0:18200  ✅ (was 127.0.0.1)
+
+# SPA
+Public Server: https://0.0.0.0:18400  ✅ (was 127.0.0.1)
+```
+
+**Test Results - MAJOR SUCCESS**:
+
+E2E Test Execution (`go test -v -timeout=10m ./internal/apps/identity/e2e`):
+```
+Duration: 5.128 seconds (was 254 seconds timeout - 50x faster)
+
+Health Checks: 
+[WaitForHealth] SUCCESS for https://127.0.0.1:18000/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:18100/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:18200/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:18300/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:18400/health after 1 attempts ✅
+
+Tests Passing: 9/12 (75%)
+
+✅ PASS: TestE2E_HealthChecks (5/5 services)
+✅ PASS: TestE2E_ServicePath_AuthZ (OIDC discovery)
+✅ PASS: TestE2E_ServicePath_JWKS (key sets)
+✅ PASS: TestE2E_ServicePath_IDP (health check)
+✅ PASS: TestE2E_ServicePath_RP (health check)
+✅ PASS: TestE2E_ServicePath_SPA (health check)
+✅ PASS: TestE2E_CORS_Headers (cross-origin policies)
+✅ PASS: TestE2E_CSP_Headers (content security)
+✅ PASS: TestE2E_AllServicesIntegration (5/5 health checks)
+
+❌ FAIL: TestE2E_ServicePath_RS (expected 401, got 404 - endpoint missing)
+❌ FAIL: TestE2E_BrowserPath_IDP (got 404 - /browser/login not implemented)
+❌ FAIL: TestE2E_BrowserPath_AuthZ (got 404 - /browser/api/v1/authorize not implemented)
+```
+
+**Metrics Improvement**:
+```
+Health Check Success Rate:
+  Before: 0% (0/595 attempts succeeded over 254s timeout)
+  After:  100% (5/5 services on first attempt)
+  
+Test Duration:
+  Before: 254 seconds (timeout)
+  After:  5.1 seconds  
+  Improvement: 50x faster
+  
+Test Pass Rate:
+  Before: 0/12 (0%)
+  After:  9/12 (75%)
+  Improvement: +75 percentage points
+  
+Error Count:
+  Before: 595 EOF errors (119 per service)
+  After:  0 EOF errors
+  Reduction: 100%
+```
+
+**Remaining Test Failures** (Implementation Gaps, NOT Config):
+
+1. **TestE2E_ServicePath_RS** (e2e_test.go:200):
+   - Endpoint: `GET /service/api/v1/resources`
+   - Expected: 401 Unauthorized (protected resource without token)
+   - Actual: 404 Not Found
+   - Fix Needed: Implement protected resource endpoint in RS server
+
+2. **TestE2E_BrowserPath_IDP** (e2e_test.go:242):
+   - Endpoint: `GET /browser/login`
+   - Expected: HTML login page or redirect (not 404)
+   - Actual: 404 Not Found
+   - Fix Needed: Implement browser login page in IdP server
+
+3. **TestE2E_BrowserPath_AuthZ** (e2e_test.go:125):
+   - Endpoint: `GET /browser/api/v1/authorize`
+   - Expected: Authorization flow initiation (not 404)
+   - Actual: 404 Not Found
+   - Fix Needed: Implement browser authorization endpoint in AuthZ server
+
+**Phase 6.2.1 Status Update**:
+```
+Previous: 🔴 BLOCKED (health checks failing, root cause unknown)
+Current:  🟡 ACTIVE (health checks passing, endpoint implementations needed)
+
+Infrastructure:      ✅ COMPLETE
+Docker setup:        ✅ COMPLETE
+Config files:        ✅ COMPLETE (flattened structure)
+Health checks:       ✅ COMPLETE (5/5 passing on first attempt)
+Service paths:       ⚠️ PARTIAL (4/5 passing, RS endpoint missing)
+Browser paths:       ❌ INCOMPLETE (0/2 passing, both endpoints missing)
+
+Blocking Issues:     NONE (critical blocker resolved)
+Progress:            75% (9/12 tests passing)
+```
+
+**Commits**:
+- acac634e: "fix(identity): flatten E2E config YAML structure to fix bind address defaults"
+  - Comprehensive commit message documenting root cause, changes, evidence, test results
+  - 24-line commit message with detailed analysis
+
+**Key Insights**:
+
+1. **Configuration Structure Matters**: Having correct VALUES in wrong STRUCTURE doesn't work
+2. **Viper Expectations**: Reads only root-level keys, cannot traverse nested sections
+3. **Default Fallback Behavior**: Empty viper.GetString() → hardcoded constant → wrong bind address
+4. **Evidence-Based Debugging**: Container logs proved fix worked (0.0.0.0 vs 127.0.0.1)
+5. **Test Characteristics**: "after 1 attempts" proves immediate success (no retries = working config)
+
+**Next Steps**:
+1. Implement `/service/api/v1/resources` endpoint in RS server (protected resource returning 401 without token)
+2. Implement `/browser/login` endpoint in IdP server (HTML login page or redirect)
+3. Implement `/browser/api/v1/authorize` endpoint in AuthZ server (OAuth authorization flow)
+4. Validate all 12 tests passing
+5. Mark Phase 6.2.1 COMPLETE
+6. Proceed to Phase 7 (Advanced Identity Features)
+
+**Lessons Learned**:
+- Superficial fixes (renaming, rebuilding) fail when root cause is structural
+- Deep investigation (code tracing, container inspection, log analysis) reveals actual issues
+- Systematic debugging: hypothesis → test → evidence → refine hypothesis
+- When symptoms don't change across fix attempts → dig deeper into architecture
+- Configuration loading mechanisms matter as much as configuration values
+
+---
 
 ### 2025-01-25: Phase 0 Multi-Tenancy Join Request System Completed
 
