@@ -6932,3 +6932,51 @@ This is a test infrastructure issue (port allocation), NOT a regression from Pha
 7. Remaining gaps represent architectural constraints, not missing test scenarios
 
 **Next Steps**: Resume main project work (Phase 6.2.1 E2E tests)
+
+
+### 2026-01-28: Businesslogic Package Database Error Path Tests
+
+**Work**: Added database error path tests to businesslogic package (follow-up to Phase 0.6 coverage analysis)
+
+**Coverage Impact**: 85.3% → 89.7% (+4.4 percentage points)
+
+**Tests Added** (8 total, 259 lines):
+
+1. **tenant_registration_service_test.go** (7 tests, 232 lines):
+   - `TestRegisterUserWithTenant_CreateTenant_DBError` - DB closed, tenant create fails
+   - `TestRegisterClientWithTenant_DBError` - DB closed, join request create fails
+   - `TestRegisterClientWithTenant_JoinRequestCreateError` - Tests tenant lookup path
+   - `TestAuthorizeJoinRequest_GetByID_DBError` - DB closed, GetByID fails
+   - `TestAuthorizeJoinRequest_Update_DBError` - DB closed after data creation
+   - `TestListJoinRequests_DBError` - DB closed, ListByTenant fails
+   - `TestJoinRequestRepository_Create_DuplicateClientID` - Unique constraint test
+
+2. **session_manager_service_test.go** (1 test, 27 lines):
+   - `TestNewSessionManagerService_InitializeError` - DB closed before Initialize call
+
+**Testing Pattern**: Closed database connection approach (`sqlDB.Close()`) to trigger database error paths without mocking.
+
+**Code Quality**:
+- ✅ All tests passing (4.346s)
+- ✅ Linting clean (errcheck violations fixed: `_ = sqlDB.Close()`)
+- ✅ Coverage: 89.7% (up from 85.3%)
+- ⚠️ Still below 95% minimum for infrastructure (gap: -5.3%)
+
+**Architectural Constraints** (48 uncovered blocks remaining):
+
+Many remaining uncovered blocks are untestable without mocking (prohibited per project rules):
+- **Barrier service errors**: Tests use `nil` barrier (test mode), cannot test encryption failures
+- **Crypto/rand failures**: Cannot force cryptographic random failures
+- **Type assertions**: Return types guaranteed correct in normal flow
+- **Dead code**: Outer default case unreachable due to Initialize filtering
+- **JSON marshal errors**: Impossible for JWK struct
+
+**Decision**: Businesslogic coverage at 89.7% acceptable with documented architectural constraints. Further improvement requires extensive mocking infrastructure (violates project philosophy per specs/002-cryptoutil/clarify.md).
+
+**Commit**: bd2354e1 ("test(template/businesslogic): add database error path tests")
+
+**Duration**: ~2 hours (test development, linting fixes, cleanup)
+
+**Status**: Businesslogic package improvement complete, Phase 0.6 COMPLETE & CLEAN maintained
+
+**Next Steps**: Resume main project work (Phase 6.2.1 E2E tests)
