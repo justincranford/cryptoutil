@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 0 of 32 tasks complete (0%)
+**Status**: 0 of 50 tasks complete (0%)
 **Last Updated**: 2026-01-31
 
 ## Task Checklist
@@ -320,6 +320,120 @@
 
 ---
 
+### Phase 8: Race Condition Testing (from v4 Phase 12)
+
+#### Task 8.1: Enable Race Detection in CI/CD
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Add `-race` flag to CI test workflows, configure CGO_ENABLED=1
+- **Acceptance Criteria**:
+  - [ ] CI runs `go test -race ./...`
+  - [ ] CGO properly configured for race detection
+
+#### Task 8.2: Fix Race Conditions in Shared Packages
+- **Status**: ❌ Not Started
+- **Estimated**: 3h
+- **Packages**: `internal/shared/pool/`, `internal/shared/barrier/`, `internal/shared/crypto/`
+- **Description**: Add proper synchronization (sync.Mutex, sync.RWMutex, sync.Map)
+- **Acceptance Criteria**:
+  - [ ] All shared packages pass `-race` flag
+  - [ ] No data races detected
+
+#### Task 8.3: Fix Race Conditions in Service-Template
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Package**: `internal/apps/template/service/`
+- **Description**: Fix concurrent access to session manager, realm service, configuration
+- **Acceptance Criteria**:
+  - [ ] Service-template passes `-race` flag
+  - [ ] Concurrent tests pass with t.Parallel()
+
+#### Task 8.4: Fix Race Conditions in Cipher-IM
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Package**: `internal/apps/cipher/im/`
+- **Acceptance Criteria**:
+  - [ ] Cipher-IM passes `-race` flag
+
+#### Task 8.5: Fix Race Conditions in JOSE-JA
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Package**: `internal/jose/`
+- **Acceptance Criteria**:
+  - [ ] JOSE-JA passes `-race` flag
+
+#### Task 8.6: Fix Race Conditions in KMS
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Package**: `internal/kms/`
+- **Description**: KMS has custom concurrency patterns, may need more fixes
+- **Acceptance Criteria**:
+  - [ ] KMS passes `-race` flag
+
+---
+
+### Phase 9: KMS Modernization (from v4 Phase 6 - EXECUTE LAST)
+
+**CRITICAL: Execute Phase 9 LAST after Phases 1-8 complete**
+
+#### Task 9.1: Create KMS ServerBuilder Migration Plan
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Document migration strategy from raw database/sql to GORM ServerBuilder
+- **Acceptance Criteria**:
+  - [ ] Migration plan documented
+  - [ ] Breaking changes identified
+  - [ ] Rollback strategy defined
+
+#### Task 9.2: Migrate KMS Database Layer to GORM
+- **Status**: ❌ Not Started
+- **Estimated**: 8h
+- **Package**: `internal/kms/server/repository/`
+- **Description**: Replace raw database/sql with GORM, maintain backward compatibility
+- **Acceptance Criteria**:
+  - [ ] All repositories use GORM
+  - [ ] Existing tests pass
+  - [ ] Cross-DB compatible (PostgreSQL + SQLite)
+
+#### Task 9.3: Migrate KMS to ServerBuilder Pattern
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Package**: `internal/kms/server/`
+- **Description**: Use ServerBuilder from service-template instead of custom setup
+- **Acceptance Criteria**:
+  - [ ] ServerBuilder used for initialization
+  - [ ] Dual HTTPS servers configured
+  - [ ] Merged migrations pattern implemented
+
+#### Task 9.4: Add Browser APIs to KMS
+- **Status**: ❌ Not Started
+- **Estimated**: 3h
+- **Description**: Add `/browser/**` paths matching `/service/**` APIs
+- **Acceptance Criteria**:
+  - [ ] `/browser/api/v1/**` endpoints exist
+  - [ ] CSRF/CORS middleware applied
+  - [ ] Session-based authentication working
+
+#### Task 9.5: Add Registration Flow to KMS
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Add `/auth/register` endpoint to replace default tenant pattern
+- **Acceptance Criteria**:
+  - [ ] Registration endpoint functional
+  - [ ] Default tenant pattern removed
+  - [ ] Multi-tenancy working
+
+#### Task 9.6: KMS E2E Test Update
+- **Status**: ❌ Not Started
+- **Estimated**: 3h
+- **Description**: Update E2E tests for modernized KMS
+- **Acceptance Criteria**:
+  - [ ] E2E tests pass with Docker Compose
+  - [ ] Registration flow tested
+  - [ ] All API paths tested
+
+---
+
 ## Cross-Cutting Tasks
 
 ### Documentation
@@ -330,11 +444,18 @@
 - [ ] All unit tests ≥95% coverage
 - [ ] Table-driven tests only
 - [ ] No real HTTPS listeners
+- [ ] Race detection clean (`go test -race ./...`)
 
 ### Quality
 - [ ] Linting passes
 - [ ] No security vulnerabilities
 - [ ] No TODOs in production code
+
+### KMS Modernization (Phase 9)
+- [ ] GORM migration complete
+- [ ] ServerBuilder pattern adopted
+- [ ] Browser APIs functional
+- [ ] Registration flow working
 
 ---
 
@@ -343,3 +464,4 @@
 - Analysis docs: [archive/](./archive/)
 - [03-02.testing.instructions.md](../../.github/instructions/03-02.testing.instructions.md)
 - [07-01.testmain-integration-pattern.instructions.md](../../.github/instructions/07-01.testmain-integration-pattern.instructions.md)
+- Comparison table: [comparison-table.md](./comparison-table.md)

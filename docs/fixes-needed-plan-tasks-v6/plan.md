@@ -73,6 +73,25 @@ MEDIUM Priority:
 - Investigate low-coverage functions (may need documentation vs removal)
 - Fix config bug acknowledged in tests
 
+### Phase 8: Race Condition Testing - 8-12h (from v4 Phase 12)
+
+- Enable race detection across all packages
+- Fix race conditions in concurrent code
+- Add proper synchronization primitives
+- 35 tasks covering all packages with concurrent operations
+
+### Phase 9: KMS Modernization - 20-30h (from v4 Phase 6, EXECUTE LAST)
+
+**CRITICAL: Execute this phase LAST after all other services validated**
+
+- Migrate KMS from raw database/sql to GORM ServerBuilder pattern
+- Add browser APIs (`/browser/**` paths)
+- Implement registration flow endpoint
+- Migrate to merged migrations pattern (1001-1004 + 2001+)
+- Leverage lessons from cipher-im + JOSE-JA migrations
+
+**Why Last**: KMS is oldest service (pre-template). Migration leverages fully-validated template from service-template, cipher-im, JOSE-JA work. Largest duplication elimination (~1,500 lines).
+
 ## Technical Decisions
 
 ### Decision 1: Service Configuration Pattern
@@ -110,12 +129,16 @@ MEDIUM Priority:
 
 ## Success Criteria
 
-- [ ] Phase 1-7 complete
+- [ ] Phase 1-9 complete
 - [ ] All quality gates pass
 - [ ] CI/CD green
 - [ ] Documentation updated
+- [ ] Race detection clean (`go test -race ./...`)
+- [ ] KMS modernized to ServerBuilder pattern (Phase 9)
 
 ## References
 
 - Analysis docs archived in [archive/](./archive/)
 - Copilot instructions in `.github/instructions/`
+- Comparison table: [comparison-table.md](./comparison-table.md)
+- v4 source: `docs/fixes-needed-plan-tasks-v4/` (archived after v6 complete)
