@@ -34,6 +34,7 @@ func (t *TOTPSecret) BeforeCreate(tx *gorm.DB) error {
 	if t.ID == googleUuid.Nil {
 		t.ID = googleUuid.New()
 	}
+
 	return nil
 }
 

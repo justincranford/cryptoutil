@@ -6,14 +6,15 @@ package mfa
 
 import (
 	"context"
-	"crypto/hmac"
+	hmac "crypto/hmac"
 	crand "crypto/rand"
 	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
+	sha256 "crypto/sha256"
+	sha512 "crypto/sha512"
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"hash"
 	"math"
@@ -94,9 +95,10 @@ func (s *TOTPService) EnrollTOTP(ctx context.Context, userID googleUuid.UUID, is
 func (s *TOTPService) VerifyTOTP(ctx context.Context, userID googleUuid.UUID, code string) error {
 	var totpSecret TOTPSecret
 	if err := s.db.WithContext(ctx).Where("user_id = ?", userID).First(&totpSecret).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("TOTP not enrolled for user")
 		}
+
 		return fmt.Errorf("failed to get TOTP secret: %w", err)
 	}
 
@@ -143,9 +145,10 @@ func (s *TOTPService) VerifyTOTP(ctx context.Context, userID googleUuid.UUID, co
 func (s *TOTPService) RequiresMFAStepUp(ctx context.Context, userID googleUuid.UUID) (bool, error) {
 	var totpSecret TOTPSecret
 	if err := s.db.WithContext(ctx).Where("user_id = ?", userID).First(&totpSecret).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		}
+
 		return false, fmt.Errorf("failed to get TOTP secret: %w", err)
 	}
 
@@ -237,6 +240,7 @@ func (s *TOTPService) verifyCode(secret *TOTPSecret, code string, window int) (b
 
 	for offset := -window; offset <= window; offset++ {
 		timeStep := currentTime/int64(secret.Period) + int64(offset)
+
 		expectedCode, err := s.generateTOTP(secret.Secret, timeStep, secret.Algorithm, secret.Digits)
 		if err != nil {
 			return false, err
@@ -264,6 +268,7 @@ func (s *TOTPService) generateTOTP(secret string, timeStep int64, algorithm stri
 
 	// Generate HMAC based on algorithm.
 	var mac hash.Hash
+
 	switch strings.ToUpper(algorithm) {
 	case "SHA1":
 		mac = hmac.New(sha1.New, secretBytes)

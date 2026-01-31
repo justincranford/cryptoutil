@@ -52,3 +52,9 @@ const (
 	// DefaultEmailOTPRateLimitWindow is 1-hour rate limit window.
 	DefaultEmailOTPRateLimitWindow = 1 * time.Hour
 )
+
+// WebAuthn Session constants.
+const (
+	// DefaultWebAuthnSessionExpiry is the default session expiry for WebAuthn ceremonies.
+	DefaultWebAuthnSessionExpiry = 5 * time.Minute
+)

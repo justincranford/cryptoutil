@@ -28,6 +28,7 @@ func (b *BackupCode) BeforeCreate(tx *gorm.DB) error {
 	if b.ID == googleUuid.Nil {
 		b.ID = googleUuid.New()
 	}
+
 	return nil
 }
 
