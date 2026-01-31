@@ -251,7 +251,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Mutation**: N/A (E2E integration tests)
   - **Blockers**: None
   - **Notes**: BOTH `/service/**` and `/browser/**` paths validated ✅
-  - **Commits**: 
+  - **Commits**:
     - 65cc1c90 (Dockerfiles)
     - b8f56b6f (compose/config)
     - 8ebad29a (E2E tests)
@@ -3868,7 +3868,7 @@ After 3 failed fix attempts spanning multiple sessions, identified and resolved 
 - **Problem**: Viper reads config keys from root level only (`viper.GetString("bind-public-address")`)
 - **Issue**: E2E configs had bind addresses nested under service-specific sections:
   - AuthZ: nested under `authz:` wrapper
-  - IdP: nested under `idp:` wrapper  
+  - IdP: nested under `idp:` wrapper
   - RP/RS/SPA: nested under `server:` wrapper
 - **Result**: Viper couldn't find keys → fell back to hardcoded default (`IPv4Loopback` = 127.0.0.1) → services bound to loopback → host connections failed with EOF errors
 
@@ -3915,7 +3915,7 @@ Container Logs Verified (all 5 services):
 # AuthZ
 Public Server: https://0.0.0.0:18000  ✅ (was 127.0.0.1)
 
-# IdP  
+# IdP
 Public Server: https://0.0.0.0:18100  ✅ (was 127.0.0.1)
 
 # RP
@@ -3934,7 +3934,7 @@ E2E Test Execution (`go test -v -timeout=10m ./internal/apps/identity/e2e`):
 ```
 Duration: 5.128 seconds (was 254 seconds timeout - 50x faster)
 
-Health Checks: 
+Health Checks:
 [WaitForHealth] SUCCESS for https://127.0.0.1:18000/health after 1 attempts ✅
 [WaitForHealth] SUCCESS for https://127.0.0.1:18100/health after 1 attempts ✅
 [WaitForHealth] SUCCESS for https://127.0.0.1:18200/health after 1 attempts ✅
@@ -3963,17 +3963,17 @@ Tests Passing: 9/12 (75%)
 Health Check Success Rate:
   Before: 0% (0/595 attempts succeeded over 254s timeout)
   After:  100% (5/5 services on first attempt)
-  
+
 Test Duration:
   Before: 254 seconds (timeout)
-  After:  5.1 seconds  
+  After:  5.1 seconds
   Improvement: 50x faster
-  
+
 Test Pass Rate:
   Before: 0/12 (0%)
   After:  9/12 (75%)
   Improvement: +75 percentage points
-  
+
 Error Count:
   Before: 595 EOF errors (119 per service)
   After:  0 EOF errors
@@ -4085,7 +4085,7 @@ Before Endpoint Implementations:
     - TestE2E_ServicePath_RS (404)
     - TestE2E_BrowserPath_IDP (404)
     - TestE2E_BrowserPath_AuthZ (404)
-  
+
 After Endpoint Implementations:
   Tests Passing: 12/12 (100%)
   All Tests: ✅ PASS
@@ -4116,13 +4116,13 @@ Initial State (Before Config Fix):
   Infrastructure:      ❌ BLOCKED (health checks failing)
   Tests:               0/12 passing (0%)
   Status:              🔴 CRITICAL BLOCKER
-  
+
 After Config Fix (Session 2026-01-27):
   Infrastructure:      ✅ COMPLETE (health checks passing)
   Tests:               9/12 passing (75%)
   Status:              🟡 ACTIVE
   Blockers:            3 missing endpoints
-  
+
 Final State (Session 2026-01-28):
   Infrastructure:      ✅ COMPLETE
   Endpoints:           ✅ COMPLETE (all 3 implemented)
@@ -4139,12 +4139,12 @@ Timeline:
   Fixed:       2026-01-27 (config flattening breakthrough)
   Completed:   2026-01-28 (endpoint implementations)
   Duration:    ~2 days
-  
+
 Progression:
   Session 1: 0/12 tests (0%) → BLOCKED on health checks
   Session 2: 9/12 tests (75%) → ACTIVE, config fix breakthrough
   Session 3: 12/12 tests (100%) → COMPLETE ✅
-  
+
 Improvement:
   Test Success: 0% → 100%
   Speed: 254s timeout → 5.1s completion (50x faster)

@@ -113,10 +113,10 @@ func TestTOTPVerification_ValidCode(t *testing.T) {
 
 	// Enroll user.
 	userID := googleUuid.Must(googleUuid.NewV7())
-	
+
 	// Create test user in database.
 	createTestUser(t, db, userID, "testuser@example.com")
-	
+
 	enrollResp := enrollTOTP(t, app, userID, "CryptoUtil", "testuser@example.com")
 
 	qrCodeURI, ok := enrollResp["qr_code_uri"].(string)
@@ -162,10 +162,10 @@ func TestTOTPVerification_InvalidCode(t *testing.T) {
 
 	// Enroll user.
 	userID := googleUuid.Must(googleUuid.NewV7())
-	
+
 	// Create test user in database.
 	createTestUser(t, db, userID, "testuser@example.com")
-	
+
 	_ = enrollTOTP(t, app, userID, "CryptoUtil", "testuser@example.com")
 
 	// Verify with invalid code.
@@ -194,10 +194,10 @@ func TestTOTPLockout_FiveFailedAttempts(t *testing.T) {
 
 	// Enroll user.
 	userID := googleUuid.Must(googleUuid.NewV7())
-	
+
 	// Create test user in database.
 	createTestUser(t, db, userID, "testuser@example.com")
-	
+
 	_ = enrollTOTP(t, app, userID, "CryptoUtil", "testuser@example.com")
 
 	// Submit 5 invalid codes.
@@ -240,10 +240,10 @@ func TestMFAStepUp_ThirtyMinuteRequirement(t *testing.T) {
 
 	// Enroll and verify user.
 	userID := googleUuid.Must(googleUuid.NewV7())
-	
+
 	// Create test user in database.
 	createTestUser(t, db, userID, "testuser@example.com")
-	
+
 	enrollResp := enrollTOTP(t, app, userID, "CryptoUtil", "testuser@example.com")
 
 	qrCodeURI, ok := enrollResp["qr_code_uri"].(string)
@@ -302,10 +302,10 @@ func TestBackupCodes_GenerateAndVerify(t *testing.T) {
 
 	// Enroll user.
 	userID := googleUuid.Must(googleUuid.NewV7())
-	
+
 	// Create test user in database.
 	createTestUser(t, db, userID, "testuser@example.com")
-	
+
 	enrollResp := enrollTOTP(t, app, userID, "CryptoUtil", "testuser@example.com")
 
 	backupCodes, ok := enrollResp["backup_codes"].([]interface{})

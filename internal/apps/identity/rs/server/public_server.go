@@ -67,7 +67,7 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "unauthorized",
+			"error":   "unauthorized",
 			"message": "Authorization header required",
 		})
 	}
@@ -76,7 +76,7 @@ func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
 	// For now, any Authorization header is accepted (E2E test just needs 401 without header).
 	return c.JSON(fiber.Map{
 		"resources": []fiber.Map{},
-		"message": "Protected resource endpoint - token validation not yet implemented",
+		"message":   "Protected resource endpoint - token validation not yet implemented",
 	})
 }
 
