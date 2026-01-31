@@ -14,7 +14,9 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
-	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic")
+
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+)
 
 // WebAuthnService handles WebAuthn registration and authentication ceremonies.
 type WebAuthnService struct {

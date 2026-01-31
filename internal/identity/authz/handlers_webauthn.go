@@ -71,15 +71,15 @@ type FinishWebAuthnAuthenticationResponse struct {
 }
 
 type WebAuthnCredentialResponse struct {
-	ID               string `json:"id"`
-	CredentialID     string `json:"credential_id"`
-	DisplayName      string `json:"display_name"`
-	CreatedAt        string `json:"created_at"`
-	LastUsedAt       string `json:"last_used_at,omitempty"`
-	SignCount        uint32 `json:"sign_count"`
-	AttestationType  string `json:"attestation_type,omitempty"`
-	Transports       string `json:"transports,omitempty"`
-	AAGUID           string `json:"aaguid,omitempty"`
+	ID              string `json:"id"`
+	CredentialID    string `json:"credential_id"`
+	DisplayName     string `json:"display_name"`
+	CreatedAt       string `json:"created_at"`
+	LastUsedAt      string `json:"last_used_at,omitempty"`
+	SignCount       uint32 `json:"sign_count"`
+	AttestationType string `json:"attestation_type,omitempty"`
+	Transports      string `json:"transports,omitempty"`
+	AAGUID          string `json:"aaguid,omitempty"`
 }
 
 type ListWebAuthnCredentialsResponse struct {

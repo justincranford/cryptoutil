@@ -125,15 +125,15 @@ var (
 	ErrBackupCodeNotFound = NewIdentityError("backup_code_not_found", "Backup code not found", http.StatusNotFound, nil)
 
 	// WebAuthn errors.
-	ErrWebAuthnSessionNotFound          = NewIdentityError("webauthn_session_not_found", "WebAuthn session not found or expired", http.StatusNotFound, nil)
-	ErrWebAuthnSessionAlreadyExists     = NewIdentityError("webauthn_session_already_exists", "WebAuthn session already exists", http.StatusConflict, nil)
-	ErrWebAuthnSessionExpired           = NewIdentityError("webauthn_session_expired", "WebAuthn session has expired", http.StatusGone, nil)
-	ErrWebAuthnVerificationFailed       = NewIdentityError("webauthn_verification_failed", "WebAuthn verification failed", http.StatusUnauthorized, nil)
-	ErrWebAuthnCredentialNotFound       = NewIdentityError("webauthn_credential_not_found", "WebAuthn credential not found", http.StatusNotFound, nil)
-	ErrWebAuthnCredentialAlreadyExists  = NewIdentityError("webauthn_credential_already_exists", "WebAuthn credential already exists", http.StatusConflict, nil)
-	ErrWebAuthnNoCredentials            = NewIdentityError("webauthn_no_credentials", "User has no WebAuthn credentials registered", http.StatusBadRequest, nil)
-	ErrWebAuthnInitializationFailed     = NewIdentityError("webauthn_initialization_failed", "Failed to initialize WebAuthn", http.StatusInternalServerError, nil)
-	ErrWebAuthnInvalidCredentialData    = NewIdentityError("webauthn_invalid_credential_data", "Invalid WebAuthn credential data", http.StatusBadRequest, nil)
+	ErrWebAuthnSessionNotFound         = NewIdentityError("webauthn_session_not_found", "WebAuthn session not found or expired", http.StatusNotFound, nil)
+	ErrWebAuthnSessionAlreadyExists    = NewIdentityError("webauthn_session_already_exists", "WebAuthn session already exists", http.StatusConflict, nil)
+	ErrWebAuthnSessionExpired          = NewIdentityError("webauthn_session_expired", "WebAuthn session has expired", http.StatusGone, nil)
+	ErrWebAuthnVerificationFailed      = NewIdentityError("webauthn_verification_failed", "WebAuthn verification failed", http.StatusUnauthorized, nil)
+	ErrWebAuthnCredentialNotFound      = NewIdentityError("webauthn_credential_not_found", "WebAuthn credential not found", http.StatusNotFound, nil)
+	ErrWebAuthnCredentialAlreadyExists = NewIdentityError("webauthn_credential_already_exists", "WebAuthn credential already exists", http.StatusConflict, nil)
+	ErrWebAuthnNoCredentials           = NewIdentityError("webauthn_no_credentials", "User has no WebAuthn credentials registered", http.StatusBadRequest, nil)
+	ErrWebAuthnInitializationFailed    = NewIdentityError("webauthn_initialization_failed", "Failed to initialize WebAuthn", http.StatusInternalServerError, nil)
+	ErrWebAuthnInvalidCredentialData   = NewIdentityError("webauthn_invalid_credential_data", "Invalid WebAuthn credential data", http.StatusBadRequest, nil)
 
 	// PKCE errors.
 	ErrPKCERequired         = NewIdentityError("pkce_required", "PKCE is required for this flow", http.StatusBadRequest, nil)
