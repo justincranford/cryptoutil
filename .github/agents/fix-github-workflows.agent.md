@@ -11,7 +11,7 @@ tools:
   - search/changes
   - web/fetch
 model: claude-sonnet-4.5
-argument-hint: "[workflow-name or 'all']"
+argument-hint: "['all' or workflow-name]"
 ---
 
 # Workflow Fixing Agent

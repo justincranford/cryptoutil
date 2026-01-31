@@ -12,7 +12,7 @@ tools:
   - search/changes
   - web/fetch
   - web/githubRepo
-model: claude-sonnet-4
+model: claude-sonnet-4.5
 ---
 
 # Beast Mode Custom - Continuous Work Directive

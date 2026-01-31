@@ -1,6 +1,6 @@
 ---
 name: beast-mode-3.1
-description: Beast Mode 3.1 - Autonomous continuous execution with mandatory internet research
+description: Beast Mode 3.1 - Autonomous Continuous Execution
 tools:
   - edit/editFiles
   - execute/runInTerminal
@@ -12,12 +12,6 @@ tools:
   - search/changes
   - web/fetch
   - web/githubRepo
-model: claude-sonnet-4
-handoffs:
-  - label: Execute Plan
-    agent: plan-tasks-implement
-    prompt: Execute the plan in the specified directory.
-    send: false
 ---
 
 # Beast Mode 3.1
