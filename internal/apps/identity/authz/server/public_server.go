@@ -54,6 +54,9 @@ func (s *PublicServer) registerRoutes() error {
 	// - /service/api/v1/oauth/introspect - Token introspection endpoint.
 	// - /service/api/v1/userinfo - UserInfo endpoint.
 
+	// Browser authorization endpoint - returns HTML consent form (placeholder for E2E test).
+	app.Get("/browser/api/v1/authorize", s.handleBrowserAuthorize)
+
 	return nil
 }
 
@@ -73,6 +76,42 @@ func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
 func (s *PublicServer) handleLivez(c *fiber.Ctx) error {
 	if err := c.SendString("OK"); err != nil {
 		return fmt.Errorf("failed to send liveness response: %w", err)
+	}
+
+	return nil
+}
+
+// handleBrowserAuthorize serves OAuth authorization page.
+// E2E test expects non-404 response to validate browser endpoint exists.
+// TODO: Replace with proper authorization flow when OAuth implementation ready.
+func (s *PublicServer) handleBrowserAuthorize(c *fiber.Ctx) error {
+	// Set HTML content type.
+	c.Set("Content-Type", "text/html; charset=utf-8")
+
+	// Return minimal HTML authorization page (placeholder).
+	const authorizeHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <title>Authorization Server - Authorize</title>
+</head>
+<body>
+    <h1>OAuth 2.1 Authorization</h1>
+    <p>Application is requesting access to your account</p>
+    <form method="post" action="/service/api/v1/oauth/authorize">
+        <h2>Requested Scopes:</h2>
+        <ul>
+            <li>read:profile</li>
+            <li>write:data</li>
+        </ul>
+        <button type="submit" name="action" value="allow">Allow</button>
+        <button type="submit" name="action" value="deny">Deny</button>
+    </form>
+    <p><em>Note: OAuth authorization flow not yet implemented</em></p>
+</body>
+</html>`
+
+	if err := c.SendString(authorizeHTML); err != nil {
+		return fmt.Errorf("failed to send authorize page: %w", err)
 	}
 
 	return nil

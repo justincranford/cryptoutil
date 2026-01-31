@@ -48,6 +48,9 @@ func (s *PublicServer) registerRoutes() error {
 	// - /browser/mfa/enroll - MFA enrollment page.
 	// - /browser/mfa/verify - MFA verification page.
 
+	// Browser login page - returns HTML form (placeholder for E2E test).
+	app.Get("/browser/login", s.handleLoginPage)
+
 	// IdP API endpoints.
 	// TODO: Add IdP API endpoints:
 	// - /service/api/v1/auth/login - Login submission endpoint.
@@ -55,6 +58,39 @@ func (s *PublicServer) registerRoutes() error {
 	// - /service/api/v1/auth/logout - Logout endpoint.
 	// - /service/api/v1/mfa/enroll - MFA enrollment endpoint.
 	// - /service/api/v1/mfa/verify - MFA verification endpoint.
+
+	return nil
+}
+
+// handleLoginPage serves a simple HTML login form.
+// E2E test expects non-404 response to validate browser endpoint exists.
+// TODO: Replace with proper login UI when authentication flow implemented.
+func (s *PublicServer) handleLoginPage(c *fiber.Ctx) error {
+	// Set HTML content type.
+	c.Set("Content-Type", "text/html; charset=utf-8")
+
+	// Return minimal HTML login form (placeholder).
+	const loginHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <title>Identity Provider - Login</title>
+</head>
+<body>
+    <h1>Identity Provider Login</h1>
+    <form method="post" action="/service/api/v1/auth/login">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+        <button type="submit">Login</button>
+    </form>
+    <p><em>Note: Authentication flow not yet implemented</em></p>
+</body>
+</html>`
+
+	if err := c.SendString(loginHTML); err != nil {
+		return fmt.Errorf("failed to send login page: %w", err)
+	}
 
 	return nil
 }

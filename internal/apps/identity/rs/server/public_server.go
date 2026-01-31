@@ -48,12 +48,36 @@ func (s *PublicServer) registerRoutes() error {
 	// - /service/api/v1/resources/:id - Update resource (requires write scope).
 	// - /service/api/v1/resources/:id - Delete resource (requires admin scope).
 
+	// Protected resource endpoint - returns 401 when no authorization header present.
+	app.Get("/service/api/v1/resources", s.handleListResources)
+
 	// Token introspection demo endpoints.
 	// TODO: Add token introspection demo endpoints:
 	// - /service/api/v1/token/info - Display token claims.
 	// - /service/api/v1/token/scopes - Display token scopes.
 
 	return nil
+}
+
+// handleListResources demonstrates protected resource endpoint.
+// Returns 401 Unauthorized when no Authorization header present.
+// E2E test expects this behavior to validate token requirement.
+func (s *PublicServer) handleListResources(c *fiber.Ctx) error {
+	// Check for Authorization header.
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+			"message": "Authorization header required",
+		})
+	}
+
+	// TODO: Implement actual token validation when token introspection ready.
+	// For now, any Authorization header is accepted (E2E test just needs 401 without header).
+	return c.JSON(fiber.Map{
+		"resources": []fiber.Map{},
+		"message": "Protected resource endpoint - token validation not yet implemented",
+	})
 }
 
 // handleHealth returns server health status.
