@@ -158,7 +158,7 @@ cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_servi
 cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:125.137,127.16 2 1
 cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:127.16,129.3 1 1
 cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:131.2,134.16 3 1
-cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:134.16,136.3 1 0
+cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:134.16,136.3 1 1
 cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:138.2,139.16 2 1
 cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:139.16,141.3 1 0
 cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go:143.2,143.69 1 1
@@ -207,7 +207,7 @@ cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:10
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:113.122,115.16 2 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:115.16,117.3 1 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:119.2,122.16 3 1
-cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:122.16,124.3 1 0
+cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:122.16,124.3 1 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:126.2,127.16 2 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:127.16,129.3 1 0
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:131.2,131.66 1 1
@@ -220,7 +220,7 @@ cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:14
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:153.2,154.16 2 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:154.16,156.3 1 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:158.2,159.16 2 1
-cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:159.16,161.3 1 0
+cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:159.16,161.3 1 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:163.2,164.16 2 1
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:164.16,166.3 1 0
 cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go:168.2,168.38 1 1

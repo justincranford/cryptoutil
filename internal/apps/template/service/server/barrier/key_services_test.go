@@ -1878,6 +1878,69 @@ func TestIntermediateKeysService_EncryptKey_ErrorPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "failed to get encrypted intermediate JWK latest from DB")
 	})
+
+	t.Run("decrypt_intermediate_key_failure", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		// Create first unseal key and initialize keys.
+		_, unsealJWK1, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc1, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK1})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc1.Shutdown() })
+
+		rootKeysSvc1, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc1)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc1.Shutdown() })
+
+		intermediateKeysSvc1, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc1)
+		require.NoError(t, err)
+		intermediateKeysSvc1.Shutdown() // Shutdown after initialization.
+
+		// Create DIFFERENT unseal key and new services.
+		_, unsealJWK2, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc2, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK2})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc2.Shutdown() })
+
+		rootKeysSvc2, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc2)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc2.Shutdown() })
+
+		// Create intermediate service with WRONG root service.
+		intermediateKeysSvc2, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc2)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc2.Shutdown() })
+
+		// Generate content JWK to encrypt.
+		_, contentJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+
+		// Try to encrypt - should fail because wrong unseal key means can't decrypt intermediate key.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, _, encErr := intermediateKeysSvc2.EncryptKey(tx, contentJWK)
+			return encErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to decrypt intermediate JWK latest")
+	})
 }
 
 // TestNewService_NilParameters tests that NewService properly rejects nil parameters.
@@ -2924,4 +2987,97 @@ func TestRepositoryGetKey_NilUUID(t *testing.T) {
 	})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "non-nil")
+}
+
+// TestRootKeysService_EncryptKey_ErrorPaths tests EncryptKey error scenarios.
+func TestRootKeysService_EncryptKey_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		setup   func(*testing.T) (*cryptoutilAppsTemplateServiceServerBarrier.RootKeysService, cryptoutilAppsTemplateServiceServerBarrier.Repository, *cryptoutilSharedCryptoJose.JWKGenService)
+		wantErr string
+	}{
+		{
+			name: "decrypt_root_key_failure",
+			setup: func(t *testing.T) (*cryptoutilAppsTemplateServiceServerBarrier.RootKeysService, cryptoutilAppsTemplateServiceServerBarrier.Repository, *cryptoutilSharedCryptoJose.JWKGenService) {
+				// Create two different unseal keys.
+				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+				require.NoError(t, err)
+				t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+				jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+				require.NoError(t, err)
+				t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+				db, cleanup := createKeyServiceTestDB(t)
+				t.Cleanup(cleanup)
+
+				repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+				require.NoError(t, err)
+				t.Cleanup(func() { repo.Shutdown() })
+
+				// Create first unseal key and initialize root key.
+				_, unsealJWK1, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+				require.NoError(t, err)
+				unsealSvc1, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK1})
+				require.NoError(t, err)
+				// Don't cleanup unsealSvc1 yet.
+
+				rootKeysSvc1, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc1)
+				require.NoError(t, err)
+				// Don't cleanup rootKeysSvc1 yet - still need DB populated.
+
+				// Create DIFFERENT unseal key and new service.
+				_, unsealJWK2, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+				require.NoError(t, err)
+				unsealSvc2, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK2})
+				require.NoError(t, err)
+				t.Cleanup(func() {
+					rootKeysSvc1.Shutdown()
+					unsealSvc1.Shutdown()
+					unsealSvc2.Shutdown()
+				})
+
+				// Create service with WRONG unseal key.
+				rootKeysSvc2, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc2)
+				require.NoError(t, err)
+				t.Cleanup(func() { rootKeysSvc2.Shutdown() })
+
+				return rootKeysSvc2, repo, jwkGenSvc
+			},
+			wantErr: "failed to decrypt root JWK latest",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rootKeysSvc, repo, jwkGenSvc := tc.setup(t)
+
+			var testJWK joseJwk.Key
+			if tc.name == "encrypt_bytes_failure" {
+				// Create signing key (Ed25519) which cannot be used for encryption.
+				_, _, signKey, _, _, err := jwkGenSvc.GenerateJWSJWK(cryptoutilSharedCryptoJose.AlgEdDSA)
+				require.NoError(t, err)
+				testJWK = signKey
+			} else {
+				// Generate intermediate JWK to encrypt.
+				_, intermediateJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+				require.NoError(t, err)
+				testJWK = intermediateJWK
+			}
+
+			// Try to encrypt - should fail.
+			err := repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+				_, _, encErr := rootKeysSvc.EncryptKey(tx, testJWK)
+				return encErr
+			})
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
 }
