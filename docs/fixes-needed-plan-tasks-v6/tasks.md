@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 0 of 25 tasks complete (0%)
+**Status**: 0 of 32 tasks complete (0%)
 **Last Updated**: 2026-01-31
 
 ## Task Checklist
@@ -100,6 +100,30 @@
   - [ ] Single table-driven test
   - [ ] ~100 lines reduced
 
+#### Task 2.7: Consolidate tenant_join_request_test.go (4 functions)
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **File**: `internal/apps/template/service/server/domain/tenant_join_request_test.go`
+- **Description**: 4 standalone functions → table-driven
+- **Acceptance Criteria**:
+  - [ ] Single table-driven test
+
+#### Task 2.8: Consolidate jose-ja models_test.go (4 functions)
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **File**: `internal/jose/ja/domain/models_test.go`
+- **Description**: 4 standalone functions → table-driven
+- **Acceptance Criteria**:
+  - [ ] Single table-driven test
+
+#### Task 2.9: Consolidate kms seed_test.go (6 functions)
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **File**: `internal/kms/server/demo/seed_test.go`
+- **Description**: 6 standalone functions → table-driven
+- **Acceptance Criteria**:
+  - [ ] Single table-driven test
+
 ---
 
 ### Phase 3: Coverage Improvements
@@ -147,12 +171,14 @@
 
 ### Phase 4: Code Cleanup
 
-#### Task 4.1: Verify and Remove Dead Code
+#### Task 4.1: Investigate Low-Coverage Functions
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
-- **Description**: Check UnsealKeysServiceFromSettings (0% cov), EnsureSignatureAlgorithmType (23.1% cov)
+- **Description**: Check UnsealKeysServiceFromSettings (0% cov), EnsureSignatureAlgorithmType (23.1% cov) - determine if untested or actually unused
+- **Note**: `*FromSettings` pattern is PREFERRED per project convention - these may need tests, not removal
 - **Acceptance Criteria**:
-  - [ ] Dead code removed or documented
+  - [ ] Functions investigated
+  - [ ] If needed: tests added OR documented as deprecated
 
 #### Task 4.2: Fix Config Bug in config_gaps_test.go
 - **Status**: ❌ Not Started
@@ -162,11 +188,19 @@
 - **Acceptance Criteria**:
   - [ ] Bug fixed or documented with issue reference
 
+#### Task 4.3: Fix Healthcheck Path Mismatch
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **File**: `deployments/kms/compose.yml`
+- **Description**: Fix healthcheck path from `/admin/v1/livez` to `/admin/api/v1/livez`
+- **Acceptance Criteria**:
+  - [ ] Healthcheck uses `/admin/api/v1/livez` (matches service-template standard)
+
 ---
 
 ### Phase 5: CICD Enforcement Improvements
 
-#### Task 5.1: Docker Secrets Pattern Linter
+#### Task 5.1: Docker Secrets Pattern Linter (#15)
 - **Status**: ❌ Not Started
 - **Estimated**: 2h
 - **Description**: Add `lint-compose: docker-secrets` to detect inline credentials
@@ -174,7 +208,7 @@
   - [ ] Detects inline POSTGRES_PASSWORD, API_KEY, etc.
   - [ ] Requires Docker secrets pattern
 
-#### Task 5.2: Testify Require Over Assert Linter
+#### Task 5.2: Testify Require Over Assert Linter (#16)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Description**: Add `lint-go-test: testify-require` to enforce require over assert
@@ -182,7 +216,7 @@
   - [ ] Detects assert.NoError → require.NoError
   - [ ] Pre-commit hook enforces
 
-#### Task 5.3: t.Parallel() Enforcement Linter
+#### Task 5.3: t.Parallel() Enforcement Linter (#17)
 - **Status**: ❌ Not Started
 - **Estimated**: 2h
 - **Description**: Add `lint-go-test: t-parallel` to require t.Parallel() in tests
@@ -190,7 +224,23 @@
   - [ ] Detects missing t.Parallel() in test functions
   - [ ] Detects missing t.Parallel() in subtests
 
-#### Task 5.4: crypto/rand Enforcement Linter
+#### Task 5.4: Table-Driven Test Pattern Linter (#18)
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Add `lint-go-test: table-driven-tests` to detect standalone test functions that should be table-driven
+- **Acceptance Criteria**:
+  - [ ] Detects multiple similar standalone test functions
+  - [ ] Suggests table-driven refactoring
+
+#### Task 5.5: Hardcoded Test Passwords Linter (#19)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-go-test: no-hardcoded-passwords` to detect hardcoded passwords in tests
+- **Acceptance Criteria**:
+  - [ ] Detects `password := "test123"` patterns
+  - [ ] Suggests UUIDv7 or magic constants
+
+#### Task 5.6: crypto/rand Enforcement Linter (#20)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Description**: Add `lint-go: crypto-rand` to detect math/rand in crypto code
@@ -198,7 +248,15 @@
   - [ ] Detects math/rand imports
   - [ ] Suggests crypto/rand
 
-#### Task 5.5: No InsecureSkipVerify Linter
+#### Task 5.7: No Inline Env Vars Linter (#26)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-compose: no-inline-env` to detect inline environment variables
+- **Acceptance Criteria**:
+  - [ ] Detects `POSTGRES_PASSWORD: value` (not _FILE pattern)
+  - [ ] Requires Docker secrets or _FILE pattern
+
+#### Task 5.8: No InsecureSkipVerify Linter (#28)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Description**: Add `lint-go: tls-verify` to detect InsecureSkipVerify: true
@@ -206,9 +264,17 @@
   - [ ] Detects InsecureSkipVerify: true
   - [ ] Fails CI if found
 
+#### Task 5.9: golangci-lint v2 Schema Linter (#29 - CRITICAL)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Description**: Add `lint-golangci-config: golangci-v2-schema` to validate v2 config
+- **Acceptance Criteria**:
+  - [ ] Validates .golangci.yml against v2 schema
+  - [ ] Catches deprecated v1 options
+
 ---
 
-### Phase 6: Deployment and Workflow
+### Phase 6: Deployment Fixes
 
 #### Task 6.1: Create Template Deployment
 - **Status**: ❌ Not Started
@@ -220,14 +286,6 @@
   - [ ] E2E tests can use template deployment
   - [ ] Follows Docker secrets pattern
 
-#### Task 6.2: Document Template Testing Strategy
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **File**: `internal/apps/template/README.md`
-- **Description**: Document how cipher-im validates template
-- **Acceptance Criteria**:
-  - [ ] README explains testing strategy
-
 ---
 
 ### Phase 7: Copilot Instructions Updates
@@ -236,10 +294,11 @@
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **File**: `.github/instructions/02-02.service-template.instructions.md`
-- **Description**: Add migration numbering section, TestMain pattern, registration flow
+- **Description**: Add migration numbering section, TestMain pattern, registration flow, *FromSettings pattern
 - **Acceptance Criteria**:
   - [ ] Migration versioning clear (1001-1004 vs 2001+)
   - [ ] Complete TestMain pattern example
+  - [ ] Document *FromSettings factory pattern as preferred
 
 #### Task 7.2: Update testing.instructions.md
 - **Status**: ❌ Not Started

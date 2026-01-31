@@ -10,7 +10,7 @@ tools:
   - search/codebase
   - search/usages
   - search/changes
-model: claude-sonnet-4
+model: claude-sonnet-4.5
 handoffs:
   - label: Execute Plan
     agent: plan-tasks-implement

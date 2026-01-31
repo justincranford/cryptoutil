@@ -10,7 +10,7 @@ tools:
   - search/usages
   - search/changes
   - web/fetch
-model: claude-sonnet-4
+model: claude-sonnet-4.5
 argument-hint: "[workflow-name or 'all']"
 ---
 

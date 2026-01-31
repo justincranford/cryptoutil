@@ -39,23 +39,33 @@ This plan consolidates incomplete work from v6 analysis. It covers service-templ
 
 ### Phase 4: Code Cleanup - 2-3h
 
-- Verify and remove dead code
+- Investigate low-coverage functions (may need documentation vs removal)
 - Fix config bug acknowledged in tests
+- Fix healthcheck path mismatch in KMS compose.yml
 
 ### Phase 5: CICD Enforcement Improvements - 6-8h (NEW)
 
 HIGH Priority linters to add:
-- Docker secrets pattern enforcement
-- testify require over assert
-- t.Parallel() enforcement
-- crypto/rand over math/rand
-- No inline env vars in compose
-- No InsecureSkipVerify
+- Docker secrets pattern enforcement (#15)
+- testify require over assert (#16)
+- t.Parallel() enforcement (#17)
+- Table-driven test pattern (#18)
+- Hardcoded test passwords (#19)
+- crypto/rand over math/rand (#20)
+- No inline env vars in compose (#26)
+- No InsecureSkipVerify (#28)
+- golangci-lint v2 schema (#29 - CRITICAL)
 
-### Phase 6: Deployment and Workflow - 2-3h
+MEDIUM Priority:
+- File size limits (#21)
+- No localhost bind in Go (#23)
+- TLS 1.3+ minimum (#24)
+- Test file size limits (#25)
 
-- Create template deployment (deployments/template/compose.yml)
-- Document template testing strategy
+### Phase 6: Deployment Fixes - 1-2h
+
+- Fix healthcheck path mismatch in KMS compose.yml (/admin/v1/ → /admin/api/v1/)
+- Review and fix any other deployment issues
 
 ### Phase 7: Copilot Instructions Updates - 2-3h
 
@@ -65,12 +75,17 @@ HIGH Priority linters to add:
 
 ## Technical Decisions
 
-### Decision 1: Test Architecture Pattern
+### Decision 1: Service Configuration Pattern
+- **Chosen**: Create services from settings (e.g., `UnsealKeysServiceFromSettings`)
+- **Rationale**: Consistent initialization, testable, configuration-driven
+- **Impact**: All services should have `*FromSettings` factory functions
+
+### Decision 2: Test Architecture Pattern
 - **Chosen**: app.Test() for all handler tests, TestMain for heavyweight resources
 - **Rationale**: Prevents Windows Firewall prompts, faster execution, no port binding
 - **Alternatives**: Real HTTPS listeners (rejected - triggers firewall, slower)
 
-### Decision 2: Table-Driven Tests
+### Decision 3: Table-Driven Tests
 - **Chosen**: Single table-driven test per error category
 - **Rationale**: Reduced duplication, easier to add cases, faster execution
 - **Alternatives**: Standalone functions (rejected - violates 03-02.testing.instructions.md)
