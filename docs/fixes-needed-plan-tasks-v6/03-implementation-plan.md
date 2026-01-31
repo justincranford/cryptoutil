@@ -34,7 +34,7 @@ This plan addresses all issues identified in:
 **Current State:**
 ```go
 // TODO: Validate request fields
-// TODO: Hash password  
+// TODO: Hash password
 // TODO: Create user in database
 // TODO: Call registration service
 ```
@@ -277,7 +277,7 @@ Test acknowledges bug in `NewFromFile` but doesn't fix it.
 
 ## Phase 5: Deployment and Workflow
 
-**Estimated LOE:** 2-3 hours  
+**Estimated LOE:** 2-3 hours
 **Priority:** LOW - Completeness
 
 ### Task 5.1: Create Template Deployment
@@ -327,7 +327,7 @@ Test acknowledges bug in `NewFromFile` but doesn't fix it.
 
 ---
 
-### Task 6.2: Update 03-02.testing.instructions.md  
+### Task 6.2: Update 03-02.testing.instructions.md
 **Issues from Analysis:**
 - app.Test() pattern could be more prominent
 - Missing cross-reference to TestMain pattern

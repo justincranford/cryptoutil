@@ -44,7 +44,7 @@
 
 #### Issue 1.1: TODO Comments in Production Code
 **Severity:** High
-**Files Affected:** 
+**Files Affected:**
 - `server/apis/registration_handlers.go` (4 TODOs)
 - `server/apis/registration_routes.go` (1 TODO)
 - `server/realms/handlers.go` (1 TODO)

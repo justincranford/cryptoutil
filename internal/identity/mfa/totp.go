@@ -284,7 +284,7 @@ func (s *TOTPService) generateTOTP(secret string, timeStep int64, algorithm stri
 	hmacResult := mac.Sum(nil)
 
 	// Dynamic truncation per RFC 4226 (HOTP).
-	offset := hmacResult[len(hmacResult)-1] & 0x0F              //nolint:mnd // RFC 4226 dynamic truncation mask
+	offset := hmacResult[len(hmacResult)-1] & 0x0F                                     //nolint:mnd // RFC 4226 dynamic truncation mask
 	truncatedHash := binary.BigEndian.Uint32(hmacResult[offset:offset+4]) & 0x7FFFFFFF //nolint:mnd // RFC 4226 31-bit mask
 
 	// Generate code with specified digits.
