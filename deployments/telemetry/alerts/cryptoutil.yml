@@ -1,0 +1,155 @@
+# CryptoUtil Alerting Rules
+# Import into Prometheus or Grafana for production monitoring
+
+groups:
+  - name: cryptoutil-service-health
+    interval: 30s
+    rules:
+      # Service availability
+      - alert: ServiceDown
+        expr: up{job=~"cryptoutil.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CryptoUtil service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/service-down.md"
+
+      # Health check failures
+      - alert: HealthCheckFailing
+        expr: probe_success{job=~"cryptoutil.*"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Health check failing for {{ $labels.job }}"
+          description: "Health check for {{ $labels.job }} has been failing for 2 minutes."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/health-check.md"
+
+  - name: cryptoutil-performance
+    interval: 30s
+    rules:
+      # High latency
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~"cryptoutil.*"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.job }}"
+          description: "95th percentile latency is above 1 second for {{ $labels.job }}."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/high-latency.md"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job=~"cryptoutil.*", status=~"5.."}[5m])) by (job)
+            /
+            sum(rate(http_requests_total{job=~"cryptoutil.*"}[5m])) by (job)
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is above 5% for {{ $labels.job }}."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/high-error-rate.md"
+
+  - name: cryptoutil-resources
+    interval: 30s
+    rules:
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes{job=~"cryptoutil.*"} > 512000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.job }}"
+          description: "Memory usage is above 512MB for {{ $labels.job }}."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/high-memory.md"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total{job=~"cryptoutil.*"}[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.job }}"
+          description: "CPU usage is above 80% for {{ $labels.job }}."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/high-cpu.md"
+
+      # Too many goroutines
+      - alert: TooManyGoroutines
+        expr: go_goroutines{job=~"cryptoutil.*"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many goroutines on {{ $labels.job }}"
+          description: "Goroutine count is above 1000 for {{ $labels.job }}. Possible leak."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/goroutine-leak.md"
+
+  - name: cryptoutil-database
+    interval: 30s
+    rules:
+      # Database connection exhaustion
+      - alert: DatabaseConnectionExhaustion
+        expr: db_connections_open{job=~"cryptoutil.*"} / 25 > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connections near exhaustion on {{ $labels.job }}"
+          description: "Database connection pool is 90% exhausted for {{ $labels.job }}."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/db-connections.md"
+
+      # High database latency
+      - alert: HighDatabaseLatency
+        expr: histogram_quantile(0.95, rate(db_query_duration_seconds_bucket{job=~"cryptoutil.*"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database latency on {{ $labels.job }}"
+          description: "95th percentile database query latency is above 500ms for {{ $labels.job }}."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/db-latency.md"
+
+      # Database errors
+      - alert: DatabaseErrors
+        expr: rate(db_errors_total{job=~"cryptoutil.*"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database errors on {{ $labels.job }}"
+          description: "Database error rate is above 1/second for {{ $labels.job }}."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/db-errors.md"
+
+  - name: cryptoutil-security
+    interval: 30s
+    rules:
+      # High authentication failure rate
+      - alert: HighAuthFailures
+        expr: rate(auth_failures_total{job=~"cryptoutil.*"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High authentication failures on {{ $labels.job }}"
+          description: "Authentication failure rate is above 10/second. Possible brute force attack."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/auth-failures.md"
+
+      # Certificate expiry warning
+      - alert: CertificateExpiringSoon
+        expr: (ssl_certificate_expiry_seconds{job=~"cryptoutil.*"} - time()) < 604800
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Certificate expiring soon for {{ $labels.job }}"
+          description: "TLS certificate will expire in less than 7 days."
+          runbook_url: "https://github.com/cryptoutil/docs/runbooks/cert-expiry.md"

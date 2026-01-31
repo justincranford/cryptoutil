@@ -1,0 +1,189 @@
+{
+  "dashboard": {
+    "annotations": {
+      "list": []
+    },
+    "editable": true,
+    "id": null,
+    "links": [],
+    "panels": [
+      {
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+        "id": 1,
+        "targets": [
+          {
+            "expr": "up{job=~\"cryptoutil.*\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "title": "Service Health",
+        "type": "stat",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "options": { "1": { "text": "UP", "color": "green" } } },
+              { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" } } }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "green", "value": 1 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+        "id": 2,
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes{job=~\"cryptoutil.*\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "title": "Memory Usage",
+        "type": "stat",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 268435456 },
+                { "color": "red", "value": 536870912 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+        "id": 3,
+        "targets": [
+          {
+            "expr": "go_goroutines{job=~\"cryptoutil.*\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "title": "Goroutines",
+        "type": "stat",
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 500 },
+                { "color": "red", "value": 1000 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+        "id": 4,
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total{job=~\"cryptoutil.*\"}[5m])",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "title": "CPU Usage",
+        "type": "stat",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 0.5 },
+                { "color": "red", "value": 0.8 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+        "id": 5,
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=~\"cryptoutil.*\"}[5m])",
+            "legendFormat": "{{job}} {{method}} {{status}}"
+          }
+        ],
+        "title": "HTTP Request Rate by Status",
+        "type": "timeseries"
+      },
+      {
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+        "id": 6,
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{job=~\"cryptoutil.*\", status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=~\"cryptoutil.*\"}[5m])) * 100",
+            "legendFormat": "Error Rate %"
+          }
+        ],
+        "title": "Error Rate (%)",
+        "type": "timeseries",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+        "id": 7,
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))",
+            "legendFormat": "p50"
+          },
+          {
+            "expr": "histogram_quantile(0.90, rate(http_request_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))",
+            "legendFormat": "p90"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))",
+            "legendFormat": "p95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))",
+            "legendFormat": "p99"
+          }
+        ],
+        "title": "Response Time Percentiles",
+        "type": "timeseries",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 38,
+    "tags": ["cryptoutil", "health", "observability"],
+    "templating": { "list": [] },
+    "time": { "from": "now-1h", "to": "now" },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "CryptoUtil Health Dashboard",
+    "uid": "cryptoutil-health",
+    "version": 1
+  }
+}
