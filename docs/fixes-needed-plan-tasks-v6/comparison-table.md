@@ -1,7 +1,8 @@
-# Service Comparison Table - V4 Implementation Readiness
+# Service Comparison Table - V6 Implementation Reference
 
-**Last Updated**: 2026-01-26
+**Last Updated**: 2026-01-31
 **Purpose**: Comprehensive comparison of KMS, service-template, cipher-im, and JOSE-JA to identify duplication, gaps, and implementation priorities
+**Source**: Migrated from v4, updated for v6 phase structure
 
 ---
 
@@ -316,13 +317,22 @@ This comparison evaluates four key services against the service-template pattern
 
 ---
 
-## 10. V4 Implementation Priorities
+## 10. V6 Implementation Priorities
 
 Based on gap analysis and duplication opportunities:
 
-### Phase Order Rationale (Updated per User Feedback)
+### Phase Order Rationale (Updated for V6)
 
 **Priority Order**: Template → Cipher-IM → JOSE-JA → Shared Packages → Infra → KMS (last)
+
+**V6 Phase Mapping**:
+| Priority | Focus Area | V6 Phase | Tasks |
+|----------|-----------|----------|-------|
+| 1. CICD Enforcement | Linters + pre-commit hooks | Phase 2 | 9 tasks |
+| 2. Test Architecture | Violations from v5 review | Phase 5 | 9 tasks |
+| 3. Coverage Improvement | All services to ≥95% | Phase 6 | 5 tasks |
+| 4. Race Condition Testing | Enable `-race` flag | Phase 8 | 6 tasks |
+| 5. KMS Modernization | Full ServerBuilder migration | Phase 9 | 6 tasks |
 
 **Rationale**: User plans to refactor KMS last to leverage fully-validated service-template. Template must reach 95%+ first, followed by cipher-im and JOSE-JA to provide 2 fully working template-based services. KMS leverages lessons learned.
 
@@ -383,153 +393,87 @@ Based on gap analysis and duplication opportunities:
 
 ---
 
-## 11. V3 Deletion Assessment
+## 11. V3/V5 Deletion Assessment - COMPLETE
 
-### V3 Content Analysis
+### V3 Deletion: ✅ COMPLETE
 
-**Files in docs/fixes-needed-plan-tasks-v3/**:
-- `plan.md` (1,857 lines) - Unified V1 (service-template) + V2 (coverage) plan
-- `tasks.md` - Detailed task breakdown with checkboxes
-- `completed.md` (141 lines) - Completed task evidence
-- `mutation-baseline-results.md` - Mutation testing baseline
+**Rationale**: All lessons captured in copilot instructions, unfinished work tracked in v6.
 
-### Lessons Captured
+### V5 Deletion: ✅ COMPLETE (commit 6a0d9828)
 
-**Architecture Lessons** (in `.github/instructions/` + `docs/arch/`):
-- ✅ Dual HTTPS servers (02-03.https-ports.instructions.md)
-- ✅ Dual public paths (02-01.architecture.instructions.md)
-- ✅ Multi-tenancy patterns (02-01.architecture.instructions.md)
-- ✅ Registration flow (02-10.authn.instructions.md)
-- ✅ ServerBuilder pattern (03-08.server-builder.instructions.md)
-- ✅ Merged migrations (03-08.server-builder.instructions.md)
+**Files Deleted**: `docs/fixes-needed-plan-tasks-v5/review-tasks-v4.md`
 
-**Testing Lessons** (in `.github/instructions/03-02.testing.instructions.md`):
-- ✅ Coverage targets (95% production, 98% infrastructure/utility)
-- ✅ Mutation efficacy targets (98% ideal, 95% minimum with documented blockers)
-- ✅ TestMain pattern
-- ✅ Table-driven tests
-- ✅ Probability-based execution
-
-**Anti-Patterns** (in `.github/instructions/`):
-- ✅ NEVER skip mutation testing for any service (03-02.testing.instructions.md)
-- ✅ NEVER use default tenant pattern (03-08.server-builder.instructions.md)
-- ✅ NEVER bind to 0.0.0.0 in tests (03-06.security.instructions.md)
-- ✅ NEVER hardcode passwords in tests (03-02.testing.instructions.md)
-
-### Unfinished Work Tracking
-
-**V3 Remaining Work** (now in V4):
-- ✅ JOSE-JA migration - V4 will continue from V3 checkpoint
-- ✅ Cipher-IM mutation testing - V4 Phase 9 (Severe Coverage Gaps)
-- ✅ Template coverage improvement - V4 Phases 8-12 (Coverage Improvement)
-- ✅ KMS modernization - V4 future phases (after JOSE-JA complete)
-
-**Comprehensive Coverage Analysis**:
-- ✅ V3 baseline: 82% template, 92.5% JOSE-JA
-- ✅ V4 baseline: 52.2% total (Part 4 analysis)
-- ✅ V4 Phases 8-12: 43 tasks for ALL packages ≥98%
-
-### Deletion Safety Assessment
-
-**Safe to Delete**: ✅ YES
-
-**Rationale**:
-
-1. **ALL Lessons Captured**:
-   - Architecture patterns → copilot instructions + docs/arch/
-   - Testing standards → copilot instructions
-   - Anti-patterns → copilot instructions
-   - Quality gates → copilot instructions
-
-2. **ALL Unfinished Work Tracked**:
-   - V4 plan.md includes V3 remaining work
-   - V4 tasks.md will include V3 incomplete tasks
-   - V4 Phases 8-12 supersede V3 coverage work
-
-3. **Evidence Preserved**:
-   - Mutation baseline: 98.91% template, 97.20% JOSE-JA (in V4 plan.md)
-   - Completed tasks: Template mutation testing achievement documented
-   - V3 git history preserved (commits 3e23ef86, 7f85f197, 5d68b8dc, eea5e19f)
-
-4. **No Information Loss**:
-   - V4 comparison table (this document) captures V3 achievements
-   - V4 coverage analysis (docs/coverage-analysis-2026-01-27.md) captures baseline
-   - Git history preserves all V3 commits
-
-**Recommendation**: Delete `docs/fixes-needed-plan-tasks-v3/` after V4 review complete
+**Findings Incorporated**: All 5 violation categories now covered by v6 Phase 5:
+1. Standalone tests → v6 Task 5.2-5.9
+2. Sad path tests → v6 Task 5.2
+3. Real HTTPS listeners → v6 Task 5.1 (CRITICAL)
+4. Dead code → v6 Task 7.1
+5. t.Parallel() issues → v6 Task 5.2
 
 ---
 
-## 12. V4 Implementation Readiness
+## 12. V6 Implementation Readiness
 
-### V4 Documentation Status
+### V6 Documentation Status
 
 **Created**:
-- ✅ `docs/fixes-needed-plan-tasks-v4/plan.md` (305 lines, 111 tasks across 12 phases)
-- ✅ `docs/fixes-needed-plan-tasks-v4/tasks.md` (807 lines, needs update for Phases 8-12)
-- ✅ `docs/coverage-analysis-2026-01-27.md` (~400 lines, comprehensive gap analysis)
-- ✅ `docs/docker-compose-analysis-2026-01-27.md` (~200 lines, compose proliferation)
-- ✅ This comparison table
+- ✅ `docs/fixes-needed-plan-tasks-v6/plan.md` (9 phases, 50 tasks)
+- ✅ `docs/fixes-needed-plan-tasks-v6/tasks.md` (detailed task breakdown)
+- ✅ `docs/fixes-needed-plan-tasks-v6/comparison-table.md` (this document, migrated from v4)
+- ✅ `docs/fixes-needed-plan-tasks-v6/archive/` (analysis docs)
 
-**Pending**:
-- ⏳ `docs/fixes-needed-plan-tasks-v4/quizme.md` - If unknowns exist after user review
-- ⏳ Update `docs/fixes-needed-plan-tasks-v4/tasks.md` with Phases 8-12 task details
+**Source Materials (preserved from v4)**:
+- `docs/coverage-analysis-2026-01-27.md` (~400 lines, comprehensive gap analysis)
+- `docs/docker-compose-analysis-2026-01-27.md` (~200 lines, compose proliferation)
+- v4 directory archived after v6 complete
 
-### Quality Standards (Updated Part 2)
+### Quality Standards
 
-**Quality Standards Update** (commit 8036cc01):
-- Mutation efficacy: ≥98% ideal, ≥95% mandatory minimum (was 85%)
+- Mutation efficacy: ≥98% ideal, ≥95% mandatory minimum
 - Coverage: ≥98% ideal, ≥95% minimum (production)
 - Coverage: ≥98% (NO EXCEPTIONS) for infrastructure/utility
 - Philosophy: "95% is floor, not target. 98% is achievable standard."
-- Note: NOT a breaking change - no products/services have been released yet
 
-### Evidence Collection (Part 6 COMPLETE)
+### Evidence Collection
 
-**Pattern Formalized** (commit 7d551b6a):
+**Pattern** (from v4 commit 7d551b6a):
 - ALL evidence in `test-output/<analysis-type>/` subdirectories
 - Prevents documentation sprawl (docs/*.md)
 - Prevents root-level file sprawl (.cov, .html, .log)
-- Updated 3 agent files with enforcement requirements
 
 ### User Review Readiness
 
 **Ready for Review**: ✅ YES
 
 **Includes**:
-- ✅ Comparison table (this document) - Visual/systematic service comparison
-- ✅ V4 plan.md - 111 tasks across 12 phases
-- ✅ Coverage analysis - 52.2% baseline, Phases 8-12 improvement plan
-- ✅ Docker analysis - 13 compose files, consolidation plan
-- ✅ V3 deletion assessment - Safe to delete (all lessons captured)
-
-**User Decisions Enabled**:
-1. **Service Priority**: Which service to refactor first (JOSE-JA recommended)
-2. **Coverage Strategy**: Approve Phases 8-12 approach or modify
-3. **Docker Consolidation**: Approve 13→5-7 compose file reduction
-4. **V3 Deletion**: Approve deletion after V4 review
-5. **Implementation Start**: Begin execution or request modifications
+- ✅ Comparison table (this document)
+- ✅ V6 plan.md - 50 tasks across 9 phases
+- ✅ V5 findings incorporated (Phase 5)
+- ✅ V4 incomplete phases incorporated (Phases 8-9)
 
 ---
 
 ## Summary
 
 **Current State**:
-- KMS: Pre-template, extensive custom infrastructure, needs modernization
+- KMS: Pre-template, extensive custom infrastructure, needs modernization (Phase 9)
 - Service-Template: Reference implementation, 98.91% mutation (exceeds ideal)
 - Cipher-IM: First template-based service, validation complete
 - JOSE-JA: Partial migration, 97.20% mutation (below ideal), closest to 95% coverage
 
-**V4 Priorities** (Updated per User Feedback):
-1. Service-template coverage to ≥95% (reference implementation first)
-2. Cipher-IM coverage + mutation (BEFORE JOSE-JA - fewer architectural issues)
-3. JOSE-JA migration completion (AFTER cipher-im - extensive architectural work needed)
-4. Shared packages + infrastructure to ≥98% (foundation quality)
-5. KMS modernization LAST (leverages validated template)
-6. Compose consolidation (YAML configs + Docker secrets, NOT .env)
+**V6 Priorities** (Updated per User Feedback):
+1. Service-template coverage to ≥95% (reference implementation first) → **v6 Phase 6**
+2. Cipher-IM coverage + mutation (BEFORE JOSE-JA - fewer architectural issues) → **v6 Phase 6**
+3. JOSE-JA migration completion (AFTER cipher-im - extensive architectural work needed) → **v6 Phase 6**
+4. Shared packages + infrastructure to ≥98% (foundation quality) → **v6 Phase 6**
+5. Test Architecture Refactoring (violations from v5 review) → **v6 Phase 5**
+6. Race Condition Testing (35 tasks) → **v6 Phase 8**
+7. KMS modernization LAST (leverages validated template) → **v6 Phase 9**
+8. Compose consolidation (YAML configs + Docker secrets, NOT .env) → **v6 Phase 3**
 
-**V3 Deletion**: ✅ Safe (all lessons in copilot instructions, unfinished work in V4)
+**V3 Deletion**: ✅ Completed (all lessons in copilot instructions, unfinished work in v6)
+**V5 Deletion**: ✅ Completed (review findings incorporated into v6 Phase 5)
 
-**V4 Readiness**: ✅ Implementation-ready (user review/decisions pending)
+**V6 Readiness**: ✅ Implementation-ready (50 tasks across 9 phases)
 
-**Recommendation**: User reviews comparison table, approves/modifies plan, begins V4 execution
+**Recommendation**: User reviews comparison table, approves/modifies plan, begins v6 execution
