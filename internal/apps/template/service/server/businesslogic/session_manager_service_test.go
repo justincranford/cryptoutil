@@ -505,3 +505,30 @@ func TestNewSessionManagerService_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 }
+
+// TestNewSessionManagerService_InitializeError tests that NewSessionManagerService returns error when Initialize fails.
+func TestNewSessionManagerService_InitializeError(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db := setupTestDB(t)
+	telemetrySvc := setupTelemetryService(t)
+	jwkGenSvc := setupJWKGenService(t, telemetrySvc)
+	barrierSvc := setupBarrierService(t, db, telemetrySvc, jwkGenSvc)
+
+	// Create config with valid session settings.
+	config := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+
+	// Close the underlying DB connection to make Initialize fail.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	_ = sqlDB.Close()
+
+	// NewSessionManagerService should fail because Initialize will fail on DB operations.
+	svc, err := NewSessionManagerService(ctx, db, telemetrySvc, jwkGenSvc, barrierSvc, config)
+
+	require.Error(t, err)
+	require.Nil(t, svc)
+	require.Contains(t, err.Error(), "failed to initialize session manager")
+}

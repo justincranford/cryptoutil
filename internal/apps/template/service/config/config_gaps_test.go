@@ -496,6 +496,7 @@ func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
 		NewForCAServer("0.0.0.0", 8080, true)
 	})
 }
+
 // TestNewForJOSEServer_HappyPath tests the happy path for NewForJOSEServer.
 func TestNewForJOSEServer_HappyPath(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
@@ -508,6 +509,7 @@ func TestNewForJOSEServer_HappyPath(t *testing.T) {
 	require.Equal(t, uint16(8080), settings.BindPublicPort)
 	require.Equal(t, "jose-server", settings.OTLPService)
 }
+
 // TestParseWithFlagSet_ValidationError tests that validation errors propagate correctly.
 func TestParseWithFlagSet_ValidationError(t *testing.T) {
 	resetFlags()
@@ -539,6 +541,7 @@ tls-private-mode: ""
 	require.NotEmpty(t, s.TLSPublicMode)
 	require.NotEmpty(t, s.TLSPrivateMode)
 }
+
 // TestNewForCAServer_HappyPath tests the happy path for NewForCAServer.
 func TestNewForCAServer_HappyPath(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
