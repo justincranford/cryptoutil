@@ -354,6 +354,173 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
 
+  /oidc/v1/mfa/totp/enroll:
+    post:
+      summary: Enroll TOTP MFA
+      description: |
+        Enroll Time-based One-Time Password (TOTP) multi-factor authentication for a user.
+        Returns TOTP secret, QR code, and backup codes for account recovery.
+      operationId: enrollTOTP
+      tags:
+        - MFA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TOTPEnrollRequest'
+      responses:
+        '200':
+          description: TOTP MFA enrolled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TOTPEnrollResponse'
+        '400':
+          description: Invalid request (missing user_id or user already enrolled)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/totp/verify:
+    post:
+      summary: Verify TOTP Code
+      description: |
+        Verify a 6-digit TOTP code from authenticator app.
+        Updates mfa_verified_at timestamp on success.
+        Implements lockout after 5 consecutive failures (locked for 15 minutes).
+      operationId: verifyTOTP
+      tags:
+        - MFA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TOTPVerifyRequest'
+      responses:
+        '200':
+          description: TOTP verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TOTPVerifyResponse'
+        '400':
+          description: Invalid request (missing user_id or code)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account temporarily locked due to too many failed attempts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "account_locked"
+                  error_description:
+                    type: string
+                    example: "Account temporarily locked due to too many failed attempts"
+        '404':
+          description: TOTP secret not found for user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/totp/backup-codes/generate:
+    post:
+      summary: Generate Backup Codes
+      description: |
+        Generate new set of 10 single-use backup codes for account recovery.
+        Invalidates all previous backup codes. Each code can only be used once.
+      operationId: generateBackupCodes
+      tags:
+        - MFA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateBackupCodesRequest'
+      responses:
+        '201':
+          description: Backup codes generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateBackupCodesResponse'
+        '400':
+          description: Invalid request (missing user_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: TOTP secret not found for user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /oidc/v1/mfa/totp/backup-codes/verify:
+    post:
+      summary: Verify Backup Code
+      description: |
+        Verify a single-use backup code for account recovery.
+        Marks code as used on successful verification.
+        Returns verified=false for invalid, already-used, or non-existent codes.
+      operationId: verifyBackupCode
+      tags:
+        - MFA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyBackupCodeRequest'
+      responses:
+        '200':
+          description: Backup code verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyBackupCodeResponse'
+        '400':
+          description: Invalid request (missing user_id or code)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     AuthZTokenResponse:
@@ -499,6 +666,146 @@ components:
         Client authentication using client_secret in request body.
         Note: OpenAPI 3.0 uses bearer scheme for form-based authentication.
         Actual implementation uses client_secret as form parameter per OAuth 2.1.
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error code or message
+          example: "invalid_request"
+        error_description:
+          type: string
+          description: Human-readable error description
+          example: "Missing required parameter: user_id"
+
+    TOTPEnrollRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User ID to enroll TOTP MFA
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    TOTPEnrollResponse:
+      type: object
+      required:
+        - secret
+        - qr_code
+        - backup_codes
+      properties:
+        secret:
+          type: string
+          description: Base32-encoded TOTP secret for manual entry
+          example: "JBSWY3DPEHPK3PXP"
+        qr_code:
+          type: string
+          description: Data URI of QR code image for scanning
+          example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+        backup_codes:
+          type: array
+          items:
+            type: string
+          minItems: 10
+          maxItems: 10
+          description: Single-use backup codes for account recovery
+          example: ["ABC123XYZ", "DEF456UVW", "GHI789RST"]
+
+    TOTPVerifyRequest:
+      type: object
+      required:
+        - user_id
+        - code
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User ID to verify TOTP code for
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: '^\d{6}$'
+          description: 6-digit TOTP code from authenticator app
+          example: "123456"
+
+    TOTPVerifyResponse:
+      type: object
+      required:
+        - verified
+      properties:
+        verified:
+          type: boolean
+          description: Whether TOTP code was valid
+          example: true
+        mfa_verified_at:
+          type: string
+          format: date-time
+          description: Timestamp when MFA was successfully verified (only present if verified=true)
+          example: "2025-01-27T10:30:00Z"
+
+    GenerateBackupCodesRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User ID to generate backup codes for
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    GenerateBackupCodesResponse:
+      type: object
+      required:
+        - backup_codes
+      properties:
+        backup_codes:
+          type: array
+          items:
+            type: string
+          minItems: 10
+          maxItems: 10
+          description: Newly generated single-use backup codes
+          example: ["ABC123XYZ", "DEF456UVW", "GHI789RST"]
+
+    VerifyBackupCodeRequest:
+      type: object
+      required:
+        - user_id
+        - code
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User ID to verify backup code for
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        code:
+          type: string
+          description: Backup code to verify (case-sensitive)
+          example: "ABC123XYZ"
+
+    VerifyBackupCodeResponse:
+      type: object
+      required:
+        - verified
+      properties:
+        verified:
+          type: boolean
+          description: Whether backup code was valid and unused
+          example: true
+        mfa_verified_at:
+          type: string
+          format: date-time
+          description: Timestamp when MFA was successfully verified (only present if verified=true)
+          example: "2025-01-27T10:30:00Z"
 
   responses:
     OAuth2Error:
