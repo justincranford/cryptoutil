@@ -1380,3 +1380,1548 @@ func TestRotationService_RotateContentKey_ErrorPaths(t *testing.T) {
 		require.Contains(t, err.Error(), "no intermediate key found")
 	})
 }
+
+// TestContentKeysService_EncryptContent_ErrorPaths tests encryption error scenarios.
+func TestContentKeysService_EncryptContent_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	t.Run("intermediate_key_encryption_fails", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+		// Delete all intermediate keys to cause encryption to fail.
+		sqlDB, err := db.DB()
+		require.NoError(t, err)
+		_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_intermediate_keys")
+		require.NoError(t, err)
+
+		// Attempt to encrypt content - should fail because no intermediate key exists.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, _, encryptErr := contentKeysSvc.EncryptContent(tx, []byte("test data"))
+			return encryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to get encrypted intermediate JWK")
+	})
+
+	t.Run("add_content_key_db_failure", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+		// Create a content key first to establish UUID.
+		var firstKeyID *googleUuid.UUID
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, keyID, encryptErr := contentKeysSvc.EncryptContent(tx, []byte("test data"))
+			firstKeyID = keyID
+			return encryptErr
+		})
+		require.NoError(t, err)
+
+		// Try to manually insert a content key with the same UUID to cause UNIQUE constraint violation.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			return tx.AddContentKey(&cryptoutilAppsTemplateServiceServerBarrier.ContentKey{
+				UUID:      *firstKeyID, // Duplicate UUID
+				Encrypted: "fake_encrypted_jwk",
+				KEKUUID:   googleUuid.New(),
+			})
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "UNIQUE constraint failed") // SQLite error
+	})
+}
+
+// TestContentKeysService_DecryptContent_ErrorPaths tests decryption error scenarios.
+func TestContentKeysService_DecryptContent_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	t.Run("invalid_jwe_format", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+		// Attempt to decrypt with invalid JWE format.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, decryptErr := contentKeysSvc.DecryptContent(tx, []byte("not-a-valid-jwe"))
+			return decryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse JWE message")
+	})
+
+	t.Run("content_key_not_found", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+		// First encrypt some content to get a valid JWE.
+		var ciphertext []byte
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			var encryptErr error
+			ciphertext, _, encryptErr = contentKeysSvc.EncryptContent(tx, []byte("test data"))
+			return encryptErr
+		})
+		require.NoError(t, err)
+
+		// Delete all content keys.
+		sqlDB, err := db.DB()
+		require.NoError(t, err)
+		_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_content_keys")
+		require.NoError(t, err)
+
+		// Attempt to decrypt - should fail because content key not found.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, decryptErr := contentKeysSvc.DecryptContent(tx, ciphertext)
+			return decryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to get encrypted content key")
+	})
+
+	t.Run("missing_kid_header", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+		// Create a JWE without a kid header.
+		// JWE compact format: header.encrypted_key.iv.ciphertext.tag
+		// Header: {"alg":"A256KW","enc":"A256GCM"} - missing "kid" field.
+		jweWithoutKid := []byte("eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIn0.AAAA.AAAA.AAAA.AAAA")
+
+		// Attempt to decrypt - should fail because kid header is missing.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, decryptErr := contentKeysSvc.DecryptContent(tx, jweWithoutKid)
+			return decryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to parse JWE message kid")
+	})
+
+	t.Run("decrypt_content_key_failure", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		// Create first barrier with original unseal key.
+		_, unsealJWK1, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc1, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK1})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc1.Shutdown() })
+
+		rootKeysSvc1, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc1)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc1.Shutdown() })
+
+		intermediateKeysSvc1, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc1)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc1.Shutdown() })
+
+		contentKeysSvc1, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc1)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc1.Shutdown() })
+
+		// Encrypt content with the first barrier.
+		var ciphertext []byte
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			var encryptErr error
+			ciphertext, _, encryptErr = contentKeysSvc1.EncryptContent(tx, []byte("test data"))
+			return encryptErr
+		})
+		require.NoError(t, err)
+
+		// Delete all root and intermediate keys to simulate rotation/corruption.
+		sqlDB, err := db.DB()
+		require.NoError(t, err)
+		_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_root_keys")
+		require.NoError(t, err)
+		_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_intermediate_keys")
+		require.NoError(t, err)
+
+		// Create second barrier with DIFFERENT unseal key.
+		_, unsealJWK2, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc2, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK2})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc2.Shutdown() })
+
+		rootKeysSvc2, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc2)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc2.Shutdown() })
+
+		intermediateKeysSvc2, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc2)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc2.Shutdown() })
+
+		contentKeysSvc2, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc2)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc2.Shutdown() })
+
+		// Attempt to decrypt with second barrier - should fail because intermediate key used to encrypt content key is missing.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, decryptErr := contentKeysSvc2.DecryptContent(tx, ciphertext)
+			return decryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to decrypt content key")
+	})
+
+	t.Run("decrypt_bytes_failure", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+		// Encrypt content to get a valid JWE structure.
+		var validCiphertext []byte
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			var encryptErr error
+			validCiphertext, _, encryptErr = contentKeysSvc.EncryptContent(tx, []byte("test data"))
+			return encryptErr
+		})
+		require.NoError(t, err)
+
+		// Convert to string, split into JWE parts.
+		jweString := string(validCiphertext)
+		parts := []byte(jweString)
+		dotCount := 0
+		thirdDotIdx := -1
+		fourthDotIdx := -1
+		for i := 0; i < len(parts); i++ {
+			if parts[i] == '.' {
+				dotCount++
+				if dotCount == 3 {
+					thirdDotIdx = i
+				} else if dotCount == 4 {
+					fourthDotIdx = i
+					break
+				}
+			}
+		}
+		require.True(t, thirdDotIdx > 0 && fourthDotIdx > thirdDotIdx, "JWE compact serialization should have at least 4 dots")
+
+		// Replace the ciphertext portion (between 3rd and 4th dot) with valid base64url but wrong length/content.
+		// This will pass JWE parsing but fail during actual AES-GCM decryption.
+		corruptedJWE := make([]byte, 0, len(parts))
+		corruptedJWE = append(corruptedJWE, parts[:thirdDotIdx+1]...)
+		corruptedJWE = append(corruptedJWE, []byte("AAAAAAAAAAAAAAAAAAAAAA")...) // Valid base64url, wrong ciphertext
+		corruptedJWE = append(corruptedJWE, parts[fourthDotIdx:]...)
+
+		// Attempt to decrypt - should fail at DecryptBytesWithContext.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, decryptErr := contentKeysSvc.DecryptContent(tx, corruptedJWE)
+			return decryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to decrypt content with content key")
+	})
+}
+
+// TestIntermediateKeysService_EncryptKey_ErrorPaths tests intermediate key encryption error scenarios.
+func TestIntermediateKeysService_EncryptKey_ErrorPaths(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no_intermediate_key_exists", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		// Delete all intermediate keys.
+		sqlDB, err := db.DB()
+		require.NoError(t, err)
+		_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_intermediate_keys")
+		require.NoError(t, err)
+
+		// Generate a test JWK to encrypt.
+		_, testJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+
+		// Attempt to encrypt - should fail because no intermediate key exists.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, _, encryptErr := intermediateKeysSvc.EncryptKey(tx, testJWK)
+			return encryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to get encrypted intermediate JWK latest from DB")
+	})
+}
+
+// TestNewService_NilParameters tests that NewService properly rejects nil parameters.
+func TestNewService_NilParameters(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	tests := []struct {
+		name                string
+		ctx                 context.Context
+		telemetrySvc        *cryptoutilSharedTelemetry.TelemetryService
+		jwkGenSvc           *cryptoutilSharedCryptoJose.JWKGenService
+		repo                cryptoutilAppsTemplateServiceServerBarrier.Repository
+		unsealSvc           cryptoutilUnsealKeysService.UnsealKeysService
+		expectedErrContains string
+	}{
+		{
+			name:                "nil_context",
+			ctx:                 nil,
+			telemetrySvc:        telemetrySvc,
+			jwkGenSvc:           jwkGenSvc,
+			repo:                repo,
+			unsealSvc:           unsealSvc,
+			expectedErrContains: "ctx must be non-nil",
+		},
+		{
+			name:                "nil_telemetry_service",
+			ctx:                 ctx,
+			telemetrySvc:        nil,
+			jwkGenSvc:           jwkGenSvc,
+			repo:                repo,
+			unsealSvc:           unsealSvc,
+			expectedErrContains: "telemetryService must be non-nil",
+		},
+		{
+			name:                "nil_jwkgen_service",
+			ctx:                 ctx,
+			telemetrySvc:        telemetrySvc,
+			jwkGenSvc:           nil,
+			repo:                repo,
+			unsealSvc:           unsealSvc,
+			expectedErrContains: "jwkGenService must be non-nil",
+		},
+		{
+			name:                "nil_repository",
+			ctx:                 ctx,
+			telemetrySvc:        telemetrySvc,
+			jwkGenSvc:           jwkGenSvc,
+			repo:                nil,
+			unsealSvc:           unsealSvc,
+			expectedErrContains: "repository must be non-nil",
+		},
+		{
+			name:                "nil_unseal_service",
+			ctx:                 ctx,
+			telemetrySvc:        telemetrySvc,
+			jwkGenSvc:           jwkGenSvc,
+			repo:                repo,
+			unsealSvc:           nil,
+			expectedErrContains: "unsealKeysService must be non-nil",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			svc, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(tc.ctx, tc.telemetrySvc, tc.jwkGenSvc, tc.repo, tc.unsealSvc)
+			require.Error(t, err)
+			require.Nil(t, svc)
+			require.Contains(t, err.Error(), tc.expectedErrContains)
+		})
+	}
+}
+
+// TestDecryptContent_InvalidKidFormat tests DecryptContent with invalid kid format in JWE.
+func TestDecryptContent_InvalidKidFormat(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+	// Create a malformed JWE with an invalid kid format (not a UUID).
+	// JWE compact format: header.encrypted_key.iv.ciphertext.tag
+	// We create a valid-looking JWE header with invalid kid, rest can be garbage.
+	malformedJWE := []byte("eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwia2lkIjoibm90LWEtdXVpZCJ9.AAAA.AAAA.AAAA.AAAA")
+
+	// Try to decrypt - should fail because kid is not a valid UUID.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decryptErr := contentKeysSvc.DecryptContent(tx, malformedJWE)
+		return decryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse kid as uuid")
+}
+
+// TestIntermediateKeysService_DecryptKey_RootKeyMissing tests intermediate key decryption when root key is missing.
+func TestIntermediateKeysService_DecryptKey_RootKeyMissing(t *testing.T) {
+	t.Parallel()
+
+	t.Run("intermediate_key_not_found", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		require.NoError(t, err)
+		t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+		jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+		require.NoError(t, err)
+		t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+		db, cleanup := createKeyServiceTestDB(t)
+		defer cleanup()
+
+		repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+		require.NoError(t, err)
+		t.Cleanup(func() { repo.Shutdown() })
+
+		_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+		unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+		require.NoError(t, err)
+		t.Cleanup(func() { unsealSvc.Shutdown() })
+
+		rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+		intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+		require.NoError(t, err)
+		t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+		// Create a JWE with a non-existent intermediate key kid.
+		_, testKey, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+		require.NoError(t, err)
+
+		// Encrypt some data with this key - the resulting JWE will have a kid that doesn't exist in DB.
+		_, jweBytes, err := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{testKey}, []byte("test data"))
+		require.NoError(t, err)
+
+		// Try to decrypt - should fail because intermediate key not found.
+		err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+			_, decryptErr := intermediateKeysSvc.DecryptKey(tx, jweBytes)
+			return decryptErr
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "failed to get intermediate key")
+	})
+}
+
+// TestRootKeysService_EncryptKey_NoRootKey tests root key encryption when no root key exists.
+func TestRootKeysService_EncryptKey_NoRootKey(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	// Delete the root key that was auto-created.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_root_keys")
+	require.NoError(t, err)
+
+	// Generate a test JWK to encrypt.
+	_, testJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	// Attempt to encrypt - should fail because no root key exists.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, _, encryptErr := rootKeysSvc.EncryptKey(tx, testJWK)
+		return encryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get encrypted root JWK latest from DB")
+}
+
+// TestRotationService_RotateRootKey_NoExistingKey tests root key rotation when no key exists.
+func TestRotationService_RotateRootKey_NoExistingKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create rotation service directly (without root keys service initialization).
+	rotationSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	require.NotNil(t, rotationSvc)
+
+	// Try to rotate - should fail because no root key exists.
+	_, err = rotationSvc.RotateRootKey(ctx, "test rotation")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get current root key")
+}
+
+// TestRotationService_RotateIntermediateKey_NoExistingKey tests intermediate key rotation when no key exists.
+func TestRotationService_RotateIntermediateKey_NoExistingKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create rotation service directly (without services initialization).
+	rotationSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	require.NotNil(t, rotationSvc)
+
+	// Try to rotate - should fail because no intermediate key exists.
+	_, err = rotationSvc.RotateIntermediateKey(ctx, "test rotation")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get current intermediate key")
+}
+
+// TestRotationService_RotateContentKey_NoExistingKey tests content key rotation when no key exists.
+func TestRotationService_RotateContentKey_NoExistingKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create rotation service directly (without services initialization).
+	rotationSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	require.NotNil(t, rotationSvc)
+
+	// Try to rotate - should fail because no intermediate key exists (content key depends on intermediate key).
+	_, err = rotationSvc.RotateContentKey(ctx, "test rotation")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get current intermediate key")
+}
+
+// TestRootKeysService_DecryptKey_InvalidJWE tests DecryptKey with invalid JWE format.
+func TestRootKeysService_DecryptKey_InvalidJWE(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	// Try to decrypt invalid JWE format.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decryptErr := rootKeysSvc.DecryptKey(tx, []byte("not-a-valid-jwe"))
+		return decryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse encrypted intermediate key message")
+}
+
+// TestRootKeysService_DecryptKey_InvalidKidFormat tests DecryptKey with invalid kid format.
+func TestRootKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	// Create a JWE with invalid kid format (not a valid UUID).
+	malformedJWE := []byte("eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwia2lkIjoibm90LWEtdXVpZCJ9..AAAA.AAAA.AAAA")
+
+	// Try to decrypt - should fail because kid is not a valid UUID.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decryptErr := rootKeysSvc.DecryptKey(tx, malformedJWE)
+		return decryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse kid as uuid")
+}
+
+// TestRootKeysService_DecryptKey_RootKeyNotFound tests DecryptKey when root key doesn't exist.
+func TestRootKeysService_DecryptKey_RootKeyNotFound(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	// Create a JWE referencing a non-existent root key UUID.
+	_, testKey, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
+	require.NoError(t, err)
+
+	// Encrypt some data with this key to get a JWE with a kid that doesn't exist in DB.
+	_, jweBytes, err := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{testKey}, []byte("test data"))
+	require.NoError(t, err)
+
+	// Try to decrypt - should fail because root key not found.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decryptErr := rootKeysSvc.DecryptKey(tx, jweBytes)
+		return decryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get root key")
+}
+
+// TestIntermediateKeysService_DecryptKey_InvalidJWE tests DecryptKey with invalid JWE format.
+func TestIntermediateKeysService_DecryptKey_InvalidJWE(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	// Try to decrypt invalid JWE format.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decryptErr := intermediateKeysSvc.DecryptKey(tx, []byte("not-a-valid-jwe"))
+		return decryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse encrypted content key message")
+}
+
+// TestIntermediateKeysService_DecryptKey_InvalidKidFormat tests DecryptKey with invalid kid format.
+func TestIntermediateKeysService_DecryptKey_InvalidKidFormat(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	// Create a JWE with invalid kid format (not a valid UUID).
+	malformedJWE := []byte("eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2R0NNIiwia2lkIjoibm90LWEtdXVpZCJ9..AAAA.AAAA.AAAA")
+
+	// Try to decrypt - should fail because kid is not a valid UUID.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decryptErr := intermediateKeysSvc.DecryptKey(tx, malformedJWE)
+		return decryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse kid as uuid")
+}
+
+// TestContentKeysService_DecryptContent_InvalidJWE tests DecryptContent with invalid JWE format.
+func TestContentKeysService_DecryptContent_InvalidJWE(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+	// Try to decrypt invalid JWE format.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decryptErr := contentKeysSvc.DecryptContent(tx, []byte("not-a-valid-jwe"))
+		return decryptErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to parse JWE message")
+}
+
+// TestRotationService_RotateIntermediateKey_NoRootKey tests intermediate key rotation when no root key exists.
+func TestRotationService_RotateIntermediateKey_NoRootKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create services normally first (creates initial keys).
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+	rotationSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+
+	// Delete all root keys.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_root_keys")
+	require.NoError(t, err)
+
+	// Try to rotate intermediate key - should fail because no root key exists.
+	_, err = rotationSvc.RotateIntermediateKey(ctx, "test rotation")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get")
+}
+
+// TestRotationService_RotateContentKey_NoRootKey tests content key rotation when root key is missing.
+func TestRotationService_RotateContentKey_NoRootKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create services normally first (creates initial keys).
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+	rotationSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+
+	// Delete all root keys (this will cause content key rotation to fail when trying to decrypt intermediate key).
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_root_keys")
+	require.NoError(t, err)
+
+	// Try to rotate content key - should fail because root key is missing.
+	_, err = rotationSvc.RotateContentKey(ctx, "test rotation")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get root key")
+}
+
+// TestEncryptContent_InvalidInput tests EncryptContent with edge cases.
+func TestEncryptContent_InvalidInput(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	contentKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewContentKeysService(telemetrySvc, jwkGenSvc, repo, intermediateKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { contentKeysSvc.Shutdown() })
+
+	// Test with empty content (should fail - empty is invalid).
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, _, encErr := contentKeysSvc.EncryptContent(tx, []byte{})
+		require.Error(t, encErr)
+		require.Contains(t, encErr.Error(), "clearBytes")
+		return nil
+	})
+	require.NoError(t, err)
+
+	// Test with nil content (should also fail - nil is invalid).
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, _, encErr := contentKeysSvc.EncryptContent(tx, nil)
+		require.Error(t, encErr)
+		require.Contains(t, encErr.Error(), "clearBytes")
+		return nil
+	})
+	require.NoError(t, err)
+
+	// Test with large content.
+	largeContent := make([]byte, 1024*1024) // 1MB
+	for i := range largeContent {
+		largeContent[i] = byte(i % 256)
+	}
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		encryptedLarge, _, encErr := contentKeysSvc.EncryptContent(tx, largeContent)
+		if encErr != nil {
+			return encErr
+		}
+		decrypted, decErr := contentKeysSvc.DecryptContent(tx, encryptedLarge)
+		if decErr != nil {
+			return decErr
+		}
+		require.Equal(t, largeContent, decrypted)
+		return nil
+	})
+	require.NoError(t, err)
+}
+
+// TestIntermediateKeysService_EncryptKey_NoIntermediateKey tests EncryptKey when no intermediate key exists.
+func TestIntermediateKeysService_EncryptKey_NoIntermediateKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create services to initialize keys.
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	// Delete all intermediate keys.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_intermediate_keys")
+	require.NoError(t, err)
+
+	// Try to encrypt key - should fail because no intermediate key exists.
+	_, testContentJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, _, encErr := intermediateKeysSvc.EncryptKey(tx, testContentJWK)
+		return encErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get encrypted intermediate JWK")
+}
+
+// TestRootKeysService_EncryptKey_NoRootKey_DeletedKey tests EncryptKey when no root key exists.
+func TestRootKeysService_EncryptKey_NoRootKey_DeletedKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create root keys service to initialize keys.
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	// Delete all root keys.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_root_keys")
+	require.NoError(t, err)
+
+	// Try to encrypt key - should fail because no root key exists.
+	_, testIntermediateJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, _, encErr := rootKeysSvc.EncryptKey(tx, testIntermediateJWK)
+		return encErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get encrypted root JWK")
+}
+
+// TestIntermediateKeysService_DecryptKey_NoRootKey tests DecryptKey when root key is missing.
+func TestIntermediateKeysService_DecryptKey_NoRootKey(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetrySvc.Shutdown() })
+
+	jwkGenSvc, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetrySvc, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenSvc.Shutdown() })
+
+	db, cleanup := createKeyServiceTestDB(t)
+	defer cleanup()
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	_, unsealJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+	unsealSvc, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealSvc.Shutdown() })
+
+	// Create services to initialize keys.
+	rootKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewRootKeysService(telemetrySvc, jwkGenSvc, repo, unsealSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { rootKeysSvc.Shutdown() })
+
+	intermediateKeysSvc, err := cryptoutilAppsTemplateServiceServerBarrier.NewIntermediateKeysService(telemetrySvc, jwkGenSvc, repo, rootKeysSvc)
+	require.NoError(t, err)
+	t.Cleanup(func() { intermediateKeysSvc.Shutdown() })
+
+	// Encrypt a key first to get valid encrypted data.
+	var encryptedKeyBytes []byte
+	_, testContentJWK, _, _, _, err := jwkGenSvc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		var encErr error
+		encryptedKeyBytes, _, encErr = intermediateKeysSvc.EncryptKey(tx, testContentJWK)
+		return encErr
+	})
+	require.NoError(t, err)
+
+	// Delete all root keys.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	_, err = sqlDB.ExecContext(ctx, "DELETE FROM barrier_root_keys")
+	require.NoError(t, err)
+
+	// Try to decrypt - should fail because root key is missing.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, decErr := intermediateKeysSvc.DecryptKey(tx, encryptedKeyBytes)
+		return decErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get root key")
+}
+
+// TestRepositoryAddKey_NilInput tests that Add* methods reject nil key inputs.
+func TestRepositoryAddKey_NilInput(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db, cleanup := createKeyServiceTestDB(t)
+	t.Cleanup(cleanup)
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	// Test AddRootKey with nil key.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		return tx.AddRootKey(nil)
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "non-nil")
+
+	// Test AddIntermediateKey with nil key.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		return tx.AddIntermediateKey(nil)
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "non-nil")
+
+	// Test AddContentKey with nil key.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		return tx.AddContentKey(nil)
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "non-nil")
+}
+
+// TestRepositoryGetKey_NilUUID tests that Get*Key methods reject nil UUID inputs.
+func TestRepositoryGetKey_NilUUID(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	db, cleanup := createKeyServiceTestDB(t)
+	t.Cleanup(cleanup)
+
+	repo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(db)
+	require.NoError(t, err)
+	t.Cleanup(func() { repo.Shutdown() })
+
+	// Test GetRootKey with nil UUID.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, getErr := tx.GetRootKey(nil)
+		return getErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "non-nil")
+
+	// Test GetIntermediateKey with nil UUID.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, getErr := tx.GetIntermediateKey(nil)
+		return getErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "non-nil")
+
+	// Test GetContentKey with nil UUID.
+	err = repo.WithTransaction(ctx, func(tx cryptoutilAppsTemplateServiceServerBarrier.Transaction) error {
+		_, getErr := tx.GetContentKey(nil)
+		return getErr
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "non-nil")
+}

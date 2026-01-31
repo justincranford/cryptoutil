@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	json "encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http/httptest"
@@ -29,6 +30,115 @@ import (
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
 )
+
+// errMockRotationDBFailure is a standard error for mock database failures in rotation tests.
+var errMockRotationDBFailure = errors.New("mock rotation database failure")
+
+// mockRotationTransaction implements Transaction interface for testing error scenarios.
+type mockRotationTransaction struct {
+	ctx                         context.Context
+	rootKey                     *RootKey
+	intermediateKey             *IntermediateKey
+	contentKey                  *ContentKey
+	getRootKeyLatestErr         error
+	getRootKeyErr               error
+	addRootKeyErr               error
+	getIntermediateKeyLatestErr error
+	getIntermediateKeyErr       error
+	addIntermediateKeyErr       error
+	getContentKeyErr            error
+	addContentKeyErr            error
+}
+
+func (m *mockRotationTransaction) Context() context.Context {
+	return m.ctx
+}
+
+func (m *mockRotationTransaction) GetRootKeyLatest() (*RootKey, error) {
+	if m.getRootKeyLatestErr != nil {
+		return nil, m.getRootKeyLatestErr
+	}
+
+	return m.rootKey, nil
+}
+
+func (m *mockRotationTransaction) GetRootKey(_ *googleUuid.UUID) (*RootKey, error) {
+	if m.getRootKeyErr != nil {
+		return nil, m.getRootKeyErr
+	}
+
+	return m.rootKey, nil
+}
+
+func (m *mockRotationTransaction) AddRootKey(_ *RootKey) error {
+	return m.addRootKeyErr
+}
+
+func (m *mockRotationTransaction) GetIntermediateKeyLatest() (*IntermediateKey, error) {
+	if m.getIntermediateKeyLatestErr != nil {
+		return nil, m.getIntermediateKeyLatestErr
+	}
+
+	return m.intermediateKey, nil
+}
+
+func (m *mockRotationTransaction) GetIntermediateKey(_ *googleUuid.UUID) (*IntermediateKey, error) {
+	if m.getIntermediateKeyErr != nil {
+		return nil, m.getIntermediateKeyErr
+	}
+
+	return m.intermediateKey, nil
+}
+
+func (m *mockRotationTransaction) AddIntermediateKey(_ *IntermediateKey) error {
+	return m.addIntermediateKeyErr
+}
+
+func (m *mockRotationTransaction) GetContentKey(_ *googleUuid.UUID) (*ContentKey, error) {
+	if m.getContentKeyErr != nil {
+		return nil, m.getContentKeyErr
+	}
+
+	return m.contentKey, nil
+}
+
+func (m *mockRotationTransaction) AddContentKey(_ *ContentKey) error {
+	return m.addContentKeyErr
+}
+
+// mockRotationRepository implements Repository interface for testing error scenarios.
+type mockRotationRepository struct {
+	tx             *mockRotationTransaction
+	withTxErr      error
+	shouldCallTxFn bool
+	shutdownCalled bool
+}
+
+func (m *mockRotationRepository) WithTransaction(ctx context.Context, fn func(tx Transaction) error) error {
+	if m.withTxErr != nil {
+		return m.withTxErr
+	}
+
+	if m.shouldCallTxFn && m.tx != nil {
+		m.tx.ctx = ctx
+
+		return fn(m.tx)
+	}
+
+	return nil
+}
+
+func (m *mockRotationRepository) Shutdown() {
+	m.shutdownCalled = true
+}
+
+// newMockRotationRepository creates a mockRotationRepository with a mockRotationTransaction for testing.
+func newMockRotationRepository() *mockRotationRepository {
+	return &mockRotationRepository{
+		tx:             &mockRotationTransaction{},
+		shouldCallTxFn: true,
+	}
+}
 
 func setupRotationTestEnvironment(t *testing.T) (*fiber.App, *RotationService, *Service) {
 	t.Helper()
@@ -436,4 +546,169 @@ func TestRotateKey_InvalidJSON(t *testing.T) {
 			require.Contains(t, errResp["message"], "Failed to parse request body")
 		})
 	}
+}
+
+// TestHandleRotateRootKey_RotationFailed tests that HandleRotateRootKey returns error on rotation failure.
+func TestHandleRotateRootKey_RotationFailed(t *testing.T) {
+	t.Parallel()
+
+	// Create mock repository that returns error when getting latest root key.
+	mockRepo := newMockRotationRepository()
+	mockRepo.tx.getRootKeyLatestErr = errMockRotationDBFailure
+
+	// Create rotation service with mock repository.
+	ctx := context.Background()
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetryService.Shutdown() })
+
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenService.Shutdown() })
+
+	// Generate unseal JWK for testing.
+	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealService.Shutdown() })
+
+	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
+	require.NoError(t, err)
+
+	// Create Fiber app and register routes.
+	app := fiber.New()
+	RegisterRotationRoutes(app, rotationService)
+
+	// Make rotation request.
+	reqBody := map[string]string{"reason": "test rotation"}
+	reqJSON, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/root", bytes.NewReader(reqJSON))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+
+	// Parse error response.
+	respBody, _ := io.ReadAll(resp.Body)
+
+	var errResp map[string]string
+
+	err = json.Unmarshal(respBody, &errResp)
+	require.NoError(t, err)
+	require.Equal(t, "rotation_failed", errResp["error"])
+	require.Contains(t, errResp["message"], "Failed to rotate root key")
+}
+
+// TestHandleRotateIntermediateKey_RotationFailed tests that HandleRotateIntermediateKey returns error on rotation failure.
+func TestHandleRotateIntermediateKey_RotationFailed(t *testing.T) {
+	t.Parallel()
+
+	// Create mock repository that returns error when getting latest root key.
+	mockRepo := newMockRotationRepository()
+	mockRepo.tx.getRootKeyLatestErr = errMockRotationDBFailure
+
+	// Create rotation service with mock repository.
+	ctx := context.Background()
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetryService.Shutdown() })
+
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenService.Shutdown() })
+
+	// Generate unseal JWK for testing.
+	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealService.Shutdown() })
+
+	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
+	require.NoError(t, err)
+
+	// Create Fiber app and register routes.
+	app := fiber.New()
+	RegisterRotationRoutes(app, rotationService)
+
+	// Make rotation request.
+	reqBody := map[string]string{"reason": "test rotation"}
+	reqJSON, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/intermediate", bytes.NewReader(reqJSON))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+
+	// Parse error response.
+	respBody, _ := io.ReadAll(resp.Body)
+
+	var errResp map[string]string
+
+	err = json.Unmarshal(respBody, &errResp)
+	require.NoError(t, err)
+	require.Equal(t, "rotation_failed", errResp["error"])
+	require.Contains(t, errResp["message"], "Failed to rotate intermediate key")
+}
+
+// TestHandleRotateContentKey_RotationFailed tests that HandleRotateContentKey returns error on rotation failure.
+func TestHandleRotateContentKey_RotationFailed(t *testing.T) {
+	t.Parallel()
+
+	// Create mock repository that returns error when getting latest intermediate key.
+	mockRepo := newMockRotationRepository()
+	mockRepo.tx.getIntermediateKeyLatestErr = errMockRotationDBFailure
+
+	// Create rotation service with mock repository.
+	ctx := context.Background()
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	require.NoError(t, err)
+	t.Cleanup(func() { telemetryService.Shutdown() })
+
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	require.NoError(t, err)
+	t.Cleanup(func() { jwkGenService.Shutdown() })
+
+	// Generate unseal JWK for testing.
+	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
+	require.NoError(t, err)
+
+	unsealService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
+	require.NoError(t, err)
+	t.Cleanup(func() { unsealService.Shutdown() })
+
+	rotationService, err := NewRotationService(jwkGenService, mockRepo, unsealService)
+	require.NoError(t, err)
+
+	// Create Fiber app and register routes.
+	app := fiber.New()
+	RegisterRotationRoutes(app, rotationService)
+
+	// Make rotation request.
+	reqBody := map[string]string{"reason": "test rotation"}
+	reqJSON, _ := json.Marshal(reqBody)
+
+	req := httptest.NewRequest("POST", "/admin/api/v1/barrier/rotate/content", bytes.NewReader(reqJSON))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+
+	// Parse error response.
+	respBody, _ := io.ReadAll(resp.Body)
+
+	var errResp map[string]string
+
+	err = json.Unmarshal(respBody, &errResp)
+	require.NoError(t, err)
+	require.Equal(t, "rotation_failed", errResp["error"])
+	require.Contains(t, errResp["message"], "Failed to rotate content key")
 }

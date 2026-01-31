@@ -1,0 +1,1690 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>barrier: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">cryptoutil/internal/apps/template/service/server/barrier/barrier_repository.go (100.0%)</option>
+				
+				<option value="file1">cryptoutil/internal/apps/template/service/server/barrier/barrier_service.go (89.8%)</option>
+				
+				<option value="file2">cryptoutil/internal/apps/template/service/server/barrier/content_keys_service.go (95.6%)</option>
+				
+				<option value="file3">cryptoutil/internal/apps/template/service/server/barrier/gorm_barrier_repository.go (96.7%)</option>
+				
+				<option value="file4">cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go (82.4%)</option>
+				
+				<option value="file5">cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go (82.1%)</option>
+				
+				<option value="file6">cryptoutil/internal/apps/template/service/server/barrier/rotation_handlers.go (100.0%)</option>
+				
+				<option value="file7">cryptoutil/internal/apps/template/service/server/barrier/rotation_service.go (91.8%)</option>
+				
+				<option value="file8">cryptoutil/internal/apps/template/service/server/barrier/status_handlers.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+// Package barrier provides hierarchical key management for root, intermediate, and content encryption keys.
+package barrier
+
+import (
+        "context"
+
+        googleUuid "github.com/google/uuid"
+)
+
+// Repository defines the interface for barrier key storage operations.
+// This abstraction allows Service to work with different database implementations
+// (KMS OrmRepository, cipher-im gorm.DB, etc.) without coupling to specific repository types.
+type Repository interface {
+        // WithTransaction executes the provided function within a database transaction.
+        // The transaction will be automatically committed on success or rolled back on error.
+        WithTransaction(ctx context.Context, function func(tx Transaction) error) error
+
+        // Shutdown releases any resources held by the repository.
+        Shutdown()
+}
+
+// Transaction defines the interface for transactional barrier key operations.
+// Implementations must provide ACID guarantees for barrier key lifecycle operations.
+type Transaction interface {
+        // Context returns the transaction context.
+        Context() context.Context
+
+        // Root Key Operations
+
+        // GetRootKeyLatest retrieves the most recently created root key.
+        // Returns (nil, nil) if no root keys exist.
+        GetRootKeyLatest() (*RootKey, error)
+
+        // GetRootKey retrieves a specific root key by UUID.
+        // Returns error if key not found.
+        GetRootKey(uuid *googleUuid.UUID) (*RootKey, error)
+
+        // AddRootKey persists a new root key to storage.
+        AddRootKey(key *RootKey) error
+
+        // Intermediate Key Operations
+
+        // GetIntermediateKeyLatest retrieves the most recently created intermediate key.
+        // Returns (nil, nil) if no intermediate keys exist.
+        GetIntermediateKeyLatest() (*IntermediateKey, error)
+
+        // GetIntermediateKey retrieves a specific intermediate key by UUID.
+        // Returns error if key not found.
+        GetIntermediateKey(uuid *googleUuid.UUID) (*IntermediateKey, error)
+
+        // AddIntermediateKey persists a new intermediate key to storage.
+        AddIntermediateKey(key *IntermediateKey) error
+
+        // Content Key Operations
+
+        // GetContentKey retrieves a specific content key by UUID.
+        // Returns error if key not found.
+        GetContentKey(uuid *googleUuid.UUID) (*ContentKey, error)
+
+        // AddContentKey persists a new content key to storage.
+        AddContentKey(key *ContentKey) error
+}
+
+// RootKey represents a root-level encryption key in the barrier hierarchy.
+// Root keys are encrypted by the unseal key (HSM/KMS/Shamir).
+type RootKey struct {
+        UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
+        Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted root key
+        KEKUUID   googleUuid.UUID `gorm:"type:text"`                              // KEK UUID (nil for root keys)
+        CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+        UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
+        // TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
+}
+
+// TableName specifies the database table name for barrier root keys.
+func (RootKey) TableName() string <span class="cov8" title="1">{
+        return "barrier_root_keys"
+}</span>
+
+// IntermediateKey represents an intermediate-level encryption key in the barrier hierarchy.
+// Intermediate keys are encrypted by root keys.
+type IntermediateKey struct {
+        UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
+        Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted intermediate key
+        KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent root key UUID
+        CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+        UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
+        // TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
+}
+
+// TableName specifies the database table name for barrier intermediate keys.
+func (IntermediateKey) TableName() string <span class="cov8" title="1">{
+        return "barrier_intermediate_keys"
+}</span>
+
+// ContentKey represents a content-level encryption key in the barrier hierarchy.
+// Content keys are encrypted by intermediate keys and used for actual data encryption.
+type ContentKey struct {
+        UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
+        Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted content key
+        KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent intermediate key UUID
+        CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+        UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
+        // TODO: Add RotatedAt *int64 after fixing migration 0004 discovery issue
+}
+
+// TableName specifies the database table name for barrier content keys.
+func (ContentKey) TableName() string <span class="cov8" title="1">{
+        return "barrier_content_keys"
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "context"
+        "fmt"
+        "sync"
+
+        cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+        cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+        cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+)
+
+// Service provides multi-layer encryption using unseal → root → intermediate → content key hierarchy.
+// This version uses Repository interface to work with any database (KMS OrmRepository, gorm.DB, etc.)
+type Service struct {
+        telemetryService        *cryptoutilSharedTelemetry.TelemetryService
+        jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
+        repository              Repository
+        unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
+        rootKeysService         *RootKeysService
+        intermediateKeysService *IntermediateKeysService
+        contentKeysService      *ContentKeysService
+        closed                  bool
+        shutdownOnce            sync.Once
+}
+
+// NewService creates a new barrier service using the provided repository.
+// The repository can be:
+// - OrmRepository (wraps KMS OrmRepository for backward compatibility)
+// - GormRepository (wraps gorm.DB for cipher-im and future services).
+func NewService(
+        ctx context.Context,
+        telemetryService *cryptoutilSharedTelemetry.TelemetryService,
+        jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
+        repository Repository,
+        unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
+) (*Service, error) <span class="cov8" title="1">{
+        if ctx == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("ctx must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if telemetryService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("telemetryService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if jwkGenService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("jwkGenService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if repository == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("repository must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if unsealKeysService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("unsealKeysService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">rootKeysService, err := NewRootKeysService(telemetryService, jwkGenService, repository, unsealKeysService)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create root keys service: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">intermediateKeysService, err := NewIntermediateKeysService(telemetryService, jwkGenService, repository, rootKeysService)
+        if err != nil </span><span class="cov0" title="0">{
+                rootKeysService.Shutdown()
+
+                return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">contentKeysService, err := NewContentKeysService(telemetryService, jwkGenService, repository, intermediateKeysService)
+        if err != nil </span><span class="cov0" title="0">{
+                rootKeysService.Shutdown()
+                intermediateKeysService.Shutdown()
+
+                return nil, fmt.Errorf("failed to create content keys service: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Service{
+                telemetryService:        telemetryService,
+                jwkGenService:           jwkGenService,
+                repository:              repository,
+                unsealKeysService:       unsealKeysService,
+                rootKeysService:         rootKeysService,
+                intermediateKeysService: intermediateKeysService,
+                contentKeysService:      contentKeysService,
+                closed:                  false,
+        }, nil</span>
+}
+
+// EncryptContentWithContext encrypts data using the content key (which is encrypted by intermediate key, which is encrypted by root key, which is encrypted by unseal key).
+func (d *Service) EncryptContentWithContext(ctx context.Context, clearBytes []byte) ([]byte, error) <span class="cov8" title="1">{
+        if d.closed </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("barrier service is closed")
+        }</span>
+
+        <span class="cov8" title="1">var encryptedBytes []byte
+
+        err := d.repository.WithTransaction(ctx, func(tx Transaction) error </span><span class="cov8" title="1">{
+                var err error
+
+                encryptedBytes, _, err = d.contentKeysService.EncryptContent(tx, clearBytes)
+
+                return err
+        }</span>)
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to encrypt content bytes: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return encryptedBytes, nil</span>
+}
+
+// DecryptContentWithContext decrypts data using the content key hierarchy.
+func (d *Service) DecryptContentWithContext(ctx context.Context, encryptedContentJWEMessageBytes []byte) ([]byte, error) <span class="cov8" title="1">{
+        if d.closed </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("barrier service is closed")
+        }</span>
+
+        <span class="cov8" title="1">var decryptedBytes []byte
+
+        err := d.repository.WithTransaction(ctx, func(tx Transaction) error </span><span class="cov8" title="1">{
+                var err error
+
+                decryptedBytes, err = d.contentKeysService.DecryptContent(tx, encryptedContentJWEMessageBytes)
+
+                return err
+        }</span>)
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to decrypt content bytes: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return decryptedBytes, nil</span>
+}
+
+// EncryptBytesWithContext is an alias for EncryptContentWithContext for API consistency.
+func (d *Service) EncryptBytesWithContext(ctx context.Context, clearBytes []byte) ([]byte, error) <span class="cov8" title="1">{
+        return d.EncryptContentWithContext(ctx, clearBytes)
+}</span>
+
+// DecryptBytesWithContext is an alias for DecryptContentWithContext for API consistency.
+func (d *Service) DecryptBytesWithContext(ctx context.Context, encryptedBytes []byte) ([]byte, error) <span class="cov8" title="1">{
+        return d.DecryptContentWithContext(ctx, encryptedBytes)
+}</span>
+
+// Shutdown releases all resources held by the barrier service.
+func (d *Service) Shutdown() <span class="cov8" title="1">{
+        d.shutdownOnce.Do(func() </span><span class="cov8" title="1">{
+                d.closed = true
+                if d.contentKeysService != nil </span><span class="cov8" title="1">{
+                        d.contentKeysService.Shutdown()
+                        d.contentKeysService = nil
+                }</span>
+
+                <span class="cov8" title="1">if d.intermediateKeysService != nil </span><span class="cov8" title="1">{
+                        d.intermediateKeysService.Shutdown()
+                        d.intermediateKeysService = nil
+                }</span>
+
+                <span class="cov8" title="1">if d.rootKeysService != nil </span><span class="cov8" title="1">{
+                        d.rootKeysService.Shutdown()
+                        d.rootKeysService = nil
+                }</span>
+
+                <span class="cov8" title="1">d.unsealKeysService = nil
+                d.repository = nil
+                d.telemetryService = nil</span>
+        })
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "fmt"
+
+        cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+        cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+
+        googleUuid "github.com/google/uuid"
+
+        joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
+        joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+)
+
+// ContentKeysService encrypts and decrypts content data using content keys.
+type ContentKeysService struct {
+        telemetryService        *cryptoutilSharedTelemetry.TelemetryService
+        jwkGenService           *cryptoutilSharedCryptoJose.JWKGenService
+        repository              Repository
+        intermediateKeysService *IntermediateKeysService
+}
+
+// NewContentKeysService creates a new ContentKeysService with the specified dependencies.
+func NewContentKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, intermediateKeysService *IntermediateKeysService) (*ContentKeysService, error) <span class="cov8" title="1">{
+        if telemetryService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("telemetryService must be non-nil")
+        }</span> else<span class="cov8" title="1"> if jwkGenService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("jwkGenService must be non-nil")
+        }</span> else<span class="cov8" title="1"> if repository == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("repository must be non-nil")
+        }</span> else<span class="cov8" title="1"> if intermediateKeysService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("intermediateKeysService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">return &amp;ContentKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, intermediateKeysService: intermediateKeysService}, nil</span>
+}
+
+// EncryptContent encrypts content data and returns the encrypted bytes and encryption key ID.
+func (s *ContentKeysService) EncryptContent(sqlTransaction Transaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) <span class="cov8" title="1">{
+        contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(&amp;cryptoutilSharedCryptoJose.EncA256GCM, &amp;cryptoutilSharedCryptoJose.AlgDir)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">_, encryptedContentJWEMessageBytes, err := cryptoutilSharedCryptoJose.EncryptBytesWithContext([]joseJwk.Key{clearContentKey}, clearContentBytes, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, nil, fmt.Errorf("failed to encrypt content with JWK: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">encryptedContentKeyJWEMessageBytes, intermediateKeyKidUUID, err := s.intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">err = sqlTransaction.AddContentKey(&amp;ContentKey{UUID: *contentKeyKidUUID, Encrypted: string(encryptedContentKeyJWEMessageBytes), KEKUUID: *intermediateKeyKidUUID})
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("failed to add content key to DB: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return encryptedContentJWEMessageBytes, contentKeyKidUUID, nil</span>
+}
+
+// DecryptContent decrypts content data using the content key identified in the JWE message.
+func (s *ContentKeysService) DecryptContent(sqlTransaction Transaction, encryptedContentJWEMessageBytes []byte) ([]byte, error) <span class="cov8" title="1">{
+        encryptedContentJWEMessage, err := joseJwe.Parse(encryptedContentJWEMessageBytes)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse JWE message: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">var encryptedContentKeyKidString string
+
+        err = encryptedContentJWEMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &amp;encryptedContentKeyKidString)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse JWE message kid: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">encryptedContentKeyKidUUID, err := googleUuid.Parse(encryptedContentKeyKidString)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">encryptedContentKey, err := sqlTransaction.GetContentKey(&amp;encryptedContentKeyKidUUID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to get encrypted content key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">decryptedContentKey, err := s.intermediateKeysService.DecryptKey(sqlTransaction, []byte(encryptedContentKey.Encrypted))
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to decrypt content key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">decryptedBytes, err := cryptoutilSharedCryptoJose.DecryptBytesWithContext([]joseJwk.Key{decryptedContentKey}, encryptedContentJWEMessageBytes, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to decrypt content with content key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return decryptedBytes, nil</span>
+}
+
+// Shutdown gracefully shuts down the ContentKeysService.
+func (s *ContentKeysService) Shutdown() <span class="cov8" title="1">{
+        s.telemetryService = nil
+        s.repository = nil
+        s.intermediateKeysService = nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "context"
+        "errors"
+        "fmt"
+
+        googleUuid "github.com/google/uuid"
+        "gorm.io/gorm"
+)
+
+var (
+        // ErrNoRootKeyFound indicates no root keys exist in the database.
+        ErrNoRootKeyFound = errors.New("no root key found")
+        // ErrNoIntermediateKeyFound indicates no intermediate keys exist in the database.
+        ErrNoIntermediateKeyFound = errors.New("no intermediate key found")
+)
+
+// GormRepository implements Repository using gorm.DB.
+// This adapter allows barrier encryption to work with any service using gorm.DB
+// (cipher-im, future services) without depending on KMS-specific OrmRepository.
+type GormRepository struct {
+        db *gorm.DB
+}
+
+// NewGormRepository creates a new gorm.DB-based barrier repository.
+func NewGormRepository(db *gorm.DB) (*GormRepository, error) <span class="cov8" title="1">{
+        if db == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("db must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">return &amp;GormRepository{db: db}, nil</span>
+}
+
+// WithTransaction executes the provided function within a database transaction.
+func (r *GormRepository) WithTransaction(ctx context.Context, function func(tx Transaction) error) error <span class="cov8" title="1">{
+        err := r.db.WithContext(ctx).Transaction(func(gormTx *gorm.DB) error </span><span class="cov8" title="1">{
+                tx := &amp;GormTransaction{gormDB: gormTx}
+
+                return function(tx)
+        }</span>)
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("transaction failed: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// Shutdown releases any resources held by the repository.
+func (r *GormRepository) Shutdown() <span class="cov8" title="1">{
+        // No resources to release for gorm.DB adapter - this is a no-op
+        _ = r.db // Reference to prevent linting issues; no actual work needed
+}</span>
+
+// GormTransaction implements Transaction using gorm.DB transaction.
+type GormTransaction struct {
+        gormDB *gorm.DB
+}
+
+// Context returns the transaction context.
+func (tx *GormTransaction) Context() context.Context <span class="cov8" title="1">{
+        return tx.gormDB.Statement.Context
+}</span>
+
+// GetRootKeyLatest retrieves the most recently created root key.
+func (tx *GormTransaction) GetRootKeyLatest() (*RootKey, error) <span class="cov8" title="1">{
+        var key RootKey
+
+        err := tx.gormDB.Order("uuid DESC").First(&amp;key).Error
+        if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov8" title="1">{
+                return nil, ErrNoRootKeyFound
+        }</span>
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to get latest root key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;key, nil</span>
+}
+
+// GetRootKey retrieves a specific root key by UUID.
+func (tx *GormTransaction) GetRootKey(uuid *googleUuid.UUID) (*RootKey, error) <span class="cov8" title="1">{
+        if uuid == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("uuid must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">var key RootKey
+
+        err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&amp;key).Error
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to get root key %s: %w", uuid, err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;key, nil</span>
+}
+
+// AddRootKey persists a new root key to storage.
+func (tx *GormTransaction) AddRootKey(key *RootKey) error <span class="cov8" title="1">{
+        if key == nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("key must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if err := tx.gormDB.Create(key).Error; err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to add root key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// GetIntermediateKeyLatest retrieves the most recently created intermediate key.
+func (tx *GormTransaction) GetIntermediateKeyLatest() (*IntermediateKey, error) <span class="cov8" title="1">{
+        var key IntermediateKey
+
+        err := tx.gormDB.Order("uuid DESC").First(&amp;key).Error
+        if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov8" title="1">{
+                return nil, ErrNoIntermediateKeyFound
+        }</span>
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to get latest intermediate key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;key, nil</span>
+}
+
+// GetIntermediateKey retrieves a specific intermediate key by UUID.
+func (tx *GormTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*IntermediateKey, error) <span class="cov8" title="1">{
+        if uuid == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("uuid must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">var key IntermediateKey
+
+        err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&amp;key).Error
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to get intermediate key %s: %w", uuid, err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;key, nil</span>
+}
+
+// AddIntermediateKey persists a new intermediate key to storage.
+func (tx *GormTransaction) AddIntermediateKey(key *IntermediateKey) error <span class="cov8" title="1">{
+        if key == nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("key must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if err := tx.gormDB.Create(key).Error; err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to add intermediate key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// GetContentKey retrieves a specific content key by UUID.
+func (tx *GormTransaction) GetContentKey(uuid *googleUuid.UUID) (*ContentKey, error) <span class="cov8" title="1">{
+        if uuid == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("uuid must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">var key ContentKey
+
+        err := tx.gormDB.Where("uuid = ?", uuid.String()).First(&amp;key).Error
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to get content key %s: %w", uuid, err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;key, nil</span>
+}
+
+// AddContentKey persists a new content key to storage.
+func (tx *GormTransaction) AddContentKey(key *ContentKey) error <span class="cov8" title="1">{
+        if key == nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("key must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if err := tx.gormDB.Create(key).Error; err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("failed to add content key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "log"
+
+        cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+        cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+
+        googleUuid "github.com/google/uuid"
+
+        joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
+        joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+)
+
+// IntermediateKeysService manages intermediate encryption keys in the key hierarchy.
+type IntermediateKeysService struct {
+        telemetryService *cryptoutilSharedTelemetry.TelemetryService
+        jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
+        repository       Repository
+        rootKeysService  *RootKeysService
+}
+
+// NewIntermediateKeysService creates a new IntermediateKeysService with the specified dependencies.
+func NewIntermediateKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, rootKeysService *RootKeysService) (*IntermediateKeysService, error) <span class="cov8" title="1">{
+        if telemetryService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("telemetryService must be non-nil")
+        }</span> else<span class="cov8" title="1"> if jwkGenService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("jwkGenService must be non-nil")
+        }</span> else<span class="cov8" title="1"> if repository == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("repository must be non-nil")
+        }</span> else<span class="cov8" title="1"> if rootKeysService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("rootKeysService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">err := initializeFirstIntermediateJWK(jwkGenService, repository, rootKeysService)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize first intermediate JWK: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;IntermediateKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, rootKeysService: rootKeysService}, nil</span>
+}
+
+func initializeFirstIntermediateJWK(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, rootKeysService *RootKeysService) error <span class="cov8" title="1">{
+        var encryptedIntermediateKeyLatest *IntermediateKey
+
+        var err error
+
+        err = repository.WithTransaction(context.Background(), func(sqlTransaction Transaction) error </span><span class="cov8" title="1">{
+                encryptedIntermediateKeyLatest, err = sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK from DB
+                // NOTE: "no intermediate key found" is EXPECTED on first run - don't treat as fatal error
+                if err != nil &amp;&amp; !errors.Is(err, ErrNoIntermediateKeyFound) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to get intermediate key latest: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">return nil</span>
+        })
+
+        // DEBUG: Log error handling decision.
+        <span class="cov8" title="1">isNoIntermediateKeyErr := errors.Is(err, ErrNoIntermediateKeyFound)
+        log.Printf("DEBUG initializeFirstIntermediateJWK: err=%v, isNoIntermediateKeyFound=%v, encryptedIntermediateKeyLatest=%v", err, isNoIntermediateKeyErr, encryptedIntermediateKeyLatest)
+
+        if err != nil &amp;&amp; !isNoIntermediateKeyErr </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if encryptedIntermediateKeyLatest == nil </span><span class="cov8" title="1">{
+                log.Printf("DEBUG initializeFirstIntermediateJWK: Creating first intermediate JWK")
+
+                intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&amp;cryptoutilSharedCryptoJose.EncA256GCM, &amp;cryptoutilSharedCryptoJose.AlgDir)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Printf("DEBUG initializeFirstIntermediateJWK: GenerateJWEJWK failed: %v", err)
+
+                        return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">log.Printf("DEBUG initializeFirstIntermediateJWK: Generated JWK with kid=%v", intermediateKeyKidUUID)
+
+                var encryptedIntermediateKeyBytes []byte
+
+                var rootKeyKidUUID *googleUuid.UUID
+
+                err = repository.WithTransaction(context.Background(), func(sqlTransaction Transaction) error </span><span class="cov8" title="1">{
+                        encryptedIntermediateKeyBytes, rootKeyKidUUID, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Printf("DEBUG initializeFirstIntermediateJWK: EncryptKey failed: %v", err)
+
+                                return fmt.Errorf("failed to encrypt first intermediate JWK: %w", err)
+                        }</span>
+
+                        <span class="cov8" title="1">log.Printf("DEBUG initializeFirstIntermediateJWK: Encrypted intermediate JWK, len=%d, rootKeyKid=%v", len(encryptedIntermediateKeyBytes), rootKeyKidUUID)
+
+                        firstEncryptedIntermediateKey := &amp;IntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
+
+                        err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
+                        if err != nil </span><span class="cov0" title="0">{
+                                log.Printf("DEBUG initializeFirstIntermediateJWK: AddIntermediateKey failed: %v", err)
+
+                                return fmt.Errorf("failed to store first intermediate JWK: %w", err)
+                        }</span>
+
+                        <span class="cov8" title="1">log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully stored first intermediate JWK")
+
+                        return nil</span>
+                })
+                <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                        log.Printf("DEBUG initializeFirstIntermediateJWK: Transaction failed: %v", err)
+
+                        return fmt.Errorf("failed to encrypt and store first intermediate first JWK: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">log.Printf("DEBUG initializeFirstIntermediateJWK: Successfully created first intermediate JWK")</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// EncryptKey encrypts a content key using the latest intermediate key.
+func (i *IntermediateKeysService) EncryptKey(sqlTransaction Transaction, clearContentKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) <span class="cov8" title="1">{
+        encryptedIntermediateKeyLatest, err := sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK latest from DB
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, nil, fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">intermediateKeyLatestKidUUID := encryptedIntermediateKeyLatest.UUID
+
+        decryptedIntermediateKeyLatest, err := i.rootKeysService.DecryptKey(sqlTransaction, []byte(encryptedIntermediateKeyLatest.Encrypted))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("failed to decrypt intermediate JWK latest: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">_, encryptedContentKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey([]joseJwk.Key{decryptedIntermediateKeyLatest}, clearContentKey)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return encryptedContentKeyBytes, &amp;intermediateKeyLatestKidUUID, nil</span>
+}
+
+// DecryptKey decrypts a content key using the identified intermediate key.
+func (i *IntermediateKeysService) DecryptKey(sqlTransaction Transaction, encryptedContentKeyBytes []byte) (joseJwk.Key, error) <span class="cov8" title="1">{
+        encryptedContentKey, err := joseJwe.Parse(encryptedContentKeyBytes)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse encrypted content key message: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">var intermediateKeyKidUUIDString string
+
+        err = encryptedContentKey.ProtectedHeaders().Get(joseJwk.KeyIDKey, &amp;intermediateKeyKidUUIDString)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse encrypted content key message kid UUID: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">intermediateKeyKidUUID, err := googleUuid.Parse(intermediateKeyKidUUIDString)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
+        }</span>
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        <span class="cov8" title="1">encryptedIntermediateKey, err := sqlTransaction.GetIntermediateKey(&amp;intermediateKeyKidUUID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to get intermediate key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">decryptedIntermediateKey, err := i.rootKeysService.DecryptKey(sqlTransaction, []byte(encryptedIntermediateKey.Encrypted))
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to decrypt intermediate key: %w", err)
+        }</span>
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        <span class="cov8" title="1">decryptedContentKey, err := cryptoutilSharedCryptoJose.DecryptKey([]joseJwk.Key{decryptedIntermediateKey}, encryptedContentKeyBytes)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decrypt content key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return decryptedContentKey, nil</span>
+}
+
+// Shutdown gracefully shuts down the IntermediateKeysService.
+func (i *IntermediateKeysService) Shutdown() <span class="cov8" title="1">{
+        i.telemetryService = nil
+        i.repository = nil
+        i.jwkGenService = nil
+        i.rootKeysService = nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "log"
+
+        // Repository interface used instead of OrmRepository.
+        cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+        cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+        cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+
+        googleUuid "github.com/google/uuid"
+        joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
+        joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+)
+
+// RootKeysService manages root encryption keys at the top of the key hierarchy.
+type RootKeysService struct {
+        telemetryService  *cryptoutilSharedTelemetry.TelemetryService
+        jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
+        repository        Repository
+        unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
+}
+
+// NewRootKeysService creates a new RootKeysService with the specified dependencies.
+func NewRootKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*RootKeysService, error) <span class="cov8" title="1">{
+        if telemetryService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("telemetryService must be non-nil")
+        }</span> else<span class="cov8" title="1"> if jwkGenService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("jwkGenService must be non-nil")
+        }</span> else<span class="cov8" title="1"> if repository == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("repository must be non-nil")
+        }</span> else<span class="cov8" title="1"> if unsealKeysService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("unsealKeysService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">err := initializeFirstRootJWK(jwkGenService, repository, unsealKeysService)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to initialize first root JWK: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;RootKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, repository: repository, unsealKeysService: unsealKeysService}, nil</span>
+}
+
+func initializeFirstRootJWK(jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error <span class="cov8" title="1">{
+        var encryptedRootKeyLatest *RootKey
+
+        var err error
+
+        err = repository.WithTransaction(context.Background(), func(tx Transaction) error </span><span class="cov8" title="1">{
+                encryptedRootKeyLatest, err = tx.GetRootKeyLatest() // encrypted root JWK from DB
+                // NOTE: "no root key found" is EXPECTED on first run - don't treat as fatal error
+                if err != nil &amp;&amp; !errors.Is(err, ErrNoRootKeyFound) </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to get root key latest: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">return nil</span>
+        })
+
+        // DEBUG: Log error handling decision
+        <span class="cov8" title="1">isNoRootKeyErr := errors.Is(err, ErrNoRootKeyFound)
+        log.Printf("DEBUG initializeFirstRootJWK: err=%v, isNoRootKeyFound=%v, encryptedRootKeyLatest=%v", err, isNoRootKeyErr, encryptedRootKeyLatest)
+
+        if err != nil &amp;&amp; !isNoRootKeyErr </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">if encryptedRootKeyLatest == nil </span><span class="cov8" title="1">{
+                log.Printf("DEBUG initializeFirstRootJWK: Creating first root JWK")
+
+                rootKeyKidUUID, clearRootKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&amp;cryptoutilSharedCryptoJose.EncA256GCM, &amp;cryptoutilSharedCryptoJose.AlgDir)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Printf("DEBUG initializeFirstRootJWK: GenerateJWEJWK failed: %v", err)
+
+                        return fmt.Errorf("failed to generate first root JWK latest: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">log.Printf("DEBUG initializeFirstRootJWK: Generated JWK with kid=%v", rootKeyKidUUID)
+
+                encryptedRootKeyBytes, err := unsealKeysService.EncryptKey(clearRootKey)
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Printf("DEBUG initializeFirstRootJWK: EncryptKey failed: %v", err)
+
+                        return fmt.Errorf("failed to encrypt first root JWK: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">log.Printf("DEBUG initializeFirstRootJWK: Encrypted root JWK, len=%d", len(encryptedRootKeyBytes))
+
+                firstEncryptedRootKey := &amp;RootKey{UUID: *rootKeyKidUUID, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
+
+                err = repository.WithTransaction(context.Background(), func(tx Transaction) error </span><span class="cov8" title="1">{
+                        return tx.AddRootKey(firstEncryptedRootKey)
+                }</span>)
+                <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                        log.Printf("DEBUG initializeFirstRootJWK: AddRootKey failed: %v", err)
+
+                        return fmt.Errorf("failed to encrypt and store first root JWK: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">log.Printf("DEBUG initializeFirstRootJWK: Successfully created first root JWK")</span>
+        }
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+// EncryptKey encrypts an intermediate key using the latest root key.
+func (i *RootKeysService) EncryptKey(tx Transaction, clearIntermediateKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) <span class="cov8" title="1">{
+        encryptedRootKeyLatest, err := tx.GetRootKeyLatest() // encrypted root JWK latest from DB
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, nil, fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">rootKeyLatestKidUUID := encryptedRootKeyLatest.UUID
+
+        decryptedRootKeyLatest, err := i.unsealKeysService.DecryptKey([]byte(encryptedRootKeyLatest.Encrypted))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("failed to decrypt root JWK latest: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">_, encryptedIntermediateKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey([]joseJwk.Key{decryptedRootKeyLatest}, clearIntermediateKey)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("failed to encrypt intermediate JWK with root JWK: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return encryptedIntermediateKeyBytes, &amp;rootKeyLatestKidUUID, nil</span>
+}
+
+// DecryptKey decrypts an intermediate key using the identified root key.
+func (i *RootKeysService) DecryptKey(sqlTransaction Transaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) <span class="cov8" title="1">{
+        encryptedIntermediateKey, err := joseJwe.Parse(encryptedIntermediateKeyBytes)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse encrypted intermediate key message: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">var rootKeyKidUUIDString string
+
+        err = encryptedIntermediateKey.ProtectedHeaders().Get(joseJwk.KeyIDKey, &amp;rootKeyKidUUIDString)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to parse encrypted intermediate key message kid UUID: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">rootKeyKidUUID, err := googleUuid.Parse(rootKeyKidUUIDString)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
+        }</span>
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        <span class="cov8" title="1">encryptedRootKey, err := sqlTransaction.GetRootKey(&amp;rootKeyKidUUID)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to get root key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">decryptedRootKey, err := i.unsealKeysService.DecryptKey([]byte(encryptedRootKey.Encrypted))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decrypt root key: %w", err)
+        }</span>
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        <span class="cov8" title="1">decryptedIntermediateKey, err := cryptoutilSharedCryptoJose.DecryptKey([]joseJwk.Key{decryptedRootKey}, encryptedIntermediateKeyBytes)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to decrypt intermediate key: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return decryptedIntermediateKey, nil</span>
+}
+
+// Shutdown gracefully shuts down the RootKeysService.
+func (i *RootKeysService) Shutdown() <span class="cov8" title="1">{
+        i.unsealKeysService = nil
+        i.repository = nil
+        i.jwkGenService = nil
+        i.telemetryService = nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "fmt"
+        "time"
+
+        fiber "github.com/gofiber/fiber/v2"
+)
+
+const (
+        // MinRotationReasonLength is the minimum length for rotation reason field.
+        MinRotationReasonLength = 10
+        // MaxRotationReasonLength is the maximum length for rotation reason field.
+        MaxRotationReasonLength = 500
+)
+
+// RotateKeyRequest is the request payload for key rotation endpoints.
+type RotateKeyRequest struct {
+        Reason string `json:"reason" validate:"required,min=10,max=500"`
+}
+
+// RotateRootKeyResponse is the response for root key rotation.
+type RotateRootKeyResponse struct {
+        OldKeyUUID string `json:"old_key_uuid"`
+        NewKeyUUID string `json:"new_key_uuid"`
+        Reason     string `json:"reason"`
+        RotatedAt  int64  `json:"rotated_at"` // Unix epoch milliseconds
+}
+
+// RotateIntermediateKeyResponse is the response for intermediate key rotation.
+type RotateIntermediateKeyResponse struct {
+        OldKeyUUID string `json:"old_key_uuid"`
+        NewKeyUUID string `json:"new_key_uuid"`
+        Reason     string `json:"reason"`
+        RotatedAt  int64  `json:"rotated_at"` // Unix epoch milliseconds
+}
+
+// RotateContentKeyResponse is the response for content key rotation.
+type RotateContentKeyResponse struct {
+        NewKeyUUID string `json:"new_key_uuid"`
+        Reason     string `json:"reason"`
+        RotatedAt  int64  `json:"rotated_at"` // Unix epoch milliseconds
+}
+
+// HandleRotateRootKey handles POST /admin/api/v1/barrier/rotate/root requests.
+func HandleRotateRootKey(rotationService *RotationService) fiber.Handler <span class="cov8" title="1">{
+        return func(c *fiber.Ctx) error </span><span class="cov8" title="1">{
+                var req RotateKeyRequest
+                if err := c.BodyParser(&amp;req); err != nil </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "invalid_request_body",
+                                "message": "Failed to parse request body",
+                        })
+                }</span>
+
+                // Validate reason length
+                <span class="cov8" title="1">if len(req.Reason) &lt; MinRotationReasonLength </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "validation_error",
+                                "message": "Reason must be at least 10 characters",
+                        })
+                }</span>
+
+                <span class="cov8" title="1">if len(req.Reason) &gt; MaxRotationReasonLength </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "validation_error",
+                                "message": "Reason must be at most 500 characters",
+                        })
+                }</span>
+
+                <span class="cov8" title="1">result, err := rotationService.RotateRootKey(c.Context(), req.Reason)
+                if err != nil </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+                                "error":   "rotation_failed",
+                                "message": fmt.Sprintf("Failed to rotate root key: %v", err),
+                        })
+                }</span>
+
+                <span class="cov8" title="1">return c.Status(fiber.StatusOK).JSON(&amp;RotateRootKeyResponse{
+                        OldKeyUUID: result.OldKeyUUID.String(),
+                        NewKeyUUID: result.NewKeyUUID.String(),
+                        Reason:     result.Reason,
+                        RotatedAt:  time.Now().UTC().UnixMilli(),
+                })</span>
+        }
+}
+
+// HandleRotateIntermediateKey handles POST /admin/api/v1/barrier/rotate/intermediate requests.
+func HandleRotateIntermediateKey(rotationService *RotationService) fiber.Handler <span class="cov8" title="1">{
+        return func(c *fiber.Ctx) error </span><span class="cov8" title="1">{
+                var req RotateKeyRequest
+                if err := c.BodyParser(&amp;req); err != nil </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "invalid_request_body",
+                                "message": "Failed to parse request body",
+                        })
+                }</span>
+
+                // Validate reason length
+                <span class="cov8" title="1">if len(req.Reason) &lt; MinRotationReasonLength </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "validation_error",
+                                "message": "Reason must be at least 10 characters",
+                        })
+                }</span>
+
+                <span class="cov8" title="1">if len(req.Reason) &gt; MaxRotationReasonLength </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "validation_error",
+                                "message": "Reason must be at most 500 characters",
+                        })
+                }</span>
+
+                <span class="cov8" title="1">result, err := rotationService.RotateIntermediateKey(c.Context(), req.Reason)
+                if err != nil </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+                                "error":   "rotation_failed",
+                                "message": fmt.Sprintf("Failed to rotate intermediate key: %v", err),
+                        })
+                }</span>
+
+                <span class="cov8" title="1">return c.Status(fiber.StatusOK).JSON(&amp;RotateIntermediateKeyResponse{
+                        OldKeyUUID: result.OldKeyUUID.String(),
+                        NewKeyUUID: result.NewKeyUUID.String(),
+                        Reason:     result.Reason,
+                        RotatedAt:  time.Now().UTC().UnixMilli(),
+                })</span>
+        }
+}
+
+// HandleRotateContentKey handles POST /admin/api/v1/barrier/rotate/content requests.
+func HandleRotateContentKey(rotationService *RotationService) fiber.Handler <span class="cov8" title="1">{
+        return func(c *fiber.Ctx) error </span><span class="cov8" title="1">{
+                var req RotateKeyRequest
+                if err := c.BodyParser(&amp;req); err != nil </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "invalid_request_body",
+                                "message": "Failed to parse request body",
+                        })
+                }</span>
+
+                // Validate reason length
+                <span class="cov8" title="1">if len(req.Reason) &lt; MinRotationReasonLength </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "validation_error",
+                                "message": "Reason must be at least 10 characters",
+                        })
+                }</span>
+
+                <span class="cov8" title="1">if len(req.Reason) &gt; MaxRotationReasonLength </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+                                "error":   "validation_error",
+                                "message": "Reason must be at most 500 characters",
+                        })
+                }</span>
+
+                <span class="cov8" title="1">result, err := rotationService.RotateContentKey(c.Context(), req.Reason)
+                if err != nil </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+                                "error":   "rotation_failed",
+                                "message": fmt.Sprintf("Failed to rotate content key: %v", err),
+                        })
+                }</span>
+
+                <span class="cov8" title="1">return c.Status(fiber.StatusOK).JSON(&amp;RotateContentKeyResponse{
+                        NewKeyUUID: result.NewKeyUUID.String(),
+                        Reason:     result.Reason,
+                        RotatedAt:  time.Now().UTC().UnixMilli(),
+                })</span>
+        }
+}
+
+// RegisterRotationRoutes registers rotation endpoints on the admin server.
+// Routes:
+//   - POST /admin/api/v1/barrier/rotate/root
+//   - POST /admin/api/v1/barrier/rotate/intermediate
+//   - POST /admin/api/v1/barrier/rotate/content
+func RegisterRotationRoutes(adminServer *fiber.App, rotationService *RotationService) <span class="cov8" title="1">{
+        if adminServer == nil </span><span class="cov8" title="1">{
+                panic("adminServer must be non-nil")</span>
+        }
+
+        <span class="cov8" title="1">if rotationService == nil </span><span class="cov8" title="1">{
+                panic("rotationService must be non-nil")</span>
+        }
+
+        <span class="cov8" title="1">adminV1 := adminServer.Group("/admin/api/v1/barrier/rotate")
+
+        adminV1.Post("/root", HandleRotateRootKey(rotationService))
+        adminV1.Post("/intermediate", HandleRotateIntermediateKey(rotationService))
+        adminV1.Post("/content", HandleRotateContentKey(rotationService))</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "context"
+        "fmt"
+
+        cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+        cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+
+        googleUuid "github.com/google/uuid"
+        joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
+        joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+)
+
+// RotationService provides manual key rotation functionality.
+// NOTE: This implementation uses elastic key rotation - new keys are created
+// but old keys remain in the database for decrypting historical data.
+// Re-encryption of dependent keys is NOT performed automatically.
+type RotationService struct {
+        jwkGenService     *cryptoutilSharedCryptoJose.JWKGenService
+        repository        Repository
+        unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
+}
+
+// NewRotationService creates a new rotation service.
+func NewRotationService(
+        jwkGenService *cryptoutilSharedCryptoJose.JWKGenService,
+        repository Repository,
+        unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService,
+) (*RotationService, error) <span class="cov8" title="1">{
+        if jwkGenService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("jwkGenService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if repository == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("repository must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">if unsealKeysService == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("unsealKeysService must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">return &amp;RotationService{
+                jwkGenService:     jwkGenService,
+                repository:        repository,
+                unsealKeysService: unsealKeysService,
+        }, nil</span>
+}
+
+// RotateRootKeyResult contains the result of root key rotation.
+type RotateRootKeyResult struct {
+        OldKeyUUID googleUuid.UUID
+        NewKeyUUID googleUuid.UUID
+        Reason     string
+}
+
+// RotateRootKey creates a new root key encrypted with the unseal key.
+// Old root keys remain in the database for decrypting historical intermediate keys.
+// New intermediate keys will be encrypted with the new root key.
+func (s *RotationService) RotateRootKey(ctx context.Context, reason string) (*RotateRootKeyResult, error) <span class="cov8" title="1">{
+        var result *RotateRootKeyResult
+
+        err := s.repository.WithTransaction(ctx, func(tx Transaction) error </span><span class="cov8" title="1">{
+                // Get current root key (will be the old key after rotation)
+                oldRootKey, err := tx.GetRootKeyLatest()
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to get current root key: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">if oldRootKey == nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("no root key found - cannot rotate")
+                }</span>
+
+                // Generate new root JWK
+                <span class="cov8" title="1">rootKeyKidUUID, clearRootKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(
+                        &amp;cryptoutilSharedCryptoJose.EncA256GCM,
+                        &amp;cryptoutilSharedCryptoJose.AlgDir,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to generate root JWK: %w", err)
+                }</span>
+
+                // Encrypt with unseal key
+                <span class="cov8" title="1">encryptedRootKeyBytes, err := s.unsealKeysService.EncryptKey(clearRootKey)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to encrypt root key: %w", err)
+                }</span>
+
+                // Store new root key
+                <span class="cov8" title="1">newRootKey := &amp;RootKey{
+                        UUID:      *rootKeyKidUUID,
+                        Encrypted: string(encryptedRootKeyBytes),
+                        KEKUUID:   googleUuid.UUID{}, // Root keys have no parent
+                }
+
+                if err := tx.AddRootKey(newRootKey); err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to store new root key: %w", err)
+                }</span>
+
+                // Store rotation result
+                <span class="cov8" title="1">result = &amp;RotateRootKeyResult{
+                        OldKeyUUID: oldRootKey.UUID,
+                        NewKeyUUID: *rootKeyKidUUID,
+                        Reason:     reason,
+                }
+
+                return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("root key rotation transaction failed: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return result, nil</span>
+}
+
+// RotateIntermediateKeyResult contains the result of intermediate key rotation.
+type RotateIntermediateKeyResult struct {
+        OldKeyUUID googleUuid.UUID
+        NewKeyUUID googleUuid.UUID
+        Reason     string
+}
+
+// RotateIntermediateKey creates a new intermediate key encrypted with the current root key.
+// Old intermediate keys remain in the database for decrypting historical content keys.
+// New content keys will be encrypted with the new intermediate key.
+func (s *RotationService) RotateIntermediateKey(ctx context.Context, reason string) (*RotateIntermediateKeyResult, error) <span class="cov8" title="1">{
+        var result *RotateIntermediateKeyResult
+
+        err := s.repository.WithTransaction(ctx, func(tx Transaction) error </span><span class="cov8" title="1">{
+                // Get current intermediate key (will be the old key after rotation)
+                oldIntermediateKey, err := tx.GetIntermediateKeyLatest()
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to get current intermediate key: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">if oldIntermediateKey == nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("no intermediate key found - cannot rotate")
+                }</span>
+
+                // Get current root key for encryption
+                <span class="cov8" title="1">currentRootKey, err := tx.GetRootKeyLatest()
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to get current root key: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">if currentRootKey == nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("no root key found")
+                }</span>
+
+                // Decrypt root key
+                <span class="cov8" title="1">clearRootKey, err := s.unsealKeysService.DecryptKey([]byte(currentRootKey.Encrypted))
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to decrypt root key: %w", err)
+                }</span>
+
+                // Generate new intermediate JWK
+                <span class="cov8" title="1">intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(
+                        &amp;cryptoutilSharedCryptoJose.EncA256GCM,
+                        &amp;cryptoutilSharedCryptoJose.AlgA256KW,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to generate intermediate JWK: %w", err)
+                }</span>
+
+                // Encrypt new intermediate key with current root key
+                <span class="cov8" title="1">_, encryptedIntermediateKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey([]joseJwk.Key{clearRootKey}, clearIntermediateKey)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to encrypt intermediate key: %w", err)
+                }</span>
+
+                // Store new intermediate key
+                <span class="cov8" title="1">newIntermediateKey := &amp;IntermediateKey{
+                        UUID:      *intermediateKeyKidUUID,
+                        Encrypted: string(encryptedIntermediateKeyBytes),
+                        KEKUUID:   currentRootKey.UUID,
+                }
+
+                if err := tx.AddIntermediateKey(newIntermediateKey); err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to store new intermediate key: %w", err)
+                }</span>
+
+                // Store rotation result
+                <span class="cov8" title="1">result = &amp;RotateIntermediateKeyResult{
+                        OldKeyUUID: oldIntermediateKey.UUID,
+                        NewKeyUUID: *intermediateKeyKidUUID,
+                        Reason:     reason,
+                }
+
+                return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("intermediate key rotation transaction failed: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return result, nil</span>
+}
+
+// RotateContentKeyResult contains the result of content key rotation.
+type RotateContentKeyResult struct {
+        NewKeyUUID googleUuid.UUID
+        Reason     string
+}
+
+// RotateContentKey creates a new content key encrypted with the current intermediate key.
+// Content keys don't have GetLatest so we can't track old key UUID.
+// Old content keys remain in the database for decrypting historical data.
+// New encryptions will use the new content key.
+func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (*RotateContentKeyResult, error) <span class="cov8" title="1">{
+        var result *RotateContentKeyResult
+
+        err := s.repository.WithTransaction(ctx, func(tx Transaction) error </span><span class="cov8" title="1">{
+                // Get current intermediate key for encryption
+                currentIntermediateKey, err := tx.GetIntermediateKeyLatest()
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to get current intermediate key: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">if currentIntermediateKey == nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("no intermediate key found")
+                }</span>
+
+                // Parse and decrypt intermediate key to get clear key for encryption
+                <span class="cov8" title="1">encryptedIntermediateKeyMsg, err := joseJwe.Parse([]byte(currentIntermediateKey.Encrypted))
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to parse encrypted intermediate key: %w", err)
+                }</span>
+
+                // Get root key kid from intermediate key's JWE header
+                <span class="cov8" title="1">var rootKeyKidString string
+
+                err = encryptedIntermediateKeyMsg.ProtectedHeaders().Get(joseJwk.KeyIDKey, &amp;rootKeyKidString)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to get root key kid: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">rootKeyKidUUID, err := googleUuid.Parse(rootKeyKidString)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to parse root key kid: %w", err)
+                }</span>
+
+                // Get and decrypt root key
+                <span class="cov8" title="1">encryptedRootKey, err := tx.GetRootKey(&amp;rootKeyKidUUID)
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to get root key: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">clearRootKey, err := s.unsealKeysService.DecryptKey([]byte(encryptedRootKey.Encrypted))
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to decrypt root key: %w", err)
+                }</span>
+
+                // Decrypt intermediate key
+                <span class="cov8" title="1">clearIntermediateKey, err := cryptoutilSharedCryptoJose.DecryptKey([]joseJwk.Key{clearRootKey}, []byte(currentIntermediateKey.Encrypted))
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to decrypt intermediate key: %w", err)
+                }</span>
+
+                // Generate new content JWK
+                <span class="cov8" title="1">contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJWEJWK(
+                        &amp;cryptoutilSharedCryptoJose.EncA256GCM,
+                        &amp;cryptoutilSharedCryptoJose.AlgA256KW,
+                )
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to generate content JWK: %w", err)
+                }</span>
+
+                // Encrypt content key with intermediate key
+                <span class="cov8" title="1">_, encryptedContentKeyBytes, err := cryptoutilSharedCryptoJose.EncryptKey([]joseJwk.Key{clearIntermediateKey}, clearContentKey)
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to encrypt content key: %w", err)
+                }</span>
+
+                // Store new content key
+                <span class="cov8" title="1">newContentKey := &amp;ContentKey{
+                        UUID:      *contentKeyKidUUID,
+                        Encrypted: string(encryptedContentKeyBytes),
+                        KEKUUID:   currentIntermediateKey.UUID,
+                }
+
+                if err := tx.AddContentKey(newContentKey); err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to store new content key: %w", err)
+                }</span>
+
+                // Store rotation result (no old key UUID since no GetLatest)
+                <span class="cov8" title="1">result = &amp;RotateContentKeyResult{
+                        NewKeyUUID: *contentKeyKidUUID,
+                        Reason:     reason,
+                }
+
+                return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("content key rotation transaction failed: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return result, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Copyright (c) 2025 Justin Cranford
+//
+//
+
+package barrier
+
+import (
+        "context"
+        "fmt"
+
+        fiber "github.com/gofiber/fiber/v2"
+)
+
+// KeyStatusResponse represents the status of a specific barrier key.
+type KeyStatusResponse struct {
+        UUID      string `json:"uuid"`       // Key UUID
+        CreatedAt int64  `json:"created_at"` // Unix epoch milliseconds
+        UpdatedAt int64  `json:"updated_at"` // Unix epoch milliseconds
+}
+
+// KeysStatusResponse represents the current status of all barrier key layers.
+type KeysStatusResponse struct {
+        RootKey         *KeyStatusResponse `json:"root_key"`         // Latest root key (nil if none)
+        IntermediateKey *KeyStatusResponse `json:"intermediate_key"` // Latest intermediate key (nil if none)
+}
+
+// StatusService provides barrier key status query operations.
+type StatusService struct {
+        repo Repository
+}
+
+// NewStatusService creates a new StatusService instance.
+func NewStatusService(repo Repository) (*StatusService, error) <span class="cov8" title="1">{
+        if repo == nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("repository must be non-nil")
+        }</span>
+
+        <span class="cov8" title="1">return &amp;StatusService{repo: repo}, nil</span>
+}
+
+// GetBarrierKeysStatus retrieves the current status of barrier keys.
+// Returns the latest root and intermediate keys.
+// Content keys are not included (elastic key rotation - no "latest" concept).
+func (s *StatusService) GetBarrierKeysStatus(ctx context.Context) (*KeysStatusResponse, error) <span class="cov8" title="1">{
+        var response KeysStatusResponse
+
+        err := s.repo.WithTransaction(ctx, func(tx Transaction) error </span><span class="cov8" title="1">{
+                // Get latest root key.
+                rootKey, err := tx.GetRootKeyLatest()
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to get latest root key: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">if rootKey != nil </span><span class="cov8" title="1">{
+                        response.RootKey = &amp;KeyStatusResponse{
+                                UUID:      rootKey.UUID.String(),
+                                CreatedAt: rootKey.CreatedAt,
+                                UpdatedAt: rootKey.UpdatedAt,
+                        }
+                }</span>
+
+                // Get latest intermediate key.
+                <span class="cov8" title="1">intermediateKey, err := tx.GetIntermediateKeyLatest()
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("failed to get latest intermediate key: %w", err)
+                }</span>
+
+                <span class="cov8" title="1">if intermediateKey != nil </span><span class="cov8" title="1">{
+                        response.IntermediateKey = &amp;KeyStatusResponse{
+                                UUID:      intermediateKey.UUID.String(),
+                                CreatedAt: intermediateKey.CreatedAt,
+                                UpdatedAt: intermediateKey.UpdatedAt,
+                        }
+                }</span>
+
+                <span class="cov8" title="1">return nil</span>
+        })
+        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to get barrier keys status: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;response, nil</span>
+}
+
+// HandleGetBarrierKeysStatus handles GET /admin/api/v1/barrier/keys/status requests.
+// Returns the current status of barrier keys (latest root and intermediate keys).
+func HandleGetBarrierKeysStatus(statusService *StatusService) fiber.Handler <span class="cov8" title="1">{
+        return func(c *fiber.Ctx) error </span><span class="cov8" title="1">{
+                ctx := c.Context()
+
+                // Get barrier keys status.
+                status, err := statusService.GetBarrierKeysStatus(ctx)
+                if err != nil </span><span class="cov8" title="1">{
+                        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+                                "error": "Failed to retrieve barrier keys status",
+                        })
+                }</span>
+
+                <span class="cov8" title="1">return c.Status(fiber.StatusOK).JSON(status)</span>
+        }
+}
+
+// RegisterStatusRoutes registers the barrier keys status HTTP endpoints.
+// Routes:
+//   - GET /admin/api/v1/barrier/keys/status: Get current barrier keys status
+//
+// This function should be called during server initialization to wire up
+// status endpoints to the admin server's fiber.App.
+func RegisterStatusRoutes(app *fiber.App, statusService *StatusService) <span class="cov8" title="1">{
+        app.Get("/admin/api/v1/barrier/keys/status", HandleGetBarrierKeysStatus(statusService))
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
