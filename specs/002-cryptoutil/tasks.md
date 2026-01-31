@@ -525,17 +525,31 @@ Multi-layer key hierarchy with elastic rotation:
 #### P9.2.1: Observability Enhancement
 
 - **Title**: Deploy Grafana dashboards and alerting
-- **Effort**: M (5-7 days)
+- **Effort**: M (5-7 days estimated, 0.5 day actual)
+- **Status**: ✅ COMPLETE (2026-01-31)
+- **Commit**: ad0c1450
 - **Dependencies**: P9.1.1
 - **Files**:
-  - `deployments/telemetry/dashboards/*.json` (create)
-  - `deployments/telemetry/alerts/*.yml` (create)
-  - `docs/runbooks/*.md` (create)
+  - `deployments/telemetry/grafana-otel-lgtm/dashboards/health.json` (create - 7 panels)
+  - `deployments/telemetry/grafana-otel-lgtm/dashboards/database.json` (create - 7 panels)
+  - `deployments/telemetry/alerts/cryptoutil.yml` (create - 13 alerts)
+  - `docs/runbooks/*.md` (create - 13 runbooks)
+- **Total Files**: 16 new files, 1629 lines
 - **Completion Criteria**:
-  - [ ] Grafana dashboards (health, requests, errors, database metrics)
-  - [ ] Alerts (SLA violations, error spikes, health check failures)
-  - [ ] Runbooks documented
-  - [ ] Commit: `feat(monitoring): add Grafana dashboards and alerting for production`
+  - [x] Grafana dashboards (health, requests, errors, database metrics)
+    - health.json: Service health, memory, CPU, goroutines, request rate, error rate, latency percentiles
+    - database.json: Connections, query latency, error rate, query rate by operation
+  - [x] Alerts (SLA violations, error spikes, health check failures)
+    - 5 alert groups: service-health, performance, resources, database, security
+    - 13 alert rules with severity, thresholds, and runbook URLs
+  - [x] Runbooks documented
+    - 13 comprehensive runbooks with investigation, resolution, escalation procedures
+  - [x] Commit: `feat(monitoring): add Grafana dashboards, alerts, and runbooks for production`
+
+**Deliverables**:
+- Dashboards: health.json (7 panels), database.json (7 panels)
+- Alerts: 13 rules across 5 groups (ServiceDown, HighLatency, HighErrorRate, etc.)
+- Runbooks: 13 operational procedures (service-down, high-latency, db-connections, etc.)
 
 ---
 
@@ -578,9 +592,9 @@ Multi-layer key hierarchy with elastic rotation:
 ### Phase 9: Production Readiness (2 tasks, 12-17 days)
 
 - ✅ P9.1.1: Security audit (M) - COMPLETE (2026-01-31)
-- P9.2.1: Observability enhancement (M)
+- ✅ P9.2.1: Observability enhancement (M) - COMPLETE (2026-01-31)
 
-**Total**: 15 tasks, ~108-155 days (sequential), **6 tasks complete (P2.7.1, P2.7.2, P7.1.1, P7.2.1, P8.1.1, P9.1.1)**
+**Total**: 15 tasks, ~108-155 days (sequential), **7 tasks complete (P2.7.1, P2.7.2, P7.1.1, P7.2.1, P8.1.1, P9.1.1, P9.2.1)**
 
 **Critical Path**: Phases 2-6 (~60-85 days)
 
