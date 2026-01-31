@@ -119,6 +119,11 @@ var (
 	ErrOTPAlreadyUsed    = NewIdentityError("otp_already_used", "OTP has already been used", http.StatusUnauthorized, nil)
 	ErrRateLimitExceeded = NewIdentityError("rate_limit_exceeded", "Rate limit exceeded", http.StatusTooManyRequests, nil)
 
+	// TOTP errors.
+	ErrTOTPSecretNotFound = NewIdentityError("totp_secret_not_found", "TOTP secret not found", http.StatusNotFound, nil)
+	ErrTOTPAccountLocked  = NewIdentityError("totp_account_locked", "Account temporarily locked due to too many failed attempts", http.StatusForbidden, nil)
+	ErrBackupCodeNotFound = NewIdentityError("backup_code_not_found", "Backup code not found", http.StatusNotFound, nil)
+
 	// PKCE errors.
 	ErrPKCERequired         = NewIdentityError("pkce_required", "PKCE is required for this flow", http.StatusBadRequest, nil)
 	ErrInvalidCodeChallenge = NewIdentityError("invalid_code_challenge", "Invalid PKCE code challenge", http.StatusBadRequest, nil)

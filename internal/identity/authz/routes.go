@@ -53,6 +53,13 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oidc.Post("/mfa/email-otp/send", s.handleSendEmailOTP)
 	oidc.Post("/mfa/email-otp/verify", s.handleVerifyEmailOTP)
 
+	// MFA TOTP endpoints.
+	oidc.Post("/mfa/totp/enroll", s.handleEnrollTOTP)
+	oidc.Post("/mfa/totp/verify", s.handleVerifyTOTP)
+	oidc.Get("/mfa/totp/step-up", s.handleCheckMFAStepUp)
+	oidc.Post("/mfa/totp/backup-codes/generate", s.handleGenerateTOTPBackupCodes)
+	oidc.Post("/mfa/totp/backup-codes/verify", s.handleVerifyTOTPBackupCode)
+
 	// MFA admin endpoints.
 	oidc.Post("/mfa/enroll", s.handleEnrollMFA)
 	oidc.Get("/mfa/factors", s.handleListMFAFactors)
