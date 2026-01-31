@@ -105,8 +105,6 @@ func TestResolveFileURL_WhitespaceTrimming(t *testing.T) {
 }
 
 func TestParse_FileURL_DatabaseURL(t *testing.T) {
-	t.Parallel()
-
 	resetFlags()
 
 	// Create temporary file with database URL
