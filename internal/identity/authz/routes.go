@@ -64,4 +64,12 @@ func (s *Service) RegisterRoutes(app *fiber.App) {
 	oidc.Post("/mfa/enroll", s.handleEnrollMFA)
 	oidc.Get("/mfa/factors", s.handleListMFAFactors)
 	oidc.Delete("/mfa/factors/:id", s.handleDeleteMFAFactor)
+
+	// MFA WebAuthn endpoints.
+	oidc.Post("/mfa/webauthn/register/begin", s.BeginWebAuthnRegistration)
+	oidc.Post("/mfa/webauthn/register/finish", s.FinishWebAuthnRegistration)
+	oidc.Post("/mfa/webauthn/authenticate/begin", s.BeginWebAuthnAuthentication)
+	oidc.Post("/mfa/webauthn/authenticate/finish", s.FinishWebAuthnAuthentication)
+	oidc.Get("/mfa/webauthn/credentials/:user_id", s.ListWebAuthnCredentials)
+	oidc.Delete("/mfa/webauthn/credentials", s.DeleteWebAuthnCredential)
 }
