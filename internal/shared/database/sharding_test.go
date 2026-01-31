@@ -39,10 +39,22 @@ func TestDefaultShardConfig(t *testing.T) {
 func TestNewShardManager(t *testing.T) {
 	t.Parallel()
 	db := setupTestDB(t)
-	cfg := DefaultShardConfig()
-	m := NewShardManager(db, cfg)
-	require.NotNil(t, m)
-	require.Equal(t, cfg, m.config)
+
+	t.Run("with config", func(t *testing.T) {
+		t.Parallel()
+		cfg := DefaultShardConfig()
+		m := NewShardManager(db, cfg)
+		require.NotNil(t, m)
+		require.Equal(t, cfg, m.config)
+	})
+
+	t.Run("nil config uses default", func(t *testing.T) {
+		t.Parallel()
+		m := NewShardManager(db, nil)
+		require.NotNil(t, m)
+		require.NotNil(t, m.config)
+		require.Equal(t, StrategyRowLevel, m.config.Strategy)
+	})
 }
 
 func TestShardManager_GetDBNContext(t *testing.T) {
@@ -77,6 +89,34 @@ func TestShardManager_GetDB_RowLevel(t *testing.T) {
 	tenantDB, err := m.GetDB(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, tenantDB)
+}
+
+func TestShardManager_GetDB_DatabaseLevel(t *testing.T) {
+	t.Parallel()
+	db := setupTestDB(t)
+	cfg := DefaultShardConfig()
+	cfg.Strategy = StrategyDatabaseLevel
+	m := NewShardManager(db, cfg)
+	tenantID := googleUuid.New()
+	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
+
+	_, err := m.GetDB(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "database-level sharding not yet implemented")
+}
+
+func TestShardManager_GetDB_UnknownStrategy(t *testing.T) {
+	t.Parallel()
+	db := setupTestDB(t)
+	cfg := DefaultShardConfig()
+	cfg.Strategy = ShardStrategy(99) // Unknown strategy
+	m := NewShardManager(db, cfg)
+	tenantID := googleUuid.New()
+	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
+
+	_, err := m.GetDB(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unknown shard strategy")
 }
 
 func TestShardManager_GetTenantSchemaName(t *testing.T) {
