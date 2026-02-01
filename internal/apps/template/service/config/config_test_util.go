@@ -11,6 +11,7 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
+	"github.com/spf13/pflag"
 )
 
 // RequireNewForTest creates a new ServiceTemplateServerSettings with test defaults.
@@ -404,6 +405,10 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 }
 
 // NewFromFile loads *ServiceTemplateServerSettings from a YAML configuration file.
+// Note: Uses "start" as the default subcommand since config file loading is typically for server startup.
+// Uses a fresh FlagSet to avoid conflicts with global pflag.CommandLine in parallel tests.
 func NewFromFile(filePath string) (*ServiceTemplateServerSettings, error) {
-	return Parse([]string{"--config-file", filePath}, false)
+	fs := pflag.NewFlagSet("NewFromFile", pflag.ContinueOnError)
+
+	return ParseWithFlagSet(fs, []string{"start", "--config", filePath}, false)
 }

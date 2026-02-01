@@ -421,12 +421,21 @@
   - Linting: 0 issues
 
 #### Task 7.3: Fix Config Bug in config_gaps_test.go (Renamed from 7.2)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 0.5h
 - **File**: `internal/apps/template/service/config/config_gaps_test.go:37-39`
 - **Description**: Fix acknowledged bug in NewFromFile or document as known limitation
 - **Acceptance Criteria**:
-  - [ ] Bug fixed or documented with issue reference
+  - [x] Bug fixed or documented with issue reference
+- **Analysis**:
+  - Original bug: `NewFromFile` passed `["--config-file", filePath]` but `ParseWithFlagSet` expects args[0] to be subcommand
+  - Fix: Changed to `["start", "--config", filePath]` with fresh FlagSet
+  - Updated tests to reflect correct behavior:
+    - `TestNewFromFile_Success`: Now passes (config values loaded)
+    - `TestNewFromFile_FileNotFound`: Updated - missing config files are intentionally skipped (not error)
+    - `TestNewFromFile_InvalidYAML`: Already correct (errors on invalid YAML)
+  - Also corrected flag name: `--config` not `--config-file`
 
 ---
 
