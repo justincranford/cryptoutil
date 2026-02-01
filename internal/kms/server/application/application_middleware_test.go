@@ -15,168 +15,106 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestSwaggerUIBasicAuthMiddleware_NoAuthConfigured tests middleware with no auth configured.
-func TestSwaggerUIBasicAuthMiddleware_NoAuthConfigured(t *testing.T) {
+// TestSwaggerUIBasicAuthMiddleware tests all middleware scenarios.
+func TestSwaggerUIBasicAuthMiddleware(t *testing.T) {
 	t.Parallel()
 
-	app := fiber.New()
-	app.Get("/test", swaggerUIBasicAuthMiddleware("", ""), func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
+	tests := []struct {
+		name       string
+		username   string
+		password   string
+		authHeader string
+		wantStatus int
+		wantBody   string
+		wantAuth   string
+	}{
+		{
+			name:       "no auth configured",
+			username:   "",
+			password:   "",
+			authHeader: "",
+			wantStatus: fiber.StatusOK,
+			wantBody:   "success",
+		},
+		{
+			name:       "missing auth header",
+			username:   "admin",
+			password:   "secret",
+			authHeader: "",
+			wantStatus: fiber.StatusUnauthorized,
+			wantBody:   "Authentication required",
+			wantAuth:   `Basic realm="Swagger UI"`,
+		},
+		{
+			name:       "invalid auth method",
+			username:   "admin",
+			password:   "secret",
+			authHeader: "Bearer invalid-token",
+			wantStatus: fiber.StatusUnauthorized,
+			wantBody:   "Invalid authentication method",
+		},
+		{
+			name:       "invalid base64 encoding",
+			username:   "admin",
+			password:   "secret",
+			authHeader: "Basic not-valid-base64!!!",
+			wantStatus: fiber.StatusUnauthorized,
+			wantBody:   "Invalid authentication encoding",
+		},
+		{
+			name:       "invalid credential format",
+			username:   "admin",
+			password:   "secret",
+			authHeader: "Basic " + base64.StdEncoding.EncodeToString([]byte("invalidformat")),
+			wantStatus: fiber.StatusUnauthorized,
+			wantBody:   "Invalid authentication format",
+		},
+		{
+			name:       "invalid credentials",
+			username:   "admin",
+			password:   "secret",
+			authHeader: "Basic " + base64.StdEncoding.EncodeToString([]byte("wrong:credentials")),
+			wantStatus: fiber.StatusUnauthorized,
+			wantBody:   "Invalid credentials",
+		},
+		{
+			name:       "valid credentials",
+			username:   "admin",
+			password:   "secret",
+			authHeader: "Basic " + base64.StdEncoding.EncodeToString([]byte("admin:secret")),
+			wantStatus: fiber.StatusOK,
+			wantBody:   "success",
+		},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	defer func() { _ = resp.Body.Close() }()
+			app := fiber.New()
+			app.Get("/test", swaggerUIBasicAuthMiddleware(tc.username, tc.password), func(c *fiber.Ctx) error {
+				return c.SendString("success")
+			})
 
-	require.Equal(t, fiber.StatusOK, resp.StatusCode)
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			if tc.authHeader != "" {
+				req.Header.Set("Authorization", tc.authHeader)
+			}
 
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Equal(t, "success", string(body))
-}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
 
-// TestSwaggerUIBasicAuthMiddleware_MissingAuthHeader tests middleware when Authorization header is missing.
-func TestSwaggerUIBasicAuthMiddleware_MissingAuthHeader(t *testing.T) {
-	t.Parallel()
+			defer func() { _ = resp.Body.Close() }()
 
-	app := fiber.New()
-	app.Get("/test", swaggerUIBasicAuthMiddleware("admin", "secret"), func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
+			require.Equal(t, tc.wantStatus, resp.StatusCode)
 
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
+			if tc.wantAuth != "" {
+				require.Equal(t, tc.wantAuth, resp.Header.Get("WWW-Authenticate"))
+			}
 
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-	require.Equal(t, `Basic realm="Swagger UI"`, resp.Header.Get("WWW-Authenticate"))
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Contains(t, string(body), "Authentication required")
-}
-
-// TestSwaggerUIBasicAuthMiddleware_InvalidAuthMethod tests middleware with non-Basic auth method.
-func TestSwaggerUIBasicAuthMiddleware_InvalidAuthMethod(t *testing.T) {
-	t.Parallel()
-
-	app := fiber.New()
-	app.Get("/test", swaggerUIBasicAuthMiddleware("admin", "secret"), func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Bearer invalid-token")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Contains(t, string(body), "Invalid authentication method")
-}
-
-// TestSwaggerUIBasicAuthMiddleware_InvalidBase64Encoding tests middleware with malformed base64.
-func TestSwaggerUIBasicAuthMiddleware_InvalidBase64Encoding(t *testing.T) {
-	t.Parallel()
-
-	app := fiber.New()
-	app.Get("/test", swaggerUIBasicAuthMiddleware("admin", "secret"), func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Basic not-valid-base64!!!")
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Contains(t, string(body), "Invalid authentication encoding")
-}
-
-// TestSwaggerUIBasicAuthMiddleware_InvalidCredentialFormat tests middleware with credentials missing colon.
-func TestSwaggerUIBasicAuthMiddleware_InvalidCredentialFormat(t *testing.T) {
-	t.Parallel()
-
-	app := fiber.New()
-	app.Get("/test", swaggerUIBasicAuthMiddleware("admin", "secret"), func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	// Encode "invalidformat" (no colon) as base64
-	encodedCreds := base64.StdEncoding.EncodeToString([]byte("invalidformat"))
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Basic "+encodedCreds)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Contains(t, string(body), "Invalid authentication format")
-}
-
-// TestSwaggerUIBasicAuthMiddleware_InvalidCredentials tests middleware with wrong username/password.
-func TestSwaggerUIBasicAuthMiddleware_InvalidCredentials(t *testing.T) {
-	t.Parallel()
-
-	app := fiber.New()
-	app.Get("/test", swaggerUIBasicAuthMiddleware("admin", "secret"), func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	// Encode "wrong:credentials" as base64
-	encodedCreds := base64.StdEncoding.EncodeToString([]byte("wrong:credentials"))
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Basic "+encodedCreds)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Contains(t, string(body), "Invalid credentials")
-}
-
-// TestSwaggerUIBasicAuthMiddleware_ValidCredentials tests middleware with correct username/password.
-func TestSwaggerUIBasicAuthMiddleware_ValidCredentials(t *testing.T) {
-	t.Parallel()
-
-	app := fiber.New()
-	app.Get("/test", swaggerUIBasicAuthMiddleware("admin", "secret"), func(c *fiber.Ctx) error {
-		return c.SendString("success")
-	})
-
-	// Encode "admin:secret" as base64
-	encodedCreds := base64.StdEncoding.EncodeToString([]byte("admin:secret"))
-	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Authorization", "Basic "+encodedCreds)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, fiber.StatusOK, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	require.Equal(t, "success", string(body))
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			require.Contains(t, string(body), tc.wantBody)
+		})
+	}
 }
