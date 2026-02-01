@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,6 +34,7 @@ import (
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
@@ -49,7 +51,48 @@ var (
 	testJoinRequestMgmtApp *fiber.App
 	testTenantID           googleUuid.UUID
 	testUserID             googleUuid.UUID
+	testMockSessionValidator *mockSessionValidatorIntegration
 )
+
+// mockSessionValidatorIntegration is a mock SessionValidator for integration tests.
+// It bypasses actual session validation and returns predefined tenant/user IDs.
+type mockSessionValidatorIntegration struct {
+	tenantID googleUuid.UUID
+	realmID  googleUuid.UUID
+	userID   string
+}
+
+func (m *mockSessionValidatorIntegration) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.BrowserSession, error) {
+	// Return a mock session with predefined tenant_id and user_id.
+	// Note: BrowserSession embeds Session (which has TenantID/RealmID as UUID)
+	// and adds UserID as *string.
+	return &cryptoutilTemplateRepository.BrowserSession{
+		Session: cryptoutilTemplateRepository.Session{
+			TenantID: m.tenantID,
+			RealmID:  m.realmID,
+		},
+		UserID: &m.userID,
+	}, nil
+}
+
+func (m *mockSessionValidatorIntegration) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.ServiceSession, error) {
+	// Return a mock session with predefined tenant_id.
+	// Note: ServiceSession embeds Session (which has TenantID/RealmID as UUID)
+	// and adds ClientID as *string.
+	return &cryptoutilTemplateRepository.ServiceSession{
+		Session: cryptoutilTemplateRepository.Session{
+			TenantID: m.tenantID,
+			RealmID:  m.realmID,
+		},
+		ClientID: &m.userID, // Use userID as clientID for simplicity
+	}, nil
+}
+
+// addAuthHeader adds a mock Bearer token to the request for testing.
+// The mockSessionValidatorIntegration will accept any token and return a valid session.
+func addAuthHeader(req *http.Request) {
+	req.Header.Set("Authorization", "Bearer test-mock-token")
+}
 
 func TestMain(m *testing.M) {
 	// Use SQLite with modernc driver (CGO-free).
@@ -207,12 +250,28 @@ func TestMain(m *testing.M) {
 
 	// Create Fiber apps for testing.
 	testRegistrationApp = fiber.New()
-	testJoinRequestMgmtApp = fiber.New()
+	
+	// Create testJoinRequestMgmtApp with custom error handler for apperr.Error types.
+	// This ensures SessionMiddleware's 401 errors are correctly converted to HTTP 401 responses.
+	testJoinRequestMgmtApp = fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			var appErr *cryptoutilSharedApperr.Error
+			if errors.As(err, &appErr) {
+				return c.Status(int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode)).JSON(fiber.Map{
+					"error": appErr.Summary,
+				})
+			}
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		},
+	})
 
-	// Add test authentication middleware that sets tenant_id and user_id.
+	// Create test authentication middleware that sets tenant_id and user_id.
 	// In production, this would be set by JWT/session validation middleware.
 	testTenantID = googleUuid.New()
 	testUserID = googleUuid.New()
+	testRealmID := googleUuid.New() // Create realm ID for mock validator
 	authMiddleware := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", testTenantID)
 		c.Locals("user_id", testUserID)
@@ -220,9 +279,17 @@ func TestMain(m *testing.M) {
 	}
 	testJoinRequestMgmtApp.Use(authMiddleware)
 
+	// Create mock session validator for testing that bypasses real session validation.
+	// This allows tests to use simple Authorization headers without actual session tokens.
+	testMockSessionValidator = &mockSessionValidatorIntegration{
+		tenantID: testTenantID,
+		realmID:  testRealmID,
+		userID:   testUserID.String(), // Convert UUID to string
+	}
+
 	// Register routes.
 	RegisterRegistrationRoutes(testRegistrationApp, testRegistrationSvc, 10)
-	RegisterJoinRequestManagementRoutes(testJoinRequestMgmtApp, testRegistrationSvc)
+	RegisterJoinRequestManagementRoutes(testJoinRequestMgmtApp, testRegistrationSvc, testMockSessionValidator)
 
 	// Run tests.
 	exitCode := m.Run()
@@ -413,6 +480,7 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 
 	// List join requests.
 	req := httptest.NewRequest(http.MethodGet, "/admin/api/v1/join-requests", nil)
+	addAuthHeader(req)
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
 	defer resp.Body.Close()
@@ -457,6 +525,7 @@ func TestIntegration_ProcessJoinRequest_Approve(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/admin/api/v1/join-requests/%s", jr.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
+	addAuthHeader(req)
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
@@ -500,6 +569,7 @@ func TestIntegration_ProcessJoinRequest_Reject(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/admin/api/v1/join-requests/%s", jr.ID), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
+	addAuthHeader(req)
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
@@ -666,9 +736,19 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 		return c.Next()
 	}
 	app.Use(authMiddleware)
-	RegisterJoinRequestManagementRoutes(app, svc)
+	
+	// Create a mock SessionValidator for this isolated test.
+	// It bypasses actual session validation and returns a valid session.
+	mockValidator := &mockSessionValidatorIntegration{
+		tenantID: testTenantID,
+		realmID:  googleUuid.New(),
+		userID:   googleUuid.NewString(),
+	}
+
+	RegisterJoinRequestManagementRoutes(app, svc, mockValidator)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/api/v1/join-requests", nil)
+	addAuthHeader(req)
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
@@ -715,6 +795,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 	t.Logf("Total join requests in DB: %d", dbCount)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/api/v1/join-requests", nil)
+	addAuthHeader(req)
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
@@ -785,6 +866,7 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 	require.NoError(t, testDB.WithContext(ctx).Create(joinReq).Error)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/api/v1/join-requests", nil)
+	addAuthHeader(req)
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
@@ -835,6 +917,7 @@ func TestIntegration_ProcessJoinRequest_InvalidID(t *testing.T) {
 	reqBody := `{"approved": true}`
 	req := httptest.NewRequest(http.MethodPut, "/admin/api/v1/join-requests/invalid-uuid", strings.NewReader(reqBody))
 	req.Header.Set("Content-Type", "application/json")
+	addAuthHeader(req)
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
@@ -855,6 +938,7 @@ func TestIntegration_ProcessJoinRequest_InvalidJSON(t *testing.T) {
 	validID := googleUuid.New().String()
 	req := httptest.NewRequest(http.MethodPut, "/admin/api/v1/join-requests/"+validID, strings.NewReader("{invalid json"))
 	req.Header.Set("Content-Type", "application/json")
+	addAuthHeader(req)
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
@@ -866,6 +950,54 @@ func TestIntegration_ProcessJoinRequest_InvalidJSON(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "error")
 	require.Equal(t, "Invalid request body", result["error"])
+}
+
+// TestIntegration_JoinRequestManagement_Unauthenticated tests that admin endpoints
+// return 401 when no Authorization header is provided.
+func TestIntegration_JoinRequestManagement_Unauthenticated(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		method string
+		path   string
+		body   string
+	}{
+		{
+			name:   "GET /admin/api/v1/join-requests without auth",
+			method: http.MethodGet,
+			path:   "/admin/api/v1/join-requests",
+			body:   "",
+		},
+		{
+			name:   "PUT /admin/api/v1/join-requests/:id without auth",
+			method: http.MethodPut,
+			path:   fmt.Sprintf("/admin/api/v1/join-requests/%s", googleUuid.NewString()),
+			body:   `{"approved":true}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var req *http.Request
+			if tt.body != "" {
+				req = httptest.NewRequest(tt.method, tt.path, strings.NewReader(tt.body))
+				req.Header.Set("Content-Type", "application/json")
+			} else {
+				req = httptest.NewRequest(tt.method, tt.path, nil)
+			}
+			// NOTE: Intentionally NOT calling addAuthHeader(req) to test unauthenticated access
+
+			resp, err := testJoinRequestMgmtApp.Test(req, -1)
+			require.NoError(t, err)
+			defer func() { require.NoError(t, resp.Body.Close()) }()
+
+			// Verify 401 Unauthorized response
+			require.Equal(t, http.StatusUnauthorized, resp.StatusCode, "Expected 401 Unauthorized for unauthenticated request to %s", tt.path)
+		})
+	}
 }
 
 // TestRegistrationRoutes_MethodNotAllowed tests unsupported HTTP methods return 405.

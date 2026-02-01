@@ -7,6 +7,7 @@ package apis
 
 import (
 	"bytes"
+	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -16,6 +17,19 @@ import (
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
+
+// mockSessionValidator is a mock implementation of SessionValidator for testing.
+type mockSessionValidator struct{}
+
+func (m *mockSessionValidator) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error) {
+	// Return nil to indicate no session found (simulates unauthenticated request)
+	return nil, nil
+}
+
+func (m *mockSessionValidator) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error) {
+	// Return nil to indicate no session found (simulates unauthenticated request)
+	return nil, nil
+}
 
 // TestRegisterRegistrationRoutes_Integration tests route registration with real app.
 func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
@@ -75,8 +89,9 @@ func TestRegisterJoinRequestManagementRoutes_Integration(t *testing.T) {
 	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(testGormDB, tenantRepo, userRepo, joinRequestRepo)
 
 	adminAPI := fiber.New()
+	mockValidator := &mockSessionValidator{}
 
-	RegisterJoinRequestManagementRoutes(adminAPI, registrationService)
+	RegisterJoinRequestManagementRoutes(adminAPI, registrationService, mockValidator)
 
 	// Verify routes were registered
 	require.NotNil(t, adminAPI)

@@ -9,6 +9,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerMiddleware "cryptoutil/internal/apps/template/service/server/middleware"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -45,17 +46,30 @@ func RegisterRegistrationRoutes(
 }
 
 // RegisterJoinRequestManagementRoutes registers admin join request management endpoints on ADMIN server.
-// These endpoints require admin authentication (TODO: add admin middleware).
+// These endpoints require admin authentication.
 // Call this function from services that want to expose admin join-request management APIs.
+//
+// Parameters:
+//   - app: Fiber app instance (typically admin server)
+//   - registrationService: Service handling tenant registration logic
+//   - sessionValidator: Session validation service for authentication
 func RegisterJoinRequestManagementRoutes(
 	app *fiber.App,
 	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService,
+	sessionValidator cryptoutilAppsTemplateServiceServerMiddleware.SessionValidator,
 ) {
 	// Create registration handlers.
 	handlers := NewRegistrationHandlers(registrationService)
 
+	// Create admin authentication middleware.
+	// Validates session token and ensures user is authenticated.
+	// TODO: Add role-based authorization when role management system implemented.
+	// For now, this only validates authentication (not admin role).
+	adminAuthMiddleware := cryptoutilAppsTemplateServiceServerMiddleware.BrowserSessionMiddleware(sessionValidator)
+
 	// Admin endpoints for managing join requests.
 	// CRITICAL: These are on ADMIN server at /admin/api/v1 paths.
-	app.Get("/admin/api/v1/join-requests", handlers.HandleListJoinRequests)
-	app.Put("/admin/api/v1/join-requests/:id", handlers.HandleProcessJoinRequest)
+	// Protected by session authentication middleware.
+	app.Get("/admin/api/v1/join-requests", adminAuthMiddleware, handlers.HandleListJoinRequests)
+	app.Put("/admin/api/v1/join-requests/:id", adminAuthMiddleware, handlers.HandleProcessJoinRequest)
 }
