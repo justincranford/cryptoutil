@@ -112,7 +112,7 @@ KMS has fundamental differences from template services that make ServerBuilder m
 
 **Status**: DEFERRED - Optional future work created after Task 9.3 blocker discovery
 
-**Rationale**: 
+**Rationale**:
 - Current `application_listener.go` works correctly
 - Migration provides consistency but is not blocking any functionality
 - Requires significant ServerBuilder extension work

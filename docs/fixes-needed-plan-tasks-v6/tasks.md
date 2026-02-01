@@ -577,22 +577,22 @@
 - **Evidence**: `test-output/kms-migration-analysis/architecture-comparison.md`
 - **Blocker Analysis**:
   KMS has fundamental architectural differences that make it unsuitable for ServerBuilder:
-  
+
   **ServerBuilder provides** (template services):
   - Multi-tenancy (tenant_id, realm_id)
   - Session-based authentication
   - Barrier service
-  
+
   **KMS requires** (NOT in ServerBuilder):
   - Swagger UI with basic auth (150+ lines)
   - CSRF middleware with custom JavaScript (100+ lines)
   - CSP/XSS/Security headers (200+ lines)
   - OpenAPI-generated handler registration (`oapi-codegen` strict server)
   - Single-tenant design (no multi-tenancy)
-  
+
   **Current KMS architecture is correct and complete.**
   Migration would require extending ServerBuilder with 5+ new methods (12-16h).
-  
+
 - **Resolution**: See Phase 10 for follow-up options
 - **Acceptance Criteria**:
   - [x] Analysis completed identifying architectural mismatch
@@ -618,7 +618,7 @@
 
 **Status**: DEFERRED - Optional future work
 
-**Rationale**: 
+**Rationale**:
 - Current KMS architecture with `application_listener.go` is correct, complete, and tested
 - All KMS tests pass
 - ServerBuilder migration would provide consistency with cipher-im/jose-ja but requires significant ServerBuilder extension
