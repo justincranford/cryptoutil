@@ -21,6 +21,8 @@ import (
 
 func TestSessionManager_IssueBrowserSession_JWS_RS256_Success(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmJWS, cryptoutilSharedMagic.SessionAlgorithmOPAQUE)
+	t.Parallel()
+
 	ctx := context.Background()
 
 	userID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -386,6 +388,8 @@ func TestSessionManager_ValidateBrowserSession_JWS(t *testing.T) {
 
 func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmJWS)
+	t.Parallel()
+
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
@@ -428,6 +432,8 @@ func TestSessionManager_IssueServiceSession_JWS_Success(t *testing.T) {
 
 func TestSessionManager_ValidateServiceSession_JWS_Success(t *testing.T) {
 	sm := setupSessionManager(t, cryptoutilSharedMagic.SessionAlgorithmOPAQUE, cryptoutilSharedMagic.SessionAlgorithmJWS)
+	t.Parallel()
+
 	ctx := context.Background()
 
 	clientID := googleUuid.Must(googleUuid.NewV7()).String()
