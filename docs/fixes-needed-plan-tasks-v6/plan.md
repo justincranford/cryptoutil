@@ -80,17 +80,23 @@ MEDIUM Priority:
 - Add proper synchronization primitives
 - 35 tasks covering all packages with concurrent operations
 
-### Phase 9: KMS Modernization - 20-30h (from v4 Phase 6, EXECUTE LAST)
+### Phase 9: KMS Modernization - 15-20h (from v4 Phase 6, EXECUTE LAST)
 
 **CRITICAL: Execute this phase LAST after all other services validated**
 
-- Migrate KMS from raw database/sql to GORM ServerBuilder pattern
-- Add browser APIs (`/browser/**` paths)
-- Implement registration flow endpoint
+**NOTE: This is a prerelease project - backward compatibility NOT required**
+
+- Migrate KMS from raw database/sql to GORM via ServerBuilder pattern
 - Migrate to merged migrations pattern (1001-1004 + 2001+)
 - Leverage lessons from cipher-im + JOSE-JA migrations
+- Remove custom application_listener.go (~1,500 lines → ServerBuilder)
 
-**Why Last**: KMS is oldest service (pre-template). Migration leverages fully-validated template from service-template, cipher-im, JOSE-JA work. Largest duplication elimination (~1,500 lines).
+**Already in KMS** (no work needed):
+- `/browser/**` paths with CSRF/CORS/XSS middleware ✅
+- `/service/**` paths for headless clients ✅
+- Registration flow (inherited from service-template) ✅
+
+**Why Last**: KMS is oldest service (pre-template). Migration leverages fully-validated template from service-template, cipher-im, JOSE-JA work.
 
 ## Technical Decisions
 

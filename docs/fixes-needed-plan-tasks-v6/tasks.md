@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 0 of 50 tasks complete (0%)
+**Status**: 0 of 48 tasks complete (0%)
 **Last Updated**: 2026-01-31
 
 ## Task Checklist
@@ -376,20 +376,22 @@
 
 **CRITICAL: Execute Phase 9 LAST after Phases 1-8 complete**
 
+**NOTE: Prerelease project - backward compatibility NOT required**
+
 #### Task 9.1: Create KMS ServerBuilder Migration Plan
 - **Status**: ❌ Not Started
 - **Estimated**: 2h
 - **Description**: Document migration strategy from raw database/sql to GORM ServerBuilder
 - **Acceptance Criteria**:
   - [ ] Migration plan documented
-  - [ ] Breaking changes identified
-  - [ ] Rollback strategy defined
+  - [ ] Breaking changes identified (no backward compat needed)
+  - [ ] File diff analysis (what gets deleted vs modified)
 
 #### Task 9.2: Migrate KMS Database Layer to GORM
 - **Status**: ❌ Not Started
 - **Estimated**: 8h
 - **Package**: `internal/kms/server/repository/`
-- **Description**: Replace raw database/sql with GORM, maintain backward compatibility
+- **Description**: Replace raw database/sql with GORM
 - **Acceptance Criteria**:
   - [ ] All repositories use GORM
   - [ ] Existing tests pass
@@ -399,38 +401,20 @@
 - **Status**: ❌ Not Started
 - **Estimated**: 4h
 - **Package**: `internal/kms/server/`
-- **Description**: Use ServerBuilder from service-template instead of custom setup
+- **Description**: Replace custom application_listener.go (~1,500 lines) with ServerBuilder
 - **Acceptance Criteria**:
   - [ ] ServerBuilder used for initialization
-  - [ ] Dual HTTPS servers configured
-  - [ ] Merged migrations pattern implemented
+  - [ ] Custom application_listener.go deleted
+  - [ ] Merged migrations pattern implemented (1001-1004 + 2001+)
 
-#### Task 9.4: Add Browser APIs to KMS
-- **Status**: ❌ Not Started
-- **Estimated**: 3h
-- **Description**: Add `/browser/**` paths matching `/service/**` APIs
-- **Acceptance Criteria**:
-  - [ ] `/browser/api/v1/**` endpoints exist
-  - [ ] CSRF/CORS middleware applied
-  - [ ] Session-based authentication working
-
-#### Task 9.5: Add Registration Flow to KMS
+#### Task 9.4: KMS E2E Test Update
 - **Status**: ❌ Not Started
 - **Estimated**: 2h
-- **Description**: Add `/auth/register` endpoint to replace default tenant pattern
-- **Acceptance Criteria**:
-  - [ ] Registration endpoint functional
-  - [ ] Default tenant pattern removed
-  - [ ] Multi-tenancy working
-
-#### Task 9.6: KMS E2E Test Update
-- **Status**: ❌ Not Started
-- **Estimated**: 3h
 - **Description**: Update E2E tests for modernized KMS
 - **Acceptance Criteria**:
   - [ ] E2E tests pass with Docker Compose
-  - [ ] Registration flow tested
-  - [ ] All API paths tested
+  - [ ] All API paths tested (/service/** and /browser/**)
+  - [ ] Health checks working (/admin/api/v1/livez, /readyz)
 
 ---
 
@@ -454,8 +438,7 @@
 ### KMS Modernization (Phase 9)
 - [ ] GORM migration complete
 - [ ] ServerBuilder pattern adopted
-- [ ] Browser APIs functional
-- [ ] Registration flow working
+- [ ] E2E tests passing
 
 ---
 
