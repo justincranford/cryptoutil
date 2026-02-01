@@ -1,14 +1,17 @@
 # Implementation Plan - Service Template & CICD Fixes
 
-**Status**: Complete (Phase 10 DEFERRED, Task 5.1 BLOCKED)
+**Status**: 95% Complete (Phase 10 DEFERRED, Task 5.1 BLOCKED, Phase 11 NEW)
 **Created**: 2026-01-31
-**Last Updated**: 2026-01-31
+**Last Updated**: 2026-02-01
 
 ## Executive Summary
 
 All phases 1-9 have been executed. The plan is complete with the following exceptions:
 - **Task 5.1**: BLOCKED pending `StartApplicationListener` implementation completion
 - **Phase 10**: DEFERRED as optional future work (KMS ServerBuilder migration)
+- **Phase 11 (NEW)**: Cleanup leftover coverage files from LLM autonomous work (57 files)
+
+Completed tasks archived to [completed.md](./completed.md).
 
 All tests pass. All quality gates pass. Build is clean.
 
@@ -124,6 +127,22 @@ KMS has fundamental differences from template services that make ServerBuilder m
 - 10.4: Migrate KMS to extended ServerBuilder (4h)
 
 **Total estimated**: 14h (if pursued)
+
+### Phase 11: Cleanup Leftover Coverage Files (NEW)
+
+**Status**: Not Started
+**Discovery**: LLM autonomous work left 57 coverage files scattered in project root and internal directories
+**Issue**: Files like `*.out`, `*coverage*.html` outside of `test-output/` directory
+
+**Tasks**:
+- 11.1: Delete root-level coverage files (17 files)
+- 11.2: Delete internal/ directory coverage files (4 files)
+- 11.3: Review test-output/ files (user decision required)
+- 11.4: Add CICD linter to detect leftover coverage files
+
+**Total estimated**: 2h
+
+**Lesson Learned**: LLM agents should always output coverage files to `test-output/` directory and clean up temporary files before committing.
 
 ## Technical Decisions
 
