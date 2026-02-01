@@ -258,7 +258,7 @@
   - [ ] ~80 lines reduced
 
 #### Task 5.6: Consolidate application_middleware_test.go (7 functions)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **File**: `internal/kms/server/application/application_middleware_test.go`
 - **Description**: 7 TestSwaggerUIBasicAuthMiddleware_* functions → table-driven

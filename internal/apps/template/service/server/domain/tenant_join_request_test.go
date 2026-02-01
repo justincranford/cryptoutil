@@ -11,71 +11,74 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTenantJoinRequest_TableName(t *testing.T) {
+func TestTenantJoinRequest(t *testing.T) {
 	t.Parallel()
 
-	request := TenantJoinRequest{}
-	require.Equal(t, "tenant_join_requests", request.TableName())
-}
+	t.Run("TableName", func(t *testing.T) {
+		t.Parallel()
 
-func TestTenantJoinRequest_StructCreation(t *testing.T) {
-	t.Parallel()
+		request := TenantJoinRequest{}
+		require.Equal(t, "tenant_join_requests", request.TableName())
+	})
 
-	id := googleUuid.New()
-	userID := googleUuid.New()
-	tenantID := googleUuid.New()
-	now := time.Now().UTC()
-	processedBy := googleUuid.New()
+	t.Run("StatusConstants", func(t *testing.T) {
+		t.Parallel()
+		require.Equal(t, "pending", JoinRequestStatusPending)
+		require.Equal(t, "approved", JoinRequestStatusApproved)
+		require.Equal(t, "rejected", JoinRequestStatusRejected)
+	})
 
-	request := TenantJoinRequest{
-		ID:          id,
-		UserID:      &userID,
-		ClientID:    nil,
-		TenantID:    tenantID,
-		Status:      JoinRequestStatusPending,
-		RequestedAt: now,
-		ProcessedAt: &now,
-		ProcessedBy: &processedBy,
-	}
+	t.Run("StructCreation", func(t *testing.T) {
+		t.Parallel()
 
-	require.Equal(t, id, request.ID)
-	require.NotNil(t, request.UserID)
-	require.Equal(t, userID, *request.UserID)
-	require.Nil(t, request.ClientID)
-	require.Equal(t, tenantID, request.TenantID)
-	require.Equal(t, JoinRequestStatusPending, request.Status)
-	require.Equal(t, now, request.RequestedAt)
-	require.NotNil(t, request.ProcessedAt)
-	require.Equal(t, now, *request.ProcessedAt)
-	require.NotNil(t, request.ProcessedBy)
-	require.Equal(t, processedBy, *request.ProcessedBy)
-}
+		id := googleUuid.New()
+		userID := googleUuid.New()
+		tenantID := googleUuid.New()
+		now := time.Now().UTC()
+		processedBy := googleUuid.New()
 
-func TestTenantJoinRequest_StatusConstants(t *testing.T) {
-	t.Parallel()
+		request := TenantJoinRequest{
+			ID:          id,
+			UserID:      &userID,
+			ClientID:    nil,
+			TenantID:    tenantID,
+			Status:      JoinRequestStatusPending,
+			RequestedAt: now,
+			ProcessedAt: &now,
+			ProcessedBy: &processedBy,
+		}
 
-	require.Equal(t, "pending", JoinRequestStatusPending)
-	require.Equal(t, "approved", JoinRequestStatusApproved)
-	require.Equal(t, "rejected", JoinRequestStatusRejected)
-}
+		require.Equal(t, id, request.ID)
+		require.NotNil(t, request.UserID)
+		require.Equal(t, userID, *request.UserID)
+		require.Nil(t, request.ClientID)
+		require.Equal(t, tenantID, request.TenantID)
+		require.Equal(t, JoinRequestStatusPending, request.Status)
+		require.Equal(t, now, request.RequestedAt)
+		require.NotNil(t, request.ProcessedAt)
+		require.Equal(t, now, *request.ProcessedAt)
+		require.NotNil(t, request.ProcessedBy)
+		require.Equal(t, processedBy, *request.ProcessedBy)
+	})
 
-func TestTenantJoinRequest_ClientIDMutuallyExclusive(t *testing.T) {
-	t.Parallel()
+	t.Run("ClientIDMutuallyExclusive", func(t *testing.T) {
+		t.Parallel()
 
-	clientID := googleUuid.New()
-	tenantID := googleUuid.New()
-	now := time.Now().UTC()
+		clientID := googleUuid.New()
+		tenantID := googleUuid.New()
+		now := time.Now().UTC()
 
-	request := TenantJoinRequest{
-		ID:          googleUuid.New(),
-		UserID:      nil,
-		ClientID:    &clientID,
-		TenantID:    tenantID,
-		Status:      JoinRequestStatusApproved,
-		RequestedAt: now,
-	}
+		request := TenantJoinRequest{
+			ID:          googleUuid.New(),
+			UserID:      nil,
+			ClientID:    &clientID,
+			TenantID:    tenantID,
+			Status:      JoinRequestStatusApproved,
+			RequestedAt: now,
+		}
 
-	require.Nil(t, request.UserID)
-	require.NotNil(t, request.ClientID)
-	require.Equal(t, clientID, *request.ClientID)
+		require.Nil(t, request.UserID)
+		require.NotNil(t, request.ClientID)
+		require.Equal(t, clientID, *request.ClientID)
+	})
 }
