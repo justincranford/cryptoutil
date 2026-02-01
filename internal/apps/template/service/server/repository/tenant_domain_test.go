@@ -184,3 +184,15 @@ func TestUser_SetActive(t *testing.T) {
 		})
 	}
 }
+
+// TestTenantRealm_GetRealmID tests GetRealmID method.
+func TestTenantRealm_GetRealmID(t *testing.T) {
+	t.Parallel()
+
+	realmID := googleUuid.New()
+	tr := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
+		RealmID: realmID,
+	}
+
+	require.Equal(t, realmID, tr.GetRealmID())
+}
