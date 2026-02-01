@@ -152,15 +152,17 @@
 ### Phase 4: Critical Fixes (TODOs and Security)
 
 #### Task 4.1: Complete Registration Handler TODOs
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
+- **Actual**: 3h
+- **Commit**: 76e6b899
 - **File**: `internal/apps/template/service/server/apis/registration_handlers.go`
 - **Description**: Resolve 4 TODOs: validate request fields, hash password with PBKDF2-HMAC-SHA256, create user in DB, call registration service
 - **Acceptance Criteria**:
-  - [ ] All 4 TODOs resolved
-  - [ ] Password hashing uses FIPS-approved algorithm
-  - [ ] Unit tests cover happy path and error cases
-  - [ ] Coverage ≥95%
+  - [x] All 4 TODOs resolved
+  - [x] Password hashing uses FIPS-approved algorithm (PBKDF2-HMAC-SHA256)
+  - [x] Unit tests cover happy path and error cases (3/3 tests passing)
+  - [x] Coverage ≥95%
 
 #### Task 4.2: Add Admin Middleware to Registration Routes
 - **Status**: ❌ Not Started
