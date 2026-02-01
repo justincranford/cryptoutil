@@ -31,6 +31,8 @@ var registeredLinters = []struct {
 	{"cgo-free-sqlite", checkCGOFreeSQLite},
 	{"non-fips-algorithms", checkNonFIPS},
 	{"no-unaliased-cryptoutil-imports", checkNoUnaliasedCryptoutilImports},
+	{"crypto-rand", checkCryptoRand},
+	{"insecure-skip-verify", checkInsecureSkipVerify},
 }
 
 // Lint runs all registered Go linters.

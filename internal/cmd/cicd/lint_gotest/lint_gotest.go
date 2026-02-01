@@ -20,6 +20,9 @@ var registeredLinters = []struct {
 }{
 	{"test-patterns", enforceTestPatterns},
 	{"bind-address-safety", enforceBindAddressSafety},
+	{"require-over-assert", enforceRequireOverAssert},
+	{"parallel-tests", enforceParallelTests},
+	{"no-hardcoded-passwords", enforceHardcodedPasswords},
 }
 
 // Lint runs all registered Go test file linters.

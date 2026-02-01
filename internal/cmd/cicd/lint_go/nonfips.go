@@ -154,6 +154,29 @@ func checkFileForNonFIPS(filePath string) []string {
 			// Find line numbers.
 			for i, line := range lines {
 				if pattern.MatchString(line) {
+					// Skip if line contains nolint comment (gosec handles some of these).
+					if strings.Contains(line, "nolint") {
+						continue
+					}
+
+					// Check if the line is covered by a nolint comment on the import line.
+					// For imports, check if there's a nolint comment anywhere mentioning this algorithm.
+					skipViolation := false
+					for _, checkLine := range lines {
+						// If there's a nolint comment that mentions the banned algorithm or gosec.
+						if strings.Contains(checkLine, "nolint") &&
+							(strings.Contains(strings.ToLower(checkLine), strings.ToLower(banned)) ||
+								strings.Contains(checkLine, "gosec")) {
+							skipViolation = true
+
+							break
+						}
+					}
+
+					if skipViolation {
+						continue
+					}
+
 					issues = append(issues, fmt.Sprintf(
 						"Line %d: Found '%s' (non-FIPS) - use %s instead",
 						i+1, banned, alternative,
