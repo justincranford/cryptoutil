@@ -39,16 +39,26 @@ func NewTenantRegistrationService(
 }
 
 // RegisterUserWithTenant registers a user with a tenant (create or join).
+// Parameters:
+// - userID: Pre-generated UUIDv7 for the new user
+// - username: Validated username (3-50 characters)
+// - email: Validated email address
+// - passwordHash: PBKDF2-HMAC-SHA256 hashed password
+// - tenantName: Name of tenant to create or join
+// - createTenant: If true, create new tenant; if false, request to join existing.
 func (s *TenantRegistrationService) RegisterUserWithTenant(
 	ctx context.Context,
-	_ googleUuid.UUID,
+	userID googleUuid.UUID,
+	username string,
+	email string,
+	passwordHash string,
 	tenantName string,
 	createTenant bool,
 ) (*cryptoutilAppsTemplateServiceServerRepository.Tenant, error) {
 	if createTenant {
-		// Create new tenant with user as admin
+		// Create new tenant with user as admin.
 		tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
-			ID:   googleUuid.New(),
+			ID:   googleUuid.Must(googleUuid.NewV7()),
 			Name: tenantName,
 		}
 
@@ -56,14 +66,31 @@ func (s *TenantRegistrationService) RegisterUserWithTenant(
 			return nil, fmt.Errorf("failed to create tenant: %w", err)
 		}
 
-		// TODO: Assign admin role to user (requires role management system)
+		// Create user with tenant association.
+		user := &cryptoutilAppsTemplateServiceServerRepository.User{
+			ID:           userID,
+			TenantID:     tenant.ID,
+			Username:     username,
+			Email:        email,
+			PasswordHash: passwordHash,
+			Active:       1, // Active by default.
+			CreatedAt:    time.Now().UTC(),
+			UpdatedAt:    time.Now().UTC(),
+		}
+
+		if err := s.userRepo.Create(ctx, user); err != nil {
+			return nil, fmt.Errorf("failed to create user: %w", err)
+		}
+
+		// Note: Admin role assignment requires role management system.
+		// For now, first user of a tenant is implicitly admin.
 
 		return tenant, nil
 	}
 
-	// Create join request for existing tenant
-	// User must provide existing tenant ID - find by name
-	// This is a simplified flow; production would have tenant discovery
+	// Join existing tenant workflow - create join request.
+	// User must provide existing tenant ID - find by name.
+	// This is a simplified flow; production would have tenant discovery.
 	return nil, fmt.Errorf("join existing tenant flow not yet implemented")
 }
 

@@ -143,8 +143,8 @@ func TestPrintMathRandViolations(t *testing.T) {
 	t.Parallel()
 
 	violations := []cryptoViolation{
-		{File: "file1.go",  Line: 10,  Content: "import math/rand",  Issue: "imports math/rand instead of crypto/rand"},
-		{File: "file1.go",  Line: 20,  Content: "rand.Float64()",  Issue: "uses math/rand function"},
+		{File: "file1.go", Line: 10, Content: "import math/rand", Issue: "imports math/rand instead of crypto/rand"},
+		{File: "file1.go", Line: 20, Content: "rand.Float64()", Issue: "uses math/rand function"},
 	}
 
 	// Just verify the print function does not panic.
@@ -155,7 +155,7 @@ func TestPrintInsecureSkipVerifyViolations(t *testing.T) {
 	t.Parallel()
 
 	violations := []cryptoViolation{
-		{File: "file2.go",  Line: 5,  Content: "TLS config",  Issue: "disables TLS certificate verification"},
+		{File: "file2.go", Line: 5, Content: "TLS config", Issue: "disables TLS certificate verification"},
 	}
 
 	// Just verify the print function does not panic.

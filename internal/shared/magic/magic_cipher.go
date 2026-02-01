@@ -41,6 +41,9 @@ const (
 
 	// CipherMinPasswordLength is the minimum acceptable password length.
 	CipherMinPasswordLength = 8
+
+	// CipherMaxTenantNameLength is the maximum acceptable tenant name length.
+	CipherMaxTenantNameLength = 100
 )
 
 // JWT token configuration.

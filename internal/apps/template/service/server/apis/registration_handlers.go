@@ -4,13 +4,21 @@
 package apis
 
 import (
+	"fmt"
 	http "net/http"
+	"regexp"
+	"strings"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
+// emailRegex is a simple email validation pattern.
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 // RegistrationHandlers handles tenant registration endpoints.
 type RegistrationHandlers struct {
@@ -51,16 +59,31 @@ func (h *RegistrationHandlers) HandleRegisterUser(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Validate request fields
-	// TODO: Hash password
-	// TODO: Create user in database
-	// TODO: Call registration service
+	// Validate request fields.
+	if err := validateRegistrationRequest(&req); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 
-	userID := googleUuid.New()
+	// Hash password using FIPS-approved PBKDF2-HMAC-SHA256.
+	passwordHash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(req.Password)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to process password",
+		})
+	}
 
+	// Generate UUIDv7 for new user (time-ordered).
+	userID := googleUuid.Must(googleUuid.NewV7())
+
+	// Call registration service with validated and hashed data.
 	tenant, err := h.registrationService.RegisterUserWithTenant(
 		c.Context(),
 		userID,
+		req.Username,
+		req.Email,
+		passwordHash,
 		req.TenantName,
 		req.CreateTenant,
 	)
@@ -81,6 +104,44 @@ func (h *RegistrationHandlers) HandleRegisterUser(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(response)
+}
+
+// validateRegistrationRequest validates the registration request fields.
+func validateRegistrationRequest(req *RegisterUserRequest) error {
+	// Trim whitespace.
+	req.Username = strings.TrimSpace(req.Username)
+	req.Email = strings.TrimSpace(req.Email)
+	req.TenantName = strings.TrimSpace(req.TenantName)
+
+	// Validate username length.
+	if len(req.Username) < cryptoutilSharedMagic.CipherMinUsernameLength {
+		return fmt.Errorf("username must be at least %d characters", cryptoutilSharedMagic.CipherMinUsernameLength)
+	}
+
+	if len(req.Username) > cryptoutilSharedMagic.CipherMaxUsernameLength {
+		return fmt.Errorf("username must be at most %d characters", cryptoutilSharedMagic.CipherMaxUsernameLength)
+	}
+
+	// Validate email format.
+	if !emailRegex.MatchString(req.Email) {
+		return fmt.Errorf("invalid email format")
+	}
+
+	// Validate password length.
+	if len(req.Password) < cryptoutilSharedMagic.CipherMinPasswordLength {
+		return fmt.Errorf("password must be at least %d characters", cryptoutilSharedMagic.CipherMinPasswordLength)
+	}
+
+	// Validate tenant name length.
+	if len(req.TenantName) < cryptoutilSharedMagic.CipherMinUsernameLength {
+		return fmt.Errorf("tenant name must be at least %d characters", cryptoutilSharedMagic.CipherMinUsernameLength)
+	}
+
+	if len(req.TenantName) > cryptoutilSharedMagic.CipherMaxTenantNameLength {
+		return fmt.Errorf("tenant name must be at most %d characters", cryptoutilSharedMagic.CipherMaxTenantNameLength)
+	}
+
+	return nil
 }
 
 // JoinRequestSummary is a summary of a join request.

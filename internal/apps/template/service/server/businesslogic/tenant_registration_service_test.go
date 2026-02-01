@@ -37,6 +37,10 @@ var (
 	postgresTestDB     bool
 )
 
+// testPasswordHash is a placeholder password hash for tests.
+// In production, this would be PBKDF2-HMAC-SHA256 hashed.
+const testPasswordHash = "hashed_password_placeholder"
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
@@ -130,6 +134,7 @@ func TestMain(m *testing.M) {
 	if err := testDB.AutoMigrate(
 		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
 		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.User{},
 		&cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{},
 	); err != nil {
 		panic(fmt.Sprintf("failed to run migrations: %v", err))
@@ -227,10 +232,12 @@ func TestRegisterUserWithTenant_CreateTenant(t *testing.T) {
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
 	ctx := context.Background()
-	userID := googleUuid.New()
+	userID := googleUuid.Must(googleUuid.NewV7())
+	username := fmt.Sprintf("testuser_%s", userID.String()[:8])
+	email := fmt.Sprintf("test_%s@example.com", userID.String()[:8])
 
 	// Create new tenant.
-	tenant, err := service.RegisterUserWithTenant(ctx, userID, "New Test Tenant", true)
+	tenant, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "New Test Tenant", true)
 	require.NoError(t, err)
 	require.NotNil(t, tenant)
 	require.Equal(t, "New Test Tenant", tenant.Name)
@@ -241,6 +248,16 @@ func TestRegisterUserWithTenant_CreateTenant(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, tenant.ID, retrieved.ID)
 	require.Equal(t, "New Test Tenant", retrieved.Name)
+
+	// Verify user was created with correct data.
+	user, err := userRepo.GetByID(ctx, userID)
+	require.NoError(t, err)
+	require.Equal(t, userID, user.ID)
+	require.Equal(t, tenant.ID, user.TenantID)
+	require.Equal(t, username, user.Username)
+	require.Equal(t, email, user.Email)
+	require.Equal(t, testPasswordHash, user.PasswordHash)
+	require.Equal(t, 1, user.Active)
 }
 
 func TestRegisterClientWithTenant(t *testing.T) {
@@ -475,10 +492,12 @@ func TestRegisterUserWithTenant_JoinFlow(t *testing.T) {
 	service := NewTenantRegistrationService(testDB, tenantRepo, userRepo, joinRequestRepo)
 
 	ctx := context.Background()
-	userID := googleUuid.New()
+	userID := googleUuid.Must(googleUuid.NewV7())
+	username := fmt.Sprintf("testuser_%s", userID.String()[:8])
+	email := fmt.Sprintf("test_%s@example.com", userID.String()[:8])
 
 	// Test join flow (createTenant=false) - should return "not yet implemented" error.
-	_, err := service.RegisterUserWithTenant(ctx, userID, "Existing Tenant", false)
+	_, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "Existing Tenant", false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "join existing tenant flow not yet implemented")
 }
@@ -514,10 +533,12 @@ func TestRegisterUserWithTenant_CreateTenant_DBError(t *testing.T) {
 	_ = sqlDB.Close()
 
 	ctx := context.Background()
-	userID := googleUuid.New()
+	userID := googleUuid.Must(googleUuid.NewV7())
+	username := fmt.Sprintf("testuser_%s", userID.String()[:8])
+	email := fmt.Sprintf("test_%s@example.com", userID.String()[:8])
 
 	// Try to create tenant with closed DB.
-	_, err = service.RegisterUserWithTenant(ctx, userID, "New Tenant", true)
+	_, err = service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "New Tenant", true)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create tenant")
 }
