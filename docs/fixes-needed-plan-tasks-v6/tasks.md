@@ -40,76 +40,86 @@
 ### Phase 2: CICD Enforcement Improvements
 
 #### Task 2.1: Docker Secrets Pattern Linter (#15)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
+- **Actual**: 1h
+- **Commit**: fd29e3d4
 - **Description**: Add `lint-compose: docker-secrets` to detect inline credentials
 - **Acceptance Criteria**:
-  - [ ] Detects inline POSTGRES_PASSWORD, API_KEY, etc.
-  - [ ] Requires Docker secrets pattern
+  - [x] Detects inline POSTGRES_PASSWORD, API_KEY, etc.
+  - [x] Requires Docker secrets pattern
 
 #### Task 2.2: Testify Require Over Assert Linter (#16)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: Combined with 2.3-2.5 into requirepatterns.go
+- **Commit**: fd29e3d4
 - **Description**: Add `lint-go-test: testify-require` to enforce require over assert
 - **Acceptance Criteria**:
-  - [ ] Detects assert.NoError → require.NoError
-  - [ ] Pre-commit hook enforces
+  - [x] Detects assert.NoError → require.NoError
+  - [x] Pre-commit hook enforces
 
 #### Task 2.3: t.Parallel() Enforcement Linter (#17)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete (combined with 2.2)
 - **Estimated**: 2h
 - **Description**: Add `lint-go-test: t-parallel` to require t.Parallel() in tests
 - **Acceptance Criteria**:
-  - [ ] Detects missing t.Parallel() in test functions
-  - [ ] Detects missing t.Parallel() in subtests
+  - [x] Detects missing t.Parallel() in test functions
+  - [x] Detects missing t.Parallel() in subtests
 
 #### Task 2.4: Table-Driven Test Pattern Linter (#18)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete (combined with 2.2)
 - **Estimated**: 2h
 - **Description**: Add `lint-go-test: table-driven-tests` to detect standalone test functions that should be table-driven
 - **Acceptance Criteria**:
-  - [ ] Detects multiple similar standalone test functions
-  - [ ] Suggests table-driven refactoring
+  - [x] Detects multiple similar standalone test functions
+  - [x] Suggests table-driven refactoring
 
 #### Task 2.5: Hardcoded Test Passwords Linter (#19)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete (combined with 2.2)
 - **Estimated**: 1h
 - **Description**: Add `lint-go-test: no-hardcoded-passwords` to detect hardcoded passwords in tests
 - **Acceptance Criteria**:
-  - [ ] Detects `password := "test123"` patterns
-  - [ ] Suggests UUIDv7 or magic constants
+  - [x] Detects `password := "test123"` patterns
+  - [x] Suggests UUIDv7 or magic constants
 
 #### Task 2.6: crypto/rand Enforcement Linter (#20)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 2h (including nolint handling)
+- **Commit**: fd29e3d4
 - **Description**: Add `lint-go: crypto-rand` to detect math/rand in crypto code
 - **Acceptance Criteria**:
-  - [ ] Detects math/rand imports
-  - [ ] Suggests crypto/rand
+  - [x] Detects math/rand imports
+  - [x] Suggests crypto/rand
 
 #### Task 2.7: No Inline Env Vars Linter (#26)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete (covered by Task 2.1 dockersecrets.go)
 - **Estimated**: 1h
+- **Actual**: 0h (already implemented in Task 2.1)
 - **Description**: Add `lint-compose: no-inline-env` to detect inline environment variables
 - **Acceptance Criteria**:
-  - [ ] Detects `POSTGRES_PASSWORD: value` (not _FILE pattern)
-  - [ ] Requires Docker secrets or _FILE pattern
+  - [x] Detects `POSTGRES_PASSWORD: value` (not _FILE pattern)
+  - [x] Requires Docker secrets or _FILE pattern
 
 #### Task 2.8: No InsecureSkipVerify Linter (#28)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 1h
+- **Commit**: fd29e3d4
 - **Description**: Add `lint-go: tls-verify` to detect InsecureSkipVerify: true
 - **Acceptance Criteria**:
-  - [ ] Detects InsecureSkipVerify: true
-  - [ ] Fails CI if found
+  - [x] Detects InsecureSkipVerify: true
+  - [x] Fails CI if found
 
 #### Task 2.9: golangci-lint v2 Schema Linter (#29 - CRITICAL)
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 1h
 - **Description**: Add `lint-golangci-config: golangci-v2-schema` to validate v2 config
 - **Acceptance Criteria**:
-  - [ ] Validates .golangci.yml against v2 schema
-  - [ ] Catches deprecated v1 options
+  - [x] Validates .golangci.yml against v2 schema
+  - [x] Catches deprecated v1 options
 
 ---
 
