@@ -247,7 +247,8 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	cryptoutilAppsTemplateServiceServerApis.RegisterRegistrationRoutes(publicServerBase.App(), services.RegistrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
 
 	// Register join request management routes on ADMIN server (authenticated admin operations).
-	cryptoutilAppsTemplateServiceServerApis.RegisterJoinRequestManagementRoutes(adminServer.App(), services.RegistrationService)
+	// SessionManager implements SessionValidator interface for session validation.
+	cryptoutilAppsTemplateServiceServerApis.RegisterJoinRequestManagementRoutes(adminServer.App(), services.RegistrationService, services.SessionManager)
 
 	// Register barrier admin endpoints (key rotation, status) on ADMIN server.
 	cryptoutilAppsTemplateServiceServerBarrier.RegisterRotationRoutes(adminServer.App(), services.RotationService)

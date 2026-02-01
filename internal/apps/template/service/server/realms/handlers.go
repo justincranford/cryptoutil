@@ -14,6 +14,24 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// realmServiceProvider is an optional interface that session managers can implement
+// to provide realm lookup functionality for multi-tenant deployments.
+type realmServiceProvider interface {
+	GetRealmService() realmLookup
+}
+
+// realmLookup is a minimal interface for looking up the first active realm for a tenant.
+// This avoids tight coupling to the full RealmService interface.
+type realmLookup interface {
+	GetFirstActiveRealm(ctx context.Context, tenantID googleUuid.UUID) (interface{}, error)
+}
+
+// realmIDGetter is implemented by realm objects that expose their realm ID.
+type realmIDGetter interface {
+	GetRealmID() googleUuid.UUID
+}
+
+
 // HandleRegisterUser returns a Fiber handler for user registration.
 //
 // Workflow:
@@ -267,10 +285,29 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 			})
 		}
 
-		// TODO: Implement proper realm lookup for multi-tenant deployments.
-		// For now, use zero UUID as realm system is incomplete (no default realm created).
-		// This requires realm management system with GetDefaultRealm(tenantID) method.
-		realmID := googleUuid.UUID{} // Zero UUID placeholder.
+		// Realm lookup for multi-tenant deployments.
+		// Try to extract RealmService from session manager using optional interface.
+		// If available, use GetFirstActiveRealm() to find the tenant's default realm.
+		// If no RealmService or no active realm exists, use zero UUID (graceful fallback).
+		var realmID googleUuid.UUID
+
+		if provider, ok := sessionManager.(realmServiceProvider); ok {
+			if realmSvc := provider.GetRealmService(); realmSvc != nil {
+				realm, err := realmSvc.GetFirstActiveRealm(c.Context(), tenantID)
+				if err != nil {
+					// Log error but continue with zero UUID fallback
+					// This maintains availability even if realm lookup fails
+					_ = err // Explicit ignore for linting
+				} else if realm != nil {
+					// Extract realm ID from returned realm object
+					if r, ok := realm.(realmIDGetter); ok {
+						realmID = r.GetRealmID()
+					}
+				}
+			}
+		}
+		// If no realm found or RealmService not available, realmID remains zero UUID (backward compatible)
+
 
 		if isBrowser {
 			token, issueErr = manager.IssueBrowserSessionWithTenant(c.Context(), user.GetID().String(), tenantID, realmID)

@@ -268,3 +268,10 @@ type TenantRealm struct {
 func (TenantRealm) TableName() string {
 	return "tenant_realms"
 }
+
+// GetRealmID returns the realm identifier.
+// This method is used by the realm lookup interface in authentication handlers.
+func (tr *TenantRealm) GetRealmID() googleUuid.UUID {
+	return tr.RealmID
+}
+

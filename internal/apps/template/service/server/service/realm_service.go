@@ -450,6 +450,11 @@ type RealmService interface {
 	// ListRealms lists all realms for a tenant.
 	ListRealms(ctx context.Context, tenantID googleUuid.UUID, activeOnly bool) ([]*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error)
 
+	// GetFirstActiveRealm retrieves the first active realm for a tenant.
+	// Returns the realm if found, or nil with no error if no active realms exist.
+	// This is used for single-realm tenants or as a default realm selection strategy.
+	GetFirstActiveRealm(ctx context.Context, tenantID googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error)
+
 	// UpdateRealm updates realm configuration.
 	UpdateRealm(ctx context.Context, tenantID, realmID googleUuid.UUID, config RealmConfig, active *bool) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error)
 
@@ -538,6 +543,24 @@ func (s *RealmServiceImpl) ListRealms(ctx context.Context, tenantID googleUuid.U
 	}
 
 	return realms, nil
+}
+
+// GetFirstActiveRealm retrieves the first active realm for a tenant.
+// Returns the realm if found, or nil with no error if no active realms exist.
+// This is used for single-realm tenants or as a default realm selection strategy.
+func (s *RealmServiceImpl) GetFirstActiveRealm(ctx context.Context, tenantID googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
+	realms, err := s.realmRepo.ListByTenant(ctx, tenantID, true) // activeOnly = true
+	if err != nil {
+		return nil, fmt.Errorf("failed to list realms: %w", err)
+	}
+
+	// Return nil if no active realms exist (not an error condition)
+	if len(realms) == 0 {
+		return nil, nil
+	}
+
+	// Return the first active realm
+	return realms[0], nil
 }
 
 // UpdateRealm updates realm configuration.
