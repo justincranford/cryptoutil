@@ -22,6 +22,7 @@ func enforceRequireOverAssert(logger *cryptoutilCmdCicdCommon.Logger, testFiles 
 
 	if len(filteredTestFiles) == 0 {
 		logger.Log("Require over assert enforcement completed (no test files)")
+
 		return nil
 	}
 
@@ -96,6 +97,7 @@ func enforceParallelTests(logger *cryptoutilCmdCicdCommon.Logger, testFiles []st
 
 	if len(filteredTestFiles) == 0 {
 		logger.Log("t.Parallel() enforcement completed (no test files)")
+
 		return nil
 	}
 
@@ -177,6 +179,7 @@ func enforceHardcodedPasswords(logger *cryptoutilCmdCicdCommon.Logger, testFiles
 
 	if len(filteredTestFiles) == 0 {
 		logger.Log("Hardcoded password enforcement completed (no test files)")
+
 		return nil
 	}
 

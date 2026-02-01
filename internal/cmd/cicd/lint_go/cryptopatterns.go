@@ -115,7 +115,9 @@ func checkFileForMathRand(filePath string) ([]cryptoViolation, error) {
 
 	// First pass: collect all lines and check for nolint comments.
 	scanner := bufio.NewScanner(file)
+
 	var lines []string
+
 	hasNolintForMathRand := false
 
 	for scanner.Scan() {

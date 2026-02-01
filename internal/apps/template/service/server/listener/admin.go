@@ -204,10 +204,12 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	// Store actual port if dynamic allocation was used (port 0).
 	// Use mutex to protect actualPort writes for concurrent access safety.
 	s.mu.Lock()
+
 	if s.settings.BindPrivatePort == 0 {
 		tcpAddr, ok := listener.Addr().(*net.TCPAddr)
 		if !ok {
 			s.mu.Unlock()
+
 			_ = listener.Close()
 
 			return fmt.Errorf("listener address is not a TCP address")
@@ -215,6 +217,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 
 		if tcpAddr.Port < 0 || tcpAddr.Port > 65535 {
 			s.mu.Unlock()
+
 			_ = listener.Close()
 
 			return fmt.Errorf("invalid port number: %d", tcpAddr.Port)
@@ -224,6 +227,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	} else {
 		s.actualPort = s.settings.BindPrivatePort
 	}
+
 	s.mu.Unlock()
 
 	// Wrap with TLS using pre-generated TLS configuration.

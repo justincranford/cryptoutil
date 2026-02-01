@@ -242,7 +242,7 @@ func TestHandleRegisterUser_TableDriven(t *testing.T) {
 		{
 			name:           "Empty JSON object",
 			requestBody:    "{}",
-			expectedStatus: 500, // Will fail at service layer
+			expectedStatus: 400, // Validation fails before reaching service layer
 			expectedError:  true,
 		},
 		{

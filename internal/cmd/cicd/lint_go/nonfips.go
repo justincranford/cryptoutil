@@ -162,6 +162,7 @@ func checkFileForNonFIPS(filePath string) []string {
 					// Check if the line is covered by a nolint comment on the import line.
 					// For imports, check if there's a nolint comment anywhere mentioning this algorithm.
 					skipViolation := false
+
 					for _, checkLine := range lines {
 						// If there's a nolint comment that mentions the banned algorithm or gosec.
 						if strings.Contains(checkLine, "nolint") &&

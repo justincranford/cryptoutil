@@ -47,6 +47,7 @@ func LintDockerSecrets(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension 
 	composeFiles := findComposeFiles(filesByExtension)
 	if len(composeFiles) == 0 {
 		logger.Log("No compose files found")
+
 		return nil
 	}
 
@@ -58,6 +59,7 @@ func LintDockerSecrets(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension 
 		fileViolations, err := checkComposeFileSecrets(file)
 		if err != nil {
 			logger.Log(fmt.Sprintf("Warning: failed to check %s: %v", file, err))
+
 			continue
 		}
 
@@ -66,10 +68,12 @@ func LintDockerSecrets(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension 
 
 	if len(violations) > 0 {
 		printSecretsViolations(violations)
+
 		return fmt.Errorf("lint-compose-secrets failed: %d inline credential violations found", len(violations))
 	}
 
 	logger.Log("lint-compose-secrets passed: no inline credential violations")
+
 	return nil
 }
 
@@ -79,6 +83,7 @@ func checkComposeFileSecrets(filePath string) ([]SecretsViolation, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
+
 	defer func() { _ = file.Close() }()
 
 	var violations []SecretsViolation
@@ -94,6 +99,7 @@ func checkComposeFileSecrets(filePath string) ([]SecretsViolation, error) {
 		// Track if we're in an environment section.
 		if strings.Contains(line, "environment:") {
 			inEnvironmentSection = true
+
 			continue
 		}
 
@@ -118,12 +124,15 @@ func checkComposeFileSecrets(filePath string) ([]SecretsViolation, error) {
 
 		// Skip valid patterns (comments, secrets references).
 		isValid := false
+
 		for _, pattern := range validSecretPatterns {
 			if pattern.MatchString(line) {
 				isValid = true
+
 				break
 			}
 		}
+
 		if isValid {
 			continue
 		}
@@ -137,6 +146,7 @@ func checkComposeFileSecrets(filePath string) ([]SecretsViolation, error) {
 					Content: strings.TrimSpace(line),
 					Reason:  "Inline credential found - MUST use Docker secrets pattern (see 03-06.security.instructions.md)",
 				})
+
 				break
 			}
 		}

@@ -134,7 +134,6 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 // TestParseWithFlagSet_OverrideDefaults tests ParseWithFlagSet with command line overrides.
 func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - viper.Get*() uses global viper state.
-
 	tests := []struct {
 		name     string
 		args     []string
