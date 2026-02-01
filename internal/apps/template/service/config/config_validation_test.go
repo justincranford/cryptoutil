@@ -7,424 +7,217 @@ package config
 import (
 	"testing"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
-// TestValidateConfiguration_AddressValidation tests address validation (0.0.0.0, blank) in different modes.
-func TestValidateConfiguration_AddressValidation(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		publicAddress    string
-		privateAddress   string
-		devMode          bool
-		wantErrorMessage string
-	}{
-		{
-			name:             "reject 0.0.0.0 public address in dev mode",
-			publicAddress:    "0.0.0.0",
-			privateAddress:   "127.0.0.1",
-			devMode:          true,
-			wantErrorMessage: "CRITICAL: bind public address cannot be 0.0.0.0 in test/dev mode",
-		},
-		{
-			name:             "reject 0.0.0.0 private address in dev mode",
-			publicAddress:    "127.0.0.1",
-			privateAddress:   "0.0.0.0",
-			devMode:          true,
-			wantErrorMessage: "CRITICAL: bind private address cannot be 0.0.0.0 in test/dev mode",
-		},
-		{
-			name:             "allow 0.0.0.0 public address in prod mode (containers)",
-			publicAddress:    "0.0.0.0",
-			privateAddress:   "127.0.0.1",
-			devMode:          false,
-			wantErrorMessage: "",
-		},
-		{
-			name:             "blank public address",
-			publicAddress:    "",
-			privateAddress:   "127.0.0.1",
-			devMode:          false,
-			wantErrorMessage: "bind public address cannot be blank",
-		},
-		{
-			name:             "blank private address",
-			publicAddress:    "127.0.0.1",
-			privateAddress:   "",
-			devMode:          false,
-			wantErrorMessage: "bind private address cannot be blank",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			s := &ServiceTemplateServerSettings{
-				DevMode:             tc.devMode,
-				BindPublicAddress:   tc.publicAddress,
-				BindPublicPort:      8080,
-				BindPrivateAddress:  tc.privateAddress,
-				BindPrivatePort:     9090,
-				BindPublicProtocol:  "https",
-				BindPrivateProtocol: "https",
-				LogLevel:            "INFO",
-				DatabaseURL:         "postgres://user:pass@localhost:5432/db",
-				TLSPublicDNSNames:   []string{"localhost"},
-				TLSPrivateDNSNames:  []string{"localhost"},
-				BrowserIPRateLimit:  100,
-				ServiceIPRateLimit:  100,
-				OTLPEndpoint:        "http://localhost:4317",
-			}
-
-			err := validateConfiguration(s)
-
-			if tc.wantErrorMessage != "" {
-				require.Error(t, err)
-				require.Contains(t, err.Error(), tc.wantErrorMessage)
-			} else {
-				require.NoError(t, err, "Should allow 0.0.0.0 public address in production mode (for containers)")
-			}
-		})
-	}
-}
-
-// TestValidateConfiguration_Reject127InTestHelper tests that NewTestConfig accepts 127.0.0.1.
-func TestValidateConfiguration_Reject127InTestHelper(t *testing.T) {
-	// This should pass without panic.
-	s := NewTestConfig("127.0.0.1", 0, true)
-	require.NotNil(t, s)
-	require.Equal(t, "127.0.0.1", s.BindPublicAddress)
-}
-
-// TestValidateConfiguration_ValidProductionPostgreSQL tests that valid production config with PostgreSQL passes.
-func TestValidateConfiguration_ValidProductionPostgreSQL(t *testing.T) {
-	s := &ServiceTemplateServerSettings{
+// validBaseSettings returns a valid base configuration for testing.
+// Test cases override specific fields to test validation.
+func validBaseSettings() *ServiceTemplateServerSettings {
+	return &ServiceTemplateServerSettings{
 		DevMode:             false,
-		BindPublicAddress:   "192.168.1.100", // Specific IP
-		BindPublicPort:      8443,
-		BindPrivateAddress:  "127.0.0.1",
+		BindPublicAddress:   cryptoutilSharedMagic.IPv4Loopback,
+		BindPublicPort:      8080,
+		BindPrivateAddress:  cryptoutilSharedMagic.IPv4Loopback,
 		BindPrivatePort:     9090,
-		BindPublicProtocol:  "https",
-		BindPrivateProtocol: "https",
+		BindPublicProtocol:  cryptoutilSharedMagic.ProtocolHTTPS,
+		BindPrivateProtocol: cryptoutilSharedMagic.ProtocolHTTPS,
 		LogLevel:            "INFO",
-		DatabaseURL:         "postgres://user:pass@db.example.com:5432/production",
-		TLSPublicDNSNames:   []string{"api.example.com"},
+		DatabaseURL:         "sqlite://file::memory:",
+		TLSPublicDNSNames:   []string{"localhost"},
 		TLSPrivateDNSNames:  []string{"localhost"},
 		BrowserIPRateLimit:  100,
 		ServiceIPRateLimit:  100,
-		OTLPEndpoint:        "http://otel-collector:4317",
+		OTLPEndpoint:        "http://localhost:4317",
 	}
-
-	err := validateConfiguration(s)
-	require.NoError(t, err, "Production config with PostgreSQL + specific IP should be valid")
 }
 
-// TestValidateConfiguration_ConfigFormatValidation tests various config format validations.
-func TestValidateConfiguration_ConfigFormatValidation(t *testing.T) {
+// TestValidateConfiguration tests all configuration validation scenarios.
+func TestValidateConfiguration(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name             string
-		databaseURL      string
-		logLevel         string
-		corsOrigins      []string
-		otlpEndpoint     string
-		otlpEnabled      bool
+		modify           func(*ServiceTemplateServerSettings)
 		wantErrorMessage string
 	}{
+		// Address validation (dev mode).
 		{
-			name:             "invalid database URL format (missing ://)",
-			databaseURL:      "invalid-format-no-scheme",
-			logLevel:         "INFO",
-			corsOrigins:      []string{},
-			otlpEndpoint:     "http://localhost:4317",
-			otlpEnabled:      false,
+			name: "reject 0.0.0.0 public address in dev mode",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.DevMode = true
+				s.BindPublicAddress = cryptoutilSharedMagic.IPv4AnyAddress
+			},
+			wantErrorMessage: "CRITICAL: bind public address cannot be 0.0.0.0 in test/dev mode",
+		},
+		{
+			name: "reject 0.0.0.0 private address in dev mode",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.DevMode = true
+				s.BindPrivateAddress = cryptoutilSharedMagic.IPv4AnyAddress
+			},
+			wantErrorMessage: "CRITICAL: bind private address cannot be 0.0.0.0 in test/dev mode",
+		},
+		{
+			name: "allow 0.0.0.0 public address in prod mode (containers)",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicAddress = cryptoutilSharedMagic.IPv4AnyAddress
+			},
+			wantErrorMessage: "",
+		},
+		{
+			name: "blank public address",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicAddress = ""
+			},
+			wantErrorMessage: "bind public address cannot be blank",
+		},
+		{
+			name: "blank private address",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPrivateAddress = ""
+			},
+			wantErrorMessage: "bind private address cannot be blank",
+		},
+		// Valid production configurations.
+		{
+			name: "valid production PostgreSQL config",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicAddress = "192.168.1.100"
+				s.BindPublicPort = 8443
+				s.DatabaseURL = "postgres://user:pass@db.example.com:5432/production"
+				s.TLSPublicDNSNames = []string{"api.example.com"}
+				s.OTLPEndpoint = "http://otel-collector:4317"
+			},
+			wantErrorMessage: "",
+		},
+		// Config format validation.
+		{
+			name: "invalid database URL format (missing ://)",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.DatabaseURL = "invalid-format-no-scheme"
+			},
 			wantErrorMessage: "invalid database URL format",
 		},
 		{
-			name:             "invalid log level",
-			databaseURL:      "sqlite://file::memory:",
-			logLevel:         "INVALID_LEVEL",
-			corsOrigins:      []string{},
-			otlpEndpoint:     "http://localhost:4317",
-			otlpEnabled:      false,
+			name: "invalid log level",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.LogLevel = "INVALID_LEVEL"
+			},
 			wantErrorMessage: "invalid log level 'INVALID_LEVEL'",
 		},
 		{
-			name:             "invalid CORS origin format (missing scheme)",
-			databaseURL:      "sqlite://file::memory:",
-			logLevel:         "INFO",
-			corsOrigins:      []string{"invalid-origin-no-scheme"},
-			otlpEndpoint:     "http://localhost:4317",
-			otlpEnabled:      false,
+			name: "invalid CORS origin format (missing scheme)",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.CORSAllowedOrigins = []string{"invalid-origin-no-scheme"}
+			},
 			wantErrorMessage: "invalid CORS origin format",
 		},
 		{
-			name:             "invalid OTLP endpoint format (missing scheme)",
-			databaseURL:      "sqlite://file::memory:",
-			logLevel:         "INFO",
-			corsOrigins:      []string{},
-			otlpEndpoint:     "invalid-endpoint-no-scheme",
-			otlpEnabled:      true,
+			name: "invalid OTLP endpoint format (missing scheme)",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.OTLPEnabled = true
+				s.OTLPEndpoint = "invalid-endpoint-no-scheme"
+			},
 			wantErrorMessage: "invalid OTLP endpoint format",
 		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			s := &ServiceTemplateServerSettings{
-				DevMode:             false,
-				BindPublicAddress:   "127.0.0.1",
-				BindPublicPort:      8080,
-				BindPrivateAddress:  "127.0.0.1",
-				BindPrivatePort:     9090,
-				BindPublicProtocol:  "https",
-				BindPrivateProtocol: "https",
-				LogLevel:            tc.logLevel,
-				DatabaseURL:         tc.databaseURL,
-				TLSPublicDNSNames:   []string{"localhost"},
-				TLSPrivateDNSNames:  []string{"localhost"},
-				BrowserIPRateLimit:  100,
-				ServiceIPRateLimit:  100,
-				OTLPEndpoint:        tc.otlpEndpoint,
-				OTLPEnabled:         tc.otlpEnabled,
-				CORSAllowedOrigins:  tc.corsOrigins,
-			}
-
-			err := validateConfiguration(s)
-			require.Error(t, err, "Test case %s should fail", tc.name)
-			require.Contains(t, err.Error(), tc.wantErrorMessage)
-		})
-	}
-}
-
-// TestValidateConfiguration_PortEdgeCases tests port validation edge cases.
-func TestValidateConfiguration_PortEdgeCases(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		publicPort       uint16
-		privatePort      uint16
-		wantErrorMessage string
-	}{
+		// Port edge cases.
 		{
-			name:             "both ports 0 is valid (dynamic allocation)",
-			publicPort:       0,
-			privatePort:      0,
+			name: "both ports 0 is valid (dynamic allocation)",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicPort = 0
+				s.BindPrivatePort = 0
+			},
 			wantErrorMessage: "",
 		},
 		{
-			name:             "same non-zero ports rejected",
-			publicPort:       8080,
-			privatePort:      8080,
+			name: "same non-zero ports rejected",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicPort = 8080
+				s.BindPrivatePort = 8080
+			},
 			wantErrorMessage: "public port (8080) and private port (8080) cannot be the same",
 		},
 		{
-			name:             "public port 0 with non-zero private port is valid",
-			publicPort:       0,
-			privatePort:      9090,
+			name: "public port 0 with non-zero private port is valid",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicPort = 0
+				s.BindPrivatePort = 9090
+			},
 			wantErrorMessage: "",
 		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			s := &ServiceTemplateServerSettings{
-				DevMode:             false,
-				BindPublicAddress:   "127.0.0.1",
-				BindPublicPort:      tc.publicPort,
-				BindPrivateAddress:  "127.0.0.1",
-				BindPrivatePort:     tc.privatePort,
-				BindPublicProtocol:  "https",
-				BindPrivateProtocol: "https",
-				LogLevel:            "INFO",
-				DatabaseURL:         "sqlite://file::memory:",
-				TLSPublicDNSNames:   []string{"localhost"},
-				TLSPrivateDNSNames:  []string{"localhost"},
-				BrowserIPRateLimit:  100,
-				ServiceIPRateLimit:  100,
-				OTLPEndpoint:        "http://localhost:4317",
-			}
-
-			err := validateConfiguration(s)
-
-			if tc.wantErrorMessage != "" {
-				require.Error(t, err, "Test case %s should fail", tc.name)
-				require.Contains(t, err.Error(), tc.wantErrorMessage)
-			} else {
-				require.NoError(t, err, "Test case %s should pass", tc.name)
-			}
-		})
-	}
-}
-
-// TestValidateConfiguration_InvalidProtocol tests that invalid protocol is rejected.
-func TestValidateConfiguration_InvalidProtocol(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		publicProtocol   string
-		privateProtocol  string
-		wantErrorMessage string
-	}{
+		// Protocol validation.
 		{
-			name:             "invalid public protocol",
-			publicProtocol:   "ftp",
-			privateProtocol:  "https",
+			name: "invalid public protocol",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicProtocol = "ftp"
+			},
 			wantErrorMessage: "invalid public protocol 'ftp'",
 		},
 		{
-			name:             "invalid private protocol",
-			publicProtocol:   "https",
-			privateProtocol:  "ftp",
-			wantErrorMessage: "invalid private protocol 'ftp'",
+			name: "invalid private protocol",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPrivateProtocol = "gopher"
+			},
+			wantErrorMessage: "invalid private protocol 'gopher'",
 		},
 		{
-			name:             "http protocol is valid",
-			publicProtocol:   "http",
-			privateProtocol:  "http",
+			name: "http protocol is valid",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicProtocol = cryptoutilSharedMagic.ProtocolHTTP
+				s.BindPrivateProtocol = cryptoutilSharedMagic.ProtocolHTTP
+			},
 			wantErrorMessage: "",
 		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			s := &ServiceTemplateServerSettings{
-				DevMode:             false,
-				BindPublicAddress:   "127.0.0.1",
-				BindPublicPort:      8080,
-				BindPrivateAddress:  "127.0.0.1",
-				BindPrivatePort:     9090,
-				BindPublicProtocol:  tc.publicProtocol,
-				BindPrivateProtocol: tc.privateProtocol,
-				LogLevel:            "INFO",
-				DatabaseURL:         "sqlite://file::memory:",
-				TLSPublicDNSNames:   []string{"localhost"},
-				TLSPrivateDNSNames:  []string{"localhost"},
-				BrowserIPRateLimit:  100,
-				ServiceIPRateLimit:  100,
-				OTLPEndpoint:        "http://localhost:4317",
-			}
-
-			err := validateConfiguration(s)
-
-			if tc.wantErrorMessage != "" {
-				require.Error(t, err, "Test case %s should fail", tc.name)
-				require.Contains(t, err.Error(), tc.wantErrorMessage)
-			} else {
-				require.NoError(t, err, "Test case %s should pass", tc.name)
-			}
-		})
-	}
-}
-
-// TestValidateConfiguration_RateLimitEdgeCases tests rate limit validation.
-func TestValidateConfiguration_RateLimitEdgeCases(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		browserRateLimit uint16
-		serviceRateLimit uint16
-		wantErrorMessage string
-		wantWarning      bool
-	}{
+		// Rate limit validation.
 		{
-			name:             "zero browser rate limit rejected",
-			browserRateLimit: 0,
-			serviceRateLimit: 100,
+			name: "zero browser rate limit rejected",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BrowserIPRateLimit = 0
+			},
 			wantErrorMessage: "browser rate limit cannot be 0",
 		},
 		{
-			name:             "zero service rate limit rejected",
-			browserRateLimit: 100,
-			serviceRateLimit: 0,
+			name: "zero service rate limit rejected",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.ServiceIPRateLimit = 0
+			},
 			wantErrorMessage: "service rate limit cannot be 0",
 		},
 		{
-			name:             "very high browser rate limit warning",
-			browserRateLimit: 65000, // Above MaxIPRateLimit
-			serviceRateLimit: 100,
+			name: "very high browser rate limit warning",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BrowserIPRateLimit = 65000
+			},
 			wantErrorMessage: "browser rate limit 65000 is very high",
 		},
 		{
-			name:             "very high service rate limit warning",
-			browserRateLimit: 100,
-			serviceRateLimit: 65000, // Above MaxIPRateLimit
+			name: "very high service rate limit warning",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.ServiceIPRateLimit = 65000
+			},
 			wantErrorMessage: "service rate limit 65000 is very high",
 		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			s := &ServiceTemplateServerSettings{
-				DevMode:             false,
-				BindPublicAddress:   "127.0.0.1",
-				BindPublicPort:      8080,
-				BindPrivateAddress:  "127.0.0.1",
-				BindPrivatePort:     9090,
-				BindPublicProtocol:  "https",
-				BindPrivateProtocol: "https",
-				LogLevel:            "INFO",
-				DatabaseURL:         "sqlite://file::memory:",
-				TLSPublicDNSNames:   []string{"localhost"},
-				TLSPrivateDNSNames:  []string{"localhost"},
-				BrowserIPRateLimit:  tc.browserRateLimit,
-				ServiceIPRateLimit:  tc.serviceRateLimit,
-				OTLPEndpoint:        "http://localhost:4317",
-			}
-
-			err := validateConfiguration(s)
-
-			if tc.wantErrorMessage != "" {
-				require.Error(t, err, "Test case %s should fail", tc.name)
-				require.Contains(t, err.Error(), tc.wantErrorMessage)
-			} else {
-				require.NoError(t, err, "Test case %s should pass", tc.name)
-			}
-		})
-	}
-}
-
-// TestValidateConfiguration_HTTPSWithoutTLSConfig tests HTTPS protocol validation.
-func TestValidateConfiguration_HTTPSWithoutTLSConfig(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		publicProtocol   string
-		privateProtocol  string
-		publicDNS        []string
-		privateDNS       []string
-		wantErrorMessage string
-	}{
+		// HTTPS without TLS config.
 		{
-			name:             "HTTPS public without TLS config",
-			publicProtocol:   "https",
-			privateProtocol:  "http",
-			publicDNS:        nil,
-			privateDNS:       []string{"localhost"},
+			name: "HTTPS public without TLS config",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicProtocol = cryptoutilSharedMagic.ProtocolHTTPS
+				s.BindPrivateProtocol = cryptoutilSharedMagic.ProtocolHTTP
+				s.TLSPublicDNSNames = nil
+				s.TLSPublicIPAddresses = nil
+			},
 			wantErrorMessage: "HTTPS public protocol requires TLS DNS names or IP addresses",
 		},
 		{
-			name:             "HTTPS private without TLS config",
-			publicProtocol:   "http",
-			privateProtocol:  "https",
-			publicDNS:        []string{"localhost"},
-			privateDNS:       nil,
+			name: "HTTPS private without TLS config",
+			modify: func(s *ServiceTemplateServerSettings) {
+				s.BindPublicProtocol = cryptoutilSharedMagic.ProtocolHTTP
+				s.BindPrivateProtocol = cryptoutilSharedMagic.ProtocolHTTPS
+				s.TLSPrivateDNSNames = nil
+				s.TLSPrivateIPAddresses = nil
+			},
 			wantErrorMessage: "HTTPS private protocol requires TLS DNS names or IP addresses",
 		},
 	}
@@ -433,28 +226,25 @@ func TestValidateConfiguration_HTTPSWithoutTLSConfig(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			s := &ServiceTemplateServerSettings{
-				DevMode:               false,
-				BindPublicAddress:     "127.0.0.1",
-				BindPublicPort:        8080,
-				BindPrivateAddress:    "127.0.0.1",
-				BindPrivatePort:       9090,
-				BindPublicProtocol:    tc.publicProtocol,
-				BindPrivateProtocol:   tc.privateProtocol,
-				LogLevel:              "INFO",
-				DatabaseURL:           "sqlite://file::memory:",
-				TLSPublicDNSNames:     tc.publicDNS,
-				TLSPrivateDNSNames:    tc.privateDNS,
-				TLSPublicIPAddresses:  nil,
-				TLSPrivateIPAddresses: nil,
-				BrowserIPRateLimit:    100,
-				ServiceIPRateLimit:    100,
-				OTLPEndpoint:          "http://localhost:4317",
-			}
-
+			s := validBaseSettings()
+			tc.modify(s)
 			err := validateConfiguration(s)
-			require.Error(t, err, "Test case %s should fail", tc.name)
-			require.Contains(t, err.Error(), tc.wantErrorMessage)
+
+			if tc.wantErrorMessage != "" {
+				require.Error(t, err, "Test case %s should fail", tc.name)
+				require.Contains(t, err.Error(), tc.wantErrorMessage)
+			} else {
+				require.NoError(t, err, "Test case %s should pass", tc.name)
+			}
 		})
 	}
+}
+
+// TestNewTestConfig tests that NewTestConfig helper works correctly.
+func TestNewTestConfig(t *testing.T) {
+	t.Parallel()
+
+	s := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	require.NotNil(t, s)
+	require.Equal(t, cryptoutilSharedMagic.IPv4Loopback, s.BindPublicAddress)
 }
