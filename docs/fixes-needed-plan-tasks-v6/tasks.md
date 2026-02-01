@@ -8,32 +8,32 @@
 ### Phase 1: Copilot Instructions Updates
 
 #### Task 1.1: Update service-template.instructions.md
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **File**: `.github/instructions/02-02.service-template.instructions.md`
 - **Description**: Add migration numbering section, TestMain pattern, registration flow, *FromSettings pattern
 - **Acceptance Criteria**:
-  - [ ] Migration versioning clear (1001-1004 vs 2001+)
-  - [ ] Complete TestMain pattern example
-  - [ ] Document *FromSettings factory pattern as preferred
+  - [x] Migration versioning clear (1001-1004 vs 2001+)
+  - [x] Complete TestMain pattern example
+  - [x] Document *FromSettings factory pattern as preferred
 
 #### Task 1.2: Update testing.instructions.md
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **File**: `.github/instructions/03-02.testing.instructions.md`
 - **Description**: Move app.Test() pattern earlier, add cross-references
 - **Acceptance Criteria**:
-  - [ ] app.Test() pattern prominent
-  - [ ] Cross-reference to 07-01.testmain-integration-pattern.md
+  - [x] app.Test() pattern prominent (already FORBIDDEN #2 at lines 67-104)
+  - [x] Cross-reference to 07-01.testmain-integration-pattern.md (added)
 
 #### Task 1.3: Update server-builder.instructions.md
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **File**: `.github/instructions/03-08.server-builder.instructions.md`
 - **Description**: Complete merged migrations docs, add troubleshooting
 - **Acceptance Criteria**:
-  - [ ] Merged migrations fully documented
-  - [ ] Troubleshooting section added
+  - [x] Merged migrations fully documented (already present at lines 143-170)
+  - [x] Troubleshooting section added (5 common issues with causes/solutions)
 
 ---
 
