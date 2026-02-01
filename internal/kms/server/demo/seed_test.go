@@ -46,29 +46,33 @@ func TestGenerateDemoTenantID(t *testing.T) {
 func TestDefaultDemoTenants(t *testing.T) {
 	t.Parallel()
 
-	tenants := DefaultDemoTenants()
+	t.Run("returns 2 valid demo tenants", func(t *testing.T) {
+		t.Parallel()
 
-	require.Len(t, tenants, 2, "Should return 2 demo tenants")
+		tenants := DefaultDemoTenants()
 
-	for _, tenant := range tenants {
-		require.NotEmpty(t, tenant.ID, "Tenant ID should not be empty")
-		require.Len(t, tenant.ID, 36, "Tenant ID should be UUID format")
-		require.NotEmpty(t, tenant.Name, "Tenant name should not be empty")
-	}
+		require.Len(t, tenants, 2, "Should return 2 demo tenants")
 
-	// Verify IDs are unique.
-	require.NotEqual(t, tenants[0].ID, tenants[1].ID, "Tenant IDs should be unique")
-}
+		for _, tenant := range tenants {
+			require.NotEmpty(t, tenant.ID, "Tenant ID should not be empty")
+			require.Len(t, tenant.ID, 36, "Tenant ID should be UUID format")
+			require.NotEmpty(t, tenant.Name, "Tenant name should not be empty")
+		}
 
-func TestDefaultDemoTenants_RegeneratesOnEachCall(t *testing.T) {
-	t.Parallel()
+		// Verify IDs are unique.
+		require.NotEqual(t, tenants[0].ID, tenants[1].ID, "Tenant IDs should be unique")
+	})
 
-	tenants1 := DefaultDemoTenants()
-	tenants2 := DefaultDemoTenants()
+	t.Run("regenerates IDs on each call", func(t *testing.T) {
+		t.Parallel()
 
-	// Each call should generate new UUIDs (Session 4 Q9).
-	require.NotEqual(t, tenants1[0].ID, tenants2[0].ID, "Tenant IDs should regenerate on each call")
-	require.NotEqual(t, tenants1[1].ID, tenants2[1].ID, "Tenant IDs should regenerate on each call")
+		tenants1 := DefaultDemoTenants()
+		tenants2 := DefaultDemoTenants()
+
+		// Each call should generate new UUIDs (Session 4 Q9).
+		require.NotEqual(t, tenants1[0].ID, tenants2[0].ID, "Tenant IDs should regenerate on each call")
+		require.NotEqual(t, tenants1[1].ID, tenants2[1].ID, "Tenant IDs should regenerate on each call")
+	})
 }
 
 func TestDefaultDemoKeys(t *testing.T) {
