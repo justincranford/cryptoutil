@@ -621,3 +621,79 @@ internal/apps/<product>/<service>/
 11. **Create Docker Compose** in `deployments/<product>/`
 12. **Create CLI entry point** in `cmd/<product>-<service>/main.go`
 13. **Verify quality gates**: coverage ≥95%, mutation ≥85%, lint clean
+
+---
+
+## *FromSettings Factory Pattern (PREFERRED)
+
+Services should use settings-based factories for testability and consistency:
+
+```go
+// ✅ PREFERRED: Settings-based factory
+type UnsealKeysSettings struct {
+    KeyPaths []string `yaml:"key_paths"`
+}
+
+func NewUnsealKeysServiceFromSettings(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
+    if settings == nil {
+        return nil, errors.New("settings required")
+    }
+    return &UnsealKeysService{
+        keyPaths: settings.KeyPaths,
+    }, nil
+}
+
+// Usage in ServerBuilder
+builder.WithUnsealKeysService(func(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
+    return NewUnsealKeysServiceFromSettings(settings)
+})
+```
+
+**Benefits**:
+- All configuration in one struct
+- Easy to test (pass test settings)
+- Consistent initialization across codebase
+- Self-documenting dependencies
+
+---
+
+## Test Settings Factory
+
+Every service config should have a test settings factory:
+
+```go
+// NewTestSettings returns configuration suitable for testing
+func NewTestSettings() *CipherImServerSettings {
+    return &CipherImServerSettings{
+        ServiceTemplateServerSettings: cryptoutilTemplateTestutil.NewTestSettings(),
+        MaxMessageSize:                65536,
+    }
+}
+```
+
+**NewTestSettings() configures**:
+- SQLite in-memory (`:memory:`)
+- Port 0 (dynamic allocation, no conflicts)
+- Auto-generated TLS certificates
+- Disabled telemetry export
+- Short timeouts for fast tests
+
+---
+
+## Configuration Priority
+
+**Load Order** (highest to lowest):
+
+1. **Docker Secrets** (`file:///run/secrets/`) - Passwords, keys, tokens
+2. **YAML Configuration** (`--config=`) - Primary settings
+3. **CLI Parameters** - Overrides
+
+**CRITICAL: Environment variables NOT supported** (security, auditability).
+
+Example precedence:
+```bash
+# Docker secret overrides YAML overrides CLI default
+cipher-im server \
+    --database-url=file:///run/secrets/database_url \  # Docker secret (wins)
+    --config=/etc/cipher/im.yml                         # YAML config
+```

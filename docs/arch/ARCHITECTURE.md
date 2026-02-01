@@ -476,3 +476,62 @@ See [SERVICE-TEMPLATE.md](SERVICE-TEMPLATE.md) for mandatory test patterns.
 | 3 | pki-ca | Pending | Certificate authority |
 | 4 | identity-* | Pending | OAuth/OIDC stack |
 | 5 | sm-kms | Last | Template source, migrate after template mature |
+
+---
+
+## Factory Patterns
+
+### *FromSettings Pattern (PREFERRED)
+
+Services should use `*FromSettings` factory functions for consistent, testable initialization:
+
+```go
+// ✅ PREFERRED: Settings-based factory
+func NewUnsealKeysServiceFromSettings(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
+    // Configuration-driven initialization
+}
+
+// Also acceptable: Direct constructor when settings not applicable
+func NewMessageRepository(db *gorm.DB) *MessageRepository {
+    return &MessageRepository{db: db}
+}
+```
+
+**Benefits**:
+- Configuration-driven behavior
+- Testable (inject test settings)
+- Consistent across all services
+- Self-documenting dependencies
+
+---
+
+## Configuration Priority
+
+**Load Order** (highest to lowest):
+
+1. **Docker Secrets** (`file:///run/secrets/secret_name`) - Sensitive values
+2. **YAML Configuration** (`--config=/path/to/config.yml`) - Primary configuration  
+3. **CLI Parameters** (`--bind-public-port=8080`) - Overrides
+
+**CRITICAL: Environment variables NOT supported for configuration** (security, auditability).
+
+---
+
+## API Path Patterns
+
+**NO service name in request paths**:
+
+```
+✅ /service/api/v1/elastic-jwks     (correct)
+✅ /browser/api/v1/sessions         (correct)
+❌ /service/api/v1/jose/elastic-jwks (WRONG - no service name in path)
+```
+
+**Standard Prefixes**:
+
+| Prefix | Purpose | Authentication |
+|--------|---------|----------------|
+| `/service/api/v1/*` | Headless APIs | Bearer tokens, mTLS |
+| `/browser/api/v1/*` | Browser APIs | Session cookies |
+| `/admin/api/v1/*` | Admin APIs | localhost only |
+| `/.well-known/*` | Discovery | Public |
