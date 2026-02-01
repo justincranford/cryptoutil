@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 13 of 48 tasks complete (27.1%)
+**Status**: 14 of 48 tasks complete (29.2%)
 **Last Updated**: 2026-01-31
 
 ## Task Checklist
@@ -179,14 +179,23 @@
   - [x] All integration tests pass (30+ tests)
 
 #### Task 4.3: Implement Realm Lookup for Multi-Tenant
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
+- **Owner**: LLM Agent
 - **Estimated**: 2h
+- **Actual**: 1.5h
+- **Completed**: 2026-01-31
 - **File**: `internal/apps/template/service/server/realms/handlers.go:270`
 - **Description**: Implement realm resolution based on tenant context
 - **Acceptance Criteria**:
-  - [ ] TODO resolved
-  - [ ] Multi-tenant realm lookup functional
-  - [ ] Tests cover single-tenant and multi-tenant scenarios
+  - [x] TODO resolved (handlers.go:270 now uses optional realm lookup)
+  - [x] Multi-tenant realm lookup functional (GetFirstActiveRealm method added)
+  - [x] Tests cover single-tenant and multi-tenant scenarios (integration tests pass)
+  - [x] Backward compatible (falls back to zero UUID when RealmService unavailable)
+  - [x] Interface-based design (realmServiceProvider for loose coupling)
+  - [x] All unit tests pass (realms, repository, service packages)
+  - [x] All integration tests pass (30+ tests)
+  - [x] Linting clean (0 issues on modified files)
+  - [x] Commit created (e9bbab91)
 
 ---
 
