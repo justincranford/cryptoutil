@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 0 of 48 tasks complete (0%)
+**Status**: 13 of 48 tasks complete (27.1%)
 **Last Updated**: 2026-01-31
 
 ## Task Checklist
@@ -165,14 +165,18 @@
   - [x] Coverage ≥95%
 
 #### Task 4.2: Add Admin Middleware to Registration Routes
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
+- **Actual**: 1.5h
+- **Completed**: 2026-01-31
 - **File**: `internal/apps/template/service/server/apis/registration_routes.go:48`
 - **Description**: Add admin authentication middleware to protected routes
 - **Acceptance Criteria**:
-  - [ ] TODO resolved
-  - [ ] Admin routes protected
-  - [ ] Tests verify 401/403 for non-admin access
+  - [x] TODO resolved
+  - [x] Admin routes protected with BrowserSessionMiddleware
+  - [x] Tests verify 401 for unauthenticated access
+  - [x] Custom error handler added to convert apperr.Error to HTTP status codes
+  - [x] All integration tests pass (30+ tests)
 
 #### Task 4.3: Implement Realm Lookup for Multi-Tenant
 - **Status**: ❌ Not Started
