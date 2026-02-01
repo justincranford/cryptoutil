@@ -11,116 +11,125 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestGetTLSPEMBytes_NilValue tests getTLSPEMBytes with nil value.
-func TestGetTLSPEMBytes_NilValue(t *testing.T) {
-	result := getTLSPEMBytes("non-existent-key")
-	require.Nil(t, result, "Expected nil for non-existent key")
+// TestGetTLSPEMBytes tests getTLSPEMBytes with various inputs.
+func TestGetTLSPEMBytes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		setup   func()
+		key     string
+		wantNil bool
+	}{
+		{
+			name:    "nil value for non-existent key",
+			setup:   func() {},
+			key:     "non-existent-key",
+			wantNil: true,
+		},
+		{
+			name:    "nil for non-bytes value",
+			setup:   resetFlags,
+			key:     "log-level",
+			wantNil: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.setup()
+
+			result := getTLSPEMBytes(tc.key)
+			if tc.wantNil {
+				require.Nil(t, result)
+			} else {
+				require.NotNil(t, result)
+			}
+		})
+	}
 }
 
-// TestGetTLSPEMBytes_NonBytesValue tests getTLSPEMBytes with non-[]byte value.
-func TestGetTLSPEMBytes_NonBytesValue(t *testing.T) {
-	resetFlags()
+// TestNewForServer tests NewForJOSEServer and NewForCAServer factory functions.
+// NOTE: These tests cannot run in parallel due to global flag state.
+func TestNewForServer(t *testing.T) {
+	tests := []struct {
+		name        string
+		factory     func(address string, port uint16, devMode bool) *ServiceTemplateServerSettings
+		address     string
+		port        uint16
+		devMode     bool
+		wantService string
+	}{
+		{name: "JOSE dev mode", factory: NewForJOSEServer, address: "127.0.0.1", port: 9443, devMode: true, wantService: "jose-server"},
+		{name: "JOSE production", factory: NewForJOSEServer, address: "127.0.0.1", port: 8443, devMode: false, wantService: "jose-server"},
+		{name: "CA dev mode", factory: NewForCAServer, address: "127.0.0.1", port: 8380, devMode: true, wantService: "ca-server"},
+		{name: "CA production", factory: NewForCAServer, address: "127.0.0.1", port: 9380, devMode: false, wantService: "ca-server"},
+	}
 
-	// Viper will convert string to string, not []byte for most keys
-	// This tests the type assertion failure path
-	result := getTLSPEMBytes("log-level") // string value
-	require.Nil(t, result, "Expected nil for non-[]byte value")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			resetFlags()
+
+			settings := tc.factory(tc.address, tc.port, tc.devMode)
+			require.NotNil(t, settings)
+			require.Equal(t, tc.address, settings.BindPublicAddress)
+			require.Equal(t, tc.port, settings.BindPublicPort)
+			require.Equal(t, tc.wantService, settings.OTLPService)
+			require.Equal(t, tc.devMode, settings.DevMode)
+		})
+	}
 }
 
-// TestNewForJOSEServer_DevMode tests NewForJOSEServer with dev mode enabled.
-func TestNewForJOSEServer_DevMode(t *testing.T) {
-	resetFlags()
+// TestRegisterAsSettings tests all RegisterAs* setting functions.
+func TestRegisterAsSettings(t *testing.T) {
+	t.Parallel()
 
-	settings := NewForJOSEServer("127.0.0.1", 9443, true)
-	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(9443), settings.BindPublicPort)
-	require.Equal(t, "jose-server", settings.OTLPService)
-	require.True(t, settings.DevMode)
-}
+	t.Run("bool", func(t *testing.T) {
+		t.Parallel()
 
-// TestNewForJOSEServer_ProductionMode tests NewForJOSEServer with dev mode disabled.
-func TestNewForJOSEServer_ProductionMode(t *testing.T) {
-	resetFlags()
+		setting := Setting{Value: true}
+		require.True(t, RegisterAsBoolSetting(&setting))
+	})
 
-	settings := NewForJOSEServer("127.0.0.1", 8443, false)
-	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(8443), settings.BindPublicPort)
-	require.Equal(t, "jose-server", settings.OTLPService)
-	require.False(t, settings.DevMode)
-}
+	t.Run("string", func(t *testing.T) {
+		t.Parallel()
 
-// TestNewForCAServer_DevMode tests NewForCAServer with dev mode enabled.
-func TestNewForCAServer_DevMode(t *testing.T) {
-	resetFlags()
+		setting := Setting{Value: "test-value"}
+		require.Equal(t, "test-value", RegisterAsStringSetting(&setting))
+	})
 
-	settings := NewForCAServer("127.0.0.1", 8380, true)
-	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(8380), settings.BindPublicPort)
-	require.Equal(t, "ca-server", settings.OTLPService)
-	require.True(t, settings.DevMode)
-}
+	t.Run("uint16", func(t *testing.T) {
+		t.Parallel()
 
-// TestNewForCAServer_ProductionMode tests NewForCAServer with dev mode disabled.
-func TestNewForCAServer_ProductionMode(t *testing.T) {
-	resetFlags()
+		setting := Setting{Value: uint16(8080)}
+		require.Equal(t, uint16(8080), RegisterAsUint16Setting(&setting))
+	})
 
-	settings := NewForCAServer("127.0.0.1", 9380, false)
-	require.NotNil(t, settings)
-	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(9380), settings.BindPublicPort)
-	require.Equal(t, "ca-server", settings.OTLPService)
-	require.False(t, settings.DevMode)
-}
+	t.Run("string slice", func(t *testing.T) {
+		t.Parallel()
 
-// TestRegisterAsBoolSetting tests registerAsBoolSetting function.
-func TestRegisterAsBoolSetting(t *testing.T) {
-	setting := Setting{Value: true}
-	result := RegisterAsBoolSetting(&setting)
-	require.True(t, result)
-}
+		setting := Setting{Value: []string{"item1", "item2"}}
+		require.Equal(t, []string{"item1", "item2"}, RegisterAsStringSliceSetting(&setting))
+	})
 
-// TestRegisterAsStringSetting tests registerAsStringSetting function.
-func TestRegisterAsStringSetting(t *testing.T) {
-	setting := Setting{Value: "test-value"}
-	result := RegisterAsStringSetting(&setting)
-	require.Equal(t, "test-value", result)
-}
+	t.Run("string array", func(t *testing.T) {
+		t.Parallel()
 
-// TestRegisterAsUint16Setting tests registerAsUint16Setting function.
-func TestRegisterAsUint16Setting(t *testing.T) {
-	setting := Setting{Value: uint16(8080)}
-	result := RegisterAsUint16Setting(&setting)
-	require.Equal(t, uint16(8080), result)
-}
+		setting := Setting{Value: []string{"item1", "item2"}}
+		require.Equal(t, []string{"item1", "item2"}, RegisterAsStringArraySetting(&setting))
+	})
 
-// TestRegisterAsStringSliceSetting tests registerAsStringSliceSetting function.
-func TestRegisterAsStringSliceSetting(t *testing.T) {
-	setting := Setting{Value: []string{"item1", "item2"}}
-	result := RegisterAsStringSliceSetting(&setting)
-	require.Equal(t, []string{"item1", "item2"}, result)
-}
+	t.Run("duration", func(t *testing.T) {
+		t.Parallel()
 
-// TestRegisterAsStringArraySetting tests registerAsStringArraySetting function.
-func TestRegisterAsStringArraySetting(t *testing.T) {
-	setting := Setting{Value: []string{"item1", "item2"}}
-	result := RegisterAsStringArraySetting(&setting)
-	require.Equal(t, []string{"item1", "item2"}, result)
-}
+		setting := Setting{Value: 5 * time.Minute}
+		require.Equal(t, 5*time.Minute, RegisterAsDurationSetting(&setting))
+	})
 
-// TestRegisterAsDurationSetting tests registerAsDurationSetting function.
-func TestRegisterAsDurationSetting(t *testing.T) {
-	// Use time.Duration type, not string
-	setting := Setting{Value: time.Duration(5 * time.Minute)}
-	result := RegisterAsDurationSetting(&setting)
-	require.Equal(t, time.Duration(5*time.Minute), result)
-}
+	t.Run("int", func(t *testing.T) {
+		t.Parallel()
 
-// TestRegisterAsIntSetting tests registerAsIntSetting function.
-func TestRegisterAsIntSetting(t *testing.T) {
-	setting := Setting{Value: 100}
-	result := RegisterAsIntSetting(&setting)
-	require.Equal(t, 100, result)
+		setting := Setting{Value: 100}
+		require.Equal(t, 100, RegisterAsIntSetting(&setting))
+	})
 }

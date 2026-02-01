@@ -31,7 +31,6 @@ type realmIDGetter interface {
 	GetRealmID() googleUuid.UUID
 }
 
-
 // HandleRegisterUser returns a Fiber handler for user registration.
 //
 // Workflow:
@@ -307,7 +306,6 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 			}
 		}
 		// If no realm found or RealmService not available, realmID remains zero UUID (backward compatible)
-
 
 		if isBrowser {
 			token, issueErr = manager.IssueBrowserSessionWithTenant(c.Context(), user.GetID().String(), tenantID, realmID)

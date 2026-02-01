@@ -44,13 +44,13 @@ import (
 )
 
 var (
-	testDB                 *gorm.DB
-	testRegistrationSvc    *cryptoutilTemplateBusinessLogic.TenantRegistrationService
-	testSessionManager     *cryptoutilTemplateBusinessLogic.SessionManagerService
-	testRegistrationApp    *fiber.App
-	testJoinRequestMgmtApp *fiber.App
-	testTenantID           googleUuid.UUID
-	testUserID             googleUuid.UUID
+	testDB                   *gorm.DB
+	testRegistrationSvc      *cryptoutilTemplateBusinessLogic.TenantRegistrationService
+	testSessionManager       *cryptoutilTemplateBusinessLogic.SessionManagerService
+	testRegistrationApp      *fiber.App
+	testJoinRequestMgmtApp   *fiber.App
+	testTenantID             googleUuid.UUID
+	testUserID               googleUuid.UUID
 	testMockSessionValidator *mockSessionValidatorIntegration
 )
 
@@ -250,7 +250,7 @@ func TestMain(m *testing.M) {
 
 	// Create Fiber apps for testing.
 	testRegistrationApp = fiber.New()
-	
+
 	// Create testJoinRequestMgmtApp with custom error handler for apperr.Error types.
 	// This ensures SessionMiddleware's 401 errors are correctly converted to HTTP 401 responses.
 	testJoinRequestMgmtApp = fiber.New(fiber.Config{
@@ -736,7 +736,7 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 		return c.Next()
 	}
 	app.Use(authMiddleware)
-	
+
 	// Create a mock SessionValidator for this isolated test.
 	// It bypasses actual session validation and returns a valid session.
 	mockValidator := &mockSessionValidatorIntegration{

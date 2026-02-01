@@ -274,4 +274,3 @@ func (TenantRealm) TableName() string {
 func (tr *TenantRealm) GetRealmID() googleUuid.UUID {
 	return tr.RealmID
 }
-

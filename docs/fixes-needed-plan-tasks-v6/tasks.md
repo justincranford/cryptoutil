@@ -202,20 +202,27 @@
 ### Phase 5: Test Architecture Refactoring
 
 #### Task 5.1: Refactor Listener Tests to app.Test()
-- **Status**: ❌ Not Started
+- **Status**: ❌ BLOCKED
+- **Blocker**: StartApplicationListener not yet implemented (returns "implementation in progress" error)
 - **Estimated**: 3h
 - **Files**:
   - `internal/apps/template/service/server/listener/servers_test.go`
   - `internal/apps/template/service/server/listener/application_listener_test.go`
 - **Description**: Replace real HTTPS listeners with Fiber app.Test() for in-memory testing
+- **Current State**: Tests only validate constructor/factory functions, no HTTP listeners started yet
+- **Next Steps**:
+  1. Complete StartApplicationListener implementation first
+  2. THEN refactor tests to use app.Test() pattern
+  3. Note: admin_test.go and public_test.go (1597 lines) are the files that actually need app.Test() refactoring
 - **Acceptance Criteria**:
+  - [ ] Blocked until StartApplicationListener implemented
   - [ ] No Windows Firewall triggers
   - [ ] No port binding in unit tests
   - [ ] Tests run faster (<1ms vs 10-50ms)
   - [ ] All tests still pass
 
 #### Task 5.2: Consolidate config_validation_test.go
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/config/config_validation_test.go`
 - **Description**: Convert standalone TestValidateConfiguration_* functions to table-driven
@@ -224,7 +231,7 @@
   - [ ] Line count reduced by ~50%
 
 #### Task 5.3: Consolidate session_manager_jws_test.go
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/server/businesslogic/session_manager_jws_test.go`
 - **Description**: Convert standalone tests to table-driven pattern
@@ -233,7 +240,7 @@
   - [ ] t.Parallel() in all tests
 
 #### Task 5.4: Consolidate session_manager_jwe_test.go
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
 - **File**: `internal/apps/template/service/server/businesslogic/session_manager_jwe_test.go`
 - **Description**: Convert standalone tests to table-driven pattern
