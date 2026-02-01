@@ -1,0 +1,42 @@
+# Service Template Configuration - SQLite Instance
+# This file contains instance-specific settings for template-sqlite
+#
+# Config key format: flat kebab-case (e.g., bind-public-address)
+# NOT nested YAML (e.g., server.bind_address)
+# This matches viper's expected key names from pflag definitions.
+
+# Public Server Configuration
+bind-public-protocol: "https"
+bind-public-address: "0.0.0.0"  # Listen on all interfaces in container
+bind-public-port: 8888
+
+# Admin Server Configuration
+bind-private-protocol: "https"
+bind-private-address: "127.0.0.1"  # Admin ONLY accessible inside container
+bind-private-port: 9090
+
+# TLS Configuration
+tls-public-mode: "auto"   # Auto-generate self-signed cert
+tls-private-mode: "auto"  # Auto-generate self-signed cert
+
+# OTLP Telemetry Configuration
+otlp: true
+otlp-service: "template-sqlite"
+otlp-environment: "development"
+otlp-endpoint: "http://template-otel-collector:4317"
+
+# CORS Configuration
+cors-max-age: 3600
+cors-allowed-origins:
+  - "http://localhost:8080"
+  - "http://127.0.0.1:8080"
+  - "https://localhost:8080"
+  - "https://127.0.0.1:8080"
+
+# Session Configuration (flat keys, not nested)
+browser-session-algorithm: "JWS"
+browser-session-jws-algorithm: "HS256"
+browser-session-jwe-algorithm: "dir+A256GCM"
+service-session-algorithm: "JWS"
+service-session-jws-algorithm: "HS256"
+service-session-jwe-algorithm: "dir+A256GCM"

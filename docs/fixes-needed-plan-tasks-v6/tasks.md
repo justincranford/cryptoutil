@@ -126,22 +126,26 @@
 ### Phase 3: Deployment Fixes
 
 #### Task 3.1: Fix Healthcheck Path Mismatch
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
+- **Actual**: 0.25h
 - **File**: `deployments/kms/compose.yml`
 - **Description**: Fix healthcheck path from `/admin/v1/livez` to `/admin/api/v1/livez`
 - **Acceptance Criteria**:
-  - [ ] Healthcheck uses `/admin/api/v1/livez` (matches service-template standard)
+  - [x] Healthcheck uses `/admin/api/v1/livez` (matches service-template standard)
+- **Evidence**: Fixed 3 healthcheck paths (kms-sqlite, kms-postgres-1, kms-postgres-2), compose syntax validated
 
 #### Task 3.2: Create Template Deployment
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
+- **Actual**: 0.5h
 - **Location**: `deployments/template/`
 - **Description**: Create compose.yml, secrets/, test E2E helper
 - **Acceptance Criteria**:
-  - [ ] compose.yml exists and validates
-  - [ ] E2E tests can use template deployment
-  - [ ] Follows Docker secrets pattern
+  - [x] compose.yml exists and validates
+  - [x] E2E tests can use template deployment (uses cipher-im binary as reference implementation)
+  - [x] Follows Docker secrets pattern
+- **Evidence**: Created compose.yml, otel-collector-config.yaml, secrets/ (4 files with 440 permissions), configs/template/ (3 config files). Compose syntax validated with `docker compose config`.
 
 ---
 
