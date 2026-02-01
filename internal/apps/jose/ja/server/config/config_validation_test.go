@@ -95,7 +95,7 @@ func TestLogOutputFormat(t *testing.T) {
 
 // TestParseWithFlagSet_DefaultValues tests ParseWithFlagSet returns correct default values.
 func TestParseWithFlagSet_DefaultValues(t *testing.T) {
-	t.Parallel()
+	// NOTE: Cannot use t.Parallel() - viper.Get*() uses global viper state.
 
 	// Create fresh FlagSet for this test (enables parallel execution).
 	fs := pflag.NewFlagSet("test-defaults", pflag.ContinueOnError)
@@ -133,7 +133,7 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 
 // TestParseWithFlagSet_OverrideDefaults tests ParseWithFlagSet with command line overrides.
 func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
-	t.Parallel()
+	// NOTE: Cannot use t.Parallel() - viper.Get*() uses global viper state.
 
 	tests := []struct {
 		name     string
@@ -174,7 +174,7 @@ func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// NOTE: Cannot use t.Parallel() - viper.Get*() uses global viper state.
 
 			// Create fresh FlagSet for each test.
 			fs := pflag.NewFlagSet("test-override-"+tt.name, pflag.ContinueOnError)

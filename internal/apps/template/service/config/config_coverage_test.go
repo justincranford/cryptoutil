@@ -12,9 +12,8 @@ import (
 )
 
 // TestGetTLSPEMBytes tests getTLSPEMBytes with various inputs.
+// NOTE: Cannot use t.Parallel() - this test accesses global viper state.
 func TestGetTLSPEMBytes(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name    string
 		setup   func()

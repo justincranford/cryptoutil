@@ -53,9 +53,24 @@ func Initialize() error {
 	return nil
 }
 
-// ServiceTemplateServerSettings returns the shared test ServiceTemplateServerSettings fixture.
+// ServiceTemplateServerSettings returns a *copy* of the test ServiceTemplateServerSettings fixture.
+// Returns a copy to prevent race conditions when parallel tests modify settings.
 func ServiceTemplateServerSettings() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings {
-	return serverSettings
+	// Deep copy to prevent race conditions when tests modify settings.
+	settingsCopy := *serverSettings
+
+	// Deep copy slices to prevent shared slice modifications.
+	settingsCopy.TLSPublicDNSNames = make([]string, len(serverSettings.TLSPublicDNSNames))
+	settingsCopy.TLSPublicIPAddresses = make([]string, len(serverSettings.TLSPublicIPAddresses))
+	settingsCopy.TLSPrivateDNSNames = make([]string, len(serverSettings.TLSPrivateDNSNames))
+	settingsCopy.TLSPrivateIPAddresses = make([]string, len(serverSettings.TLSPrivateIPAddresses))
+
+	copy(settingsCopy.TLSPublicDNSNames, serverSettings.TLSPublicDNSNames)
+	copy(settingsCopy.TLSPublicIPAddresses, serverSettings.TLSPublicIPAddresses)
+	copy(settingsCopy.TLSPrivateDNSNames, serverSettings.TLSPrivateDNSNames)
+	copy(settingsCopy.TLSPrivateIPAddresses, serverSettings.TLSPrivateIPAddresses)
+
+	return &settingsCopy
 }
 
 // PublicTLS returns the shared test public TLS fixture.

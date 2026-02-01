@@ -16,9 +16,8 @@ import (
 )
 
 // TestNewFromFile_Success tests successful config loading from file.
+// NOTE: Cannot use t.Parallel() - NewFromFile accesses global viper state.
 func TestNewFromFile_Success(t *testing.T) {
-	t.Parallel()
-
 	yamlContent := `
 dev: true
 bind-public-address: 127.0.0.1
@@ -44,9 +43,8 @@ bind-private-port: 9090
 // TestNewFromFile_FileNotFound tests behavior when config file does not exist.
 // Note: Viper gracefully handles missing config files by skipping them, so this
 // does not return an error. The function returns valid settings with defaults.
+// NOTE: Cannot use t.Parallel() - NewFromFile accesses global viper state.
 func TestNewFromFile_FileNotFound(t *testing.T) {
-	t.Parallel()
-
 	settings, err := NewFromFile("/nonexistent/path/config.yml")
 	// Viper intentionally doesn't error on missing config files - they're optional
 	require.NoError(t, err)
@@ -56,9 +54,8 @@ func TestNewFromFile_FileNotFound(t *testing.T) {
 }
 
 // TestNewFromFile_InvalidYAML tests error when config file has invalid YAML.
+// NOTE: Cannot use t.Parallel() - NewFromFile accesses global viper state.
 func TestNewFromFile_InvalidYAML(t *testing.T) {
-	t.Parallel()
-
 	invalidYAML := `
 dev: true
 bind-public-address: [this is invalid YAML syntax

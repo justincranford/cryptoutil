@@ -108,8 +108,11 @@ func NewPublicServer(
 		tenant, err := s.registrationService.RegisterUserWithTenant(
 			ctx,
 			dummyUserID,
-			"Cipher-IM Demo Tenant",
-			true, // createTenant = true
+			"demo-user",             // username
+			"demo@cipher-im.local",  // email
+			"",                      // passwordHash (not used for demo tenant)
+			"Cipher-IM Demo Tenant", // tenantName
+			true,                    // createTenant = true
 		)
 		if err != nil {
 			// Log error but continue with zero UUID (will fail later with better error).

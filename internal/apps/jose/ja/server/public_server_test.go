@@ -46,6 +46,10 @@ func (m *mockRealmService) GetRealmConfig(_ context.Context, _, _ googleUuid.UUI
 	return nil, nil
 }
 
+func (m *mockRealmService) GetFirstActiveRealm(_ context.Context, _ googleUuid.UUID) (*cryptoutilAppsTemplateServiceServerRepository.TenantRealm, error) {
+	return nil, nil
+}
+
 // newMockRealmService creates a mock realm service for testing.
 func newMockRealmService() cryptoutilAppsTemplateServiceServerService.RealmService {
 	return &mockRealmService{}
