@@ -42,6 +42,7 @@ type ServiceResources struct {
 	RegistrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
 	RealmService        cryptoutilAppsTemplateServiceServerService.RealmService
 	RealmRepository     cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
+	JWTAuthConfig       *JWTAuthConfig // JWT authentication config (nil = session-based auth).
 
 	// Application wrapper.
 	Application *cryptoutilAppsTemplateServiceServer.Application
@@ -60,6 +61,7 @@ type ServerBuilder struct {
 	migrationsPath      string
 	publicRouteRegister func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error
 	swaggerUIConfig     *SwaggerUIConfig // Swagger UI configuration (nil = disabled).
+	jwtAuthConfig       *JWTAuthConfig   // JWT authentication configuration (nil = use session-based auth).
 	err                 error            // Accumulates errors during fluent chain.
 }
 
@@ -117,6 +119,31 @@ func (b *ServerBuilder) WithPublicRouteRegistration(registerFunc func(*cryptouti
 	}
 
 	b.publicRouteRegister = registerFunc
+
+	return b
+}
+
+// WithJWTAuth configures JWT authentication for the service.
+// If not called, the service defaults to session-based authentication.
+// Use NewKMSJWTAuthConfig() for KMS-style JWT authentication.
+func (b *ServerBuilder) WithJWTAuth(config *JWTAuthConfig) *ServerBuilder {
+	if b.err != nil {
+		return b
+	}
+
+	if config == nil {
+		b.err = fmt.Errorf("JWT auth config cannot be nil")
+
+		return b
+	}
+
+	if err := config.Validate(); err != nil {
+		b.err = fmt.Errorf("invalid JWT auth config: %w", err)
+
+		return b
+	}
+
+	b.jwtAuthConfig = config
 
 	return b
 }
@@ -263,6 +290,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		RegistrationService: services.RegistrationService,
 		RealmService:        services.RealmService,
 		RealmRepository:     services.RealmRepository,
+		JWTAuthConfig:       b.jwtAuthConfig,
 		ShutdownCore:        services.Core.Shutdown,
 		ShutdownContainer:   services.Core.ShutdownDBContainer,
 	}

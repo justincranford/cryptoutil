@@ -40,6 +40,9 @@ const (
 
 	// IntrospectionHTTPTimeoutSeconds is the default HTTP timeout for introspection.
 	IntrospectionHTTPTimeoutSeconds = 10
+
+	// JWKSCacheTTLMinutes is the default cache TTL for JWKS keys.
+	JWKSCacheTTLMinutes = 5
 )
 
 // Token introspection durations.
@@ -49,4 +52,7 @@ var (
 
 	// IntrospectionHTTPTimeout is the default HTTP timeout as a duration.
 	IntrospectionHTTPTimeout = IntrospectionHTTPTimeoutSeconds * time.Second
+
+	// JWKSCacheTTL is the default cache TTL for JWKS keys.
+	JWKSCacheTTL = JWKSCacheTTLMinutes * time.Minute
 )
