@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 47/50 tasks complete (94%) | 1 BLOCKED | Phase 11-12 remaining
+**Status**: 49/51 tasks complete (96%) | 2 BLOCKED | Phase 13 pending user decision
 **Last Updated**: 2026-02-01
 
 ## Summary
@@ -8,12 +8,13 @@
 | Phase | Status | Description |
 |-------|--------|-------------|
 | Phase 1-4 | ✅ Complete | Instructions, CICD, Deployment, Critical Fixes |
-| Phase 5 | ⚠️ Partial | Test Architecture (5.1 BLOCKED) |
+| Phase 5 | ⚠️ Partial | Test Architecture (5.1 BLOCKED - StartApplicationListener) |
 | Phase 6-8 | ✅ Complete | Coverage, Cleanup, Race Detection |
 | Phase 9 | ✅ Complete | KMS Analysis (ServerBuilder extension needed) |
 | Phase 10 | ✅ Complete | Cleanup (10.1-10.4 ✅) |
-| Phase 11 | ⚠️ In Progress | KMS ServerBuilder Extension (11.1 ✅) |
-| Phase 12 | ❌ Not Started | KMS Before/After Comparison (REQUIRED) |
+| Phase 11 | ✅ Complete | KMS ServerBuilder Extension (11.1-11.3 ✅, 11.4 deferred) |
+| Phase 12 | ✅ Complete | KMS Before/After Comparison (all 6 tasks ✅) |
+| Phase 13 | ⚠️ BLOCKED | KMS Server Refactoring (awaiting user decision on Option A/B/C) |
 
 **Completed tasks archived**: See [completed.md](./completed.md)
 
@@ -110,7 +111,7 @@
 
 ### Phase 11: KMS ServerBuilder Extension (REQUIRED)
 
-**Status**: ⚠️ In Progress (Task 11.1 Complete)
+**Status**: ✅ Complete (Tasks 11.1-11.3 Complete, Task 11.4 Deferred to Phase 13)
 **Rationale**: Service-template MUST support all KMS functionality for lateral migration
 
 **CRITICAL**: KMS migrating to service-template MUST be a lateral move - no loss of functionality, architecture, design intent, or test intent.
