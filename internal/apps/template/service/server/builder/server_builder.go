@@ -115,7 +115,6 @@ func (b *ServerBuilder) WithDomainMigrations(migrationFS fs.FS, migrationsPath s
 // Use this instead of WithDomainMigrations() for services that need custom migration schemes.
 // - NewDefaultMigrationConfig(): Template + domain migrations (default behavior)
 // - NewDomainOnlyMigrationConfig(): Only domain migrations (KMS-style)
-// - NewDisabledMigrationConfig(): No migrations (handled externally).
 func (b *ServerBuilder) WithMigrationConfig(config *MigrationConfig) *ServerBuilder {
 	if b.err != nil {
 		return b
@@ -290,10 +289,9 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
 
-	// Phase W.2: Apply migrations ONLY if migrations are enabled.
-	// KMS and other services with external migration systems can disable this.
-	migrationsEnabled := b.migrationConfig == nil || b.migrationConfig.IsEnabled()
-	if migrationsEnabled {
+	// Phase W.2: Apply migrations (always enabled - GORM database is mandatory).
+	// Migration mode determines which migrations to apply (TemplateWithDomain or DomainOnly).
+	{
 		sqlDB, err := applicationCore.DB.DB()
 		if err != nil {
 			applicationCore.Shutdown()

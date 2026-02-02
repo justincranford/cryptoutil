@@ -34,18 +34,6 @@ func TestNewDomainOnlyMigrationConfig(t *testing.T) {
 	require.Empty(t, config.DomainPath)
 }
 
-func TestNewDisabledMigrationConfig(t *testing.T) {
-	t.Parallel()
-
-	config := NewDisabledMigrationConfig()
-
-	require.NotNil(t, config)
-	require.Equal(t, MigrationModeDisabled, config.Mode)
-	require.True(t, config.SkipTemplateMigrations)
-	require.Nil(t, config.DomainFS)
-	require.Empty(t, config.DomainPath)
-}
-
 func TestMigrationConfig_Validate_TemplateWithDomain_Success(t *testing.T) {
 	t.Parallel()
 
@@ -128,15 +116,6 @@ func TestMigrationConfig_Validate_DomainOnly_MissingPath(t *testing.T) {
 	require.Contains(t, err.Error(), "domain path is required")
 }
 
-func TestMigrationConfig_Validate_Disabled_Success(t *testing.T) {
-	t.Parallel()
-
-	config := NewDisabledMigrationConfig()
-
-	err := config.Validate()
-	require.NoError(t, err)
-}
-
 func TestMigrationConfig_Validate_EmptyMode(t *testing.T) {
 	t.Parallel()
 
@@ -159,6 +138,16 @@ func TestMigrationConfig_Validate_InvalidMode(t *testing.T) {
 	err := config.Validate()
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid migration mode")
+}
+
+func TestMigrationConfig_Validate_NilConfig(t *testing.T) {
+	t.Parallel()
+
+	var config *MigrationConfig
+
+	err := config.Validate()
+	require.Error(t, err)
+	require.ErrorIs(t, err, ErrMigrationModeRequired)
 }
 
 func TestMigrationConfig_WithDomainFS(t *testing.T) {
@@ -218,39 +207,6 @@ func TestMigrationConfig_WithSkipTemplateMigrations(t *testing.T) {
 	require.False(t, config.SkipTemplateMigrations)
 }
 
-func TestMigrationConfig_IsEnabled(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name     string
-		config   *MigrationConfig
-		expected bool
-	}{
-		{
-			name:     "template with domain is enabled",
-			config:   NewDefaultMigrationConfig(),
-			expected: true,
-		},
-		{
-			name:     "domain only is enabled",
-			config:   NewDomainOnlyMigrationConfig(),
-			expected: true,
-		},
-		{
-			name:     "disabled mode is not enabled",
-			config:   NewDisabledMigrationConfig(),
-			expected: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			require.Equal(t, tt.expected, tt.config.IsEnabled())
-		})
-	}
-}
-
 func TestMigrationConfig_RequiresTemplateMigrations(t *testing.T) {
 	t.Parallel()
 
@@ -272,11 +228,6 @@ func TestMigrationConfig_RequiresTemplateMigrations(t *testing.T) {
 		{
 			name:     "domain only does not require template migrations",
 			config:   NewDomainOnlyMigrationConfig(),
-			expected: false,
-		},
-		{
-			name:     "disabled does not require template migrations",
-			config:   NewDisabledMigrationConfig(),
 			expected: false,
 		},
 	}
@@ -314,7 +265,6 @@ func TestMigrationModeConstants(t *testing.T) {
 	// Verify constant values don't change unexpectedly.
 	require.Equal(t, MigrationMode("template_with_domain"), MigrationModeTemplateWithDomain)
 	require.Equal(t, MigrationMode("domain_only"), MigrationModeDomainOnly)
-	require.Equal(t, MigrationMode("disabled"), MigrationModeDisabled)
 }
 
 func TestErrMigrationModeRequired(t *testing.T) {
@@ -365,10 +315,6 @@ func TestWithMigrationConfig_ValidConfig(t *testing.T) {
 			config: NewDomainOnlyMigrationConfig().
 				WithDomainFS(mockFS).
 				WithDomainPath("migrations"),
-		},
-		{
-			name:   "disabled",
-			config: NewDisabledMigrationConfig(),
 		},
 	}
 
