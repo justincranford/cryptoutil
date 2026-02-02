@@ -348,21 +348,28 @@
   - [x] BarrierConfig abstraction supports template, shared, and disabled modes
   - [x] BarrierEncryptor interface for unified encryption operations
   - [x] Tests pass (22 tests for barrier + 4 for WithBarrierConfig)
-- **Commit**: (pending)
+- **Commit**: 1625d9b0
 
 #### Task 13.5: Add Flexible Migration Support to ServerBuilder
-- **Status**: ❌ Not Started
+- **Status**: ✅ COMPLETE
 - **Estimated**: 3h
+- **Actual**: 1h
 - **Description**: Support multiple migration schemes (not just 1001-1004 + 2001+)
 - **Files**:
-  - `internal/apps/template/service/server/builder/migrations.go` (NEW)
-  - `internal/apps/template/service/server/builder/migrations_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/migrations.go` (NEW - 145 lines)
+  - `internal/apps/template/service/server/builder/migrations_test.go` (NEW - 355 lines)
   - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
 - **Acceptance Criteria**:
-  - [ ] WithMigrations() accepts any fs.FS
-  - [ ] Optional template migrations (not always required)
-  - [ ] Support KMS migration scheme
-  - [ ] Tests pass
+  - [x] WithMigrationConfig() method with MigrationConfig struct
+  - [x] MigrationMode: TemplateWithDomain, DomainOnly, Disabled
+  - [x] Optional template migrations (SkipTemplateMigrations flag)
+  - [x] Support KMS migration scheme (DomainOnly mode)
+  - [x] Factory functions: NewDefaultMigrationConfig(), NewDomainOnlyMigrationConfig(), NewDisabledMigrationConfig()
+  - [x] Fluent setters: WithDomainFS(), WithDomainPath(), WithMode(), WithSkipTemplateMigrations()
+  - [x] Validate(), IsEnabled(), RequiresTemplateMigrations() methods
+  - [x] 26 tests pass
+  - [x] Linting passes
+  - [x] Build passes
 
 #### Task 13.6: Create KMS Migration Adapter
 - **Status**: ❌ Not Started

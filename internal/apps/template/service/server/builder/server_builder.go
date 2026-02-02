@@ -45,6 +45,7 @@ type ServiceResources struct {
 	JWTAuthConfig       *JWTAuthConfig      // JWT authentication config (nil = session-based auth).
 	StrictServerConfig  *StrictServerConfig // OpenAPI strict server config (nil = not registered).
 	BarrierConfig       *BarrierConfig      // Barrier config (nil = default template barrier).
+	MigrationConfig     *MigrationConfig    // Migration config (nil = default template+domain).
 
 	// Application wrapper.
 	Application *cryptoutilAppsTemplateServiceServer.Application
@@ -61,6 +62,7 @@ type ServerBuilder struct {
 	config              *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	migrationFS         fs.FS
 	migrationsPath      string
+	migrationConfig     *MigrationConfig // Migration configuration (nil = use legacy WithDomainMigrations).
 	publicRouteRegister func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error
 	swaggerUIConfig     *SwaggerUIConfig    // Swagger UI configuration (nil = disabled).
 	jwtAuthConfig       *JWTAuthConfig      // JWT authentication configuration (nil = use session-based auth).
@@ -105,6 +107,37 @@ func (b *ServerBuilder) WithDomainMigrations(migrationFS fs.FS, migrationsPath s
 
 	b.migrationFS = migrationFS
 	b.migrationsPath = migrationsPath
+
+	return b
+}
+
+// WithMigrationConfig configures migration handling with full flexibility.
+// Use this instead of WithDomainMigrations() for services that need custom migration schemes.
+// - NewDefaultMigrationConfig(): Template + domain migrations (default behavior)
+// - NewDomainOnlyMigrationConfig(): Only domain migrations (KMS-style)
+// - NewDisabledMigrationConfig(): No migrations (handled externally).
+func (b *ServerBuilder) WithMigrationConfig(config *MigrationConfig) *ServerBuilder {
+	if b.err != nil {
+		return b
+	}
+
+	if config == nil {
+		return b
+	}
+
+	if err := config.Validate(); err != nil {
+		b.err = fmt.Errorf("invalid migration config: %w", err)
+
+		return b
+	}
+
+	b.migrationConfig = config
+
+	// Also set legacy fields for backward compatibility with applyMigrations().
+	if config.DomainFS != nil {
+		b.migrationFS = config.DomainFS
+		b.migrationsPath = config.DomainPath
+	}
 
 	return b
 }
@@ -344,6 +377,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		JWTAuthConfig:       b.jwtAuthConfig,
 		StrictServerConfig:  b.strictServerConfig,
 		BarrierConfig:       b.barrierConfig,
+		MigrationConfig:     b.migrationConfig,
 		ShutdownCore:        services.Core.Shutdown,
 		ShutdownContainer:   services.Core.ShutdownDBContainer,
 	}
