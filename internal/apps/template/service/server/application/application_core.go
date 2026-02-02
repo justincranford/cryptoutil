@@ -266,6 +266,9 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 		databaseURL = databaseURL[9:] // Strip sqlite:// prefix -> file::memory:?cache=shared.
 	} else if len(databaseURL) >= 7 && databaseURL[:7] == "file://" {
 		isSQLite = true
+	} else if len(databaseURL) >= 13 && databaseURL[:13] == "file::memory:" {
+		// Handle file::memory:NAME?cache=shared format (used by test utilities with unique names).
+		isSQLite = true
 	} else {
 		return nil, nil, fmt.Errorf("unsupported database URL scheme: %s", databaseURL)
 	}

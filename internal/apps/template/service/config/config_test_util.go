@@ -5,6 +5,7 @@
 package config
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -189,6 +190,10 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 	databaseURLValue, ok := databaseURL.Value.(string)
 	if !ok {
 		panic("databaseURL.value must be string")
+	}
+	// Allow environment variable override for testing - check CRYPTOUTIL_DATABASE_URL first
+	if envDatabaseURL := os.Getenv("CRYPTOUTIL_DATABASE_URL"); envDatabaseURL != "" {
+		databaseURLValue = envDatabaseURL
 	}
 
 	databaseInitTotalTimeoutValue, ok := databaseInitTotalTimeout.Value.(time.Duration)
@@ -384,8 +389,13 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 	if strings.Contains(settings.DatabaseURL, "/DB?") {
 		// SQLite: Randomize the in-memory database name, so it is unique during concurrent testing
 		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "/DB?", "/DB_"+applicationName+"_"+uniqueSuffix+"?", 1)
+	} else if strings.HasPrefix(settings.DatabaseURL, "file::memory:") {
+		// SQLite file::memory: format with shared cache - use unique named database
+		// Format: file::memory:NAME?cache=shared
+		// Replace the empty name with a unique name for test isolation
+		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "file::memory:", "file::memory:"+applicationName+"_"+uniqueSuffix, 1)
 	} else if strings.Contains(settings.DatabaseURL, ":memory:") {
-		// SQLite in-memory: Randomize the database name to avoid sharing between concurrent tests
+		// SQLite simple :memory: format - append suffix
 		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, ":memory:", ":memory:"+applicationName+"_"+uniqueSuffix, 1)
 	} else if strings.Contains(settings.DatabaseURL, "postgres://") {
 		// PostgreSQL: Use a unique schema within the shared database for concurrent testing
