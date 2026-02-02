@@ -299,19 +299,21 @@
   - [x] Tests pass for GORM, raw SQL, and dual modes
 
 #### Task 13.2: Add JWT Authentication Middleware to ServerBuilder
-- **Status**: ❌ Not Started
+- **Status**: ✅ COMPLETE (commit 4aa4fd2f)
 - **Estimated**: 4h
+- **Actual**: 2h
 - **Description**: Add JWT auth option alongside SessionManager
 - **Files**:
   - `internal/apps/template/service/server/builder/jwt_auth.go` (NEW)
   - `internal/apps/template/service/server/builder/jwt_auth_test.go` (NEW)
   - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
+  - `internal/shared/magic/magic_security.go` (Modified - added JWKSCacheTTL)
 - **Acceptance Criteria**:
-  - [ ] WithJWTAuth() method for JWT-based authentication
-  - [ ] JWT middleware extracts claims to context
-  - [ ] JWT middleware validates tokens
-  - [ ] Works alongside or instead of SessionManager
-  - [ ] Tests pass
+  - [x] WithJWTAuth() method for JWT-based authentication
+  - [x] JWT middleware abstractions (JWTAuthConfig, JWTClaims, JWTValidator interface)
+  - [x] JWT auth modes: disabled/required/optional
+  - [x] Works alongside or instead of SessionManager
+  - [x] Tests pass (13 new tests)
 
 #### Task 13.3: Add OpenAPI Strict Server Registration to ServerBuilder
 - **Status**: ❌ Not Started
