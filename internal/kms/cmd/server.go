@@ -6,15 +6,20 @@
 package cmd
 
 import (
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilKMSServer "cryptoutil/internal/kms/server"
 	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
 )
 
 // Server handles the KMS server command and subcommands.
 func Server(parameters []string) {
-	// reuse same Settings for start, ready, live, stop sub-commands, since they need to share private API coordinates
+	// Reuse same Settings for start, ready, live, stop sub-commands, since they need to share private API coordinates.
 	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(parameters, true)
 	if err != nil {
 		log.Fatal("Error parsing config:", err)
@@ -22,12 +27,7 @@ func Server(parameters []string) {
 
 	switch settings.SubCommand {
 	case "start":
-		startServerListenerApplication, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
-		if err != nil {
-			log.Fatalf("failed to start server application: %v", err)
-		}
-
-		startServerListenerApplication.StartFunction() // blocks until server receives a signal to shutdown
+		startServer(settings)
 	case "stop":
 		err := cryptoutilServerApplication.SendServerListenerShutdownRequest(settings)
 		if err != nil {
@@ -50,5 +50,40 @@ func Server(parameters []string) {
 		}
 	default:
 		log.Fatalf("unknown subcommand: %v", settings.SubCommand)
+	}
+}
+
+// startServer starts the KMS server using the new ServerBuilder-based implementation.
+func startServer(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create KMS server using ServerBuilder infrastructure.
+	kmsServer, err := cryptoutilKMSServer.NewKMSServer(ctx, settings, nil)
+	if err != nil {
+		log.Fatalf("failed to create KMS server: %v", err)
+	}
+
+	// Setup signal handling for graceful shutdown.
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	// Start server in goroutine.
+	errChan := make(chan error, 1)
+
+	go func() {
+		if startErr := kmsServer.Start(); startErr != nil {
+			errChan <- startErr
+		}
+	}()
+
+	// Wait for shutdown signal or server error.
+	select {
+	case sig := <-sigChan:
+		log.Printf("Received signal %v, initiating graceful shutdown...", sig)
+		cancel()
+		kmsServer.Shutdown()
+	case startErr := <-errChan:
+		log.Fatalf("server error: %v", startErr)
 	}
 }

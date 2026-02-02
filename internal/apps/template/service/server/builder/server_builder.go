@@ -292,31 +292,41 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
 
-	// Phase W.2: Apply migrations (template + domain merged into single migration stream).
-	// CRITICAL: Migrations MUST run before service initialization (creates barrier_root_keys, sessions, realms, tenants).
-	sqlDB, err := applicationCore.DB.DB()
-	if err != nil {
-		applicationCore.Shutdown()
+	// Phase W.2: Apply migrations ONLY if migrations are enabled.
+	// KMS and other services with external migration systems can disable this.
+	migrationsEnabled := b.migrationConfig == nil || b.migrationConfig.IsEnabled()
+	if migrationsEnabled {
+		sqlDB, err := applicationCore.DB.DB()
+		if err != nil {
+			applicationCore.Shutdown()
 
-		return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
+			return nil, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
+		}
+
+		if err := b.applyMigrations(sqlDB); err != nil {
+			applicationCore.Shutdown()
+
+			return nil, err
+		}
 	}
 
-	if err := b.applyMigrations(sqlDB); err != nil {
-		applicationCore.Shutdown()
+	// Phase W.3: Initialize services ONLY if barrier is enabled.
+	// KMS and other services with their own barrier/session management can disable this.
+	barrierEnabled := b.barrierConfig == nil || b.barrierConfig.IsEnabled()
 
-		return nil, err
-	}
+	var services *cryptoutilAppsTemplateServiceServerApplication.CoreWithServices
 
-	// Phase W.3: Initialize services now that migrations have created required tables.
-	services, err := cryptoutilAppsTemplateServiceServerApplication.InitializeServicesOnCore(
-		b.ctx,
-		applicationCore,
-		b.config,
-	)
-	if err != nil {
-		applicationCore.Shutdown()
+	if barrierEnabled {
+		services, err = cryptoutilAppsTemplateServiceServerApplication.InitializeServicesOnCore(
+			b.ctx,
+			applicationCore,
+			b.config,
+		)
+		if err != nil {
+			applicationCore.Shutdown()
 
-		return nil, fmt.Errorf("failed to initialize services on core: %w", err)
+			return nil, fmt.Errorf("failed to initialize services on core: %w", err)
+		}
 	}
 
 	// Generate public TLS configuration.
@@ -331,7 +341,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		"public",
 	)
 	if err != nil {
-		services.Core.Shutdown()
+		applicationCore.Shutdown()
 
 		return nil, err
 	}
@@ -339,7 +349,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	// Generate TLS material for public server.
 	publicTLSMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(publicTLSCfg)
 	if err != nil {
-		services.Core.Shutdown()
+		applicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to generate public TLS material: %w", err)
 	}
@@ -351,41 +361,49 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		TLSMaterial: publicTLSMaterial,
 	})
 	if err != nil {
-		services.Core.Shutdown()
+		applicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to create public server base: %w", err)
 	}
 
 	// Create DatabaseConnection wrapper for multi-mode access.
-	dbConn, err := NewDatabaseConnectionGORM(services.Core.DB)
+	dbConn, err := NewDatabaseConnectionGORM(applicationCore.DB)
 	if err != nil {
+		applicationCore.Shutdown()
+
 		return nil, fmt.Errorf("failed to create database connection wrapper: %w", err)
 	}
 
 	// Prepare service resources for domain-specific initialization.
+	// When barrier is disabled, service-specific fields (BarrierService, SessionManager, etc.) are nil.
+	// Domain services (like KMS) provide their own implementations via route registration callback.
 	resources := &ServiceResources{
-		DB:                  services.Core.DB,
-		DatabaseConnection:  dbConn,
-		TelemetryService:    services.Core.Basic.TelemetryService,
-		JWKGenService:       services.Core.Basic.JWKGenService,
-		UnsealKeysService:   services.Core.Basic.UnsealKeysService,
-		BarrierService:      services.BarrierService,
-		SessionManager:      services.SessionManager,
-		RegistrationService: services.RegistrationService,
-		RealmService:        services.RealmService,
-		RealmRepository:     services.RealmRepository,
-		JWTAuthConfig:       b.jwtAuthConfig,
-		StrictServerConfig:  b.strictServerConfig,
-		BarrierConfig:       b.barrierConfig,
-		MigrationConfig:     b.migrationConfig,
-		ShutdownCore:        services.Core.Shutdown,
-		ShutdownContainer:   services.Core.ShutdownDBContainer,
+		DB:                 applicationCore.DB,
+		DatabaseConnection: dbConn,
+		TelemetryService:   applicationCore.Basic.TelemetryService,
+		JWKGenService:      applicationCore.Basic.JWKGenService,
+		UnsealKeysService:  applicationCore.Basic.UnsealKeysService,
+		JWTAuthConfig:      b.jwtAuthConfig,
+		StrictServerConfig: b.strictServerConfig,
+		BarrierConfig:      b.barrierConfig,
+		MigrationConfig:    b.migrationConfig,
+		ShutdownCore:       applicationCore.Shutdown,
+		ShutdownContainer:  applicationCore.ShutdownDBContainer,
+	}
+
+	// If barrier is enabled, populate service resources from initialized services.
+	if services != nil {
+		resources.BarrierService = services.BarrierService
+		resources.SessionManager = services.SessionManager
+		resources.RegistrationService = services.RegistrationService
+		resources.RealmService = services.RealmService
+		resources.RealmRepository = services.RealmRepository
 	}
 
 	// Register domain-specific public routes if provided.
 	if b.publicRouteRegister != nil {
 		if err := b.publicRouteRegister(publicServerBase, resources); err != nil {
-			services.Core.Shutdown()
+			applicationCore.Shutdown()
 
 			return nil, fmt.Errorf("failed to register public routes: %w", err)
 		}
@@ -394,29 +412,32 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	// Register Swagger UI if configured.
 	if b.swaggerUIConfig != nil {
 		if err := RegisterSwaggerUI(publicServerBase.App(), b.swaggerUIConfig); err != nil {
-			services.Core.Shutdown()
+			applicationCore.Shutdown()
 
 			return nil, fmt.Errorf("failed to register swagger UI: %w", err)
 		}
 	}
 
-	// Register tenant registration routes on PUBLIC server (unauthenticated user registration).
-	// Default rate limit configured via magic constant.
-	cryptoutilAppsTemplateServiceServerApis.RegisterRegistrationRoutes(publicServerBase.App(), services.RegistrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
+	// Register template-specific routes ONLY if barrier/services are enabled.
+	// KMS and other services with disabled barrier handle their own routes.
+	if services != nil {
+		// Register tenant registration routes on PUBLIC server (unauthenticated user registration).
+		// Default rate limit configured via magic constant.
+		cryptoutilAppsTemplateServiceServerApis.RegisterRegistrationRoutes(publicServerBase.App(), services.RegistrationService, cryptoutilSharedMagic.RateLimitDefaultRequestsPerMin)
 
-	// Register join request management routes on ADMIN server (authenticated admin operations).
-	// SessionManager implements SessionValidator interface for session validation.
-	cryptoutilAppsTemplateServiceServerApis.RegisterJoinRequestManagementRoutes(adminServer.App(), services.RegistrationService, services.SessionManager)
+		// Register join request management routes on ADMIN server (authenticated admin operations).
+		// SessionManager implements SessionValidator interface for session validation.
+		cryptoutilAppsTemplateServiceServerApis.RegisterJoinRequestManagementRoutes(adminServer.App(), services.RegistrationService, services.SessionManager)
 
-	// Register barrier admin endpoints (key rotation, status) on ADMIN server.
-	cryptoutilAppsTemplateServiceServerBarrier.RegisterRotationRoutes(adminServer.App(), services.RotationService)
-
-	cryptoutilAppsTemplateServiceServerBarrier.RegisterStatusRoutes(adminServer.App(), services.StatusService)
+		// Register barrier admin endpoints (key rotation, status) on ADMIN server.
+		cryptoutilAppsTemplateServiceServerBarrier.RegisterRotationRoutes(adminServer.App(), services.RotationService)
+		cryptoutilAppsTemplateServiceServerBarrier.RegisterStatusRoutes(adminServer.App(), services.StatusService)
+	}
 
 	// Create application wrapper with both servers.
 	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(b.ctx, publicServerBase, adminServer)
 	if err != nil {
-		services.Core.Shutdown()
+		applicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to create application: %w", err)
 	}

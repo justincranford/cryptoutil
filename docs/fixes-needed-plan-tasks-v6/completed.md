@@ -240,6 +240,76 @@ This file contains all completed tasks from the v6 plan for historical reference
 
 ---
 
+## Phase 10: Cleanup Leftover Coverage Files ✅
+
+### Tasks 10.1-10.4 ✅
+- **Completed**: 2026-02-01
+- **Result**: All leftover coverage files cleaned up
+
+---
+
+## Phase 11: KMS ServerBuilder Extension ✅
+
+### Tasks 11.1-11.3 ✅
+- **Completed**: 2026-02-01
+- **Result**: ServerBuilder extended for KMS architecture
+- **Task 11.4**: Deferred to Phase 13
+
+---
+
+## Phase 12: KMS Before/After Comparison ✅
+
+### Tasks 12.1-12.6 ✅
+- **Completed**: 2026-02-01
+- **Evidence**: `test-output/kms-comparison/` directory with full analysis
+
+---
+
+## Phase 13: ServerBuilder Extension for KMS (Option A) ✅
+
+### Task 13.1: Database Abstraction Layer ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: DatabaseConfig with GORM/RawSQL/Dual/Disabled modes
+
+### Task 13.2: JWT Authentication Middleware ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: JWTAuthConfig with Disabled/Required/Optional modes
+
+### Task 13.3: OpenAPI Strict Server Registration ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: StrictServerConfig for oapi-codegen handlers
+
+### Task 13.4: Barrier Configuration Abstraction ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: BarrierConfig with TemplateBarrier/SharedBarrier/Disabled modes
+
+### Task 13.5: Flexible Migration Support ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: MigrationConfig with TemplateWithDomain/DomainOnly/Disabled modes
+
+### Task 13.6: KMS Migration Adapter ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: `/internal/kms/server/builder_adapter.go`
+
+### Task 13.7: Migrate KMS to Extended ServerBuilder ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: `/internal/kms/server/server.go` (~160 lines)
+- **Evidence**: KMS uses ServerBuilder for TLS, middleware, health endpoints
+
+### Task 13.8: Verify All KMS Tests Pass ✅
+- **Completed**: 2026-02-02
+- **Evidence**: All 9 KMS test packages pass
+
+### Task 13.9: Verify Cross-Service Tests Pass ✅
+- **Completed**: 2026-02-02
+- **Evidence**: Template (15), Cipher (10), JOSE (6) - 31 packages all pass
+
+### Task 13.10: Update Documentation ✅
+- **Completed**: 2026-02-02
+- **Deliverable**: `.github/instructions/03-08.server-builder.instructions.md` - Phase 13 Extensions section added
+
+---
+
 ## Cross-Cutting Tasks ✅
 
 - [x] README.md updated
@@ -266,4 +336,8 @@ This file contains all completed tasks from the v6 plan for historical reference
 | Phase 7 | 3 | 3 | 100% |
 | Phase 8 | 6 | 6 | 100% |
 | Phase 9 | 3 | 4 | 75% (9.3 blocked→deferred) |
-| **Total** | **42** | **44** | **95%** |
+| Phase 10 | 4 | 4 | 100% |
+| Phase 11 | 3 | 4 | 75% (11.4 deferred) |
+| Phase 12 | 6 | 6 | 100% |
+| Phase 13 | 10 | 10 | 100% |
+| **Total** | **59** | **60** | **98%** |
