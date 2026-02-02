@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 46/50 tasks complete (92%) | 1 BLOCKED | Phase 11-12 remaining
+**Status**: 47/50 tasks complete (94%) | 1 BLOCKED | Phase 11-12 remaining
 **Last Updated**: 2026-02-01
 
 ## Summary
@@ -12,7 +12,7 @@
 | Phase 6-8 | ✅ Complete | Coverage, Cleanup, Race Detection |
 | Phase 9 | ✅ Complete | KMS Analysis (ServerBuilder extension needed) |
 | Phase 10 | ✅ Complete | Cleanup (10.1-10.4 ✅) |
-| Phase 11 | ❌ Not Started | KMS ServerBuilder Extension (REQUIRED) |
+| Phase 11 | ⚠️ In Progress | KMS ServerBuilder Extension (11.1 ✅) |
 | Phase 12 | ❌ Not Started | KMS Before/After Comparison (REQUIRED) |
 
 **Completed tasks archived**: See [completed.md](./completed.md)
@@ -110,20 +110,26 @@
 
 ### Phase 11: KMS ServerBuilder Extension (REQUIRED)
 
-**Status**: ❌ Not Started
+**Status**: ⚠️ In Progress (Task 11.1 Complete)
 **Rationale**: Service-template MUST support all KMS functionality for lateral migration
 
 **CRITICAL**: KMS migrating to service-template MUST be a lateral move - no loss of functionality, architecture, design intent, or test intent.
 
 #### Task 11.1: Extend ServerBuilder with SwaggerUI Support
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 4h
+- **Actual**: 3h
 - **Description**: Add `WithSwaggerUI(username, password string)` method to ServerBuilder
+- **Evidence**: Commit `68a52beb` - swagger_ui.go, swagger_ui_test.go, ServerBuilder integration
+- **Files**:
+  - `internal/apps/template/service/server/builder/swagger_ui.go` (NEW - ~200 lines)
+  - `internal/apps/template/service/server/builder/swagger_ui_test.go` (NEW - ~290 lines)
+  - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
 - **Acceptance Criteria**:
-  - [ ] ServerBuilder supports Swagger UI
-  - [ ] Basic auth middleware included
-  - [ ] CSRF script injection supported
-  - [ ] Tests pass
+  - [x] ServerBuilder supports Swagger UI via WithSwaggerUI()
+  - [x] Basic auth middleware included (swaggerUIBasicAuthMiddleware)
+  - [x] CSRF script injection supported (swaggerUICustomCSRFScript)
+  - [x] Tests pass (4 test functions, all pass)
 
 #### Task 11.2: Extend ServerBuilder with OpenAPI Handler Registration
 - **Status**: ❌ Not Started
