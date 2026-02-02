@@ -58,7 +58,8 @@ type ServerBuilder struct {
 	migrationFS         fs.FS
 	migrationsPath      string
 	publicRouteRegister func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error
-	err                 error // Accumulates errors during fluent chain.
+	swaggerUIConfig     *SwaggerUIConfig // Swagger UI configuration (nil = disabled).
+	err                 error            // Accumulates errors during fluent chain.
 }
 
 // NewServerBuilder creates a new server builder with base configuration.
@@ -115,6 +116,31 @@ func (b *ServerBuilder) WithPublicRouteRegistration(registerFunc func(*cryptouti
 	}
 
 	b.publicRouteRegister = registerFunc
+
+	return b
+}
+
+// WithSwaggerUI enables Swagger UI with optional HTTP Basic Authentication.
+// If username and password are both empty, Swagger UI is accessible without authentication.
+// The openAPISpecJSON should be the serialized OpenAPI specification from oapi-codegen's GetSwagger().
+func (b *ServerBuilder) WithSwaggerUI(username, password string, openAPISpecJSON []byte) *ServerBuilder {
+	if b.err != nil {
+		return b
+	}
+
+	if len(openAPISpecJSON) == 0 {
+		b.err = fmt.Errorf("OpenAPI spec JSON cannot be empty")
+
+		return b
+	}
+
+	b.swaggerUIConfig = &SwaggerUIConfig{
+		Username:              username,
+		Password:              password,
+		CSRFTokenName:         b.config.CSRFTokenName,
+		BrowserAPIContextPath: b.config.PublicBrowserAPIContextPath,
+		OpenAPISpecJSON:       openAPISpecJSON,
+	}
 
 	return b
 }
@@ -239,6 +265,15 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 			services.Core.Shutdown()
 
 			return nil, fmt.Errorf("failed to register public routes: %w", err)
+		}
+	}
+
+	// Register Swagger UI if configured.
+	if b.swaggerUIConfig != nil {
+		if err := RegisterSwaggerUI(publicServerBase.App(), b.swaggerUIConfig); err != nil {
+			services.Core.Shutdown()
+
+			return nil, fmt.Errorf("failed to register swagger UI: %w", err)
 		}
 	}
 
