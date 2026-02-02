@@ -42,6 +42,7 @@ func TestMain(m *testing.M) {
 	func() {
 		// Start template Core which provides GORM directly with proper migrations
 		var err error
+
 		testTemplateCore, err = cryptoutilAppsTemplateServiceServerApplication.StartCore(testCtx, testSettings)
 		if err != nil {
 			panic(fmt.Sprintf("failed to start template core: %v", err))
@@ -51,6 +52,7 @@ func TestMain(m *testing.M) {
 			if testTemplateCore.ShutdownDBContainer != nil {
 				testTemplateCore.ShutdownDBContainer()
 			}
+
 			testTemplateCore.Basic.Shutdown()
 		}()
 
@@ -62,6 +64,7 @@ func TestMain(m *testing.M) {
 		if err != nil {
 			panic(fmt.Sprintf("failed to get sql.DB from GORM: %v", err))
 		}
+
 		err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(
 			sqlDB,
 			cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
@@ -80,7 +83,7 @@ func TestMain(m *testing.M) {
 		}
 
 		// Use GORM directly from template Core (not SQLRepository)
-		testOrmRepository = RequireNewFromGORMForTest(testCtx, testTelemetryService, testTemplateCore.DB, testJWKGenService, testSettings.VerboseMode)
+		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testTemplateCore.DB, testJWKGenService, testSettings.VerboseMode)
 		defer testOrmRepository.Shutdown()
 
 		rc = m.Run()

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilAppsTemplateServerApplication "cryptoutil/internal/apps/template/service/server/application"
+	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/kms/server/businesslogic"
 	cryptoutilKmsServerDemo "cryptoutil/internal/kms/server/demo"
@@ -25,7 +25,7 @@ import (
 // ServerApplicationCore provides core server application components including database, ORM, barrier, and business logic services.
 type ServerApplicationCore struct {
 	ServerApplicationBasic *ServerApplicationBasic
-	TemplateCore           *cryptoutilAppsTemplateServerApplication.Core
+	TemplateCore           *cryptoutilAppsTemplateServiceServerApplication.Core
 	DB                     *gorm.DB
 	OrmRepository          *cryptoutilOrmRepository.OrmRepository
 	BarrierService         *cryptoutilBarrierService.BarrierService
@@ -47,7 +47,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 	serverApplicationCore.Settings = settings
 
 	// Use template's StartCore to provision database (GORM directly, no SQLRepository).
-	templateCore, err := cryptoutilAppsTemplateServerApplication.StartCore(ctx, settings)
+	templateCore, err := cryptoutilAppsTemplateServiceServerApplication.StartCore(ctx, settings)
 	if err != nil {
 		serverApplicationBasic.TelemetryService.Slogger.Error("failed to start template core (database)", "error", err)
 		serverApplicationCore.Shutdown()
@@ -90,8 +90,8 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 
 	serverApplicationBasic.TelemetryService.Slogger.Debug("migrations applied successfully")
 
-	// Use NewOrmRepositoryFromGORM (GORM directly, no SQLRepository wrapper).
-	ormRepository, err := cryptoutilOrmRepository.NewOrmRepositoryFromGORM(ctx, serverApplicationBasic.TelemetryService, templateCore.DB, jwkGenService, settings.VerboseMode)
+	// Use NewOrmRepository (GORM directly from template Core).
+	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, serverApplicationBasic.TelemetryService, templateCore.DB, jwkGenService, settings.VerboseMode)
 	if err != nil {
 		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create ORM repository", "error", err)
 		serverApplicationCore.Shutdown()

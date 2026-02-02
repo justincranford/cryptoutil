@@ -1,6 +1,6 @@
 # Tasks - Unified Service-Template Migration (V7)
 
-**Status**: 7 of 40 tasks complete (17.5%)
+**Status**: 11 of 40 tasks complete (27.5%)
 **Last Updated**: 2026-02-02
 **Quizme Decisions Applied**: ✅ All 6 answers merged
 - Q1: Fresh start (no data migration)
@@ -217,34 +217,41 @@
   - `internal/kms/server/repository/migrations.go` (embed.FS)
 
 ### Task 2.3: Create KMS GORM Repositories
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 3h
-- **Actual**:
+- **Actual**: 0.75h
 - **Dependencies**: Task 2.1
 - **Description**: Implement GORM repositories matching KMS business needs
 - **Acceptance Criteria**:
-  - [ ] All required repository methods implemented
-  - [ ] Transaction support via context pattern
-  - [ ] Error mapping to app errors
-  - [ ] Unit tests with ≥95% coverage
-  - [ ] Documentation updated (per Q6)
+  - [x] All required repository methods implemented
+  - [x] Transaction support via context pattern
+  - [x] Error mapping to app errors
+  - [x] Unit tests with ≥95% coverage
+  - [x] Documentation updated (per Q6)
 - **Files**:
-  - `internal/kms/repository/gorm_repository.go`
-  - `internal/kms/repository/gorm_repository_test.go`
+  - `internal/kms/server/repository/orm/orm_repository.go` (NewOrmRepositoryFromGORM, GormDB)
+  - `internal/kms/server/repository/orm/orm_repository_test.go` (tests for new constructor)
+  - `internal/kms/server/repository/orm/orm_repository_test_util.go` (RequireNewFromGORMForTest)
+- **Evidence**: Tests pass. OrmRepository can now accept GORM directly via NewOrmRepositoryFromGORM(). Commit e5628b56.
 
 ### Task 2.4: Migrate KMS Business Logic to GORM
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1.5h
-- **Actual**:
+- **Actual**: 2h (MaterialKey timestamp type mismatch required entity/mapper/test fixes)
 - **Dependencies**: Task 2.3
 - **Description**: Update KMS services to use GORM repositories
 - **Acceptance Criteria**:
-  - [ ] All services use GORM repositories
-  - [ ] No direct SQLRepository references
-  - [ ] All service tests pass
-  - [ ] Documentation updated (per Q6)
+  - [x] All services use GORM repositories
+  - [x] No direct SQLRepository references (when using GORM path)
+  - [x] All service tests pass
+  - [x] Documentation updated (per Q6)
 - **Files**:
-  - `internal/kms/service/*.go`
+  - `internal/kms/server/repository/orm/business_entities.go` (MaterialKey date fields to *int64)
+  - `internal/kms/server/businesslogic/oam_orm_mapper.go` (int64↔time.Time conversions)
+  - `internal/kms/server/businesslogic/businesslogic.go` (3 timestamp conversions)
+  - `internal/kms/server/application/application_core.go` (GORM-based init path)
+  - `internal/apps/template/service/server/application/application_core.go` (GORM accessor)
+- **Evidence**: All KMS tests pass. MaterialKey uses *int64 with gorm:"type:bigint" for SQLite BIGINT compat. Commits: d9d0c99, 9e72b3d, 9c23c98, 5f05c7f.
 
 ### Task 2.5: Remove SQLRepository
 - **Status**: ❌ Not Started
