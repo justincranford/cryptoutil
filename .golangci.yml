@@ -80,6 +80,9 @@ linters:
       # Exclude nilnil from secret_rotation_service.go (intentional pattern).
       - path: "internal/identity/rotation/secret_rotation_service\\.go$"
         linters: [nilnil]
+      # Exclude nilnil from realm_service.go (intentional "no realms found" pattern).
+      - path: "internal/apps/template/service/server/service/realm_service\\.go$"
+        linters: [nilnil]
       # Exclude nilerr from jwk_util.go (intentional type-check pattern).
       - path: "internal/jose/jwk_util\\.go$"
         linters: [nilerr]
