@@ -33,6 +33,7 @@ import (
 type ServiceResources struct {
 	// Infrastructure.
 	DB                  *gorm.DB
+	DatabaseConnection  *DatabaseConnection // Multi-mode database access (GORM, raw SQL, or both).
 	TelemetryService    *cryptoutilSharedTelemetry.TelemetryService
 	JWKGenService       *cryptoutilSharedCryptoJose.JWKGenService
 	UnsealKeysService   cryptoutilUnsealKeysService.UnsealKeysService
@@ -244,9 +245,16 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to create public server base: %w", err)
 	}
 
+	// Create DatabaseConnection wrapper for multi-mode access.
+	dbConn, err := NewDatabaseConnectionGORM(services.Core.DB)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database connection wrapper: %w", err)
+	}
+
 	// Prepare service resources for domain-specific initialization.
 	resources := &ServiceResources{
 		DB:                  services.Core.DB,
+		DatabaseConnection:  dbConn,
 		TelemetryService:    services.Core.Basic.TelemetryService,
 		JWKGenService:       services.Core.Basic.JWKGenService,
 		UnsealKeysService:   services.Core.Basic.UnsealKeysService,
