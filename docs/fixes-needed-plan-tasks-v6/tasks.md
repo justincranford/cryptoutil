@@ -1,6 +1,6 @@
 # Tasks - Service Template & CICD Fixes
 
-**Status**: 49/51 tasks complete (96%) | 2 BLOCKED | Phase 13 pending user decision
+**Status**: 49/59 tasks complete (83%) | Phase 13 In Progress (Option A: Full ServerBuilder Extension)
 **Last Updated**: 2026-02-01
 
 ## Summary
@@ -14,7 +14,7 @@
 | Phase 10 | ✅ Complete | Cleanup (10.1-10.4 ✅) |
 | Phase 11 | ✅ Complete | KMS ServerBuilder Extension (11.1-11.3 ✅, 11.4 deferred) |
 | Phase 12 | ✅ Complete | KMS Before/After Comparison (all 6 tasks ✅) |
-| Phase 13 | ⚠️ BLOCKED | KMS Server Refactoring (awaiting user decision on Option A/B/C) |
+| Phase 13 | ⚠️ In Progress | ServerBuilder Extension for KMS (Option A - 10 tasks) |
 
 **Completed tasks archived**: See [completed.md](./completed.md)
 
@@ -274,47 +274,149 @@
 
 ---
 
-### Phase 13: KMS Server Refactoring (BLOCKED - Architectural Mismatch)
+### Phase 13: ServerBuilder Extension for KMS Architecture (SELECTED: Option A)
 
-**Status**: ⚠️ BLOCKED - Requires architectural decision
-**Discovery**: Analysis during Phase 12/13 revealed fundamental architectural mismatch between ServerBuilder and KMS
-
-**ARCHITECTURAL MISMATCH ANALYSIS**:
-| Aspect | ServerBuilder (Template) | KMS Current | Compatibility |
-|--------|-------------------------|-------------|---------------|
-| Database | GORM | raw database/sql + custom ORM | ❌ Incompatible |
-| Authentication | SessionManager | JWT auth | ❌ Different patterns |
-| Migrations | Template (1001-1004) | KMS-specific | ⚠️ Would need merge |
-| Barrier | Template-specific | shared/barrier | ⚠️ Different implementations |
-| Routes | Manual registration | OpenAPI strict server | ⚠️ Different patterns |
-
-**OPTIONS FOR USER DECISION**:
-- **Option A**: Modify ServerBuilder to support KMS architecture (risky, invasive, ~40h)
-- **Option B**: Create KMS-specific builder reusing TLS/listener only (moderate, ~20h)
-- **Option C**: Keep KMS's architecture, refactor for clarity only (safest, ~8-12h)
-
-**RECOMMENDATION**: Option C - preserves all existing code and tests
-
-**BLOCKED ON**: User decision on which option to pursue
+**Status**: ⚠️ In Progress
+**User Decision**: Option A - ServerBuilder MUST provide ALL KMS functionality
+**Rationale**: ServerBuilder is the foundation for ALL 9 services including KMS
 
 ---
 
-#### Task 13.1: Architectural Decision Required
-- **Status**: ⚠️ BLOCKED - Awaiting user input
-- **Description**: User must decide which option to pursue
+#### Task 13.1: Add Database Abstraction Layer to ServerBuilder
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Create abstraction that supports BOTH GORM and raw database/sql
+- **Files**:
+  - `internal/apps/template/service/server/builder/database.go` (NEW)
+  - `internal/apps/template/service/server/builder/database_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
 - **Acceptance Criteria**:
-  - [ ] User reviews architectural mismatch analysis
-  - [ ] User selects Option A, B, or C
-  - [ ] Decision documented in plan.md
+  - [ ] DatabaseConfig interface supports GORM mode
+  - [ ] DatabaseConfig interface supports raw SQL mode
+  - [ ] ServerBuilder.WithDatabase() accepts DatabaseConfig
+  - [ ] ServiceResources provides appropriate DB connection type
+  - [ ] Tests pass for both GORM and raw SQL modes
 
-#### Task 13.2-13.6: (Pending user decision)
-- Tasks will be defined based on which option is selected
-- Option C tasks would be:
-  - 13.2: Refactor application_listener.go into smaller modules
-  - 13.3: Extract reusable infrastructure to shared package
-  - 13.4: Improve test organization (TestMain + app.Test())
-  - 13.5: Update documentation
-  - 13.6: Verify all tests pass
+#### Task 13.2: Add JWT Authentication Middleware to ServerBuilder
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Add JWT auth option alongside SessionManager
+- **Files**:
+  - `internal/apps/template/service/server/builder/jwt_auth.go` (NEW)
+  - `internal/apps/template/service/server/builder/jwt_auth_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
+- **Acceptance Criteria**:
+  - [ ] WithJWTAuth() method for JWT-based authentication
+  - [ ] JWT middleware extracts claims to context
+  - [ ] JWT middleware validates tokens
+  - [ ] Works alongside or instead of SessionManager
+  - [ ] Tests pass
+
+#### Task 13.3: Add OpenAPI Strict Server Registration to ServerBuilder
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Support oapi-codegen strict server pattern
+- **Files**:
+  - `internal/apps/template/service/server/builder/openapi_strict.go` (NEW)
+  - `internal/apps/template/service/server/builder/openapi_strict_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
+- **Acceptance Criteria**:
+  - [ ] WithOpenAPIStrictServer() method
+  - [ ] Supports StrictServerInterface pattern
+  - [ ] Integrates OapiRequestValidator middleware
+  - [ ] Registers handlers via RegisterHandlersWithOptions
+  - [ ] Tests pass
+
+#### Task 13.4: Integrate shared/barrier with ServerBuilder
+- **Status**: ❌ Not Started
+- **Estimated**: 3h
+- **Description**: Support shared barrier alongside template-specific barrier
+- **Files**:
+  - `internal/apps/template/service/server/builder/barrier_shared.go` (NEW)
+  - `internal/apps/template/service/server/builder/barrier_shared_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
+- **Acceptance Criteria**:
+  - [ ] WithSharedBarrier() method for shared/barrier integration
+  - [ ] Barrier interface abstraction works with both implementations
+  - [ ] UnsealKeysService integration
+  - [ ] Tests pass
+
+#### Task 13.5: Add Flexible Migration Support to ServerBuilder
+- **Status**: ❌ Not Started
+- **Estimated**: 3h
+- **Description**: Support multiple migration schemes (not just 1001-1004 + 2001+)
+- **Files**:
+  - `internal/apps/template/service/server/builder/migrations.go` (NEW)
+  - `internal/apps/template/service/server/builder/migrations_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
+- **Acceptance Criteria**:
+  - [ ] WithMigrations() accepts any fs.FS
+  - [ ] Optional template migrations (not always required)
+  - [ ] Support KMS migration scheme
+  - [ ] Tests pass
+
+#### Task 13.6: Create KMS Migration Adapter
+- **Status**: ❌ Not Started
+- **Estimated**: 6h
+- **Description**: Create adapter layer to connect KMS to extended ServerBuilder
+- **Files**:
+  - `internal/kms/server/builder_adapter.go` (NEW)
+  - `internal/kms/server/builder_adapter_test.go` (NEW)
+- **Acceptance Criteria**:
+  - [ ] Adapter configures ServerBuilder with KMS settings
+  - [ ] All KMS middleware registered correctly
+  - [ ] OpenAPI handlers registered via strict server
+  - [ ] JWT auth configured
+  - [ ] Barrier service configured
+  - [ ] Tests pass
+
+#### Task 13.7: Migrate KMS to Extended ServerBuilder
+- **Status**: ❌ Not Started
+- **Estimated**: 8h
+- **Description**: Replace application_listener.go with ServerBuilder usage
+- **Files**:
+  - `internal/kms/cmd/server.go` (Modified)
+  - `internal/kms/server/application/application_listener.go` (DELETED or minimized)
+  - `internal/kms/server/server.go` (NEW - uses ServerBuilder)
+- **Acceptance Criteria**:
+  - [ ] KMS uses ServerBuilder for all infrastructure
+  - [ ] application_listener.go functionality moved to builder
+  - [ ] No duplicate TLS/listener code
+  - [ ] All middleware preserved
+
+#### Task 13.8: Verify All KMS Tests Pass
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Run all KMS tests, fix any regressions
+- **Acceptance Criteria**:
+  - [ ] `go test ./internal/kms/...` passes
+  - [ ] All 8 test packages pass
+  - [ ] Coverage maintained (74.9%+ client, 77.1%+ application, etc.)
+  - [ ] No new test failures
+
+#### Task 13.9: Verify All Other Service Tests Pass
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Verify ServerBuilder changes don't break existing services
+- **Acceptance Criteria**:
+  - [ ] `go test ./internal/apps/template/...` passes
+  - [ ] `go test ./internal/apps/cipher/...` passes
+  - [ ] `go test ./internal/apps/jose/...` passes
+  - [ ] All services still work correctly
+
+#### Task 13.10: Update Documentation
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Update all documentation to reflect ServerBuilder extensions
+- **Files**:
+  - `.github/instructions/03-08.server-builder.instructions.md` (Modified)
+  - `docs/arch/SERVICE-TEMPLATE-*.md` (Modified)
+- **Acceptance Criteria**:
+  - [ ] ServerBuilder documentation updated
+  - [ ] KMS migration documented
+  - [ ] Database abstraction documented
+  - [ ] JWT auth option documented
+  - [ ] OpenAPI strict server documented
 
 ---
 
