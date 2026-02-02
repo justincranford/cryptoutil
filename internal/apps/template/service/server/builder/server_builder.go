@@ -366,8 +366,8 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		return nil, fmt.Errorf("failed to create public server base: %w", err)
 	}
 
-	// Create DatabaseConnection wrapper for multi-mode access.
-	dbConn, err := NewDatabaseConnectionGORM(applicationCore.DB)
+	// Create DatabaseConnection wrapper.
+	dbConn, err := NewDatabaseConnection(applicationCore.DB)
 	if err != nil {
 		applicationCore.Shutdown()
 

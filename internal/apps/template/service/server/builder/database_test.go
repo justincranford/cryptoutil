@@ -1,11 +1,9 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
+// SPDX-License-Identifier: MIT
 
 package builder
 
 import (
-	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -13,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func TestDatabaseConnection_GORM(t *testing.T) {
+func TestDatabaseConnection(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -25,7 +23,6 @@ func TestDatabaseConnection_GORM(t *testing.T) {
 			name: "valid gorm db",
 			setup: func() *gorm.DB {
 				db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-
 				return db
 			},
 			wantErr: false,
@@ -42,7 +39,7 @@ func TestDatabaseConnection_GORM(t *testing.T) {
 			t.Parallel()
 
 			db := tt.setup()
-			conn, err := NewDatabaseConnectionGORM(db)
+			conn, err := NewDatabaseConnection(db)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -50,16 +47,12 @@ func TestDatabaseConnection_GORM(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, conn)
-				require.Equal(t, DatabaseModeGORM, conn.Mode())
 				require.NotNil(t, conn.GORM())
-				require.True(t, conn.HasGORM())
-				require.True(t, conn.HasRawSQL()) // GORM can extract sql.DB
 
 				sqlDB, err := conn.SQL()
 				require.NoError(t, err)
 				require.NotNil(t, sqlDB)
 
-				// Cleanup.
 				err = conn.Close()
 				require.NoError(t, err)
 			}
@@ -67,130 +60,22 @@ func TestDatabaseConnection_GORM(t *testing.T) {
 	}
 }
 
-func TestDatabaseConnection_RawSQL(t *testing.T) {
+func TestDatabaseConnection_SQL_NilDB(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name    string
-		setup   func() *sql.DB
-		wantErr bool
-	}{
-		{
-			name: "valid sql db",
-			setup: func() *sql.DB {
-				db, _ := sql.Open("sqlite", ":memory:")
-
-				return db
-			},
-			wantErr: false,
-		},
-		{
-			name:    "nil sql db",
-			setup:   func() *sql.DB { return nil },
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			db := tt.setup()
-			conn, err := NewDatabaseConnectionRawSQL(db)
-
-			if tt.wantErr {
-				require.Error(t, err)
-				require.Nil(t, conn)
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, conn)
-				require.Equal(t, DatabaseModeRawSQL, conn.Mode())
-				require.Nil(t, conn.GORM())
-				require.False(t, conn.HasGORM())
-				require.True(t, conn.HasRawSQL())
-
-				sqlDB, err := conn.SQL()
-				require.NoError(t, err)
-				require.NotNil(t, sqlDB)
-
-				// Cleanup.
-				err = conn.Close()
-				require.NoError(t, err)
-			}
-		})
-	}
+	conn := &DatabaseConnection{gormDB: nil}
+	sqlDB, err := conn.SQL()
+	require.Error(t, err)
+	require.Nil(t, sqlDB)
+	require.Contains(t, err.Error(), "gorm.DB is nil")
 }
 
-func TestDatabaseConnection_Dual(t *testing.T) {
+func TestDatabaseConnection_Close_NilDB(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name    string
-		setup   func() (*gorm.DB, *sql.DB)
-		wantErr bool
-	}{
-		{
-			name: "valid dual dbs",
-			setup: func() (*gorm.DB, *sql.DB) {
-				gormDB, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-				sqlDB, _ := sql.Open("sqlite", ":memory:")
-
-				return gormDB, sqlDB
-			},
-			wantErr: false,
-		},
-		{
-			name: "nil gorm db",
-			setup: func() (*gorm.DB, *sql.DB) {
-				sqlDB, _ := sql.Open("sqlite", ":memory:")
-
-				return nil, sqlDB
-			},
-			wantErr: true,
-		},
-		{
-			name: "nil sql db",
-			setup: func() (*gorm.DB, *sql.DB) {
-				gormDB, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-
-				return gormDB, nil
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			gormDB, sqlDB := tt.setup()
-			conn, err := NewDatabaseConnectionDual(gormDB, sqlDB)
-
-			if tt.wantErr {
-				require.Error(t, err)
-				require.Nil(t, conn)
-				// Cleanup if needed.
-				if sqlDB != nil {
-					_ = sqlDB.Close()
-				}
-			} else {
-				require.NoError(t, err)
-				require.NotNil(t, conn)
-				require.Equal(t, DatabaseModeDual, conn.Mode())
-				require.NotNil(t, conn.GORM())
-				require.True(t, conn.HasGORM())
-				require.True(t, conn.HasRawSQL())
-
-				retSqlDB, err := conn.SQL()
-				require.NoError(t, err)
-				require.NotNil(t, retSqlDB)
-
-				// Cleanup.
-				err = conn.Close()
-				require.NoError(t, err)
-			}
-		})
-	}
+	conn := &DatabaseConnection{gormDB: nil}
+	err := conn.Close()
+	require.NoError(t, err)
 }
 
 func TestDatabaseConfig(t *testing.T) {
@@ -199,22 +84,18 @@ func TestDatabaseConfig(t *testing.T) {
 	t.Run("default config", func(t *testing.T) {
 		t.Parallel()
 
-		cfg := NewDefaultDatabaseConfig("postgres://localhost/db")
-		require.Equal(t, DatabaseModeGORM, cfg.Mode)
+		cfg := NewDatabaseConfig("postgres://localhost/db")
 		require.Equal(t, "postgres://localhost/db", cfg.URL)
 		require.False(t, cfg.VerboseMode)
 		require.Equal(t, "disabled", cfg.ContainerMode)
-		require.False(t, cfg.SkipTemplateMigrations)
 	})
 
-	t.Run("kms config", func(t *testing.T) {
+	t.Run("memory config", func(t *testing.T) {
 		t.Parallel()
 
-		cfg := NewKMSDatabaseConfig(":memory:")
-		require.Equal(t, DatabaseModeRawSQL, cfg.Mode)
+		cfg := NewDatabaseConfig(":memory:")
 		require.Equal(t, ":memory:", cfg.URL)
 		require.False(t, cfg.VerboseMode)
 		require.Equal(t, "disabled", cfg.ContainerMode)
-		require.True(t, cfg.SkipTemplateMigrations)
 	})
 }
