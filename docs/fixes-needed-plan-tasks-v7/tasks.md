@@ -321,29 +321,29 @@
   - `internal/kms/server/middleware/session_test.go`
 
 ### Task 3.4: Update KMS Handlers for Realm Context
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1.5h
-- **Actual**:
+- **Actual**: 2.0h
 - **Dependencies**: Tasks 3.2, 3.3
 - **Description**: Update all KMS handlers to use realm context
 - **Acceptance Criteria**:
-  - [ ] All handlers extract tenant/realm from context
-  - [ ] Data operations scoped to tenant
-  - [ ] Tests verify isolation
+  - [x] All handlers extract tenant/realm from context
+  - [x] Data operations scoped to tenant
+  - [x] Tests verify isolation
 - **Files**:
   - `internal/kms/server/handler/*.go`
 
 ### Task 3.5: Configure Path Separation
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Tasks 3.2, 3.3
 - **Description**: Configure /service/** and /browser/** path routing
 - **Acceptance Criteria**:
-  - [ ] /service/** uses JWT auth
-  - [ ] /browser/** uses session auth
-  - [ ] Proper middleware chains
-  - [ ] Integration tests pass
+  - [x] /service/** uses JWT auth
+  - [x] /browser/** uses session auth
+  - [x] Proper middleware chains
+  - [x] Integration tests pass
 - **Files**:
   - `internal/kms/server/routes.go`
 
