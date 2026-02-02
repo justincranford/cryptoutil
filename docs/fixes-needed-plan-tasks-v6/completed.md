@@ -341,3 +341,147 @@ This file contains all completed tasks from the v6 plan for historical reference
 | Phase 12 | 6 | 6 | 100% |
 | Phase 13 | 10 | 10 | 100% |
 | **Total** | **59** | **60** | **98%** |
+
+---
+
+## Phase 10: Cleanup Leftover Coverage Files ✅
+
+**Status**: Complete (All 10.1-10.4 Complete)
+**Discovery Date**: 2026-02-01
+
+### Task 10.1: Delete Root-Level Coverage Files ✅
+- **Completed**: 2026-02-01
+- **Evidence**: Commit `a07e9175` - 35 root-level files deleted
+
+### Task 10.2: Delete Internal Directory Coverage Files ✅
+- **Completed**: 2026-02-01
+- **Evidence**: Commit `a07e9175` - 6 internal/ files deleted
+
+### Task 10.3: Delete ALL Files in test-output/ ✅
+- **Completed**: 2026-02-01
+- **Evidence**: Commit `a07e9175` - 202+ files deleted
+
+### Task 10.4: Add CICD Linter for Leftover Coverage Files ✅
+- **Completed**: 2026-02-01
+- **Evidence**: Commit `6f4399ef` - leftover_coverage.go added
+
+---
+
+## Phase 11: KMS ServerBuilder Extension ✅
+
+**Status**: Complete (Tasks 11.1-11.3, 11.4 deferred to Phase 13)
+
+### Task 11.1: Extend ServerBuilder with SwaggerUI Support ✅
+- **Completed**: 2026-02-01
+- **Evidence**: Commit `68a52beb` - swagger_ui.go, swagger_ui_test.go
+
+### Task 11.2: Extend ServerBuilder with OpenAPI Handler Registration ✅
+- **Completed**: 2026-02-01
+- **Evidence**: Commit `0300062c` - openapi.go, openapi_test.go
+
+### Task 11.3: Extend ServerBuilder with Security Headers ✅
+- **Completed**: 2026-02-01
+- **Evidence**: Commit 4f6b5d3b - security_headers.go, security_headers_test.go
+
+### Task 11.4: Migrate KMS to Extended ServerBuilder ⏭️
+- **Status**: DEFERRED to Phase 13
+
+---
+
+## Phase 12: KMS Before/After Comparison ✅
+
+**Status**: Complete (all 6 tasks)
+
+### Task 12.1: Document KMS Current Architecture ✅
+- **Completed**: 2026-02-01
+- **Output**: test-output/kms-comparison/kms-before-architecture.md
+
+### Task 12.2: Document KMS Current Test Coverage and Intent ✅
+- **Completed**: 2026-02-01
+- **Output**: test-output/kms-comparison/kms-before-tests.md
+
+### Task 12.3: Compare KMS vs Service-Template Feature Parity ✅
+- **Completed**: 2026-02-01
+- **Output**: test-output/kms-comparison/feature-parity.md
+
+### Task 12.4: Verify All KMS Tests Pass ✅
+- **Completed**: 2026-02-01
+- **Evidence**: All 8 packages pass
+
+### Task 12.5: Document Intentional Differences ✅
+- **Completed**: 2026-02-01
+- **Output**: test-output/kms-comparison/intentional-differences.md
+
+### Task 12.6: Create Final Comparison Report ✅
+- **Completed**: 2026-02-01
+- **Output**: test-output/kms-comparison/final-report.md
+
+---
+
+## Phase 13: ServerBuilder Extension for KMS ✅
+
+**Status**: Complete (all 10 tasks)
+**Note**: This phase created OPTIONAL abstraction modes - V7 will unify to MANDATORY patterns
+
+### Task 13.1: Add Database Abstraction Layer ✅
+- **Completed**: 2026-02-02
+- **Files**: database.go, database_test.go
+
+### Task 13.2: Add JWT Authentication Middleware ✅
+- **Completed**: 2026-02-02
+- **Evidence**: Commit 4aa4fd2f
+
+### Task 13.3: Add OpenAPI Strict Server Registration ✅
+- **Completed**: 2026-02-02
+- **Evidence**: Commit be83c8d7
+
+### Task 13.4: Integrate shared/barrier with ServerBuilder ✅
+- **Completed**: 2026-02-02
+- **Evidence**: Commit 1625d9b0
+
+### Task 13.5: Add Flexible Migration Support ✅
+- **Completed**: 2026-02-02
+- **Files**: migrations.go, migrations_test.go
+
+### Task 13.6: Create KMS Migration Adapter ✅
+- **Completed**: 2026-02-02
+- **Files**: builder_adapter.go, builder_adapter_test.go
+
+### Task 13.7: Migrate KMS to Extended ServerBuilder ✅
+- **Completed**: 2026-02-02
+- **Files**: internal/kms/server/server.go, internal/kms/cmd/server.go
+
+### Task 13.8: Verify All KMS Tests Pass ✅
+- **Completed**: 2026-02-02
+- **Evidence**: All 9 test packages pass
+
+### Task 13.9: Verify All Other Service Tests Pass ✅
+- **Completed**: 2026-02-02
+- **Evidence**: Template (15), Cipher (10), JOSE (6) - all pass
+
+### Task 13.10: Update Documentation ✅
+- **Completed**: 2026-02-02
+- **Files**: 03-08.server-builder.instructions.md
+
+---
+
+## Updated Summary Statistics
+
+| Category | Completed | Total | Percentage |
+|----------|-----------|-------|------------|
+| Phase 1 | 3 | 3 | 100% |
+| Phase 2 | 9 | 9 | 100% |
+| Phase 3 | 2 | 2 | 100% |
+| Phase 4 | 3 | 3 | 100% |
+| Phase 5 | 8 | 9 | 89% (5.1 blocked) |
+| Phase 6 | 5 | 5 | 100% |
+| Phase 7 | 3 | 3 | 100% |
+| Phase 8 | 6 | 6 | 100% |
+| Phase 9 | 3 | 4 | 75% |
+| Phase 10 | 4 | 4 | 100% |
+| Phase 11 | 3 | 4 | 75% (11.4 deferred) |
+| Phase 12 | 6 | 6 | 100% |
+| Phase 13 | 10 | 10 | 100% |
+| **Total** | **65** | **68** | **96%** |
+
+**Remaining**: Task 5.1 (blocked), addressed in V7
