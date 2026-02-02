@@ -1,7 +1,14 @@
 # Tasks - Unified Service-Template Migration (V7)
 
-**Status**: 0 of 36 tasks complete (0%)
+**Status**: 0 of 39 tasks complete (0%)
 **Last Updated**: 2026-02-02
+**Quizme Decisions Applied**: ✅ All 6 answers merged
+- Q1: Fresh start (no data migration)
+- Q2: Merge shared/barrier INTO template barrier
+- Q3: Internal only (no API versioning)
+- Q4: Correctness first
+- Q5: Full regression + E2E + coverage; mutation testing last
+- Q6: Continuous documentation updates
 
 ---
 
@@ -160,19 +167,22 @@
 
 ---
 
-## Phase 2: KMS Data Migration
+## Phase 2: KMS Data Migration (SIMPLIFIED - Fresh Start)
+
+**Note**: Per quizme Q1, this is a fresh start with no data migration needed.
 
 ### Task 2.1: Create KMS GORM Models
 - **Status**: ❌ Not Started
 - **Estimated**: 2h
 - **Actual**:
 - **Dependencies**: Task 0.1, Phase 1 complete
-- **Description**: Create GORM models for all KMS database tables
+- **Description**: Create GORM models for all KMS database tables (fresh schema, no migration from old data)
 - **Acceptance Criteria**:
-  - [ ] All SQLRepository tables have GORM models
+  - [ ] All required tables have GORM models
   - [ ] Cross-DB compatible (type:text for UUIDs)
   - [ ] Proper indexes defined
   - [ ] Relationships configured
+  - [ ] Documentation updated (per Q6)
 - **Files**:
   - `internal/kms/domain/models.go`
 
@@ -186,6 +196,7 @@
   - [ ] Migrations start at 2001
   - [ ] Up and down migrations for all tables
   - [ ] Compatible with template migrations (1001-1999)
+  - [ ] Documentation updated (per Q6)
 - **Files**:
   - `internal/kms/repository/migrations/2001_kms_init.up.sql`
   - `internal/kms/repository/migrations/2001_kms_init.down.sql`
@@ -195,12 +206,13 @@
 - **Estimated**: 3h
 - **Actual**:
 - **Dependencies**: Task 2.1
-- **Description**: Implement GORM repositories matching SQLRepository interfaces
+- **Description**: Implement GORM repositories matching KMS business needs
 - **Acceptance Criteria**:
-  - [ ] All SQLRepository methods have GORM equivalents
+  - [ ] All required repository methods implemented
   - [ ] Transaction support via context pattern
   - [ ] Error mapping to app errors
   - [ ] Unit tests with ≥95% coverage
+  - [ ] Documentation updated (per Q6)
 - **Files**:
   - `internal/kms/repository/gorm_repository.go`
   - `internal/kms/repository/gorm_repository_test.go`
@@ -215,6 +227,7 @@
   - [ ] All services use GORM repositories
   - [ ] No direct SQLRepository references
   - [ ] All service tests pass
+  - [ ] Documentation updated (per Q6)
 - **Files**:
   - `internal/kms/service/*.go`
 
@@ -228,6 +241,7 @@
   - [ ] sql_provider.go deleted
   - [ ] No database/sql imports in KMS
   - [ ] All tests pass
+  - [ ] Documentation updated (per Q6)
 - **Files**:
   - `internal/kms/server/repository/sqlrepository/` (DELETE)
 
@@ -369,48 +383,52 @@
 
 ---
 
-## Phase 5: KMS Barrier Migration
+## Phase 5: KMS Barrier Migration (Merge shared/barrier INTO template)
+
+**Note**: Per quizme Q2, ALL functionality from shared/barrier MUST be available in template barrier.
 
 ### Task 5.1: Analyze KMS Unseal/Seal Workflows
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Actual**:
 - **Dependencies**: Task 0.2
-- **Description**: Document KMS unseal/seal workflows for template barrier integration
+- **Description**: Document KMS unseal/seal workflows and identify ALL shared/barrier features needed in template
 - **Acceptance Criteria**:
   - [ ] Current workflow documented
-  - [ ] Template barrier integration points identified
-  - [ ] Migration plan defined
+  - [ ] ALL shared/barrier features catalogued
+  - [ ] Feature parity checklist created
+  - [ ] Documentation updated (per Q6)
 - **Output**: test-output/v7-research/kms-unseal-workflow.md
 
-### Task 5.2: Integrate Template Barrier with KMS
+### Task 5.2: Merge shared/barrier Features INTO Template Barrier
 - **Status**: ❌ Not Started
-- **Estimated**: 1.5h
+- **Estimated**: 2h
 - **Actual**:
-- **Dependencies**: Task 5.1, Phase 2 complete
+- **Dependencies**: Task 5.1
+- **Description**: Ensure template barrier has ALL features from shared/barrier before migration
+- **Acceptance Criteria**:
+  - [ ] Feature parity checklist complete
+  - [ ] All shared/barrier features in template barrier
+  - [ ] Tests for all migrated features
+  - [ ] Documentation updated (per Q6)
+- **Files**:
+  - `internal/apps/template/service/server/builder/barrier.go` (update)
+  - `internal/apps/template/service/server/builder/barrier_test.go` (update)
+
+### Task 5.3: Integrate Template Barrier with KMS
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 5.2, Phase 2 complete
 - **Description**: Replace shared/barrier with template barrier in KMS
 - **Acceptance Criteria**:
   - [ ] KMS uses template barrier service
   - [ ] Key hierarchy preserved
   - [ ] Encryption/decryption works
   - [ ] Tests with ≥95% coverage
+  - [ ] Documentation updated (per Q6)
 - **Files**:
   - `internal/kms/server/server.go` (update)
-  - `internal/kms/service/barrier_adapter.go` (if needed)
-
-### Task 5.3: Migrate Encryption Operations
-- **Status**: ❌ Not Started
-- **Estimated**: 1h
-- **Actual**:
-- **Dependencies**: Task 5.2
-- **Description**: Update all KMS encryption operations to use template barrier
-- **Acceptance Criteria**:
-  - [ ] All encryption via template barrier
-  - [ ] All decryption via template barrier
-  - [ ] Existing data readable
-  - [ ] New data encrypted correctly
-- **Files**:
-  - `internal/kms/service/*.go` (update encryption calls)
 
 ### Task 5.4: Remove shared/barrier Usage from KMS
 - **Status**: ❌ Not Started
@@ -422,11 +440,14 @@
   - [ ] No shared/barrier imports in KMS
   - [ ] Only template barrier used
   - [ ] All tests pass
+  - [ ] Documentation updated (per Q6)
 - **Evidence**: `grep -r "shared/barrier" internal/kms/` returns empty
 
 ---
 
-## Phase 6: Integration & Testing
+## Phase 6: Integration & Testing (Expanded per Q5)
+
+**Note**: Per quizme Q5, full regression + E2E + coverage. Mutation testing LAST.
 
 ### Task 6.1: KMS Full Test Suite
 - **Status**: ❌ Not Started
@@ -438,32 +459,36 @@
   - [ ] All unit tests pass
   - [ ] All integration tests pass
   - [ ] Coverage ≥95%
-  - [ ] Mutation testing ≥95%
+  - [ ] Documentation updated (per Q6)
 - **Evidence**: Test output logs, coverage report
 
-### Task 6.2: cipher-im Regression Suite
+### Task 6.2: cipher-im Full Regression Suite
 - **Status**: ❌ Not Started
-- **Estimated**: 0.5h
+- **Estimated**: 1h
 - **Actual**:
 - **Dependencies**: Phase 1 complete
-- **Description**: Verify cipher-im not affected by changes
+- **Description**: Full regression for cipher-im (not just smoke test per Q5)
 - **Acceptance Criteria**:
-  - [ ] All 10 test packages pass
-  - [ ] No new failures
-  - [ ] Coverage maintained
-- **Evidence**: Test output logs
+  - [ ] All unit tests pass
+  - [ ] All integration tests pass
+  - [ ] E2E tests pass
+  - [ ] Coverage ≥95%
+  - [ ] No regressions from V7 changes
+- **Evidence**: Test output logs, coverage report
 
-### Task 6.3: jose-ja Regression Suite
+### Task 6.3: jose-ja Full Regression Suite
 - **Status**: ❌ Not Started
-- **Estimated**: 0.5h
+- **Estimated**: 1h
 - **Actual**:
 - **Dependencies**: Phase 1 complete
-- **Description**: Verify jose-ja not affected by changes
+- **Description**: Full regression for jose-ja (not just smoke test per Q5)
 - **Acceptance Criteria**:
-  - [ ] All 6 test packages pass
-  - [ ] No new failures
-  - [ ] Coverage maintained
-- **Evidence**: Test output logs
+  - [ ] All unit tests pass
+  - [ ] All integration tests pass
+  - [ ] E2E tests pass
+  - [ ] Coverage ≥95%
+  - [ ] No regressions from V7 changes
+- **Evidence**: Test output logs, coverage report
 
 ### Task 6.4: Multi-Service E2E Tests
 - **Status**: ❌ Not Started
@@ -476,6 +501,7 @@
   - [ ] Cross-service communication works
   - [ ] Authentication flows work
   - [ ] E2E scenarios pass
+  - [ ] Documentation updated (per Q6)
 - **Files**:
   - `deployments/unified/compose.yml` (if needed)
   - `test/e2e/unified_test.go` (if needed)
@@ -504,33 +530,50 @@
   - [ ] UUID handling correct (type:text)
 - **Evidence**: Test output logs
 
+### Task 6.7: Mutation Testing (LAST per Q5)
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Tasks 6.1-6.6 ALL complete
+- **Description**: Run mutation testing as final quality gate
+- **Acceptance Criteria**:
+  - [ ] sm-kms mutation ≥95%
+  - [ ] cipher-im mutation ≥95%
+  - [ ] jose-ja mutation ≥95%
+  - [ ] All survived mutants documented/justified
+- **Evidence**: test-output/v7-mutation/
+
 ---
 
-## Phase 7: Documentation & Cleanup
+## Phase 7: Documentation & Cleanup (Continuous Updates per Q6)
 
-### Task 7.1: Update server-builder.instructions.md
+**Note**: Per quizme Q6, documentation updated continuously throughout V7. Phase 7 is final review.
+
+### Task 7.1: Final Review of server-builder.instructions.md
 - **Status**: ❌ Not Started
 - **Estimated**: 0.5h
 - **Actual**:
 - **Dependencies**: Phase 6 complete
-- **Description**: Final documentation update for ServerBuilder
+- **Description**: Final documentation review for ServerBuilder (continuous updates already applied)
 - **Acceptance Criteria**:
-  - [ ] Remove all V6 optional mode documentation
-  - [ ] Document unified mandatory architecture
-  - [ ] Add migration guide section
+  - [ ] All V6 optional mode references removed
+  - [ ] Unified mandatory architecture documented
+  - [ ] Migration guide section complete
+  - [ ] No outdated information
 - **Files**:
   - `.github/instructions/03-08.server-builder.instructions.md`
 
-### Task 7.2: Update service-template.instructions.md
+### Task 7.2: Final Review of service-template.instructions.md
 - **Status**: ❌ Not Started
 - **Estimated**: 0.5h
 - **Actual**:
 - **Dependencies**: Phase 6 complete
-- **Description**: Update service template documentation
+- **Description**: Final documentation review for service template (continuous updates already applied)
 - **Acceptance Criteria**:
   - [ ] Reflects unified architecture
   - [ ] All components documented as MANDATORY
   - [ ] Examples updated
+  - [ ] No outdated information
 - **Files**:
   - `.github/instructions/02-02.service-template.instructions.md`
 
@@ -569,6 +612,22 @@
 | Phase 3 | 5 | 0 | 0% |
 | Phase 4 | 4 | 0 | 0% |
 | Phase 5 | 4 | 0 | 0% |
-| Phase 6 | 6 | 0 | 0% |
+| Phase 6 | 7 | 0 | 0% |
 | Phase 7 | 4 | 0 | 0% |
-| **Total** | **39** | **0** | **0%** |
+| **Total** | **40** | **0** | **0%** |
+
+---
+
+## Incomplete Work from V4/V6 - Addressed by V7
+
+### From V6 (Task 5.1 BLOCKED)
+- **StartApplicationListener not implemented** → Addressed by complete ServerBuilder migration in Phase 1-5
+
+### From V4 (Phase 0.4 KMS Modernization)
+- **KMS service-template migration** → Fully addressed by V7 Phases 2-5
+
+### From V4 (Phase 0.5 Template Mutation)
+- **Template mutation improvement** → Addressed by Task 6.7 (mutation testing LAST)
+
+### From V6 (Coverage Gaps)
+- **All services below ≥95% coverage** → Addressed by Tasks 6.1-6.3 with ≥95% requirement

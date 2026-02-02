@@ -1,9 +1,10 @@
 # Implementation Plan - Unified Service-Template Migration (V7)
 
-**Status**: Planning
+**Status**: In Progress
 **Created**: 2026-02-02
 **Last Updated**: 2026-02-02
 **Purpose**: Properly unify sm-kms, cipher-im, and jose-ja on service-template
+**Quizme Status**: ✅ All 6 questions answered, decisions merged
 
 ## Executive Summary
 
@@ -166,35 +167,45 @@ V6 Phase 13 created OPTIONAL abstraction modes (DisabledDatabaseConfig, Disabled
 ## Technical Decisions
 
 ### Decision 1: KMS Data Model Migration Strategy
-- **Options**: 
-  A. Incremental (table-by-table)
-  B. Big-bang (all at once)
-  C. Shadow mode (dual-write then cutover)
-- **Needs Research**: Phase 0 will determine best approach
+- **Chosen**: D - Fresh Start
+- **Rationale**: Pre-release project with nothing deployed. No data migration needed.
+- **Impact**: Simplifies Phase 2 significantly - no shadow mode, no migration scripts, just clean GORM models.
 
 ### Decision 2: KMS Barrier Integration
-- **Options**:
-  A. Replace shared/barrier completely with template barrier
-  B. Keep shared/barrier but have template barrier wrap it
-  C. Merge shared/barrier into template barrier
-- **Needs Research**: Phase 0 will determine compatibility
+- **Chosen**: C - Merge shared/barrier INTO template barrier
+- **Rationale**: All functionality from shared/barrier MUST be available in template barrier.
+- **Impact**: Phase 5 must ensure feature parity before removing shared/barrier.
 
 ### Decision 3: KMS API Versioning During Migration
-- **Options**:
-  A. Breaking change (v2 API)
-  B. Backward compatible (v1 with extensions)
-  C. Dual support during transition
-- **Needs Research**: Client impact analysis
+- **Chosen**: D - Internal Only
+- **Rationale**: Pre-release project with no external clients. Just make changes directly.
+- **Impact**: No backward compatibility concerns, simplifies Phase 4.
+
+### Decision 4: Timeline Priority
+- **Chosen**: A - Correctness First
+- **Rationale**: Take whatever time needed to get architecture right. No shortcuts.
+- **Impact**: Quality gates are hard requirements, not guidelines.
+
+### Decision 5: Validation Strategy for cipher-im and jose-ja
+- **Chosen**: E - Full regression + E2E + coverage; mutation testing in last phase
+- **Rationale**: Ensure services remain working throughout V7. Mutation testing as final quality gate.
+- **Impact**: Phase 6 expanded to include comprehensive regression testing. Mutation testing moved to end.
+
+### Decision 6: Documentation Timing
+- **Chosen**: C - Continuously
+- **Rationale**: Update docs immediately as code changes (adds overhead but ensures accuracy).
+- **Impact**: Each phase includes documentation updates, not just Phase 7.
 
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| KMS data migration breaks existing data | Medium | High | Shadow mode, rollback plan, extensive testing |
-| Authentication migration breaks clients | Medium | High | Version API, gradual rollout, client notification |
 | Barrier migration corrupts encrypted data | Low | Critical | Test with non-prod data, backup before migration |
 | Performance regression | Low | Medium | Benchmark before/after, optimize critical paths |
 | cipher-im/jose-ja regression | Low | Medium | Run full test suite after each phase |
+| shared/barrier missing features | Medium | High | Feature parity analysis in Phase 0, merge all functionality |
+
+**Note**: Data migration and client compatibility risks REMOVED per quizme answers (fresh start, no external clients).
 
 ## Quality Gates
 
@@ -203,13 +214,13 @@ Each phase MUST pass:
 - ✅ New code has ≥95% coverage
 - ✅ Linting clean (`golangci-lint run`)
 - ✅ No new TODOs without tracking
-- ✅ Mutation testing ≥95% efficacy
+- ✅ Documentation updated (per Decision 6: continuous docs)
 
-Final gate:
-- ✅ All three services (kms, cipher-im, jose-ja) use identical ServerBuilder
-- ✅ No optional/disabled modes in ServerBuilder
+Final gate (Phase 6):
+- ✅ Full regression suite for cipher-im and jose-ja
 - ✅ E2E tests pass for multi-service deployment
-- ✅ Documentation updated
+- ✅ Coverage ≥95% all services
+- ✅ Mutation testing ≥95% all services (run LAST per Decision 5)
 
 ## Success Criteria
 
