@@ -56,8 +56,10 @@ func TestOrmTransaction_AutoCommit_Success(t *testing.T) {
 		require.NotNil(t, tx.state.gormTx)
 
 		// AutoCommit mode should allow database operations.
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			"autocommit-test-key",
 			"Test AutoCommit",

@@ -15,7 +15,9 @@ import (
 func TestOrmTransaction_AddElasticKey_InvalidUUID(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key with zero UUID (invalid).
+		tenantID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			googleUuid.UUID{}, // Zero UUID - invalid
 			"invalid-uuid-test",
 			"Test Invalid UUID",
@@ -42,7 +44,9 @@ func TestOrmTransaction_AddElasticKey_InvalidUUID(t *testing.T) {
 func TestOrmTransaction_UpdateElasticKey_InvalidUUID(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key with zero UUID (invalid).
+		tenantID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			googleUuid.UUID{}, // Zero UUID - invalid
 			"invalid-uuid-update-test",
 			"Test Invalid UUID Update",
@@ -82,7 +86,8 @@ func TestOrmTransaction_UpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 func TestOrmTransaction_GetElasticKey_InvalidUUID(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Try to get elastic key with nil UUID.
-		_, getErr := tx.GetElasticKey(nil)
+		tenantID := googleUuid.New()
+		_, getErr := tx.GetElasticKey(tenantID, nil)
 		require.Error(t, getErr, "Should fail with nil UUID")
 		require.Contains(t, getErr.Error(), ErrFailedToGetElasticKeyByElasticKeyID)
 

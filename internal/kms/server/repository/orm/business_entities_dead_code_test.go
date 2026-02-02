@@ -20,7 +20,9 @@ func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create an elastic key for testing.
+	tenantID := googleUuid.New()
 	elasticKey, buildErr := BuildElasticKey(
+		tenantID,
 		googleUuid.New(),
 		"export-filter-test",
 		"Test Export Filter",
@@ -59,7 +61,9 @@ func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create an elastic key with ImportAllowed=true.
+	tenantID := googleUuid.New()
 	elasticKey, buildErr := BuildElasticKey(
+		tenantID,
 		googleUuid.New(),
 		"import-filter-test",
 		"Test Import Filter",

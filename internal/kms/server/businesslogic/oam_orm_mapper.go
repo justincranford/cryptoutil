@@ -38,7 +38,7 @@ var (
 
 // oam => orm
 
-func (m *OamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
+func (m *OamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, tenantID googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
 	// Apply defaults for optional fields
 	provider := defaultElasticKeyProvider
 	if oamElasticKeyCreate.Provider != nil {
@@ -62,6 +62,7 @@ func (m *OamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElas
 
 	return &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                *elasticKeyID,
+		TenantID:                    tenantID,
 		ElasticKeyName:              oamElasticKeyCreate.Name,
 		ElasticKeyDescription:       oamElasticKeyCreate.Description,
 		ElasticKeyProvider:          provider,
@@ -199,9 +200,9 @@ func (m *OamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.
 
 // Helper methods
 
-func (m *OamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
+func (m *OamOrmMapper) toOrmGetElasticKeysQueryParams(tenantID googleUuid.UUID, params *cryptoutilOpenapiModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
 	if params == nil {
-		return &cryptoutilOrmRepository.GetElasticKeysFilters{}, nil
+		return &cryptoutilOrmRepository.GetElasticKeysFilters{TenantID: tenantID}, nil
 	}
 
 	var errs []error
@@ -241,6 +242,7 @@ func (m *OamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiM
 	}
 
 	return &cryptoutilOrmRepository.GetElasticKeysFilters{
+		TenantID:          tenantID,
 		ElasticKeyID:      elasticKeyIDs,
 		Name:              names,
 		Algorithm:         algorithms,

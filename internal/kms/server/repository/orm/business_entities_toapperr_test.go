@@ -140,9 +140,11 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	// Create elastic key.
+	tenantID := googleUuid.New()
 	ekID := googleUuid.New()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			"unique-constraint-test",
 			"Test Unique Constraint",
@@ -160,7 +162,8 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 	// Try to create duplicate (should trigger UNIQUE constraint).
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		duplicateKey, buildErr := BuildElasticKey(
-			ekID, // Same UUID - violates UNIQUE constraint.
+			tenantID, // Same tenantID.
+			ekID,     // Same UUID - violates UNIQUE constraint.
 			"unique-constraint-test-duplicate",
 			"Test Duplicate",
 			cryptoutilOpenapiModel.Internal,

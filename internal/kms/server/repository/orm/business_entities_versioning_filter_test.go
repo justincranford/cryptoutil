@@ -16,7 +16,9 @@ func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create two elastic keys: one with versioning allowed, one without.
+	tenantID := googleUuid.New()
 	keyWithVersioning, buildErr := BuildElasticKey(
+		tenantID,
 		googleUuid.New(),
 		"versioning-allowed-test",
 		"Test Versioning Allowed",
@@ -30,6 +32,7 @@ func TestGetElasticKeysWithVersioningAllowedFilter(t *testing.T) {
 	require.NoError(t, buildErr)
 
 	keyWithoutVersioning, buildErr := BuildElasticKey(
+		tenantID,
 		googleUuid.New(),
 		"versioning-not-allowed-test",
 		"Test Versioning Not Allowed",

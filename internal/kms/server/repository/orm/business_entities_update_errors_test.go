@@ -16,7 +16,9 @@ func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create elastic key with zero UUID (invalid).
+	tenantID := googleUuid.New()
 	elasticKey, buildErr := BuildElasticKey(
+		tenantID,
 		googleUuid.UUID{}, // Zero UUID is invalid
 		"invalid-uuid-update-test",
 		"Test Invalid UUID Update",
@@ -44,8 +46,10 @@ func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create elastic key with non-existent UUID.
+	tenantID := googleUuid.New()
 	nonExistentID := googleUuid.New()
 	elasticKey, buildErr := BuildElasticKey(
+		tenantID,
 		nonExistentID,
 		"non-existent-update-test",
 		"Test Non-Existent Update",
@@ -127,9 +131,11 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository)
 
 	// First create a valid elastic key.
+	tenantID := googleUuid.New()
 	elasticKeyID := googleUuid.New()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			elasticKeyID,
 			"constraint-test",
 			"Test Constraint Violation",
@@ -151,6 +157,7 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 	// This test exercises the code path but may not trigger error.
 	err = testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			elasticKeyID,
 			"constraint-test-invalid",
 			"Test Invalid Update",
@@ -176,9 +183,11 @@ func TestUpdateElasticKeyStatus_DatabaseConstraintViolation(t *testing.T) {
 	CleanupDatabase(t, testOrmRepository)
 
 	// First create a valid elastic key.
+	tenantID := googleUuid.New()
 	elasticKeyID := googleUuid.New()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			elasticKeyID,
 			"status-constraint-test",
 			"Test Status Constraint Violation",

@@ -24,8 +24,10 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 	// Test verbose logging in begin/commit/rollback.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create an elastic key to trigger verbose logging.
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			"verbose-test-key",
 			"Test Verbose Mode",
@@ -94,8 +96,10 @@ func TestOrmTransaction_DeferredRollback_OnFunctionError(t *testing.T) {
 	// Create transaction that fails in function.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create an elastic key.
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			"deferred-rollback-test",
 			"Test Deferred Rollback",

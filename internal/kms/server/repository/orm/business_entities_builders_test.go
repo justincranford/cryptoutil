@@ -16,8 +16,10 @@ import (
 // TestBuildElasticKey tests the BuildElasticKey builder function.
 func TestBuildElasticKey(t *testing.T) {
 	t.Run("Build elastic key with import allowed (pending import status)", func(t *testing.T) {
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, err := BuildElasticKey(
+			tenantID,
 			ekID,
 			"test-key",
 			"Test Description",
@@ -42,8 +44,10 @@ func TestBuildElasticKey(t *testing.T) {
 	})
 
 	t.Run("Build elastic key with import not allowed (pending generate status)", func(t *testing.T) {
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, err := BuildElasticKey(
+			tenantID,
 			ekID,
 			"gen-key",
 			"Generated Key",
@@ -78,8 +82,10 @@ func TestBuildElasticKey(t *testing.T) {
 		}
 
 		for _, algo := range algorithms {
+			tenantID := googleUuid.New()
 			ekID := googleUuid.New()
 			elasticKey, err := BuildElasticKey(
+				tenantID,
 				ekID,
 				"algo-key",
 				"Algorithm Test",

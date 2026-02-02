@@ -18,8 +18,10 @@ func TestElasticKeyOperations(t *testing.T) {
 	t.Run("Add and retrieve single elastic key", func(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create test elastic key.
+			tenantID := googleUuid.New()
 			ekID := googleUuid.New()
 			elasticKey := &ElasticKey{
+				TenantID:                    tenantID,
 				ElasticKeyID:                ekID,
 				ElasticKeyName:              "test-key-1",
 				ElasticKeyDescription:       "Test elastic key 1",
@@ -35,7 +37,7 @@ func TestElasticKeyOperations(t *testing.T) {
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Retrieve elastic key by ID.
-			retrieved, err := tx.GetElasticKey(&ekID)
+			retrieved, err := tx.GetElasticKey(tenantID, &ekID)
 			require.NoError(t, err, "GetElasticKey should succeed")
 			require.Equal(t, ekID, retrieved.ElasticKeyID, "Elastic Key ID should match")
 			require.Equal(t, "test-key-1", retrieved.ElasticKeyName, "Elastic Key Name should match")
@@ -49,8 +51,10 @@ func TestElasticKeyOperations(t *testing.T) {
 	t.Run("Update elastic key", func(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create and add elastic key.
+			tenantID := googleUuid.New()
 			ekID := googleUuid.New()
 			elasticKey := &ElasticKey{
+				TenantID:                    tenantID,
 				ElasticKeyID:                ekID,
 				ElasticKeyName:              "update-test-key",
 				ElasticKeyDescription:       "Original description",
@@ -69,7 +73,7 @@ func TestElasticKeyOperations(t *testing.T) {
 			require.NoError(t, err, "UpdateElasticKey should succeed")
 
 			// Verify update.
-			retrieved, err := tx.GetElasticKey(&ekID)
+			retrieved, err := tx.GetElasticKey(tenantID, &ekID)
 			require.NoError(t, err, "GetElasticKey should succeed")
 			require.Equal(t, "Updated description", retrieved.ElasticKeyDescription, "Description should be updated")
 
@@ -81,8 +85,10 @@ func TestElasticKeyOperations(t *testing.T) {
 	t.Run("Update elastic key status", func(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create and add elastic key.
+			tenantID := googleUuid.New()
 			ekID := googleUuid.New()
 			elasticKey := &ElasticKey{
+				TenantID:                    tenantID,
 				ElasticKeyID:                ekID,
 				ElasticKeyName:              "status-update-test",
 				ElasticKeyDescription:       "Test status update",
@@ -100,7 +106,7 @@ func TestElasticKeyOperations(t *testing.T) {
 			require.NoError(t, err, "UpdateElasticKeyStatus should succeed")
 
 			// Verify status update.
-			retrieved, err := tx.GetElasticKey(&ekID)
+			retrieved, err := tx.GetElasticKey(tenantID, &ekID)
 			require.NoError(t, err, "GetElasticKey should succeed")
 			require.Equal(t, cryptoutilOpenapiModel.Disabled, retrieved.ElasticKeyStatus, "Status should be Disabled")
 
@@ -113,6 +119,9 @@ func TestElasticKeyOperations(t *testing.T) {
 		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
+			// Use a shared tenantID for this test
+			tenantID := googleUuid.New()
+
 			// Create multiple elastic keys with different statuses.
 			for i := 0; i < 3; i++ {
 				ekID := googleUuid.New()
@@ -123,6 +132,7 @@ func TestElasticKeyOperations(t *testing.T) {
 				}
 
 				elasticKey := &ElasticKey{
+					TenantID:                    tenantID,
 					ElasticKeyID:                ekID,
 					ElasticKeyName:              ekID.String(), // Use UUID as unique name.
 					ElasticKeyDescription:       "Batch test key",
@@ -136,8 +146,8 @@ func TestElasticKeyOperations(t *testing.T) {
 				require.NoError(t, err, "AddElasticKey should succeed")
 			}
 
-			// Get all elastic keys.
-			allKeys, err := tx.GetElasticKeys(&GetElasticKeysFilters{})
+			// Get all elastic keys for this tenant.
+			allKeys, err := tx.GetElasticKeys(&GetElasticKeysFilters{TenantID: tenantID})
 			require.NoError(t, err, "GetElasticKeys should succeed")
 			require.GreaterOrEqual(t, len(allKeys), 3, "Should return at least 3 elastic keys")
 
@@ -315,8 +325,9 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 	t.Run("Get elastic key with nonexistent ID", func(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 			// Attempt to get nonexistent elastic key.
+			tenantID := googleUuid.New()
 			nonexistentID := googleUuid.New()
-			_, err := tx.GetElasticKey(&nonexistentID)
+			_, err := tx.GetElasticKey(tenantID, &nonexistentID)
 			require.Error(t, err, "GetElasticKey should fail for nonexistent ID")
 
 			return err

@@ -15,7 +15,9 @@ import (
 func TestAddElasticKey_DuplicateConstraintViolation(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key successfully.
+		tenantID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			googleUuid.New(),
 			"duplicate-elastic-key-test",
 			"Test Duplicate Elastic Key",
@@ -55,7 +57,9 @@ func TestAddElasticKey_DuplicateConstraintViolation(t *testing.T) {
 func TestGetElasticKeyMaterialKeyLatest_NotFoundError(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key without any material keys.
+		tenantID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			googleUuid.New(),
 			"no-material-keys-test",
 			"Test No Material Keys",

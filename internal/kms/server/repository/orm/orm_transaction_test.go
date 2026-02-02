@@ -20,6 +20,7 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
+	googleUuid "github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite"
@@ -183,8 +184,9 @@ func TestSQLTransaction_Success(t *testing.T) {
 			require.Equal(t, testCase.txMode, *ormTransaction.Mode())
 
 			uuidV7 := testJWKGenService.GenerateUUIDv7()
+			tenantID := googleUuid.New()
 
-			elasticKey, err := BuildElasticKey(*uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilOpenapiModel.Creating))
+			elasticKey, err := BuildElasticKey(tenantID, *uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilOpenapiModel.Creating))
 			cryptoutilSharedApperr.RequireNoError(err, "failed to create AES 256 Elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
 			cryptoutilSharedApperr.RequireNoError(err, "failed to add AES 256 Elastic Key")
@@ -232,7 +234,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 				require.NotNil(t, ormTransaction.Context())
 				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedElasticKey, err := ormTransaction.GetElasticKey(&addedElasticKey.ElasticKeyID)
+				retrievedElasticKey, err := ormTransaction.GetElasticKey(addedElasticKey.TenantID, &addedElasticKey.ElasticKeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Elastic Key: %w", err)
 				}

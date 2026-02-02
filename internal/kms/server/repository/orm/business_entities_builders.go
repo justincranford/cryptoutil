@@ -11,8 +11,9 @@ import (
 )
 
 // BuildElasticKey constructs a new ElasticKey entity with the specified properties.
-func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider cryptoutilOpenapiModel.ElasticKeyProvider, algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm, versioningAllowed, importAllowed, _ bool, _ string) (*ElasticKey, error) {
+func BuildElasticKey(tenantID, elasticKeyID googleUuid.UUID, name, description string, provider cryptoutilOpenapiModel.ElasticKeyProvider, algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm, versioningAllowed, importAllowed, _ bool, _ string) (*ElasticKey, error) {
 	elasticKey := ElasticKey{
+		TenantID:                    tenantID,
 		ElasticKeyID:                elasticKeyID,
 		ElasticKeyName:              name,
 		ElasticKeyDescription:       description,

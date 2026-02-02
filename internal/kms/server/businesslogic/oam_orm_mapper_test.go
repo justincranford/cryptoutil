@@ -21,6 +21,7 @@ func TestNewOamOrmMapper(t *testing.T) {
 func TestToOrmAddElasticKey(t *testing.T) {
 	mapper := NewOamOrmMapper()
 	elasticKeyID := googleUuid.New()
+	tenantID := googleUuid.New()
 
 	provider := cryptoutilOpenapiModel.Internal
 	algorithm := cryptoutilOpenapiModel.A128CBCHS256Dir
@@ -36,9 +37,10 @@ func TestToOrmAddElasticKey(t *testing.T) {
 		ImportAllowed:     &importAllowed,
 	}
 
-	result := mapper.toOrmAddElasticKey(&elasticKeyID, create)
+	result := mapper.toOrmAddElasticKey(&elasticKeyID, tenantID, create)
 
 	testify.Equal(t, elasticKeyID, result.ElasticKeyID)
+	testify.Equal(t, tenantID, result.TenantID)
 	testify.Equal(t, "test-key", result.ElasticKeyName)
 	testify.Equal(t, "test description", result.ElasticKeyDescription)
 	testify.Equal(t, provider, result.ElasticKeyProvider)
@@ -556,7 +558,8 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := mapper.toOrmGetElasticKeysQueryParams(tc.params)
+			tenantID := googleUuid.New()
+			result, err := mapper.toOrmGetElasticKeysQueryParams(tenantID, tc.params)
 
 			if tc.expectError {
 				testify.Error(t, err)
@@ -940,6 +943,7 @@ func TestToOrmAddElasticKeyDefaults(t *testing.T) {
 
 	mapper := NewOamOrmMapper()
 	elasticKeyID := googleUuid.New()
+	tenantID := googleUuid.New()
 
 	// Test with minimal input - all optional fields nil.
 	create := &cryptoutilOpenapiModel.ElasticKeyCreate{
@@ -947,10 +951,11 @@ func TestToOrmAddElasticKeyDefaults(t *testing.T) {
 		Description: "test description",
 	}
 
-	result := mapper.toOrmAddElasticKey(&elasticKeyID, create)
+	result := mapper.toOrmAddElasticKey(&elasticKeyID, tenantID, create)
 
 	// Verify defaults are applied.
 	testify.Equal(t, elasticKeyID, result.ElasticKeyID)
+	testify.Equal(t, tenantID, result.TenantID)
 	testify.Equal(t, "test-key", result.ElasticKeyName)
 	testify.Equal(t, cryptoutilOpenapiModel.Internal, result.ElasticKeyProvider)
 	testify.Equal(t, cryptoutilOpenapiModel.A256GCMA256KW, result.ElasticKeyAlgorithm)
@@ -964,6 +969,7 @@ func TestToOrmAddElasticKeyImportAllowed(t *testing.T) {
 
 	mapper := NewOamOrmMapper()
 	elasticKeyID := googleUuid.New()
+	tenantID := googleUuid.New()
 
 	// Test with import allowed = true.
 	importAllowed := true
@@ -973,7 +979,7 @@ func TestToOrmAddElasticKeyImportAllowed(t *testing.T) {
 		ImportAllowed: &importAllowed,
 	}
 
-	result := mapper.toOrmAddElasticKey(&elasticKeyID, create)
+	result := mapper.toOrmAddElasticKey(&elasticKeyID, tenantID, create)
 
 	testify.True(t, result.ElasticKeyImportAllowed)
 	testify.Equal(t, cryptoutilOpenapiModel.PendingImport, result.ElasticKeyStatus)

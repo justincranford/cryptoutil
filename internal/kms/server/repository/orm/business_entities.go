@@ -13,7 +13,8 @@ import (
 // ElasticKey represents a key envelope that can contain multiple material key versions.
 type ElasticKey struct {
 	ElasticKeyID                googleUuid.UUID                            `gorm:"type:text;primaryKey"`
-	ElasticKeyName              string                                     `gorm:"type:text;not null;check:length(elastic_key_name) >= 1;uniqueIndex"`
+	TenantID                    googleUuid.UUID                            `gorm:"type:text;not null;index"`
+	ElasticKeyName              string                                     `gorm:"type:text;not null;check:length(elastic_key_name) >= 1;uniqueIndex:idx_elastic_keys_tenant_name"`
 	ElasticKeyDescription       string                                     `gorm:"type:text;not null;check:length(elastic_key_description) >= 1"`
 	ElasticKeyProvider          cryptoutilOpenapiModel.ElasticKeyProvider  `gorm:"type:text;not null;check:elastic_key_provider IN ('Internal')"`
 	ElasticKeyAlgorithm         cryptoutilOpenapiModel.ElasticKeyAlgorithm `gorm:"type:text;not null"`

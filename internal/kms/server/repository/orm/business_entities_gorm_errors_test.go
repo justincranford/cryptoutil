@@ -19,9 +19,11 @@ func TestToAppErr_GormDuplicatedKey(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create first elastic key.
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		uniqueName := fmt.Sprintf("dup-key-test-%s", ekID.String())
 		elasticKey1, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			uniqueName,
 			"First key",
@@ -39,7 +41,8 @@ func TestToAppErr_GormDuplicatedKey(t *testing.T) {
 
 		// Try to create second elastic key with same primary key (ErrDuplicatedKey).
 		elasticKey2, buildErr2 := BuildElasticKey(
-			ekID, // Same ID - should trigger ErrDuplicatedKey.
+			tenantID, // Same tenantID.
+			ekID,     // Same ID - should trigger ErrDuplicatedKey.
 			"different-name",
 			"Second key",
 			cryptoutilOpenapiModel.Internal,
@@ -73,8 +76,10 @@ func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create material key with empty encrypted data (violates check constraint).
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			"parent-for-check-test",
 			"Parent for check constraint test",

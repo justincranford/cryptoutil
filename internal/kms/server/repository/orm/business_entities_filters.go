@@ -12,6 +12,7 @@ import (
 
 // GetElasticKeysFilters contains filter criteria for querying elastic keys.
 type GetElasticKeysFilters struct {
+	TenantID          googleUuid.UUID   `validate:"required"`
 	ElasticKeyID      []googleUuid.UUID `validate:"optional,min=1"`
 	Name              []string          `validate:"optional,min=1"`
 	Algorithm         []string          `validate:"optional,min=1"`

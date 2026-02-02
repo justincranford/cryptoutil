@@ -45,9 +45,11 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create first elastic key.
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		uniqueName := fmt.Sprintf("unique-key-%s", ekID.String())
 		elasticKey1, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			uniqueName,
 			"First key",
@@ -66,6 +68,7 @@ func TestToAppErr_UniqueConstraintViolation(t *testing.T) {
 		// Try to create second elastic key with same name (unique constraint violation).
 		ekID2 := googleUuid.New()
 		elasticKey2, buildErr2 := BuildElasticKey(
+			tenantID, // Same tenantID
 			ekID2,
 			uniqueName, // Same name - should violate unique constraint.
 			"Second key",

@@ -63,15 +63,15 @@ func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
 	return nil
 }
 
-// GetElasticKey retrieves an elastic key by ID from the database.
-func (tx *OrmTransaction) GetElasticKey(elasticKeyID *googleUuid.UUID) (*ElasticKey, error) {
+// GetElasticKey retrieves an elastic key by ID from the database, filtered by tenant.
+func (tx *OrmTransaction) GetElasticKey(tenantID googleUuid.UUID, elasticKeyID *googleUuid.UUID) (*ElasticKey, error) {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
 	}
 
 	var elasticKey ElasticKey
 
-	err := tx.state.gormTx.First(&elasticKey, "elastic_key_id=?", elasticKeyID).Error
+	err := tx.state.gormTx.First(&elasticKey, "tenant_id=? AND elastic_key_id=?", tenantID, elasticKeyID).Error
 	if err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
 	}
@@ -282,6 +282,9 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 	if filters == nil {
 		return db
 	}
+
+	// TenantID is required for multi-tenant isolation.
+	db = db.Where("tenant_id=?", filters.TenantID)
 
 	if len(filters.ElasticKeyID) > 0 {
 		db = db.Where("elastic_key_id IN ?", filters.ElasticKeyID)

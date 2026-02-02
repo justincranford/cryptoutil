@@ -18,8 +18,10 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 	// Create elastic key and multiple material keys.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key.
+		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			"material-key-version-test",
 			"Test Material Key Version",
@@ -99,8 +101,10 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
 	// Create elastic key and multiple material keys.
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key.
+		tenantID := googleUuid.New()
 		ekID = googleUuid.New()
 		elasticKey, buildErr := BuildElasticKey(
+			tenantID,
 			ekID,
 			"latest-material-key-test",
 			"Test Latest Material Key",
