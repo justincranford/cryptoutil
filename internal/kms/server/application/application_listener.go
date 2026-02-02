@@ -593,17 +593,17 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 }
 
 func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
-	if serverApplicationCore.SQLRepository == nil {
+	if serverApplicationCore.OrmRepository == nil {
 		return map[string]any{
 			"status": "error",
-			"error":  "SQL repository not initialized",
+			"error":  "ORM repository not initialized",
 		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DatabaseHealthCheckTimeout)
 	defer cancel()
 
-	health, err := serverApplicationCore.SQLRepository.HealthCheck(ctx)
+	health, err := serverApplicationCore.OrmRepository.HealthCheck(ctx)
 	if err != nil {
 		return health // HealthCheck already returns the error details
 	}

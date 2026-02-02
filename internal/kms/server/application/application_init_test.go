@@ -172,7 +172,8 @@ func TestContainerConfigurationValidation(t *testing.T) {
 				s.DevMode = false
 				s.BindPublicAddress = cryptoutilSharedMagic.IPv4Loopback // 127.0.0.1
 				s.BindPublicPort = 0
-				s.DatabaseURL = "sqlite:///tmp/test.db"
+				// Use in-memory SQLite to avoid persisted migration state from previous test runs
+				s.DatabaseURL = "sqlite://file::memory:production_test?cache=shared"
 			},
 			wantInitSuccess:   true,
 			wantContainerMode: false,
