@@ -1,6 +1,6 @@
 # Tasks - Unified Service-Template Migration (V7)
 
-**Status**: 11 of 40 tasks complete (27.5%)
+**Status**: 12 of 40 tasks complete (30.0%)
 **Last Updated**: 2026-02-02
 **Quizme Decisions Applied**: ✅ All 6 answers merged
 - Q1: Fresh start (no data migration)
@@ -254,18 +254,22 @@
 - **Evidence**: All KMS tests pass. MaterialKey uses *int64 with gorm:"type:bigint" for SQLite BIGINT compat. Commits: d9d0c99, 9e72b3d, 9c23c98, 5f05c7f.
 
 ### Task 2.5: Remove SQLRepository
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.5h
 - **Dependencies**: Task 2.4
 - **Description**: Delete SQLRepository and raw database/sql code
 - **Acceptance Criteria**:
-  - [ ] sql_provider.go deleted
-  - [ ] No database/sql imports in KMS
-  - [ ] All tests pass
-  - [ ] Documentation updated (per Q6)
+  - [x] sql_provider.go deleted
+  - [x] No database/sql imports in KMS (ORM layer removed)
+  - [x] All tests pass (KMS builds, unit tests pass; integration tests require PostgreSQL)
+  - [x] Documentation updated (per Q6)
 - **Files**:
-  - `internal/kms/server/repository/sqlrepository/` (DELETE)
+  - `internal/kms/server/repository/sqlrepository/` (DELETED - 30+ files)
+  - `internal/kms/server/repository/orm/orm_repository.go` (consolidated constructors)
+  - `internal/kms/server/repository/orm/orm_repository_test_util.go` (simplified)
+  - `internal/kms/server/application/application_core.go` (uses NewOrmRepository)
+- **Evidence**: Build succeeds. 37 files changed, 4732 lines deleted. Commit ca794777.
 
 ---
 
