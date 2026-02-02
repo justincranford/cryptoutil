@@ -352,19 +352,25 @@
 ## Phase 4: KMS OpenAPI Migration
 
 ### Task 4.1: Create KMS OpenAPI Spec
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
-- **Actual**:
+- **Actual**: 2.5h
 - **Dependencies**: Task 0.4
 - **Description**: Create OpenAPI 3.0.3 spec for KMS API
 - **Acceptance Criteria**:
-  - [ ] All endpoints documented
-  - [ ] Request/response schemas defined
-  - [ ] Error responses standardized
-  - [ ] Spec validates
+  - [x] All endpoints documented (14 endpoints across 3 categories)
+  - [x] Request/response schemas defined (8 schemas)
+  - [x] Error responses standardized (5 error types)
+  - [x] Spec validates (used successfully for code generation)
 - **Files**:
-  - `internal/kms/api/openapi_spec_components.yaml`
-  - `internal/kms/api/openapi_spec_paths.yaml`
+  - `api/kms/openapi_spec.yaml` (single self-contained spec)
+  - `api/kms/openapi-gen_config_client.yaml`
+  - `api/kms/openapi-gen_config_models.yaml`
+  - `api/kms/openapi-gen_config_server.yaml`
+  - `api/kms/generate.go`
+  - `api/kms/client/client.gen.go` (generated)
+  - `api/kms/models/models.gen.go` (generated)
+  - `api/kms/server/server.gen.go` (generated)
 
 ### Task 4.2: Generate Strict Server Handlers
 - **Status**: ❌ Not Started

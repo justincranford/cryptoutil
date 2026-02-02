@@ -1,0 +1,902 @@
+# $schema: https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.1/schema.yaml
+openapi: 3.0.3
+info:
+  title: KMS (Key Management Service) API
+  version: "1.0.0"
+  description: >
+    REST API for Key Management Service operations.
+
+    Provides:
+    - Elastic Key management: create, read, update, delete, list keys
+    - Material Key operations: generate, import, revoke material keys within elastic keys
+    - Cryptographic operations: encrypt, decrypt, sign, verify using elastic keys
+    - Multi-tenant isolation with realm and tenant context
+    - FIPS 140-3 approved cryptographic algorithms
+
+    All operations support both browser-based (session auth) and service-to-service (JWT auth) access patterns.
+  contact:
+    name: Justin Cranford
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: /browser/api/v1
+    description: Browser client API (session-based auth)
+  - url: /service/api/v1
+    description: Service client API (JWT-based auth)
+
+paths:
+  # Elastic Key Management Endpoints
+  /elastickey:
+    post:
+      summary: Create a new Elastic Key
+      description: Create a new Elastic Key with specified algorithm and configuration. The elastic key will be isolated to the current tenant.
+      operationId: createElasticKey
+      tags: [ElasticKeys]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElasticKeyCreate'
+      responses:
+        '200':
+          description: Elastic Key created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    get:
+      summary: Get Elastic Key by ID
+      description: Retrieve a specific elastic key by its UUID
+      operationId: getElasticKey
+      tags: [ElasticKeys]
+      responses:
+        '200':
+          description: Elastic Key retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: Update Elastic Key
+      description: Update name and description of an existing elastic key
+      operationId: updateElasticKey
+      tags: [ElasticKeys]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElasticKeyUpdate'
+      responses:
+        '200':
+          description: Elastic Key updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElasticKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete Elastic Key
+      description: Permanently delete an elastic key and all its material keys
+      operationId: deleteElasticKey
+      tags: [ElasticKeys]
+      responses:
+        '204':
+          description: Elastic Key deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickeys:
+    get:
+      summary: List Elastic Keys
+      description: Find elastic keys with optional filtering, sorting, and pagination
+      operationId: listElasticKeys
+      tags: [ElasticKeys]
+      parameters:
+        - $ref: '#/components/parameters/ElasticKeyIDs'
+        - $ref: '#/components/parameters/Names'
+        - $ref: '#/components/parameters/Providers'
+        - $ref: '#/components/parameters/Algorithms'
+        - $ref: '#/components/parameters/VersioningAllowed'
+        - $ref: '#/components/parameters/ImportAllowed'
+        - $ref: '#/components/parameters/Statuses'
+        - $ref: '#/components/parameters/Sorts'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: List of elastic keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ElasticKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Material Key Endpoints
+  /elastickey/{elasticKeyID}/materialkey:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    post:
+      summary: Generate new Material Key
+      description: Generate a new material key within an elastic key
+      operationId: generateMaterialKey
+      tags: [MaterialKeys]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialKeyGenerate'
+      responses:
+        '200':
+          description: Material Key generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/import:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    post:
+      summary: Import Material Key
+      description: Import external key material as a new material key
+      operationId: importMaterialKey
+      tags: [MaterialKeys]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialKeyImport'
+      responses:
+        '200':
+          description: Material Key imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+      - $ref: '#/components/parameters/MaterialKeyID'
+    get:
+      summary: Get Material Key
+      description: Retrieve a specific material key
+      operationId: getMaterialKey
+      tags: [MaterialKeys]
+      responses:
+        '200':
+          description: Material Key retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete Material Key
+      description: Delete a specific material key
+      operationId: deleteMaterialKey
+      tags: [MaterialKeys]
+      responses:
+        '204':
+          description: Material Key deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}/revoke:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+      - $ref: '#/components/parameters/MaterialKeyID'
+    post:
+      summary: Revoke Material Key
+      description: Revoke a material key to prevent future use
+      operationId: revokeMaterialKey
+      tags: [MaterialKeys]
+      responses:
+        '204':
+          description: Material Key revoked successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/materialkeys:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    get:
+      summary: List Material Keys
+      description: List all material keys for an elastic key
+      operationId: listMaterialKeys
+      tags: [MaterialKeys]
+      parameters:
+        - $ref: '#/components/parameters/MaterialKeyIDs'
+        - $ref: '#/components/parameters/MinGenerateDate'
+        - $ref: '#/components/parameters/MaxGenerateDate'
+        - $ref: '#/components/parameters/MinImportDate'
+        - $ref: '#/components/parameters/MaxImportDate'
+        - $ref: '#/components/parameters/MinExpirationDate'
+        - $ref: '#/components/parameters/MaxExpirationDate'
+        - $ref: '#/components/parameters/MinRevocationDate'
+        - $ref: '#/components/parameters/MaxRevocationDate'
+        - $ref: '#/components/parameters/MaterialKeyPageNumber'
+        - $ref: '#/components/parameters/MaterialKeyPageSize'
+      responses:
+        '200':
+          description: List of material keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaterialKey'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /materialkeys:
+    get:
+      summary: List all Material Keys
+      description: List material keys across all elastic keys for current tenant
+      operationId: listAllMaterialKeys
+      tags: [MaterialKeys]
+      parameters:
+        - $ref: '#/components/parameters/ElasticKeyIDs'
+        - $ref: '#/components/parameters/MaterialKeyIDs'
+        - $ref: '#/components/parameters/MinGenerateDate'
+        - $ref: '#/components/parameters/MaxGenerateDate'
+        - $ref: '#/components/parameters/MinImportDate'
+        - $ref: '#/components/parameters/MaxImportDate'
+        - $ref: '#/components/parameters/MinExpirationDate'
+        - $ref: '#/components/parameters/MaxExpirationDate'
+        - $ref: '#/components/parameters/MinRevocationDate'
+        - $ref: '#/components/parameters/MaxRevocationDate'
+        - $ref: '#/components/parameters/MaterialKeyPageNumber'
+        - $ref: '#/components/parameters/MaterialKeyPageSize'
+      responses:
+        '200':
+          description: List of material keys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaterialKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Cryptographic Operation Endpoints
+  /elastickey/{elasticKeyID}/generate:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    post:
+      summary: Generate random key material
+      description: Generate a random key (symmetric key or key pair) encrypted as JWE
+      operationId: generateKey
+      tags: [CryptoOps]
+      parameters:
+        - name: context
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Additional authenticated data for encryption context
+        - name: alg
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Algorithm for key generation
+      responses:
+        '200':
+          description: Encrypted generated key (JWE format)
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/encrypt:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    post:
+      summary: Encrypt plaintext
+      description: Encrypt plaintext using the elastic key's active material key
+      operationId: encrypt
+      tags: [CryptoOps]
+      parameters:
+        - name: context
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Additional authenticated data for encryption context
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Ciphertext (JWE format)
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/decrypt:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    post:
+      summary: Decrypt ciphertext
+      description: Decrypt JWE ciphertext using the appropriate material key (identified by kid header)
+      operationId: decrypt
+      tags: [CryptoOps]
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: JWE ciphertext
+      responses:
+        '200':
+          description: Decrypted plaintext
+          content:
+            text/plain:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/sign:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    post:
+      summary: Sign payload
+      description: Sign payload using the elastic key's active material key
+      operationId: sign
+      tags: [CryptoOps]
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Signature (JWS format)
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /elastickey/{elasticKeyID}/verify:
+    parameters:
+      - $ref: '#/components/parameters/ElasticKeyID'
+    post:
+      summary: Verify signature
+      description: Verify JWS signature using the appropriate material key (identified by kid header)
+      operationId: verify
+      tags: [CryptoOps]
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: JWS signed payload
+      responses:
+        '204':
+          description: Signature is valid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  parameters:
+    # Path Parameters
+    ElasticKeyID:
+      name: elasticKeyID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Elastic Key UUID
+
+    MaterialKeyID:
+      name: materialKeyID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Material Key UUID
+
+    # Elastic Key Query Parameters
+    ElasticKeyIDs:
+      name: elastic_key_ids
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+      description: Filter by elastic key IDs
+
+    Names:
+      name: names
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      description: Filter by elastic key names
+
+    Providers:
+      name: providers
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      description: Filter by providers
+
+    Algorithms:
+      name: algorithms
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      description: Filter by algorithms
+
+    VersioningAllowed:
+      name: versioning_allowed
+      in: query
+      required: false
+      schema:
+        type: boolean
+      description: Filter by versioning allowed flag
+
+    ImportAllowed:
+      name: import_allowed
+      in: query
+      required: false
+      schema:
+        type: boolean
+      description: Filter by import allowed flag
+
+    Statuses:
+      name: statuses
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      description: Filter by elastic key statuses
+
+    Sorts:
+      name: sorts
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+      description: Sort fields
+
+    PageNumber:
+      name: page_number
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number for pagination
+
+    PageSize:
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 50
+      description: Page size for pagination
+
+    # Material Key Query Parameters
+    MaterialKeyIDs:
+      name: material_key_ids
+      in: query
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+      description: Filter by material key IDs
+
+    MinGenerateDate:
+      name: min_generate_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Minimum generation date
+
+    MaxGenerateDate:
+      name: max_generate_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Maximum generation date
+
+    MinImportDate:
+      name: min_import_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Minimum import date
+
+    MaxImportDate:
+      name: max_import_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Maximum import date
+
+    MinExpirationDate:
+      name: min_expiration_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Minimum expiration date
+
+    MaxExpirationDate:
+      name: max_expiration_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Maximum expiration date
+
+    MinRevocationDate:
+      name: min_revocation_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Minimum revocation date
+
+    MaxRevocationDate:
+      name: max_revocation_date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+      description: Maximum revocation date
+
+    MaterialKeyPageNumber:
+      name: page_number
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number for material keys pagination
+
+    MaterialKeyPageSize:
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 50
+      description: Page size for material keys pagination
+
+  schemas:
+    # Elastic Key Schemas
+    ElasticKeyCreate:
+      type: object
+      required:
+        - name
+        - provider
+        - algorithm
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 63
+          description: Friendly name for the elastic key
+          example: "Payroll Database Encryption Key"
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          description: Description of the elastic key's purpose
+          example: "Used to encrypt sensitive payroll data"
+        provider:
+          type: string
+          description: Key provider type
+          example: "internal"
+        algorithm:
+          type: string
+          description: Cryptographic algorithm
+          example: "A256GCM/A256KW"
+        versioning_allowed:
+          type: boolean
+          default: true
+          description: Whether key versioning is allowed
+        import_allowed:
+          type: boolean
+          default: false
+          description: Whether external key import is allowed
+
+    ElasticKey:
+      type: object
+      properties:
+        elastic_key_id:
+          type: string
+          format: uuid
+          description: Unique UUID for the elastic key
+        tenant_id:
+          type: string
+          format: uuid
+          description: Tenant ID for multi-tenant isolation
+        name:
+          type: string
+          description: Friendly name
+        description:
+          type: string
+          description: Description
+        provider:
+          type: string
+          description: Provider type
+        algorithm:
+          type: string
+          description: Cryptographic algorithm
+        versioning_allowed:
+          type: boolean
+          description: Versioning allowed flag
+        import_allowed:
+          type: boolean
+          description: Import allowed flag
+        status:
+          type: string
+          description: Current status
+          enum: [active, inactive, deleted]
+
+    ElasticKeyUpdate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 63
+          description: Updated friendly name
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          description: Updated description
+
+    # Material Key Schemas
+    MaterialKeyGenerate:
+      type: object
+      additionalProperties: false
+      description: Request body for generating a new material key (empty object)
+
+    MaterialKeyImport:
+      type: object
+      required:
+        - jwk
+      properties:
+        jwk:
+          type: string
+          description: JSON Web Key in compact JSON format to import
+          example: '{"kty":"RSA","kid":"imported-key-1","use":"enc",...}'
+
+    MaterialKey:
+      type: object
+      properties:
+        elastic_key_id:
+          type: string
+          format: uuid
+          description: Parent elastic key UUID
+        material_key_id:
+          type: string
+          format: uuid
+          description: Material key UUID
+        tenant_id:
+          type: string
+          format: uuid
+          description: Tenant ID for multi-tenant isolation
+        generate_date:
+          type: string
+          format: date-time
+          description: Date when key was generated
+        import_date:
+          type: string
+          format: date-time
+          description: Date when key was imported
+        expiration_date:
+          type: string
+          format: date-time
+          description: Date when key expires
+        revocation_date:
+          type: string
+          format: date-time
+          description: Date when key was revoked
+        clear_public:
+          type: string
+          description: Public key material (for asymmetric keys)
+
+    # Error Schemas
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_KEY_SIZE"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Key size must be 2048, 3072, or 4096 bits"
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+        request_id:
+          type: string
+          format: uuid
+          description: Request ID for tracing
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Not found - resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for service-to-service authentication
+
+    SessionAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+      description: Session cookie for browser-based authentication
+
+security:
+  - BearerAuth: []
+  - SessionAuth: []
