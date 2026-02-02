@@ -132,13 +132,21 @@
   - [x] Tests pass (4 test functions, all pass)
 
 #### Task 11.2: Extend ServerBuilder with OpenAPI Handler Registration
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 4h
-- **Description**: Add `WithOpenAPIHandlers(strictServer interface{})` method to ServerBuilder
+- **Actual**: 1h
+- **Description**: Add OpenAPI helper config for request validation middleware
+- **Evidence**: Commit `0300062c` - openapi.go, openapi_test.go
+- **Files**:
+  - `internal/apps/template/service/server/builder/openapi.go` (NEW - ~90 lines)
+  - `internal/apps/template/service/server/builder/openapi_test.go` (NEW - ~260 lines)
 - **Acceptance Criteria**:
-  - [ ] ServerBuilder supports oapi-codegen generated handlers
-  - [ ] Request validation middleware included
-  - [ ] Tests pass
+  - [x] OpenAPIConfig struct with swagger spec, base paths, validation options
+  - [x] NewDefaultOpenAPIConfig() factory with standard defaults
+  - [x] CreateRequestValidatorMiddleware() using oapi-codegen fiber-middleware
+  - [x] BrowserMiddlewares() and ServiceMiddlewares() helpers
+  - [x] OpenAPIRegistrar interface for domain service integration
+  - [x] Tests pass (5 test functions, all pass)
 
 #### Task 11.3: Extend ServerBuilder with Security Headers
 - **Status**: ❌ Not Started
