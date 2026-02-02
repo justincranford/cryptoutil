@@ -59,7 +59,7 @@ func startServer(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateSe
 	defer cancel()
 
 	// Create KMS server using ServerBuilder infrastructure.
-	kmsServer, err := cryptoutilKMSServer.NewKMSServer(ctx, settings, nil)
+	kmsServer, err := cryptoutilKMSServer.NewKMSServer(ctx, settings)
 	if err != nil {
 		log.Fatalf("failed to create KMS server: %v", err)
 	}

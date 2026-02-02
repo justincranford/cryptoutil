@@ -1,6 +1,6 @@
 # Tasks - Unified Service-Template Migration (V7)
 
-**Status**: 0 of 39 tasks complete (0%)
+**Status**: 7 of 40 tasks complete (17.5%)
 **Last Updated**: 2026-02-02
 **Quizme Decisions Applied**: ✅ All 6 answers merged
 - Q1: Fresh start (no data migration)
@@ -87,48 +87,56 @@
   - `internal/apps/template/service/server/builder/database.go`
 
 ### Task 1.2: Remove DisabledBarrierConfig
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Task 0.2
 - **Description**: Remove barrier disabled mode from ServerBuilder
 - **Acceptance Criteria**:
-  - [ ] DisabledBarrierConfig removed
-  - [ ] SharedBarrierMode removed (if exists)
-  - [ ] Only TemplateBarrier remains
-  - [ ] cipher-im tests pass
-  - [ ] jose-ja tests pass
+  - [x] DisabledBarrierConfig removed
+  - [x] SharedBarrierMode removed (if exists)
+  - [x] Only TemplateBarrier remains
+  - [x] cipher-im tests pass
+  - [x] jose-ja tests pass
 - **Files**:
   - `internal/apps/template/service/server/builder/barrier.go`
+  - `internal/apps/template/service/server/builder/barrier_test.go`
+  - `internal/apps/template/service/server/builder/server_builder.go`
+- **Commit**: 7349ed72
 
 ### Task 1.3: Remove DisabledMigrationConfig
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.75h
 - **Dependencies**: None
 - **Description**: Remove migration disabled mode from ServerBuilder
 - **Acceptance Criteria**:
-  - [ ] DisabledMigrationConfig removed
-  - [ ] DomainOnlyMode removed
-  - [ ] Only TemplateWithDomainMode remains
-  - [ ] cipher-im tests pass
-  - [ ] jose-ja tests pass
+  - [x] DisabledMigrationConfig removed
+  - [x] DomainOnlyMode KEPT (useful for KMS-style services that manage their own migrations)
+  - [x] TemplateWithDomainMode remains as default
+  - [x] IsEnabled() method removed (migrations always enabled)
+  - [x] builder tests pass (121 tests)
 - **Files**:
   - `internal/apps/template/service/server/builder/migrations.go`
+  - `internal/apps/template/service/server/builder/migrations_test.go`
+  - `internal/apps/template/service/server/builder/server_builder.go`
+- **Commit**: 5e426085
 
 ### Task 1.4: Remove JWTAuthDisabled Mode
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Task 0.3
-- **Description**: Remove JWT auth disabled mode from ServerBuilder
+- **Description**: Rename JWTAuthModeDisabled to JWTAuthModeSession for clarity
 - **Acceptance Criteria**:
-  - [ ] JWTAuthDisabled removed
-  - [ ] Auth is always enabled (JWT or session)
-  - [ ] cipher-im tests pass
-  - [ ] jose-ja tests pass
+  - [x] JWTAuthModeDisabled renamed to JWTAuthModeSession
+  - [x] Constant value changed from "disabled" to "session"
+  - [x] Auth is always enabled (JWT or session) - now clearer
+  - [x] builder tests pass (121 tests)
 - **Files**:
   - `internal/apps/template/service/server/builder/jwt_auth.go`
+  - `internal/apps/template/service/server/builder/jwt_auth_test.go`
+- **Commit**: 39742092
 
 ### Task 1.5: Remove KMS builder_adapter.go
 - **Status**: ❌ Not Started

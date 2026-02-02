@@ -30,10 +30,12 @@ type KMSServer struct {
 }
 
 // NewKMSServer creates a new KMS server using the template's ServerBuilder.
+// TODO(Phase2-5): KMS needs to be migrated to use template's GORM database and barrier.
+// Currently KMS has its own SQLRepository and shared/barrier - these need to be replaced
+// with the template's infrastructure for unified service architecture.
 func NewKMSServer(
 	ctx context.Context,
 	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,
-	kmsSettings *KMSBuilderAdapterSettings,
 ) (*KMSServer, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
@@ -43,21 +45,32 @@ func NewKMSServer(
 		return nil, fmt.Errorf("settings cannot be nil")
 	}
 
-	// Create the adapter to configure ServerBuilder for KMS.
-	adapter, err := NewKMSBuilderAdapter(ctx, settings, kmsSettings)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create KMS builder adapter: %w", err)
-	}
-
 	// Initialize KMS-specific services BEFORE building the server.
-	// KMS has its own database setup (SQLRepository) and barrier (shared/barrier).
+	// TODO(Phase2-5): Replace with template's GORM database and barrier.
 	kmsCore, err := cryptoutilServerApplication.StartServerApplicationCore(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start KMS application core: %w", err)
 	}
 
-	// Configure and build the server using the adapter.
-	builder := adapter.ConfigureBuilder()
+	// Create ServerBuilder directly (no more builder_adapter.go).
+	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, settings)
+
+	// Configure domain-only migrations (KMS has its own migration system).
+	// TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
+	builder.WithMigrationConfig(
+		cryptoutilAppsTemplateServiceServerBuilder.NewDomainOnlyMigrationConfig(),
+	)
+
+	// Configure JWT auth as session-based (KMS uses template sessions).
+	builder.WithJWTAuth(
+		cryptoutilAppsTemplateServiceServerBuilder.NewDefaultJWTAuthConfig(),
+	)
+
+	// Configure strict server for OpenAPI.
+	strictConfig := cryptoutilAppsTemplateServiceServerBuilder.NewDefaultStrictServerConfig().
+		WithBrowserBasePath(settings.PublicBrowserAPIContextPath).
+		WithServiceBasePath(settings.PublicServiceAPIContextPath)
+	builder.WithStrictServer(strictConfig)
 
 	// Register KMS-specific routes.
 	builder.WithPublicRouteRegistration(func(
