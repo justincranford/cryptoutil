@@ -195,12 +195,14 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 			return fmt.Errorf("failed to encrypt new MaterialKey for ElasticKey: %w", err)
 		}
 
+		// Convert time.Time to Unix milliseconds for database storage
+		generateDateMillis := materialKeyGenerateDate.UnixMilli()
 		ormMaterialKey = &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  *elasticKeyID,
 			MaterialKeyID:                 *materialKeyID,
 			MaterialKeyClearPublic:        clearPublicJWKBytes,
 			MaterialKeyEncryptedNonPublic: encryptedMaterialKeyPrivateOrPublicJWKBytes,
-			MaterialKeyGenerateDate:       &materialKeyGenerateDate,
+			MaterialKeyGenerateDate:       &generateDateMillis,
 		}
 
 		err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey)
@@ -684,12 +686,14 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 			return fmt.Errorf("failed to encrypt imported MaterialKey: %w", err)
 		}
 
+		// Convert time.Time to Unix milliseconds for database storage
+		importDateMillis := materialKeyImportDate.UnixMilli()
 		ormMaterialKey = &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  *elasticKeyID,
 			MaterialKeyID:                 materialKeyID,
 			MaterialKeyClearPublic:        nil,
 			MaterialKeyEncryptedNonPublic: encryptedMaterialKeyBytes,
-			MaterialKeyImportDate:         &materialKeyImportDate,
+			MaterialKeyImportDate:         &importDateMillis,
 		}
 
 		err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey)
@@ -723,8 +727,10 @@ func (s *BusinessLogicService) RevokeMaterialKey(ctx context.Context, elasticKey
 			return fmt.Errorf("MaterialKey already revoked")
 		}
 
+		// Convert time.Time to Unix milliseconds for database storage
 		revocationDate := time.Now().UTC()
-		ormMaterialKey.MaterialKeyRevocationDate = &revocationDate
+		revocationDateMillis := revocationDate.UnixMilli()
+		ormMaterialKey.MaterialKeyRevocationDate = &revocationDateMillis
 
 		err = sqlTransaction.UpdateElasticKeyMaterialKeyRevoke(ormMaterialKey)
 		if err != nil {

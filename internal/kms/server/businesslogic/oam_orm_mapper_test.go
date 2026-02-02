@@ -55,6 +55,7 @@ func TestToOrmAddMaterialKey(t *testing.T) {
 	publicBytes := []byte("public-key-data")
 	encryptedBytes := []byte("encrypted-private-key-data")
 	generateDate := time.Now().UTC()
+	generateDateMillis := generateDate.UnixMilli()
 
 	result := mapper.toOrmAddMaterialKey(&elasticKeyID, &materialKeyID, publicBytes, encryptedBytes, generateDate)
 
@@ -63,7 +64,7 @@ func TestToOrmAddMaterialKey(t *testing.T) {
 	testify.Equal(t, publicBytes, result.MaterialKeyClearPublic)
 	testify.Equal(t, encryptedBytes, result.MaterialKeyEncryptedNonPublic)
 	testify.NotNil(t, result.MaterialKeyGenerateDate)
-	testify.Equal(t, generateDate, *result.MaterialKeyGenerateDate)
+	testify.Equal(t, generateDateMillis, *result.MaterialKeyGenerateDate)
 }
 
 func TestToOamElasticKeyStatus(t *testing.T) {
@@ -155,7 +156,7 @@ func TestToOamMaterialKey(t *testing.T) {
 
 	elasticKeyID := googleUuid.New()
 	materialKeyID := googleUuid.New()
-	generateDate := time.Now().UTC()
+	generateDateMillis := time.Now().UTC().UnixMilli()
 	publicBytes := []byte(`{"kty":"RSA"}`)
 
 	tests := []struct {
@@ -171,7 +172,7 @@ func TestToOamMaterialKey(t *testing.T) {
 				MaterialKeyID:                 materialKeyID,
 				MaterialKeyClearPublic:        publicBytes,
 				MaterialKeyEncryptedNonPublic: []byte("encrypted"),
-				MaterialKeyGenerateDate:       &generateDate,
+				MaterialKeyGenerateDate:       &generateDateMillis,
 			},
 			expectError: false,
 		},
@@ -182,7 +183,7 @@ func TestToOamMaterialKey(t *testing.T) {
 				MaterialKeyID:                 materialKeyID,
 				MaterialKeyClearPublic:        nil,
 				MaterialKeyEncryptedNonPublic: []byte("encrypted"),
-				MaterialKeyGenerateDate:       &generateDate,
+				MaterialKeyGenerateDate:       &generateDateMillis,
 			},
 			expectError: false,
 		},
@@ -243,7 +244,7 @@ func TestToOamMaterialKeys(t *testing.T) {
 	elasticKeyID := googleUuid.New()
 	materialKeyID1 := googleUuid.New()
 	materialKeyID2 := googleUuid.New()
-	generateDate := time.Now().UTC()
+	generateDateMillis := time.Now().UTC().UnixMilli()
 
 	tests := []struct {
 		name        string
@@ -258,14 +259,14 @@ func TestToOamMaterialKeys(t *testing.T) {
 					MaterialKeyID:                 materialKeyID1,
 					MaterialKeyClearPublic:        []byte("public1"),
 					MaterialKeyEncryptedNonPublic: []byte("encrypted1"),
-					MaterialKeyGenerateDate:       &generateDate,
+					MaterialKeyGenerateDate:       &generateDateMillis,
 				},
 				{
 					ElasticKeyID:                  elasticKeyID,
 					MaterialKeyID:                 materialKeyID2,
 					MaterialKeyClearPublic:        []byte("public2"),
 					MaterialKeyEncryptedNonPublic: []byte("encrypted2"),
-					MaterialKeyGenerateDate:       &generateDate,
+					MaterialKeyGenerateDate:       &generateDateMillis,
 				},
 			},
 			expectError: false,

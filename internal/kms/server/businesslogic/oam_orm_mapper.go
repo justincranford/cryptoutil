@@ -73,12 +73,14 @@ func (m *OamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElas
 }
 
 func (*OamOrmMapper) toOrmAddMaterialKey(elasticKeyID, materialKeyID *googleUuid.UUID, materialKeyClearPublicJWKBytes, materialKeyEncryptedNonPublicJWKBytes []byte, materialKeyGenerateDate time.Time) *cryptoutilOrmRepository.MaterialKey {
+	// Convert time.Time to Unix milliseconds for database storage
+	generateDateMillis := materialKeyGenerateDate.UnixMilli()
 	return &cryptoutilOrmRepository.MaterialKey{
 		ElasticKeyID:                  *elasticKeyID,
 		MaterialKeyID:                 *materialKeyID,
 		MaterialKeyClearPublic:        materialKeyClearPublicJWKBytes,        // nil if repositoryElasticKey.ElasticKeyAlgorithm is Symmetric
 		MaterialKeyEncryptedNonPublic: materialKeyEncryptedNonPublicJWKBytes, // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
-		MaterialKeyGenerateDate:       &materialKeyGenerateDate,              // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
+		MaterialKeyGenerateDate:       &generateDateMillis,                   // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
 	}
 }
 
@@ -160,13 +162,32 @@ func (m *OamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.
 		materialKeyClearPublic = &tmp
 	}
 
+	// Convert Unix milliseconds timestamps to time.Time for OpenAPI model
+	var generateDate, importDate, expirationDate, revocationDate *time.Time
+	if ormMaterialKey.MaterialKeyGenerateDate != nil {
+		t := time.UnixMilli(*ormMaterialKey.MaterialKeyGenerateDate).UTC()
+		generateDate = &t
+	}
+	if ormMaterialKey.MaterialKeyImportDate != nil {
+		t := time.UnixMilli(*ormMaterialKey.MaterialKeyImportDate).UTC()
+		importDate = &t
+	}
+	if ormMaterialKey.MaterialKeyExpirationDate != nil {
+		t := time.UnixMilli(*ormMaterialKey.MaterialKeyExpirationDate).UTC()
+		expirationDate = &t
+	}
+	if ormMaterialKey.MaterialKeyRevocationDate != nil {
+		t := time.UnixMilli(*ormMaterialKey.MaterialKeyRevocationDate).UTC()
+		revocationDate = &t
+	}
+
 	return &cryptoutilOpenapiModel.MaterialKey{
 		ElasticKeyID:   ormMaterialKey.ElasticKeyID,
 		MaterialKeyID:  ormMaterialKey.MaterialKeyID,
-		GenerateDate:   ormMaterialKey.MaterialKeyGenerateDate,
-		ImportDate:     ormMaterialKey.MaterialKeyImportDate,
-		ExpirationDate: ormMaterialKey.MaterialKeyExpirationDate,
-		RevocationDate: ormMaterialKey.MaterialKeyRevocationDate,
+		GenerateDate:   generateDate,
+		ImportDate:     importDate,
+		ExpirationDate: expirationDate,
+		RevocationDate: revocationDate,
 		ClearPublic:    materialKeyClearPublic,
 	}, nil
 }

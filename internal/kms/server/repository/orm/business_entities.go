@@ -5,8 +5,6 @@
 package orm
 
 import (
-	"time"
-
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
@@ -14,24 +12,25 @@ import (
 
 // ElasticKey represents a key envelope that can contain multiple material key versions.
 type ElasticKey struct {
-	ElasticKeyID                googleUuid.UUID                            `gorm:"type:uuid;primaryKey"`
-	ElasticKeyName              string                                     `gorm:"size:63;not null;check:length(elastic_key_name) >= 1;unique"`
-	ElasticKeyDescription       string                                     `gorm:"size:255;not null;check:length(elastic_key_description) >= 1"`
-	ElasticKeyProvider          cryptoutilOpenapiModel.ElasticKeyProvider  `gorm:"size:8;not null;check:elastic_key_provider IN ('Internal')"`
-	ElasticKeyAlgorithm         cryptoutilOpenapiModel.ElasticKeyAlgorithm `gorm:"size:26;not null"`
-	ElasticKeyVersioningAllowed bool                                       `gorm:"not null;check:elastic_key_versioning_allowed IN (TRUE, FALSE)"`
-	ElasticKeyImportAllowed     bool                                       `gorm:"not null;check:elastic_key_import_allowed IN (TRUE, FALSE)"`
-	ElasticKeyStatus            cryptoutilOpenapiModel.ElasticKeyStatus    `gorm:"size:34;not null;check:elastic_key_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
+	ElasticKeyID                googleUuid.UUID                            `gorm:"type:text;primaryKey"`
+	ElasticKeyName              string                                     `gorm:"type:text;not null;check:length(elastic_key_name) >= 1;uniqueIndex"`
+	ElasticKeyDescription       string                                     `gorm:"type:text;not null;check:length(elastic_key_description) >= 1"`
+	ElasticKeyProvider          cryptoutilOpenapiModel.ElasticKeyProvider  `gorm:"type:text;not null;check:elastic_key_provider IN ('Internal')"`
+	ElasticKeyAlgorithm         cryptoutilOpenapiModel.ElasticKeyAlgorithm `gorm:"type:text;not null"`
+	ElasticKeyVersioningAllowed bool                                       `gorm:"type:integer;not null"`
+	ElasticKeyImportAllowed     bool                                       `gorm:"type:integer;not null"`
+	ElasticKeyStatus            cryptoutilOpenapiModel.ElasticKeyStatus    `gorm:"type:text;not null"`
 }
 
 // MaterialKey represents a specific key version within an elastic key.
+// Date fields are stored as Unix epoch milliseconds (BIGINT) for cross-database compatibility.
 type MaterialKey struct {
-	ElasticKeyID                  googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	MaterialKeyID                 googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	MaterialKeyClearPublic        []byte          `gorm:""`
-	MaterialKeyEncryptedNonPublic []byte          `gorm:"not null;check(length(material_key_encrypted_non_public) >= 1)"`
-	MaterialKeyGenerateDate       *time.Time
-	MaterialKeyImportDate         *time.Time
-	MaterialKeyExpirationDate     *time.Time
-	MaterialKeyRevocationDate     *time.Time
+	ElasticKeyID                  googleUuid.UUID `gorm:"type:text;primaryKey"`
+	MaterialKeyID                 googleUuid.UUID `gorm:"type:text;primaryKey"`
+	MaterialKeyClearPublic        []byte          `gorm:"type:blob"`
+	MaterialKeyEncryptedNonPublic []byte          `gorm:"type:blob;not null"`
+	MaterialKeyGenerateDate       *int64          `gorm:"type:bigint"` // Unix epoch milliseconds
+	MaterialKeyImportDate         *int64          `gorm:"type:bigint"` // Unix epoch milliseconds
+	MaterialKeyExpirationDate     *int64          `gorm:"type:bigint"` // Unix epoch milliseconds
+	MaterialKeyRevocationDate     *int64          `gorm:"type:bigint"` // Unix epoch milliseconds
 }

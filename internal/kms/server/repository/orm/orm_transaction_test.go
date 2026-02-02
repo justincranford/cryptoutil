@@ -13,7 +13,8 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -29,7 +30,7 @@ var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
 	testJWKGenService    *cryptoutilSharedCryptoJose.JWKGenService
-	testSQLRepository    *cryptoutilSQLRepository.SQLRepository
+	testTemplateCore     *cryptoutilAppsTemplateServiceServerApplication.Core
 	testOrmRepository    *OrmRepository
 	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
 	numMaterialKeys      = 10
@@ -39,16 +40,47 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
-		defer testTelemetryService.Shutdown()
+		// Start template Core which provides GORM directly with proper migrations
+		var err error
+		testTemplateCore, err = cryptoutilAppsTemplateServiceServerApplication.StartCore(testCtx, testSettings)
+		if err != nil {
+			panic(fmt.Sprintf("failed to start template core: %v", err))
+		}
 
-		testJWKGenService = cryptoutilSharedCryptoJose.RequireNewForTest(testCtx, testTelemetryService)
-		defer testJWKGenService.Shutdown()
+		defer func() {
+			if testTemplateCore.ShutdownDBContainer != nil {
+				testTemplateCore.ShutdownDBContainer()
+			}
+			testTemplateCore.Basic.Shutdown()
+		}()
 
-		testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
-		defer testSQLRepository.Shutdown()
+		testTelemetryService = testTemplateCore.Basic.TelemetryService
+		testJWKGenService = testTemplateCore.Basic.JWKGenService
 
-		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
+		// Apply template migrations (1001-1005 for barrier tables, sessions, etc.)
+		sqlDB, err := testTemplateCore.DB.DB()
+		if err != nil {
+			panic(fmt.Sprintf("failed to get sql.DB from GORM: %v", err))
+		}
+		err = cryptoutilAppsTemplateServiceServerRepository.ApplyMigrationsFromFS(
+			sqlDB,
+			cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
+			"migrations",
+			"sqlite",
+		)
+		if err != nil {
+			panic(fmt.Sprintf("failed to apply template migrations: %v", err))
+		}
+
+		// Apply KMS domain tables using GORM AutoMigrate.
+		// This creates elastic_keys and material_keys tables without golang-migrate.
+		err = testTemplateCore.DB.AutoMigrate(&ElasticKey{}, &MaterialKey{})
+		if err != nil {
+			panic(fmt.Sprintf("failed to apply KMS domain tables: %v", err))
+		}
+
+		// Use GORM directly from template Core (not SQLRepository)
+		testOrmRepository = RequireNewFromGORMForTest(testCtx, testTelemetryService, testTemplateCore.DB, testJWKGenService, testSettings.VerboseMode)
 		defer testOrmRepository.Shutdown()
 
 		rc = m.Run()
@@ -160,7 +192,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 			cryptoutilSharedApperr.RequireNoError(err, "failed to generate AES 256 key materials")
 
 			for nextKeyID := 1; nextKeyID <= numMaterialKeys; nextKeyID++ {
-				now := time.Now().UTC()
+				now := time.Now().UTC().UnixMilli()
 				materialKeyID := testJWKGenService.GenerateUUIDv7()
 				key := MaterialKey{
 					ElasticKeyID:                  elasticKey.ElasticKeyID,
