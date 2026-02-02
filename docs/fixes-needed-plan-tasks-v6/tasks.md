@@ -273,80 +273,47 @@
 
 ---
 
-### Phase 13: KMS Full Migration to ServerBuilder (DEFERRED)
+### Phase 13: KMS Server Refactoring (BLOCKED - Architectural Mismatch)
 
-**Status**: ❌ Not Started (Deferred from Task 11.4)
-**Rationale**: Full KMS migration requires significantly more effort than originally estimated
+**Status**: ⚠️ BLOCKED - Requires architectural decision
+**Discovery**: Analysis during Phase 12/13 revealed fundamental architectural mismatch between ServerBuilder and KMS
 
-**CRITICAL**: This phase handles the actual KMS migration that was originally Task 11.4. The scope is:
-- Migrate KMS from custom application_listener.go to ServerBuilder pattern
-- Preserve ALL KMS functionality
-- Maintain ALL KMS tests
-- Delete 1223 lines of application_listener.go
+**ARCHITECTURAL MISMATCH ANALYSIS**:
+| Aspect | ServerBuilder (Template) | KMS Current | Compatibility |
+|--------|-------------------------|-------------|---------------|
+| Database | GORM | raw database/sql + custom ORM | ❌ Incompatible |
+| Authentication | SessionManager | JWT auth | ❌ Different patterns |
+| Migrations | Template (1001-1004) | KMS-specific | ⚠️ Would need merge |
+| Barrier | Template-specific | shared/barrier | ⚠️ Different implementations |
+| Routes | Manual registration | OpenAPI strict server | ⚠️ Different patterns |
 
-**Estimate**: 20-30 hours (properly scoped)
+**OPTIONS FOR USER DECISION**:
+- **Option A**: Modify ServerBuilder to support KMS architecture (risky, invasive, ~40h)
+- **Option B**: Create KMS-specific builder reusing TLS/listener only (moderate, ~20h)
+- **Option C**: Keep KMS's architecture, refactor for clarity only (safest, ~8-12h)
 
-#### Task 13.1: Create KMS Server Structure
-- **Status**: ❌ Not Started
-- **Estimated**: 4h
-- **Description**: Create new KMS server package structure similar to cipher-im
+**RECOMMENDATION**: Option C - preserves all existing code and tests
+
+**BLOCKED ON**: User decision on which option to pursue
+
+---
+
+#### Task 13.1: Architectural Decision Required
+- **Status**: ⚠️ BLOCKED - Awaiting user input
+- **Description**: User must decide which option to pursue
 - **Acceptance Criteria**:
-  - [ ] Create `internal/kms/server/kms_server.go`
-  - [ ] Create `internal/kms/server/public_server.go`
-  - [ ] Define KMS-specific interfaces
-  - [ ] Tests compile
+  - [ ] User reviews architectural mismatch analysis
+  - [ ] User selects Option A, B, or C
+  - [ ] Decision documented in plan.md
 
-#### Task 13.2: Migrate KMS Handler Registration
-- **Status**: ❌ Not Started
-- **Estimated**: 4h
-- **Description**: Migrate KMS OpenAPI handlers to new structure
-- **Acceptance Criteria**:
-  - [ ] All KMS handlers registered via ServerBuilder
-  - [ ] OapiRequestValidator working
-  - [ ] FiberServerOptions preserved
-  - [ ] Handler tests pass
-
-#### Task 13.3: Migrate KMS Middleware Chain
-- **Status**: ❌ Not Started
-- **Estimated**: 4h
-- **Description**: Migrate KMS middleware to use ServerBuilder patterns
-- **Acceptance Criteria**:
-  - [ ] IP filtering working
-  - [ ] Rate limiting working
-  - [ ] CORS/CSRF working
-  - [ ] Security headers working
-  - [ ] Middleware tests pass
-
-#### Task 13.4: Migrate KMS Health Checks
-- **Status**: ❌ Not Started
-- **Estimated**: 2h
-- **Description**: Ensure KMS health checks work with ServerBuilder
-- **Acceptance Criteria**:
-  - [ ] /admin/api/v1/livez working
-  - [ ] /admin/api/v1/readyz working
-  - [ ] /admin/api/v1/shutdown working
-  - [ ] Health check tests pass
-
-#### Task 13.5: Delete application_listener.go
-- **Status**: ❌ Not Started
-- **Estimated**: 2h
-- **Description**: Remove application_listener.go after all functionality migrated
-- **Acceptance Criteria**:
-  - [ ] All functionality moved to new structure
-  - [ ] application_listener.go deleted
-  - [ ] No compilation errors
-  - [ ] All tests pass
-
-#### Task 13.6: Comprehensive KMS Test Verification
-- **Status**: ❌ Not Started
-- **Estimated**: 4h
-- **Description**: Run all KMS tests and fix any regressions
-- **Acceptance Criteria**:
-  - [ ] All unit tests pass
-  - [ ] All integration tests pass
-  - [ ] All E2E tests pass
-  - [ ] Coverage maintained
-  - [ ] Mutation testing passes
+#### Task 13.2-13.6: (Pending user decision)
+- Tasks will be defined based on which option is selected
+- Option C tasks would be:
+  - 13.2: Refactor application_listener.go into smaller modules
+  - 13.3: Extract reusable infrastructure to shared package
+  - 13.4: Improve test organization (TestMain + app.Test())
+  - 13.5: Update documentation
+  - 13.6: Verify all tests pass
 
 ---
 

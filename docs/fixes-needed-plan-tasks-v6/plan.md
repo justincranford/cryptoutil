@@ -153,31 +153,48 @@ KMS has features that ServerBuilder currently lacks:
 
 **Total estimated**: 6h
 
-### Phase 13: KMS Full Migration to ServerBuilder (DEFERRED)
+### Phase 13: KMS Server Refactoring (BLOCKED - Architectural Mismatch)
 
-**Status**: Deferred (from Task 11.4)
-**Rationale**: Full KMS migration requires significantly more effort than originally estimated (20-30 hours, not 4 hours)
+**Status**: BLOCKED - Requires architectural decision
+**Rationale**: Analysis during Phase 12/13 revealed fundamental architectural mismatch
 
-**CRITICAL**: This phase handles the actual KMS migration that was originally Task 11.4. The scope is:
-- Migrate KMS from custom application_listener.go (1223 lines) to ServerBuilder pattern
-- Preserve ALL KMS functionality
-- Maintain ALL KMS tests
-- Create clean separation between infrastructure (ServerBuilder) and business logic (KMS handlers)
+**DISCOVERY (Phase 13 analysis)**:
+ServerBuilder is tightly coupled to template's architecture:
+1. **Database**: ServerBuilder uses GORM → KMS uses raw database/sql + custom ORM
+2. **Authentication**: ServerBuilder provides SessionManager → KMS uses JWT auth
+3. **Migrations**: ServerBuilder has template migrations (1001-1004) → KMS has its own migrations
+4. **Barrier**: ServerBuilder's BarrierService is template-specific → KMS uses `internal/shared/barrier`
 
-**Tasks**:
-- 13.1: Create KMS server structure (similar to cipher-im pattern)
-- 13.2: Migrate KMS handler registration to ServerBuilder
-- 13.3: Migrate KMS middleware chain to ServerBuilder patterns
-- 13.4: Migrate KMS health checks to ServerBuilder
-- 13.5: Delete application_listener.go after all functionality migrated
-- 13.6: Comprehensive KMS test verification
+**OPTIONS**:
+- **Option A**: Heavily modify ServerBuilder to support KMS's architecture (risky, invasive)
+- **Option B**: Create a KMS-specific builder that reuses ONLY TLS/listener portions (safer)
+- **Option C**: Keep KMS's infrastructure, refactor for clarity only (safest, lateral move)
 
-**Total estimated**: 20h (properly scoped)
+**RECOMMENDATION**: Option C - Keep KMS's architecture, just refactor for clarity
+- Preserves all 25,000 lines of KMS code
+- No risk of breaking existing functionality
+- Maintains JWT-based auth (required for /service/** paths)
+- Keeps KMS's SQL/ORM architecture intact
 
-**Architecture Reference**:
+**BLOCKED ON**: User decision on which option to pursue
+
+**Phase 13 Tasks (if Option C selected)**:
+- 13.1: Refactor application_listener.go into smaller modules (TLS, middleware, listeners)
+- 13.2: Extract common infrastructure to shared package (if reusable)
+- 13.3: Improve test organization (TestMain + app.Test())
+- 13.4: Update documentation to reflect KMS architecture patterns
+- 13.5: Verify all tests pass after refactoring
+
+**Total estimated**: 8-12h (Option C - refactor only, not migration)
+
+**Architecture Notes**:
 - Current KMS: ServerApplicationBasic → ServerApplicationCore → ServerApplicationListener (3-layer)
-- Target: JoseServer pattern with ServerBuilder.WithPublicRouteRegistration()
-- Reference: cipher-im server.go demonstrates proper ServerBuilder usage
+- This is a VALID architecture for KMS's specific needs (JWT auth, raw SQL, OpenAPI handlers)
+- ServerBuilder pattern works for cipher-im/jose-ja (GORM, session auth) but NOT for KMS
+- KMS should remain a SEPARATE architectural pattern for services needing:
+  - JWT-based service-to-service authentication
+  - Raw SQL + custom ORM
+  - OpenAPI strict server with generated handlers
 
 ## Technical Decisions
 
