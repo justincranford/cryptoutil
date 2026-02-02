@@ -305,8 +305,9 @@
 - **Evidence**: RealmContextMiddleware extracts tenant from JWT→OIDC→header, all 7 tests pass
 
 ### Task 3.3: Implement Session Auth for KMS Browser Paths
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1.5h
+- **Actual**: 1h
 - **Actual**:
 - **Dependencies**: Task 3.1
 - **Description**: Add session authentication to KMS /browser/** paths
