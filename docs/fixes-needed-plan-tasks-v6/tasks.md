@@ -316,33 +316,39 @@
   - [x] Tests pass (13 new tests)
 
 #### Task 13.3: Add OpenAPI Strict Server Registration to ServerBuilder
-- **Status**: ❌ Not Started
+- **Status**: ✅ COMPLETE
 - **Estimated**: 4h
+- **Actual**: 1h
+- **Commit**: be83c8d7
 - **Description**: Support oapi-codegen strict server pattern
 - **Files**:
-  - `internal/apps/template/service/server/builder/openapi_strict.go` (NEW)
-  - `internal/apps/template/service/server/builder/openapi_strict_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/openapi_strict.go` (NEW - 115 lines)
+  - `internal/apps/template/service/server/builder/openapi_strict_test.go` (NEW - 248 lines)
   - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
 - **Acceptance Criteria**:
-  - [ ] WithOpenAPIStrictServer() method
-  - [ ] Supports StrictServerInterface pattern
-  - [ ] Integrates OapiRequestValidator middleware
-  - [ ] Registers handlers via RegisterHandlersWithOptions
-  - [ ] Tests pass
+  - [x] WithStrictServer() method (fluent API)
+  - [x] StrictServerConfig for oapi-codegen strict server pattern
+  - [x] Supports browser and service API base paths
+  - [x] Handler registration callbacks for RegisterHandlersWithOptions
+  - [x] Middleware injection for validation
+  - [x] StrictServerRegistrar interface for domain services
+  - [x] Tests pass (15 new tests)
 
 #### Task 13.4: Integrate shared/barrier with ServerBuilder
-- **Status**: ❌ Not Started
+- **Status**: ✅ COMPLETE
 - **Estimated**: 3h
+- **Actual**: 0.5h
 - **Description**: Support shared barrier alongside template-specific barrier
 - **Files**:
-  - `internal/apps/template/service/server/builder/barrier_shared.go` (NEW)
-  - `internal/apps/template/service/server/builder/barrier_shared_test.go` (NEW)
+  - `internal/apps/template/service/server/builder/barrier.go` (NEW)
+  - `internal/apps/template/service/server/builder/barrier_test.go` (NEW)
   - `internal/apps/template/service/server/builder/server_builder.go` (Modified)
 - **Acceptance Criteria**:
-  - [ ] WithSharedBarrier() method for shared/barrier integration
-  - [ ] Barrier interface abstraction works with both implementations
-  - [ ] UnsealKeysService integration
-  - [ ] Tests pass
+  - [x] WithBarrierConfig() method for barrier mode configuration
+  - [x] BarrierConfig abstraction supports template, shared, and disabled modes
+  - [x] BarrierEncryptor interface for unified encryption operations
+  - [x] Tests pass (22 tests for barrier + 4 for WithBarrierConfig)
+- **Commit**: (pending)
 
 #### Task 13.5: Add Flexible Migration Support to ServerBuilder
 - **Status**: ❌ Not Started

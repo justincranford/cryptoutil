@@ -42,8 +42,9 @@ type ServiceResources struct {
 	RegistrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
 	RealmService        cryptoutilAppsTemplateServiceServerService.RealmService
 	RealmRepository     cryptoutilAppsTemplateServiceServerRepository.TenantRealmRepository
-	JWTAuthConfig       *JWTAuthConfig       // JWT authentication config (nil = session-based auth).
-	StrictServerConfig  *StrictServerConfig  // OpenAPI strict server config (nil = not registered).
+	JWTAuthConfig       *JWTAuthConfig      // JWT authentication config (nil = session-based auth).
+	StrictServerConfig  *StrictServerConfig // OpenAPI strict server config (nil = not registered).
+	BarrierConfig       *BarrierConfig      // Barrier config (nil = default template barrier).
 
 	// Application wrapper.
 	Application *cryptoutilAppsTemplateServiceServer.Application
@@ -58,13 +59,14 @@ type ServiceResources struct {
 type ServerBuilder struct {
 	ctx                 context.Context
 	config              *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
-	migrationFS          fs.FS
-	migrationsPath       string
-	publicRouteRegister  func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error
-	swaggerUIConfig      *SwaggerUIConfig      // Swagger UI configuration (nil = disabled).
-	jwtAuthConfig        *JWTAuthConfig        // JWT authentication configuration (nil = use session-based auth).
-	strictServerConfig   *StrictServerConfig   // OpenAPI strict server configuration (nil = not registered).
-	err                  error                 // Accumulates errors during fluent chain.
+	migrationFS         fs.FS
+	migrationsPath      string
+	publicRouteRegister func(*cryptoutilAppsTemplateServiceServer.PublicServerBase, *ServiceResources) error
+	swaggerUIConfig     *SwaggerUIConfig    // Swagger UI configuration (nil = disabled).
+	jwtAuthConfig       *JWTAuthConfig      // JWT authentication configuration (nil = use session-based auth).
+	strictServerConfig  *StrictServerConfig // OpenAPI strict server configuration (nil = not registered).
+	barrierConfig       *BarrierConfig      // Barrier configuration (nil = use default template barrier).
+	err                 error               // Accumulates errors during fluent chain.
 }
 
 // NewServerBuilder creates a new server builder with base configuration.
@@ -169,6 +171,30 @@ func (b *ServerBuilder) WithStrictServer(config *StrictServerConfig) *ServerBuil
 	}
 
 	b.strictServerConfig = config
+
+	return b
+}
+
+// WithBarrierConfig configures the barrier service mode.
+// If not called, the default template barrier (context-based, GORM transactions) is used.
+// Use NewSharedBarrierConfig() for KMS-style shared barrier (transaction-based, OrmRepository).
+// Use NewDisabledBarrierConfig() to disable barrier entirely.
+func (b *ServerBuilder) WithBarrierConfig(config *BarrierConfig) *ServerBuilder {
+	if b.err != nil {
+		return b
+	}
+
+	if config == nil {
+		return b
+	}
+
+	if err := config.Validate(); err != nil {
+		b.err = fmt.Errorf("invalid barrier config: %w", err)
+
+		return b
+	}
+
+	b.barrierConfig = config
 
 	return b
 }
@@ -317,6 +343,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		RealmRepository:     services.RealmRepository,
 		JWTAuthConfig:       b.jwtAuthConfig,
 		StrictServerConfig:  b.strictServerConfig,
+		BarrierConfig:       b.barrierConfig,
 		ShutdownCore:        services.Core.Shutdown,
 		ShutdownContainer:   services.Core.ShutdownDBContainer,
 	}
