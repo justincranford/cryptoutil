@@ -15,68 +15,72 @@
 ## Phase 0: Research & Discovery
 
 ### Task 0.1: Analyze KMS SQLRepository for GORM Migration
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
-- **Actual**:
+- **Actual**: 0.5h
 - **Dependencies**: None
 - **Description**: Document all KMS SQLRepository queries and map to GORM equivalents
 - **Acceptance Criteria**:
-  - [ ] All SQLRepository methods documented
-  - [ ] GORM equivalents identified for each method
-  - [ ] Migration complexity assessed (simple/moderate/complex per method)
+  - [x] All SQLRepository methods documented
+  - [x] GORM equivalents identified for each method
+  - [x] Migration complexity assessed (simple/moderate/complex per method)
 - **Output**: test-output/v7-research/sqlrepository-analysis.md
+- **Finding**: KMS already uses GORM via orm/ package! The migration is simpler - just remove the unnecessary sqlrepository/ layer.
 
 ### Task 0.2: Analyze KMS Barrier vs Template Barrier
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Compare shared/barrier with template barrier capabilities
 - **Acceptance Criteria**:
-  - [ ] Feature parity documented
-  - [ ] Incompatibilities identified
-  - [ ] Migration path determined
+  - [x] Feature parity documented
+  - [x] Incompatibilities identified
+  - [x] Migration path determined
 - **Output**: test-output/v7-research/barrier-comparison.md
+- **Finding**: Template barrier is MORE comprehensive. Q2 decision confirmed - merge shared INTO template.
 
 ### Task 0.3: Document KMS Authentication Requirements
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.25h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Document current KMS auth and map to JWT/realm model
 - **Acceptance Criteria**:
-  - [ ] Current auth mechanisms documented
-  - [ ] Realm structure designed
-  - [ ] Token claims defined
+  - [x] Current auth mechanisms documented
+  - [x] Realm structure designed
+  - [x] Token claims defined
 - **Output**: test-output/v7-research/auth-requirements.md
+- **Finding**: KMS has OPTIONAL JWT auth via builder_adapter.go - will become REQUIRED.
 
 ### Task 0.4: Map KMS API to OpenAPI Spec
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.25h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Document existing KMS API endpoints for OpenAPI generation
 - **Acceptance Criteria**:
-  - [ ] All endpoints catalogued
-  - [ ] Request/response schemas documented
-  - [ ] OpenAPI spec structure planned
+  - [x] All endpoints catalogued
+  - [x] Request/response schemas documented
+  - [x] OpenAPI spec structure planned
 - **Output**: test-output/v7-research/api-mapping.md
+- **Finding**: KMS already uses StrictServer pattern. Only path prefixes and auth need updating.
 
 ---
 
 ## Phase 1: Remove V6 Optional Modes
 
 ### Task 1.1: Remove DisabledDatabaseConfig
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 1.5h (heredoc terminal issues required base64 workaround)
 - **Dependencies**: Task 0.1
 - **Description**: Remove database disabled mode from ServerBuilder
 - **Acceptance Criteria**:
-  - [ ] DisabledDatabaseConfig removed
-  - [ ] RawSQLMode removed
-  - [ ] DualMode removed
-  - [ ] Only GORMMode remains
+  - [x] DisabledDatabaseConfig removed
+  - [x] RawSQLMode removed
+  - [x] DualMode removed
+  - [x] Only GORMMode remains
   - [ ] cipher-im tests pass
   - [ ] jose-ja tests pass
 - **Files**:

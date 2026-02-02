@@ -208,10 +208,8 @@ func (b *ServerBuilder) WithStrictServer(config *StrictServerConfig) *ServerBuil
 	return b
 }
 
-// WithBarrierConfig configures the barrier service mode.
-// If not called, the default template barrier (context-based, GORM transactions) is used.
-// Use NewSharedBarrierConfig() for KMS-style shared barrier (transaction-based, OrmRepository).
-// Use NewDisabledBarrierConfig() to disable barrier entirely.
+// WithBarrierConfig configures the barrier service.
+// If not called, the default barrier config (rotation + status endpoints enabled) is used.
 func (b *ServerBuilder) WithBarrierConfig(config *BarrierConfig) *ServerBuilder {
 	if b.err != nil {
 		return b
@@ -310,9 +308,9 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 		}
 	}
 
-	// Phase W.3: Initialize services ONLY if barrier is enabled.
-	// KMS and other services with their own barrier/session management can disable this.
-	barrierEnabled := b.barrierConfig == nil || b.barrierConfig.IsEnabled()
+	// Phase W.3: Initialize services - barrier is always enabled.
+	// The optional BarrierConfig only controls endpoint exposure (rotation, status).
+	barrierEnabled := true
 
 	var services *cryptoutilAppsTemplateServiceServerApplication.CoreWithServices
 
