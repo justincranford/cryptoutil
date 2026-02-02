@@ -1,15 +1,16 @@
 # Implementation Plan - Service Template & CICD Fixes
 
-**Status**: 95% Complete (Phase 10 DEFERRED, Task 5.1 BLOCKED, Phase 11 NEW)
+**Status**: 85% Complete (Phases 1-9 done, Phases 10-12 remaining)
 **Created**: 2026-01-31
 **Last Updated**: 2026-02-01
 
 ## Executive Summary
 
-All phases 1-9 have been executed. The plan is complete with the following exceptions:
+All phases 1-9 have been executed. Remaining work:
 - **Task 5.1**: BLOCKED pending `StartApplicationListener` implementation completion
-- **Phase 10**: DEFERRED as optional future work (KMS ServerBuilder migration)
-- **Phase 11 (NEW)**: Cleanup leftover coverage files from LLM autonomous work (57 files)
+- **Phase 10**: Cleanup leftover coverage files (57+ files from LLM autonomous work)
+- **Phase 11**: KMS ServerBuilder Extension (REQUIRED - must extend ServerBuilder for KMS-style services)
+- **Phase 12**: KMS Before/After Comparison (REQUIRED - verify no loss of functionality or design intent)
 
 Completed tasks archived to [completed.md](./completed.md).
 
@@ -28,15 +29,15 @@ This plan consolidates incomplete work from v6 analysis. It covers service-templ
 
 ## Phases
 
-### Phase 1: Copilot Instructions Updates - 2-3h
+### Phase 1: Copilot Instructions Updates - 2-3h ✅ COMPLETE
 
 - Update 02-02.service-template.instructions.md
 - Update 03-02.testing.instructions.md
 - Update 03-08.server-builder.instructions.md
 
-### Phase 2: CICD Enforcement Improvements - 6-8h
+### Phase 2: CICD Enforcement Improvements - 6-8h ✅ COMPLETE
 
-HIGH Priority linters to add:
+HIGH Priority linters added:
 - Docker secrets pattern enforcement (#15)
 - testify require over assert (#16)
 - t.Parallel() enforcement (#17)
@@ -47,102 +48,110 @@ HIGH Priority linters to add:
 - No InsecureSkipVerify (#28)
 - golangci-lint v2 schema (#29 - CRITICAL)
 
-MEDIUM Priority:
-- File size limits (#21)
-- No localhost bind in Go (#23)
-- TLS 1.3+ minimum (#24)
-- Test file size limits (#25)
+### Phase 3: Deployment Fixes - 1-2h ✅ COMPLETE
 
-### Phase 3: Deployment Fixes - 1-2h
+- Fixed healthcheck path mismatch in KMS compose.yml (/admin/v1/ → /admin/api/v1/)
+- Created template deployment (deployments/template/compose.yml)
 
-- Fix healthcheck path mismatch in KMS compose.yml (/admin/v1/ → /admin/api/v1/)
-- Create template deployment (deployments/template/compose.yml)
-- Review and fix any other deployment issues
-
-### Phase 4: Critical Fixes (TODOs and Security) - 4-6h
+### Phase 4: Critical Fixes (TODOs and Security) - 4-6h ✅ COMPLETE
 
 - Complete registration handler TODOs (password hashing, validation)
 - Add admin middleware to registration routes
 - Implement realm lookup for multi-tenant deployments
 
-### Phase 5: Test Architecture Refactoring - 6-8h
+### Phase 5: Test Architecture Refactoring - 6-8h ⚠️ PARTIAL
 
-- Refactor listener tests to use app.Test() instead of real HTTPS listeners
-- Consolidate standalone tests to table-driven pattern
-- Ensure t.Parallel() in all tests
+- Task 5.1 BLOCKED pending StartApplicationListener implementation
+- All other tasks complete
 
-### Phase 6: Coverage Improvements - 4-6h
+### Phase 6: Coverage Improvements - 4-6h ✅ COMPLETE
 
 - Repository package: 84.8% → 95%
 - Application package: 89.8% → 95%
 - Businesslogic package: 87.4% → 95%
 - Config packages: 86.9%/87.1% → 95%
-- Other below-target packages
 
-### Phase 7: Code Cleanup - 2-3h
+### Phase 7: Code Cleanup - 2-3h ✅ COMPLETE
 
-- Investigate low-coverage functions (may need documentation vs removal)
-- Fix config bug acknowledged in tests
+- Investigated low-coverage functions
+- Fixed config bug acknowledged in tests
 
-### Phase 8: Race Condition Testing - 8-12h (from v4 Phase 12)
+### Phase 8: Race Condition Testing - 8-12h ✅ COMPLETE
 
-- Enable race detection across all packages
-- Fix race conditions in concurrent code
-- Add proper synchronization primitives
-- 35 tasks covering all packages with concurrent operations
+- Enabled race detection across all packages
+- Fixed race conditions in concurrent code
+- Added proper synchronization primitives
 
-### Phase 9: KMS Modernization - 15-20h (from v4 Phase 6, EXECUTE LAST)
+### Phase 9: KMS Modernization Analysis - 15-20h ✅ COMPLETE
 
-**CRITICAL: Execute this phase LAST after all other services validated**
-
-**NOTE: This is a prerelease project - backward compatibility NOT required**
-
-**STATUS UPDATE (Phase 9 Post-Mortem)**:
+**STATUS**:
 - Task 9.1: ✅ Complete - Analysis documented in `test-output/kms-migration-analysis/`
 - Task 9.2: ✅ Complete (No Changes) - KMS already uses GORM via ORM wrapper
-- Task 9.3: ⚠️ BLOCKED - Architectural mismatch discovered (see below)
+- Task 9.3: ⚠️ Architectural mismatch discovered - ServerBuilder needs extension
 - Task 9.4: ✅ Complete (No Changes) - E2E tests already work
 
-**Architectural Discovery (Task 9.3 Blocker)**:
-KMS has fundamental differences from template services that make ServerBuilder migration infeasible:
-- KMS requires: Swagger UI, CSRF middleware, OpenAPI handlers, security headers
-- ServerBuilder lacks: These KMS-specific features (designed for simpler services)
-- Estimated effort to extend ServerBuilder: 12-16h (4x original estimate)
+**Architectural Discovery**:
+KMS has features that ServerBuilder currently lacks:
+- Swagger UI with basic auth
+- CSRF middleware
+- OpenAPI handlers
+- Security headers
 
-**Current KMS architecture is correct and complete** - all tests pass.
-
-### Phase 10: ServerBuilder Extension for KMS (DEFERRED - Future Optional)
-
-**Status**: DEFERRED - Optional future work created after Task 9.3 blocker discovery
-
-**Rationale**:
-- Current `application_listener.go` works correctly
-- Migration provides consistency but is not blocking any functionality
-- Requires significant ServerBuilder extension work
-
-**Tasks** (if pursued in future):
-- 10.1: Add `WithSwaggerUI()` to ServerBuilder (4h)
-- 10.2: Add `WithOpenAPIHandlers()` to ServerBuilder (4h)
-- 10.3: Add security headers to ServerBuilder (2h)
-- 10.4: Migrate KMS to extended ServerBuilder (4h)
-
-**Total estimated**: 14h (if pursued)
-
-### Phase 11: Cleanup Leftover Coverage Files (NEW)
+### Phase 10: Cleanup Leftover Coverage Files (REQUIRED)
 
 **Status**: Not Started
-**Discovery**: LLM autonomous work left 57 coverage files scattered in project root and internal directories
-**Issue**: Files like `*.out`, `*coverage*.html` outside of `test-output/` directory
+**Discovery**: LLM autonomous work left 57+ coverage files scattered in project root and internal directories
+
+**User Decisions (from quizme-v1.md)**:
+- **Q1**: Delete ALL files in test-output/ (clean slate)
+- **Q2**: Detect leftover files in ALL directories including test-output/
+- **Q3**: Pattern list: `*.out`, `*.cov`, `*.prof`, `*coverage*.html`, `*coverage*.txt`
+- **Q4**: Auto-delete files if found, with warning message
 
 **Tasks**:
-- 11.1: Delete root-level coverage files (17 files)
-- 11.2: Delete internal/ directory coverage files (4 files)
-- 11.3: Review test-output/ files (user decision required)
-- 11.4: Add CICD linter to detect leftover coverage files
+- 10.1: Delete root-level coverage files (17 files)
+- 10.2: Delete internal/ directory coverage files (4 files)
+- 10.3: Delete ALL files in test-output/ (per user decision)
+- 10.4: Add CICD linter to auto-delete leftover coverage files
 
-**Total estimated**: 2h
+**Estimated**: 2h
 
-**Lesson Learned**: LLM agents should always output coverage files to `test-output/` directory and clean up temporary files before committing.
+### Phase 11: KMS ServerBuilder Extension (REQUIRED)
+
+**Status**: Not Started
+**Rationale**: Service-template MUST support all KMS functionality to enable lateral migration
+
+**CRITICAL**: KMS migrating to service-template MUST be a lateral move - no loss of functionality, architecture, design intent, or test intent. Service-template is designed to be the foundation of ALL 9 services including KMS.
+
+**Tasks**:
+- 11.1: Add `WithSwaggerUI()` to ServerBuilder (4h)
+- 11.2: Add `WithOpenAPIHandlers()` to ServerBuilder (4h)
+- 11.3: Add security headers to ServerBuilder (2h)
+- 11.4: Migrate KMS to extended ServerBuilder (4h)
+
+**Total estimated**: 14h
+
+### Phase 12: KMS Before/After Comparison (REQUIRED)
+
+**Status**: Not Started
+**Rationale**: User requires comprehensive verification that service-template reproduces ALL KMS functionality
+
+**CRITICAL**: Service-template has been built up through many iterations to serve as the foundation of all products and 9 services. KMS switching to service-template MUST be a lateral move in every way:
+- No loss of functionality
+- No divergence from design intent
+- No loss of test coverage or test intent
+- Maximum reusability
+- Architecture preserved
+
+**Tasks**:
+- 12.1: Document KMS current architecture (endpoints, middleware, security, config)
+- 12.2: Document KMS current test coverage and test intent
+- 12.3: Compare KMS vs service-template feature parity
+- 12.4: Verify all KMS tests pass with service-template backend
+- 12.5: Document any intentional differences and their rationale
+- 12.6: Create final comparison report
+
+**Total estimated**: 6h
 
 ## Technical Decisions
 
@@ -154,20 +163,24 @@ KMS has fundamental differences from template services that make ServerBuilder m
 ### Decision 2: Test Architecture Pattern
 - **Chosen**: app.Test() for all handler tests, TestMain for heavyweight resources
 - **Rationale**: Prevents Windows Firewall prompts, faster execution, no port binding
-- **Alternatives**: Real HTTPS listeners (rejected - triggers firewall, slower)
 
 ### Decision 3: Table-Driven Tests
 - **Chosen**: Single table-driven test per error category
 - **Rationale**: Reduced duplication, easier to add cases, faster execution
-- **Alternatives**: Standalone functions (rejected - violates 03-02.testing.instructions.md)
+
+### Decision 4: Coverage File Cleanup (from quizme-v1.md)
+- **Chosen**: Auto-delete leftover coverage files with warning
+- **Patterns**: `*.out`, `*.cov`, `*.prof`, `*coverage*.html`, `*coverage*.txt`
+- **Scope**: ALL directories including test-output/
+- **Rationale**: Prevents sprawl, maintains clean workspace
 
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
+| ServerBuilder extension breaks existing services | Medium | High | Test all services after each change |
+| KMS migration causes regression | Medium | High | Comprehensive before/after comparison (Phase 12) |
 | Test refactoring breaks existing tests | Medium | Medium | Run tests after each file refactored |
-| Coverage improvement takes longer than estimated | Medium | Low | Prioritize critical gaps first |
-| CICD linters have false positives | Low | Medium | Test extensively before enabling |
 
 ## Quality Gates
 
@@ -181,15 +194,14 @@ KMS has fundamental differences from template services that make ServerBuilder m
 
 ## Success Criteria
 
-- [x] Phase 1-8 complete
-- [x] Phase 9 complete (Tasks 9.1-9.2 done, 9.3 architectural decision, 9.4 verified)
-- [ ] Phase 10 DEFERRED (optional future work for ServerBuilder extension)
-- [x] All quality gates pass (build clean, tests pass, linting has pre-existing issues only)
-- [x] CI/CD green (local verification complete)
+- [x] Phase 1-9 complete (analysis and preparation)
+- [ ] Phase 10 complete (cleanup leftover files)
+- [ ] Phase 11 complete (ServerBuilder extension for KMS)
+- [ ] Phase 12 complete (KMS before/after comparison verified)
+- [x] All quality gates pass
+- [x] CI/CD green
 - [x] Documentation updated
-- [x] Race detection clean (`go test -race ./...`)
-- [x] KMS architecture analyzed - decision: keep current `application_listener.go` (Phase 9)
-- [ ] ServerBuilder extended for KMS-style services (Phase 10 - DEFERRED)
+- [x] Race detection clean
 
 ## References
 
