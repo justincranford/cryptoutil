@@ -18,7 +18,7 @@ func TestNewDefaultJWTAuthConfig(t *testing.T) {
 
 	cfg := NewDefaultJWTAuthConfig()
 
-	require.Equal(t, JWTAuthModeDisabled, cfg.Mode)
+	require.Equal(t, JWTAuthModeSession, cfg.Mode)
 	require.Equal(t, 5*time.Minute, cfg.CacheTTL)
 	require.Equal(t, "minimal", cfg.ErrorDetailLevel)
 	require.False(t, cfg.IsEnabled())

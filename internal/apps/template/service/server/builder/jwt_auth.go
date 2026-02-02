@@ -18,8 +18,8 @@ import (
 type JWTAuthMode string
 
 const (
-	// JWTAuthModeDisabled disables JWT authentication (use session-based auth).
-	JWTAuthModeDisabled JWTAuthMode = "disabled"
+	// JWTAuthModeSession uses session-based auth (no JWT validation).
+	JWTAuthModeSession JWTAuthMode = "session"
 	// JWTAuthModeRequired requires JWT authentication on all protected routes.
 	JWTAuthModeRequired JWTAuthMode = "required"
 	// JWTAuthModeOptional allows JWT authentication but doesn't require it.
@@ -82,7 +82,7 @@ type JWTValidator interface {
 // NewDefaultJWTAuthConfig creates a default JWT auth configuration.
 func NewDefaultJWTAuthConfig() *JWTAuthConfig {
 	return &JWTAuthConfig{
-		Mode:              JWTAuthModeDisabled,
+		Mode:              JWTAuthModeSession,
 		CacheTTL:          cryptoutilSharedMagic.JWKSCacheTTL,
 		AllowedAlgorithms: []string{"RS256", "RS384", "RS512", "ES256", "ES384", "ES512"},
 		ErrorDetailLevel:  "minimal",
@@ -146,7 +146,7 @@ func GetJWTClaims(ctx context.Context) *JWTClaims {
 
 // Validate validates the JWT auth configuration.
 func (c *JWTAuthConfig) Validate() error {
-	if c.Mode == JWTAuthModeDisabled {
+	if c.Mode == JWTAuthModeSession {
 		return nil
 	}
 
@@ -163,7 +163,7 @@ func (c *JWTAuthConfig) Validate() error {
 
 // IsEnabled returns true if JWT authentication is enabled.
 func (c *JWTAuthConfig) IsEnabled() bool {
-	return c.Mode != JWTAuthModeDisabled
+	return c.Mode != JWTAuthModeSession
 }
 
 // IsRequired returns true if JWT authentication is required.
