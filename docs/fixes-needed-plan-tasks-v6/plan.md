@@ -153,6 +153,32 @@ KMS has features that ServerBuilder currently lacks:
 
 **Total estimated**: 6h
 
+### Phase 13: KMS Full Migration to ServerBuilder (DEFERRED)
+
+**Status**: Deferred (from Task 11.4)
+**Rationale**: Full KMS migration requires significantly more effort than originally estimated (20-30 hours, not 4 hours)
+
+**CRITICAL**: This phase handles the actual KMS migration that was originally Task 11.4. The scope is:
+- Migrate KMS from custom application_listener.go (1223 lines) to ServerBuilder pattern
+- Preserve ALL KMS functionality
+- Maintain ALL KMS tests
+- Create clean separation between infrastructure (ServerBuilder) and business logic (KMS handlers)
+
+**Tasks**:
+- 13.1: Create KMS server structure (similar to cipher-im pattern)
+- 13.2: Migrate KMS handler registration to ServerBuilder
+- 13.3: Migrate KMS middleware chain to ServerBuilder patterns
+- 13.4: Migrate KMS health checks to ServerBuilder
+- 13.5: Delete application_listener.go after all functionality migrated
+- 13.6: Comprehensive KMS test verification
+
+**Total estimated**: 20h (properly scoped)
+
+**Architecture Reference**:
+- Current KMS: ServerApplicationBasic → ServerApplicationCore → ServerApplicationListener (3-layer)
+- Target: JoseServer pattern with ServerBuilder.WithPublicRouteRegistration()
+- Reference: cipher-im server.go demonstrates proper ServerBuilder usage
+
 ## Technical Decisions
 
 ### Decision 1: Service Configuration Pattern

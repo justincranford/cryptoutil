@@ -149,18 +149,23 @@
   - [x] Tests pass (5 test functions, all pass)
 
 #### Task 11.3: Extend ServerBuilder with Security Headers
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
+- **Actual**: 45m
 - **Description**: Add comprehensive security headers to ServerBuilder
+- **Files**:
+  - Created: `internal/apps/template/service/server/builder/security_headers.go`
+  - Created: `internal/apps/template/service/server/builder/security_headers_test.go`
 - **Acceptance Criteria**:
-  - [ ] CSP headers configurable
-  - [ ] XSS protection included
-  - [ ] HSTS configured
-  - [ ] Tests pass
+  - [x] CSP headers configurable (buildContentSecurityPolicy with dev mode variations)
+  - [x] XSS protection included (helmet middleware with X-Frame-Options, XSS-Protection)
+  - [x] HSTS configured (additional headers middleware with dev/prod modes)
+  - [x] Tests pass (7 test functions, all pass)
+- **Evidence**: Commit 4f6b5d3b, go test PASS, golangci-lint 0 issues
 
 #### Task 11.4: Migrate KMS to Extended ServerBuilder
-- **Status**: ❌ Not Started
-- **Estimated**: 4h
+- **Status**: ⏭️ DEFERRED (see Phase 13)
+- **Estimated**: 4h (original), 20h+ (realistic)
 - **Description**: After 11.1-11.3 complete, migrate KMS to use extended ServerBuilder
 - **Dependencies**: 11.1, 11.2, 11.3
 - **Acceptance Criteria**:
@@ -169,6 +174,16 @@
   - [ ] All KMS tests pass
   - [ ] All template tests pass
   - [ ] All cipher-im tests pass
+
+**ANALYSIS**: Task 11.4 as written requires deleting application_listener.go (1223 lines) and migrating KMS to use ServerBuilder. This is a complete architectural refactoring that:
+- Requires creating new KMS server structure similar to cipher-im
+- Requires updating all KMS handlers and tests
+- Is estimated at 20+ hours, not 4 hours
+- Should be a separate project/phase
+
+**DECISION**: Tasks 11.1-11.3 are COMPLETE. The extensions (SwaggerUI, OpenAPI, Security Headers) are now available in ServerBuilder. KMS migration to use these extensions is deferred to Phase 13 as a separate, properly scoped effort.
+
+**NEW PHASE 13**: Created below to handle KMS migration properly.
 
 ---
 
@@ -250,6 +265,83 @@
   - [ ] Test intent preserved
   - [ ] No regressions
   - [ ] User sign-off ready
+
+---
+
+### Phase 13: KMS Full Migration to ServerBuilder (DEFERRED)
+
+**Status**: ❌ Not Started (Deferred from Task 11.4)
+**Rationale**: Full KMS migration requires significantly more effort than originally estimated
+
+**CRITICAL**: This phase handles the actual KMS migration that was originally Task 11.4. The scope is:
+- Migrate KMS from custom application_listener.go to ServerBuilder pattern
+- Preserve ALL KMS functionality
+- Maintain ALL KMS tests
+- Delete 1223 lines of application_listener.go
+
+**Estimate**: 20-30 hours (properly scoped)
+
+#### Task 13.1: Create KMS Server Structure
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Create new KMS server package structure similar to cipher-im
+- **Acceptance Criteria**:
+  - [ ] Create `internal/kms/server/kms_server.go`
+  - [ ] Create `internal/kms/server/public_server.go`
+  - [ ] Define KMS-specific interfaces
+  - [ ] Tests compile
+
+#### Task 13.2: Migrate KMS Handler Registration
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Migrate KMS OpenAPI handlers to new structure
+- **Acceptance Criteria**:
+  - [ ] All KMS handlers registered via ServerBuilder
+  - [ ] OapiRequestValidator working
+  - [ ] FiberServerOptions preserved
+  - [ ] Handler tests pass
+
+#### Task 13.3: Migrate KMS Middleware Chain
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Migrate KMS middleware to use ServerBuilder patterns
+- **Acceptance Criteria**:
+  - [ ] IP filtering working
+  - [ ] Rate limiting working
+  - [ ] CORS/CSRF working
+  - [ ] Security headers working
+  - [ ] Middleware tests pass
+
+#### Task 13.4: Migrate KMS Health Checks
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Ensure KMS health checks work with ServerBuilder
+- **Acceptance Criteria**:
+  - [ ] /admin/api/v1/livez working
+  - [ ] /admin/api/v1/readyz working
+  - [ ] /admin/api/v1/shutdown working
+  - [ ] Health check tests pass
+
+#### Task 13.5: Delete application_listener.go
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Description**: Remove application_listener.go after all functionality migrated
+- **Acceptance Criteria**:
+  - [ ] All functionality moved to new structure
+  - [ ] application_listener.go deleted
+  - [ ] No compilation errors
+  - [ ] All tests pass
+
+#### Task 13.6: Comprehensive KMS Test Verification
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Description**: Run all KMS tests and fix any regressions
+- **Acceptance Criteria**:
+  - [ ] All unit tests pass
+  - [ ] All integration tests pass
+  - [ ] All E2E tests pass
+  - [ ] Coverage maintained
+  - [ ] Mutation testing passes
 
 ---
 
