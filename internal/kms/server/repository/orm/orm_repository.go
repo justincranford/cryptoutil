@@ -52,3 +52,22 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilSharedTel
 func (r *OrmRepository) Shutdown() {
 	// no-op
 }
+
+// NewOrmRepositoryFromGORM creates a new OrmRepository with GORM directly (template pattern).
+// This constructor allows KMS to integrate with ServerBuilder which provides GORM instances.
+func NewOrmRepositoryFromGORM(_ context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, gormDB *gorm.DB, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, verboseMode bool) (*OrmRepository, error) {
+	if telemetryService == nil {
+		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if gormDB == nil {
+		return nil, fmt.Errorf("gormDB must be non-nil")
+	} else if jwkGenService == nil {
+		return nil, fmt.Errorf("jwkGenService must be non-nil")
+	}
+
+	return &OrmRepository{telemetryService: telemetryService, sqlRepository: nil, jwkGenService: jwkGenService, gormDB: gormDB, verboseMode: verboseMode}, nil
+}
+
+// GormDB returns the underlying GORM database connection.
+func (r *OrmRepository) GormDB() *gorm.DB {
+	return r.gormDB
+}

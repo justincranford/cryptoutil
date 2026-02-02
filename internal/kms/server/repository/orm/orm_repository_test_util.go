@@ -13,12 +13,22 @@ import (
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+
+	"gorm.io/gorm"
 )
 
 // RequireNewForTest creates a new ORM repository for testing and panics on error.
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) *OrmRepository {
 	ormRepository, err := NewOrmRepository(ctx, telemetryService, sqlRepository, jwkGenService, settings)
 	cryptoutilSharedApperr.RequireNoError(err, "failed to create new ORM repository")
+
+	return ormRepository
+}
+
+// RequireNewFromGORMForTest creates a new ORM repository from GORM for testing and panics on error.
+func RequireNewFromGORMForTest(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, gormDB *gorm.DB, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, verboseMode bool) *OrmRepository {
+	ormRepository, err := NewOrmRepositoryFromGORM(ctx, telemetryService, gormDB, jwkGenService, verboseMode)
+	cryptoutilSharedApperr.RequireNoError(err, "failed to create new ORM repository from GORM")
 
 	return ormRepository
 }
