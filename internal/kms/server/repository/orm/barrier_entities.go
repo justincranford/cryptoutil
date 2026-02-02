@@ -10,9 +10,11 @@ import (
 
 // RootKey represents root keys that are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is possible but infrequent.
 type RootKey struct {
-	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
-	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null"`
+	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
+	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted root key
+	KEKUUID   googleUuid.UUID `gorm:"type:text"`                              // KEK UUID (nil for root keys)
+	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
 }
 
 // TableName returns the table name for RootKey.
@@ -22,9 +24,11 @@ func (RootKey) TableName() string {
 
 // IntermediateKey represents intermediate keys that are wrapped by root keys. Rotation is encouraged and can be frequent.
 type IntermediateKey struct {
-	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
-	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
+	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
+	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted intermediate key
+	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent root key UUID
+	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
 }
 
 // TableName returns the table name for IntermediateKey.
@@ -34,10 +38,11 @@ func (IntermediateKey) TableName() string {
 
 // ContentKey represents leaf keys that are wrapped by intermediate keys. Rotation is encouraged and can be very frequent.
 type ContentKey struct {
-	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
-	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
-	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
+	UUID      googleUuid.UUID `gorm:"type:text;primaryKey"`
+	Encrypted string          `gorm:"type:text;not null"`                     // JWE-encrypted content key
+	KEKUUID   googleUuid.UUID `gorm:"type:text;not null"`                     // Parent intermediate key UUID
+	CreatedAt int64           `gorm:"autoCreateTime:milli" json:"created_at"` // Unix epoch milliseconds
+	UpdatedAt int64           `gorm:"autoUpdateTime:milli" json:"updated_at"` // Unix epoch milliseconds
 }
 
 // TableName returns the table name for ContentKey.

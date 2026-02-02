@@ -71,3 +71,49 @@ func NewOrmRepositoryFromGORM(_ context.Context, telemetryService *cryptoutilSha
 func (r *OrmRepository) GormDB() *gorm.DB {
 	return r.gormDB
 }
+
+// HealthCheck performs a database connectivity check and returns detailed status.
+// Uses GORM's underlying sql.DB for connection pool statistics.
+func (r *OrmRepository) HealthCheck(ctx context.Context) (map[string]any, error) {
+	if r.gormDB == nil {
+		return map[string]any{
+			"status": "error",
+			"error":  "database connection not initialized",
+		}, fmt.Errorf("database connection not initialized")
+	}
+
+	// Get underlying sql.DB for health check.
+	sqlDB, err := r.gormDB.DB()
+	if err != nil {
+		return map[string]any{
+			"status": "error",
+			"error":  fmt.Sprintf("failed to get sql.DB from GORM: %v", err),
+		}, fmt.Errorf("failed to get sql.DB from GORM: %w", err)
+	}
+
+	// Ping with timeout.
+	err = sqlDB.PingContext(ctx)
+	if err != nil {
+		return map[string]any{
+			"status": "error",
+			"error":  fmt.Sprintf("database ping failed: %v", err),
+		}, fmt.Errorf("database ping failed: %w", err)
+	}
+
+	// Get connection pool stats.
+	stats := sqlDB.Stats()
+
+	// Get database type from GORM dialector.
+	dbType := r.gormDB.Dialector.Name()
+
+	return map[string]any{
+		"status":               "ok",
+		"db_type":              dbType,
+		"open_connections":     stats.OpenConnections,
+		"idle_connections":     stats.Idle,
+		"in_use_connections":   stats.InUse,
+		"max_open_connections": stats.MaxOpenConnections,
+		"wait_count":           stats.WaitCount,
+		"wait_duration":        stats.WaitDuration.String(),
+	}, nil
+}

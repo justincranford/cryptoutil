@@ -6,21 +6,29 @@ import (
 	"context"
 	"testing"
 
+	cryptoutilSQLRepository "cryptoutil/internal/kms/server/repository/sqlrepository"
+
 	"github.com/stretchr/testify/require"
 )
 
 // TestNewOrmRepository_NilChecks tests nil parameter validation.
+// NOTE: These tests require SQLRepository which is being deprecated in favor of template Core.
+// See Task 2.5 for SQLRepository removal plan.
 func TestNewOrmRepository_NilChecks(t *testing.T) {
+	// Create a minimal SQLRepository for testing nil checks
+	// This tests the validation logic, not actual database operations
+	testSQLRepo := &cryptoutilSQLRepository.SQLRepository{}
+
 	t.Run("Nil context", func(t *testing.T) {
 		//nolint:staticcheck // Test needs nil to validate error handling
-		repo, err := NewOrmRepository(nil, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
+		repo, err := NewOrmRepository(nil, testTelemetryService, testSQLRepo, testJWKGenService, testSettings)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "ctx must be non-nil")
 		require.Nil(t, repo)
 	})
 
 	t.Run("Nil telemetry service", func(t *testing.T) {
-		repo, err := NewOrmRepository(testCtx, nil, testSQLRepository, testJWKGenService, testSettings)
+		repo, err := NewOrmRepository(testCtx, nil, testSQLRepo, testJWKGenService, testSettings)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "telemetryService must be non-nil")
 		require.Nil(t, repo)
@@ -34,7 +42,7 @@ func TestNewOrmRepository_NilChecks(t *testing.T) {
 	})
 
 	t.Run("Nil JWK gen service", func(t *testing.T) {
-		repo, err := NewOrmRepository(testCtx, testTelemetryService, testSQLRepository, nil, testSettings)
+		repo, err := NewOrmRepository(testCtx, testTelemetryService, testSQLRepo, nil, testSettings)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "jwkGenService must be non-nil")
 		require.Nil(t, repo)
@@ -43,18 +51,17 @@ func TestNewOrmRepository_NilChecks(t *testing.T) {
 
 // TestOrmRepository_Shutdown_NoOp tests shutdown (no-op implementation).
 func TestOrmRepository_Shutdown_NoOp(t *testing.T) {
-	// Create a fresh repository just for shutdown testing.
-	repo := RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
-	require.NotNil(t, repo)
+	// Use testOrmRepository which is now created from template Core
+	require.NotNil(t, testOrmRepository)
 
 	// Shutdown should not panic (it's a no-op).
 	require.NotPanics(t, func() {
-		repo.Shutdown()
+		testOrmRepository.Shutdown()
 	})
 
 	// Can call multiple times without issue.
 	require.NotPanics(t, func() {
-		repo.Shutdown()
+		testOrmRepository.Shutdown()
 	})
 }
 
