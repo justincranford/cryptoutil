@@ -180,3 +180,30 @@ TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 4. **Pattern**: Multi-instance deployments use port ranges (e.g., 8080/8081/8082 for SQLite/PG1/PG2)
 
 → [Detailed Port Analysis](#11-https-ports-review) in analysis-thorough.md
+
+## 12. Realm Design Analysis
+
+### Current Implementation
+
+Realms define authentication METHOD and POLICY only, not data scoping:
+
+| Component | Purpose | Scope |
+|-----------|---------|-------|
+| `tenant_id` | Data isolation | ALL data (keys, sessions, audit) |
+| `realm_id` | Authentication policy | HOW users authenticate only |
+
+### 16 Supported Realm Types
+
+**Federated (4)**: username_password, ldap, oauth2, saml
+**Browser (6)**: jwe-session-cookie, jws-session-cookie, opaque-session-cookie, basic-username-password, bearer-api-token, https-client-cert
+**Service (6)**: jwe-session-token, jws-session-token, opaque-session-token, basic-client-id-secret, (shared: bearer-api-token, https-client-cert)
+
+### Key Insight
+
+Users from different realms in the same tenant see the SAME data. The realm only controls HOW they authenticate.
+
+### Documentation Updates Required
+
+- [x] ARCHITECTURE.md - Expanded realm section with all 16 types
+- [x] SERVICE-TEMPLATE.md - Added Realm Pattern section
+- [ ] Verify realm implementation in cipher-im uses template correctly

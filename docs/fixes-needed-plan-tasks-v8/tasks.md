@@ -1,6 +1,6 @@
 # Tasks - Complete KMS Migration (V8)
 
-**Status**: 0 of 18 tasks complete (0%)
+**Status**: 1 of 23 tasks complete (4%)
 **Last Updated**: 2026-02-03
 **Purpose**: Complete the ACTUAL remaining work from V7
 
@@ -160,6 +160,76 @@
 - **Acceptance Criteria**:
   - [ ] V7 files moved to `docs/fixes-needed-plan-tasks-v8/archive/v7/`
   - [ ] Clean documentation structure
+
+---
+
+## Phase 3.5: Realm Design Verification
+
+**Background**: Realms define authentication METHOD only, NOT data scoping. 
+- `tenant_id` = data isolation (ALL data queries filter by tenant_id)
+- `realm_id` = authentication method (HOW users authenticate)
+
+### Task 3.5.1: Verify cipher-im Realm Usage
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Phase 2 complete
+- **Description**: Verify cipher-im uses realms correctly (authentication method only, not data scoping)
+- **Acceptance Criteria**:
+  - [ ] Data queries filter by tenant_id (NOT realm_id)
+  - [ ] Realm only determines authentication method
+  - [ ] No realm-based data isolation logic
+- **Evidence**: Code audit showing tenant_id in data queries
+
+### Task 3.5.2: Verify jose-ja Realm Usage
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Phase 2 complete
+- **Description**: Verify jose-ja uses realms correctly
+- **Acceptance Criteria**:
+  - [ ] Data queries filter by tenant_id (NOT realm_id)
+  - [ ] Realm only determines authentication method
+  - [ ] No realm-based data isolation logic
+- **Evidence**: Code audit showing tenant_id in data queries
+
+### Task 3.5.3: Verify sm-kms Realm Usage
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Phase 2 complete
+- **Description**: Verify sm-kms uses realms correctly (after barrier migration)
+- **Acceptance Criteria**:
+  - [ ] Data queries filter by tenant_id (NOT realm_id)
+  - [ ] Realm only determines authentication method
+  - [ ] No realm-based data isolation logic
+- **Evidence**: Code audit showing tenant_id in data queries
+
+### Task 3.5.4: Verify Template RealmService
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: None
+- **Description**: Verify template RealmService exposes all 16 realm types correctly
+- **Acceptance Criteria**:
+  - [ ] 4 federated types: username_password, ldap, oauth2, saml
+  - [ ] 6 browser types: jwe-session-cookie, jws-session-cookie, opaque-session-cookie, basic-username-password, bearer-api-token, https-client-cert
+  - [ ] 6 service types: jwe-session-token, jws-session-token, opaque-session-token, basic-client-id-secret, (shared: bearer-api-token, https-client-cert)
+  - [ ] RealmConfig has password, session, MFA, rate limiting settings
+- **Evidence**: Code review of realm_service.go and realm_config.go
+
+### Task 3.5.5: Update Realm Documentation in Instructions
+- **Status**: ✅ Complete
+- **Estimated**: 0.5h
+- **Actual**: 0.5h
+- **Dependencies**: None
+- **Description**: Update instruction files with correct realm definitions
+- **Acceptance Criteria**:
+  - [x] ARCHITECTURE.md expanded with 16 realm types
+  - [x] SERVICE-TEMPLATE.md has Realm Pattern section
+  - [x] analysis-overview.md Section 12 added
+  - [x] analysis-thorough.md Section 12 added
+- **Evidence**: Documentation commits
 
 ---
 

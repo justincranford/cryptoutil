@@ -110,6 +110,26 @@ $ grep "TODO" internal/kms/server/server.go
 - Remove obsolete V6 documentation
 - Delete shared/barrier immediately (per Decision 2)
 
+### Phase 3.5: Realm Design Verification
+
+**Objective**: Verify all services correctly implement realm design (authentication method only, NOT data scoping)
+
+**Background**: LLM agents frequently misunderstand realms as data isolation boundaries (like AWS Organizations). 
+The CORRECT design is:
+- `tenant_id` = data isolation (ALL data queries MUST filter by tenant_id)
+- `realm_id` = authentication method selection only (HOW users authenticate)
+
+**Documentation Updated**:
+- [x] ARCHITECTURE.md - Expanded realm section with all 16 realm types
+- [x] SERVICE-TEMPLATE.md - Added Realm Pattern section
+
+**Tasks**:
+- Verify cipher-im realm usage matches design (authentication only)
+- Verify jose-ja realm usage matches design (authentication only)
+- Verify sm-kms realm usage matches design (authentication only)
+- Verify template RealmService correctly exposes 16 realm types
+- Update any incorrect realm documentation in instruction files
+
 ### Phase 4: Delete shared/barrier
 
 **Objective**: Remove deprecated shared/barrier after KMS migration

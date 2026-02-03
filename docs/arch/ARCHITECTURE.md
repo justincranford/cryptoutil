@@ -287,17 +287,97 @@ db.Where("tenant_id = ?", tenantID).Find(&messages)
 db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 ```
 
-### Realms (Authentication Only)
+### Realms (Authentication Configuration Only)
 
-**realm_id** determines HOW users authenticate:
+**CRITICAL**: Realms define authentication METHOD and POLICY, NOT data scoping.
 
-- Database username/password (default)
-- File-based credentials
-- OAuth 2.0/OIDC federated
-- LDAP/AD
-- WebAuthn/FIDO2
+**realm_id** determines:
+1. **HOW** users authenticate (authentication method)
+2. **Password policies** (min length, complexity requirements)
+3. **Session policies** (timeout, refresh, absolute max)
+4. **MFA requirements** (required, allowed methods)
+5. **Rate limiting** (per-realm overrides)
 
-**Realms do NOT scope data** - all realms in same tenant see same data.
+**Realms do NOT scope data** - all realms in same tenant see same data. Only `tenant_id` scopes data access.
+
+#### Realm Types (16 Supported)
+
+**Federated Realm Types** (external identity providers):
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `username_password` | Database-stored credentials | Default, internal users |
+| `ldap` | LDAP/Active Directory | Enterprise directory |
+| `oauth2` | OAuth 2.0/OIDC provider | Social login, SSO |
+| `saml` | SAML 2.0 federation | Enterprise SSO |
+
+**Non-Federated Browser Realm Types** (`/browser/**` paths, session-based):
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `jwe-session-cookie` | Encrypted JWT in cookie | Stateless secure sessions |
+| `jws-session-cookie` | Signed JWT in cookie | Stateless sessions with visibility |
+| `opaque-session-cookie` | Server-side session storage | Traditional sessions |
+| `basic-username-password` | HTTP Basic + username/password | Simple browser auth |
+| `bearer-api-token` | Bearer token from browser | API access from SPA |
+| `https-client-cert` | mTLS client certificate | High-security browser access |
+
+**Non-Federated Service Realm Types** (`/service/**` paths, token-based):
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `jwe-session-token` | Encrypted JWT token | Encrypted service tokens |
+| `jws-session-token` | Signed JWT token | Signed service tokens |
+| `opaque-session-token` | Server-side token lookup | Traditional service tokens |
+| `basic-client-id-secret` | HTTP Basic + client credentials | Service-to-service |
+| `bearer-api-token` | Bearer token (shared) | API access |
+| `https-client-cert` | mTLS (shared) | High-security service auth |
+
+#### Realm Configuration
+
+Each realm has configurable policies:
+
+```go
+type RealmConfig struct {
+    // Password validation
+    PasswordMinLength        int   // Default: 12
+    PasswordRequireUppercase bool  // Default: true
+    PasswordRequireLowercase bool  // Default: true
+    PasswordRequireDigits    bool  // Default: true
+    PasswordRequireSpecial   bool  // Default: true
+    PasswordMinUniqueChars   int   // Default: 8
+    PasswordMaxRepeatedChars int   // Default: 3
+
+    // Session configuration
+    SessionTimeout        int   // Seconds, default: 3600 (1 hour)
+    SessionAbsoluteMax    int   // Seconds, default: 86400 (24 hours)
+    SessionRefreshEnabled bool  // Default: true
+
+    // Multi-factor authentication
+    MFARequired bool     // Default: false
+    MFAMethods  []string // e.g., ["totp", "webauthn", "sms"]
+
+    // Rate limiting overrides
+    LoginRateLimit   int // Attempts per minute, default: 5
+    MessageRateLimit int // Messages per minute, default: 10
+}
+```
+
+#### Realm vs Tenant Relationship
+
+```
+Tenant (data isolation boundary)
+├── Realm A (username_password, default policy)
+│   └── Users authenticate via database credentials
+├── Realm B (ldap, enterprise policy)
+│   └── Users authenticate via Active Directory
+└── Realm C (oauth2, federated policy)
+    └── Users authenticate via external OIDC provider
+
+All realms access SAME data (scoped by tenant_id only)
+```
+
+**Key Insight**: Users from different realms in the same tenant see the same data. The realm only controls HOW they authenticate, not WHAT they can access.
 
 ### Registration Flow
 

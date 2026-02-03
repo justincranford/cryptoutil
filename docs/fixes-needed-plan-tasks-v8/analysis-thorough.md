@@ -748,3 +748,96 @@ opentelemetry-collector-contrib:
 2. **Medium-term**: Standardize jose-ja to NOT expose admin port
 3. **Long-term**: Update instructions file OR update implementations to match
 4. **Follow-up Task**: Add port standardization phase to V8 or V9 plan
+
+## 12. Realm Design and Implementation Analysis
+
+### Critical Distinction: realm_id vs tenant_id
+
+**tenant_id**: Data isolation boundary
+- ALL data queries MUST filter by tenant_id
+- Scopes: keys, sessions, audit logs, messages, users
+- Cross-tenant access is FORBIDDEN
+
+**realm_id**: Authentication policy context
+- Determines HOW users authenticate (not WHAT they access)
+- Multiple realms can exist within one tenant
+- Users from different realms see SAME tenant data
+
+### 16 Realm Types from realm_service.go
+
+```go
+// Federated realm types (external identity providers)
+RealmTypeUsernamePassword = "username_password"  // Default, database credentials
+RealmTypeLDAP             = "ldap"               // LDAP/Active Directory
+RealmTypeOAuth2           = "oauth2"             // OAuth 2.0/OIDC provider
+RealmTypeSAML             = "saml"               // SAML 2.0 federation
+
+// Non-federated browser realm types (/browser/** paths)
+RealmTypeJWESessionCookie       = "jwe-session-cookie"      // Encrypted JWT cookie
+RealmTypeJWSSessionCookie       = "jws-session-cookie"      // Signed JWT cookie
+RealmTypeOpaqueSessionCookie    = "opaque-session-cookie"   // Server-side session
+RealmTypeBasicUsernamePassword  = "basic-username-password" // HTTP Basic auth
+RealmTypeBearerAPIToken         = "bearer-api-token"        // Bearer token
+RealmTypeHTTPSClientCert        = "https-client-cert"       // mTLS client cert
+
+// Non-federated service realm types (/service/** paths)
+RealmTypeJWESessionToken        = "jwe-session-token"       // Encrypted JWT token
+RealmTypeJWSSessionToken        = "jws-session-token"       // Signed JWT token
+RealmTypeOpaqueSessionToken     = "opaque-session-token"    // Server-side token
+RealmTypeBasicClientIDSecret    = "basic-client-id-secret"  // Client credentials
+// bearer-api-token and https-client-cert shared with browser types
+```
+
+### RealmConfig Structure from realm_config.go
+
+```go
+type RealmConfig struct {
+    // Password validation rules
+    PasswordMinLength        int   // Default: 12
+    PasswordRequireUppercase bool  // Default: true
+    PasswordRequireLowercase bool  // Default: true
+    PasswordRequireDigits    bool  // Default: true
+    PasswordRequireSpecial   bool  // Default: true
+    PasswordMinUniqueChars   int   // Default: 8
+    PasswordMaxRepeatedChars int   // Default: 3
+
+    // Session configuration
+    SessionTimeout        int   // Seconds, default: 3600 (1 hour)
+    SessionAbsoluteMax    int   // Seconds, default: 86400 (24 hours)
+    SessionRefreshEnabled bool  // Default: true
+
+    // Multi-factor authentication
+    MFARequired bool     // Default: false
+    MFAMethods  []string // e.g., ["totp", "webauthn", "sms"]
+
+    // Rate limiting overrides
+    LoginRateLimit   int // Attempts per minute, default: 5
+    MessageRateLimit int // Messages per minute, default: 10
+}
+```
+
+### Factory Functions
+
+- `DefaultRealm()` - Standard security policies
+- `EnterpriseRealm()` - Stricter policies (MFA required, shorter sessions)
+
+### Documentation Updates Applied
+
+| File | Change | Status |
+|------|--------|--------|
+| ARCHITECTURE.md | Expanded realm section: 16 types, config, tenant relationship | ✅ Done |
+| SERVICE-TEMPLATE.md | Added Realm Pattern section after ServiceResources | ✅ Done |
+| analysis-overview.md | Section 12 with realm summary | ✅ Done |
+| analysis-thorough.md | This detailed analysis | ✅ Done |
+
+### LLM Training vs Implementation
+
+**Common LLM Mistake**: Treating realms as data isolation boundaries (like AWS Organizations)
+
+**Correct Implementation**: Realms are authentication METHOD selectors only:
+- Same tenant + different realms = SAME data access
+- Different tenants = ISOLATED data (regardless of realm)
+
+### Remaining Work
+
+Phase needed to verify realm implementation in all services matches this design.

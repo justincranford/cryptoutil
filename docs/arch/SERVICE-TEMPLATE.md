@@ -82,6 +82,70 @@ type ServiceResources struct {
 }
 ```
 
+### Realm Pattern
+
+**CRITICAL**: Realms define authentication METHOD and POLICY, NOT data scoping.
+
+#### RealmService Interface
+
+The template provides `RealmService` for authentication configuration:
+
+```go
+type RealmService interface {
+    GetRealmConfig(ctx context.Context, realmID uuid.UUID) (*realms.RealmConfig, error)
+    ValidatePassword(ctx context.Context, realmID uuid.UUID, password string) error
+    CreateSession(ctx context.Context, realmID uuid.UUID, userID uuid.UUID) (*Session, error)
+}
+```
+
+#### Realm Types (16 Supported)
+
+**Federated Types** (external identity providers):
+- `username_password` - Database credentials (default)
+- `ldap` - LDAP/Active Directory
+- `oauth2` - OAuth 2.0/OIDC provider
+- `saml` - SAML 2.0 federation
+
+**Non-Federated Browser Types** (`/browser/**` paths):
+- `jwe-session-cookie` - Encrypted JWT cookie
+- `jws-session-cookie` - Signed JWT cookie
+- `opaque-session-cookie` - Server-side session
+- `basic-username-password` - HTTP Basic auth
+- `bearer-api-token` - Bearer token
+- `https-client-cert` - mTLS client cert
+
+**Non-Federated Service Types** (`/service/**` paths):
+- `jwe-session-token` - Encrypted JWT token
+- `jws-session-token` - Signed JWT token
+- `opaque-session-token` - Server-side token
+- `basic-client-id-secret` - Client credentials
+- `bearer-api-token` - Bearer token (shared)
+- `https-client-cert` - mTLS (shared)
+
+#### Realm Configuration
+
+Each realm has configurable policies via `RealmConfig`:
+
+| Category | Settings | Defaults |
+|----------|----------|----------|
+| Password | MinLength, Uppercase, Lowercase, Digits, Special | 12, true, true, true, true |
+| Session | Timeout, AbsoluteMax, RefreshEnabled | 3600s, 86400s, true |
+| MFA | Required, Methods | false, [] |
+| Rate Limit | LoginRateLimit, MessageRateLimit | 5/min, 10/min |
+
+#### Realm vs Tenant
+
+**`tenant_id`** scopes ALL data access (keys, sessions, audit logs).
+
+**`realm_id`** scopes ONLY authentication policies (how users authenticate).
+
+```
+Tenant (data isolation)
+├── Realm A (username_password) → users authenticate differently
+├── Realm B (ldap)              → but all see SAME tenant data
+└── Realm C (oauth2)            → 
+```
+
 ---
 
 ## Configuration Pattern
