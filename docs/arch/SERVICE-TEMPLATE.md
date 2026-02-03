@@ -143,7 +143,7 @@ Each realm has configurable policies via `RealmConfig`:
 Tenant (data isolation)
 ├── Realm A (username_password) → users authenticate differently
 ├── Realm B (ldap)              → but all see SAME tenant data
-└── Realm C (oauth2)            → 
+└── Realm C (oauth2)            →
 ```
 
 ---

@@ -30,9 +30,8 @@ type KMSServer struct {
 }
 
 // NewKMSServer creates a new KMS server using the template's ServerBuilder.
-// TODO(Phase2-5): KMS needs to be migrated to use template's GORM database and barrier.
-// Currently KMS has its own SQLRepository and shared/barrier - these need to be replaced
-// with the template's infrastructure for unified service architecture.
+// KMS now uses the template's GORM database and barrier infrastructure.
+// TODO: Migrate SQLRepository to template's ORM pattern for complete unification.
 func NewKMSServer(
 	ctx context.Context,
 	settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings,

@@ -15,7 +15,7 @@ import (
 	cryptoutilKmsMiddleware "cryptoutil/internal/kms/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
@@ -36,11 +36,11 @@ type BusinessLogicService struct {
 	jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	oamOrmMapper     *OamOrmMapper
-	barrierService   *cryptoutilBarrierService.BarrierService
+	barrierService   *cryptoutilAppsTemplateServiceServerBarrier.Service
 }
 
 // NewBusinessLogicService creates a new BusinessLogicService with injected dependencies.
-func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
+func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilAppsTemplateServiceServerBarrier.Service) (*BusinessLogicService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
@@ -106,7 +106,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("invalid ElasticKeyStatus transition: %w", err)
 		}
 
-		materialKeyEncryptedNonPublicJWKBytes, err := s.barrierService.EncryptContent(sqlTransaction, materialKeyClearNonPublicJWKBytes)
+		materialKeyEncryptedNonPublicJWKBytes, err := s.barrierService.EncryptContentWithContext(ctx, materialKeyClearNonPublicJWKBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt first MaterialKey for ElasticKey: %w", err)
 		}
@@ -224,7 +224,7 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 
 		materialKeyGenerateDate := time.Now().UTC()
 
-		encryptedMaterialKeyPrivateOrPublicJWKBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearMaterialKeyNonPublicJWKBytes)
+		encryptedMaterialKeyPrivateOrPublicJWKBytes, err := s.barrierService.EncryptContentWithContext(ctx, clearMaterialKeyNonPublicJWKBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt new MaterialKey for ElasticKey: %w", err)
 		}
@@ -607,7 +607,7 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 			return fmt.Errorf("failed to get MaterialKey in ElasticKey: %w", err)
 		}
 
-		materialKeyDecryptedNonPublicJWKBytes, err = s.barrierService.DecryptContent(sqlTransaction, ormMaterialKey.MaterialKeyEncryptedNonPublic)
+		materialKeyDecryptedNonPublicJWKBytes, err = s.barrierService.DecryptContentWithContext(ctx, ormMaterialKey.MaterialKeyEncryptedNonPublic)
 		if err != nil {
 			return fmt.Errorf("failed to decrypt MaterialKeyEncryptedNonPublic in ElasticKey: %w", err)
 		}
@@ -750,7 +750,7 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 
 		materialKeyImportDate := time.Now().UTC()
 
-		encryptedMaterialKeyBytes, err := s.barrierService.EncryptContent(sqlTransaction, importedJWKBytes)
+		encryptedMaterialKeyBytes, err := s.barrierService.EncryptContentWithContext(ctx, importedJWKBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt imported MaterialKey: %w", err)
 		}

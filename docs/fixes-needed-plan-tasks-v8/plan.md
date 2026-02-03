@@ -294,6 +294,8 @@ The CORRECT design is:
 
 ### Phase 13: KMS Barrier Direct Migration (REVISED)
 
+**Status**: ✅ MOSTLY COMPLETE (Task 13.9 BLOCKED)
+
 **CRITICAL REVISION**: The adapter pattern in Section 14 is INCORRECT.
 
 **Correct Approach**: KMS should use template barrier EXACTLY like cipher-im does:
@@ -307,11 +309,24 @@ import cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/temp
 // Uses res.BarrierService from ServerBuilder
 ```
 
-**Tasks**:
-- Refactor Phase 1 tasks to use direct template barrier (not adapter)
-- Follow cipher-im pattern exactly
-- Delete `internal/kms/server/barrier/orm_barrier_adapter.go` (not needed)
-- Delete `internal/shared/barrier/` after migration
+**Completed Tasks**:
+- ✅ Task 13.1: Study cipher-im pattern
+- ⏭️ Task 13.2: Skipped (KMS already uses ServerBuilder)
+- ✅ Task 13.3: Update businesslogic.go to use template barrier
+- ✅ Task 13.4: Update application_core.go with GormRepository wrapper
+- ✅ Task 13.5: Verified application_basic.go (no changes needed - unsealkeysservice is kept)
+- ✅ Task 13.6: Deleted `internal/kms/server/barrier/` directory
+- ✅ Task 13.7: Verified zero shared/barrier imports (except unsealkeysservice)
+- ✅ Task 13.8: All KMS tests pass
+
+**Blocked Task**:
+- ❌ Task 13.9: Cannot delete shared/barrier - template itself depends on it!
+
+**Blocker Discovery**: Template barrier (`internal/apps/template/service/server/barrier/`) imports from
+shared/barrier for unsealkeysservice, rootkeysservice, intermediatekeysservice, contentkeysservice.
+Additionally, `service_template.go` references `shared/barrier.BarrierService` type.
+
+**Resolution**: See Phase 15 below.
 
 ### Phase 14: Post-Mortem and Documentation Audit
 
@@ -326,6 +341,32 @@ import cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/temp
 - Create comprehensive audit trail
 - Verify V8 success criteria met
 
+### Phase 15: Template Barrier Self-Containment (NEW)
+
+**Objective**: Make template barrier fully self-contained by removing shared/barrier dependencies
+
+**Background**: Task 13.9 is BLOCKED because the template barrier itself depends on shared/barrier.
+The template barrier must be fully self-contained before shared/barrier can be deleted.
+
+**Current Dependencies** (template → shared/barrier):
+- `barrier_service.go` imports `shared/barrier/unsealkeysservice`
+- `root_keys_service.go` imports `shared/barrier/unsealkeysservice`
+- `rotation_service.go` imports `shared/barrier/unsealkeysservice`
+- `service_template.go` imports `shared/barrier` (for BarrierService type!)
+
+**Strategy**: Copy the key services from shared/barrier INTO template barrier, then delete shared/barrier.
+
+**Tasks**:
+- 15.1: Copy unsealkeysservice into template barrier
+- 15.2: Update template barrier imports to use internal unsealkeysservice
+- 15.3: Fix service_template.go to use template barrier Service type
+- 15.4: Update all test files that reference shared/barrier
+- 15.5: Verify all template tests pass
+- 15.6: Delete shared/barrier directory
+- 15.7: Verify full project builds and tests pass
+
+**Estimated Effort**: 8-12 hours
+
 ---
 
 ## Success Criteria (Updated)
@@ -334,7 +375,8 @@ import cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/temp
 - [ ] All services use standard health path `/admin/api/v1/livez`
 - [ ] All services use assigned container ports (8080, 8070, 8060, 8050, 8100-8130)
 - [ ] cicd lint-ports passes for entire codebase
-- [ ] KMS uses template barrier (zero shared/barrier imports)
-- [ ] shared/barrier directory deleted
-- [ ] All tests pass
+- [x] KMS uses template barrier (zero shared/barrier imports except unsealkeysservice)
+- [ ] shared/barrier directory deleted (BLOCKED - requires Phase 15)
+- [x] All KMS tests pass
+- [ ] All template tests pass after Phase 15
 - [ ] Documentation matches implementation

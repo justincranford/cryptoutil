@@ -12,12 +12,12 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/kms/server/businesslogic"
 	cryptoutilKmsServerDemo "cryptoutil/internal/kms/server/demo"
 	cryptoutilKmsServerRepository "cryptoutil/internal/kms/server/repository"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 
 	"gorm.io/gorm"
 )
@@ -28,7 +28,7 @@ type ServerApplicationCore struct {
 	TemplateCore           *cryptoutilAppsTemplateServiceServerApplication.Core
 	DB                     *gorm.DB
 	OrmRepository          *cryptoutilOrmRepository.OrmRepository
-	BarrierService         *cryptoutilBarrierService.BarrierService
+	BarrierService         *cryptoutilAppsTemplateServiceServerBarrier.Service
 	BusinessLogicService   *cryptoutilKmsServerBusinesslogic.BusinessLogicService
 	Settings               *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 }
@@ -101,7 +101,16 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilAppsTem
 
 	serverApplicationCore.OrmRepository = ormRepository
 
-	barrierService, err := cryptoutilBarrierService.NewService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, serverApplicationBasic.UnsealKeysService)
+	// Create GormRepository wrapper for template barrier (implements barrier.Repository interface).
+	gormRepository, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(templateCore.DB)
+	if err != nil {
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create gorm barrier repository", "error", err)
+		serverApplicationCore.Shutdown()
+
+		return nil, fmt.Errorf("failed to create gorm barrier repository: %w", err)
+	}
+
+	barrierService, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, gormRepository, serverApplicationBasic.UnsealKeysService)
 	if err != nil {
 		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
 		serverApplicationCore.Shutdown()

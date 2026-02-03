@@ -11,7 +11,7 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -48,7 +48,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 		telemetryService *cryptoutilSharedTelemetry.TelemetryService
 		jwkGenService    *cryptoutilSharedCryptoJose.JWKGenService
 		ormRepository    *cryptoutilOrmRepository.OrmRepository
-		barrierService   *cryptoutilBarrierService.BarrierService
+		barrierService   *cryptoutilAppsTemplateServiceServerBarrier.Service
 		expectError      bool
 		errorContains    string
 	}{
@@ -58,7 +58,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 			telemetryService,
 			jwkGenService,
 			&cryptoutilOrmRepository.OrmRepository{},
-			&cryptoutilBarrierService.BarrierService{},
+			&cryptoutilAppsTemplateServiceServerBarrier.Service{},
 			true,
 			"ctx must be non-nil",
 		},
@@ -68,7 +68,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 			nil,
 			jwkGenService,
 			&cryptoutilOrmRepository.OrmRepository{},
-			&cryptoutilBarrierService.BarrierService{},
+			&cryptoutilAppsTemplateServiceServerBarrier.Service{},
 			true,
 			"telemetryService must be non-nil",
 		},
@@ -78,7 +78,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 			telemetryService,
 			nil,
 			&cryptoutilOrmRepository.OrmRepository{},
-			&cryptoutilBarrierService.BarrierService{},
+			&cryptoutilAppsTemplateServiceServerBarrier.Service{},
 			true,
 			"jwkGenService must be non-nil",
 		},
@@ -88,7 +88,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 			telemetryService,
 			jwkGenService,
 			nil,
-			&cryptoutilBarrierService.BarrierService{},
+			&cryptoutilAppsTemplateServiceServerBarrier.Service{},
 			true,
 			"ormRepository must be non-nil",
 		},
@@ -108,7 +108,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 			telemetryService,
 			jwkGenService,
 			&cryptoutilOrmRepository.OrmRepository{},
-			&cryptoutilBarrierService.BarrierService{},
+			&cryptoutilAppsTemplateServiceServerBarrier.Service{},
 			false,
 			"",
 		},
@@ -154,7 +154,7 @@ func TestGenerateJWK(t *testing.T) {
 		jwkGenService:    jwkGenService,
 		ormRepository:    &cryptoutilOrmRepository.OrmRepository{},
 		oamOrmMapper:     NewOamOrmMapper(),
-		barrierService:   &cryptoutilBarrierService.BarrierService{},
+		barrierService:   &cryptoutilAppsTemplateServiceServerBarrier.Service{},
 	}
 
 	// Comprehensive JWE algorithm tests - symmetric (dir) and asymmetric (RSA, ECDH).
