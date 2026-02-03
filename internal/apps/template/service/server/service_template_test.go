@@ -79,7 +79,6 @@ func TestNewServiceTemplate_HappyPath(t *testing.T) {
 	require.Equal(t, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, st.DBType())
 	require.NotNil(t, st.Telemetry())
 	require.NotNil(t, st.JWKGen())
-	require.Nil(t, st.Barrier()) // No barrier option provided.
 
 	// Verify SQLDB accessor.
 	sqlDB, err := st.SQLDB()
@@ -151,26 +150,6 @@ func TestNewServiceTemplate_PostgreSQLDatabaseType(t *testing.T) {
 	require.Equal(t, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypePostgreSQL, st.DBType())
 }
 
-// TestNewServiceTemplate_WithBarrierOption tests WithBarrier functional option.
-func TestNewServiceTemplate_WithBarrierOption(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	db := initTestDB(t)
-	cfg := defaultTestConfig()
-
-	// NOTE: BarrierService requires unseal key initialization.
-	// For this test, we verify the option mechanism works (barrier will be nil until Phase 5b).
-	// Phase 5b will add actual barrier service initialization.
-
-	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, WithBarrier(nil))
-	require.NoError(t, err)
-	require.NotNil(t, st)
-
-	// Barrier is nil because we passed nil (Phase 5b will initialize properly).
-	require.Nil(t, st.Barrier())
-}
-
 // TestServiceTemplate_Shutdown tests graceful shutdown of all components.
 func TestServiceTemplate_Shutdown(t *testing.T) {
 	t.Parallel()
@@ -195,23 +174,6 @@ func TestServiceTemplate_Shutdown(t *testing.T) {
 	require.NotNil(t, st.JWKGen())
 }
 
-// TestServiceTemplate_Shutdown_WithBarrier tests shutdown with barrier service.
-func TestServiceTemplate_Shutdown_WithBarrier(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	db := initTestDB(t)
-	cfg := defaultTestConfig()
-
-	// NOTE: Using nil barrier for now (Phase 5b will add proper barrier initialization).
-	st, err := NewServiceTemplate(ctx, cfg, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite, WithBarrier(nil))
-	require.NoError(t, err)
-	require.NotNil(t, st)
-
-	// Shutdown should handle nil barrier gracefully.
-	st.Shutdown()
-}
-
 // TestServiceTemplate_Shutdown_NilComponents tests shutdown with nil components.
 func TestServiceTemplate_Shutdown_NilComponents(t *testing.T) {
 	t.Parallel()
@@ -220,7 +182,6 @@ func TestServiceTemplate_Shutdown_NilComponents(t *testing.T) {
 	st := &ServiceTemplate{
 		telemetry: nil,
 		jwkGen:    nil,
-		barrier:   nil,
 	}
 
 	// Shutdown should not panic with nil components.
@@ -322,11 +283,7 @@ func TestServiceTemplate_AccessorMethods(t *testing.T) {
 	jwkGen := st.JWKGen()
 	require.NotNil(t, jwkGen)
 
-	// Test Barrier() accessor (initially nil, can be set with WithBarrier option).
-	barrier := st.Barrier()
-	require.Nil(t, barrier)
-
-	// Test Shutdown to cover nil checks for all three services (telemetry, jwkGen, barrier).
+	// Test Shutdown to cover nil checks for services (telemetry, jwkGen).
 	st.Shutdown()
 	// After shutdown, verify services are still accessible (shutdown is graceful, not destructive).
 	require.NotNil(t, st.Telemetry())

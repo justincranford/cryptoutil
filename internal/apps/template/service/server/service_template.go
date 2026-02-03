@@ -15,33 +15,23 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // ServiceTemplate encapsulates reusable service infrastructure.
-// Provides common initialization for telemetry, crypto, barrier, and dual HTTPS servers.
+// Provides common initialization for telemetry, crypto, and dual HTTPS servers.
+// Note: Barrier service is handled by ServerBuilder, not ServiceTemplate.
 type ServiceTemplate struct {
 	config    *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
 	db        *gorm.DB
 	dbType    cryptoutilAppsTemplateServiceServerRepository.DatabaseType
 	telemetry *cryptoutilSharedTelemetry.TelemetryService
 	jwkGen    *cryptoutilSharedCryptoJose.JWKGenService
-	barrier   *cryptoutilBarrierService.BarrierService // Optional (nil for demo services).
 }
 
 // ServiceTemplateOption is a functional option for configuring ServiceTemplate.
 type ServiceTemplateOption func(*ServiceTemplate) error
-
-// WithBarrier configures an optional barrier service for key encryption at rest.
-func WithBarrier(barrier *cryptoutilBarrierService.BarrierService) ServiceTemplateOption {
-	return func(st *ServiceTemplate) error {
-		st.barrier = barrier
-
-		return nil
-	}
-}
 
 // NewServiceTemplate creates a new ServiceTemplate with common infrastructure.
 // Initializes telemetry, JWK generation service, and optionally barrier service.
@@ -88,7 +78,6 @@ func NewServiceTemplate(
 		dbType:    dbType,
 		telemetry: telemetryService,
 		jwkGen:    jwkGenService,
-		barrier:   nil, // Optional, set via WithBarrier option.
 	}
 
 	// Apply functional options.
@@ -132,11 +121,6 @@ func (st *ServiceTemplate) JWKGen() *cryptoutilSharedCryptoJose.JWKGenService {
 	return st.jwkGen
 }
 
-// Barrier returns the optional barrier service (may be nil).
-func (st *ServiceTemplate) Barrier() *cryptoutilBarrierService.BarrierService {
-	return st.barrier
-}
-
 // Shutdown gracefully shuts down all service components.
 func (st *ServiceTemplate) Shutdown() {
 	if st.telemetry != nil {
@@ -145,10 +129,6 @@ func (st *ServiceTemplate) Shutdown() {
 
 	if st.jwkGen != nil {
 		st.jwkGen.Shutdown()
-	}
-
-	if st.barrier != nil {
-		st.barrier.Shutdown()
 	}
 }
 

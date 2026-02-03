@@ -191,7 +191,6 @@ func TestServiceTemplate_ShutdownNilComponents(t *testing.T) {
 	st := &ServiceTemplate{
 		telemetry: nil,
 		jwkGen:    nil,
-		barrier:   nil,
 	}
 
 	// Shutdown should not panic.
