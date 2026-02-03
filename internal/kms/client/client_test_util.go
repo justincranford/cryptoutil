@@ -1,5 +1,9 @@
+//go:build integration
+// +build integration
+
 // Copyright (c) 2025 Justin Cranford
 //
+// NOTE: These tests require a PostgreSQL database and are skipped in CI without the integration tag.
 //
 
 package client

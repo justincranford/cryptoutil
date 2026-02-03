@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	cryptoutilOpenapiServer "cryptoutil/api/server"
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
@@ -106,21 +106,21 @@ func registerKMSRoutes(
 ) error {
 	// Create the OpenAPI strict server handler.
 	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(kmsCore.BusinessLogicService)
-	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
+	openapiStrictHandler := cryptoutilKmsServer.NewStrictHandler(openapiStrictServer, nil)
 
 	// Configure browser API options.
-	publicBrowserFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+	publicBrowserFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
 		BaseURL: settings.PublicBrowserAPIContextPath,
 	}
 
 	// Configure service API options.
-	publicServiceFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+	publicServiceFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
 		BaseURL: settings.PublicServiceAPIContextPath,
 	}
 
 	// Register handlers on both browser and service paths.
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, openapiStrictHandler, publicBrowserFiberServerOptions)
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, openapiStrictHandler, publicServiceFiberServerOptions)
+	cryptoutilKmsServer.RegisterHandlersWithOptions(app, openapiStrictHandler, publicBrowserFiberServerOptions)
+	cryptoutilKmsServer.RegisterHandlersWithOptions(app, openapiStrictHandler, publicServiceFiberServerOptions)
 
 	return nil
 }

@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 // Copyright (c) 2025 Justin Cranford
 
 package orm
@@ -8,6 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 )
 
@@ -27,7 +31,7 @@ func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
 		false,
 		false,
 		false,
-		string(cryptoutilOpenapiModel.Creating),
+		string(cryptoutilKmsServer.Active),
 	)
 	require.NoError(t, buildErr)
 
@@ -58,7 +62,7 @@ func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
 		false,
 		false,
 		false,
-		string(cryptoutilOpenapiModel.Creating),
+		string(cryptoutilKmsServer.Active),
 	)
 	require.NoError(t, buildErr)
 
@@ -78,7 +82,7 @@ func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 
 	// Attempt update with zero UUID (invalid).
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.UpdateElasticKeyStatus(googleUuid.UUID{}, cryptoutilOpenapiModel.Active)
+		return tx.UpdateElasticKeyStatus(googleUuid.UUID{}, cryptoutilKmsServer.Active)
 	})
 
 	// Should fail with invalid ElasticKeyID error.
@@ -93,7 +97,7 @@ func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
 	// Attempt update on non-existent UUID.
 	nonExistentID := googleUuid.New()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-		return tx.UpdateElasticKeyStatus(nonExistentID, cryptoutilOpenapiModel.Active)
+		return tx.UpdateElasticKeyStatus(nonExistentID, cryptoutilKmsServer.Active)
 	})
 
 	// GORM Update doesn't error on zero rows affected.
@@ -144,7 +148,7 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr)
 
@@ -166,7 +170,7 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr)
 
@@ -196,7 +200,7 @@ func TestUpdateElasticKeyStatus_DatabaseConstraintViolation(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr)
 

@@ -181,32 +181,32 @@ func TestGenerateJWK(t *testing.T) {
 		cryptoutilOpenapiModel.A256GCMECDHESA256KW,
 	}
 
-	// Comprehensive JWS algorithm tests - symmetric (HMAC) and asymmetric (RSA, EC, EdDSA).
-	jwsSymmetricAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
-		cryptoutilOpenapiModel.HS256,
-		cryptoutilOpenapiModel.HS384,
-		cryptoutilOpenapiModel.HS512,
-	}
-
-	jwsAsymmetricRSAAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
-		cryptoutilOpenapiModel.RS256,
-		cryptoutilOpenapiModel.RS384,
-		cryptoutilOpenapiModel.RS512,
-		cryptoutilOpenapiModel.PS256,
-		cryptoutilOpenapiModel.PS384,
-		cryptoutilOpenapiModel.PS512,
-	}
-
-	jwsAsymmetricECAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
-		cryptoutilOpenapiModel.ES256,
-		cryptoutilOpenapiModel.ES384,
-		cryptoutilOpenapiModel.ES512,
-	}
-
-	jwsAsymmetricEdDSAAlgorithms := []cryptoutilOpenapiModel.ElasticKeyAlgorithm{
-		cryptoutilOpenapiModel.EdDSA,
-	}
-
+	// JWS NOT IN API SPEC: 	// Comprehensive JWS algorithm tests - symmetric (HMAC) and asymmetric (RSA, EC, EdDSA).
+	// JWS NOT IN API SPEC: 	jwsSymmetricAlgorithms := []cryptoutilModel.ElasticKeyAlgorithm{
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.HS256,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.HS384,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.HS512,
+	// JWS NOT IN API SPEC: 	}
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 	jwsAsymmetricRSAAlgorithms := []cryptoutilModel.ElasticKeyAlgorithm{
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.RS256,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.RS384,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.RS512,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.PS256,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.PS384,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.PS512,
+	// JWS NOT IN API SPEC: 	}
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 	jwsAsymmetricECAlgorithms := []cryptoutilModel.ElasticKeyAlgorithm{
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.ES256,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.ES384,
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.ES512,
+	// JWS NOT IN API SPEC: 	}
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 	jwsAsymmetricEdDSAAlgorithms := []cryptoutilModel.ElasticKeyAlgorithm{
+	// JWS NOT IN API SPEC: 		cryptoutilKmsServer.EdDSA,
+	// JWS NOT IN API SPEC: 	}
+	// JWS NOT IN API SPEC:
 	// Test JWE symmetric algorithms (dir) - no public key expected.
 	for _, alg := range jweSymmetricAlgorithms {
 		t.Run("JWE_Symmetric_"+string(alg), func(t *testing.T) {
@@ -256,70 +256,70 @@ func TestGenerateJWK(t *testing.T) {
 		})
 	}
 
-	// Test JWS symmetric algorithms (HMAC) - no public key expected.
-	for _, alg := range jwsSymmetricAlgorithms {
-		t.Run("JWS_HMAC_"+string(alg), func(t *testing.T) {
-			t.Parallel()
-
-			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
-
-			testify.NoError(t, err)
-			testify.NotNil(t, materialKeyID)
-			testify.NotNil(t, materialKeyNonPublicJWK)
-			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
-			// Symmetric HMAC algorithms should NOT have separate public key.
-			testify.Nil(t, materialKeyPublicJWK)
-			testify.Nil(t, materialKeyPublicJWKBytes)
-		})
-	}
-
-	// Test JWS asymmetric RSA algorithms - public key expected.
-	for _, alg := range jwsAsymmetricRSAAlgorithms {
-		t.Run("JWS_RSA_"+string(alg), func(t *testing.T) {
-			t.Parallel()
-
-			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
-
-			testify.NoError(t, err)
-			testify.NotNil(t, materialKeyID)
-			testify.NotNil(t, materialKeyNonPublicJWK)
-			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
-			testify.NotNil(t, materialKeyPublicJWK)
-			testify.NotEmpty(t, materialKeyPublicJWKBytes)
-		})
-	}
-
-	// Test JWS asymmetric EC algorithms - public key expected.
-	for _, alg := range jwsAsymmetricECAlgorithms {
-		t.Run("JWS_EC_"+string(alg), func(t *testing.T) {
-			t.Parallel()
-
-			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
-
-			testify.NoError(t, err)
-			testify.NotNil(t, materialKeyID)
-			testify.NotNil(t, materialKeyNonPublicJWK)
-			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
-			testify.NotNil(t, materialKeyPublicJWK)
-			testify.NotEmpty(t, materialKeyPublicJWKBytes)
-		})
-	}
-
-	// Test JWS asymmetric EdDSA algorithms - public key expected.
-	for _, alg := range jwsAsymmetricEdDSAAlgorithms {
-		t.Run("JWS_EdDSA_"+string(alg), func(t *testing.T) {
-			t.Parallel()
-
-			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
-
-			testify.NoError(t, err)
-			testify.NotNil(t, materialKeyID)
-			testify.NotNil(t, materialKeyNonPublicJWK)
-			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
-			testify.NotNil(t, materialKeyPublicJWK)
-			testify.NotEmpty(t, materialKeyPublicJWKBytes)
-		})
-	}
+	// JWS NOT IN API SPEC: 	// Test JWS symmetric algorithms (HMAC) - no public key expected.
+	// JWS NOT IN API SPEC: 	for _, alg := range jwsSymmetricAlgorithms {
+	// JWS NOT IN API SPEC: 		t.Run("JWS_HMAC_"+string(alg), func(t *testing.T) {
+	// JWS NOT IN API SPEC: 			t.Parallel()
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			testify.NoError(t, err)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyID)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyNonPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+	// JWS NOT IN API SPEC: 			// Symmetric HMAC algorithms should NOT have separate public key.
+	// JWS NOT IN API SPEC: 			testify.Nil(t, materialKeyPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.Nil(t, materialKeyPublicJWKBytes)
+	// JWS NOT IN API SPEC: 		})
+	// JWS NOT IN API SPEC: 	}
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 	// Test JWS asymmetric RSA algorithms - public key expected.
+	// JWS NOT IN API SPEC: 	for _, alg := range jwsAsymmetricRSAAlgorithms {
+	// JWS NOT IN API SPEC: 		t.Run("JWS_RSA_"+string(alg), func(t *testing.T) {
+	// JWS NOT IN API SPEC: 			t.Parallel()
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			testify.NoError(t, err)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyID)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyNonPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.NotEmpty(t, materialKeyPublicJWKBytes)
+	// JWS NOT IN API SPEC: 		})
+	// JWS NOT IN API SPEC: 	}
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 	// Test JWS asymmetric EC algorithms - public key expected.
+	// JWS NOT IN API SPEC: 	for _, alg := range jwsAsymmetricECAlgorithms {
+	// JWS NOT IN API SPEC: 		t.Run("JWS_EC_"+string(alg), func(t *testing.T) {
+	// JWS NOT IN API SPEC: 			t.Parallel()
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			testify.NoError(t, err)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyID)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyNonPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.NotEmpty(t, materialKeyPublicJWKBytes)
+	// JWS NOT IN API SPEC: 		})
+	// JWS NOT IN API SPEC: 	}
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 	// Test JWS asymmetric EdDSA algorithms - public key expected.
+	// JWS NOT IN API SPEC: 	for _, alg := range jwsAsymmetricEdDSAAlgorithms {
+	// JWS NOT IN API SPEC: 		t.Run("JWS_EdDSA_"+string(alg), func(t *testing.T) {
+	// JWS NOT IN API SPEC: 			t.Parallel()
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err := service.generateJWK(&alg)
+	// JWS NOT IN API SPEC:
+	// JWS NOT IN API SPEC: 			testify.NoError(t, err)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyID)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyNonPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.NotEmpty(t, materialKeyNonPublicJWKBytes)
+	// JWS NOT IN API SPEC: 			testify.NotNil(t, materialKeyPublicJWK)
+	// JWS NOT IN API SPEC: 			testify.NotEmpty(t, materialKeyPublicJWKBytes)
+	// JWS NOT IN API SPEC: 		})
+	// JWS NOT IN API SPEC: 	}
 
 	t.Run("unsupported algorithm", func(t *testing.T) {
 		t.Parallel()

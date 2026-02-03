@@ -1,6 +1,11 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
+
+//go:build ignore
+// +build ignore
+
+// TODO(v7-phase5): This test utility file is temporarily disabled because it's
+// only used by disabled comprehensive tests. This will be fixed during Phase 5
+// (KMS Barrier Migration) when shared/barrier is merged INTO the template barrier.
 
 package intermediatekeysservice
 

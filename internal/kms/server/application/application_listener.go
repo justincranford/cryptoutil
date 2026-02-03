@@ -20,7 +20,7 @@ import (
 	"syscall"
 	"time"
 
-	cryptoutilOpenapiServer "cryptoutil/api/server"
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilKmsServerHandler "cryptoutil/internal/kms/server/handler"
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
@@ -230,7 +230,7 @@ func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfi
 	})
 
 	// Public Swagger UI with basic authentication
-	swaggerAPI, err := cryptoutilOpenapiServer.GetSwagger()
+	swaggerAPI, err := cryptoutilKmsServer.GetSwagger()
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
 		serverApplicationCore.Shutdown()
@@ -288,21 +288,21 @@ func StartServerListenerApplication(settings *cryptoutilAppsTemplateServiceConfi
 
 	// Swagger APIs, will be double exposed on publicFiberApp, but with different security middlewares (i.e. browser user vs machine client)
 	openapiStrictServer := cryptoutilKmsServerHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
-	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
-	commonOapiMiddlewareFiberRequestValidators := []cryptoutilOpenapiServer.MiddlewareFunc{
+	openapiStrictHandler := cryptoutilKmsServer.NewStrictHandler(openapiStrictServer, nil)
+	commonOapiMiddlewareFiberRequestValidators := []cryptoutilKmsServer.MiddlewareFunc{
 		fibermiddleware.OapiRequestValidatorWithOptions(swaggerAPI, &fibermiddleware.Options{}),
 	}
-	publicBrowserFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+	publicBrowserFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
 		BaseURL:     settings.PublicBrowserAPIContextPath,
 		Middlewares: commonOapiMiddlewareFiberRequestValidators,
 	}
-	publicServiceFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+	publicServiceFiberServerOptions := cryptoutilKmsServer.FiberServerOptions{
 		BaseURL:     settings.PublicServiceAPIContextPath,
 		Middlewares: commonOapiMiddlewareFiberRequestValidators,
 	}
 
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicBrowserFiberServerOptions)
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicServiceFiberServerOptions)
+	cryptoutilKmsServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicBrowserFiberServerOptions)
+	cryptoutilKmsServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicServiceFiberServerOptions)
 
 	// Create listeners - use port 0 for testing (to get OS-assigned ports), configured ports for production
 	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)

@@ -18,7 +18,7 @@ import (
 	"context"
 	"errors"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -72,6 +72,7 @@ func TestGetSessionInfo(t *testing.T) {
 					SessionID: googleUuid.New(),
 					TenantID:  googleUuid.New(),
 				}
+
 				return context.WithValue(context.Background(), SessionContextKey{}, info)
 			},
 			wantNil: false,
@@ -88,7 +89,9 @@ func TestGetSessionInfo(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			ctx := tc.setup()
+
 			result := GetSessionInfo(ctx)
 			if tc.wantNil {
 				require.Nil(t, result)
@@ -159,6 +162,7 @@ func TestBrowserSessionMiddleware(t *testing.T) {
 				if info != nil {
 					return c.SendString("ok")
 				}
+
 				return c.SendString("no session")
 			})
 
@@ -169,7 +173,8 @@ func TestBrowserSessionMiddleware(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+
+			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
@@ -269,6 +274,7 @@ func TestServiceSessionMiddleware(t *testing.T) {
 				if info != nil {
 					return c.SendString("ok")
 				}
+
 				return c.SendString("no session")
 			})
 
@@ -279,7 +285,8 @@ func TestServiceSessionMiddleware(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+
+			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
@@ -333,6 +340,7 @@ func TestRequireSessionMiddleware(t *testing.T) {
 			// Setup middleware that sets context before RequireSessionMiddleware
 			app.Use(func(c *fiber.Ctx) error {
 				tc.setupContext(c)
+
 				return c.Next()
 			})
 			app.Use(RequireSessionMiddleware())
@@ -344,7 +352,8 @@ func TestRequireSessionMiddleware(t *testing.T) {
 
 			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+
+			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
@@ -364,6 +373,7 @@ func TestNoopSessionValidator(t *testing.T) {
 
 	t.Run("browser session always fails", func(t *testing.T) {
 		t.Parallel()
+
 		info, err := validator.ValidateBrowserSession(context.Background(), "any-token")
 		require.Error(t, err)
 		require.Nil(t, info)
@@ -372,6 +382,7 @@ func TestNoopSessionValidator(t *testing.T) {
 
 	t.Run("service session always fails", func(t *testing.T) {
 		t.Parallel()
+
 		info, err := validator.ValidateServiceSession(context.Background(), "any-token")
 		require.Error(t, err)
 		require.Nil(t, info)
@@ -415,12 +426,15 @@ func TestSessionMiddleware_SetsRealmContext(t *testing.T) {
 		if realmCtx.TenantID != sessionInfo.TenantID {
 			return c.Status(500).SendString("tenant mismatch")
 		}
+
 		if realmCtx.RealmID != sessionInfo.RealmID {
 			return c.Status(500).SendString("realm mismatch")
 		}
+
 		if realmCtx.UserID != sessionInfo.UserID {
 			return c.Status(500).SendString("user mismatch")
 		}
+
 		if realmCtx.Source != "session" {
 			return c.Status(500).SendString("source mismatch")
 		}
@@ -430,7 +444,9 @@ func TestSessionMiddleware_SetsRealmContext(t *testing.T) {
 		if tenantStr == nil {
 			return c.Status(500).SendString("no tenant key")
 		}
-		if tenantStr.(string) != sessionInfo.TenantID.String() {
+
+		tenantStrVal, ok := tenantStr.(string)
+		if !ok || tenantStrVal != sessionInfo.TenantID.String() {
 			return c.Status(500).SendString("tenant key mismatch")
 		}
 
@@ -442,7 +458,8 @@ func TestSessionMiddleware_SetsRealmContext(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -478,7 +495,8 @@ func TestSessionMiddleware_EmptyTokenAfterParse(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 

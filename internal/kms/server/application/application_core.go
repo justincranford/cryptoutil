@@ -276,7 +276,12 @@ func (m *mergedMigrations) ReadFile(name string) ([]byte, error) {
 		fullPath = m.templatePath + pathSep + name
 	}
 
-	return fs.ReadFile(m.templateFS, fullPath)
+	data, err := fs.ReadFile(m.templateFS, fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("read template migration %s: %w", fullPath, err)
+	}
+
+	return data, nil
 }
 
 // Stat implements fs.StatFS interface.
@@ -299,5 +304,10 @@ func (m *mergedMigrations) Stat(name string) (fs.FileInfo, error) {
 		fullPath = m.templatePath + pathSep + name
 	}
 
-	return fs.Stat(m.templateFS, fullPath)
+	info, err := fs.Stat(m.templateFS, fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("stat template migration %s: %w", fullPath, err)
+	}
+
+	return info, nil
 }

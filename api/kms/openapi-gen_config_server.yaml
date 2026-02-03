@@ -1,7 +1,25 @@
 package: server
 generate:
+  fiber-server: true
   strict-server: true
   models: true
+  embedded-spec: true
 output: server/server.gen.go
 output-options:
   skip-prune: true
+  name-normalizer: ToCamelCaseWithInitialisms
+  additional-initialisms:
+    - JWK    # JSON Web Key
+    - JWE    # JSON Web Encryption
+    - JWS    # JSON Web Signature
+    - JWT    # JSON Web Token
+    - HMAC   # Hash-based Message Authentication Code
+    - AES    # Advanced Encryption Standard
+    - GCM    # Galois/Counter Mode
+    - CBC    # Cipher Block Chaining
+    - RSA    # Rivest-Shamir-Adleman
+    - EC     # Elliptic Curve
+    - SHA    # Secure Hash Algorithm
+    - TLS    # Transport Layer Security
+    - IP     # Internet Protocol
+    - URI    # Uniform Resource Identifier

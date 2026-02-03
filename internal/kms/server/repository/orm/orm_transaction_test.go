@@ -1,5 +1,9 @@
+//go:build integration
+// +build integration
+
 // Copyright (c) 2025 Justin Cranford
 //
+// NOTE: These tests require a PostgreSQL database and are skipped in CI without the integration tag.
 //
 
 package orm
@@ -11,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
@@ -19,6 +22,9 @@ import (
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
+
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -186,7 +192,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 			uuidV7 := testJWKGenService.GenerateUUIDv7()
 			tenantID := googleUuid.New()
 
-			elasticKey, err := BuildElasticKey(tenantID, *uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilOpenapiModel.Creating))
+			elasticKey, err := BuildElasticKey(tenantID, *uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilKmsServer.Active))
 			cryptoutilSharedApperr.RequireNoError(err, "failed to create AES 256 Elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
 			cryptoutilSharedApperr.RequireNoError(err, "failed to add AES 256 Elastic Key")

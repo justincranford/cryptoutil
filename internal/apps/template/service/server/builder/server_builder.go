@@ -114,7 +114,7 @@ func (b *ServerBuilder) WithDomainMigrations(migrationFS fs.FS, migrationsPath s
 // WithMigrationConfig configures migration handling with full flexibility.
 // Use this instead of WithDomainMigrations() for services that need custom migration schemes.
 // - NewDefaultMigrationConfig(): Template + domain migrations (default behavior)
-// - NewDomainOnlyMigrationConfig(): Only domain migrations (KMS-style)
+// - NewDomainOnlyMigrationConfig(): Only domain migrations (KMS-style).
 func (b *ServerBuilder) WithMigrationConfig(config *MigrationConfig) *ServerBuilder {
 	if b.err != nil {
 		return b

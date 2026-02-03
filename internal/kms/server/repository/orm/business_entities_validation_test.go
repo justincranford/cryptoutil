@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 // Copyright (c) 2025 Justin Cranford
 
 package orm
@@ -5,6 +8,7 @@ package orm
 import (
 	"testing"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
@@ -26,7 +30,7 @@ func TestOrmTransaction_AddElasticKey_InvalidUUID(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr)
 
@@ -55,7 +59,7 @@ func TestOrmTransaction_UpdateElasticKey_InvalidUUID(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr)
 
@@ -73,7 +77,7 @@ func TestOrmTransaction_UpdateElasticKey_InvalidUUID(t *testing.T) {
 func TestOrmTransaction_UpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Try to update status with zero UUID (invalid).
-		updateErr := tx.UpdateElasticKeyStatus(googleUuid.UUID{}, cryptoutilOpenapiModel.Disabled)
+		updateErr := tx.UpdateElasticKeyStatus(googleUuid.UUID{}, cryptoutilKmsServer.Inactive)
 		require.Error(t, updateErr, "Should fail with invalid UUID")
 		require.Contains(t, updateErr.Error(), ErrFailedToUpdateElasticKeyStatusByElasticKeyID)
 

@@ -60,16 +60,19 @@ func RealmContextMiddleware() fiber.Handler {
 						realmCtx.TenantID = tid
 					}
 				}
+
 				if realmIDStr, ok := jwtClaims.Custom["realm_id"].(string); ok {
 					if rid, err := googleUuid.Parse(realmIDStr); err == nil {
 						realmCtx.RealmID = rid
 					}
 				}
+
 				if userIDStr, ok := jwtClaims.Custom["user_id"].(string); ok {
 					if uid, err := googleUuid.Parse(userIDStr); err == nil {
 						realmCtx.UserID = uid
 					}
 				}
+
 				if clientIDStr, ok := jwtClaims.Custom["client_id"].(string); ok {
 					if cid, err := googleUuid.Parse(clientIDStr); err == nil {
 						realmCtx.ClientID = cid
@@ -89,6 +92,7 @@ func RealmContextMiddleware() fiber.Handler {
 		if realmCtx.TenantID == googleUuid.Nil {
 			if oidcClaims := GetOIDCClaims(c.UserContext()); oidcClaims != nil {
 				realmCtx.Source = "oidc"
+
 				if oidcClaims.TenantID != "" {
 					if tid, err := googleUuid.Parse(oidcClaims.TenantID); err == nil {
 						realmCtx.TenantID = tid
@@ -122,6 +126,7 @@ func RealmContextMiddleware() fiber.Handler {
 		}
 
 		c.SetUserContext(ctx)
+
 		return c.Next()
 	}
 }
@@ -131,9 +136,11 @@ func GetRealmContext(ctx context.Context) *RealmContext {
 	if ctx == nil {
 		return nil
 	}
+
 	if rc, ok := ctx.Value(RealmContextKey{}).(*RealmContext); ok {
 		return rc
 	}
+
 	return nil
 }
 
@@ -148,6 +155,7 @@ func RequireRealmMiddleware() fiber.Handler {
 				"message": "tenant context required",
 			})
 		}
+
 		return c.Next()
 	}
 }

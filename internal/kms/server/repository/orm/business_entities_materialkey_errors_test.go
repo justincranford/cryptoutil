@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 // Copyright (c) 2025 Justin Cranford
 
 package orm
@@ -8,6 +11,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 )
 
@@ -59,7 +63,7 @@ func TestAddElasticKeyMaterialKey_DuplicateConstraintViolation(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr, "Should build elastic key")
 

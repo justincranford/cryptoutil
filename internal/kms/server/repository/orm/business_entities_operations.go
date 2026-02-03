@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -94,7 +94,7 @@ func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
 }
 
 // UpdateElasticKeyStatus updates the status of an elastic key in the database.
-func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus cryptoutilOpenapiModel.ElasticKeyStatus) error {
+func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus cryptoutilKmsServer.ElasticKeyStatus) error {
 	if err := cryptoutilSharedUtilRandom.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
 	}

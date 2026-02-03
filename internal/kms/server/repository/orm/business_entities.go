@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
@@ -20,7 +21,7 @@ type ElasticKey struct {
 	ElasticKeyAlgorithm         cryptoutilOpenapiModel.ElasticKeyAlgorithm `gorm:"type:text;not null"`
 	ElasticKeyVersioningAllowed bool                                       `gorm:"type:integer;not null"`
 	ElasticKeyImportAllowed     bool                                       `gorm:"type:integer;not null"`
-	ElasticKeyStatus            cryptoutilOpenapiModel.ElasticKeyStatus    `gorm:"type:text;not null"`
+	ElasticKeyStatus            cryptoutilKmsServer.ElasticKeyStatus       `gorm:"type:text;not null"`
 }
 
 // MaterialKey represents a specific key version within an elastic key.

@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 // Copyright (c) 2025 Justin Cranford
 
 package orm
@@ -6,6 +9,7 @@ import (
 	"context"
 	"testing"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
@@ -36,7 +40,7 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr)
 
@@ -108,7 +112,7 @@ func TestOrmTransaction_DeferredRollback_OnFunctionError(t *testing.T) {
 			false,
 			false,
 			false,
-			string(cryptoutilOpenapiModel.Creating),
+			string(cryptoutilKmsServer.Active),
 		)
 		require.NoError(t, buildErr)
 

@@ -6,12 +6,15 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 )
+
+const testDescription = "test description"
 
 func TestNewOamOrmMapper(t *testing.T) {
 	mapper := NewOamOrmMapper()
@@ -23,16 +26,15 @@ func TestToOrmAddElasticKey(t *testing.T) {
 	elasticKeyID := googleUuid.New()
 	tenantID := googleUuid.New()
 
-	provider := cryptoutilOpenapiModel.Internal
-	algorithm := cryptoutilOpenapiModel.A128CBCHS256Dir
+	description := testDescription
 	versioningAllowed := true
 	importAllowed := false
 
-	create := &cryptoutilOpenapiModel.ElasticKeyCreate{
+	create := &cryptoutilKmsServer.ElasticKeyCreate{
 		Name:              "test-key",
-		Description:       "test description",
-		Provider:          &provider,
-		Algorithm:         &algorithm,
+		Description:       &description,
+		Provider:          string(cryptoutilOpenapiModel.Internal),
+		Algorithm:         string(cryptoutilOpenapiModel.A128CBCHS256Dir),
 		VersioningAllowed: &versioningAllowed,
 		ImportAllowed:     &importAllowed,
 	}
@@ -42,12 +44,12 @@ func TestToOrmAddElasticKey(t *testing.T) {
 	testify.Equal(t, elasticKeyID, result.ElasticKeyID)
 	testify.Equal(t, tenantID, result.TenantID)
 	testify.Equal(t, "test-key", result.ElasticKeyName)
-	testify.Equal(t, "test description", result.ElasticKeyDescription)
-	testify.Equal(t, provider, result.ElasticKeyProvider)
-	testify.Equal(t, algorithm, result.ElasticKeyAlgorithm)
+	testify.Equal(t, testDescription, result.ElasticKeyDescription)
+	testify.Equal(t, cryptoutilOpenapiModel.Internal, result.ElasticKeyProvider)
+	testify.Equal(t, cryptoutilOpenapiModel.A128CBCHS256Dir, result.ElasticKeyAlgorithm)
 	testify.Equal(t, versioningAllowed, result.ElasticKeyVersioningAllowed)
 	testify.Equal(t, importAllowed, result.ElasticKeyImportAllowed)
-	testify.Equal(t, cryptoutilOpenapiModel.PendingGenerate, result.ElasticKeyStatus)
+	testify.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate), result.ElasticKeyStatus)
 }
 
 func TestToOrmAddMaterialKey(t *testing.T) {
@@ -73,10 +75,10 @@ func TestToOamElasticKeyStatus(t *testing.T) {
 	tests := []struct {
 		name           string
 		importAllowed  bool
-		expectedStatus cryptoutilOpenapiModel.ElasticKeyStatus
+		expectedStatus cryptoutilKmsServer.ElasticKeyStatus
 	}{
-		{"import allowed", true, cryptoutilOpenapiModel.PendingImport},
-		{"import not allowed", false, cryptoutilOpenapiModel.PendingGenerate},
+		{"import allowed", true, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport)},
+		{"import not allowed", false, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate)},
 	}
 
 	for _, tc := range tests {
@@ -95,12 +97,12 @@ func TestToOamElasticKey(t *testing.T) {
 	ormElasticKey := &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                elasticKeyID,
 		ElasticKeyName:              "test-key",
-		ElasticKeyDescription:       "test description",
+		ElasticKeyDescription:       testDescription,
 		ElasticKeyProvider:          cryptoutilOpenapiModel.Internal,
 		ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128CBCHS256Dir,
 		ElasticKeyVersioningAllowed: true,
 		ElasticKeyImportAllowed:     false,
-		ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+		ElasticKeyStatus:            cryptoutilKmsServer.Active,
 	}
 
 	result := mapper.toOamElasticKey(ormElasticKey)
@@ -108,12 +110,12 @@ func TestToOamElasticKey(t *testing.T) {
 	testify.NotNil(t, result.ElasticKeyID)
 	testify.Equal(t, elasticKeyID, *result.ElasticKeyID)
 	testify.Equal(t, "test-key", *result.Name)
-	testify.Equal(t, "test description", *result.Description)
-	testify.Equal(t, cryptoutilOpenapiModel.Internal, *result.Provider)
-	testify.Equal(t, cryptoutilOpenapiModel.A128CBCHS256Dir, *result.Algorithm)
+	testify.Equal(t, testDescription, *result.Description)
+	testify.Equal(t, string(cryptoutilOpenapiModel.Internal), *result.Provider)
+	testify.Equal(t, string(cryptoutilOpenapiModel.A128CBCHS256Dir), *result.Algorithm)
 	testify.Equal(t, true, *result.VersioningAllowed)
 	testify.Equal(t, false, *result.ImportAllowed)
-	testify.Equal(t, cryptoutilOpenapiModel.Active, *result.Status)
+	testify.Equal(t, cryptoutilKmsServer.Active, *result.Status)
 }
 
 func TestToOamElasticKeys(t *testing.T) {
@@ -130,7 +132,7 @@ func TestToOamElasticKeys(t *testing.T) {
 			ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128CBCHS256Dir,
 			ElasticKeyVersioningAllowed: true,
 			ElasticKeyImportAllowed:     false,
-			ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+			ElasticKeyStatus:            cryptoutilKmsServer.Active,
 		},
 		{
 			ElasticKeyID:                id2,
@@ -140,7 +142,7 @@ func TestToOamElasticKeys(t *testing.T) {
 			ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128GCMDir,
 			ElasticKeyVersioningAllowed: false,
 			ElasticKeyImportAllowed:     true,
-			ElasticKeyStatus:            cryptoutilOpenapiModel.PendingImport,
+			ElasticKeyStatus:            cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport),
 		},
 	}
 
@@ -226,8 +228,8 @@ func TestToOamMaterialKey(t *testing.T) {
 			} else {
 				testify.NoError(t, err)
 				testify.NotNil(t, result)
-				testify.Equal(t, elasticKeyID, result.ElasticKeyID)
-				testify.Equal(t, materialKeyID, result.MaterialKeyID)
+				testify.Equal(t, elasticKeyID, *result.ElasticKeyID)
+				testify.Equal(t, materialKeyID, *result.MaterialKeyID)
 
 				if tc.ormKey.MaterialKeyClearPublic != nil {
 					testify.NotNil(t, result.ClearPublic)
@@ -421,13 +423,13 @@ func TestToOrmDateRange(t *testing.T) {
 func TestToOrmPageNumber(t *testing.T) {
 	mapper := NewOamOrmMapper()
 
-	zero := cryptoutilOpenapiModel.PageNumber(0)
-	positive := cryptoutilOpenapiModel.PageNumber(5)
-	negative := cryptoutilOpenapiModel.PageNumber(-1)
+	zero := cryptoutilKmsServer.PageNumber(0)
+	positive := cryptoutilKmsServer.PageNumber(5)
+	negative := cryptoutilKmsServer.PageNumber(-1)
 
 	tests := []struct {
 		name        string
-		input       *cryptoutilOpenapiModel.PageNumber
+		input       *cryptoutilKmsServer.PageNumber
 		expected    int
 		expectError bool
 	}{
@@ -455,13 +457,13 @@ func TestToOrmPageNumber(t *testing.T) {
 func TestToOrmPageSize(t *testing.T) {
 	mapper := NewOamOrmMapper()
 
-	one := cryptoutilOpenapiModel.PageSize(1)
-	ten := cryptoutilOpenapiModel.PageSize(10)
-	zero := cryptoutilOpenapiModel.PageSize(0)
+	one := cryptoutilKmsServer.PageSize(1)
+	ten := cryptoutilKmsServer.PageSize(10)
+	zero := cryptoutilKmsServer.PageSize(0)
 
 	tests := []struct {
 		name        string
-		input       *cryptoutilOpenapiModel.PageSize
+		input       *cryptoutilKmsServer.PageSize
 		expectError bool
 		minValue    int
 	}{
@@ -493,8 +495,8 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 	algorithm := cryptoutilOpenapiModel.A128CBCHS256Dir
 	name := "test-key"
 	versioningAllowed := true
-	negativePage := cryptoutilOpenapiModel.PageNumber(-1)
-	zeroPageSize := cryptoutilOpenapiModel.PageSize(0)
+	negativePage := cryptoutilKmsServer.PageNumber(-1)
+	zeroPageSize := cryptoutilKmsServer.PageSize(0)
 	emptyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm("")
 	emptyString := ""
 
@@ -584,8 +586,8 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	maxDate := time.Now().UTC()
 	futureDate := time.Now().UTC().Add(24 * time.Hour)
-	negativePage := cryptoutilOpenapiModel.PageNumber(-1)
-	zeroPageSize := cryptoutilOpenapiModel.PageSize(0)
+	negativePage := cryptoutilKmsServer.PageNumber(-1)
+	zeroPageSize := cryptoutilKmsServer.PageSize(0)
 	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")
 
 	tests := []struct {
@@ -673,8 +675,8 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	maxDate := time.Now().UTC()
 	futureDate := time.Now().UTC().Add(24 * time.Hour)
-	negativePage := cryptoutilOpenapiModel.PageNumber(-1)
-	zeroPageSize := cryptoutilOpenapiModel.PageSize(0)
+	negativePage := cryptoutilKmsServer.PageNumber(-1)
+	zeroPageSize := cryptoutilKmsServer.PageSize(0)
 	invalidSort := cryptoutilOpenapiModel.MaterialKeySort("invalid")
 
 	tests := []struct {
@@ -922,10 +924,10 @@ func TestToElasticKeyStatusFromImportAllowed(t *testing.T) {
 	tests := []struct {
 		name           string
 		importAllowed  bool
-		expectedStatus cryptoutilOpenapiModel.ElasticKeyStatus
+		expectedStatus cryptoutilKmsServer.ElasticKeyStatus
 	}{
-		{"import allowed returns pending import", true, cryptoutilOpenapiModel.PendingImport},
-		{"import not allowed returns pending generate", false, cryptoutilOpenapiModel.PendingGenerate},
+		{"import allowed returns pending import", true, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport)},
+		{"import not allowed returns pending generate", false, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate)},
 	}
 
 	for _, tc := range tests {
@@ -946,9 +948,10 @@ func TestToOrmAddElasticKeyDefaults(t *testing.T) {
 	tenantID := googleUuid.New()
 
 	// Test with minimal input - all optional fields nil.
-	create := &cryptoutilOpenapiModel.ElasticKeyCreate{
+	descStr := testDescription
+	create := &cryptoutilKmsServer.ElasticKeyCreate{
 		Name:        "test-key",
-		Description: "test description",
+		Description: &descStr,
 	}
 
 	result := mapper.toOrmAddElasticKey(&elasticKeyID, tenantID, create)
@@ -961,7 +964,7 @@ func TestToOrmAddElasticKeyDefaults(t *testing.T) {
 	testify.Equal(t, cryptoutilOpenapiModel.A256GCMA256KW, result.ElasticKeyAlgorithm)
 	testify.True(t, result.ElasticKeyVersioningAllowed)
 	testify.False(t, result.ElasticKeyImportAllowed)
-	testify.Equal(t, cryptoutilOpenapiModel.PendingGenerate, result.ElasticKeyStatus)
+	testify.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate), result.ElasticKeyStatus)
 }
 
 func TestToOrmAddElasticKeyImportAllowed(t *testing.T) {
@@ -973,16 +976,17 @@ func TestToOrmAddElasticKeyImportAllowed(t *testing.T) {
 
 	// Test with import allowed = true.
 	importAllowed := true
-	create := &cryptoutilOpenapiModel.ElasticKeyCreate{
+	descStr2 := testDescription
+	create := &cryptoutilKmsServer.ElasticKeyCreate{
 		Name:          "test-key",
-		Description:   "test description",
+		Description:   &descStr2,
 		ImportAllowed: &importAllowed,
 	}
 
 	result := mapper.toOrmAddElasticKey(&elasticKeyID, tenantID, create)
 
 	testify.True(t, result.ElasticKeyImportAllowed)
-	testify.Equal(t, cryptoutilOpenapiModel.PendingImport, result.ElasticKeyStatus)
+	testify.Equal(t, cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport), result.ElasticKeyStatus)
 }
 
 func TestToStrings(t *testing.T) {

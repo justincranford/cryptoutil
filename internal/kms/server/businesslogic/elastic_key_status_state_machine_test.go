@@ -7,13 +7,14 @@ package businesslogic
 import (
 	"testing"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransitionInvalidState(t *testing.T) {
-	err := TransitionElasticKeyStatus("DoesNotExist", cryptoutilOpenapiModel.Creating)
+	err := TransitionElasticKeyStatus("DoesNotExist", cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Creating))
 	require.Error(t, err)
 }
 

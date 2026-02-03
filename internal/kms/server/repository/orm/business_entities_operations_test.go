@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 // Copyright (c) 2025 Justin Cranford
 
 package orm
@@ -5,6 +8,7 @@ package orm
 import (
 	"testing"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
@@ -29,7 +33,7 @@ func TestElasticKeyOperations(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A256GCMA256KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     false,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 
 			// Add elastic key.
@@ -41,7 +45,7 @@ func TestElasticKeyOperations(t *testing.T) {
 			require.NoError(t, err, "GetElasticKey should succeed")
 			require.Equal(t, ekID, retrieved.ElasticKeyID, "Elastic Key ID should match")
 			require.Equal(t, "test-key-1", retrieved.ElasticKeyName, "Elastic Key Name should match")
-			require.Equal(t, cryptoutilOpenapiModel.Active, retrieved.ElasticKeyStatus, "Status should be Active")
+			require.Equal(t, cryptoutilKmsServer.Active, retrieved.ElasticKeyStatus, "Status should be Active")
 
 			return nil
 		})
@@ -62,7 +66,7 @@ func TestElasticKeyOperations(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128GCMA128KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     true,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 			err := tx.AddElasticKey(elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
@@ -96,19 +100,19 @@ func TestElasticKeyOperations(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A192GCMA192KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     false,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 			err := tx.AddElasticKey(elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
 
 			// Update status to Disabled.
-			err = tx.UpdateElasticKeyStatus(ekID, cryptoutilOpenapiModel.Disabled)
+			err = tx.UpdateElasticKeyStatus(ekID, cryptoutilKmsServer.Inactive)
 			require.NoError(t, err, "UpdateElasticKeyStatus should succeed")
 
 			// Verify status update.
 			retrieved, err := tx.GetElasticKey(tenantID, &ekID)
 			require.NoError(t, err, "GetElasticKey should succeed")
-			require.Equal(t, cryptoutilOpenapiModel.Disabled, retrieved.ElasticKeyStatus, "Status should be Disabled")
+			require.Equal(t, cryptoutilKmsServer.Inactive, retrieved.ElasticKeyStatus, "Status should be Disabled")
 
 			return nil
 		})
@@ -126,9 +130,9 @@ func TestElasticKeyOperations(t *testing.T) {
 			for i := 0; i < 3; i++ {
 				ekID := googleUuid.New()
 
-				status := cryptoutilOpenapiModel.Active
+				status := cryptoutilKmsServer.Active
 				if i == 2 {
-					status = cryptoutilOpenapiModel.Disabled
+					status = cryptoutilKmsServer.Inactive
 				}
 
 				elasticKey := &ElasticKey{
@@ -175,7 +179,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A256GCMA256KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     false,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 			err := tx.AddElasticKey(elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
@@ -224,7 +228,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128CBCHS256A256KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     false,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 			err := tx.AddElasticKey(elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
@@ -268,7 +272,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A192CBCHS384A192KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     true,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 			err := tx.AddElasticKey(elasticKey)
 			require.NoError(t, err, "AddElasticKey should succeed")
@@ -310,7 +314,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A256GCMA256KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     false,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 
 			// Attempt to add elastic key.
@@ -378,7 +382,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 				ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A256GCMA256KW,
 				ElasticKeyVersioningAllowed: true,
 				ElasticKeyImportAllowed:     false,
-				ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
+				ElasticKeyStatus:            cryptoutilKmsServer.Active,
 			}
 
 			// Attempt to update (should succeed with GORM but affect 0 rows).

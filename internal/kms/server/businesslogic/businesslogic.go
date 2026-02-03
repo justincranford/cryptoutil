@@ -10,9 +10,11 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKmsMiddleware "cryptoutil/internal/kms/server/middleware"
 	cryptoutilOrmRepository "cryptoutil/internal/kms/server/repository/orm"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -66,11 +68,12 @@ func getTenantID(ctx context.Context) (googleUuid.UUID, error) {
 	if realmCtx == nil || realmCtx.TenantID == googleUuid.Nil {
 		return googleUuid.Nil, fmt.Errorf("tenant context required")
 	}
+
 	return realmCtx.TenantID, nil
 }
 
 // AddElasticKey creates a new ElasticKey with an initial MaterialKey.
-func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) (*cryptoutilOpenapiModel.ElasticKey, error) {
+func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElasticKeyCreate *cryptoutilKmsServer.ElasticKeyCreate) (*cryptoutilKmsServer.ElasticKey, error) {
 	// Extract tenant from context (set by middleware)
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
@@ -98,7 +101,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to add ElasticKey: %w", err)
 		}
 
-		err = TransitionElasticKeyStatus(cryptoutilOpenapiModel.Creating, ormElasticKey.ElasticKeyStatus)
+		err = TransitionElasticKeyStatus(cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Creating), ormElasticKey.ElasticKeyStatus)
 		if err != nil {
 			return fmt.Errorf("invalid ElasticKeyStatus transition: %w", err)
 		}
@@ -115,7 +118,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to add first MaterialKey for ElasticKey: %w", err)
 		}
 
-		err = sqlTransaction.UpdateElasticKeyStatus(*elasticKeyID, cryptoutilOpenapiModel.Active)
+		err = sqlTransaction.UpdateElasticKeyStatus(*elasticKeyID, cryptoutilKmsServer.Active)
 		if err != nil {
 			return fmt.Errorf("failed to update ElasticKeyStatus to active: %w", err)
 		}
@@ -135,7 +138,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 }
 
 // GetElasticKeyByElasticKeyID retrieves an ElasticKey by its ID.
-func (s *BusinessLogicService) GetElasticKeyByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID) (*cryptoutilOpenapiModel.ElasticKey, error) {
+func (s *BusinessLogicService) GetElasticKeyByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID) (*cryptoutilKmsServer.ElasticKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -161,7 +164,7 @@ func (s *BusinessLogicService) GetElasticKeyByElasticKeyID(ctx context.Context, 
 }
 
 // GetElasticKeys retrieves ElasticKeys matching the provided query parameters.
-func (s *BusinessLogicService) GetElasticKeys(ctx context.Context, elasticKeyQueryParams *cryptoutilOpenapiModel.ElasticKeysQueryParams) ([]cryptoutilOpenapiModel.ElasticKey, error) {
+func (s *BusinessLogicService) GetElasticKeys(ctx context.Context, elasticKeyQueryParams *cryptoutilOpenapiModel.ElasticKeysQueryParams) ([]cryptoutilKmsServer.ElasticKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -192,7 +195,7 @@ func (s *BusinessLogicService) GetElasticKeys(ctx context.Context, elasticKeyQue
 }
 
 // GenerateMaterialKeyInElasticKey generates a new MaterialKey for an existing ElasticKey.
-func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, _ *cryptoutilOpenapiModel.MaterialKeyGenerate) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, _ *cryptoutilKmsServer.MaterialKeyGenerate) (*cryptoutilKmsServer.MaterialKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -210,7 +213,7 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 			return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 		}
 
-		if ormElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.PendingGenerate && ormElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.Active {
+		if ormElasticKey.ElasticKeyStatus != cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate) && ormElasticKey.ElasticKeyStatus != cryptoutilKmsServer.Active {
 			return fmt.Errorf("invalid ElasticKey Status: %w", err)
 		}
 
@@ -256,7 +259,7 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 }
 
 // GetMaterialKeysForElasticKey retrieves MaterialKeys for a specific ElasticKey.
-func (s *BusinessLogicService) GetMaterialKeysForElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, elasticKeyMaterialKeysQueryParams *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) ([]cryptoutilOpenapiModel.MaterialKey, error) {
+func (s *BusinessLogicService) GetMaterialKeysForElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, elasticKeyMaterialKeysQueryParams *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) ([]cryptoutilKmsServer.MaterialKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -301,7 +304,7 @@ func (s *BusinessLogicService) GetMaterialKeysForElasticKey(ctx context.Context,
 }
 
 // GetMaterialKeys retrieves MaterialKeys matching the provided query parameters.
-func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeysQueryParams *cryptoutilOpenapiModel.MaterialKeysQueryParams) ([]cryptoutilOpenapiModel.MaterialKey, error) {
+func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeysQueryParams *cryptoutilOpenapiModel.MaterialKeysQueryParams) ([]cryptoutilKmsServer.MaterialKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -359,7 +362,7 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeys
 }
 
 // GetMaterialKeyByElasticKeyAndMaterialKeyID retrieves a MaterialKey by ElasticKey ID and MaterialKey ID.
-func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) (*cryptoutilKmsServer.MaterialKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -632,7 +635,7 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 }
 
 // UpdateElasticKey updates an existing ElasticKey.
-func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, updateRequest *cryptoutilOpenapiModel.ElasticKeyUpdate) (*cryptoutilOpenapiModel.ElasticKey, error) {
+func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, updateRequest *cryptoutilKmsServer.ElasticKeyUpdate) (*cryptoutilKmsServer.ElasticKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -649,7 +652,7 @@ func (s *BusinessLogicService) UpdateElasticKey(ctx context.Context, elasticKeyI
 		}
 
 		ormElasticKey.ElasticKeyName = updateRequest.Name
-		ormElasticKey.ElasticKeyDescription = updateRequest.Description
+		ormElasticKey.ElasticKeyDescription = *updateRequest.Description
 
 		err = sqlTransaction.UpdateElasticKey(ormElasticKey)
 		if err != nil {
@@ -683,19 +686,19 @@ func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyI
 			return fmt.Errorf("failed to get ElasticKey: %w", err)
 		}
 
-		var deleteStatus cryptoutilOpenapiModel.ElasticKeyStatus
+		var deleteStatus cryptoutilKmsServer.ElasticKeyStatus
 
 		switch ormElasticKey.ElasticKeyStatus {
-		case cryptoutilOpenapiModel.Active:
-			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasActive
-		case cryptoutilOpenapiModel.Disabled:
-			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasDisabled
-		case cryptoutilOpenapiModel.ImportFailed:
-			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasImportFailed
-		case cryptoutilOpenapiModel.PendingImport:
-			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasPendingImport
-		case cryptoutilOpenapiModel.GenerateFailed:
-			deleteStatus = cryptoutilOpenapiModel.PendingDeleteWasGenerateFailed
+		case cryptoutilKmsServer.Active:
+			deleteStatus = cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingDeleteWasActive)
+		case cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Disabled):
+			deleteStatus = cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingDeleteWasDisabled)
+		case cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.ImportFailed):
+			deleteStatus = cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingDeleteWasImportFailed)
+		case cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport):
+			deleteStatus = cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingDeleteWasPendingImport)
+		case cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.GenerateFailed):
+			deleteStatus = cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingDeleteWasGenerateFailed)
 		default:
 			return fmt.Errorf("cannot delete ElasticKey in status %s", ormElasticKey.ElasticKeyStatus)
 		}
@@ -715,7 +718,7 @@ func (s *BusinessLogicService) DeleteElasticKey(ctx context.Context, elasticKeyI
 }
 
 // ImportMaterialKey imports a MaterialKey into an existing ElasticKey.
-func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKeyID *googleUuid.UUID, importRequest *cryptoutilOpenapiModel.MaterialKeyImport) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKeyID *googleUuid.UUID, importRequest *cryptoutilKmsServer.MaterialKeyImport) (*cryptoutilKmsServer.MaterialKey, error) {
 	tenantID, err := getTenantID(ctx)
 	if err != nil {
 		return nil, err
@@ -737,7 +740,7 @@ func (s *BusinessLogicService) ImportMaterialKey(ctx context.Context, elasticKey
 			return fmt.Errorf("import not allowed for ElasticKey")
 		}
 
-		if ormElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.PendingImport && ormElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.Active {
+		if ormElasticKey.ElasticKeyStatus != cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport) && ormElasticKey.ElasticKeyStatus != cryptoutilKmsServer.Active {
 			return fmt.Errorf("invalid ElasticKey status for import: %s", ormElasticKey.ElasticKeyStatus)
 		}
 
@@ -810,4 +813,12 @@ func (s *BusinessLogicService) RevokeMaterialKey(ctx context.Context, elasticKey
 	}
 
 	return nil
+}
+
+// DeleteMaterialKey deletes a MaterialKey within an ElasticKey.
+func (s *BusinessLogicService) DeleteMaterialKey(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) error {
+	// TODO: Implement material key deletion. For now, return not implemented error.
+	summary := "delete material key not implemented"
+
+	return cryptoutilSharedApperr.NewHTTP500InternalServerError(&summary, nil)
 }

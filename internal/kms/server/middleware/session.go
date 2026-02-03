@@ -52,9 +52,11 @@ func GetSessionInfo(ctx context.Context) *SessionInfo {
 	if ctx == nil {
 		return nil
 	}
+
 	if info, ok := ctx.Value(SessionContextKey{}).(*SessionInfo); ok {
 		return info
 	}
+
 	return nil
 }
 
@@ -90,6 +92,7 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 					"message": "Invalid Authorization header format",
 				})
 			}
+
 			token = parts[1]
 		}
 
@@ -101,8 +104,11 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 		}
 
 		ctx := c.UserContext()
-		var sessionInfo *SessionInfo
-		var err error
+
+		var (
+			sessionInfo *SessionInfo
+			err         error
+		)
 
 		if isBrowser {
 			sessionInfo, err = validator.ValidateBrowserSession(ctx, token)
@@ -130,6 +136,7 @@ func SessionMiddleware(validator SessionValidator, cookieName string, isBrowser 
 		ctx = context.WithValue(ctx, TenantContextKey{}, sessionInfo.TenantID.String())
 
 		c.SetUserContext(ctx)
+
 		return c.Next()
 	}
 }
@@ -154,6 +161,7 @@ func RequireSessionMiddleware() fiber.Handler {
 				"message": "Session required",
 			})
 		}
+
 		return c.Next()
 	}
 }

@@ -23,6 +23,7 @@ func TestDatabaseConnection(t *testing.T) {
 			name: "valid gorm db",
 			setup: func() *gorm.DB {
 				db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+
 				return db
 			},
 			wantErr: false,

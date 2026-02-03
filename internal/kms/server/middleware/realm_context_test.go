@@ -46,6 +46,7 @@ func TestRealmContextMiddleware_FromJWT(t *testing.T) {
 		}
 		ctx := context.WithValue(c.UserContext(), JWTContextKey{}, claims)
 		c.SetUserContext(ctx)
+
 		return c.Next()
 	})
 
@@ -56,6 +57,7 @@ func TestRealmContextMiddleware_FromJWT(t *testing.T) {
 		if realmCtx == nil {
 			return c.Status(500).SendString("no realm context")
 		}
+
 		return c.JSON(fiber.Map{
 			"tenant_id": realmCtx.TenantID.String(),
 			"realm_id":  realmCtx.RealmID.String(),
@@ -68,7 +70,8 @@ func TestRealmContextMiddleware_FromJWT(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, 200, resp.StatusCode)
 
@@ -95,6 +98,7 @@ func TestRealmContextMiddleware_FromOIDC(t *testing.T) {
 		}
 		ctx := context.WithValue(c.UserContext(), OIDCClaimsContextKey{}, claims)
 		c.SetUserContext(ctx)
+
 		return c.Next()
 	})
 
@@ -105,6 +109,7 @@ func TestRealmContextMiddleware_FromOIDC(t *testing.T) {
 		if realmCtx == nil {
 			return c.Status(500).SendString("no realm context")
 		}
+
 		return c.JSON(fiber.Map{
 			"tenant_id": realmCtx.TenantID.String(),
 			"source":    realmCtx.Source,
@@ -114,7 +119,8 @@ func TestRealmContextMiddleware_FromOIDC(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, 200, resp.StatusCode)
 
@@ -136,6 +142,7 @@ func TestRealmContextMiddleware_FromHeader(t *testing.T) {
 	app.Use(func(c *fiber.Ctx) error {
 		ctx := context.WithValue(c.UserContext(), TenantContextKey{}, tenantID.String())
 		c.SetUserContext(ctx)
+
 		return c.Next()
 	})
 
@@ -146,6 +153,7 @@ func TestRealmContextMiddleware_FromHeader(t *testing.T) {
 		if realmCtx == nil {
 			return c.Status(500).SendString("no realm context")
 		}
+
 		return c.JSON(fiber.Map{
 			"tenant_id": realmCtx.TenantID.String(),
 			"source":    realmCtx.Source,
@@ -155,7 +163,8 @@ func TestRealmContextMiddleware_FromHeader(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, 200, resp.StatusCode)
 
@@ -181,7 +190,8 @@ func TestRequireRealmMiddleware_NoTenant(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, 401, resp.StatusCode)
 }
@@ -202,6 +212,7 @@ func TestRequireRealmMiddleware_WithTenant(t *testing.T) {
 		}
 		ctx := context.WithValue(c.UserContext(), JWTContextKey{}, claims)
 		c.SetUserContext(ctx)
+
 		return c.Next()
 	})
 
@@ -215,7 +226,8 @@ func TestRequireRealmMiddleware_WithTenant(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, 200, resp.StatusCode)
 }
@@ -223,7 +235,7 @@ func TestRequireRealmMiddleware_WithTenant(t *testing.T) {
 func TestGetRealmContext_NilContext(t *testing.T) {
 	t.Parallel()
 
-	result := GetRealmContext(nil)
+	result := GetRealmContext(nil) //nolint:staticcheck // Testing nil context handling explicitly
 	require.Nil(t, result)
 }
 

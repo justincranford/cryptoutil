@@ -11,6 +11,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/kms/server/businesslogic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
@@ -112,10 +113,10 @@ func SeedDemoData(ctx context.Context, telemetryService *cryptoutilSharedTelemet
 		}
 
 		// Create the demo key.
-		keyCreate := &cryptoutilOpenapiModel.ElasticKeyCreate{
+		keyCreate := &cryptoutilKmsServer.ElasticKeyCreate{
 			Name:        keyConfig.Name,
-			Description: keyConfig.Description,
-			Algorithm:   &keyConfig.Algorithm,
+			Description: &keyConfig.Description,
+			Algorithm:   string(keyConfig.Algorithm),
 		}
 
 		_, err = businessLogicService.AddElasticKey(ctx, keyCreate)

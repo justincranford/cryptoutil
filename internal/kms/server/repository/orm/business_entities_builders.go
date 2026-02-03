@@ -5,6 +5,7 @@
 package orm
 
 import (
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
@@ -28,10 +29,10 @@ func BuildElasticKey(tenantID, elasticKeyID googleUuid.UUID, name, description s
 }
 
 // ElasticKeyStatusInitial returns the initial status for an elastic key based on import configuration.
-func ElasticKeyStatusInitial(importAllowed bool) cryptoutilOpenapiModel.ElasticKeyStatus {
+func ElasticKeyStatusInitial(importAllowed bool) cryptoutilKmsServer.ElasticKeyStatus {
 	if importAllowed {
-		return cryptoutilOpenapiModel.PendingImport
+		return cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingImport)
 	}
 
-	return cryptoutilOpenapiModel.PendingGenerate
+	return cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.PendingGenerate)
 }

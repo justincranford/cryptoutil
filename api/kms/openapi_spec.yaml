@@ -32,7 +32,6 @@ paths:
     post:
       summary: Create a new Elastic Key
       description: Create a new Elastic Key with specified algorithm and configuration. The elastic key will be isolated to the current tenant.
-      operationId: createElasticKey
       tags: [ElasticKeys]
       requestBody:
         required: true
@@ -62,7 +61,6 @@ paths:
     get:
       summary: Get Elastic Key by ID
       description: Retrieve a specific elastic key by its UUID
-      operationId: getElasticKey
       tags: [ElasticKeys]
       responses:
         '200':
@@ -71,6 +69,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ElasticKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -78,7 +78,6 @@ paths:
     put:
       summary: Update Elastic Key
       description: Update name and description of an existing elastic key
-      operationId: updateElasticKey
       tags: [ElasticKeys]
       requestBody:
         required: true
@@ -93,18 +92,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ElasticKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
     delete:
       summary: Delete Elastic Key
       description: Permanently delete an elastic key and all its material keys
-      operationId: deleteElasticKey
       tags: [ElasticKeys]
       responses:
         '204':
           description: Elastic Key deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -114,7 +118,6 @@ paths:
     get:
       summary: List Elastic Keys
       description: Find elastic keys with optional filtering, sorting, and pagination
-      operationId: listElasticKeys
       tags: [ElasticKeys]
       parameters:
         - $ref: '#/components/parameters/ElasticKeyIDs'
@@ -148,7 +151,6 @@ paths:
     post:
       summary: Generate new Material Key
       description: Generate a new material key within an elastic key
-      operationId: generateMaterialKey
       tags: [MaterialKeys]
       requestBody:
         required: false
@@ -163,6 +165,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MaterialKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -174,7 +178,6 @@ paths:
     post:
       summary: Import Material Key
       description: Import external key material as a new material key
-      operationId: importMaterialKey
       tags: [MaterialKeys]
       requestBody:
         required: true
@@ -203,7 +206,6 @@ paths:
     get:
       summary: Get Material Key
       description: Retrieve a specific material key
-      operationId: getMaterialKey
       tags: [MaterialKeys]
       responses:
         '200':
@@ -212,6 +214,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MaterialKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -219,11 +223,12 @@ paths:
     delete:
       summary: Delete Material Key
       description: Delete a specific material key
-      operationId: deleteMaterialKey
       tags: [MaterialKeys]
       responses:
         '204':
           description: Material Key deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -236,11 +241,12 @@ paths:
     post:
       summary: Revoke Material Key
       description: Revoke a material key to prevent future use
-      operationId: revokeMaterialKey
       tags: [MaterialKeys]
       responses:
         '204':
           description: Material Key revoked successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -252,7 +258,6 @@ paths:
     get:
       summary: List Material Keys
       description: List all material keys for an elastic key
-      operationId: listMaterialKeys
       tags: [MaterialKeys]
       parameters:
         - $ref: '#/components/parameters/MaterialKeyIDs'
@@ -275,6 +280,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/MaterialKey'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -284,7 +291,6 @@ paths:
     get:
       summary: List all Material Keys
       description: List material keys across all elastic keys for current tenant
-      operationId: listAllMaterialKeys
       tags: [MaterialKeys]
       parameters:
         - $ref: '#/components/parameters/ElasticKeyIDs'
@@ -320,7 +326,6 @@ paths:
     post:
       summary: Generate random key material
       description: Generate a random key (symmetric key or key pair) encrypted as JWE
-      operationId: generateKey
       tags: [CryptoOps]
       parameters:
         - name: context
@@ -342,6 +347,8 @@ paths:
             text/plain:
               schema:
                 type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -353,7 +360,6 @@ paths:
     post:
       summary: Encrypt plaintext
       description: Encrypt plaintext using the elastic key's active material key
-      operationId: encrypt
       tags: [CryptoOps]
       parameters:
         - name: context
@@ -375,6 +381,8 @@ paths:
             text/plain:
               schema:
                 type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -386,7 +394,6 @@ paths:
     post:
       summary: Decrypt ciphertext
       description: Decrypt JWE ciphertext using the appropriate material key (identified by kid header)
-      operationId: decrypt
       tags: [CryptoOps]
       requestBody:
         required: true
@@ -415,7 +422,6 @@ paths:
     post:
       summary: Sign payload
       description: Sign payload using the elastic key's active material key
-      operationId: sign
       tags: [CryptoOps]
       requestBody:
         required: true
@@ -430,6 +436,8 @@ paths:
             text/plain:
               schema:
                 type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -441,7 +449,6 @@ paths:
     post:
       summary: Verify signature
       description: Verify JWS signature using the appropriate material key (identified by kid header)
-      operationId: verify
       tags: [CryptoOps]
       requestBody:
         required: true
@@ -872,6 +879,13 @@ components:
 
     NotFound:
       description: Not found - resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Conflict:
+      description: Conflict - resource already exists or state conflict
       content:
         application/json:
           schema:

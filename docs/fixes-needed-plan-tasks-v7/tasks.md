@@ -1,5 +1,8 @@
 # Tasks - Unified Service-Template Migration (V7)
 
+
+**CRITICAL**: Do frequent local tests, local pre-commit hook checks, and local commits, during all work, to guarantee struct adherence to code quality, and to avoid lost work like in the past.
+
 **Status**: 13 of 40 tasks complete (32.5%)
 **Last Updated**: 2026-02-02
 **Quizme Decisions Applied**: ✅ All 6 answers merged

@@ -207,6 +207,9 @@ type VersioningAllowed = bool
 // BadRequest defines model for BadRequest.
 type BadRequest = Error
 
+// Conflict defines model for Conflict.
+type Conflict = Error
+
 // Forbidden defines model for Forbidden.
 type Forbidden = Error
 
@@ -219,20 +222,20 @@ type NotFound = Error
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = Error
 
-// DecryptTextBody defines parameters for Decrypt.
-type DecryptTextBody = string
+// PostElastickeyElasticKeyIDDecryptTextBody defines parameters for PostElastickeyElasticKeyIDDecrypt.
+type PostElastickeyElasticKeyIDDecryptTextBody = string
 
-// EncryptTextBody defines parameters for Encrypt.
-type EncryptTextBody = string
+// PostElastickeyElasticKeyIDEncryptTextBody defines parameters for PostElastickeyElasticKeyIDEncrypt.
+type PostElastickeyElasticKeyIDEncryptTextBody = string
 
-// EncryptParams defines parameters for Encrypt.
-type EncryptParams struct {
+// PostElastickeyElasticKeyIDEncryptParams defines parameters for PostElastickeyElasticKeyIDEncrypt.
+type PostElastickeyElasticKeyIDEncryptParams struct {
 	// Context Additional authenticated data for encryption context
 	Context *string `form:"context,omitempty" json:"context,omitempty"`
 }
 
-// GenerateKeyParams defines parameters for GenerateKey.
-type GenerateKeyParams struct {
+// PostElastickeyElasticKeyIDGenerateParams defines parameters for PostElastickeyElasticKeyIDGenerate.
+type PostElastickeyElasticKeyIDGenerateParams struct {
 	// Context Additional authenticated data for encryption context
 	Context *string `form:"context,omitempty" json:"context,omitempty"`
 
@@ -240,8 +243,8 @@ type GenerateKeyParams struct {
 	Alg *string `form:"alg,omitempty" json:"alg,omitempty"`
 }
 
-// ListMaterialKeysParams defines parameters for ListMaterialKeys.
-type ListMaterialKeysParams struct {
+// GetElastickeyElasticKeyIDMaterialkeysParams defines parameters for GetElastickeyElasticKeyIDMaterialkeys.
+type GetElastickeyElasticKeyIDMaterialkeysParams struct {
 	// MaterialKeyIds Filter by material key IDs
 	MaterialKeyIds *MaterialKeyIDs `form:"material_key_ids,omitempty" json:"material_key_ids,omitempty"`
 
@@ -276,14 +279,14 @@ type ListMaterialKeysParams struct {
 	PageSize *MaterialKeyPageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
 }
 
-// SignTextBody defines parameters for Sign.
-type SignTextBody = string
+// PostElastickeyElasticKeyIDSignTextBody defines parameters for PostElastickeyElasticKeyIDSign.
+type PostElastickeyElasticKeyIDSignTextBody = string
 
-// VerifyTextBody defines parameters for Verify.
-type VerifyTextBody = string
+// PostElastickeyElasticKeyIDVerifyTextBody defines parameters for PostElastickeyElasticKeyIDVerify.
+type PostElastickeyElasticKeyIDVerifyTextBody = string
 
-// ListElasticKeysParams defines parameters for ListElasticKeys.
-type ListElasticKeysParams struct {
+// GetElastickeysParams defines parameters for GetElastickeys.
+type GetElastickeysParams struct {
 	// ElasticKeyIds Filter by elastic key IDs
 	ElasticKeyIds *ElasticKeyIDs `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
 
@@ -315,8 +318,8 @@ type ListElasticKeysParams struct {
 	PageSize *PageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
 }
 
-// ListAllMaterialKeysParams defines parameters for ListAllMaterialKeys.
-type ListAllMaterialKeysParams struct {
+// GetMaterialkeysParams defines parameters for GetMaterialkeys.
+type GetMaterialkeysParams struct {
 	// ElasticKeyIds Filter by elastic key IDs
 	ElasticKeyIds *ElasticKeyIDs `form:"elastic_key_ids,omitempty" json:"elastic_key_ids,omitempty"`
 
@@ -354,26 +357,26 @@ type ListAllMaterialKeysParams struct {
 	PageSize *MaterialKeyPageSize `form:"page_size,omitempty" json:"page_size,omitempty"`
 }
 
-// CreateElasticKeyJSONRequestBody defines body for CreateElasticKey for application/json ContentType.
-type CreateElasticKeyJSONRequestBody = ElasticKeyCreate
+// PostElastickeyJSONRequestBody defines body for PostElastickey for application/json ContentType.
+type PostElastickeyJSONRequestBody = ElasticKeyCreate
 
-// UpdateElasticKeyJSONRequestBody defines body for UpdateElasticKey for application/json ContentType.
-type UpdateElasticKeyJSONRequestBody = ElasticKeyUpdate
+// PutElastickeyElasticKeyIDJSONRequestBody defines body for PutElastickeyElasticKeyID for application/json ContentType.
+type PutElastickeyElasticKeyIDJSONRequestBody = ElasticKeyUpdate
 
-// DecryptTextRequestBody defines body for Decrypt for text/plain ContentType.
-type DecryptTextRequestBody = DecryptTextBody
+// PostElastickeyElasticKeyIDDecryptTextRequestBody defines body for PostElastickeyElasticKeyIDDecrypt for text/plain ContentType.
+type PostElastickeyElasticKeyIDDecryptTextRequestBody = PostElastickeyElasticKeyIDDecryptTextBody
 
-// EncryptTextRequestBody defines body for Encrypt for text/plain ContentType.
-type EncryptTextRequestBody = EncryptTextBody
+// PostElastickeyElasticKeyIDEncryptTextRequestBody defines body for PostElastickeyElasticKeyIDEncrypt for text/plain ContentType.
+type PostElastickeyElasticKeyIDEncryptTextRequestBody = PostElastickeyElasticKeyIDEncryptTextBody
 
-// ImportMaterialKeyJSONRequestBody defines body for ImportMaterialKey for application/json ContentType.
-type ImportMaterialKeyJSONRequestBody = MaterialKeyImport
+// PostElastickeyElasticKeyIDImportJSONRequestBody defines body for PostElastickeyElasticKeyIDImport for application/json ContentType.
+type PostElastickeyElasticKeyIDImportJSONRequestBody = MaterialKeyImport
 
-// GenerateMaterialKeyJSONRequestBody defines body for GenerateMaterialKey for application/json ContentType.
-type GenerateMaterialKeyJSONRequestBody = MaterialKeyGenerate
+// PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody defines body for PostElastickeyElasticKeyIDMaterialkey for application/json ContentType.
+type PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody = MaterialKeyGenerate
 
-// SignTextRequestBody defines body for Sign for text/plain ContentType.
-type SignTextRequestBody = SignTextBody
+// PostElastickeyElasticKeyIDSignTextRequestBody defines body for PostElastickeyElasticKeyIDSign for text/plain ContentType.
+type PostElastickeyElasticKeyIDSignTextRequestBody = PostElastickeyElasticKeyIDSignTextBody
 
-// VerifyTextRequestBody defines body for Verify for text/plain ContentType.
-type VerifyTextRequestBody = VerifyTextBody
+// PostElastickeyElasticKeyIDVerifyTextRequestBody defines body for PostElastickeyElasticKeyIDVerify for text/plain ContentType.
+type PostElastickeyElasticKeyIDVerifyTextRequestBody = PostElastickeyElasticKeyIDVerifyTextBody
