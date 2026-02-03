@@ -115,53 +115,53 @@
 - `realm_id` = authentication method (HOW users authenticate)
 
 ### Task 3.5.1: Verify cipher-im Realm Usage
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Phase 2 complete
 - **Description**: Verify cipher-im uses realms correctly (authentication method only, not data scoping)
 - **Acceptance Criteria**:
-  - [ ] Data queries filter by tenant_id (NOT realm_id)
-  - [ ] Realm only determines authentication method
-  - [ ] No realm-based data isolation logic
-- **Evidence**: Code audit showing tenant_id in data queries
+  - [x] Data queries filter by tenant_id (NOT realm_id)
+  - [x] Realm only determines authentication method
+  - [x] No realm-based data isolation logic
+- **Evidence**: grep shows tenant_id in public_server.go lines 39, 98, 100, 122, 127, 130; NO realm_id in data queries
 
 ### Task 3.5.2: Verify jose-ja Realm Usage
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Phase 2 complete
 - **Description**: Verify jose-ja uses realms correctly
 - **Acceptance Criteria**:
-  - [ ] Data queries filter by tenant_id (NOT realm_id)
-  - [ ] Realm only determines authentication method
-  - [ ] No realm-based data isolation logic
-- **Evidence**: Code audit showing tenant_id in data queries
+  - [x] Data queries filter by tenant_id (NOT realm_id)
+  - [x] Realm only determines authentication method
+  - [x] No realm-based data isolation logic
+- **Evidence**: Code has explicit comment: "CRITICAL: No realm_id - realms are authn-only, NOT data scope."
 
 ### Task 3.5.3: Verify sm-kms Realm Usage
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Phase 2 complete
 - **Description**: Verify sm-kms uses realms correctly (after barrier migration)
 - **Acceptance Criteria**:
-  - [ ] Data queries filter by tenant_id (NOT realm_id)
-  - [ ] Realm only determines authentication method
-  - [ ] No realm-based data isolation logic
-- **Evidence**: Code audit showing tenant_id in data queries
+  - [x] Data queries filter by tenant_id (NOT realm_id)
+  - [x] Realm only determines authentication method
+  - [x] No realm-based data isolation logic
+- **Evidence**: realm_id found ONLY in middleware (realm_context.go, session.go); NO realm_id in repository queries
 
 ### Task 3.5.4: Verify Template RealmService
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: None
-- **Description**: Verify template RealmService exposes all 16 realm types correctly
+- **Description**: Verify template RealmService exposes all 14 realm types correctly (not 16 - bearer-api-token and https-client-cert are shared)
 - **Acceptance Criteria**:
-  - [ ] 4 federated types: username_password, ldap, oauth2, saml
-  - [ ] 6 browser types: jwe-session-cookie, jws-session-cookie, opaque-session-cookie, basic-username-password, bearer-api-token, https-client-cert
-  - [ ] 6 service types: jwe-session-token, jws-session-token, opaque-session-token, basic-client-id-secret, (shared: bearer-api-token, https-client-cert)
-  - [ ] RealmConfig has password, session, MFA, rate limiting settings
-- **Evidence**: Code review of realm_service.go and realm_config.go
+  - [x] 4 federated types: username_password, ldap, oauth2, saml (lines 35-44)
+  - [x] 6 browser types: jwe-session-cookie, jws-session-cookie, opaque-session-cookie, basic-username-password, bearer-api-token, https-client-cert (lines 49-64)
+  - [x] 4 service types: jwe-session-token, jws-session-token, opaque-session-token, basic-client-id-secret (lines 67-76)
+  - [x] RealmConfig has password, session, MFA, rate limiting settings (realm_config.go)
+- **Evidence**: realm_service.go lines 28-76 define all 14 RealmType constants; realm_config.go has RealmConfig struct with password/session/MFA/rate settings
 
 ### Task 3.5.5: Update Realm Documentation in Instructions
 - **Status**: ✅ Complete
@@ -413,7 +413,7 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 | Phase 1: Barrier Integration | 5 | 0 | 0% |
 | Phase 2: Testing | 4 | 0 | 0% |
 | Phase 3: Documentation | 3 | 0 | 0% |
-| Phase 3.5: Realm Verification | 5 | 1 | 20% |
+| Phase 3.5: Realm Verification | 5 | 5 | 100% |
 | Phase 4: Delete shared/barrier | 2 | 0 | 0% |
 | Phase 5: Mutation Testing | 2 | 0 | 0% |
 | Phase 6: sm-kms Structure | 6 | 0 | 0% |
@@ -996,7 +996,7 @@ All tasks cancelled as the simpler approach in Task 13.9 resolved the issue with
 | ~~Phase 1: Barrier Integration~~ | ~~5~~ | N/A | N/A | SUPERSEDED by Phase 13 |
 | Phase 2: Testing | 4 | 4 | 100% | ✅ COMPLETE |
 | Phase 3: Documentation | 3 | 3 | 100% | ✅ COMPLETE |
-| Phase 3.5: Realm Verification | 5 | 1 | 20% | |
+| Phase 3.5: Realm Verification | 5 | 5 | 100% | ✅ COMPLETE |
 | Phase 4: Delete shared/barrier | 2 | 2 | 100% | ✅ DONE in Task 13.9 |
 | Phase 5: Mutation Testing | 2 | 0 | 0% | |
 | Phase 6: sm-kms Structure | 6 | 0 | 0% | |
@@ -1009,6 +1009,6 @@ All tasks cancelled as the simpler approach in Task 13.9 resolved the issue with
 | Phase 13: KMS Direct Migration | 9 | 9 | 100% | ✅ COMPLETE |
 | Phase 14: Post-Mortem | 6 | 0 | 0% | |
 | ~~Phase 15: Template Self-Containment~~ | ~~7~~ | N/A | N/A | CANCELLED |
-| **Total** | **59** | **12** | **20%** | Phases 1, 4, 13, 15 resolved |
+| **Total** | **47** | **23** | **49%** | Phases 1, 15 excluded (cancelled); Phase 4, 13 complete |
 
-**Execution Order**: Phase 2-3 → Phase 3.5 → Phase 5-8 → Phase 9-12 → Phase 14
+**Execution Order**: Phase 5-8 → Phase 9-12 → Phase 14
