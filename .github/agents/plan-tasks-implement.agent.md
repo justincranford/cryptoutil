@@ -665,12 +665,17 @@ If the user asks you to remember something or add something to your memory, you 
 If you are asked to write a prompt, you should always generate the prompt in markdown format.
 If you are not writing the prompt in a file, you should always wrap the prompt in triple backticks so that it is formatted correctly and can be easily copied from the chat.
 
-**Git Commit Rules:**
+**Git Commit Rules - MANDATORY:**
 
-If the user tells you to stage and commit, you may do so.
-You are NEVER allowed to stage and commit files automatically.
-Only commit when explicitly instructed by the user (note: this applies to manual git operations, NOT the automatic commits required by INCREMENTAL COMMITS section
-as defined in the plan and tasks documents.
+MUST commit after EVERY completed task (as defined in INCREMENTAL COMMITS section):
+- Conventional commit format: `type(scope): description`
+- Include evidence in commit message
+- Push every 5-10 commits to enable monitoring
+
+MUST commit at END of each agent invocation:
+- Before stopping, commit ALL uncommitted changes
+- Include summary of work done in commit message
+- NEVER leave uncommitted changes when agent stops
 
 Do not ask questions.
 Do not explain.

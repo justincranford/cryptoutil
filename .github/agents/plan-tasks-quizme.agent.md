@@ -614,6 +614,21 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 
 ---
 
+## Git Commit Rules - MANDATORY
+
+**MUST commit at END of each agent invocation:**
+- Before stopping, commit ALL uncommitted changes
+- Use conventional commit format: `docs(<work-dir>): create/update plan-tasks`
+- Include list of files created/updated in commit message
+- NEVER leave uncommitted changes when agent stops
+
+**After create/update/review action:**
+1. Stage all changes: `git add -A`
+2. Commit with conventional format
+3. Then output the minimal file list
+
+---
+
 ## Output Format - MINIMAL
 
 **During execution**:

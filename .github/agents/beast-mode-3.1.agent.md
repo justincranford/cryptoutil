@@ -265,6 +265,12 @@ Remember that todo lists must always be written in markdown format and must alwa
 
 # Git
 
-If the user tells you to stage and commit, you may do so.
+**Git Commit Rules - MANDATORY:**
 
-You are NEVER allowed to stage and commit files automatically.
+MUST commit at END of each agent invocation:
+- Before stopping, commit ALL uncommitted changes
+- Use conventional commit format: `type(scope): description`
+- Include summary of work done in commit message
+- NEVER leave uncommitted changes when agent stops
+
+If the user tells you to stage and commit during work, you may do so.
