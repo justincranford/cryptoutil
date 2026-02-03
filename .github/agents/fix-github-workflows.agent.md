@@ -104,6 +104,21 @@ docs/fixes-needed-plan-tasks-v#/
 - **Prevention**: How to avoid this in the future?
 ```
 
+## Testing Strategy (MANDATORY)
+
+**Unit + Integration + E2E Tests Before Every Commit:**
+
+MUST run tests BEFORE EVERY COMMIT:
+- Run `go test ./...` to verify no code regressions
+- Verify all tests pass (100%, zero skips)
+- Verify workflow syntax with `act --dryrun`
+- NEVER commit workflow changes that break tests
+
+**Mutation Testing:**
+- Mutations NOT required unless user explicitly requests
+- Focus on Unit + integration + E2E + workflow validation for high-quality commits
+- Workflow agents focus on CI/CD correctness, not mutation coverage
+
 ## Quality Gates - MANDATORY
 
 **ALWAYS verify workflow fixes with these steps before committing:**

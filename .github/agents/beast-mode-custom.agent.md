@@ -267,12 +267,25 @@ git log --online -20
 
 ## Quality Gates (Per Task)
 
+**Testing Strategy (MANDATORY):**
+
+Unit + integration + E2E tests MUST be done BEFORE EVERY COMMIT:
+- Run `go test ./...` before staging changes
+- Verify all tests pass (100%, zero skips)
+- Verify coverage targets met (≥95% production, ≥98% infrastructure)
+- NEVER commit code that breaks tests
+
+**Mutation Testing:**
+- Mutations NOT required unless user explicitly requests
+- Focus on Unit + integration + E2E for high-quality commits
+- If user requests mutations, run after E2E passes
+
 **Before marking complete**:
 - Build clean
 - Linting clean
 - Tests pass (100%, zero skips)
 - Coverage maintained
-- Mutation testing
+- Mutation testing (ONLY if user requested)
 - Evidence exists
 - Git commit
 

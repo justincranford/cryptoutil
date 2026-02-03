@@ -422,6 +422,36 @@ After tests pass, think about the original intent, write additional tests to ens
 
 --------------------------------------------
 
+TESTING STRATEGY (MANDATORY)
+--------------------------------------------
+
+**Phase-Level Testing Requirements:**
+
+Unit + integration + E2E tests MUST be done during EVERY phase:
+- As part of tasks when implementing new functionality
+- In between tasks when verifying cross-cutting concerns
+- NEVER defer testing to later phases
+
+**Mutation Testing:**
+
+Mutations MUST be grouped towards the END of plan.md:
+- ⚠️ THIS DOES NOT IMPLY: DEFER, DE-PRIORITIZE, SKIP, or DROP
+- Mutations are done AFTER main code + Unit + integration + E2E have been implemented
+- This ordering is STRATEGICALLY IMPORTANT because:
+  1. Unit + integration + E2E catch most bugs early
+  2. Mutation testing validates test quality AFTER tests are complete
+  3. Running mutations on incomplete code wastes resources
+
+**Rate Limiting Mitigation:**
+
+Running frequent Unit + integration + E2E tests locally:
+- Spaces out LLM requests (natural pacing)
+- Indirectly helps throttle API requests
+- Mitigates secondary rate limiting by GitHub Copilot APIs
+- Rate limits are based on tokens per hour, not just monthly requests
+
+--------------------------------------------
+
 QUALITY GATES (PER TASK - MANDATORY)
 --------------------------------------------
 

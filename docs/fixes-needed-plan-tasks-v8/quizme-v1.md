@@ -14,9 +14,9 @@ A) Use the existing orm_barrier_adapter.go to bridge KMS → template barrier
 B) Refactor KMS to directly use template barrier Repository interface (remove OrmRepository layer)
 C) Keep KMS using shared/barrier but ensure feature parity (abandon template unification)
 D) Create new unified barrier in internal/shared that ALL services use (not template-specific)
-E) _______________ (fill in alternative)
+E) There must be only one barrier implementation, and it must be in service-template. All services must use it directly consistently.
 
-**Choice**: ___
+**Choice**: E
 
 **Implications**:
 - A: Fastest, uses existing work, but adds adapter layer complexity
@@ -36,9 +36,9 @@ A) Delete immediately after KMS migration complete
 B) Keep as deprecated with warnings, delete in V9
 C) Keep indefinitely (other future services might need it)
 D) Merge any unique features into template barrier, then delete
-E) _______________ (fill in alternative)
+E) There must be only one barrier implementation, and it must be in service-template. All services must use it directly consistently. The one in service-template must have all of the functionality, and the old one in shared/barrier must be deleted as soon as KMS migrates.
 
-**Choice**: ___
+**Choice**: E
 
 **Implications**:
 - A: Clean codebase, but risky if migration has issues
@@ -58,9 +58,9 @@ A) Unit tests only (fastest, least coverage)
 B) Unit + integration tests (moderate)
 C) Unit + integration + E2E (comprehensive)
 D) Unit + integration + E2E + mutation testing (V7 full scope)
-E) _______________ (fill in alternative)
+E) D; do Unit + integration + E2E tasks as part of every phase; do mutations as a separate phase at the end BUT DO NOT DEFER OR DE-PRIORITIZE IT BECAUSE THIS THE ORDERING IS STRATEGICALLY IMPORTANT.
 
-**Choice**: ___
+**Choice**: E
 
 **Implications**:
 - A: Risk of integration/E2E issues discovered later
@@ -80,9 +80,9 @@ A) After all code changes complete (Phase 3)
 B) Incrementally as each task completes
 C) Only update instructions files that are actually wrong
 D) Skip documentation updates entirely for V8 (do in V9)
-E) _______________ (fill in alternative)
+E) Incrementally update instructions files that are actually wrong
 
-**Choice**: ___
+**Choice**: E
 
 **Implications**:
 - A: Risk of forgetting context
