@@ -207,3 +207,36 @@ Users from different realms in the same tenant see the SAME data. The realm only
 - [x] ARCHITECTURE.md - Expanded realm section with all 16 types
 - [x] SERVICE-TEMPLATE.md - Added Realm Pattern section
 - [ ] Verify realm implementation in cipher-im uses template correctly
+
+## 13. Service Structure Non-Conformance Analysis
+
+### Expected Structure (per 03-03.golang.instructions.md)
+
+| Service | Expected cmd/ | Expected internal/apps/ |
+|---------|---------------|------------------------|
+| sm-kms | `cmd/sm-kms/main.go` | `internal/apps/sm/kms/kms.go` |
+| jose-ja | `cmd/jose-ja/main.go` | `internal/apps/jose/ja/ja.go` |
+| pki-ca | `cmd/pki-ca/main.go` | `internal/apps/pki/ca/ca.go` |
+
+### Actual Implementation
+
+| Service | Actual cmd/ | Actual internal/ | Status |
+|---------|-------------|------------------|--------|
+| sm-kms | NONE (via `cryptoutil kms`) | `internal/kms/` | ❌ Non-conformant |
+| jose-ja | `cmd/jose-server/` | `internal/jose/` + `internal/apps/jose/ja/` (duplicate?) | ❌ Non-conformant |
+| pki-ca | `cmd/ca-server/` | `internal/apps/ca/` | ⚠️ Partially conformant |
+
+### Key Issues
+
+1. **sm-kms**: No dedicated cmd entry, wrong internal path, no `internal/apps/sm/` directory
+2. **jose-ja**: Wrong cmd name, TWO implementations (possible duplication), wrong cmd name
+3. **pki-ca**: Wrong cmd name, wrong product directory (should be `pki/ca/` not `ca/`)
+
+### Remediation Needed
+
+- Create `cmd/sm-kms/main.go` delegating to `internal/apps/sm/kms/`
+- Create `internal/apps/sm/kms/` and migrate from `internal/kms/`
+- Rename `cmd/jose-server/` to `cmd/jose-ja/`
+- Consolidate `internal/jose/` into `internal/apps/jose/ja/`
+- Rename `cmd/ca-server/` to `cmd/pki-ca/`
+- Rename `internal/apps/ca/` to `internal/apps/pki/ca/`

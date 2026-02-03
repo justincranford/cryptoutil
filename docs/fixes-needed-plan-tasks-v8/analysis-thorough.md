@@ -841,3 +841,96 @@ type RealmConfig struct {
 ### Remaining Work
 
 Phase needed to verify realm implementation in all services matches this design.
+
+## 13. Service Structure Non-Conformance Deep Analysis
+
+### Code Archaeology Findings
+
+**Expected Pattern** (from 03-03.golang.instructions.md):
+```
+cmd/<product>-<service>/main.go → internal/apps/<product>/<service>/<service>.go
+```
+
+### sm-kms Non-Conformance
+
+**Expected**:
+- `cmd/sm-kms/main.go` 
+- `internal/apps/sm/kms/kms.go`
+
+**Actual**:
+- NO dedicated cmd entry
+- Access via: `cmd/cryptoutil/main.go` → `cryptoutil kms` subcommand
+- Implementation: `internal/kms/` (wrong path)
+- Routing: `internal/cmd/cryptoutil/cryptoutil.go` imports `cryptoutil/internal/kms/cmd`
+
+**Missing Components**:
+1. `cmd/sm-kms/` directory
+2. `internal/apps/sm/` directory (entire product directory)
+3. Proper separation of cmd entry from internal implementation
+
+### jose-ja Non-Conformance
+
+**Expected**:
+- `cmd/jose-ja/main.go`
+- `internal/apps/jose/ja/ja.go`
+
+**Actual**:
+- `cmd/jose-server/main.go` (wrong name)
+- TWO implementations:
+  - `internal/jose/` (used by jose-server)
+  - `internal/apps/jose/ja/` (exists but routing unclear)
+
+**Routing Chain**:
+```
+cmd/jose-server/main.go
+  → internal/cmd/cryptoutil/jose/jose.go
+    → internal/jose/server/
+```
+
+**Issue**: `internal/apps/jose/ja/` exists with full structure but may not be the primary implementation
+
+### pki-ca Partial Conformance
+
+**Expected**:
+- `cmd/pki-ca/main.go`
+- `internal/apps/pki/ca/ca.go`
+
+**Actual**:
+- `cmd/ca-server/main.go` (wrong name)
+- `internal/apps/ca/` (wrong product directory - should be `pki/ca/`)
+
+### Remediation Phases Required
+
+**Phase A: sm-kms Structure Migration**
+1. Create `cmd/sm-kms/main.go`
+2. Create `internal/apps/sm/kms/` directory structure
+3. Migrate code from `internal/kms/` to `internal/apps/sm/kms/`
+4. Update all imports
+5. Delete `internal/kms/` after migration
+
+**Phase B: jose-ja Consolidation**
+1. Rename `cmd/jose-server/` to `cmd/jose-ja/`
+2. Consolidate `internal/jose/` into `internal/apps/jose/ja/`
+3. Update routing in `internal/cmd/cryptoutil/jose/jose.go`
+4. Delete `internal/jose/` after consolidation
+
+**Phase C: pki-ca Renaming**
+1. Rename `cmd/ca-server/` to `cmd/pki-ca/`
+2. Move `internal/apps/ca/` to `internal/apps/pki/ca/`
+3. Update all imports
+
+### Impact Assessment
+
+| Service | Files to Move | Import Updates | Risk Level |
+|---------|--------------|----------------|------------|
+| sm-kms | ~50 files | High | Medium-High |
+| jose-ja | ~30 files | Medium | Medium |
+| pki-ca | ~20 files | Low | Low |
+
+### Relationship to V8 Barrier Migration
+
+The sm-kms structure migration is RELATED to but SEPARATE from the barrier migration:
+- Barrier migration: Change WHAT code KMS uses (template barrier vs shared/barrier)
+- Structure migration: Change WHERE code lives (internal/kms → internal/apps/sm/kms)
+
+**Recommendation**: Complete barrier migration FIRST (V8 current scope), then structure migration as separate phase.

@@ -290,6 +290,168 @@
 
 ---
 
+## Phase 6: sm-kms Structure Migration
+
+### Task 6.1: Create cmd/sm-kms Entry Point
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Phase 1-5 complete
+- **Description**: Create proper cmd entry point following pattern
+- **Acceptance Criteria**:
+  - [ ] `cmd/sm-kms/main.go` exists
+  - [ ] Delegates to `internal/apps/sm/kms/`
+  - [ ] `go build ./cmd/sm-kms/` succeeds
+- **Evidence**: File exists, builds clean
+
+### Task 6.2: Create internal/apps/sm/kms Directory
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 6.1
+- **Description**: Create directory structure for sm/kms
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/sm/kms/` directory exists
+  - [ ] Matches cipher-im/jose-ja structure
+- **Evidence**: Directory listing
+
+### Task 6.3: Migrate internal/kms to internal/apps/sm/kms
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Actual**:
+- **Dependencies**: Task 6.2
+- **Description**: Move all code from internal/kms/ to internal/apps/sm/kms/
+- **Acceptance Criteria**:
+  - [ ] All .go files moved
+  - [ ] Package names updated (kms → smkms where needed)
+  - [ ] Build succeeds
+- **Evidence**: `go build ./...`
+
+### Task 6.4: Update All Imports
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Task 6.3
+- **Description**: Update all imports from internal/kms to internal/apps/sm/kms
+- **Acceptance Criteria**:
+  - [ ] `grep -r "internal/kms" .` returns only migration docs
+  - [ ] All tests pass
+- **Evidence**: grep output, test results
+
+### Task 6.5: Update Deployment Files
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 6.4
+- **Description**: Update compose.yml, Dockerfile for new structure
+- **Acceptance Criteria**:
+  - [ ] Docker build succeeds
+  - [ ] Docker compose up works
+- **Evidence**: docker compose logs
+
+### Task 6.6: Delete internal/kms
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Tasks 6.1-6.5 complete, all tests pass
+- **Description**: Remove old directory after migration verified
+- **Acceptance Criteria**:
+  - [ ] `rm -rf internal/kms/` executed
+  - [ ] All tests still pass
+  - [ ] All builds still work
+- **Evidence**: Directory gone, tests pass
+
+---
+
+## Phase 7: jose-ja Consolidation
+
+### Task 7.1: Rename cmd/jose-server to cmd/jose-ja
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Phase 6 complete
+- **Description**: Rename cmd entry to follow pattern
+- **Acceptance Criteria**:
+  - [ ] `cmd/jose-ja/main.go` exists
+  - [ ] `cmd/jose-server/` deleted
+  - [ ] Build succeeds
+- **Evidence**: Directory listing, build clean
+
+### Task 7.2: Analyze jose Implementations
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Task 7.1
+- **Description**: Document differences between internal/jose/ and internal/apps/jose/ja/
+- **Acceptance Criteria**:
+  - [ ] Analysis document created
+  - [ ] Consolidation plan defined
+- **Evidence**: Analysis in analysis-thorough.md
+
+### Task 7.3: Consolidate to internal/apps/jose/ja
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Actual**:
+- **Dependencies**: Task 7.2
+- **Description**: Merge implementations into conformant structure
+- **Acceptance Criteria**:
+  - [ ] All functionality in internal/apps/jose/ja/
+  - [ ] Tests pass
+  - [ ] Build succeeds
+- **Evidence**: test results
+
+### Task 7.4: Delete internal/jose
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 7.3 verified
+- **Description**: Remove old directory
+- **Acceptance Criteria**:
+  - [ ] `rm -rf internal/jose/` executed
+  - [ ] All tests pass
+- **Evidence**: Directory gone, tests pass
+
+---
+
+## Phase 8: pki-ca Renaming
+
+### Task 8.1: Rename cmd/ca-server to cmd/pki-ca
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Phase 7 complete
+- **Description**: Rename cmd entry
+- **Acceptance Criteria**:
+  - [ ] `cmd/pki-ca/main.go` exists
+  - [ ] `cmd/ca-server/` deleted
+- **Evidence**: Directory listing
+
+### Task 8.2: Move internal/apps/ca to internal/apps/pki/ca
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Task 8.1
+- **Description**: Move to correct product directory
+- **Acceptance Criteria**:
+  - [ ] `internal/apps/pki/ca/` exists
+  - [ ] `internal/apps/ca/` deleted
+  - [ ] All imports updated
+  - [ ] Tests pass
+- **Evidence**: Directory listing, test results
+
+### Task 8.3: Update Deployment Files
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 8.2
+- **Description**: Update compose.yml, Dockerfile
+- **Acceptance Criteria**:
+  - [ ] Docker build succeeds
+  - [ ] E2E tests pass
+- **Evidence**: docker logs
+
+---
+
 ## Summary Statistics
 
 | Phase | Tasks | Completed | Percentage |
@@ -297,9 +459,13 @@
 | Phase 1: Barrier Integration | 5 | 0 | 0% |
 | Phase 2: Testing | 4 | 0 | 0% |
 | Phase 3: Documentation | 3 | 0 | 0% |
+| Phase 3.5: Realm Verification | 5 | 1 | 20% |
 | Phase 4: Delete shared/barrier | 2 | 0 | 0% |
 | Phase 5: Mutation Testing | 2 | 0 | 0% |
-| **Total** | **16** | **0** | **0%** |
+| Phase 6: sm-kms Structure | 6 | 0 | 0% |
+| Phase 7: jose-ja Consolidation | 4 | 0 | 0% |
+| Phase 8: pki-ca Renaming | 3 | 0 | 0% |
+| **Total** | **34** | **1** | **3%** |
 
 ---
 

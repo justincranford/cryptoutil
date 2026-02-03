@@ -147,6 +147,49 @@ The CORRECT design is:
 - Validates that tests actually catch bugs
 - Strategic ordering per Testing Strategy decision
 
+---
+
+## V8 Extended Scope: Service Structure Conformance
+
+**Background**: Analysis (Section 13) revealed sm-kms, jose-ja, and pki-ca do not conform to expected directory structure per 03-03.golang.instructions.md.
+
+**Decision**: Complete barrier migration (Phases 1-5) FIRST, then address structure conformance.
+
+### Phase 6: sm-kms Structure Migration
+
+**Objective**: Move sm-kms to conform to `cmd/sm-kms/` → `internal/apps/sm/kms/` pattern
+
+**Tasks**:
+- Create `cmd/sm-kms/main.go` entry point
+- Create `internal/apps/sm/kms/` directory structure  
+- Migrate code from `internal/kms/` to `internal/apps/sm/kms/`
+- Update all imports across codebase
+- Update deployment files (compose.yml, Dockerfile)
+- Delete `internal/kms/` after migration
+- Verify all tests pass
+
+### Phase 7: jose-ja Consolidation
+
+**Objective**: Consolidate jose implementations and rename cmd entry
+
+**Tasks**:
+- Rename `cmd/jose-server/` to `cmd/jose-ja/`
+- Analyze differences between `internal/jose/` and `internal/apps/jose/ja/`
+- Consolidate into `internal/apps/jose/ja/` (keep conformant structure)
+- Update routing in `internal/cmd/cryptoutil/jose/jose.go`
+- Delete `internal/jose/` after consolidation
+- Update deployment files
+
+### Phase 8: pki-ca Renaming
+
+**Objective**: Rename cmd entry and move to correct product directory
+
+**Tasks**:
+- Rename `cmd/ca-server/` to `cmd/pki-ca/`
+- Move `internal/apps/ca/` to `internal/apps/pki/ca/`
+- Update all imports
+- Update deployment files
+
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
