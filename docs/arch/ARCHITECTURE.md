@@ -14,15 +14,69 @@
 |---------|---------------|-------|-------------|
 | **Secrets Manager** | sm-kms | 8080-8089 | Elastic key management, encryption-at-rest |
 | **PKI** | pki-ca | 8443-8449 | X.509 certificates, EST, SCEP, OCSP, CRL |
-| **JOSE** | jose-ja | 9443-9449 | JWK/JWS/JWE/JWT operations |
-| **Identity** | identity-authz | 18000-18009 | OAuth 2.1 authorization server |
-| **Identity** | identity-idp | 18100-18109 | OIDC Identity Provider |
-| **Identity** | identity-rs | 18200-18209 | Resource Server (reference) |
-| **Identity** | identity-rp | 18300-18309 | Relying Party (reference) |
-| **Identity** | identity-spa | 18400-18409 | Single Page Application (reference) |
+| **JOSE** | jose-ja | 8092 | JWK/JWS/JWE/JWT operations |
+| **Identity** | identity-authz | 8080-8089 | OAuth 2.1 authorization server |
+| **Identity** | identity-idp | 8100-8109 | OIDC Identity Provider |
+| **Identity** | identity-rs | 8200-8209 | Resource Server (reference) |
+| **Identity** | identity-rp | 8300-8309 | Relying Party (reference) |
+| **Identity** | identity-spa | 8400-8409 | Single Page Application (reference) |
 | **Cipher** | cipher-im | 8888-8889 | E2E encrypted messaging |
 
 **Admin Port**: ALL services use 127.0.0.1:9090 for health checks and graceful shutdown.
+
+---
+
+## Service Ports - Complete Reference
+
+This section provides the authoritative port assignments for all 9 product-services.
+
+### Port Assignment Table
+
+| Service | Container Port | Host Port Range | Admin Port | Protocol | Status |
+|---------|----------------|-----------------|------------|----------|--------|
+| **sm-kms** | 8080 | 8080-8082 (SQLite:8080, PG1:8081, PG2:8082) | 9090 | HTTPS | Implemented |
+| **pki-ca** | 8443 | 8443-8445 (SQLite:8443, PG1:8444, PG2:8445) | 9090* | HTTPS | Implemented |
+| **jose-ja** | 8092 | 8092 | 9092 | HTTPS | Implemented |
+| **identity-authz** | 8080 | 8080-8089 (scaling) | 9090 | HTTPS | Planned |
+| **identity-idp** | 8081 | 8100-8109 (scaling) | 9090 | HTTPS | Planned |
+| **identity-rs** | 8082 | 8200-8209 (scaling) | 9090 | HTTPS | Planned |
+| **identity-rp** | 8083 | 8300-8309 (scaling) | 9090 | HTTPS | Planned |
+| **identity-spa** | 8084 | 8400-8409 (scaling) | 9090 | HTTPS | Planned |
+| **cipher-im** | 8888 | 8880-8882 (SQLite:8880, PG1:8881, PG2:8882) | 9090 | HTTPS | Implemented |
+
+*Note: pki-ca uses non-standard health check paths (`/livez`, `/readyz`) without `/admin/api/v1/` prefix.
+
+### Port Design Principles
+
+1. **Container Port Consistency**: Each service uses a fixed container port
+2. **Host Port Scaling**: Host ports allow multiple instances (port ranges)
+3. **Admin Port Isolation**: Admin APIs bind to 127.0.0.1:9090 (localhost only)
+4. **No Host Exposure for Admin**: Admin ports NEVER exposed to Docker host
+
+### Current Implementation vs Instructions Discrepancy
+
+The `.github/instructions/02-01.architecture.instructions.md` file documents:
+- jose-ja: 9443-9449 (documented) vs 8092 (actual implementation in compose.yml)
+- identity-*: 18000-18409 (documented) vs 8080-8409 (actual implementation in compose.yml)
+
+**Recommendation**: The compose.yml implementations reflect actual deployment patterns. The instructions file should be updated to match implementation OR implementations should be updated to match instructions. Current V8 work focuses on KMS barrier migration; port standardization can be a follow-up task.
+
+### PostgreSQL Ports
+
+| Service | Host Port | Container Port | Notes |
+|---------|-----------|----------------|-------|
+| kms-postgres | 5432 | 5432 | Default PostgreSQL |
+| ca-postgres | 5432 | 5432 | Default PostgreSQL |
+| identity-postgres | 5433 | 5432 | Offset to avoid conflict |
+| template-postgres | 5433 | 5432 | Offset to avoid conflict |
+
+### Telemetry Ports (Shared)
+
+| Service | Host Port | Container Port | Protocol |
+|---------|-----------|----------------|----------|
+| opentelemetry-collector-contrib | (internal) | 4317 | OTLP gRPC |
+| opentelemetry-collector-contrib | (internal) | 4318 | OTLP HTTP |
+| grafana-otel-lgtm | 3000 | 3000 | HTTP (UI) |
 
 ---
 
@@ -135,13 +189,15 @@ deployments/
 │   ├── Dockerfile.cipher
 │   ├── config/              # YAML configs
 │   └── secrets/             # Docker secrets (*.secret, 440 perms)
+├── <PRODUCT>/
+│   └── ... (same structure)
 ├── jose/
 │   └── ... (same structure)
 ├── ca/
 │   └── ... (same structure)
 ├── identity/
 │   └── ... (same structure)
-└── kms/
+└── sm/
     └── ... (same structure)
 ```
 
@@ -177,11 +233,42 @@ configs/
 # Product-Service pattern (preferred)
 cipher-im server --config=/etc/cipher/im.yml
 
+# Service pattern
+im server --config=/etc/cipher/im.yml
+
 # Product pattern (routes to service)
 cipher im server --config=/etc/cipher/im.yml
 
 # Suite pattern (routes to product, then service)
 cryptoutil cipher im server --config=/etc/cipher/im.yml
+```
+
+```
+# Product-Service pattern (preferred)
+jose-ja server --config=/etc/jose/ja.yml
+
+# Service pattern
+ja server --config=/etc/jose/ja.yml
+
+# Product pattern (routes to service)
+jose ja server --config=/etc/jose/ja.yml
+
+# Suite pattern (routes to product, then service)
+cryptoutil jose ja server --config=/etc/jose/ja.yml
+```
+
+```
+# Product-Service pattern (preferred)
+sm-kms server --config=/etc/sm/kms.yml
+
+# Service pattern
+kms server --config=/etc/sm/kms.yml
+
+# Product pattern (routes to service)
+sm kms server --config=/etc/sm/kms.yml
+
+# Suite pattern (routes to product, then service)
+cryptoutil sm kms server --config=/etc/sm/kms.yml
 ```
 
 ---
@@ -510,7 +597,7 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 **Load Order** (highest to lowest):
 
 1. **Docker Secrets** (`file:///run/secrets/secret_name`) - Sensitive values
-2. **YAML Configuration** (`--config=/path/to/config.yml`) - Primary configuration  
+2. **YAML Configuration** (`--config=/path/to/config.yml`) - Primary configuration
 3. **CLI Parameters** (`--bind-public-port=8080`) - Overrides
 
 **CRITICAL: Environment variables NOT supported for configuration** (security, auditability).

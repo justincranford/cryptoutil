@@ -30,7 +30,7 @@ internal/kms/server/server.go:// TODO: This imports shared/barrier but should us
 
 $ grep "TODO" internal/kms/server/server.go | head -5
 // TODO(Phase2-5): KMS needs to be migrated to use template's GORM database and barrier.
-// TODO(Phase2-5): Replace with template's GORM database and barrier.  
+// TODO(Phase2-5): Replace with template's GORM database and barrier.
 // TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 
 $ grep "NewServerBuilder" internal/kms/server/server.go
@@ -40,6 +40,8 @@ builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, sett
 ### 1.3 Key Insight
 
 KMS DOES use ServerBuilder (contrary to earlier belief), but the barrier migration within ServerBuilder is incomplete. The builder is configured but KMS still directly imports and uses `shared/barrier` for actual operations.
+
+KMS us
 
 ---
 
@@ -73,7 +75,7 @@ internal/kms/
 $ grep "gorm.io/gorm" internal/kms/ -r | wc -l
 11  # GORM imports exist BUT...
 
-$ grep "database/sql" internal/kms/server/repository/*.go | wc -l  
+$ grep "database/sql" internal/kms/server/repository/*.go | wc -l
 8   # Primary data access uses raw database/sql
 ```
 
@@ -318,16 +320,16 @@ import cryptoutilBarrier "cryptoutil/internal/apps/template/service/server/barri
 ```
 ✅ All tests pass
    $ go test ./... -shuffle=on
-   
+
 ✅ Coverage maintained/improved
    $ go test ./... -coverprofile=coverage.out
    $ go tool cover -func=coverage.out | tail -1
    # Target: ≥95% production, ≥98% infrastructure
-   
+
 ✅ Linting clean
    $ golangci-lint run
    # Zero errors required
-   
+
 ✅ No new TODOs without tracking
    $ grep -r "TODO" internal/kms/ | wc -l
    # Should decrease as migration progresses
@@ -570,3 +572,179 @@ total:    (statements)    95.0%
 | New barrier tests | Test template barrier with KMS | 3 |
 | Coverage report | Document final coverage | 3 |
 | Mutation report | Document mutation results | 5 |
+
+---
+
+## 11. HTTPS Ports Review (All 9 Product-Services)
+
+### 11.1 Data Collection Methodology
+
+Port configurations extracted from:
+- `deployments/kms/compose.yml`
+- `deployments/ca/compose.yml`
+- `deployments/ca/compose/compose.yml`
+- `deployments/jose/compose.yml`
+- `deployments/identity/compose.advanced.yml`
+- `deployments/template/compose.yml`
+- `deployments/telemetry/compose.yml`
+- `.github/instructions/02-01.architecture.instructions.md`
+- `.github/instructions/02-03.https-ports.instructions.md`
+
+### 11.2 Detailed Port Analysis by Service
+
+#### sm-kms (Secrets Manager - Key Management Service)
+```yaml
+# deployments/kms/compose.yml
+kms-sqlite:
+  ports:
+    - "8080:8080"  # HTTPS public (SQLite profile)
+    
+kms-postgres-1:
+  ports:
+    - "8081:8080"  # HTTPS public (PostgreSQL instance 1)
+    
+kms-postgres-2:
+  ports:
+    - "8082:8080"  # HTTPS public (PostgreSQL instance 2)
+```
+- Container port: 8080
+- Admin port: 9090 (127.0.0.1 only, NOT exposed)
+- Health check: `https://127.0.0.1:9090/admin/api/v1/livez`
+
+#### pki-ca (PKI - Certificate Authority)
+```yaml
+# deployments/ca/compose.yml
+ca-sqlite:
+  ports:
+    - "8443:8443"  # HTTPS public (SQLite)
+    
+ca-postgres-1:
+  ports:
+    - "8444:8443"  # HTTPS public (PG1)
+    
+ca-postgres-2:
+  ports:
+    - "8445:8443"  # HTTPS public (PG2)
+```
+- Container port: 8443
+- Admin port: NOT EXPOSED (uses different pattern)
+- Health check: `https://127.0.0.1:8443/livez` (NON-STANDARD - no /admin/api/v1/ prefix)
+
+#### jose-ja (JOSE - JWK Authority)
+```yaml
+# deployments/jose/compose.yml
+jose-server:
+  ports:
+    - "8092:8092"  # Public API (HTTPS)
+    - "9092:9092"  # Admin API (HTTPS) - EXPOSED!
+```
+- Container port: 8092 (public), 9092 (admin)
+- **ISSUE**: Admin port 9092 is EXPOSED to host (violates security pattern)
+- **DISCREPANCY**: Instructions document 9443-9449, implementation uses 8092
+
+#### identity-authz (OAuth 2.1 Authorization Server)
+```yaml
+# deployments/identity/compose.advanced.yml
+identity-authz:
+  ports:
+    - "8080-8089:8080"  # Port range allows scaling
+```
+- Container port: 8080
+- Admin port: 9090 (NOT exposed per instructions)
+- **DISCREPANCY**: Instructions document 18000-18009, implementation uses 8080-8089
+
+#### identity-idp (OIDC Identity Provider)
+```yaml
+# deployments/identity/compose.advanced.yml
+identity-idp:
+  ports:
+    - "8100-8109:8081"  # Port range for scaling
+```
+- Container port: 8081
+- Admin port: 9090 (NOT exposed)
+- **DISCREPANCY**: Instructions document 18100-18109, implementation uses 8100-8109
+
+#### identity-rs (Resource Server)
+```yaml
+# deployments/identity/compose.advanced.yml
+identity-rs:
+  ports:
+    - "8200-8209:8082"  # Port range for scaling
+```
+- Container port: 8082
+- Admin port: 9090 (NOT exposed)
+- **DISCREPANCY**: Instructions document 18200-18209, implementation uses 8200-8209
+
+#### identity-rp (Relying Party)
+```yaml
+# deployments/identity/compose.advanced.yml (extrapolated)
+```
+- Container port: 8083 (expected)
+- Host port range: 8300-8309 (expected)
+- **DISCREPANCY**: Instructions document 18300-18309
+
+#### identity-spa (Single Page Application)
+```yaml
+# deployments/identity/compose.advanced.yml (extrapolated)
+```
+- Container port: 8084 (expected)
+- Host port range: 8400-8409 (expected)
+- **DISCREPANCY**: Instructions document 18400-18409
+
+#### cipher-im (Cipher - Instant Messenger)
+```yaml
+# deployments/template/compose.yml (cipher-im binary used)
+cipher-im-sqlite:
+  ports:
+    - "8880:8888"  # Public HTTPS API
+    
+cipher-im-postgres-1:
+  ports:
+    - "8881:8888"
+    
+cipher-im-postgres-2:
+  ports:
+    - "8882:8888"
+```
+- Container port: 8888
+- Admin port: 9090 (NOT exposed)
+- Health check: `https://127.0.0.1:9090/admin/api/v1/livez`
+
+### 11.3 Telemetry Infrastructure Ports
+
+```yaml
+# deployments/telemetry/compose.yml
+opentelemetry-collector-contrib:
+  # ports:  (COMMENTED OUT - internal only)
+  #   - "4317:4317"   # OTLP gRPC
+  #   - "4318:4318"   # OTLP HTTP
+```
+- Container ports: 4317 (gRPC), 4318 (HTTP)
+- Host ports: NOT exposed (container-to-container only)
+- Correct pattern: Telemetry ports should not be exposed to host
+
+### 11.4 PostgreSQL Ports
+
+| Compose File | Service | Host Port | Purpose |
+|--------------|---------|-----------|---------|
+| kms/compose.yml | postgres | 5432 | KMS database |
+| ca/compose.yml | postgres | 5432 | CA database |
+| identity/compose.advanced.yml | identity-postgres | 5433 | Identity database |
+| template/compose.yml | postgres | 5433 | Template database |
+
+- Port 5432: Default PostgreSQL (KMS, CA)
+- Port 5433: Offset PostgreSQL (identity, template to avoid conflicts)
+
+### 11.5 Issues Identified
+
+1. **jose-ja Admin Port Exposure**: Admin port 9092 exposed to host (security violation)
+2. **Port Range Discrepancies**: Instructions vs implementation mismatch
+3. **pki-ca Health Check Path**: Non-standard path without /admin/api/v1/ prefix
+4. **Documentation Drift**: Instructions file not updated when ports changed
+
+### 11.6 Recommendations
+
+1. **Short-term**: Document actual ports in ARCHITECTURE.md (done)
+2. **Medium-term**: Standardize jose-ja to NOT expose admin port
+3. **Long-term**: Update instructions file OR update implementations to match
+4. **Follow-up Task**: Add port standardization phase to V8 or V9 plan

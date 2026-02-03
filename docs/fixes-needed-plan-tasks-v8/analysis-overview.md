@@ -148,3 +148,35 @@ TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 - [ ] 3 TODOs resolved in server.go
 
 → [Metrics Tracking](#10-success-metrics) in analysis-thorough.md
+
+---
+
+## 11. HTTPS Ports Review (All 9 Product-Services)
+
+**Analysis Date**: 2026-02-03
+**Source**: Code archaeology of deployments/*/compose.yml files
+
+### Port Summary Table
+
+| Service | Container Port | Host Port Range | Admin Port | Status |
+|---------|----------------|-----------------|------------|--------|
+| sm-kms | 8080 | 8080-8082 | 9090 | Implemented |
+| pki-ca | 8443 | 8443-8445 | 9090* | Implemented |
+| jose-ja | 8092 | 8092 | 9092 | Implemented |
+| identity-authz | 8080 | 8080-8089 | 9090 | Planned |
+| identity-idp | 8081 | 8100-8109 | 9090 | Planned |
+| identity-rs | 8082 | 8200-8209 | 9090 | Planned |
+| identity-rp | 8083 | 8300-8309 | 9090 | Planned |
+| identity-spa | 8084 | 8400-8409 | 9090 | Planned |
+| cipher-im | 8888 | 8880-8882 | 9090 | Implemented |
+
+*pki-ca uses non-standard health paths without /admin/api/v1/ prefix
+
+### Key Findings
+
+1. **Discrepancy**: Instructions file documents jose-ja as 9443-9449, actual implementation uses 8092
+2. **Discrepancy**: Instructions file documents identity-* as 18000-18409, actual uses 8080-8409
+3. **Consistency**: All admin ports correctly bind to 127.0.0.1:9090 (localhost only)
+4. **Pattern**: Multi-instance deployments use port ranges (e.g., 8080/8081/8082 for SQLite/PG1/PG2)
+
+→ [Detailed Port Analysis](#11-https-ports-review) in analysis-thorough.md

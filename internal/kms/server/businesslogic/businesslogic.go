@@ -50,7 +50,7 @@ func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilSh
 	} else if ormRepository == nil {
 		return nil, fmt.Errorf("ormRepository must be non-nil")
 	} else if barrierService == nil {
-		return nil, fmt.Errorf("ubarrierService must be non-nil")
+		return nil, fmt.Errorf("barrierService must be non-nil")
 	}
 
 	return &BusinessLogicService{
