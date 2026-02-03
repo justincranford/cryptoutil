@@ -2,8 +2,28 @@
 
 **Status**: Planning
 **Created**: 2026-02-02
-**Last Updated**: 2026-02-02
+**Last Updated**: 2026-02-03
 **Purpose**: Complete the ACTUAL KMS barrier migration that V7 did not finish
+
+## Executive Decisions (from quizme-v1.md)
+
+### Decision 1: Barrier Migration Approach
+**Choice**: E - Single barrier implementation in service-template, all services use it directly
+**Rationale**: Consistency and maintainability over adapter complexity
+
+### Decision 2: shared/barrier Deprecation
+**Choice**: E - Delete shared/barrier immediately after KMS migration
+**Rationale**: Single source of truth, no code duplication, service-template has all functionality
+
+### Decision 3: Testing Scope
+**Choice**: E - Full scope (Unit + integration + E2E in every phase, mutations at end)
+**Rationale**: Strategic ordering - tests catch bugs early, mutations validate test quality after tests complete
+
+### Decision 4: Documentation Updates
+**Choice**: E - Incrementally update instructions files that are actually wrong
+**Rationale**: Focused effort on actual gaps, avoid documentation sprawl
+
+---
 
 ## Executive Summary
 
@@ -88,7 +108,24 @@ $ grep "TODO" internal/kms/server/server.go
 
 - Update server-builder.instructions.md
 - Remove obsolete V6 documentation
-- Create service migration guide
+- Delete shared/barrier immediately (per Decision 2)
+
+### Phase 4: Delete shared/barrier
+
+**Objective**: Remove deprecated shared/barrier after KMS migration
+
+- Delete internal/shared/barrier/ directory
+- Verify no remaining imports across codebase
+- Clean up any orphaned references
+
+### Phase 5: Mutation Testing (Grouped at End)
+
+**Objective**: Validate test quality after all functionality implemented
+
+⚠️ **NOTE**: THIS PHASE IS AT END BY DESIGN - NOT DEFERRED/SKIPPED
+- Mutations run AFTER Unit + integration + E2E are complete
+- Validates that tests actually catch bugs
+- Strategic ordering per Testing Strategy decision
 
 ## Risk Assessment
 

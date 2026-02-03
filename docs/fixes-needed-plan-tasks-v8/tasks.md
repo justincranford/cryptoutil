@@ -1,8 +1,14 @@
 # Tasks - Complete KMS Migration (V8)
 
-**Status**: 0 of 12 tasks complete (0%)
-**Last Updated**: 2026-02-02
+**Status**: 0 of 18 tasks complete (0%)
+**Last Updated**: 2026-02-03
 **Purpose**: Complete the ACTUAL remaining work from V7
+
+## Testing Strategy (from Executive Decisions)
+
+**Phase-Level Testing**: Unit + integration + E2E tests in EVERY phase
+**Mutation Testing**: Phase 5 at END (NOT deferred - strategically ordered)
+**Documentation**: Incremental updates to actually-wrong instructions only
 
 ---
 
@@ -157,6 +163,63 @@
 
 ---
 
+## Phase 4: Delete shared/barrier
+
+### Task 4.1: Delete internal/shared/barrier/
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Phase 1 complete, Phase 2 verified
+- **Description**: Remove the deprecated shared/barrier implementation
+- **Acceptance Criteria**:
+  - [ ] `rm -rf internal/shared/barrier/` executed
+  - [ ] No compile errors
+  - [ ] All tests pass
+- **Evidence**: `ls internal/shared/barrier/` returns "No such file or directory"
+
+### Task 4.2: Verify No Remaining shared/barrier Imports
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**:
+- **Dependencies**: Task 4.1
+- **Description**: Ensure no orphaned imports anywhere in codebase
+- **Acceptance Criteria**:
+  - [ ] `grep -r "shared/barrier" .` returns only this tasks.md mention
+  - [ ] Build clean
+  - [ ] All tests pass
+- **Evidence**: grep command output
+
+---
+
+## Phase 5: Mutation Testing (Grouped at End - NOT DEFERRED)
+
+⚠️ **STRATEGIC ORDERING**: Mutations at end by design, NOT deferred/skipped
+
+### Task 5.1: KMS Mutation Testing
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Phases 1-4 complete
+- **Description**: Run gremlins on KMS after barrier migration complete
+- **Acceptance Criteria**:
+  - [ ] `gremlins unleash ./internal/kms/...` completes
+  - [ ] ≥85% mutation score (production code)
+  - [ ] Results documented in test-output/mutation-results/
+- **Evidence**: gremlins output
+
+### Task 5.2: Template Barrier Mutation Testing
+- **Status**: ❌ Not Started
+- **Estimated**: 1.5h
+- **Actual**:
+- **Dependencies**: Task 5.1
+- **Description**: Verify template barrier tests catch mutations
+- **Acceptance Criteria**:
+  - [ ] `gremlins unleash ./internal/apps/template/service/server/barrier/...` completes
+  - [ ] ≥98% mutation score (infrastructure code)
+- **Evidence**: gremlins output
+
+---
+
 ## Summary Statistics
 
 | Phase | Tasks | Completed | Percentage |
@@ -164,7 +227,9 @@
 | Phase 1: Barrier Integration | 5 | 0 | 0% |
 | Phase 2: Testing | 4 | 0 | 0% |
 | Phase 3: Documentation | 3 | 0 | 0% |
-| **Total** | **12** | **0** | **0%** |
+| Phase 4: Delete shared/barrier | 2 | 0 | 0% |
+| Phase 5: Mutation Testing | 2 | 0 | 0% |
+| **Total** | **16** | **0** | **0%** |
 
 ---
 
