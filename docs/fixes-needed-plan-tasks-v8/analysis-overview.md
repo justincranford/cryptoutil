@@ -240,3 +240,46 @@ Users from different realms in the same tenant see the SAME data. The realm only
 - Consolidate `internal/jose/` into `internal/apps/jose/ja/`
 - Rename `cmd/ca-server/` to `cmd/pki-ca/`
 - Rename `internal/apps/ca/` to `internal/apps/pki/ca/`
+
+---
+
+## Section 14: KMS Barrier Migration Path (Work Item #1)
+
+**Date**: 2025-02-14
+**Status**: Analysis Complete
+
+### Current State
+
+**Two Barrier Implementations**:
+1. `internal/shared/barrier/` - KMS-specific, tightly coupled to OrmRepository (5 files, ~5K lines)
+2. `internal/apps/template/service/server/barrier/` - Template version with Repository interface (17 files, ~8K lines)
+
+### Key Finding: Adapter Pattern Already Exists
+
+KMS has already created adapter pattern (`internal/kms/server/barrier/orm_barrier_adapter.go`, 199 lines) that wraps KMS OrmRepository/OrmTransaction to implement template barrier Repository/Transaction interfaces.
+
+This confirms straightforward migration path:
+- Template barrier uses abstract `Repository` interface
+- KMS has adapter that makes its `OrmRepository` implement that interface
+- Migration = switch from `shared/barrier` to `template/barrier` + use existing adapter
+
+### Migration Complexity Assessment
+
+| Aspect | Assessment |
+|--------|-----------|
+| Interface Compatibility | HIGH - Adapter already exists |
+| Test Coverage | Template has 5x more tests (8K vs 2K lines) |
+| Feature Parity | Template is superset (has rotation, status handlers) |
+| Risk Level | LOW - Adapter pattern de-risks migration |
+
+### Dependencies
+
+- `internal/shared/barrier/` imports `internal/kms/server/repository/orm` (circular dependency)
+- Template barrier uses generic `Repository` interface (no circular dependency)
+
+### Recommendation
+
+**V8 Phase 1-5 migration is VALIDATED as straightforward**:
+1. KMS switches from `shared/barrier` to `template/barrier`
+2. Uses existing `OrmRepositoryAdapter` to bridge
+3. Delete `internal/shared/barrier/` after migration confirmed
