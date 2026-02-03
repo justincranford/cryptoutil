@@ -114,7 +114,7 @@ $ grep "TODO" internal/kms/server/server.go
 
 **Objective**: Verify all services correctly implement realm design (authentication method only, NOT data scoping)
 
-**Background**: LLM agents frequently misunderstand realms as data isolation boundaries (like AWS Organizations). 
+**Background**: LLM agents frequently misunderstand realms as data isolation boundaries (like AWS Organizations).
 The CORRECT design is:
 - `tenant_id` = data isolation (ALL data queries MUST filter by tenant_id)
 - `realm_id` = authentication method selection only (HOW users authenticate)
@@ -161,7 +161,7 @@ The CORRECT design is:
 
 **Tasks**:
 - Create `cmd/sm-kms/main.go` entry point
-- Create `internal/apps/sm/kms/` directory structure  
+- Create `internal/apps/sm/kms/` directory structure
 - Migrate code from `internal/kms/` to `internal/apps/sm/kms/`
 - Update all imports across codebase
 - Update deployment files (compose.yml, Dockerfile)
@@ -213,3 +213,128 @@ The CORRECT design is:
 - [ ] All KMS tests pass
 - [ ] cipher-im and jose-ja not regressed
 - [ ] Documentation accurate
+
+---
+
+## V8 Extended Scope: Port Standardization and Health Path Normalization
+
+**Background**: Analysis revealed inconsistent port assignments and health paths across services.
+- CA uses `/livez` instead of `/admin/api/v1/livez` (non-standard)
+- JOSE uses port 9092 for admin instead of 9090
+- Port ranges in instructions don't match implementations
+- cipher-im uses 8888, should use 8070
+
+**User Requirements**: New standardized port assignments for all 9 product-services.
+
+**New Standard Port Assignments**:
+
+| Service | Container Port | Host Port Range | Admin Port |
+|---------|----------------|-----------------|------------|
+| sm-kms | 8080 | 8080-8089 | 9090 |
+| cipher-im | 8070 | 8070-8079 | 9090 |
+| jose-ja | 8060 | 8060-8069 | 9090 |
+| pki-ca | 8050 | 8050-8059 | 9090 |
+| identity-authz | 8100 | 8100-8109 | 9090 |
+| identity-idp | 8100 | 8100-8109 | 9090 |
+| identity-rs | 8110 | 8110-8119 | 9090 |
+| identity-rp | 8120 | 8120-8129 | 9090 |
+| identity-spa | 8130 | 8130-8139 | 9090 |
+
+### Phase 9: pki-ca Health Path Standardization
+
+**Objective**: Update pki-ca to use standard `/admin/api/v1/livez` health path
+
+**Tasks**:
+- Update CA server code to expose admin endpoints at `/admin/api/v1/*`
+- Update CA compose healthcheck to use standard path
+- Update CA config files
+- Verify CA tests pass with new paths
+- Update CA documentation
+
+### Phase 10: jose-ja Admin Port Standardization
+
+**Objective**: Update jose-ja to use standard admin port 9090 (currently 9092)
+
+**Tasks**:
+- Update JOSE server code to use port 9090 for admin
+- Update JOSE compose files with correct port mappings
+- Update JOSE config files
+- Update JOSE tests
+- Verify JOSE E2E tests pass
+
+### Phase 11: Port Range Standardization (All Services)
+
+**Objective**: Update all services to use new standardized port ranges
+
+**Proactive Changes** (NOT iterative discovery):
+- sm-kms: Keep 8080 (already correct)
+- cipher-im: Change 8888 → 8070
+- jose-ja: Change 8092 → 8060
+- pki-ca: Change 8443 → 8050
+- Update ALL compose files with correct port mappings
+- Update ALL config files with correct ports
+- Update ALL test files with correct ports
+- Update ARCHITECTURE.md service catalog table
+- Update SERVICE-TEMPLATE.md
+- Update 02-01.architecture.instructions.md
+- Update 02-03.https-ports.instructions.md
+
+### Phase 12: CICD lint-ports Validation
+
+**Objective**: Create automated validation to ensure port consistency forever
+
+**Tasks**:
+- Create `internal/cmd/cicd/lint_ports/` command
+- Validate port consistency in code (magic constants)
+- Validate port consistency in configs (YAML files)
+- Validate port consistency in deployments (compose.yml)
+- Validate port consistency in docs (ARCHITECTURE.md, instructions)
+- Add to pre-commit hooks
+- Add to CI/CD workflow
+
+### Phase 13: KMS Barrier Direct Migration (REVISED)
+
+**CRITICAL REVISION**: The adapter pattern in Section 14 is INCORRECT.
+
+**Correct Approach**: KMS should use template barrier EXACTLY like cipher-im does:
+- Import `cryptoutilAppsTemplateServiceServerBarrier` directly
+- Use `ServerBuilder` with `ServiceResources.BarrierService`
+- NO adapter needed - same pattern as cipher-im
+
+**Evidence from cipher-im**:
+```go
+import cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+// Uses res.BarrierService from ServerBuilder
+```
+
+**Tasks**:
+- Refactor Phase 1 tasks to use direct template barrier (not adapter)
+- Follow cipher-im pattern exactly
+- Delete `internal/kms/server/barrier/orm_barrier_adapter.go` (not needed)
+- Delete `internal/shared/barrier/` after migration
+
+### Phase 14: Post-Mortem and Documentation Audit
+
+**Objective**: Complete post-mortem of all changes
+
+**Tasks**:
+- Verify all ports match new standard across entire codebase
+- Verify all health paths use `/admin/api/v1/livez`
+- Run lint-ports validation
+- Update analysis-overview.md with final verified state
+- Update analysis-thorough.md with implementation details
+- Create comprehensive audit trail
+- Verify V8 success criteria met
+
+---
+
+## Success Criteria (Updated)
+
+- [ ] All services use admin port 9090
+- [ ] All services use standard health path `/admin/api/v1/livez`
+- [ ] All services use assigned container ports (8080, 8070, 8060, 8050, 8100-8130)
+- [ ] cicd lint-ports passes for entire codebase
+- [ ] KMS uses template barrier (zero shared/barrier imports)
+- [ ] shared/barrier directory deleted
+- [ ] All tests pass
+- [ ] Documentation matches implementation

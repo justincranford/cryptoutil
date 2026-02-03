@@ -165,7 +165,7 @@
 
 ## Phase 3.5: Realm Design Verification
 
-**Background**: Realms define authentication METHOD only, NOT data scoping. 
+**Background**: Realms define authentication METHOD only, NOT data scoping.
 - `tenant_id` = data isolation (ALL data queries filter by tenant_id)
 - `realm_id` = authentication method (HOW users authenticate)
 
@@ -479,3 +479,523 @@
 | 1.6: Update ServerBuilder Documentation | 3.1 | Marked "Not Started" in V7 |
 | 6.1-6.7: All Phase 6 Testing | 2.1-2.4 | All marked "Not Started" in V7 |
 | 7.1-7.4: All Phase 7 Documentation | 3.1-3.3 | All marked "Not Started" in V7 |
+
+---
+
+## Phase 9: pki-ca Health Path Standardization
+
+### Task 9.1: Update CA Server Admin Routes
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Phase 2 complete
+- **Description**: Update CA server to expose admin endpoints at `/admin/api/v1/*`
+- **Acceptance Criteria**:
+  - [ ] `/admin/api/v1/livez` endpoint exists
+  - [ ] `/admin/api/v1/readyz` endpoint exists
+  - [ ] Old `/livez` path removed or redirects
+  - [ ] CA server uses service-template admin pattern
+- **Files**:
+  - `internal/apps/ca/server/*.go`
+  - `internal/apps/pki/ca/server/*.go` (if moved)
+
+### Task 9.2: Update CA Compose Healthchecks
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 9.1
+- **Description**: Update all CA compose files to use standard health path
+- **Acceptance Criteria**:
+  - [ ] `deployments/ca/compose.yml` uses `/admin/api/v1/livez`
+  - [ ] `deployments/ca/compose.simple.yml` uses `/admin/api/v1/livez`
+  - [ ] All CA container healthchecks updated
+- **Files**:
+  - `deployments/ca/compose.yml`
+  - `deployments/ca/compose.simple.yml`
+
+### Task 9.3: Update CA Configuration Files
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 9.1
+- **Description**: Update CA config files for new admin paths
+- **Acceptance Criteria**:
+  - [ ] All CA YAML configs updated
+  - [ ] Admin server settings correct
+- **Files**:
+  - `deployments/ca/config/*.yml`
+  - `configs/ca/*.yml`
+
+### Task 9.4: Verify CA Tests Pass
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Tasks 9.1-9.3
+- **Description**: Run CA tests with new health paths
+- **Acceptance Criteria**:
+  - [ ] `go test ./internal/apps/ca/... -count=1` passes
+  - [ ] E2E tests with compose work
+- **Evidence**: test output
+
+---
+
+## Phase 10: jose-ja Admin Port Standardization
+
+### Task 10.1: Update JOSE Server Admin Port
+- **Status**: ❌ Not Started
+- **Estimated**: 1.5h
+- **Actual**:
+- **Dependencies**: Phase 2 complete
+- **Description**: Update JOSE server to use admin port 9090 instead of 9092
+- **Acceptance Criteria**:
+  - [ ] Admin server binds to port 9090
+  - [ ] Config defaults updated
+  - [ ] Magic constants updated if any
+- **Files**:
+  - `internal/apps/jose/ja/server/*.go`
+  - `internal/jose/server/*.go` (if exists)
+
+### Task 10.2: Update JOSE Compose Files
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 10.1
+- **Description**: Update JOSE compose with correct port 9090
+- **Acceptance Criteria**:
+  - [ ] Admin port mapping is 9090:9090
+  - [ ] Healthcheck uses port 9090
+  - [ ] Public port mapping is 8060:8060 (new)
+- **Files**:
+  - `deployments/jose/compose.yml`
+
+### Task 10.3: Update JOSE Configuration
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 10.1
+- **Description**: Update JOSE config files
+- **Acceptance Criteria**:
+  - [ ] Config files use port 9090 for admin
+  - [ ] Config files use port 8060 for public (new)
+- **Files**:
+  - `deployments/jose/config/*.yml`
+  - `configs/jose/*.yml`
+
+### Task 10.4: Verify JOSE Tests Pass
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Tasks 10.1-10.3
+- **Description**: Run JOSE tests with new ports
+- **Acceptance Criteria**:
+  - [ ] `go test ./internal/apps/jose/... -count=1` passes
+  - [ ] `go test ./internal/jose/... -count=1` passes (if exists)
+- **Evidence**: test output
+
+---
+
+## Phase 11: Port Range Standardization (All Services)
+
+### Task 11.1: Update cipher-im Port (8888 → 8070)
+- **Status**: ❌ Not Started
+- **Estimated**: 1.5h
+- **Actual**:
+- **Dependencies**: Phase 10 complete
+- **Description**: Change cipher-im from 8888 to 8070
+- **Acceptance Criteria**:
+  - [ ] Server code uses 8070
+  - [ ] Config files use 8070
+  - [ ] Compose uses 8070:8070, 8071:8070, 8072:8070
+  - [ ] All tests pass
+- **Files**:
+  - `internal/apps/cipher/im/server/*.go`
+  - `configs/cipher/im/*.yml`
+  - `cmd/cipher-im/docker-compose.yml`
+
+### Task 11.2: Update jose-ja Public Port (8092 → 8060)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 10.4
+- **Description**: Change jose-ja public port from 8092 to 8060
+- **Acceptance Criteria**:
+  - [ ] Server code uses 8060
+  - [ ] Config files use 8060
+  - [ ] Compose uses 8060:8060
+- **Files**:
+  - `internal/apps/jose/ja/server/*.go`
+  - `deployments/jose/compose.yml`
+
+### Task 11.3: Update pki-ca Public Port (8443 → 8050)
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 9.4
+- **Description**: Change pki-ca public port from 8443 to 8050
+- **Acceptance Criteria**:
+  - [ ] Server code uses 8050
+  - [ ] Config files use 8050
+  - [ ] Compose uses 8050:8050, 8051:8050, 8052:8050
+- **Files**:
+  - `internal/apps/ca/server/*.go`
+  - `deployments/ca/compose.yml`
+
+### Task 11.4: Update Architecture Documentation
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Tasks 11.1-11.3
+- **Description**: Update all architecture docs with new ports
+- **Acceptance Criteria**:
+  - [ ] docs/arch/ARCHITECTURE.md service catalog updated
+  - [ ] docs/arch/SERVICE-TEMPLATE.md updated
+- **Files**:
+  - `docs/arch/ARCHITECTURE.md`
+  - `docs/arch/SERVICE-TEMPLATE.md`
+
+### Task 11.5: Update Copilot Instructions
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Tasks 11.1-11.3
+- **Description**: Update instruction files with new port assignments
+- **Acceptance Criteria**:
+  - [ ] `.github/instructions/02-01.architecture.instructions.md` updated
+  - [ ] `.github/instructions/02-03.https-ports.instructions.md` updated
+  - [ ] Port table matches new standard
+- **Files**:
+  - `.github/instructions/02-01.architecture.instructions.md`
+  - `.github/instructions/02-03.https-ports.instructions.md`
+
+### Task 11.6: Update V8 Analysis Documents
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Tasks 11.1-11.5
+- **Description**: Update analysis docs with new port assignments
+- **Acceptance Criteria**:
+  - [ ] analysis-overview.md Section 11 updated
+  - [ ] analysis-thorough.md updated
+- **Files**:
+  - `docs/fixes-needed-plan-tasks-v8/analysis-overview.md`
+  - `docs/fixes-needed-plan-tasks-v8/analysis-thorough.md`
+
+---
+
+## Phase 12: CICD lint-ports Validation
+
+### Task 12.1: Create lint-ports Command Structure
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Phase 11 complete
+- **Description**: Create cicd lint-ports command skeleton
+- **Acceptance Criteria**:
+  - [ ] `internal/cmd/cicd/lint_ports/` directory exists
+  - [ ] Main command file with cobra integration
+  - [ ] Port constants defined (source of truth)
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+  - `internal/cmd/cicd/lint_ports/constants.go`
+
+### Task 12.2: Implement Code Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Task 12.1
+- **Description**: Validate ports in Go source files
+- **Acceptance Criteria**:
+  - [ ] Scans `internal/apps/*/` for port references
+  - [ ] Validates magic constants
+  - [ ] Reports violations
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/validate_code.go`
+
+### Task 12.3: Implement Config Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 1.5h
+- **Actual**:
+- **Dependencies**: Task 12.1
+- **Description**: Validate ports in YAML config files
+- **Acceptance Criteria**:
+  - [ ] Scans `configs/*/` for port references
+  - [ ] Validates bind_port settings
+  - [ ] Reports violations
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/validate_config.go`
+
+### Task 12.4: Implement Compose Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 1.5h
+- **Actual**:
+- **Dependencies**: Task 12.1
+- **Description**: Validate ports in compose files
+- **Acceptance Criteria**:
+  - [ ] Scans `deployments/*/compose*.yml`
+  - [ ] Validates port mappings
+  - [ ] Reports violations
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/validate_compose.go`
+
+### Task 12.5: Implement Documentation Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 12.1
+- **Description**: Validate ports in documentation
+- **Acceptance Criteria**:
+  - [ ] Scans `docs/arch/*.md`
+  - [ ] Scans `.github/instructions/*.md`
+  - [ ] Reports violations
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/validate_docs.go`
+
+### Task 12.6: Add lint-ports to Pre-commit
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Tasks 12.2-12.5
+- **Description**: Add lint-ports to pre-commit hooks
+- **Acceptance Criteria**:
+  - [ ] `.pre-commit-config.yaml` includes lint-ports
+  - [ ] Hook runs on relevant file changes
+- **Files**:
+  - `.pre-commit-config.yaml`
+
+### Task 12.7: Add lint-ports to CI/CD
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 12.6
+- **Description**: Add lint-ports to CI workflow
+- **Acceptance Criteria**:
+  - [ ] CI workflow runs lint-ports
+  - [ ] Fails build on violations
+- **Files**:
+  - `.github/workflows/ci-quality.yml`
+
+### Task 12.8: lint-ports Unit Tests
+- **Status**: ❌ Not Started
+- **Estimated**: 1.5h
+- **Actual**:
+- **Dependencies**: Tasks 12.2-12.5
+- **Description**: Write tests for lint-ports command
+- **Acceptance Criteria**:
+  - [ ] ≥95% coverage for lint_ports package
+  - [ ] Tests for each validation type
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/*_test.go`
+
+---
+
+## Phase 13: KMS Barrier Direct Migration (REVISED)
+
+**Note**: This REPLACES Phase 1 barrier approach. KMS uses template barrier directly like cipher-im.
+
+### Task 13.1: Study cipher-im Barrier Usage Pattern
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: None
+- **Description**: Document exactly how cipher-im uses template barrier
+- **Acceptance Criteria**:
+  - [ ] Import pattern documented
+  - [ ] ServerBuilder usage documented
+  - [ ] BarrierService access pattern documented
+- **Evidence**: Pattern documentation
+
+### Task 13.2: Refactor KMS to Use ServerBuilder
+- **Status**: ❌ Not Started
+- **Estimated**: 4h
+- **Actual**:
+- **Dependencies**: Task 13.1
+- **Description**: Refactor KMS server.go to use ServerBuilder like cipher-im
+- **Acceptance Criteria**:
+  - [ ] KMS imports `cryptoutilAppsTemplateServiceServerBuilder`
+  - [ ] KMS uses `builder.Build()` to get ServiceResources
+  - [ ] KMS uses `res.BarrierService` for barrier operations
+- **Files**:
+  - `internal/kms/server/server.go`
+
+### Task 13.3: Update KMS businesslogic.go
+- **Status**: ❌ Not Started
+- **Estimated**: 2h
+- **Actual**:
+- **Dependencies**: Task 13.2
+- **Description**: Update businesslogic to use template barrier
+- **Acceptance Criteria**:
+  - [ ] Import changed from `shared/barrier` to template barrier
+  - [ ] BarrierService parameter type matches template
+  - [ ] All encryption/decryption uses template barrier
+- **Files**:
+  - `internal/kms/server/businesslogic/businesslogic.go`
+
+### Task 13.4: Update KMS application_core.go
+- **Status**: ❌ Not Started
+- **Estimated**: 1.5h
+- **Actual**:
+- **Dependencies**: Task 13.3
+- **Description**: Update application_core to use template barrier
+- **Acceptance Criteria**:
+  - [ ] Import changed to template barrier
+  - [ ] BarrierService obtained from ServiceResources
+- **Files**:
+  - `internal/kms/server/application/application_core.go`
+
+### Task 13.5: Update KMS application_basic.go
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 13.4
+- **Description**: Update unseal service to use template pattern
+- **Acceptance Criteria**:
+  - [ ] Import changed from `shared/barrier/unsealkeysservice`
+  - [ ] Uses template unseal pattern
+- **Files**:
+  - `internal/kms/server/application/application_basic.go`
+
+### Task 13.6: Delete orm_barrier_adapter.go
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**:
+- **Dependencies**: Tasks 13.3-13.5
+- **Description**: Remove unused adapter file
+- **Acceptance Criteria**:
+  - [ ] `internal/kms/server/barrier/orm_barrier_adapter.go` deleted
+  - [ ] No references remain
+- **Files**:
+  - `internal/kms/server/barrier/orm_barrier_adapter.go` (DELETE)
+
+### Task 13.7: Verify Zero shared/barrier Imports
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**:
+- **Dependencies**: Task 13.6
+- **Description**: Verify no shared/barrier imports remain
+- **Acceptance Criteria**:
+  - [ ] `grep -r "shared/barrier" internal/kms/` returns empty
+  - [ ] Build passes
+- **Evidence**: grep output
+
+### Task 13.8: Run KMS Tests
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 13.7
+- **Description**: Verify all KMS tests pass after migration
+- **Acceptance Criteria**:
+  - [ ] `go test ./internal/kms/... -count=1` passes
+  - [ ] No test regressions
+- **Evidence**: test output
+
+### Task 13.9: Delete shared/barrier Directory
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 13.8
+- **Description**: Remove deprecated shared/barrier
+- **Acceptance Criteria**:
+  - [ ] `rm -rf internal/shared/barrier/` executed
+  - [ ] `go build ./...` passes
+  - [ ] All tests pass
+- **Evidence**: Directory gone, build clean
+
+---
+
+## Phase 14: Post-Mortem and Documentation Audit
+
+### Task 14.1: Run lint-ports Full Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Phase 12 complete
+- **Description**: Run lint-ports across entire codebase
+- **Acceptance Criteria**:
+  - [ ] `go run ./internal/cmd/cicd lint-ports` passes
+  - [ ] Zero violations
+- **Evidence**: lint output
+
+### Task 14.2: Verify All Health Paths
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Phases 9-13 complete
+- **Description**: Verify all services use `/admin/api/v1/livez`
+- **Acceptance Criteria**:
+  - [ ] sm-kms: `/admin/api/v1/livez`
+  - [ ] cipher-im: `/admin/api/v1/livez`
+  - [ ] jose-ja: `/admin/api/v1/livez`
+  - [ ] pki-ca: `/admin/api/v1/livez`
+- **Evidence**: grep output from compose files
+
+### Task 14.3: Update analysis-overview.md Final State
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Tasks 14.1-14.2
+- **Description**: Update analysis with verified final state
+- **Acceptance Criteria**:
+  - [ ] Section 11 shows new port assignments
+  - [ ] Section 14 shows barrier migration complete
+  - [ ] All sections accurate
+- **Files**:
+  - `docs/fixes-needed-plan-tasks-v8/analysis-overview.md`
+
+### Task 14.4: Update analysis-thorough.md
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Task 14.3
+- **Description**: Update thorough analysis with implementation details
+- **Acceptance Criteria**:
+  - [ ] All sections match implementation
+  - [ ] Code samples accurate
+- **Files**:
+  - `docs/fixes-needed-plan-tasks-v8/analysis-thorough.md`
+
+### Task 14.5: Full Build and Test Verification
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**:
+- **Dependencies**: Tasks 14.3-14.4
+- **Description**: Final verification of entire codebase
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` passes
+  - [ ] `go test ./... -count=1` passes
+  - [ ] `golangci-lint run` passes
+- **Evidence**: command outputs
+
+### Task 14.6: Commit Comprehensive Audit Trail
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**:
+- **Dependencies**: Task 14.5
+- **Description**: Create final commit with audit summary
+- **Acceptance Criteria**:
+  - [ ] Conventional commit message
+  - [ ] Lists all phases completed
+  - [ ] References task IDs
+- **Evidence**: git log
+
+---
+
+## Summary Statistics (Updated)
+
+| Phase | Tasks | Completed | Percentage |
+|-------|-------|-----------|------------|
+| Phase 1: Barrier Integration | 5 | 0 | 0% |
+| Phase 2: Testing | 4 | 0 | 0% |
+| Phase 3: Documentation | 3 | 0 | 0% |
+| Phase 3.5: Realm Verification | 5 | 1 | 20% |
+| Phase 4: Delete shared/barrier | 2 | 0 | 0% |
+| Phase 5: Mutation Testing | 2 | 0 | 0% |
+| Phase 6: sm-kms Structure | 6 | 0 | 0% |
+| Phase 7: jose-ja Consolidation | 4 | 0 | 0% |
+| Phase 8: pki-ca Renaming | 3 | 0 | 0% |
+| Phase 9: pki-ca Health Paths | 4 | 0 | 0% |
+| Phase 10: jose-ja Admin Port | 4 | 0 | 0% |
+| Phase 11: Port Standardization | 6 | 0 | 0% |
+| Phase 12: CICD lint-ports | 8 | 0 | 0% |
+| Phase 13: KMS Direct Migration | 9 | 0 | 0% |
+| Phase 14: Post-Mortem | 6 | 0 | 0% |
+| **Total** | **71** | **1** | **1.4%** |
