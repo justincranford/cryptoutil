@@ -1,7 +1,7 @@
 # Tasks - Complete KMS Migration (V8)
 
-**Status**: 1 of 23 tasks complete (4%)
-**Last Updated**: 2026-02-03
+**Status**: 1 of 71 tasks complete (1.4%)
+**Last Updated**: 2026-02-14
 **Purpose**: Complete the ACTUAL remaining work from V7
 
 ## Testing Strategy (from Executive Decisions)
@@ -12,70 +12,15 @@
 
 ---
 
-## Phase 1: Barrier Integration
+## ~~Phase 1: Barrier Integration~~ **SUPERSEDED BY PHASE 13**
 
-### Task 1.1: Update KMS businesslogic.go to Use Template Barrier
-- **Status**: ❌ Not Started
-- **Estimated**: 2h
-- **Actual**:
-- **Dependencies**: None
-- **Description**: Replace shared/barrier import with template barrier in businesslogic.go
-- **Acceptance Criteria**:
-  - [ ] Import changed from `cryptoutil/internal/shared/barrier` to template barrier
-  - [ ] Use orm_barrier_adapter.go to bridge interfaces
-  - [ ] All businesslogic tests pass
-- **Files**:
-  - `internal/kms/server/businesslogic/businesslogic.go`
-  - `internal/kms/server/businesslogic/businesslogic_test.go`
+**NOTE**: Phase 1 tasks 1.1-1.5 used INCORRECT adapter approach. 
+**SEE PHASE 13** for the CORRECT direct migration (like cipher-im, NO adapter).
 
-### Task 1.2: Update KMS application_core.go to Use Template Barrier
-- **Status**: ❌ Not Started
-- **Estimated**: 1.5h
-- **Actual**:
-- **Dependencies**: Task 1.1
-- **Description**: Initialize template barrier instead of shared/barrier in application_core.go
-- **Acceptance Criteria**:
-  - [ ] Import changed to template barrier
-  - [ ] BarrierService initialized via template
-  - [ ] KMS builds successfully
-- **Files**:
-  - `internal/kms/server/application/application_core.go`
-
-### Task 1.3: Update KMS application_basic.go to Use Template UnsealKeysService
-- **Status**: ❌ Not Started
-- **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 1.2
-- **Description**: Replace shared/barrier/unsealkeysservice with template equivalent
-- **Acceptance Criteria**:
-  - [ ] Import changed to template unsealkeysservice
-  - [ ] Unseal workflow works
-- **Files**:
-  - `internal/kms/server/application/application_basic.go`
-
-### Task 1.4: Remove TODO Comments from server.go
-- **Status**: ❌ Not Started
-- **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Tasks 1.1-1.3
-- **Description**: Remove the 3 TODO(Phase2-5) comments after migration complete
-- **Acceptance Criteria**:
-  - [ ] All 3 TODOs removed
-  - [ ] Migration actually complete (not just comments removed)
-- **Files**:
-  - `internal/kms/server/server.go`
-
-### Task 1.5: Verify Zero shared/barrier Imports
-- **Status**: ❌ Not Started
-- **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Tasks 1.1-1.4
-- **Description**: Verify no shared/barrier imports remain in KMS
-- **Acceptance Criteria**:
-  - [ ] `grep -r "shared/barrier" internal/kms/` returns empty
-  - [ ] Build passes
-  - [ ] All tests pass
-- **Evidence**: grep command output
+### ~~Task 1.1-1.5: SUPERSEDED~~
+- **Status**: ⏭️ SUPERSEDED by Phase 13
+- **Reason**: Phase 1 incorrectly recommended using `orm_barrier_adapter.go` to bridge interfaces
+- **Correct Approach**: Use template barrier DIRECTLY like cipher-im (Phase 13 tasks)
 
 ---
 
@@ -979,23 +924,25 @@
 
 ---
 
-## Summary Statistics (Updated)
+## Summary Statistics (Updated 2026-02-14)
 
-| Phase | Tasks | Completed | Percentage |
-|-------|-------|-----------|------------|
-| Phase 1: Barrier Integration | 5 | 0 | 0% |
-| Phase 2: Testing | 4 | 0 | 0% |
-| Phase 3: Documentation | 3 | 0 | 0% |
-| Phase 3.5: Realm Verification | 5 | 1 | 20% |
-| Phase 4: Delete shared/barrier | 2 | 0 | 0% |
-| Phase 5: Mutation Testing | 2 | 0 | 0% |
-| Phase 6: sm-kms Structure | 6 | 0 | 0% |
-| Phase 7: jose-ja Consolidation | 4 | 0 | 0% |
-| Phase 8: pki-ca Renaming | 3 | 0 | 0% |
-| Phase 9: pki-ca Health Paths | 4 | 0 | 0% |
-| Phase 10: jose-ja Admin Port | 4 | 0 | 0% |
-| Phase 11: Port Standardization | 6 | 0 | 0% |
-| Phase 12: CICD lint-ports | 8 | 0 | 0% |
-| Phase 13: KMS Direct Migration | 9 | 0 | 0% |
-| Phase 14: Post-Mortem | 6 | 0 | 0% |
-| **Total** | **71** | **1** | **1.4%** |
+| Phase | Tasks | Completed | Percentage | Notes |
+|-------|-------|-----------|------------|-------|
+| ~~Phase 1: Barrier Integration~~ | ~~5~~ | N/A | N/A | SUPERSEDED by Phase 13 |
+| Phase 2: Testing | 4 | 0 | 0% | |
+| Phase 3: Documentation | 3 | 0 | 0% | |
+| Phase 3.5: Realm Verification | 5 | 1 | 20% | |
+| Phase 4: Delete shared/barrier | 2 | 0 | 0% | |
+| Phase 5: Mutation Testing | 2 | 0 | 0% | |
+| Phase 6: sm-kms Structure | 6 | 0 | 0% | |
+| Phase 7: jose-ja Consolidation | 4 | 0 | 0% | |
+| Phase 8: pki-ca Renaming | 3 | 0 | 0% | |
+| Phase 9: pki-ca Health Paths | 4 | 0 | 0% | |
+| Phase 10: jose-ja Admin Port | 4 | 0 | 0% | |
+| Phase 11: Port Standardization | 6 | 0 | 0% | |
+| Phase 12: CICD lint-ports | 8 | 0 | 0% | |
+| Phase 13: KMS Direct Migration | 9 | 0 | 0% | Replaces Phase 1 |
+| Phase 14: Post-Mortem | 6 | 0 | 0% | |
+| **Total** | **66** | **1** | **1.5%** | Phase 1 excluded |
+
+**Execution Order**: Phase 13 (KMS barrier) → Phase 2-5 → Phase 6-8 → Phase 9-12 → Phase 14
