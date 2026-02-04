@@ -11,7 +11,7 @@ import (
 	"time"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
+	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

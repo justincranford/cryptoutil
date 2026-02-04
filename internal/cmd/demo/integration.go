@@ -24,7 +24,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
-	cryptoutilServerApplication "cryptoutil/internal/kms/server/application"
+	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 

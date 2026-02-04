@@ -362,11 +362,11 @@ linters:
         - pkg: "cryptoutil/internal/common/crypto/keygen"
           alias: cryptoutilKeyGen
         # Cryptoutil KMS
-        - pkg: "cryptoutil/internal/kms/server/application"
+        - pkg: "cryptoutil/internal/apps/sm/kms/server/application"
           alias: cryptoutilServerApplication
-        - pkg: "cryptoutil/internal/kms/businesslogic"
+        - pkg: "cryptoutil/internal/apps/sm/kms/businesslogic"
           alias: cryptoutilBusinessLogic
-        - pkg: "cryptoutil/internal/kms/handler"
+        - pkg: "cryptoutil/internal/apps/sm/kms/handler"
           alias: cryptoutilOpenapiHandler
         - pkg: "cryptoutil/internal/shared/barrier"
           alias: cryptoutilBarrierService
@@ -378,19 +378,19 @@ linters:
           alias: cryptoutilRootKeysService
         - pkg: "cryptoutil/internal/shared/barrier/unsealkeysservice"
           alias: cryptoutilUnsealKeysService
-        - pkg: "cryptoutil/internal/kms/server/repository/orm"
+        - pkg: "cryptoutil/internal/apps/sm/kms/server/repository/orm"
           alias: cryptoutilOrmRepository
-        - pkg: "cryptoutil/internal/kms/server/repository/sqlrepository"
+        - pkg: "cryptoutil/internal/apps/sm/kms/server/repository/sqlrepository"
           alias: cryptoutilSQLRepository
-        - pkg: "cryptoutil/internal/kms/client"
+        - pkg: "cryptoutil/internal/apps/sm/kms/client"
           alias: cryptoutilKmsClient
-        - pkg: "cryptoutil/internal/kms/cmd"
+        - pkg: "cryptoutil/internal/apps/sm/kms/cmd"
           alias: cryptoutilKmsCmd
-        - pkg: "cryptoutil/internal/kms/server/businesslogic"
+        - pkg: "cryptoutil/internal/apps/sm/kms/server/businesslogic"
           alias: cryptoutilKmsServerBusinesslogic
-        - pkg: "cryptoutil/internal/kms/server/demo"
+        - pkg: "cryptoutil/internal/apps/sm/kms/server/demo"
           alias: cryptoutilKmsServerDemo
-        - pkg: "cryptoutil/internal/kms/server/handler"
+        - pkg: "cryptoutil/internal/apps/sm/kms/server/handler"
           alias: cryptoutilKmsServerHandler
         # Cryptoutil template
         - pkg: "cryptoutil/internal/template/server"

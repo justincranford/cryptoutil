@@ -18,7 +18,7 @@ import (
 	cryptoutilCmdCryptoutilRp "cryptoutil/internal/cmd/cryptoutil/rp"
 	cryptoutilCmdCryptoutilRs "cryptoutil/internal/cmd/cryptoutil/rs"
 	cryptoutilCmdCryptoutilSpa "cryptoutil/internal/cmd/cryptoutil/spa"
-	cryptoutilKmsCmd "cryptoutil/internal/kms/cmd"
+	cryptoutilKmsCmd "cryptoutil/internal/apps/sm/kms/cmd"
 )
 
 // Execute runs the cryptoutil command-line interface.
