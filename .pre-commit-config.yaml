@@ -225,6 +225,15 @@ repos:
         require_serial: false
         stages: [pre-commit]
 
+      - id: lint-ports
+        name: Detect legacy port usage in codebase
+        entry: go
+        args: [run, cmd/cicd/main.go, lint-ports]
+        language: system
+        pass_filenames: false
+        require_serial: false
+        stages: [manual]  # Run manually until all violations fixed
+
       - id: cicd-enforce-internal
         name: Run custom CI/CD enforcement (text-utf8, go-formatters, test-patterns)
         entry: powershell

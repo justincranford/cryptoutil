@@ -101,3 +101,16 @@ runs:
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ Direct dependencies check completed in: ${DURATION}s"
+
+    - name: Check port assignments (informational)
+      shell: bash
+      continue-on-error: true  # Informational until all violations fixed
+      run: |
+        echo "🔌 Checking port assignments..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd lint-ports || echo "⚠️ Port violations found (informational - does not fail build)"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Port assignment check completed in: ${DURATION}s"
