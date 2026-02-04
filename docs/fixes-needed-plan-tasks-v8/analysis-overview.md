@@ -177,11 +177,11 @@ TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 | cipher-im | **8070** | 8070-8079 | 9090 | ✅ Complete |
 | jose-ja | **8060** | 8060-8069 | **9090** | ✅ Complete |
 | pki-ca | **8050** | 8050-8059 | 9090 | ✅ Complete |
-| identity-authz | 18000 | 18000-18009 | 9090 | Planned |
-| identity-idp | 18100 | 18100-18109 | 9090 | Planned |
-| identity-rs | 18200 | 18200-18209 | 9090 | Planned |
-| identity-rp | 18300 | 18300-18309 | 9090 | Planned |
-| identity-spa | 18400 | 18400-18409 | 9090 | Planned |
+| identity-authz | 8100 | 8100-18009 | 9090 | Planned |
+| identity-idp | 8100 | 8100-18109 | 9090 | Planned |
+| identity-rs | 8110 | 8110-18209 | 9090 | Planned |
+| identity-rp | 8120 | 8120-18309 | 9090 | Planned |
+| identity-spa | 8130 | 8130-18409 | 9090 | Planned |
 
 ### Key Changes Implemented (V8 Phases 9-14)
 

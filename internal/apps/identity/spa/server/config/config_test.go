@@ -64,11 +64,11 @@ func TestValidateIdentitySPASettings_RPOriginFormat(t *testing.T) {
 		rpOrigin  string
 		wantError bool
 	}{
-		{"valid_https", "https://localhost:18300", false},
-		{"valid_http", "http://localhost:18300", false},
+		{"valid_https", "https://localhost:8120", false},
+		{"valid_http", "http://localhost:8120", false},
 		{"valid_with_path", "https://example.com:8080", false},
-		{"invalid_no_scheme", "localhost:18300", true},
-		{"invalid_ftp_scheme", "ftp://localhost:18300", true},
+		{"invalid_no_scheme", "localhost:8120", true},
+		{"invalid_ftp_scheme", "ftp://localhost:8120", true},
 		{"empty_allowed", "", false},
 	}
 

@@ -32,11 +32,11 @@ type IdentityRPServerSettings struct {
 
 // Identity-RP specific default values.
 const (
-	defaultAuthzServerURL = "https://localhost:18000" // Default authorization server URL.
+	defaultAuthzServerURL = "https://localhost:8100" // Default authorization server URL.
 	defaultClientID       = ""                        // Must be configured.
 	defaultClientSecret   = ""                        // Must be configured via Docker secret.
 	defaultRedirectURI    = ""                        // Must be configured.
-	defaultSPAOrigin      = "https://localhost:18400" // Default SPA origin.
+	defaultSPAOrigin      = "https://localhost:8130" // Default SPA origin.
 	defaultSessionSecret  = ""                        // Must be configured via Docker secret.
 )
 

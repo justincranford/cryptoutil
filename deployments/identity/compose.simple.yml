@@ -10,9 +10,9 @@
 # - demo-user / demo-password (User login)
 #
 # Demo endpoints:
-# - AuthZ Server: https://localhost:8082
-# - Token Endpoint: https://localhost:8082/oauth2/token
-# - JWKS Endpoint: https://localhost:8082/.well-known/jwks.json
+# - AuthZ Server: https://localhost:8100
+# - Token Endpoint: https://localhost:8100/oauth2/token
+# - JWKS Endpoint: https://localhost:8100/.well-known/jwks.json
 # - Grafana: http://localhost:3000 (admin/admin)
 
 name: cryptoutil-identity-demo
@@ -36,7 +36,7 @@ services:
     command:
       - --config=/etc/identity/authz-demo.yml
     ports:
-      - "8082:8082"  # AuthZ API (HTTP)
+      - "8100:8100"  # AuthZ API (HTTPS)
     volumes:
       - ./config/authz-demo.yml:/etc/identity/authz-demo.yml:ro
     environment:
@@ -51,7 +51,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:8082/health
+        - https://127.0.0.1:8100/health
       interval: 10s
       timeout: 5s
       retries: 5
@@ -86,7 +86,7 @@ services:
     command:
       - --config=/etc/identity/idp-demo.yml
     ports:
-      - "8083:8083"  # IdP API (HTTP)
+      - "8101:8100"  # IdP API (HTTPS) - uses different host port to avoid conflict with authz
     volumes:
       - ./config/idp-demo.yml:/etc/identity/idp-demo.yml:ro
     environment:
@@ -101,7 +101,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:8083/health
+        - https://127.0.0.1:8100/health
       interval: 10s
       timeout: 5s
       retries: 5
@@ -136,7 +136,7 @@ services:
     command:
       - --config=/etc/identity/rs-demo.yml
     ports:
-      - "8084:8084"  # RS API (HTTP)
+      - "8110:8110"  # RS API (HTTPS)
     volumes:
       - ./config/rs-demo.yml:/etc/identity/rs-demo.yml:ro
     environment:
@@ -151,7 +151,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:8084/health
+        - https://127.0.0.1:8110/health
       interval: 10s
       timeout: 5s
       retries: 5

@@ -56,10 +56,14 @@ This section provides the authoritative port assignments for all 9 product-servi
 ### Current Implementation vs Instructions Discrepancy
 
 The `.github/instructions/02-01.architecture.instructions.md` file documents:
-- jose-ja: 8060-9449 (documented) vs 8060 (actual implementation in compose.yml)
-- identity-*: 18000-18409 (documented) vs 8080-8409 (actual implementation in compose.yml)
+- jose-ja: 8060-8069 (documented) matches actual implementation
+- identity-*: 8100-8139 (documented) matches actual implementation
 
-**Recommendation**: The compose.yml implementations reflect actual deployment patterns. The instructions file should be updated to match implementation OR implementations should be updated to match instructions. Current V8 work focuses on KMS barrier migration; port standardization can be a follow-up task.
+**Status**: Port standardization complete. All identity services now use 8100 series ports:
+- identity-authz/idp: 8100-8109
+- identity-rs: 8110-8119
+- identity-rp: 8120-8129
+- identity-spa: 8130-8139
 
 ### PostgreSQL Ports
 

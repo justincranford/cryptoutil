@@ -709,7 +709,7 @@ services:
 
     ports:
 
-      - "18000:18000"  # OAuth 2.1 authorization endpoints (config uses 18000)
+      - "8100:8100"  # OAuth 2.1 authorization endpoints (config uses 8100)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
@@ -788,7 +788,7 @@ services:
 
     ports:
 
-      - "18100:18100"  # OIDC identity provider endpoints (config uses 18100)
+      - "8100:8100"  # OIDC identity provider endpoints (config uses 8100)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:

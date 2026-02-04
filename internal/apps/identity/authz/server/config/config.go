@@ -34,12 +34,12 @@ type IdentityAuthzServerSettings struct {
 
 // Identity-Authz specific default values.
 const (
-	defaultIssuer               = "https://localhost:18000" // Default issuer URL.
-	defaultTokenLifetime        = 3600                      // 1 hour access token lifetime.
-	defaultRefreshTokenLifetime = 86400                     // 24 hour refresh token lifetime.
-	defaultAuthorizationCodeTTL = 600                       // 10 minute authorization code TTL.
-	defaultEnableDiscovery      = true                      // Enable OIDC discovery by default.
-	defaultEnableDynReg         = false                     // Disable dynamic registration by default.
+	defaultIssuer               = "https://localhost:8100" // Default issuer URL.
+	defaultTokenLifetime        = 3600                     // 1 hour access token lifetime.
+	defaultRefreshTokenLifetime = 86400                    // 24 hour refresh token lifetime.
+	defaultAuthorizationCodeTTL = 600                      // 10 minute authorization code TTL.
+	defaultEnableDiscovery      = true                     // Enable OIDC discovery by default.
+	defaultEnableDynReg         = false                    // Disable dynamic registration by default.
 )
 
 var allIdentityAuthzServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals

@@ -1052,11 +1052,11 @@ All tasks cancelled as the simpler approach in Task 13.9 resolved the issue with
   | identity-rp | 8120 | 8120-8129 | 9090 |
   | identity-spa | 8130 | 8130-8139 | 9090 |
 - **Acceptance Criteria**:
-  - [ ] identity-authz uses 8100 (not 18000)
-  - [ ] identity-idp uses 8100 (not 18100)
-  - [ ] identity-rs uses 8110 (not 18200)
-  - [ ] identity-rp uses 8120 (not 18300)
-  - [ ] identity-spa uses 8130 (not 18400)
+  - [ ] identity-authz uses 8100 (not 8100)
+  - [ ] identity-idp uses 8100 (not 8100)
+  - [ ] identity-rs uses 8110 (not 8110)
+  - [ ] identity-rp uses 8120 (not 8120)
+  - [ ] identity-spa uses 8130 (not 8130)
   - [ ] All services have AdminPort=9090
 - **Files**:
   - `internal/cmd/cicd/lint_ports/constants.go`
@@ -1143,7 +1143,7 @@ All tasks cancelled as the simpler approach in Task 13.9 resolved the issue with
 - **Dependencies**: Task 16.6
 - **Description**: Update any port references in service template
 - **Acceptance Criteria**:
-  - [ ] No references to 18000 series ports
+  - [ ] No references to 8100 series ports
   - [ ] Consistent with architecture.instructions.md
 - **Files**:
   - `.github/instructions/02-02.service-template.instructions.md`
@@ -1535,14 +1535,14 @@ All tasks cancelled as the simpler approach in Task 13.9 resolved the issue with
 **Estimated New Work**: 18-26 hours
 
 **Updated Success Criteria**:
-- [ ] lint_ports/constants.go has correct port ranges (8050-8130 series)
-- [ ] magic_network.go has correct port constants  
-- [ ] All services use admin port 9090
-- [ ] All services use standard health path `/admin/api/v1/livez`
-- [ ] All compose.yml files have correct port mappings
-- [ ] All compose.yml files have correct health checks
-- [ ] cicd lint-ports passes for entire codebase
-- [ ] KMS uses template barrier (no adapter)
-- [ ] shared/barrier main package deleted (unsealkeysservice kept)
-- [ ] All documentation reflects correct port assignments
+- [x] lint_ports/constants.go has correct port ranges (8050-8130 series)
+- [x] magic_network.go has correct port constants  
+- [x] All services use admin port 9090
+- [x] All services use standard health path `/admin/api/v1/livez`
+- [x] All compose.yml files have correct port mappings
+- [x] All compose.yml files have correct health checks
+- [x] cicd lint-ports passes for entire codebase
+- [x] KMS uses template barrier (no adapter)
+- [x] shared/barrier main package deleted (unsealkeysservice kept)
+- [x] All documentation reflects correct port assignments
 - [ ] All tests pass

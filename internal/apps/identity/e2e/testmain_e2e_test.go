@@ -27,11 +27,11 @@ var (
 	spaContainer   = cryptoutilSharedMagic.IdentityE2ESPAContainer   // "identity-spa-e2e"
 
 	// Service URLs (mapped from container ports to host ports).
-	authzPublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2EAuthzPublicPort) // "https://127.0.0.1:18000"
-	idpPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2EIDPPublicPort)   // "https://127.0.0.1:18100"
-	rsPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ERSPublicPort)    // "https://127.0.0.1:18200"
-	rpPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ERPPublicPort)    // "https://127.0.0.1:18300"
-	spaPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ESPAPublicPort)   // "https://127.0.0.1:18400"
+	authzPublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2EAuthzPublicPort) // "https://127.0.0.1:8100"
+	idpPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2EIDPPublicPort)   // "https://127.0.0.1:8100"
+	rsPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ERSPublicPort)    // "https://127.0.0.1:8110"
+	rpPublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ERPPublicPort)    // "https://127.0.0.1:8120"
+	spaPublicURL   = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.IdentityE2ESPAPublicPort)   // "https://127.0.0.1:8130"
 
 	healthChecks = map[string]string{
 		authzContainer: authzPublicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint,

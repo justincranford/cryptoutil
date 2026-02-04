@@ -48,37 +48,37 @@ var ServicePorts = map[string]ServicePortConfig{
 	},
 	"identity-authz": {
 		Name:          "identity-authz",
-		PublicPorts:   []uint16{18000},
+		PublicPorts:   []uint16{8100},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{},
+		LegacyPorts:   []uint16{18000}, // Old 18000 series - now using 8100 series.
 		MagicConstant: "IdentityAuthzServicePort",
 	},
 	"identity-idp": {
 		Name:          "identity-idp",
-		PublicPorts:   []uint16{18100},
+		PublicPorts:   []uint16{8100}, // Same as authz per spec (8100-8109 range).
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{},
+		LegacyPorts:   []uint16{18100}, // Old 18000 series - now using 8100 series.
 		MagicConstant: "IdentityIdpServicePort",
 	},
 	"identity-rs": {
 		Name:          "identity-rs",
-		PublicPorts:   []uint16{18200},
+		PublicPorts:   []uint16{8110},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{},
+		LegacyPorts:   []uint16{18200}, // Old 18000 series - now using 8100 series.
 		MagicConstant: "IdentityRsServicePort",
 	},
 	"identity-rp": {
 		Name:          "identity-rp",
-		PublicPorts:   []uint16{18300},
+		PublicPorts:   []uint16{8120},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{},
+		LegacyPorts:   []uint16{18300}, // Old 18000 series - now using 8100 series.
 		MagicConstant: "IdentityRpServicePort",
 	},
 	"identity-spa": {
 		Name:          "identity-spa",
-		PublicPorts:   []uint16{18400},
+		PublicPorts:   []uint16{8130},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{},
+		LegacyPorts:   []uint16{18400}, // Old 18000 series - now using 8100 series.
 		MagicConstant: "IdentitySpaServicePort",
 	},
 }

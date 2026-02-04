@@ -89,43 +89,49 @@ const (
 )
 
 // Identity service port and OTLP constants.
+// Port ranges per user specification:
+// - identity-authz: 8100-8109 (shares with idp)
+// - identity-idp: 8100-8109 (shares with authz)
+// - identity-rs: 8110-8119
+// - identity-rp: 8120-8129
+// - identity-spa: 8130-8139
 const (
-	// OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
-	OTLPServiceIdentityAuthz = "identity-authz"
+        // OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
+        OTLPServiceIdentityAuthz = "identity-authz"
 
-	// IdentityAuthzServicePort is the default public port for identity-authz service.
-	IdentityAuthzServicePort = uint16(18000)
+        // IdentityAuthzServicePort is the default public port for identity-authz service.
+        IdentityAuthzServicePort = uint16(8100)
 
-	// OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
-	OTLPServiceIdentityIDP = "identity-idp"
+        // OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
+        OTLPServiceIdentityIDP = "identity-idp"
 
-	// IdentityIDPServicePort is the default public port for identity-idp service.
-	IdentityIDPServicePort = uint16(18100)
+        // IdentityIDPServicePort is the default public port for identity-idp service.
+        // Same as authz (8100) per specification - both share 8100-8109 range.
+        IdentityIDPServicePort = uint16(8100)
 
-	// OTLPServiceIdentityRS is the OTLP service name for identity-rs.
-	OTLPServiceIdentityRS = "identity-rs"
+        // OTLPServiceIdentityRS is the OTLP service name for identity-rs.
+        OTLPServiceIdentityRS = "identity-rs"
 
-	// IdentityRSServicePort is the default public port for identity-rs service.
-	IdentityRSServicePort = uint16(18200)
+        // IdentityRSServicePort is the default public port for identity-rs service.
+        IdentityRSServicePort = uint16(8110)
 
-	// OTLPServiceIdentityRP is the OTLP service name for identity-rp.
-	OTLPServiceIdentityRP = "identity-rp"
+        // OTLPServiceIdentityRP is the OTLP service name for identity-rp.
+        OTLPServiceIdentityRP = "identity-rp"
 
-	// IdentityRPServicePort is the default public port for identity-rp service.
-	IdentityRPServicePort = uint16(18300)
+        // IdentityRPServicePort is the default public port for identity-rp service.
+        IdentityRPServicePort = uint16(8120)
 
-	// OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
-	OTLPServiceIdentitySPA = "identity-spa"
+        // OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
+        OTLPServiceIdentitySPA = "identity-spa"
 
-	// IdentitySPAServicePort is the default public port for identity-spa service.
-	IdentitySPAServicePort = uint16(18400)
+        // IdentitySPAServicePort is the default public port for identity-spa service.
+        IdentitySPAServicePort = uint16(8130)
 )
 
 // E2E Test Configuration for identity services.
 const (
 	// IdentityE2EComposeFile is the path to the identity docker compose file (relative from e2e test directory).
 	// Path: internal/apps/identity/e2e → ../../../../deployments/identity/compose.e2e.yml
-	// Levels: e2e→identity(1)→apps(2)→internal(3)→cryptoutil(4), then deployments/identity.
 	IdentityE2EComposeFile = "../../../../deployments/identity/compose.e2e.yml"
 
 	// IdentityE2EAuthzContainer is the identity-authz container name.
@@ -152,20 +158,19 @@ const (
 	IdentityE2EHealthPollInterval = 2 * time.Second
 
 	// IdentityE2EAuthzPublicPort is the identity-authz E2E public HTTPS port.
-	IdentityE2EAuthzPublicPort = 18000
+        IdentityE2EAuthzPublicPort = 8100
 
-	// IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
-	IdentityE2EIDPPublicPort = 18100
+        // IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
+        IdentityE2EIDPPublicPort = 8100
 
-	// IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
-	IdentityE2ERSPublicPort = 18200
+        // IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
+        IdentityE2ERSPublicPort = 8110
 
-	// IdentityE2ERPPublicPort is the identity-rp E2E public HTTPS port.
-	IdentityE2ERPPublicPort = 18300
+        // IdentityE2ERPPublicPort is the identity-rp E2E public HTTPS port.
+        IdentityE2ERPPublicPort = 8120
 
-	// IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
-	IdentityE2ESPAPublicPort = 18400
-
+        // IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
+        IdentityE2ESPAPublicPort = 8130
 	// IdentityE2EHealthEndpoint is the public health check endpoint.
 	// Uses /health for liveness checks (matches cipher-im pattern).
 	IdentityE2EHealthEndpoint = "/health"

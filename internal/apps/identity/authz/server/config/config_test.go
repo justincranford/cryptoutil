@@ -40,10 +40,10 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 18000, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8100, false)
 
 	require.NotNil(t, cfg)
-	require.Equal(t, uint16(18000), cfg.BindPublicPort)
+	require.Equal(t, uint16(8100), cfg.BindPublicPort)
 	require.False(t, cfg.DevMode, "Should not be in dev mode")
 }
 
@@ -73,10 +73,10 @@ func TestValidateIdentityAuthzSettings_IssuerFormat(t *testing.T) {
 		issuer    string
 		wantError bool
 	}{
-		{"valid_https", "https://localhost:18000", false},
-		{"valid_http", "http://localhost:18000", false},
-		{"invalid_no_scheme", "localhost:18000", true},
-		{"invalid_ftp_scheme", "ftp://localhost:18000", true},
+		{"valid_https", "https://localhost:8100", false},
+		{"valid_http", "http://localhost:8100", false},
+		{"invalid_no_scheme", "localhost:8100", true},
+		{"invalid_ftp_scheme", "ftp://localhost:8100", true},
 		{"empty_issuer", "", true},
 	}
 

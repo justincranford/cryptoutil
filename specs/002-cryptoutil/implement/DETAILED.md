@@ -3900,12 +3900,12 @@ Net change: +28 insertions, -39 deletions (-11 lines total)
 # BEFORE (nested - WRONG)
 authz:                            # Viper can't find keys here
   bind-public-address: 0.0.0.0
-  bind-public-port: 18000
+  bind-public-port: 8100
 
 # AFTER (flat - CORRECT)
 # Bind configuration (FLAT structure - viper expects root-level keys)
 bind-public-address: 0.0.0.0      # Viper finds at root level ✅
-bind-public-port: 18000
+bind-public-port: 8100
 ```
 
 **Validation Evidence**:
@@ -3913,19 +3913,19 @@ bind-public-port: 18000
 Container Logs Verified (all 5 services):
 ```bash
 # AuthZ
-Public Server: https://0.0.0.0:18000  ✅ (was 127.0.0.1)
+Public Server: https://0.0.0.0:8100  ✅ (was 127.0.0.1)
 
 # IdP
-Public Server: https://0.0.0.0:18100  ✅ (was 127.0.0.1)
+Public Server: https://0.0.0.0:8100  ✅ (was 127.0.0.1)
 
 # RP
-Public Server: https://0.0.0.0:18300  ✅ (was 127.0.0.1)
+Public Server: https://0.0.0.0:8120  ✅ (was 127.0.0.1)
 
 # RS
-Public Server: https://0.0.0.0:18200  ✅ (was 127.0.0.1)
+Public Server: https://0.0.0.0:8110  ✅ (was 127.0.0.1)
 
 # SPA
-Public Server: https://0.0.0.0:18400  ✅ (was 127.0.0.1)
+Public Server: https://0.0.0.0:8130  ✅ (was 127.0.0.1)
 ```
 
 **Test Results - MAJOR SUCCESS**:
@@ -3935,11 +3935,11 @@ E2E Test Execution (`go test -v -timeout=10m ./internal/apps/identity/e2e`):
 Duration: 5.128 seconds (was 254 seconds timeout - 50x faster)
 
 Health Checks:
-[WaitForHealth] SUCCESS for https://127.0.0.1:18000/health after 1 attempts ✅
-[WaitForHealth] SUCCESS for https://127.0.0.1:18100/health after 1 attempts ✅
-[WaitForHealth] SUCCESS for https://127.0.0.1:18200/health after 1 attempts ✅
-[WaitForHealth] SUCCESS for https://127.0.0.1:18300/health after 1 attempts ✅
-[WaitForHealth] SUCCESS for https://127.0.0.1:18400/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:8100/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:8100/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:8110/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:8120/health after 1 attempts ✅
+[WaitForHealth] SUCCESS for https://127.0.0.1:8130/health after 1 attempts ✅
 
 Tests Passing: 9/12 (75%)
 

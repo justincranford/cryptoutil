@@ -138,7 +138,7 @@ func TestE2E_CORS_Headers(t *testing.T) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodOptions, corsURL, nil)
 	require.NoError(t, err, "Creating CORS preflight request should succeed")
 
-	req.Header.Set("Origin", "https://localhost:18400")
+	req.Header.Set("Origin", "https://localhost:8130")
 	req.Header.Set("Access-Control-Request-Method", "POST")
 	req.Header.Set("Access-Control-Request-Headers", "Content-Type")
 

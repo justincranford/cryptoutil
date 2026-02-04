@@ -5,23 +5,28 @@
 package config
 
 // Default ports.
+// Port ranges per user specification:
+// - identity-authz: 8100-8109 (shares with idp)
+// - identity-idp: 8100-8109 (shares with authz)
+// - identity-rs: 8110-8119
+// All admin ports: 9090
 const (
-	defaultAuthZPort      = 18000 // Default AuthZ server port.
-	defaultAuthZAdminPort = 9090 // Default AuthZ admin port.
-	defaultIDPPort        = 18100 // Default IDP server port.
-	defaultIDPAdminPort   = 9090 // Default IDP admin port.
-	defaultRSPort         = 18200 // Default RS server port.
+        defaultAuthZPort      = 8100 // Default AuthZ server port.
+        defaultAuthZAdminPort = 9090 // Default AuthZ admin port.
+        defaultIDPPort        = 8100 // Default IDP server port (shares with authz).
+        defaultIDPAdminPort   = 9090 // Default IDP admin port.
+        defaultRSPort         = 8110 // Default RS server port.
 	defaultRSAdminPort    = 9090 // Default RS admin port.
 )
 
-// Default timeouts (seconds).
+// Default server timeouts (seconds).
 const (
-	defaultReadTimeoutSeconds  = 30  // Default read timeout (seconds).
-	defaultWriteTimeoutSeconds = 30  // Default write timeout (seconds).
-	defaultIdleTimeoutSeconds  = 120 // Default idle timeout (seconds).
+	defaultReadTimeoutSeconds  = 30 // Default read timeout (seconds).
+	defaultWriteTimeoutSeconds = 30 // Default write timeout (seconds).
+	defaultIdleTimeoutSeconds  = 60 // Default idle timeout (seconds).
 )
 
-// Default database pool settings.
+// Default database connection pool settings.
 const (
 	defaultMaxOpenConns       = 25 // Default max open connections.
 	defaultMaxIdleConns       = 5  // Default max idle connections.

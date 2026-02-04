@@ -36,9 +36,9 @@ type IdentityIDPServerSettings struct {
 
 // Identity-IDP specific default values.
 const (
-	defaultIDPAuthzServerURL     = "https://localhost:18000" // Default authorization server URL.
-	defaultLoginPagePath         = ""                        // Use built-in login page.
-	defaultConsentPagePath       = ""                        // Use built-in consent page.
+	defaultIDPAuthzServerURL     = "https://localhost:8100" // Default authorization server URL.
+	defaultLoginPagePath         = ""                       // Use built-in login page.
+	defaultConsentPagePath       = ""                       // Use built-in consent page.
 	defaultEnableMFAEnrollment   = false                     // Disable MFA enrollment by default.
 	defaultRequireMFA            = false                     // Don't require MFA by default.
 	defaultLoginSessionTimeout   = 300                       // 5 minute login session timeout.

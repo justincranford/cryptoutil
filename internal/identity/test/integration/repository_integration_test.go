@@ -30,12 +30,12 @@ func TestDatabaseSetup(t *testing.T) {
 
 // TestConfigCreation tests test configuration creation.
 func TestConfigCreation(t *testing.T) {
-	config := cryptoutilIdentityTestTestutils.CreateTestConfig(t, 18000, 18100, 18200)
+	config := cryptoutilIdentityTestTestutils.CreateTestConfig(t, 8100, 8100, 8110)
 
 	require.NotNil(t, config, "config should be created")
-	assert.Equal(t, 18000, config.AuthZ.Port, "AuthZ port should match")
-	assert.Equal(t, 18100, config.IDP.Port, "IDP port should match")
-	assert.Equal(t, 18200, config.RS.Port, "RS port should match")
+	assert.Equal(t, 8100, config.AuthZ.Port, "AuthZ port should match")
+	assert.Equal(t, 8100, config.IDP.Port, "IDP port should match")
+	assert.Equal(t, 8110, config.RS.Port, "RS port should match")
 	assert.Equal(t, "sqlite", config.Database.Type, "database type should be sqlite")
 	assert.Equal(t, ":memory:", config.Database.DSN, "database DSN should be in-memory")
 }

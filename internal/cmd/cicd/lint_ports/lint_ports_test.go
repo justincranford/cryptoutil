@@ -255,11 +255,11 @@ func TestAllValidPublicPorts(t *testing.T) {
 	require.Contains(t, ports, uint16(8080))  // sm-kms
 	require.Contains(t, ports, uint16(8081))  // sm-kms
 	require.Contains(t, ports, uint16(8082))  // sm-kms
-	require.Contains(t, ports, uint16(18000)) // identity-authz
-	require.Contains(t, ports, uint16(18100)) // identity-idp
-	require.Contains(t, ports, uint16(18200)) // identity-rs
-	require.Contains(t, ports, uint16(18300)) // identity-rp
-	require.Contains(t, ports, uint16(18400)) // identity-spa
+	require.Contains(t, ports, uint16(8100))  // identity-authz
+	require.Contains(t, ports, uint16(8100))  // identity-idp (same port as authz)
+	require.Contains(t, ports, uint16(8110))  // identity-rs
+	require.Contains(t, ports, uint16(8120))  // identity-rp
+	require.Contains(t, ports, uint16(8130))  // identity-spa
 }
 
 func TestIsOtelCollectorPort(t *testing.T) {
@@ -517,30 +517,30 @@ const port4 = 12345 // 5-digit port
 
 // TestIsOtelRelatedContent tests that OTEL-related terms in line content are detected.
 func TestIsOtelRelatedContent(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tests := []struct {
-name    string
-content string
-want    bool
-}{
-{name: "otel in constant name", content: "PortOtelCollectorReceivedMetrics uint16 = 8889", want: true},
-{name: "telemetry in comment", content: "// OpenTelemetry metrics port", want: true},
-{name: "opentelemetry in text", content: "// Use OpenTelemetry for observability", want: true},
-{name: "OTEL uppercase", content: "const OTEL_PORT = 8888", want: true},
-{name: "no otel terms", content: "const port = 8080", want: false},
-{name: "cipher-im port", content: "const cipherPort = 8888", want: false},
-{name: "empty line", content: "", want: false},
-}
+	tests := []struct {
+		name    string
+		content string
+		want    bool
+	}{
+		{name: "otel in constant name", content: "PortOtelCollectorReceivedMetrics uint16 = 8889", want: true},
+		{name: "telemetry in comment", content: "// OpenTelemetry metrics port", want: true},
+		{name: "opentelemetry in text", content: "// Use OpenTelemetry for observability", want: true},
+		{name: "OTEL uppercase", content: "const OTEL_PORT = 8888", want: true},
+		{name: "no otel terms", content: "const port = 8080", want: false},
+		{name: "cipher-im port", content: "const cipherPort = 8888", want: false},
+		{name: "empty line", content: "", want: false},
+	}
 
-for _, tt := range tests {
-t.Run(tt.name, func(t *testing.T) {
-t.Parallel()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-got := isOtelRelatedContent(tt.content)
-require.Equal(t, tt.want, got)
-})
-}
+			got := isOtelRelatedContent(tt.content)
+			require.Equal(t, tt.want, got)
+		})
+	}
 }
 
 // TestLint_SkipsCollectorPortsInMagicFile tests that collector ports are skipped
@@ -563,14 +563,14 @@ const DefaultPublicPortInternalMetrics uint16 = 8888
 const PortOtelCollectorReceivedMetrics uint16 = 8889
 `), 0o600)
 	require.NoError(t, err)
-require.False(t, isOtelRelatedFile(magicFile), "File path should NOT be otel-related")
+	require.False(t, isOtelRelatedFile(magicFile), "File path should NOT be otel-related")
 
-logger := cryptoutilCmdCicdCommon.NewLogger("test")
-filesByExtension := map[string][]string{
-"go": {magicFile},
-}
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"go": {magicFile},
+	}
 
-// Should pass because line content contains OTEL-related terms.
-err = Lint(logger, filesByExtension)
-require.NoError(t, err, "OTEL ports in OTEL-related content should NOT be flagged")
+	// Should pass because line content contains OTEL-related terms.
+	err = Lint(logger, filesByExtension)
+	require.NoError(t, err, "OTEL ports in OTEL-related content should NOT be flagged")
 }

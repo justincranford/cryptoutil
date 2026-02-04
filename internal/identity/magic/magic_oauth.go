@@ -131,13 +131,19 @@ const (
 	FiberReadTimeoutSeconds  = 30  // Fiber read timeout in seconds.
 	FiberWriteTimeoutSeconds = 30  // Fiber write timeout in seconds.
 	FiberIdleTimeoutSeconds  = 120 // Fiber idle timeout in seconds.
+	ShutdownTimeoutSeconds   = 30  // Graceful shutdown timeout in seconds.
 )
 
 // Default server ports.
+// Port ranges per user specification:
+// - identity-authz: 8100-8109 (shares with idp)
+// - identity-idp: 8100-8109 (shares with authz)
+// - identity-rs: 8110-8119
+// - identity-rp: 8120-8129
+// - identity-spa: 8130-8139
 const (
-	DefaultAuthZPort       = 18000 // Default OAuth 2.1 authorization server port.
-	DefaultIDPPort         = 18100 // Default OIDC identity provider server port.
-	DefaultRSPort          = 18200 // Default resource server port.
-	DefaultSPARPPort       = 18300 // Default SPA relying party server port.
-	ShutdownTimeoutSeconds = 10   // Default server shutdown timeout in seconds.
+        DefaultAuthZPort       = 8100 // Default OAuth 2.1 authorization server port.
+        DefaultIDPPort         = 8100 // Default OIDC identity provider server port (shares with authz).
+        DefaultRSPort          = 8110 // Default resource server port.
+        DefaultSPARPPort       = 8120 // Default SPA relying party server port.
 )

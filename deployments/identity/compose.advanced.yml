@@ -84,11 +84,11 @@ services:
       - identity
       - start
       - --service=authz
-      - --port=8080
+      - --port=8100
       - --bind=0.0.0.0
       - --db-url=postgres://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@identity-postgres:5432/$(cat /run/secrets/postgres_db)?sslmode=disable
     ports:
-      - "8080-8089:8080"  # Port range allows scaling (8080, 8081, 8082, etc.)
+      - "8100-8109:8100"  # Port range allows scaling (8100, 8101, 8102, etc.)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO
@@ -128,12 +128,12 @@ services:
       - identity
       - start
       - --service=idp
-      - --port=8081
+      - --port=8100
       - --bind=0.0.0.0
       - --db-url=postgres://$(cat /run/secrets/postgres_user):$(cat /run/secrets/postgres_password)@identity-postgres:5432/$(cat /run/secrets/postgres_db)?sslmode=disable
-      - --authz-url=https://identity-authz:8080
+      - --authz-url=https://identity-authz:8100
     ports:
-      - "8100-8109:8081"  # Port range for scaling
+      - "8101-8109:8100"  # Port range for scaling (8101 to avoid conflict with authz)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO
@@ -171,11 +171,11 @@ services:
       - identity
       - start
       - --service=rs
-      - --port=8082
+      - --port=8110
       - --bind=0.0.0.0
-      - --authz-url=https://identity-authz:8080
+      - --authz-url=https://identity-authz:8100
     ports:
-      - "8200-8209:8082"  # Port range for scaling
+      - "8110-8119:8110"  # Port range for scaling
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO
@@ -211,12 +211,12 @@ services:
       - identity
       - start
       - --service=spa-rp
-      - --port=8083
+      - --port=8120
       - --bind=0.0.0.0
-      - --authz-url=https://identity-authz:8080
-      - --idp-url=https://identity-idp:8081
+      - --authz-url=https://identity-authz:8100
+      - --idp-url=https://identity-idp:8100
     ports:
-      - "8300-8309:8083"  # Port range for scaling
+      - "8120-8129:8120"  # Port range for scaling
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO

@@ -43,10 +43,10 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 18300, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8120, false)
 
 	require.NotNil(t, cfg, "config should not be nil")
-	require.Equal(t, uint16(18300), cfg.BindPublicPort, "bind port should be 18300")
+	require.Equal(t, uint16(8120), cfg.BindPublicPort, "bind port should be 8120")
 	require.False(t, cfg.DevMode, "dev mode should be disabled")
 }
 
@@ -54,18 +54,18 @@ func TestIdentityRPServerSettings_FullConfig(t *testing.T) {
 	t.Parallel()
 
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
-	cfg.AuthzServerURL = "https://authz.example.com:18000"
+	cfg.AuthzServerURL = "https://authz.example.com:8100"
 	cfg.ClientID = "test-client-id"
 	cfg.ClientSecret = "test-client-secret"
 	cfg.RedirectURI = "https://rp.example.com/callback"
-	cfg.SPAOrigin = "https://spa.example.com:18400"
+	cfg.SPAOrigin = "https://spa.example.com:8130"
 	cfg.SessionSecret = "super-secret-session-key"
 
-	require.Equal(t, "https://authz.example.com:18000", cfg.AuthzServerURL)
+	require.Equal(t, "https://authz.example.com:8100", cfg.AuthzServerURL)
 	require.Equal(t, "test-client-id", cfg.ClientID)
 	require.Equal(t, "test-client-secret", cfg.ClientSecret)
 	require.Equal(t, "https://rp.example.com/callback", cfg.RedirectURI)
-	require.Equal(t, "https://spa.example.com:18400", cfg.SPAOrigin)
+	require.Equal(t, "https://spa.example.com:8130", cfg.SPAOrigin)
 	require.Equal(t, "super-secret-session-key", cfg.SessionSecret)
 }
 
@@ -92,7 +92,7 @@ func TestValidateIdentityRPSettings_SPAOriginFormat(t *testing.T) {
 	}{
 		{"valid https", "https://spa.example.com", true},
 		{"valid http", "http://localhost:8080", true},
-		{"valid with port", "https://spa.example.com:18400", true},
+		{"valid with port", "https://spa.example.com:8130", true},
 		{"invalid no scheme", "spa.example.com", false},
 		{"invalid ftp scheme", "ftp://spa.example.com", false},
 		{"empty allowed", "", true},

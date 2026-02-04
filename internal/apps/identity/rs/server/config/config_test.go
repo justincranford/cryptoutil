@@ -42,10 +42,10 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 18200, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8110, false)
 
 	require.NotNil(t, cfg)
-	require.Equal(t, uint16(18200), cfg.BindPublicPort)
+	require.Equal(t, uint16(8110), cfg.BindPublicPort)
 	require.False(t, cfg.DevMode, "Should not be in dev mode")
 }
 
@@ -80,12 +80,12 @@ func TestValidateIdentityRSSettings_AuthzURLFormat(t *testing.T) {
 		devMode   bool
 		wantError bool
 	}{
-		{"valid_https", "https://localhost:18000", false, false},
-		{"valid_http", "http://localhost:18000", false, false},
+		{"valid_https", "https://localhost:8100", false, false},
+		{"valid_http", "http://localhost:8100", false, false},
 		{"empty_prod_mode", "", false, true},
 		{"empty_dev_mode", "", true, false}, // Empty allowed in dev mode.
-		{"invalid_no_scheme", "localhost:18000", true, true},
-		{"invalid_ftp_scheme", "ftp://localhost:18000", true, true},
+		{"invalid_no_scheme", "localhost:8100", true, true},
+		{"invalid_ftp_scheme", "ftp://localhost:8100", true, true},
 	}
 
 	for _, tt := range tests {

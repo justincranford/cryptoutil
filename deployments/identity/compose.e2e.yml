@@ -6,11 +6,11 @@
 # Uses SQLite backend for simplicity.
 #
 # Service ports:
-# - identity-authz-e2e: 18000 (public), 9090 (admin)
-# - identity-idp-e2e: 18100 (public), 9090 (admin)
-# - identity-rs-e2e: 18200 (public), 9090 (admin)
-# - identity-rp-e2e: 18300 (public), 9090 (admin)
-# - identity-spa-e2e: 18400 (public), 9090 (admin)
+# - identity-authz-e2e: 8100 (public), 9090 (admin)
+# - identity-idp-e2e: 8100 (public), 9090 (admin)
+# - identity-rs-e2e: 8110 (public), 9090 (admin)
+# - identity-rp-e2e: 8120 (public), 9090 (admin)
+# - identity-spa-e2e: 8130 (public), 9090 (admin)
 # - grafana-otel-lgtm: 3000 (UI)
 
 name: cryptoutil-identity-e2e
@@ -38,7 +38,7 @@ services:
       - start
       - --config=/etc/identity/authz-e2e.yml
     ports:
-      - "18000:18000"  # Public HTTPS API
+      - "8100:8100"  # Public HTTPS API
     volumes:
       - ./config/authz-e2e.yml:/etc/identity/authz-e2e.yml:ro
     environment:
@@ -53,7 +53,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:18000/health
+        - https://127.0.0.1:8100/health
       interval: 10s
       timeout: 5s
       retries: 10
@@ -90,7 +90,7 @@ services:
       - start
       - --config=/etc/identity/idp-e2e.yml
     ports:
-      - "18100:18100"  # Public HTTPS API
+      - "8100:8100"  # Public HTTPS API
     volumes:
       - ./config/idp-e2e.yml:/etc/identity/idp-e2e.yml:ro
     environment:
@@ -105,7 +105,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:18100/health
+        - https://127.0.0.1:8100/health
       interval: 10s
       timeout: 5s
       retries: 10
@@ -142,7 +142,7 @@ services:
       - start
       - --config=/etc/identity/rs-e2e.yml
     ports:
-      - "18200:18200"  # Public HTTPS API
+      - "8110:8110"  # Public HTTPS API
     volumes:
       - ./config/rs-e2e.yml:/etc/identity/rs-e2e.yml:ro
     environment:
@@ -157,7 +157,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:18200/health
+        - https://127.0.0.1:8110/health
       interval: 10s
       timeout: 5s
       retries: 10
@@ -194,7 +194,7 @@ services:
       - start
       - --config=/etc/identity/rp-e2e.yml
     ports:
-      - "18300:18300"  # Public HTTPS API
+      - "8120:8120"  # Public HTTPS API
     volumes:
       - ./config/rp-e2e.yml:/etc/identity/rp-e2e.yml:ro
     environment:
@@ -209,7 +209,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:18300/health
+        - https://127.0.0.1:8120/health
       interval: 10s
       timeout: 5s
       retries: 10
@@ -246,7 +246,7 @@ services:
       - start
       - --config=/etc/identity/spa-e2e.yml
     ports:
-      - "18400:18400"  # Public HTTPS API
+      - "8130:8130"  # Public HTTPS API
     volumes:
       - ./config/spa-e2e.yml:/etc/identity/spa-e2e.yml:ro
     environment:
@@ -261,7 +261,7 @@ services:
         - -q
         - -O
         - /dev/null
-        - https://127.0.0.1:18400/health
+        - https://127.0.0.1:8130/health
       interval: 10s
       timeout: 5s
       retries: 10

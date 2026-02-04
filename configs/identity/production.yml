@@ -5,7 +5,7 @@
 authz:
   name: authz-prod
   bind_address: 0.0.0.0
-  port: 18000
+  port: 8100
   tls_enabled: true
   tls_cert_file: /run/secrets/authz_tls_cert
   tls_key_file: /run/secrets/authz_tls_key
@@ -19,7 +19,7 @@ authz:
 idp:
   name: idp-prod
   bind_address: 0.0.0.0
-  port: 18100
+  port: 8100
   tls_enabled: true
   tls_cert_file: /run/secrets/idp_tls_cert
   tls_key_file: /run/secrets/idp_tls_key
@@ -33,7 +33,7 @@ idp:
 rs:
   name: rs-prod
   bind_address: 0.0.0.0
-  port: 18200
+  port: 8110
   tls_enabled: true
   tls_cert_file: /run/secrets/rs_tls_cert
   tls_key_file: /run/secrets/rs_tls_key

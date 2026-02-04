@@ -401,7 +401,7 @@ The template barrier must be fully self-contained before shared/barrier can be d
 | identity-spa | 8130 | 8130-8139 | 9090 |
 
 **Current Issues**:
-- lint_ports/constants.go has identity ports in 18000 series (should be 8100 series)
+- lint_ports/constants.go has identity ports in 8100 series (should be 8100 series)
 - magic_network.go may have inconsistent port definitions
 - Documentation may reference old ports
 

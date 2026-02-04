@@ -669,7 +669,7 @@ identity-authz:
 ```
 - Container port: 8080
 - Admin port: 9090 (NOT exposed per instructions)
-- **DISCREPANCY**: Instructions document 18000-18009, implementation uses 8080-8089
+- **DISCREPANCY**: Instructions document 8100-18009, implementation uses 8080-8089
 
 #### identity-idp (OIDC Identity Provider)
 ```yaml
@@ -680,7 +680,7 @@ identity-idp:
 ```
 - Container port: 8081
 - Admin port: 9090 (NOT exposed)
-- **DISCREPANCY**: Instructions document 18100-18109, implementation uses 8100-8109
+- **DISCREPANCY**: Instructions document 8100-18109, implementation uses 8100-8109
 
 #### identity-rs (Resource Server)
 ```yaml
@@ -691,7 +691,7 @@ identity-rs:
 ```
 - Container port: 8082
 - Admin port: 9090 (NOT exposed)
-- **DISCREPANCY**: Instructions document 18200-18209, implementation uses 8200-8209
+- **DISCREPANCY**: Instructions document 8110-18209, implementation uses 8200-8209
 
 #### identity-rp (Relying Party)
 ```yaml
@@ -699,7 +699,7 @@ identity-rs:
 ```
 - Container port: 8083 (expected)
 - Host port range: 8300-8309 (expected)
-- **DISCREPANCY**: Instructions document 18300-18309
+- **DISCREPANCY**: Instructions document 8120-18309
 
 #### identity-spa (Single Page Application)
 ```yaml
@@ -707,7 +707,7 @@ identity-rs:
 ```
 - Container port: 8084 (expected)
 - Host port range: 8400-8409 (expected)
-- **DISCREPANCY**: Instructions document 18400-18409
+- **DISCREPANCY**: Instructions document 8130-18409
 
 #### cipher-im (Cipher - Instant Messenger)
 ```yaml

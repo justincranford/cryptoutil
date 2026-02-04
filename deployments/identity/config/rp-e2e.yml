@@ -1,8 +1,9 @@
 # Relying Party Server E2E Test Configuration
 
 # Bind configuration (FLAT structure - viper expects root-level keys)
+# Port: 8120 per user specification (identity-rp 8120-8129 range)
 bind-public-address: 0.0.0.0
-bind-public-port: 18300
+bind-public-port: 8120
 bind-private-address: 0.0.0.0
 bind-private-port: 9090
 
@@ -18,8 +19,8 @@ telemetry:
   service-name: identity-rp-e2e
 
 # Identity-rp specific settings
-authz-url: "http://identity-authz-e2e:18000"
-idp-url: "http://identity-idp-e2e:18100"
+authz-url: "http://identity-authz-e2e:8100"
+idp-url: "http://identity-idp-e2e:8100"
 
 logging:
   level: debug
