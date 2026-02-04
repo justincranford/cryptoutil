@@ -21,11 +21,12 @@ V9 carries forward deferred Phase 19 enhancements and addresses new improvements
 **Options**:
 - A: Only container port validation
 - B: Container port + host port range validation
-- C: Container port + host port range + health path validation
+- C: Container port + host port range + health path validation ← **SELECTED**
 - D: Full scope (container, host, health, compose, docs)
 - E: [blank - user fills in]
 
-**Rationale**: V8 success criteria are met with current lint-ports (legacy port detection). Enhanced validation would catch configuration drift proactively.
+**Decision**: Option C selected - Container port + host port range + health path validation
+**Rationale**: Covers critical validations (ports and health paths) without documentation validation overhead. Aligns with V8 port standardization and Phase 3 health path fixes.
 
 ### Decision 2: lint_go Pre-existing Issues
 **Options**:

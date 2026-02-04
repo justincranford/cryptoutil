@@ -15,6 +15,12 @@ type ServicePortConfig struct {
 // StandardAdminPort is the universal admin port for all services.
 const StandardAdminPort uint16 = 9090
 
+// StandardHealthPath is the expected health check path for all services.
+const StandardHealthPath = "/admin/api/v1/livez"
+
+// LineSeparatorLength defines the length of line separators in output.
+const LineSeparatorLength = 60
+
 // ServicePorts defines the canonical port assignments for all cryptoutil services.
 // This is the single source of truth for port assignments.
 var ServicePorts = map[string]ServicePortConfig{
@@ -55,7 +61,7 @@ var ServicePorts = map[string]ServicePortConfig{
 	},
 	"identity-idp": {
 		Name:          "identity-idp",
-		PublicPorts:   []uint16{8100}, // Same as authz per spec (8100-8109 range).
+		PublicPorts:   []uint16{8100, 8101}, // 8100 default, 8101 for E2E (avoids conflict with authz).
 		AdminPort:     StandardAdminPort,
 		LegacyPorts:   []uint16{18100}, // Old 18000 series - now using 8100 series.
 		MagicConstant: "IdentityIdpServicePort",

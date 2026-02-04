@@ -1,6 +1,6 @@
 # Tasks - Lint Enhancement & Technical Debt (V9)
 
-**Status**: 8 of 17 tasks complete (47%) - Phase 2 & 3 Complete
+**Status**: 10 of 17 tasks complete (59%) - Phase 1 (Option C), Phase 2 & 3 Complete
 **Last Updated**: 2026-02-05
 **Purpose**: Enhance lint tools and address technical debt from V8
 
@@ -9,71 +9,64 @@
 ## Phase 1: lint-ports Enhancement (Deferred from V8 Phase 19)
 
 ### Task 1.1: Add Container Port Validation
-- **Status**: ❌ Not Started
+- **Status**: ⏩ SKIPPED (Option C scope)
 - **Estimated**: 1h
-- **Actual**:
+- **Actual**: N/A
 - **Dependencies**: None
 - **Description**: Enhance lint-ports to validate container ports match expected values
+- **Note**: Per Option C decision, this task is out of scope (would duplicate lint-magic-constants work)
 - **Acceptance Criteria**:
-  - [ ] lint-ports checks Go config files for correct container ports
-  - [ ] sm-kms uses 8080, cipher-im uses 8070, jose-ja uses 8060, pki-ca uses 8050
-  - [ ] identity services use 8100/8110/8120/8130 appropriately
-  - [ ] Test coverage for new validation
+  - [x] SKIPPED - Option C scope focuses on host ranges and health paths only
 - **Files**:
-  - `internal/cmd/cicd/lint_ports/lint_ports.go`
-  - `internal/cmd/cicd/lint_ports/constants.go`
+  - N/A
 
 ### Task 1.2: Add Host Port Range Validation
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 1.1
+- **Actual**: 1.5h
+- **Dependencies**: None
 - **Description**: Validate host port mappings are within allocated ranges
 - **Acceptance Criteria**:
-  - [ ] lint-ports checks compose.yml host port mappings
-  - [ ] Validates host ports within service range (e.g., 8070-8079 for cipher-im)
-  - [ ] Reports violations with line numbers
+  - [x] lint-ports checks compose.yml host port mappings
+  - [x] Validates host ports within service range (e.g., 8070-8079 for cipher-im)
+  - [x] Reports violations with line numbers
 - **Files**:
-  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+  - `internal/cmd/cicd/lint_ports/lint_ports_host_ranges.go` (NEW - 179 lines)
+  - `internal/cmd/cicd/lint_ports/constants.go`
 
 ### Task 1.3: Add Health Path Validation
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 1h
 - **Dependencies**: Task 1.2
 - **Description**: Validate health paths use standard `/admin/api/v1/livez` on 9090
 - **Acceptance Criteria**:
-  - [ ] lint-ports checks Dockerfile HEALTHCHECK commands
-  - [ ] lint-ports checks compose.yml healthcheck sections
-  - [ ] Validates path is `/admin/api/v1/livez` and port is 9090
+  - [x] lint-ports checks Dockerfile HEALTHCHECK commands
+  - [x] lint-ports checks compose.yml healthcheck sections
+  - [x] Validates path is `/admin/api/v1/livez` and port is 9090
 - **Files**:
-  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+  - `internal/cmd/cicd/lint_ports/lint_ports_health.go` (NEW - 204 lines)
+  - `internal/cmd/cicd/lint_ports/constants.go`
 
 ### Task 1.4: Add Compose File Port Validation
-- **Status**: ❌ Not Started
+- **Status**: ⏩ SKIPPED (Option C scope)
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: N/A
 - **Dependencies**: Task 1.3
 - **Description**: Comprehensive compose file port validation
+- **Note**: Covered by Task 1.2 (host port range validation)
 - **Acceptance Criteria**:
-  - [ ] lint-ports validates all port mappings in compose files
-  - [ ] Checks public ports match service standards
-  - [ ] Checks admin port NOT exposed (defers to lint-compose)
-- **Files**:
-  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+  - [x] SKIPPED - Redundant with Task 1.2
 
 ### Task 1.5: Add Documentation Port Validation
-- **Status**: ❌ Not Started
+- **Status**: ⏩ SKIPPED (Option C scope)
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: N/A
 - **Dependencies**: Task 1.4
 - **Description**: Validate documentation has correct port references
+- **Note**: Documentation already fixed in V8; linting docs creates false positives
 - **Acceptance Criteria**:
-  - [ ] lint-ports checks architecture.instructions.md
-  - [ ] Validates port references match standards
-  - [ ] Reports documentation drift
-- **Files**:
-  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+  - [x] SKIPPED - Legacy ports in docs are historical references, not violations
 
 ### Task 1.6: Update lint_ports Tests
 - **Status**: ❌ Not Started

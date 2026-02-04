@@ -24,55 +24,48 @@ type Violation struct {
 	Reason  string
 }
 
+// HealthViolation represents a health path configuration violation.
+type HealthViolation struct {
+	File    string
+	Line    int
+	Content string
+	Reason  string
+}
+
 // legacyPortPattern matches port numbers in various contexts.
 var legacyPortPattern = regexp.MustCompile(`\b(\d{4,5})\b`)
+
+// healthPathPattern matches health check paths in Dockerfiles and compose files.
+var healthPathPattern = regexp.MustCompile(`(/[a-zA-Z0-9/_-]+)`)
 
 // Lint checks all relevant files for legacy port usage violations.
 // Returns an error if any legacy ports are found.
 func Lint(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
 	logger.Log("Running port validation lint...")
 
-	legacyPorts := AllLegacyPorts()
-	if len(legacyPorts) == 0 {
-		logger.Log("No legacy ports defined, skipping")
+	var allErrors []error
 
-		return nil
+	// Check for legacy ports.
+	if err := lintLegacyPorts(logger, filesByExtension); err != nil {
+		allErrors = append(allErrors, err)
 	}
 
-	logger.Log(fmt.Sprintf("Checking for legacy ports: %v", legacyPorts))
-
-	var violations []Violation
-
-	// Check Go files.
-	for _, file := range filesByExtension["go"] {
-		fileViolations := checkFile(file, legacyPorts)
-		violations = append(violations, fileViolations...)
+	// Check for host port range violations in compose files.
+	if err := lintHostPortRanges(logger, filesByExtension); err != nil {
+		allErrors = append(allErrors, err)
 	}
 
-	// Check YAML files.
-	for _, file := range filesByExtension["yml"] {
-		fileViolations := checkFile(file, legacyPorts)
-		violations = append(violations, fileViolations...)
+	// Check for health path violations.
+	if err := lintHealthPaths(logger, filesByExtension); err != nil {
+		allErrors = append(allErrors, err)
 	}
 
-	for _, file := range filesByExtension["yaml"] {
-		fileViolations := checkFile(file, legacyPorts)
-		violations = append(violations, fileViolations...)
+	if len(allErrors) > 0 {
+		// Return the first error to preserve specific error messages for backwards compatibility.
+		return allErrors[0]
 	}
 
-	// Check Markdown files.
-	for _, file := range filesByExtension["md"] {
-		fileViolations := checkFile(file, legacyPorts)
-		violations = append(violations, fileViolations...)
-	}
-
-	if len(violations) > 0 {
-		printViolations(violations)
-
-		return fmt.Errorf("lint-ports failed: %d legacy port violations found", len(violations))
-	}
-
-	logger.Log("✅ lint-ports passed: no legacy port violations")
+	logger.Log("✅ lint-ports passed: all validations successful")
 
 	return nil
 }
@@ -178,16 +171,10 @@ func getServiceForLegacyPort(port uint16) string {
 	return "unknown"
 }
 
-const (
-	// lineSeparatorLength defines the length of line separators in output.
-	lineSeparatorLength = 60
-)
-
-// printViolations outputs all detected violations.
 func printViolations(violations []Violation) {
 	fmt.Println()
 	fmt.Println("❌ PORT VIOLATIONS: Legacy ports detected")
-	fmt.Println(strings.Repeat("=", lineSeparatorLength))
+	fmt.Println(strings.Repeat("=", LineSeparatorLength))
 
 	for _, v := range violations {
 		fmt.Printf("\n📁 File: %s\n", v.File)
@@ -198,10 +185,57 @@ func printViolations(violations []Violation) {
 	}
 
 	fmt.Println()
-	fmt.Println(strings.Repeat("=", lineSeparatorLength))
+	fmt.Println(strings.Repeat("=", LineSeparatorLength))
 	fmt.Println("💡 Fix: Replace legacy ports with standardized ports:")
 	fmt.Println("   cipher-im: 8070-8072 (was 8888-8890)")
 	fmt.Println("   jose-ja: 8060 (was 9443, 8092)")
 	fmt.Println("   pki-ca: 8050 (was 8443)")
 	fmt.Println()
+}
+
+// lintLegacyPorts checks for legacy port usage in all relevant files.
+func lintLegacyPorts(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
+	legacyPorts := AllLegacyPorts()
+	if len(legacyPorts) == 0 {
+		logger.Log("No legacy ports defined, skipping legacy port check")
+
+		return nil
+	}
+
+	logger.Log(fmt.Sprintf("Checking for legacy ports: %v", legacyPorts))
+
+	var violations []Violation
+
+	// Check Go files.
+	for _, file := range filesByExtension["go"] {
+		fileViolations := checkFile(file, legacyPorts)
+		violations = append(violations, fileViolations...)
+	}
+
+	// Check YAML files.
+	for _, file := range filesByExtension["yml"] {
+		fileViolations := checkFile(file, legacyPorts)
+		violations = append(violations, fileViolations...)
+	}
+
+	for _, file := range filesByExtension["yaml"] {
+		fileViolations := checkFile(file, legacyPorts)
+		violations = append(violations, fileViolations...)
+	}
+
+	// Check Markdown files.
+	for _, file := range filesByExtension["md"] {
+		fileViolations := checkFile(file, legacyPorts)
+		violations = append(violations, fileViolations...)
+	}
+
+	if len(violations) > 0 {
+		printViolations(violations)
+
+		return fmt.Errorf("lint-ports failed: %d legacy port violations found", len(violations))
+	}
+
+	logger.Log("  ✅ No legacy port violations")
+
+	return nil
 }
