@@ -380,3 +380,186 @@ The template barrier must be fully self-contained before shared/barrier can be d
 - [x] All KMS tests pass
 - [ ] All template tests pass after Phase 15
 - [ ] Documentation matches implementation
+
+---
+
+## Phase 16: Port Standards Alignment (CRITICAL)
+
+**Objective**: Align all port configurations to the user-specified standard
+
+**User-Specified Port Standard**:
+| Service | Container Port | Host Port Range | Admin Port |
+|---------|----------------|-----------------|------------|
+| sm-kms | 8080 | 8080-8089 | 9090 |
+| cipher-im | 8070 | 8070-8079 | 9090 |
+| jose-ja | 8060 | 8060-8069 | 9090 |
+| pki-ca | 8050 | 8050-8059 | 9090 |
+| identity-authz | 8100 | 8100-8109 | 9090 |
+| identity-idp | 8100 | 8100-8109 | 9090 |
+| identity-rs | 8110 | 8110-8119 | 9090 |
+| identity-rp | 8120 | 8120-8129 | 9090 |
+| identity-spa | 8130 | 8130-8139 | 9090 |
+
+**Current Issues**:
+- lint_ports/constants.go has identity ports in 18000 series (should be 8100 series)
+- magic_network.go may have inconsistent port definitions
+- Documentation may reference old ports
+
+**Tasks**:
+- 16.1: Update lint_ports/constants.go with correct port ranges
+- 16.2: Update magic_network.go with correct port constants
+- 16.3: Update all service config files with correct default ports
+- 16.4: Update all compose.yml files with correct port mappings
+- 16.5: Update all deployment configurations
+- 16.6: Update architecture.md with correct port assignments
+- 16.7: Update service-template.md with correct port assignments
+- 16.8: Run lint-ports validation
+
+**Estimated Effort**: 4-6 hours
+
+---
+
+## Phase 17: Health Path Standardization Verification
+
+**Objective**: Ensure ALL services use `/admin/api/v1/livez` on port 9090
+
+**Standard Health Endpoint**:
+- Path: `/admin/api/v1/livez`
+- Port: 9090 (admin port)
+- Protocol: HTTPS
+
+**Services to Verify**:
+1. sm-kms - Verify health path
+2. cipher-im - Verify health path  
+3. jose-ja - Verify health path
+4. pki-ca - Verify health path
+
+**Tasks**:
+- 17.1: Audit all service health implementations
+- 17.2: Fix any non-compliant health paths
+- 17.3: Update compose healthcheck commands
+- 17.4: Update E2E test health checks
+- 17.5: Verify all services respond on `/admin/api/v1/livez:9090`
+
+**Estimated Effort**: 2-4 hours
+
+---
+
+## Phase 18: Compose Files Proactive Update
+
+**Objective**: Proactively update ALL compose.yml files with correct configuration
+
+**Key Changes**:
+- Correct port mappings for each service
+- Correct health check commands (`/admin/api/v1/livez` on 9090)
+- Correct environment variables
+- Correct secret references
+
+**Files to Update**:
+- deployments/cipher/compose.yml
+- deployments/jose/compose.yml
+- deployments/pki/compose.yml
+- deployments/kms/compose.yml
+- deployments/identity/compose.yml (if exists)
+
+**Tasks**:
+- 18.1: Update cipher/compose.yml with correct ports/health
+- 18.2: Update jose/compose.yml with correct ports/health
+- 18.3: Update pki/compose.yml with correct ports/health
+- 18.4: Update kms/compose.yml with correct ports/health
+- 18.5: Verify all compose files have consistent structure
+
+**Estimated Effort**: 3-4 hours
+
+---
+
+## Phase 19: lint-ports Enhancement
+
+**Objective**: Enhance lint-ports to validate ALL port configurations comprehensively
+
+**Enhancement Goals**:
+- Validate container ports match standard
+- Validate host port ranges match standard
+- Validate admin port is 9090 for all services
+- Validate health path is `/admin/api/v1/livez`
+- Check compose.yml files
+- Check magic_network.go
+- Check config files
+- Check documentation
+
+**Tasks**:
+- 19.1: Add container port validation
+- 19.2: Add host port range validation
+- 19.3: Add health path validation
+- 19.4: Add compose file validation
+- 19.5: Add documentation validation
+- 19.6: Update test coverage for new validations
+
+**Estimated Effort**: 4-6 hours
+
+---
+
+## Phase 20: Documentation Comprehensive Update
+
+**Objective**: Update ALL documentation to reflect correct port assignments
+
+**Documents to Update**:
+- .github/instructions/02-01.architecture.instructions.md
+- .github/instructions/02-02.service-template.instructions.md
+- .github/instructions/02-03.https-ports.instructions.md
+- README.md
+- docs/arch/ARCHITECTURE.md (if exists)
+- docs/arch/SERVICE-TEMPLATE.md (if exists)
+
+**Tasks**:
+- 20.1: Update architecture.instructions.md service catalog
+- 20.2: Update service-template.instructions.md
+- 20.3: Update https-ports.instructions.md
+- 20.4: Update any README sections with port info
+- 20.5: Verify all documentation consistent
+
+**Estimated Effort**: 2-3 hours
+
+---
+
+## Phase 21: Final Validation and Post-Mortem
+
+**Objective**: Complete final validation and create comprehensive post-mortem
+
+**Validation Steps**:
+- Run lint-ports on entire codebase
+- Verify all services start correctly
+- Verify all health endpoints respond
+- Run all tests
+- Review all documentation
+
+**Post-Mortem**:
+- Document what was incorrect
+- Document lessons learned
+- Update copilot instructions with lessons
+- Create prevention mechanisms
+
+**Tasks**:
+- 21.1: Run comprehensive lint-ports validation
+- 21.2: Test all services start and respond
+- 21.3: Run full test suite
+- 21.4: Create post-mortem analysis
+- 21.5: Update copilot instructions with lessons learned
+
+**Estimated Effort**: 2-3 hours
+
+---
+
+## Updated Success Criteria (V8 Complete)
+
+- [ ] lint_ports/constants.go has correct port ranges (8050-8130 series)
+- [ ] magic_network.go has correct port constants
+- [ ] All services use admin port 9090
+- [ ] All services use standard health path `/admin/api/v1/livez`
+- [ ] All compose.yml files have correct port mappings
+- [ ] All compose.yml files have correct health checks
+- [ ] cicd lint-ports passes for entire codebase
+- [ ] KMS uses template barrier (no adapter)
+- [ ] shared/barrier main package deleted (unsealkeysservice kept)
+- [ ] All documentation reflects correct port assignments
+- [ ] All tests pass

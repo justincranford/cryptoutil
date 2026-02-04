@@ -616,11 +616,11 @@ Port configurations extracted from:
 kms-sqlite:
   ports:
     - "8080:8080"  # HTTPS public (SQLite profile)
-    
+
 kms-postgres-1:
   ports:
     - "8081:8080"  # HTTPS public (PostgreSQL instance 1)
-    
+
 kms-postgres-2:
   ports:
     - "8082:8080"  # HTTPS public (PostgreSQL instance 2)
@@ -635,11 +635,11 @@ kms-postgres-2:
 ca-sqlite:
   ports:
     - "8050:8050"  # HTTPS public (SQLite)
-    
+
 ca-postgres-1:
   ports:
     - "8444:8050"  # HTTPS public (PG1)
-    
+
 ca-postgres-2:
   ports:
     - "8445:8050"  # HTTPS public (PG2)
@@ -715,11 +715,11 @@ identity-rs:
 cipher-im-sqlite:
   ports:
     - "8880:8070"  # Public HTTPS API
-    
+
 cipher-im-postgres-1:
   ports:
     - "8881:8070"
-    
+
 cipher-im-postgres-2:
   ports:
     - "8882:8070"
@@ -872,7 +872,7 @@ cmd/<product>-<service>/main.go → internal/apps/<product>/<service>/<service>.
 ### sm-kms Non-Conformance
 
 **Expected**:
-- `cmd/sm-kms/main.go` 
+- `cmd/sm-kms/main.go`
 - `internal/apps/sm/kms/kms.go`
 
 **Actual**:
@@ -1027,13 +1027,13 @@ Implements full interface:
 1. **Task 1.1**: Update KMS imports from `shared/barrier` to `template/barrier`
    - Change: `cryptoutilBarrierService "cryptoutil/internal/shared/barrier"`
    - To: `cryptoutilBarrierService "cryptoutil/internal/apps/template/service/server/barrier"`
-   
+
 2. **Task 1.2**: Use OrmRepositoryAdapter in business logic
    - KMS already has adapter, just need to wire it up
-   
+
 3. **Task 1.3**: Update tests to use template barrier
    - Template has 5x more test coverage - leverage it
-   
+
 4. **Task 1.4**: Verify all barrier operations work
    - Encrypt/Decrypt with content keys
    - Key rotation

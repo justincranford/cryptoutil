@@ -1028,3 +1028,521 @@ All tasks cancelled as the simpler approach in Task 13.9 resolved the issue with
 | **Total** | **59** | **58** | **98%** | Phases 1, 15 excluded (cancelled) |
 
 **Execution Order**: Phase 6-13 (COMPLETE) → Phase 14
+
+---
+
+## Phase 16: Port Standards Alignment (CRITICAL)
+
+### Task 16.1: Update lint_ports/constants.go
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**: 
+- **Dependencies**: None
+- **Description**: Update ServicePorts map with correct port ranges per user specification
+- **User-Specified Standard**:
+  | Service | Container Port | Host Port Range | Admin Port |
+  |---------|----------------|-----------------|------------|
+  | sm-kms | 8080 | 8080-8089 | 9090 |
+  | cipher-im | 8070 | 8070-8079 | 9090 |
+  | jose-ja | 8060 | 8060-8069 | 9090 |
+  | pki-ca | 8050 | 8050-8059 | 9090 |
+  | identity-authz | 8100 | 8100-8109 | 9090 |
+  | identity-idp | 8100 | 8100-8109 | 9090 |
+  | identity-rs | 8110 | 8110-8119 | 9090 |
+  | identity-rp | 8120 | 8120-8129 | 9090 |
+  | identity-spa | 8130 | 8130-8139 | 9090 |
+- **Acceptance Criteria**:
+  - [ ] identity-authz uses 8100 (not 18000)
+  - [ ] identity-idp uses 8100 (not 18100)
+  - [ ] identity-rs uses 8110 (not 18200)
+  - [ ] identity-rp uses 8120 (not 18300)
+  - [ ] identity-spa uses 8130 (not 18400)
+  - [ ] All services have AdminPort=9090
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/constants.go`
+
+### Task 16.2: Update magic_network.go
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 16.1
+- **Description**: Update magic constants with correct port definitions
+- **Acceptance Criteria**:
+  - [ ] DefaultPublicPortJOSEServer = 8060
+  - [ ] DefaultPublicPortCAServer = 8050
+  - [ ] DefaultPublicPortCipherIM = 8070
+  - [ ] Add identity port constants (8100, 8110, 8120, 8130)
+  - [ ] Build passes
+- **Files**:
+  - `internal/shared/magic/magic_network.go`
+
+### Task 16.3: Update Service Config Files
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**: 
+- **Dependencies**: Task 16.2
+- **Description**: Update all service config files with correct default ports
+- **Acceptance Criteria**:
+  - [ ] jose-ja/server/config/config.go uses 8060
+  - [ ] pki-ca/server/config/config.go uses 8050
+  - [ ] cipher/im/config uses 8070
+  - [ ] kms config uses 8080
+  - [ ] All configs use 9090 for admin port
+- **Files**:
+  - `internal/apps/jose/ja/server/config/config.go`
+  - `internal/apps/pki/ca/server/config/config.go`
+  - `internal/apps/cipher/im/config/*.go`
+  - `internal/kms/server/config/*.go`
+
+### Task 16.4: Update Compose Files
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**: 
+- **Dependencies**: Task 16.3
+- **Description**: Update all compose.yml files with correct port mappings
+- **Acceptance Criteria**:
+  - [ ] cipher/compose.yml uses 8070:8070
+  - [ ] jose/compose.yml uses 8060:8060
+  - [ ] pki/compose.yml uses 8050:8050
+  - [ ] kms/compose.yml uses 8080:8080
+  - [ ] All use 9090 for admin
+- **Files**:
+  - `deployments/cipher/compose.yml`
+  - `deployments/jose/compose.yml`
+  - `deployments/pki/compose.yml`
+  - `deployments/kms/compose.yml`
+
+### Task 16.5: Update Deployment Configurations
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 16.4
+- **Description**: Update any other deployment configurations
+- **Acceptance Criteria**:
+  - [ ] All Dockerfiles have correct EXPOSE
+  - [ ] All configurations consistent
+- **Files**:
+  - `deployments/*/Dockerfile`
+
+### Task 16.6: Update architecture.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 16.1
+- **Description**: Update service catalog with correct port assignments
+- **Acceptance Criteria**:
+  - [ ] Service Catalog table has correct ports
+  - [ ] All identity services use 8100-8130 series
+- **Files**:
+  - `.github/instructions/02-01.architecture.instructions.md`
+
+### Task 16.7: Update service-template.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Task 16.6
+- **Description**: Update any port references in service template
+- **Acceptance Criteria**:
+  - [ ] No references to 18000 series ports
+  - [ ] Consistent with architecture.instructions.md
+- **Files**:
+  - `.github/instructions/02-02.service-template.instructions.md`
+
+### Task 16.8: Run lint-ports Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Tasks 16.1-16.7
+- **Description**: Run lint-ports and verify 0 violations
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd lint-ports` passes
+  - [ ] 0 violations reported
+- **Verification**:
+  ```bash
+  go run ./cmd/cicd lint-ports
+  ```
+
+---
+
+## Phase 17: Health Path Standardization Verification
+
+### Task 17.1: Audit Service Health Implementations
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**: 
+- **Dependencies**: Phase 16
+- **Description**: Verify all services use `/admin/api/v1/livez` on port 9090
+- **Acceptance Criteria**:
+  - [ ] sm-kms uses `/admin/api/v1/livez` on 9090
+  - [ ] cipher-im uses `/admin/api/v1/livez` on 9090
+  - [ ] jose-ja uses `/admin/api/v1/livez` on 9090
+  - [ ] pki-ca uses `/admin/api/v1/livez` on 9090
+- **Verification**:
+  ```bash
+  grep -rn "livez\|readyz" internal/apps/*/server/*.go
+  grep -rn "livez\|readyz" internal/kms/server/*.go
+  ```
+
+### Task 17.2: Fix Non-Compliant Health Paths
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 17.1
+- **Description**: Fix any services not using standard health path
+- **Acceptance Criteria**:
+  - [ ] All services use `/admin/api/v1/livez`
+  - [ ] No `/health` paths remain on public ports
+- **Files**:
+  - Service server files as needed
+
+### Task 17.3: Update Compose Healthcheck Commands
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 17.2
+- **Description**: Update compose healthcheck to use correct path/port
+- **Acceptance Criteria**:
+  - [ ] All healthchecks use `wget --no-check-certificate https://127.0.0.1:9090/admin/api/v1/livez`
+  - [ ] All use port 9090 (not public port)
+- **Files**:
+  - `deployments/*/compose.yml`
+
+### Task 17.4: Update E2E Test Health Checks
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 17.3
+- **Description**: Update E2E tests to use correct health endpoint
+- **Acceptance Criteria**:
+  - [ ] E2E tests check `/admin/api/v1/livez` on 9090
+  - [ ] Tests pass
+- **Files**:
+  - `internal/test/e2e/*.go`
+
+### Task 17.5: Verify Health Endpoints
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Task 17.4
+- **Description**: Verify all services respond correctly
+- **Acceptance Criteria**:
+  - [ ] All services return 200 on `/admin/api/v1/livez:9090`
+  - [ ] Tests pass
+- **Verification**:
+  ```bash
+  go test ./internal/apps/*/server/... -run Health
+  go test ./internal/kms/server/... -run Health
+  ```
+
+---
+
+## Phase 18: Compose Files Proactive Update
+
+### Task 18.1: Update cipher/compose.yml
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Phase 17
+- **Description**: Update cipher compose with correct ports/health
+- **Acceptance Criteria**:
+  - [ ] Public port: 8070
+  - [ ] Admin port: 9090
+  - [ ] Health check: `/admin/api/v1/livez` on 9090
+  - [ ] Secrets configured correctly
+- **Files**:
+  - `deployments/cipher/compose.yml`
+
+### Task 18.2: Update jose/compose.yml
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Phase 17
+- **Description**: Update jose compose with correct ports/health
+- **Acceptance Criteria**:
+  - [ ] Public port: 8060
+  - [ ] Admin port: 9090
+  - [ ] Health check: `/admin/api/v1/livez` on 9090
+  - [ ] Secrets configured correctly
+- **Files**:
+  - `deployments/jose/compose.yml`
+
+### Task 18.3: Update pki/compose.yml
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Phase 17
+- **Description**: Update pki compose with correct ports/health
+- **Acceptance Criteria**:
+  - [ ] Public port: 8050
+  - [ ] Admin port: 9090
+  - [ ] Health check: `/admin/api/v1/livez` on 9090
+  - [ ] Secrets configured correctly
+- **Files**:
+  - `deployments/pki/compose.yml`
+
+### Task 18.4: Update kms/compose.yml
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Phase 17
+- **Description**: Update kms compose with correct ports/health
+- **Acceptance Criteria**:
+  - [ ] Public port: 8080
+  - [ ] Admin port: 9090
+  - [ ] Health check: `/admin/api/v1/livez` on 9090
+  - [ ] Secrets configured correctly
+- **Files**:
+  - `deployments/kms/compose.yml`
+
+### Task 18.5: Verify Compose File Consistency
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Tasks 18.1-18.4
+- **Description**: Verify all compose files have consistent structure
+- **Acceptance Criteria**:
+  - [ ] All compose files valid syntax
+  - [ ] All use consistent patterns
+  - [ ] `docker compose config` passes for each
+- **Verification**:
+  ```bash
+  docker compose -f deployments/cipher/compose.yml config > /dev/null
+  docker compose -f deployments/jose/compose.yml config > /dev/null
+  docker compose -f deployments/pki/compose.yml config > /dev/null
+  docker compose -f deployments/kms/compose.yml config > /dev/null
+  ```
+
+---
+
+## Phase 19: lint-ports Enhancement
+
+### Task 19.1: Add Container Port Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**: 
+- **Dependencies**: Phase 18
+- **Description**: Enhance lint-ports to validate container ports
+- **Acceptance Criteria**:
+  - [ ] Validates container ports in compose files
+  - [ ] Reports violations for incorrect ports
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+
+### Task 19.2: Add Host Port Range Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 19.1
+- **Description**: Validate host port ranges match standard
+- **Acceptance Criteria**:
+  - [ ] Validates host ports within allowed ranges
+  - [ ] Reports violations for out-of-range ports
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+
+### Task 19.3: Add Health Path Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 19.2
+- **Description**: Validate health paths in compose files
+- **Acceptance Criteria**:
+  - [ ] Detects non-standard health paths
+  - [ ] Reports violations for incorrect paths
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+
+### Task 19.4: Add Compose File Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 19.3
+- **Description**: Comprehensive compose file validation
+- **Acceptance Criteria**:
+  - [ ] Validates port mappings
+  - [ ] Validates health checks
+  - [ ] Reports all violations
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+
+### Task 19.5: Add Documentation Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 19.4
+- **Description**: Validate port references in documentation
+- **Acceptance Criteria**:
+  - [ ] Checks markdown files for port references
+  - [ ] Reports outdated port references
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/lint_ports.go`
+
+### Task 19.6: Update Test Coverage
+- **Status**: ❌ Not Started
+- **Estimated**: 1h
+- **Actual**: 
+- **Dependencies**: Tasks 19.1-19.5
+- **Description**: Add tests for new validation features
+- **Acceptance Criteria**:
+  - [ ] Tests for container port validation
+  - [ ] Tests for host port range validation
+  - [ ] Tests for health path validation
+  - [ ] ≥95% coverage
+- **Files**:
+  - `internal/cmd/cicd/lint_ports/lint_ports_test.go`
+
+---
+
+## Phase 20: Documentation Comprehensive Update
+
+### Task 20.1: Update architecture.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Phase 19
+- **Description**: Update service catalog with correct ports
+- **Acceptance Criteria**:
+  - [ ] Service catalog has correct port assignments
+  - [ ] identity services use 8100-8130 series
+  - [ ] All admin ports show 9090
+- **Files**:
+  - `.github/instructions/02-01.architecture.instructions.md`
+
+### Task 20.2: Update service-template.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Task 20.1
+- **Description**: Update port references in service template
+- **Acceptance Criteria**:
+  - [ ] Port examples use correct values
+  - [ ] Consistent with architecture
+- **Files**:
+  - `.github/instructions/02-02.service-template.instructions.md`
+
+### Task 20.3: Update https-ports.instructions.md
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Task 20.2
+- **Description**: Update HTTPS port documentation
+- **Acceptance Criteria**:
+  - [ ] Port table has correct values
+  - [ ] Health path documented as `/admin/api/v1/livez`
+- **Files**:
+  - `.github/instructions/02-03.https-ports.instructions.md`
+
+### Task 20.4: Update README.md
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Task 20.3
+- **Description**: Update any port references in README
+- **Acceptance Criteria**:
+  - [ ] No outdated port references
+  - [ ] Service quick start uses correct ports
+- **Files**:
+  - `README.md`
+
+### Task 20.5: Verify Documentation Consistency
+- **Status**: ❌ Not Started
+- **Estimated**: 0.25h
+- **Actual**: 
+- **Dependencies**: Tasks 20.1-20.4
+- **Description**: Verify all documentation is consistent
+- **Acceptance Criteria**:
+  - [ ] All docs reference same ports
+  - [ ] No conflicting information
+- **Verification**:
+  ```bash
+  grep -rn "8050\|8060\|8070\|8080\|8100\|8110\|8120\|8130\|9090" .github/instructions/ | grep -v ".swp"
+  ```
+
+---
+
+## Phase 21: Final Validation and Post-Mortem
+
+### Task 21.1: Run Comprehensive lint-ports Validation
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Phase 20
+- **Description**: Run lint-ports on entire codebase
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd lint-ports` passes
+  - [ ] 0 violations
+- **Verification**:
+  ```bash
+  go run ./cmd/cicd lint-ports
+  ```
+
+### Task 21.2: Test All Services Start
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 21.1
+- **Description**: Verify all services start and respond to health checks
+- **Acceptance Criteria**:
+  - [ ] cipher-im starts on 8070, health on 9090
+  - [ ] jose-ja starts on 8060, health on 9090
+  - [ ] pki-ca starts on 8050, health on 9090
+  - [ ] sm-kms starts on 8080, health on 9090
+- **Verification**: Manual or E2E tests
+
+### Task 21.3: Run Full Test Suite
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 21.2
+- **Description**: Run all tests
+- **Acceptance Criteria**:
+  - [ ] `go test ./...` passes
+  - [ ] No regressions
+- **Verification**:
+  ```bash
+  go test ./... -count=1
+  ```
+
+### Task 21.4: Create Post-Mortem Analysis
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 21.3
+- **Description**: Document what was wrong and lessons learned
+- **Acceptance Criteria**:
+  - [ ] Post-mortem section in analysis-overview.md
+  - [ ] Lessons learned documented
+  - [ ] Prevention mechanisms identified
+
+### Task 21.5: Update Copilot Instructions
+- **Status**: ❌ Not Started
+- **Estimated**: 0.5h
+- **Actual**: 
+- **Dependencies**: Task 21.4
+- **Description**: Add lessons learned to copilot instructions
+- **Acceptance Criteria**:
+  - [ ] Port validation requirements in instructions
+  - [ ] Health path requirements in instructions
+  - [ ] Enforcement mechanisms documented
+- **Files**:
+  - `.github/instructions/*.md`
+
+---
+
+## V8 Updated Status
+
+**Total Tasks**: 89 (67 original + 22 new)
+**Estimated New Work**: 18-26 hours
+
+**Updated Success Criteria**:
+- [ ] lint_ports/constants.go has correct port ranges (8050-8130 series)
+- [ ] magic_network.go has correct port constants  
+- [ ] All services use admin port 9090
+- [ ] All services use standard health path `/admin/api/v1/livez`
+- [ ] All compose.yml files have correct port mappings
+- [ ] All compose.yml files have correct health checks
+- [ ] cicd lint-ports passes for entire codebase
+- [ ] KMS uses template barrier (no adapter)
+- [ ] shared/barrier main package deleted (unsealkeysservice kept)
+- [ ] All documentation reflects correct port assignments
+- [ ] All tests pass
