@@ -52,13 +52,14 @@ V7 claims about "barrier integration addressed" were FALSE. Code archaeology rev
 
 ## 4. Barrier Implementation Analysis
 
-**Current State**:
-- `internal/apps/template/service/server/barrier/` - 18 files, GORM-based ✅ TARGET
-- `internal/shared/barrier/` - Legacy, still used by KMS ❌ DELETE AFTER KMS
-- `internal/kms/server/barrier/orm_barrier_adapter.go` - UNUSED ❌ DELETE
+**Current State** (Post-V8 Migration):
+- `internal/apps/template/service/server/barrier/` - 18 files, GORM-based ✅ SINGLE SOURCE
+- `internal/shared/barrier/` - ✅ DELETED
+- `internal/kms/server/barrier/orm_barrier_adapter.go` - ✅ DELETED (was UNUSED)
 
-**V8 Decision (Q1=E)**: Single barrier in template only.
-**V8 Decision (Q2=E)**: Delete shared/barrier IMMEDIATELY after KMS migration.
+**V8 Decisions Implemented**:
+- ✅ Q1=E: Single barrier in template only
+- ✅ Q2=E: shared/barrier deleted after KMS migration
 
 → [Barrier Deep Analysis](#4-barrier-implementation-analysis) in analysis-thorough.md
 
@@ -147,16 +148,16 @@ TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 ## 10. Success Metrics
 
 **Completion Criteria**:
-- [ ] KMS uses template barrier (0 imports from shared/barrier)
-- [ ] shared/barrier deleted (directory removed)
-- [ ] All tests pass including new barrier tests
+- [x] KMS uses template barrier (0 imports from shared/barrier)
+- [x] shared/barrier deleted (directory removed)
+- [x] All tests pass including new barrier tests
 - [ ] Coverage ≥95% for migrated code
 - [ ] Mutation ≥95% minimum at end
-- [ ] 3 TODOs resolved in server.go
-- [ ] **All services use /admin/api/v1/livez health path**
-- [ ] **All services use admin port 9090**
-- [ ] **All services use new port ranges**
-- [ ] **lint-ports validates entire codebase**
+- [x] 3 TODOs resolved in server.go
+- [x] **All services use /admin/api/v1/livez health path**
+- [x] **All services use admin port 9090**
+- [x] **All services use new port ranges**
+- [x] **lint-ports validates entire codebase (0 violations)**
 
 → [Metrics Tracking](#10-success-metrics) in analysis-thorough.md
 
@@ -165,39 +166,41 @@ TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 ## 11. HTTPS Ports Review (All 9 Product-Services)
 
 **Analysis Date**: 2026-02-03
-**Updated**: 2026-02-14 (V8 Plan Phases 9-14)
-**Source**: Code archaeology + new port standardization plan
+**Updated**: 2026-02-15 (V8 Phase 14 - Verification Complete)
+**Source**: Code archaeology + port standardization implemented
 
-### NEW Port Standard Table (V8 Phases 9-14)
+### Port Standard Table (V8 Implementation Complete)
 
 | Service | Container Port | Host Port Range | Admin Port | Status |
 |---------|----------------|-----------------|------------|--------|
-| sm-kms | 8080 | 8080-8089 | 9090 | ✅ Conformant |
-| cipher-im | **8070** | 8070-8079 | 9090 | ⚠️ Currently 8070 |
-| jose-ja | **8060** | 8060-8069 | **9090** | ⚠️ Currently 8060/9092 |
-| pki-ca | **8050** | 8050-8059 | 9090 | ⚠️ Currently 8050 |
-| identity-authz | 8100 | 8100-8109 | 9090 | Planned |
-| identity-idp | 8110 | 8110-8119 | 9090 | Planned |
-| identity-rs | 8120 | 8120-8129 | 9090 | Planned |
-| identity-rp | 8130 | 8130-8139 | 9090 | Planned |
-| identity-spa | 8140 | 8140-8149 | 9090 | Planned |
+| sm-kms | 8080 | 8080-8089 | 9090 | ✅ Complete |
+| cipher-im | **8070** | 8070-8079 | 9090 | ✅ Complete |
+| jose-ja | **8060** | 8060-8069 | **9090** | ✅ Complete |
+| pki-ca | **8050** | 8050-8059 | 9090 | ✅ Complete |
+| identity-authz | 18000 | 18000-18009 | 9090 | Planned |
+| identity-idp | 18100 | 18100-18109 | 9090 | Planned |
+| identity-rs | 18200 | 18200-18209 | 9090 | Planned |
+| identity-rp | 18300 | 18300-18309 | 9090 | Planned |
+| identity-spa | 18400 | 18400-18409 | 9090 | Planned |
 
-### Key Changes from V8 Phases 9-14
+### Key Changes Implemented (V8 Phases 9-14)
 
-1. **cipher-im**: 8070 → 8070 (Phase 11.1)
-2. **jose-ja**: 8060 → 8060 public, 9092 → 9090 admin (Phases 10, 11.2)
-3. **pki-ca**: 8050 → 8050, health path `/livez` → `/admin/api/v1/livez` (Phases 9, 11.3)
-4. **All services**: Admin port standardized to 9090
+1. **cipher-im**: Standardized to 8070 public, 9090 admin ✅
+2. **jose-ja**: Standardized to 8060 public, 9090 admin (was 9092) ✅
+3. **pki-ca**: Standardized to 8050 public, 9090 admin ✅
+4. **All services**: Admin port standardized to 9090 ✅
 
-### Health Path Standard
+### Health Path Standard ✅ IMPLEMENTED
 
-**ALL services MUST use**: `/admin/api/v1/livez` and `/admin/api/v1/readyz`
+**ALL services now use**: `/admin/api/v1/livez` and `/admin/api/v1/readyz` on port 9090
 
-Current non-conformant: pki-ca uses `/livez` (Phase 9 fixes)
+Verified in:
+- All compose.yml health checks
+- CI E2E workflow health checks
 
-### CICD lint-ports Validation (Phase 12)
+### CICD lint-ports Validation ✅ PASSING
 
-New lint-ports command validates port consistency across:
+lint-ports command validates port consistency across:
 - Go source code (`internal/apps/*/`)
 - Config files (`configs/*/`, `deployments/*/`)
 - Compose files (`deployments/*/compose*.yml`)
@@ -271,22 +274,29 @@ Users from different realms in the same tenant see the SAME data. The realm only
 
 ---
 
-## 14. KMS Barrier Migration Path (REVISED)
+## 14. KMS Barrier Migration Path ✅ COMPLETE
 
 **Date**: 2025-02-14
-**Updated**: 2025-02-14 (REVISED - NO ADAPTER)
-**Status**: Analysis Complete
+**Updated**: 2025-02-15 (COMPLETE)
+**Status**: ✅ Migration Complete
 
-### CORRECTION: No Adapter Pattern Needed
+### Summary
 
-**Previous analysis incorrectly suggested using `orm_barrier_adapter.go`.**
+KMS now uses template barrier DIRECTLY via ServerBuilder, exactly like cipher-im and jose-ja do.
 
-Correct approach: **KMS should use template barrier DIRECTLY, exactly like cipher-im and jose-ja do.**
+### What Was Done
 
-### How cipher-im Uses Template Barrier (REFERENCE PATTERN)
+1. **Studied cipher-im pattern** ✅
+2. **Refactored KMS to use ServerBuilder** ✅
+3. **Updated imports to template barrier** ✅
+4. **Deleted orm_barrier_adapter.go** ✅ (was UNUSED)
+5. **Verified zero shared/barrier imports** ✅
+6. **Deleted shared/barrier directory** ✅
+
+### How KMS Now Uses Template Barrier
 
 ```go
-// cipher-im imports template barrier via ServerBuilder
+// KMS imports template barrier via ServerBuilder
 import cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 
 // ServerBuilder provides BarrierService via ServiceResources
@@ -294,37 +304,11 @@ resources, err := builder.Build()
 barrierService := resources.BarrierService  // Already initialized
 ```
 
-### Migration Strategy (Phase 13)
+### Verification Evidence
 
-1. **Study cipher-im pattern** (Task 13.1)
-2. **Refactor KMS to use ServerBuilder** (Task 13.2)
-3. **Update imports to template barrier** (Tasks 13.3-13.5)
-4. **Delete orm_barrier_adapter.go** (Task 13.6) - NEVER needed
-5. **Verify zero shared/barrier imports** (Task 13.7)
-6. **Delete shared/barrier directory** (Task 13.9)
-
-### Key Finding: Adapter File is UNUSED
-
-`internal/kms/server/barrier/orm_barrier_adapter.go` (199 lines) was created but NEVER integrated.
-It should be **DELETED**, not used as a bridge.
-
-### Migration Complexity (Revised)
-
-| Aspect | Assessment |
-|--------|-----------|
-| Pattern Source | cipher-im (identical use case) |
-| Adapter Required | **NO** - direct replacement |
-| Test Coverage | Template barrier fully tested |
-| Risk Level | LOW - proven pattern from cipher-im |
-
-### Correct Import Pattern (Post-Migration)
-
-```go
-// BEFORE (wrong)
-import cryptoutilBarrierService "cryptoutil/internal/shared/barrier"
-
-// AFTER (correct)
-import cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-```
+- `grep -r "shared/barrier" internal/kms/` returns empty
+- `internal/shared/barrier/` directory deleted
+- `internal/kms/server/barrier/orm_barrier_adapter.go` deleted
+- All KMS tests pass with template barrier
 
 → [Migration Details](#14-kms-barrier-migration-path) in analysis-thorough.md
