@@ -53,7 +53,7 @@ services:
       - --config=/etc/jose/jose.yml
     ports:
       - "8092:8092"  # Public API (HTTPS)
-      - "9092:9092"  # Admin API (HTTPS)
+      - "9090:9090"  # Admin API (HTTPS)
     volumes:
       - ./config/jose.yml:/etc/jose/jose.yml:ro
     depends_on:
@@ -64,7 +64,7 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:9092/admin/api/v1/livez"]
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 30s
       interval: 10s
       timeout: 5s

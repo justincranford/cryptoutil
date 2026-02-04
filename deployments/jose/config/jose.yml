@@ -5,7 +5,7 @@
 bind-public-address: "0.0.0.0"
 bind-public-port: 8092
 bind-admin-address: "0.0.0.0"
-bind-admin-port: 9092
+bind-admin-port: 9090
 
 # TLS configuration.
 tls-enabled: true

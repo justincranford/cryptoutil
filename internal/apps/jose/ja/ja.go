@@ -3,56 +3,61 @@
 package ja
 
 import (
-"context"
-"io"
-"log"
+	"context"
+	"io"
+	"log"
 
-cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
-cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose/ja/server"
+	cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose/ja/server"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
 )
 
 // Main is the entry point for the jose-ja service.
 // It follows the same pattern as sm-kms for consistency.
 func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-if len(args) < 2 {
-log.Println("Usage: jose-ja <subcommand> [flags]")
-return 1
-}
+	if len(args) < 2 {
+		log.Println("Usage: jose-ja <subcommand> [flags]")
 
-subcommand := args[1]
-switch subcommand {
-case "start":
-return startServer(args[2:])
-default:
-log.Printf("Unknown subcommand: %s\n", subcommand)
-return 1
-}
+		return 1
+	}
+
+	subcommand := args[1]
+	switch subcommand {
+	case "start":
+		return startServer(args[2:])
+	default:
+		log.Printf("Unknown subcommand: %s\n", subcommand)
+
+		return 1
+	}
 }
 
 // startServer starts the jose-ja server.
 func startServer(args []string) int {
-ctx := context.Background()
+	ctx := context.Background()
 
-// Parse configuration using jose-ja config package.
-// exitIfHelp=true to match standard CLI behavior.
-settings, err := cryptoutilAppsJoseJaServerConfig.Parse(args, true)
-if err != nil {
-log.Printf("Failed to parse configuration: %v\n", err)
-return 1
-}
+	// Parse configuration using jose-ja config package.
+	// exitIfHelp=true to match standard CLI behavior.
+	settings, err := cryptoutilAppsJoseJaServerConfig.Parse(args, true)
+	if err != nil {
+		log.Printf("Failed to parse configuration: %v\n", err)
 
-// Create server using NewFromConfig pattern.
-server, err := cryptoutilAppsJoseJaServer.NewFromConfig(ctx, settings)
-if err != nil {
-log.Printf("Failed to create server: %v\n", err)
-return 1
-}
+		return 1
+	}
 
-// Start server (blocks until shutdown).
-if err := server.Start(ctx); err != nil {
-log.Printf("Server error: %v\n", err)
-return 1
-}
+	// Create server using NewFromConfig pattern.
+	server, err := cryptoutilAppsJoseJaServer.NewFromConfig(ctx, settings)
+	if err != nil {
+		log.Printf("Failed to create server: %v\n", err)
 
-return 0
+		return 1
+	}
+
+	// Start server (blocks until shutdown).
+	if err := server.Start(ctx); err != nil {
+		log.Printf("Server error: %v\n", err)
+
+		return 1
+	}
+
+	return 0
 }
