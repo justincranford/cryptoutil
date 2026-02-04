@@ -1,6 +1,6 @@
 # Tasks - Complete KMS Migration (V8)
 
-**Status**: 25 of 59 tasks complete (42%)
+**Status**: 29 of 59 tasks complete (49%)
 **Last Updated**: 2026-02-14
 **Purpose**: Complete the ACTUAL remaining work from V7
 
@@ -320,9 +320,9 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 ## Phase 7: jose-ja Consolidation
 
 ### Task 7.1: Rename cmd/jose-server to cmd/jose-ja
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Phase 6 complete
 - **Description**: Rename cmd entry to follow pattern
 - **Acceptance Criteria**:
@@ -332,9 +332,9 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Evidence**: Directory listing, build clean
 
 ### Task 7.2: Analyze jose Implementations
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete (previous session)
 - **Estimated**: 2h
-- **Actual**:
+- **Actual**: 0h (already done)
 - **Dependencies**: Task 7.1
 - **Description**: Document differences between internal/jose/ and internal/apps/jose/ja/
 - **Acceptance Criteria**:
@@ -342,10 +342,10 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
   - [ ] Consolidation plan defined
 - **Evidence**: Analysis in analysis-thorough.md
 
-### Task 7.3: Consolidate to internal/apps/jose/ja
-- **Status**: ❌ Not Started
+### Task 7.3: Create jose-ja Main entry point
+- **Status**: ✅ Complete
 - **Estimated**: 4h
-- **Actual**:
+- **Actual**: 2h
 - **Dependencies**: Task 7.2
 - **Description**: Merge implementations into conformant structure
 - **Acceptance Criteria**:
@@ -355,9 +355,9 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Evidence**: test results
 
 ### Task 7.4: Delete internal/jose
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Task 7.3 verified
 - **Description**: Remove old directory
 - **Acceptance Criteria**:
