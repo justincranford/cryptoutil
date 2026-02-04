@@ -5,7 +5,7 @@ including dual HTTPS endpoints, health checks, and end-to-end encryption.
 
 ## Features
 
-- **Dual HTTPS Servers**: Separate public (8888) and admin (9090) endpoints
+- **Dual HTTPS Servers**: Separate public (8070) and admin (9090) endpoints
 - **End-to-End Encryption**: RSA-OAEP message encryption with Ed25519 signing
 - **SessionManager Authentication**: JWE/JWS-based secure session management
 - **Health Checks**: Kubernetes-style livez/readyz probes
@@ -26,7 +26,7 @@ go run ./cmd/cipher-im \
 
 # Run with custom ports
 go run ./cmd/cipher-im \
-  --public-port=8889 \
+  --public-port=8071 \
   --admin-port=9091
 ```
 
@@ -59,7 +59,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 ## API Endpoints
 
-### Public Server (HTTPS :8888)
+### Public Server (HTTPS :8070)
 
 **Service APIs** (`/service/api/v1/*` - headless clients):
 
@@ -126,7 +126,7 @@ POST /admin/v1/shutdown
 
 ```bash
 --dev                    Development mode (SQLite in-memory, debug logging)
---public-port=8888       Public HTTPS server port
+--public-port=8070       Public HTTPS server port
 --admin-port=9090        Admin HTTPS server port
 --database-url=...       Database connection string
 --log-level=info         Logging level (debug, info, warn, error)
@@ -317,8 +317,8 @@ metadata:
 spec:
   ports:
     - name: public
-      port: 8888
-      targetPort: 8888
+      port: 8070
+      targetPort: 8070
     - name: admin
       port: 9090
       targetPort: 9090
@@ -344,7 +344,7 @@ spec:
         - name: cipher-im
           image: cipher-im:latest
           ports:
-            - containerPort: 8888
+            - containerPort: 8070
             - containerPort: 9090
           livenessProbe:
             httpGet:
@@ -383,7 +383,7 @@ docker compose logs cipher-im
 
 # Common issues:
 # - Database connection failed: verify DATABASE_URL
-# - Port conflict: check ports 8888/9090 availability
+# - Port conflict: check ports 8070/9090 availability
 # - Health check failing: verify /admin/v1/livez responds
 ```
 

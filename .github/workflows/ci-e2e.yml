@@ -124,13 +124,13 @@ jobs:
     - name: Verify CA services
       run: |
         echo "🔍 Verifying CA services..."
-        curl -k https://localhost:8443/health || echo "CA SQLite not ready"
+        curl -k https://localhost:8050/health || echo "CA SQLite not ready"
         docker compose -f ./deployments/ca/compose.yml ps
 
     - name: Verify JOSE services
       run: |
         echo "🔍 Verifying JOSE services..."
-        curl -k https://localhost:8092/health || echo "JOSE server not ready"
+        curl -k https://localhost:8060/health || echo "JOSE server not ready"
         docker compose -f ./deployments/jose/compose.yml ps
 
     - name: Run E2E tests

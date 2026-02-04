@@ -82,8 +82,8 @@ The Spec Kit Methodology, driven by GitHub's open-source toolkit, is a Spec-Driv
 | Service Alias | Product | Service | Public Ports | Admin Port | Description |
 |---------------|-----------|-------------|------------|-------------|
 | **sm-kms** | Secrets Manager | Key Management Service (KMS) | 8080-8089 | 127.0.0.1:9090 | REST APIs for per-tenant Elastic Keys |
-| **pki-ca** | Public Key Infrastructure | Certificate Authority (CA) | 8443-8449 | 127.0.0.1:9090 | X.509 certificate lifecycle, EST, SCEP, OCSP, CRLDP, CMPv2, CMC, time-stamping |
-| **jose-ja** | JOSE | JWK Authority (JA) | 9443-9449 | 127.0.0.1:9090 | JWK, JWKS, JWE, JWS, JWT operations |
+| **pki-ca** | Public Key Infrastructure | Certificate Authority (CA) | 8050-8059 | 127.0.0.1:9090 | X.509 certificate lifecycle, EST, SCEP, OCSP, CRLDP, CMPv2, CMC, time-stamping |
+| **jose-ja** | JOSE | JWK Authority (JA) | 8060-8069 | 127.0.0.1:9090 | JWK, JWKS, JWE, JWS, JWT operations |
 | **identity-authz** | Identity | Authorization Server (authz) | 18000-18009 | 127.0.0.1:9090 | OAuth 2.1 authorization server, OIDC Discovery |
 | **identity-idp** | Identity | Identity Provider (IdP) | 18100-18109 | 127.0.0.1:9090 | OIDC 1.0 authentication, login/consent UI, MFA enrollment |
 | **identity-rs** | Identity | Resource Server (RS) | 18200-18209 | 127.0.0.1:9090 | Protected API with token validation (reference implementation) |
@@ -92,7 +92,7 @@ The Spec Kit Methodology, driven by GitHub's open-source toolkit, is a Spec-Driv
 
 | Service Alias | Product | Service | Public Port | Admin Port | Description |
 |---------------|-----------|-------------|------------|-------------|
-| **cipher-im** | Cipher | InstantMessenger | 8888-8889 | 127.0.0.1:9090 | Encrypted messaging demonstration service validating service template |
+| **cipher-im** | Cipher | InstantMessenger | 8070-8079 | 127.0.0.1:9090 | Encrypted messaging demonstration service validating service template |
 
 **Source**: Architecture instructions (01-01.architecture.instructions.md), constitution.md Section I
 
@@ -779,7 +779,7 @@ healthcheck:
 
 | Network Zone | Services | Access Control |
 |--------------|----------|----------------|
-| **Public** | All services (ports 8080-8443) | OAuth 2.1 tokens, rate limiting, TLS 1.3+ |
+| **Public** | All services (ports 8050-8089) | OAuth 2.1 tokens, rate limiting, TLS 1.3+ |
 | **Admin** | All services (port 9090) | Localhost only (127.0.0.1), optional mTLS |
 | **Database** | PostgreSQL (port 5432) | Password auth, network isolation |
 | **Telemetry** | OTLP Collector (ports 4317/4318) | Service mesh only, no external |
@@ -1753,9 +1753,9 @@ exemptions:
 
 | Service | Public Port | Admin Port | Backend | Status |
 |---------|-------------|------------|---------|--------|
-| ca-simple | 8443 | 9443 | SQLite | ✅ Development only (`compose.simple.yml`) |
-| ca-postgres-1 | 8443 (planned) | 9443 (planned) | PostgreSQL | ⚠️ Production config missing |
-| ca-postgres-2 | 8443 (planned) | 9443 (planned) | PostgreSQL | ⚠️ Production config missing |
+| ca-simple | 8050 | 9090 | SQLite | ✅ Development only (`compose.simple.yml`) |
+| ca-postgres-1 | 8051 (planned) | 9090 (planned) | PostgreSQL | ⚠️ Production config missing |
+| ca-postgres-2 | 8052 (planned) | 9090 (planned) | PostgreSQL | ⚠️ Production config missing |
 
 **Required**: Create `deployments/ca/compose.yml` with multi-instance PostgreSQL deployment matching JOSE/KMS patterns.
 

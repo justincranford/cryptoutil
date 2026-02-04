@@ -6,12 +6,12 @@ package config
 
 // Default ports.
 const (
-	defaultAuthZPort      = 8443 // Default AuthZ server port.
+	defaultAuthZPort      = 18000 // Default AuthZ server port.
 	defaultAuthZAdminPort = 9090 // Default AuthZ admin port.
-	defaultIDPPort        = 8444 // Default IDP server port.
-	defaultIDPAdminPort   = 9444 // Default IDP admin port.
-	defaultRSPort         = 8445 // Default RS server port.
-	defaultRSAdminPort    = 9445 // Default RS admin port.
+	defaultIDPPort        = 18100 // Default IDP server port.
+	defaultIDPAdminPort   = 9090 // Default IDP admin port.
+	defaultRSPort         = 18200 // Default RS server port.
+	defaultRSAdminPort    = 9090 // Default RS admin port.
 )
 
 // Default timeouts (seconds).

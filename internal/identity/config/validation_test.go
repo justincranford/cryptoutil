@@ -37,7 +37,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:         "test-server",
 				BindAddress:  "127.0.0.1",
-				Port:         8443,
+				Port:         18000,
 				TLSEnabled:   true,
 				TLSCertFile:  "/path/to/cert.pem",
 				TLSKeyFile:   "/path/to/key.pem",
@@ -117,7 +117,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:        "test-server",
 				BindAddress: "127.0.0.1",
-				Port:        8443,
+				Port:        18000,
 				TLSEnabled:  true,
 				TLSCertFile: "",
 				TLSKeyFile:  "/path/to/key.pem",
@@ -130,7 +130,7 @@ func TestServerConfig_Validate(t *testing.T) {
 			config: &ServerConfig{
 				Name:        "test-server",
 				BindAddress: "127.0.0.1",
-				Port:        8443,
+				Port:        18000,
 				TLSEnabled:  true,
 				TLSCertFile: "/path/to/cert.pem",
 				TLSKeyFile:  "",

@@ -135,9 +135,9 @@ const (
 
 // Default server ports.
 const (
-	DefaultAuthZPort       = 8443 // Default OAuth 2.1 authorization server port.
-	DefaultIDPPort         = 8444 // Default OIDC identity provider server port.
-	DefaultRSPort          = 8445 // Default resource server port.
-	DefaultSPARPPort       = 8446 // Default SPA relying party server port.
+	DefaultAuthZPort       = 18000 // Default OAuth 2.1 authorization server port.
+	DefaultIDPPort         = 18100 // Default OIDC identity provider server port.
+	DefaultRSPort          = 18200 // Default resource server port.
+	DefaultSPARPPort       = 18300 // Default SPA relying party server port.
 	ShutdownTimeoutSeconds = 10   // Default server shutdown timeout in seconds.
 )

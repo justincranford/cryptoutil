@@ -548,12 +548,12 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 
 ## Phase 11: Port Range Standardization (All Services)
 
-### Task 11.1: Update cipher-im Port (8888 → 8070)
+### Task 11.1: Update cipher-im Port (legacy → 8070)
 - **Status**: ✅ Complete
 - **Estimated**: 1.5h
 - **Actual**: 0.5h
 - **Dependencies**: Phase 10 complete
-- **Description**: Change cipher-im from 8888 to 8070
+- **Description**: Change cipher-im from legacy to 8070
 - **Acceptance Criteria**:
   - [x] Server code uses 8070
   - [x] Config files use 8070
@@ -565,12 +565,12 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
   - `configs/cipher/im/*.yml`
   - `deployments/compose/compose.yml`
 
-### Task 11.2: Update jose-ja Public Port (9443 → 8060)
+### Task 11.2: Update jose-ja Public Port (legacy → 8060)
 - **Status**: ✅ Complete
 - **Estimated**: 1h
 - **Actual**: 0.25h
 - **Dependencies**: Task 10.4
-- **Description**: Change jose-ja public port from 9443 to 8060
+- **Description**: Change jose-ja public port from legacy to 8060
 - **Acceptance Criteria**:
   - [x] Server code uses 8060
   - [x] Config files use 8060
@@ -581,12 +581,12 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
   - `configs/jose/jose-server.yml`
   - `deployments/jose/compose.yml`
 
-### Task 11.3: Update pki-ca Public Port (8443 → 8050)
+### Task 11.3: Update pki-ca Public Port (legacy → 8050)
 - **Status**: ✅ Complete
 - **Estimated**: 1h
 - **Actual**: 0.25h
 - **Dependencies**: Task 9.4
-- **Description**: Change pki-ca public port from 8443 to 8050
+- **Description**: Change pki-ca public port from legacy to 8050
 - **Acceptance Criteria**:
   - [x] Server code uses 8050
   - [x] Config files use 8050

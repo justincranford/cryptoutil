@@ -107,7 +107,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Commits**: 0bf38708, a3c071b2, 57080820, 902cae52, 44ad79c0, b4933792, 5204a9c8, 65915d4c
   - **Progress**:
     - ✅ CMD entrypoint created (cmd/cipher-im/main.go) - commit 0bf38708
-    - ✅ Port constants added (8888 public, 9090 admin)
+    - ✅ Port constants added (8070 public, 9090 admin)
     - ✅ SQLite initialization with migrations
     - ✅ Server structure exists with template integration
     - ✅ Domain models defined (User, Message, MessageReceiver)
@@ -1873,7 +1873,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 **Work completed**:
 
 - ✅ JWT middleware implementation (generation on login, verification on protected routes)
-- ✅ CORS middleware for /browser paths (localhost:8888 allowed origin)
+- ✅ CORS middleware for /browser paths (localhost:8070 allowed origin)
 - ✅ Public server paths: /service and /browser with appropriate middleware stacks
 - ✅ Tests for both /service and /browser paths
 - ✅ All 14 server tests PASS (registration, login, messages, deletion)
@@ -3776,7 +3776,7 @@ Task 0.10:
 - `server/apis/jwk_handler.go` - JWK CRUD and cryptographic operation handlers
 
 **Magic Constants** (`internal/shared/magic/magic_jose.go`):
-- Port assignments (JoseJAServicePort=9443, JoseJAAdminPort=9090)
+- Port assignments (JoseJAServicePort=8060, JoseJAAdminPort=9090)
 - Elastic key limits (min=1, max=100, default=10)
 - Audit configuration (enabled, sampling rates)
 - E2E test port assignments
@@ -5562,7 +5562,7 @@ Following Phase 4 (JOSE-JA) precedent (83.9% accepted vs 95% target), accepting 
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
 | Service name | ✅ | cipher-im |
-| Port range | ✅ | 8888-8889 (configurable) |
+| Port range | ✅ | 8070-8079 (configurable) |
 | Template builder | ✅ | Uses `cryptoutilTemplateBuilder.NewServerBuilder` |
 | Domain migrations | ✅ | 2001_init.up.sql (messages, messages_recipient_jwks) |
 | APIs | ✅ | PUT/GET/DELETE for /messages/tx, /rx, /:id |
@@ -5751,7 +5751,7 @@ ok  cryptoutil/internal/identity/rs/server     0.136s
 2. **Create CA config package** (like jose-ja):
    - `CAServerSettings` embeds `ServiceTemplateServerSettings`
    - CA-specific settings: none initially (PKI config separate)
-   - Override port to CA port range (8443-8449)
+   - Override port to CA port range (8050-8059)
 
 3. **Adapt server to builder pattern**:
    - Use `cryptoutilTemplateBuilder.NewServerBuilder(ctx, cfg.ServiceTemplateServerSettings)`

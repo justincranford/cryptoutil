@@ -85,7 +85,7 @@ func TestValidateConfiguration(t *testing.T) {
 			name: "valid production PostgreSQL config",
 			modify: func(s *ServiceTemplateServerSettings) {
 				s.BindPublicAddress = "192.168.1.100"
-				s.BindPublicPort = 8443
+				s.BindPublicPort = 8080
 				s.DatabaseURL = "postgres://user:pass@db.example.com:5432/production"
 				s.TLSPublicDNSNames = []string{"api.example.com"}
 				s.OTLPEndpoint = "http://otel-collector:4317"

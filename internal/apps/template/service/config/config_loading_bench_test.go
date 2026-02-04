@@ -27,7 +27,7 @@ func BenchmarkYAMLFileLoading(b *testing.B) {
 dev-mode: false
 bind-public-protocol: https
 bind-public-address: 192.168.1.100
-bind-public-port: 8443
+bind-public-port: 8080
 bind-private-protocol: https
 bind-private-address: 127.0.0.1
 bind-private-port: 9090
@@ -72,7 +72,7 @@ func BenchmarkConfigValidation(b *testing.B) {
 dev-mode: false
 bind-public-protocol: https
 bind-public-address: 192.168.1.100
-bind-public-port: 8443
+bind-public-port: 8080
 bind-private-protocol: https
 bind-private-address: 127.0.0.1
 bind-private-port: 9090
@@ -121,7 +121,7 @@ func BenchmarkConfigMerging(b *testing.B) {
 dev-mode: false
 bind-public-protocol: https
 bind-public-address: 192.168.1.100
-bind-public-port: 8443
+bind-public-port: 8080
 database-url: "postgres://user:pass@localhost:5432/testdb"
 browser-ip-rate-limit: 100
 service-ip-rate-limit: 100

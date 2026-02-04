@@ -13,15 +13,15 @@
 #   docker compose down -v                  # Stop and remove volumes
 #
 # Services:
-#   - cipher-im-sqlite: https://localhost:8888 (public) - Standalone SQLite
-#   - cipher-im-pg-1: https://localhost:8889 (public) - Shared PostgreSQL
-#   - cipher-im-pg-2: https://localhost:8890 (public) - Shared PostgreSQL
+#   - cipher-im-sqlite: https://localhost:8070 (public) - Standalone SQLite
+#   - cipher-im-pg-1: https://localhost:8071 (public) - Shared PostgreSQL
+#   - cipher-im-pg-2: https://localhost:8072 (public) - Shared PostgreSQL
 #   - postgres: localhost:5432 (PostgreSQL 18.1)
 #   - otel-collector: (internal only, no host ports)
 #   - grafana: http://localhost:3000 (admin/admin)
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:8888/health (external clients)
+#   - Public health endpoint: https://localhost:8070/health (external clients)
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal container only)
 
 name: cipher-im
@@ -125,7 +125,7 @@ services:
     container_name: cipher-im-sqlite
     hostname: cipher-im-sqlite
     ports:
-      - "8888:8888"  # Public HTTPS API ONLY - external access
+      - "8070:8070"  # Public HTTPS API ONLY - external access
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
@@ -169,7 +169,7 @@ services:
     secrets:
       - postgres_url.secret
     ports:
-      - "8889:8888"  # Public HTTPS API ONLY - external access (mapped to different host port)
+      - "8071:8070"  # Public HTTPS API ONLY - external access (mapped to different host port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
@@ -217,7 +217,7 @@ services:
     secrets:
       - postgres_url.secret
     ports:
-      - "8890:8888"  # Public HTTPS API ONLY - external access (mapped to different host port)
+      - "8072:8070"  # Public HTTPS API ONLY - external access (mapped to different host port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"

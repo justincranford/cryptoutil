@@ -5,7 +5,7 @@
 authz:
   name: authz-prod
   bind_address: 0.0.0.0
-  port: 8443
+  port: 18000
   tls_enabled: true
   tls_cert_file: /run/secrets/authz_tls_cert
   tls_key_file: /run/secrets/authz_tls_key
@@ -19,7 +19,7 @@ authz:
 idp:
   name: idp-prod
   bind_address: 0.0.0.0
-  port: 8444
+  port: 18100
   tls_enabled: true
   tls_cert_file: /run/secrets/idp_tls_cert
   tls_key_file: /run/secrets/idp_tls_key
@@ -28,12 +28,12 @@ idp:
   idle_timeout: 120s
   admin_enabled: true
   admin_bind_address: 127.0.0.1
-  admin_port: 9444
+  admin_port: 9090
 
 rs:
   name: rs-prod
   bind_address: 0.0.0.0
-  port: 8445
+  port: 18200
   tls_enabled: true
   tls_cert_file: /run/secrets/rs_tls_cert
   tls_key_file: /run/secrets/rs_tls_key
@@ -42,7 +42,7 @@ rs:
   idle_timeout: 120s
   admin_enabled: true
   admin_bind_address: 127.0.0.1
-  admin_port: 9445
+  admin_port: 9090
 
 database:
   type: postgres

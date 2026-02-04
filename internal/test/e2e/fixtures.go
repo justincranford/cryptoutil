@@ -124,10 +124,10 @@ func (f *TestFixture) initializeServiceURLs() {
 	f.sqliteURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose0) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose2) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
-	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8443"    // CA E2E service uses port 8443 (from compose)
-	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8060"  // JOSE E2E service uses port 8060 (from compose)
-	f.authzURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8090" // Identity AuthZ uses port 8090 (from compose)
-	f.idpURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8091"   // Identity IdP uses port 8091 (from compose)
+	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCAServer) // CA E2E service uses standardized port
+	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortJOSEServer) // JOSE E2E service uses standardized port
+	f.authzURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.IdentityE2EAuthzPublicPort) // Identity AuthZ uses standardized port
+	f.idpURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.IdentityE2EIDPPublicPort) // Identity IdP uses standardized port
 	f.grafanaURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)
 	f.otelURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortOtelCollectorHealth)
 }

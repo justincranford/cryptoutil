@@ -475,7 +475,7 @@ Multi-layer key hierarchy with elastic rotation:
 
 1. Service Implementation
    - **Service name**: cipher-im
-   - **Ports**: 8888-8889 (public), 9090 (admin)
+   - **Ports**: 8070-8079 (public), 9090 (admin)
    - Encrypted messaging between users
    - PUT /tx API (send encrypted message)
    - GET /rx API (retrieve encrypted messages)

@@ -158,8 +158,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 - **4317**: OTLP gRPC receiver (application telemetry ingress)
 - **4318**: OTLP HTTP receiver (application telemetry ingress)
-- **8888**: Self-metrics (Prometheus, internal scraping)
-- **8889**: Received-metrics (Prometheus, for re-export)
+- **8888**: OpenTelemetry self-metrics (Prometheus, internal scraping)
+- **8889**: OpenTelemetry received-metrics (Prometheus, for re-export)
 - **13133**: Health check extension (container health monitoring)
 - **1777**: pprof (performance profiling)
 - **55679**: zPages (debugging UI)
@@ -170,8 +170,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **5432**: PostgreSQL database
 - **8080**: cryptoutil public API (HTTPS)
 - **8081-8082**: Additional cryptoutil instances in Docker Compose (HTTPS)
-- **8092**: JOSE Authority Server (HTTPS)
-- **8093**: Certificate Authority Server (HTTPS)
+- **8060**: JOSE Authority Server (HTTPS)
+- **8050**: Certificate Authority Server (HTTPS)
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
 - **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
@@ -183,8 +183,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **Loki**: Integrated log aggregation
 - **Tempo**: Integrated trace storage
 - **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
-- **JOSE Authority Server**: <https://localhost:8092> (cryptographic operations)
-- **Certificate Authority**: <https://localhost:8093> (X.509 certificate management)
+- **JOSE Authority Server**: <https://localhost:8060> (cryptographic operations)
+- **Certificate Authority**: <https://localhost:8050> (X.509 certificate management)
 
 ### 🏗️ Production Ready
 
@@ -353,9 +353,9 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 #### JOSE Authority Server APIs
 
 - **JOSE Authority Service** (JOSE Cryptographic Operations):
-  - **Base URL**: <https://localhost:8092>
-  - **Swagger UI**: <https://localhost:8092/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8092/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8060>
+  - **Swagger UI**: <https://localhost:8060/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8060/ui/swagger/doc.json>
   - **API Endpoints**:
     - `/jose/v1/sign` - Sign data with JWS
     - `/jose/v1/verify` - Verify JWS signatures
@@ -367,9 +367,9 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 #### Certificate Authority APIs
 
 - **CA Service** (X.509 Certificate Authority):
-  - **Base URL**: <https://localhost:8093>
-  - **Swagger UI**: <https://localhost:8093/ui/swagger>
-  - **OpenAPI Spec**: <https://localhost:8093/ui/swagger/doc.json>
+  - **Base URL**: <https://localhost:8050>
+  - **Swagger UI**: <https://localhost:8050/ui/swagger>
+  - **OpenAPI Spec**: <https://localhost:8050/ui/swagger/doc.json>
   - **API Endpoints**:
     - `/ca/v1/certificates` - Certificate lifecycle management
     - `/ca/v1/csr` - Certificate signing request operations
@@ -384,8 +384,8 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 - **OpenTelemetry Collector**:
   - **OTLP gRPC**: <http://localhost:4317> (receive telemetry from applications)
   - **OTLP HTTP**: <http://localhost:4318> (receive telemetry from applications)
-  - **Self-metrics**: <http://localhost:8888/metrics> (Prometheus format)
-  - **Received-metrics**: <http://localhost:8889/metrics> (Prometheus format, for re-export)
+  - **Self-metrics**: <http://localhost:8888/metrics> (OpenTelemetry Prometheus format)
+  - **Received-metrics**: <http://localhost:8889/metrics> (OpenTelemetry Prometheus format, for re-export)
   - **Health Check**: <http://127.0.0.1:13133/>
   - **pprof**: <http://localhost:1777> (performance profiling)
   - **zPages**: <http://localhost:55679> (debugging UI)

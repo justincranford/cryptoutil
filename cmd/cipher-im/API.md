@@ -4,8 +4,8 @@ Complete API documentation for the cipher-im interactive messaging service.
 
 ## Base URLs
 
-- **Public Service APIs**: `https://localhost:8888/service/api/v1`
-- **Public Browser APIs**: `https://localhost:8888/browser/api/v1`
+- **Public Service APIs**: `https://localhost:8070/service/api/v1`
+- **Public Browser APIs**: `https://localhost:8070/browser/api/v1`
 - **Admin APIs**: `https://localhost:9090/admin/v1`
 
 ## Authentication
@@ -527,15 +527,15 @@ Browser APIs (`/browser/**`) support CORS with specific origins:
 
 **Allowed Origins**:
 
-- `http://localhost:8888`
-- `https://localhost:8888`
-- `http://127.0.0.1:8888`
-- `https://127.0.0.1:8888`
+- `http://localhost:8070`
+- `https://localhost:8070`
+- `http://127.0.0.1:8070`
+- `https://127.0.0.1:8070`
 
 **CORS Headers**:
 
 ```http
-Access-Control-Allow-Origin: https://localhost:8888
+Access-Control-Allow-Origin: https://localhost:8070
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization
 Access-Control-Allow-Credentials: true
@@ -550,43 +550,43 @@ Access-Control-Max-Age: 3600
 
 ```bash
 # 1. Register Alice
-curl -k -X POST https://localhost:8888/service/api/v1/register \
+curl -k -X POST https://localhost:8070/service/api/v1/register \
   -H "Content-Type: application/json" \
   -d '{"username":"alice","password":"SecurePass123"}'
 # Response: {"id":"<alice-id>","username":"alice",...}
 
 # 2. Register Bob
-curl -k -X POST https://localhost:8888/service/api/v1/register \
+curl -k -X POST https://localhost:8070/service/api/v1/register \
   -H "Content-Type: application/json" \
   -d '{"username":"bob","password":"SecurePass456"}'
 # Response: {"id":"<bob-id>","username":"bob",...}
 
 # 3. Alice logs in
-curl -k -X POST https://localhost:8888/service/api/v1/users/login \
+curl -k -X POST https://localhost:8070/service/api/v1/users/login \
   -H "Content-Type: application/json" \
   -d '{"username":"alice","password":"SecurePass123"}'
 # Response: {"token":"<alice-session-token>","expires_in":3600}
 
 # 4. Alice sends message to Bob
-curl -k -X POST https://localhost:8888/service/api/v1/messages \
+curl -k -X POST https://localhost:8070/service/api/v1/messages \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <alice-session-token>" \
   -d '{"receiver_ids":["<bob-id>"],"content":"Hello Bob!"}'
 # Response: {"message_id":"<msg-id>","receiver_count":1}
 
 # 5. Bob logs in
-curl -k -X POST https://localhost:8888/service/api/v1/users/login \
+curl -k -X POST https://localhost:8070/service/api/v1/users/login \
   -H "Content-Type: application/json" \
   -d '{"username":"bob","password":"SecurePass456"}'
 # Response: {"token":"<bob-session-token>","expires_in":3600}
 
 # 6. Bob retrieves messages
-curl -k -X GET https://localhost:8888/service/api/v1/messages \
+curl -k -X GET https://localhost:8070/service/api/v1/messages \
   -H "Authorization: Bearer <bob-session-token>"
 # Response: {"messages":[{"content":"Hello Bob!","sender_username":"alice"}]}
 
 # 7. Bob deletes message
-curl -k -X DELETE https://localhost:8888/service/api/v1/messages/<msg-id> \
+curl -k -X DELETE https://localhost:8070/service/api/v1/messages/<msg-id> \
   -H "Authorization: Bearer <bob-session-token>"
 # Response: 204 No Content
 ```

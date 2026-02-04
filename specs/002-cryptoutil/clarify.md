@@ -1885,7 +1885,7 @@ CREATE INDEX idx_message_receivers_receiver ON message_receivers(receiver_id, cr
 
 **Service Template Validation**:
 
-- Dual HTTPS servers (public 8888 + admin 9090)
+- Dual HTTPS servers (public 8070 + admin 9090)
 - PostgreSQL + SQLite support
 - OTLP telemetry integration
 - Health checks (`/admin/api/v1/livez`, `/admin/api/v1/readyz`)

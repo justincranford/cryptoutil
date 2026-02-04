@@ -426,7 +426,7 @@ func TestDeviceAuthorizationRepository_DeleteExpired(t *testing.T) {
 					ID:         googleUuid.New(),
 					ClientID:   "valid-2",
 					DeviceCode: "device-valid-2",
-					UserCode:   "VAL2-8888",
+					UserCode:   "VAL2-5555",
 					Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 					CreatedAt:  time.Now().UTC(),
 					ExpiresAt:  time.Now().UTC().Add(15 * time.Minute).UTC(),

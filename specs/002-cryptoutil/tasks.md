@@ -226,7 +226,7 @@ Multi-layer key hierarchy with elastic rotation:
   - `docs/cipher-im/TUTORIAL.md` (create)
 - **Completion Criteria**:
   - [ ] Service name: cipher-im
-  - [ ] Ports: 8888-8889 (public), 9090 (admin)
+  - [ ] Ports: 8070-8079 (public), 9090 (admin)
   - [ ] Encrypted messaging APIs: PUT/GET/DELETE /tx and /rx
   - [ ] Encryption: AES-256-GCM + ECDH-AESGCMKW
   - [ ] Database schema (users, messages, message_receivers)
