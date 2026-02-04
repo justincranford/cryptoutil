@@ -11,11 +11,11 @@ package config
 // - identity-rs: 8110-8119
 // All admin ports: 9090
 const (
-        defaultAuthZPort      = 8100 // Default AuthZ server port.
-        defaultAuthZAdminPort = 9090 // Default AuthZ admin port.
-        defaultIDPPort        = 8100 // Default IDP server port (shares with authz).
-        defaultIDPAdminPort   = 9090 // Default IDP admin port.
-        defaultRSPort         = 8110 // Default RS server port.
+	defaultAuthZPort      = 8100 // Default AuthZ server port.
+	defaultAuthZAdminPort = 9090 // Default AuthZ admin port.
+	defaultIDPPort        = 8100 // Default IDP server port (shares with authz).
+	defaultIDPAdminPort   = 9090 // Default IDP admin port.
+	defaultRSPort         = 8110 // Default RS server port.
 	defaultRSAdminPort    = 9090 // Default RS admin port.
 )
 

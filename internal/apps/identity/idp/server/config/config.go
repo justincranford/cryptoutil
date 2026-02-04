@@ -39,10 +39,10 @@ const (
 	defaultIDPAuthzServerURL     = "https://localhost:8100" // Default authorization server URL.
 	defaultLoginPagePath         = ""                       // Use built-in login page.
 	defaultConsentPagePath       = ""                       // Use built-in consent page.
-	defaultEnableMFAEnrollment   = false                     // Disable MFA enrollment by default.
-	defaultRequireMFA            = false                     // Don't require MFA by default.
-	defaultLoginSessionTimeout   = 300                       // 5 minute login session timeout.
-	defaultConsentSessionTimeout = 300                       // 5 minute consent session timeout.
+	defaultEnableMFAEnrollment   = false                    // Disable MFA enrollment by default.
+	defaultRequireMFA            = false                    // Don't require MFA by default.
+	defaultLoginSessionTimeout   = 300                      // 5 minute login session timeout.
+	defaultConsentSessionTimeout = 300                      // 5 minute consent session timeout.
 )
 
 var defaultMFAMethods = []string{"totp"} // Default MFA methods.

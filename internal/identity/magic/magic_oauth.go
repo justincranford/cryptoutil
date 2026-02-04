@@ -142,8 +142,8 @@ const (
 // - identity-rp: 8120-8129
 // - identity-spa: 8130-8139
 const (
-        DefaultAuthZPort       = 8100 // Default OAuth 2.1 authorization server port.
-        DefaultIDPPort         = 8100 // Default OIDC identity provider server port (shares with authz).
-        DefaultRSPort          = 8110 // Default resource server port.
-        DefaultSPARPPort       = 8120 // Default SPA relying party server port.
+	DefaultAuthZPort = 8100 // Default OAuth 2.1 authorization server port.
+	DefaultIDPPort   = 8100 // Default OIDC identity provider server port (shares with authz).
+	DefaultRSPort    = 8110 // Default resource server port.
+	DefaultSPARPPort = 8120 // Default SPA relying party server port.
 )

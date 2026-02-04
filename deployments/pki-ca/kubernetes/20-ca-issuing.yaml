@@ -78,7 +78,7 @@ spec:
                 - ALL
           livenessProbe:
             httpGet:
-              path: /livez
+              path: /admin/api/v1/livez
               port: admin
               scheme: HTTPS
             initialDelaySeconds: 30
@@ -87,7 +87,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /readyz
+              path: /admin/api/v1/readyz
               port: admin
               scheme: HTTPS
             initialDelaySeconds: 10

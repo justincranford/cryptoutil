@@ -96,36 +96,36 @@ const (
 // - identity-rp: 8120-8129
 // - identity-spa: 8130-8139
 const (
-        // OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
-        OTLPServiceIdentityAuthz = "identity-authz"
+	// OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
+	OTLPServiceIdentityAuthz = "identity-authz"
 
-        // IdentityAuthzServicePort is the default public port for identity-authz service.
-        IdentityAuthzServicePort = uint16(8100)
+	// IdentityAuthzServicePort is the default public port for identity-authz service.
+	IdentityAuthzServicePort = uint16(8100)
 
-        // OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
-        OTLPServiceIdentityIDP = "identity-idp"
+	// OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
+	OTLPServiceIdentityIDP = "identity-idp"
 
-        // IdentityIDPServicePort is the default public port for identity-idp service.
-        // Same as authz (8100) per specification - both share 8100-8109 range.
-        IdentityIDPServicePort = uint16(8100)
+	// IdentityIDPServicePort is the default public port for identity-idp service.
+	// Same as authz (8100) per specification - both share 8100-8109 range.
+	IdentityIDPServicePort = uint16(8100)
 
-        // OTLPServiceIdentityRS is the OTLP service name for identity-rs.
-        OTLPServiceIdentityRS = "identity-rs"
+	// OTLPServiceIdentityRS is the OTLP service name for identity-rs.
+	OTLPServiceIdentityRS = "identity-rs"
 
-        // IdentityRSServicePort is the default public port for identity-rs service.
-        IdentityRSServicePort = uint16(8110)
+	// IdentityRSServicePort is the default public port for identity-rs service.
+	IdentityRSServicePort = uint16(8110)
 
-        // OTLPServiceIdentityRP is the OTLP service name for identity-rp.
-        OTLPServiceIdentityRP = "identity-rp"
+	// OTLPServiceIdentityRP is the OTLP service name for identity-rp.
+	OTLPServiceIdentityRP = "identity-rp"
 
-        // IdentityRPServicePort is the default public port for identity-rp service.
-        IdentityRPServicePort = uint16(8120)
+	// IdentityRPServicePort is the default public port for identity-rp service.
+	IdentityRPServicePort = uint16(8120)
 
-        // OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
-        OTLPServiceIdentitySPA = "identity-spa"
+	// OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
+	OTLPServiceIdentitySPA = "identity-spa"
 
-        // IdentitySPAServicePort is the default public port for identity-spa service.
-        IdentitySPAServicePort = uint16(8130)
+	// IdentitySPAServicePort is the default public port for identity-spa service.
+	IdentitySPAServicePort = uint16(8130)
 )
 
 // E2E Test Configuration for identity services.
@@ -158,19 +158,19 @@ const (
 	IdentityE2EHealthPollInterval = 2 * time.Second
 
 	// IdentityE2EAuthzPublicPort is the identity-authz E2E public HTTPS port.
-        IdentityE2EAuthzPublicPort = 8100
+	IdentityE2EAuthzPublicPort = 8100
 
-        // IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
-        IdentityE2EIDPPublicPort = 8100
+	// IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
+	IdentityE2EIDPPublicPort = 8100
 
-        // IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
-        IdentityE2ERSPublicPort = 8110
+	// IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
+	IdentityE2ERSPublicPort = 8110
 
-        // IdentityE2ERPPublicPort is the identity-rp E2E public HTTPS port.
-        IdentityE2ERPPublicPort = 8120
+	// IdentityE2ERPPublicPort is the identity-rp E2E public HTTPS port.
+	IdentityE2ERPPublicPort = 8120
 
-        // IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
-        IdentityE2ESPAPublicPort = 8130
+	// IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
+	IdentityE2ESPAPublicPort = 8130
 	// IdentityE2EHealthEndpoint is the public health check endpoint.
 	// Uses /health for liveness checks (matches cipher-im pattern).
 	IdentityE2EHealthEndpoint = "/health"

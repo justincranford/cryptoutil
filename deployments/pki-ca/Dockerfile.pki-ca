@@ -138,7 +138,7 @@ EXPOSE 9093 9093
 
 # Healthcheck using wget (available in Alpine).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9093/livez || exit 1
+    CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez || exit 1
 
 # Default entrypoint.
 ENTRYPOINT ["/app/pki-ca"]
