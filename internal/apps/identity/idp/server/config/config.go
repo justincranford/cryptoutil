@@ -141,8 +141,12 @@ func Parse(args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
 	}
 
 	// Override template defaults with identity-idp specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.IdentityIDPServicePort
+	// NOTE: Only override public port if not explicitly set in config.
+	// The config file may specify a different port (e.g., 8101 for E2E to avoid conflict with authz on 8100).
+	if baseSettings.BindPublicPort == 0 {
+		settings.BindPublicPort = cryptoutilSharedMagic.IdentityIDPServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityIDP
 
 	// Validate identity-idp specific settings.

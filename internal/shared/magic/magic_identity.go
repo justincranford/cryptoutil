@@ -161,7 +161,8 @@ const (
 	IdentityE2EAuthzPublicPort = 8100
 
 	// IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
-	IdentityE2EIDPPublicPort = 8100
+	// Uses 8101 to avoid conflict with authz (8100) when running together in E2E.
+	IdentityE2EIDPPublicPort = 8101
 
 	// IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
 	IdentityE2ERSPublicPort = 8110

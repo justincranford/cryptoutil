@@ -152,8 +152,11 @@ func Parse(args []string, exitIfHelp bool) (*IdentitySPAServerSettings, error) {
 	}
 
 	// Override template defaults with identity-spa specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.IdentitySPAServicePort
+	// NOTE: Only override public port if not explicitly set in config.
+	if baseSettings.BindPublicPort == 0 {
+		settings.BindPublicPort = cryptoutilSharedMagic.IdentitySPAServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentitySPA
 
 	// Adjust cache control for dev mode.

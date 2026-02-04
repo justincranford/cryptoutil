@@ -126,8 +126,11 @@ func Parse(args []string, exitIfHelp bool) (*IdentityAuthzServerSettings, error)
 	}
 
 	// Override template defaults with identity-authz specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.IdentityAuthzServicePort
+	// NOTE: Only override public port if not explicitly set in config.
+	if baseSettings.BindPublicPort == 0 {
+		settings.BindPublicPort = cryptoutilSharedMagic.IdentityAuthzServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityAuthz
 
 	// Validate identity-authz specific settings.

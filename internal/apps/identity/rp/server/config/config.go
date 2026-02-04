@@ -33,11 +33,11 @@ type IdentityRPServerSettings struct {
 // Identity-RP specific default values.
 const (
 	defaultAuthzServerURL = "https://localhost:8100" // Default authorization server URL.
-	defaultClientID       = ""                        // Must be configured.
-	defaultClientSecret   = ""                        // Must be configured via Docker secret.
-	defaultRedirectURI    = ""                        // Must be configured.
+	defaultClientID       = ""                       // Must be configured.
+	defaultClientSecret   = ""                       // Must be configured via Docker secret.
+	defaultRedirectURI    = ""                       // Must be configured.
 	defaultSPAOrigin      = "https://localhost:8130" // Default SPA origin.
-	defaultSessionSecret  = ""                        // Must be configured via Docker secret.
+	defaultSessionSecret  = ""                       // Must be configured via Docker secret.
 )
 
 var allIdentityRPServerRegisteredSettings []*cryptoutilAppsTemplateServiceConfig.Setting //nolint:gochecknoglobals
@@ -124,8 +124,11 @@ func Parse(args []string, exitIfHelp bool) (*IdentityRPServerSettings, error) {
 	}
 
 	// Override template defaults with identity-rp specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.IdentityRPServicePort
+	// NOTE: Only override public port if not explicitly set in config.
+	if baseSettings.BindPublicPort == 0 {
+		settings.BindPublicPort = cryptoutilSharedMagic.IdentityRPServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityRP
 
 	// Validate identity-rp specific settings.

@@ -1,9 +1,9 @@
 # IdP Server E2E Test Configuration
 
 # Bind configuration (FLAT structure - viper expects root-level keys)
-# Port: 8100 per user specification (identity-idp shares 8100-8109 range with authz)
+# Port: 8101 in E2E (8100 reserved for authz) (identity-idp shares 8100-8109 range with authz)
 bind-public-address: 0.0.0.0
-bind-public-port: 8100
+bind-public-port: 8101
 bind-private-address: 0.0.0.0
 bind-private-port: 9090
 
@@ -20,7 +20,7 @@ tokens:
   id_token_format: jws
   refresh_token_lifetime: 86400s
   refresh_token_format: uuid
-  issuer: https://localhost:8100
+  issuer: https://localhost:8101
   signing_algorithm: RS256
   code_lifetime: 600s
 

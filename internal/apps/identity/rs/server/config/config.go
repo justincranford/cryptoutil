@@ -157,8 +157,11 @@ func Parse(args []string, exitIfHelp bool) (*IdentityRSServerSettings, error) {
 	}
 
 	// Override template defaults with identity-rs specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.IdentityRSServicePort
+	// NOTE: Only override public port if not explicitly set in config.
+	if baseSettings.BindPublicPort == 0 {
+		settings.BindPublicPort = cryptoutilSharedMagic.IdentityRSServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceIdentityRS
 
 	// Validate identity-rs specific settings.

@@ -452,7 +452,7 @@ The template barrier must be fully self-contained before shared/barrier can be d
 
 **Services to Verify**:
 1. sm-kms - Verify health path
-2. cipher-im - Verify health path  
+2. cipher-im - Verify health path
 3. jose-ja - Verify health path
 4. pki-ca - Verify health path
 
