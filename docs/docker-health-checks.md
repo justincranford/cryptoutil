@@ -55,7 +55,7 @@
 ### Non-Critical Issues
 1. **Port Inconsistencies**:
    - Most use admin port 9090
-   - JOSE uses 9092 and checks public port 8092 (should check admin port)
+   - JOSE uses 9092 and checks public port 8060 (should check admin port)
 
 ## Best Practices (from Research)
 

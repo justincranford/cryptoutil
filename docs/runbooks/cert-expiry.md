@@ -71,7 +71,7 @@ vault read pki/cert/<serial>
 1. Request new certificate:
    ```bash
    # Using cryptoutil CA
-   curl -X POST https://ca-server:8443/api/v1/certificates \
+   curl -X POST https://ca-server:8050/api/v1/certificates \
      -d '{"csr": "...", "ttl": "365d"}'
    ```
 2. Deploy to services

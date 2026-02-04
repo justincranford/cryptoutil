@@ -169,7 +169,7 @@ type CipherImServerSettings struct {
 ```yaml
 service_template:
   bind_public_address: "0.0.0.0"
-  bind_public_port: 8888
+  bind_public_port: 8070
   bind_admin_address: "127.0.0.1"
   bind_admin_port: 9090
 

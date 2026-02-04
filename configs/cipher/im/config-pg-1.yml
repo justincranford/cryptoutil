@@ -8,7 +8,7 @@
 # Public Server Configuration
 bind-public-protocol: "https"
 bind-public-address: "0.0.0.0"  # Listen on all interfaces in container
-bind-public-port: 8888
+bind-public-port: 8070
 
 # Admin Server Configuration
 bind-private-protocol: "https"
@@ -28,10 +28,10 @@ otlp-endpoint: "http://cipher-im-otel-collector:4317"
 # CORS Configuration
 cors-max-age: 3600
 cors-allowed-origins:
-  - "http://localhost:8889"
-  - "http://127.0.0.1:8889"
-  - "https://localhost:8889"
-  - "https://127.0.0.1:8889"
+  - "http://localhost:8071"
+  - "http://127.0.0.1:8071"
+  - "https://localhost:8071"
+  - "https://127.0.0.1:8071"
 
 # Session Configuration (flat keys, not nested)
 browser-session-algorithm: "JWS"

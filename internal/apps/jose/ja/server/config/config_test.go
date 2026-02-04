@@ -134,7 +134,7 @@ func TestLogJoseJASettings(t *testing.T) {
 		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 			BindPublicProtocol:  "https",
 			BindPublicAddress:   "127.0.0.1",
-			BindPublicPort:      9443,
+			BindPublicPort:      8060,
 			BindPrivateProtocol: "https",
 			BindPrivateAddress:  "127.0.0.1",
 			BindPrivatePort:     9090,

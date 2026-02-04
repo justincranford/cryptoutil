@@ -479,7 +479,7 @@ services:
 
     ports:
 
-      - "8443:8443"  # HTTPS public (CA uses 8443, not 8080)
+      - "8050:8050"  # HTTPS public (CA uses 8050, not 8080)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
@@ -514,7 +514,7 @@ services:
 
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:8443/livez"]
+             "https://127.0.0.1:8050/livez"]
 
       start_period: 60s
 
@@ -570,7 +570,7 @@ services:
 
     ports:
 
-      - "8092:8092"  # HTTPS public
+      - "8060:8060"  # HTTPS public
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
@@ -589,7 +589,7 @@ services:
 
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:8092/admin/api/v1/livez"]
+             "https://127.0.0.1:8060/admin/api/v1/livez"]
 
       start_period: 30s
 

@@ -55,7 +55,7 @@ Configuration sources are loaded in priority order (highest to lowest):
 
 1. **Docker Secrets** (`file:///run/secrets/secret_name`)
 2. **YAML Configuration File** (`--config=/etc/jose/jose.yml`)
-3. **Command Line Flags** (`--bind-public-port=8092`)
+3. **Command Line Flags** (`--bind-public-port=8060`)
 
 **CRITICAL**: Environment variables are NOT used for configuration. Use Docker secrets for sensitive values.
 
@@ -64,7 +64,7 @@ Configuration sources are loaded in priority order (highest to lowest):
 ```yaml
 # Server binding
 bind-public-address: "0.0.0.0"      # Container binding (use 127.0.0.1 for local dev)
-bind-public-port: 8092               # Public API port
+bind-public-port: 8060               # Public API port
 bind-admin-address: "127.0.0.1"      # Admin always localhost
 bind-admin-port: 9092                # Admin API port (health checks)
 
@@ -109,8 +109,8 @@ otlp-hostname: "jose-server-1"
 ```yaml
 # CORS - HTTPS origins only
 cors-origins:
-  - "https://localhost:8092"
-  - "https://127.0.0.1:8092"
+  - "https://localhost:8060"
+  - "https://127.0.0.1:8060"
 ```
 
 ### Session Configuration
@@ -238,7 +238,7 @@ curl -k -X POST https://127.0.0.1:9092/admin/api/v1/shutdown
 
 | Port | Protocol | Purpose |
 |------|----------|---------|
-| 8092 | HTTPS | Public API (service-to-service, browser) |
+| 8060 | HTTPS | Public API (service-to-service, browser) |
 | 9092 | HTTPS | Admin API (health checks, shutdown) |
 
 ### Network Isolation
@@ -276,7 +276,7 @@ JOSE-JA outputs structured JSON logs to stdout:
   "timestamp": "2025-01-15T12:00:00Z",
   "message": "Server started",
   "service": "jose-ja",
-  "public_port": 8092,
+  "public_port": 8060,
   "admin_port": 9092
 }
 ```

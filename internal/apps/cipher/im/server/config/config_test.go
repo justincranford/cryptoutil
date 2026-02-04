@@ -40,7 +40,7 @@ func TestNewTestConfig_CustomValues(t *testing.T) {
 	t.Parallel()
 
 	bindAddr := "192.168.1.100"
-	bindPort := uint16(8888)
+	bindPort := uint16(8070)
 	devMode := false
 
 	settings := cryptoutilAppsCipherImServerConfig.NewTestConfig(bindAddr, bindPort, devMode)
@@ -133,7 +133,7 @@ func TestParse_HappyPath(t *testing.T) {
 func TestNewTestConfig_InheritedTemplateSettings(t *testing.T) {
 	t.Parallel()
 
-	settings := cryptoutilAppsCipherImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8888, false)
+	settings := cryptoutilAppsCipherImServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8070, false)
 
 	require.NotNil(t, settings)
 	require.NotNil(t, settings.ServiceTemplateServerSettings)
@@ -142,7 +142,7 @@ func TestNewTestConfig_InheritedTemplateSettings(t *testing.T) {
 	// NewTestConfig provides minimal valid settings, not full runtime configuration.
 
 	// Verify cipher-im port overrides.
-	require.Equal(t, uint16(8888), settings.BindPublicPort)
+	require.Equal(t, uint16(8070), settings.BindPublicPort)
 
 	// BindPrivatePort uses dynamic allocation (0) in tests to avoid port conflicts.
 	require.Equal(t, uint16(0), settings.BindPrivatePort)

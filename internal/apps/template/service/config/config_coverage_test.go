@@ -59,7 +59,7 @@ func TestNewForServer(t *testing.T) {
 		devMode     bool
 		wantService string
 	}{
-		{name: "JOSE dev mode", factory: NewForJOSEServer, address: "127.0.0.1", port: 9443, devMode: true, wantService: "jose-server"},
+		{name: "JOSE dev mode", factory: NewForJOSEServer, address: "127.0.0.1", port: 8060, devMode: true, wantService: "jose-server"},
 		{name: "JOSE production", factory: NewForJOSEServer, address: "127.0.0.1", port: 8443, devMode: false, wantService: "jose-server"},
 		{name: "CA dev mode", factory: NewForCAServer, address: "127.0.0.1", port: 8380, devMode: true, wantService: "ca-server"},
 		{name: "CA production", factory: NewForCAServer, address: "127.0.0.1", port: 9380, devMode: false, wantService: "ca-server"},

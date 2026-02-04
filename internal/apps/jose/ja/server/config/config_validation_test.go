@@ -122,8 +122,8 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 	}
 
 	// Verify template defaults inherited.
-	if settings.BindPublicPort != 9443 { // cryptoutilSharedMagic.JoseJAServicePort.
-		t.Errorf("BindPublicPort = %d, want 9443", settings.BindPublicPort)
+	if settings.BindPublicPort != 8060 { // cryptoutilSharedMagic.JoseJAServicePort.
+		t.Errorf("BindPublicPort = %d, want 8060", settings.BindPublicPort)
 	}
 
 	if settings.OTLPService != "jose-ja" {

@@ -626,7 +626,7 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 │  │ OTEL Healthcheck   │─────>│  OTEL Collector    │     │  PostgreSQL  │               |
 │  │ (Alpine Sidecar)   │      │  GRPC: 4317        │     │ Port: 5432   │               |
 │  └────────────────────┘      │  HTTP: 4318        │     │ Database: DB │               |
-│                              │  Metrics: 8888     │     │ User: USR    │               |
+│                              │  Metrics: 8070     │     │ User: USR    │               |
 │                              │  Health: 13133     │     └──────────────┘               |
 │                              │  pprof: 1777       │                                    |
 │                              │  zPages: 55679     │                                    |
@@ -650,7 +650,7 @@ Dependencies Flow:
 
 Telemetry Flow:
 cryptoutil services → OTEL Collector (4317/4318) → Grafana LGTM (14317/14318)
-OTEL Collector self-metrics → Prometheus scraping (8888)
+OTEL Collector self-metrics → Prometheus scraping (8070)
 
 **Health Checks:**
 - cryptoutil services: wget https://127.0.0.1:9090/admin/v1/livez
@@ -667,7 +667,7 @@ OTEL Collector self-metrics → Prometheus scraping (8888)
 | cryptoutil-postgres-1 | 8081 | 9090 | HTTPS | PostgreSQL backend instance #1 |
 | cryptoutil-postgres-2 | 8082 | 9090 | HTTPS | PostgreSQL backend instance #2 |
 | postgres | 5432 | - | TCP | PostgreSQL database |
-| opentelemetry-collector | 4317 (GRPC), 4318 (HTTP) | 8888 (metrics), 13133 (health) | OTLP | Telemetry collection |
+| opentelemetry-collector | 4317 (GRPC), 4318 (HTTP) | 8070 (metrics), 13133 (health) | OTLP | Telemetry collection |
 | grafana-otel-lgtm | 3000 | 14317 (GRPC), 14318 (HTTP) | HTTP | Observability stack |
 
 ### Resource Allocation

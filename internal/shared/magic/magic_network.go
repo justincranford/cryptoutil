@@ -123,13 +123,13 @@ const (
 	DefaultPublicPortCryptoutilCompose2 uint16 = 8082
 
 	// DefaultPublicPortJOSEServer - Port for JOSE Authority Server.
-	DefaultPublicPortJOSEServer uint16 = 8090
+	DefaultPublicPortJOSEServer uint16 = 8060
 
 	// DefaultPublicPortCAServer - Port for CA Server.
-	DefaultPublicPortCAServer uint16 = 8091
+	DefaultPublicPortCAServer uint16 = 8050
 
 	// DefaultPublicPortCipherIM - Port for Cipher Instant Messenger service.
-	DefaultPublicPortCipherIM uint16 = 8888
+	DefaultPublicPortCipherIM uint16 = 8070
 	// DefaultPrivatePortCipherIM - Admin port for Cipher Instant Messenger service.
 	DefaultPrivatePortCipherIM uint16 = 9090
 

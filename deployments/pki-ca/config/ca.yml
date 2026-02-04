@@ -3,7 +3,7 @@
 
 # Server binding - 0.0.0.0 to accept connections from other containers.
 bind-public-address: "0.0.0.0"
-bind-public-port: 8093
+bind-public-port: 9093
 bind-admin-address: "0.0.0.0"
 bind-admin-port: 9093
 
@@ -15,9 +15,9 @@ tls-key-file: ""
 
 # CORS configuration - allow container and localhost access.
 cors-origins:
-  - "https://localhost:8093"
-  - "https://127.0.0.1:8093"
-  - "https://pki-ca:8093"
+  - "https://localhost:9093"
+  - "https://127.0.0.1:9093"
+  - "https://pki-ca:9093"
 
 # mTLS configuration for client authentication.
 mtls:

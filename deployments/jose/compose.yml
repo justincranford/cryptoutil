@@ -11,7 +11,7 @@
 #   docker compose -f compose.yml logs -f jose-server  # Follow logs
 #   docker compose -f compose.yml down -v              # Stop and clean up
 #
-# API Endpoints (HTTPS on port 8092):
+# API Endpoints (HTTPS on port 8060):
 #   /jose/v1/jwk/generate - Generate new JWK
 #   /jose/v1/jwk/{kid}    - Get/Delete JWK by Key ID
 #   /jose/v1/jwk          - List all JWKs
@@ -52,7 +52,7 @@ services:
       - start
       - --config=/etc/jose/jose.yml
     ports:
-      - "8092:8092"  # Public API (HTTPS)
+      - "8060:8060"  # Public API (HTTPS)
       - "9090:9090"  # Admin API (HTTPS)
     volumes:
       - ./config/jose.yml:/etc/jose/jose.yml:ro

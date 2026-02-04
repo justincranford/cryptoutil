@@ -31,7 +31,7 @@ database:
 # Public Server Configuration
 server:
   bind_address: "127.0.0.1"
-  bind_port: 8888
+  bind_port: 8070
   protocol: "https"
   read_timeout: 30s
   write_timeout: 30s
@@ -70,12 +70,12 @@ rate_limit:
 cors:
   enabled: true
   allowed_origins:
-    - "http://localhost:8888"
-    - "http://127.0.0.1:8888"
-    - "http://[::1]:8888"
-    - "https://localhost:8888"
-    - "https://127.0.0.1:8888"
-    - "https://[::1]:8888"
+    - "http://localhost:8070"
+    - "http://127.0.0.1:8070"
+    - "http://[::1]:8070"
+    - "https://localhost:8070"
+    - "https://127.0.0.1:8070"
+    - "https://[::1]:8070"
   allowed_methods:
     - "GET"
     - "POST"

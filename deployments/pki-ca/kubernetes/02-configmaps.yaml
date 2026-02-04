@@ -24,8 +24,8 @@ data:
 
     server:
       bind_address: "0.0.0.0"
-      public_port: 8443
-      admin_port: 9443
+      public_port: 8050
+      admin_port: 9090
       tls:
         enabled: true
 

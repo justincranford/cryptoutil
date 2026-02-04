@@ -8,7 +8,7 @@
 # Public Server Configuration
 bind-public-protocol: "https"
 bind-public-address: "0.0.0.0"  # Listen on all interfaces in container
-bind-public-port: 8888
+bind-public-port: 8070
 
 # Admin Server Configuration
 bind-private-protocol: "https"

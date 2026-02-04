@@ -3,7 +3,7 @@
 
 # Server binding - 0.0.0.0 to accept connections from test containers.
 bind-public-address: "0.0.0.0"
-bind-public-port: 8092
+bind-public-port: 8060
 bind-admin-address: "0.0.0.0"
 bind-admin-port: 9090
 
@@ -14,9 +14,9 @@ tls-key-file: ""
 
 # CORS configuration - allow localhost and container access.
 cors-origins:
-  - "https://localhost:8092"
-  - "https://127.0.0.1:8092"
-  - "https://jose-e2e:8092"
+  - "https://localhost:8060"
+  - "https://127.0.0.1:8060"
+  - "https://jose-e2e:8060"
 
 # Key storage - in-memory for E2E tests.
 key-storage:

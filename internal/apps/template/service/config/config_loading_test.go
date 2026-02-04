@@ -70,7 +70,7 @@ func TestYAMLFieldMapping_CamelCase(t *testing.T) {
 	yamlContent := `
 dev: false
 bind-public-address: 0.0.0.0
-bind-public-port: 8888
+bind-public-port: 8070
 bind-private-address: 127.0.0.1
 bind-private-port: 9999
 `
@@ -87,7 +87,7 @@ bind-private-port: 9999
 
 	require.Equal(t, false, settings.DevMode, "dev field correctly maps to DevMode")
 	require.Equal(t, "0.0.0.0", settings.BindPublicAddress, "bindPublicAddress should map to BindPublicAddress")
-	require.Equal(t, uint16(8888), settings.BindPublicPort, "bindPublicPort should map to BindPublicPort")
+	require.Equal(t, uint16(8070), settings.BindPublicPort, "bindPublicPort should map to BindPublicPort")
 	require.Equal(t, "127.0.0.1", settings.BindPrivateAddress, "bindPrivateAddress should map to BindPrivateAddress")
 	require.Equal(t, uint16(9999), settings.BindPrivatePort, "bindPrivatePort should map to BindPrivatePort")
 }

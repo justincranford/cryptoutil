@@ -24,7 +24,7 @@ database:
 # Public Server Defaults
 server:
   bind_address: "127.0.0.1"
-  bind_port: 8888
+  bind_port: 8070
   protocol: "https"
   read_timeout: 30s
   write_timeout: 30s

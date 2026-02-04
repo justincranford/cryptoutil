@@ -105,7 +105,7 @@ services:
       ]
     working_dir: /tmp
     ports:
-      - "8443:8443"  # HTTPS public
+      - "8050:8050"  # HTTPS public
     volumes:
       - ./config/ca-sqlite.yml:/app/config/ca-sqlite.yml:ro
       - ./config/ca-common.yml:/app/config/ca-common.yml:ro
@@ -161,7 +161,7 @@ services:
       ]
     working_dir: /tmp
     ports:
-      - "8444:8443"  # HTTPS public
+      - "8444:8050"  # HTTPS public
     volumes:
       - ./config/ca-postgresql-1.yml:/app/config/ca-postgresql-1.yml:ro
       - ./config/ca-common.yml:/app/config/ca-common.yml:ro
@@ -218,7 +218,7 @@ services:
       ]
     working_dir: /tmp
     ports:
-      - "8445:8443"  # HTTPS public
+      - "8445:8050"  # HTTPS public
     volumes:
       - ./config/ca-postgresql-2.yml:/app/config/ca-postgresql-2.yml:ro
       - ./config/ca-common.yml:/app/config/ca-common.yml:ro

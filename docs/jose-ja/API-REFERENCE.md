@@ -14,8 +14,8 @@ JOSE-JA (JOSE Authority) is a JSON Object Signing and Encryption service that pr
 
 | Endpoint Type | URL | Description |
 |---------------|-----|-------------|
-| Public API (Service) | `https://localhost:8092/service/api/v1` | Service-to-service API |
-| Public API (Browser) | `https://localhost:8092/browser/api/v1` | Browser-based API |
+| Public API (Service) | `https://localhost:8060/service/api/v1` | Service-to-service API |
+| Public API (Browser) | `https://localhost:8060/browser/api/v1` | Browser-based API |
 | Admin API | `https://localhost:9092/admin/api/v1` | Administration and health checks |
 
 ## Authentication

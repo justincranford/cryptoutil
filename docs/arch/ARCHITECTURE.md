@@ -13,14 +13,14 @@
 | Product | Service Alias | Ports | Description |
 |---------|---------------|-------|-------------|
 | **Secrets Manager** | sm-kms | 8080-8089 | Elastic key management, encryption-at-rest |
-| **PKI** | pki-ca | 8443-8449 | X.509 certificates, EST, SCEP, OCSP, CRL |
-| **JOSE** | jose-ja | 8092 | JWK/JWS/JWE/JWT operations |
+| **PKI** | pki-ca | 8050-8449 | X.509 certificates, EST, SCEP, OCSP, CRL |
+| **JOSE** | jose-ja | 8060 | JWK/JWS/JWE/JWT operations |
 | **Identity** | identity-authz | 8080-8089 | OAuth 2.1 authorization server |
 | **Identity** | identity-idp | 8100-8109 | OIDC Identity Provider |
 | **Identity** | identity-rs | 8200-8209 | Resource Server (reference) |
 | **Identity** | identity-rp | 8300-8309 | Relying Party (reference) |
 | **Identity** | identity-spa | 8400-8409 | Single Page Application (reference) |
-| **Cipher** | cipher-im | 8888-8889 | E2E encrypted messaging |
+| **Cipher** | cipher-im | 8070-8071 | E2E encrypted messaging |
 
 **Admin Port**: ALL services use 127.0.0.1:9090 for health checks and graceful shutdown.
 
@@ -35,14 +35,14 @@ This section provides the authoritative port assignments for all 9 product-servi
 | Service | Container Port | Host Port Range | Admin Port | Protocol | Status |
 |---------|----------------|-----------------|------------|----------|--------|
 | **sm-kms** | 8080 | 8080-8082 (SQLite:8080, PG1:8081, PG2:8082) | 9090 | HTTPS | Implemented |
-| **pki-ca** | 8443 | 8443-8445 (SQLite:8443, PG1:8444, PG2:8445) | 9090* | HTTPS | Implemented |
-| **jose-ja** | 8092 | 8092 | 9092 | HTTPS | Implemented |
+| **pki-ca** | 8050 | 8050-8445 (SQLite:8050, PG1:8444, PG2:8445) | 9090* | HTTPS | Implemented |
+| **jose-ja** | 8060 | 8060 | 9092 | HTTPS | Implemented |
 | **identity-authz** | 8080 | 8080-8089 (scaling) | 9090 | HTTPS | Planned |
 | **identity-idp** | 8081 | 8100-8109 (scaling) | 9090 | HTTPS | Planned |
 | **identity-rs** | 8082 | 8200-8209 (scaling) | 9090 | HTTPS | Planned |
 | **identity-rp** | 8083 | 8300-8309 (scaling) | 9090 | HTTPS | Planned |
 | **identity-spa** | 8084 | 8400-8409 (scaling) | 9090 | HTTPS | Planned |
-| **cipher-im** | 8888 | 8880-8882 (SQLite:8880, PG1:8881, PG2:8882) | 9090 | HTTPS | Implemented |
+| **cipher-im** | 8070 | 8880-8882 (SQLite:8880, PG1:8881, PG2:8882) | 9090 | HTTPS | Implemented |
 
 *Note: pki-ca uses non-standard health check paths (`/livez`, `/readyz`) without `/admin/api/v1/` prefix.
 
@@ -56,7 +56,7 @@ This section provides the authoritative port assignments for all 9 product-servi
 ### Current Implementation vs Instructions Discrepancy
 
 The `.github/instructions/02-01.architecture.instructions.md` file documents:
-- jose-ja: 9443-9449 (documented) vs 8092 (actual implementation in compose.yml)
+- jose-ja: 8060-9449 (documented) vs 8060 (actual implementation in compose.yml)
 - identity-*: 18000-18409 (documented) vs 8080-8409 (actual implementation in compose.yml)
 
 **Recommendation**: The compose.yml implementations reflect actual deployment patterns. The instructions file should be updated to match implementation OR implementations should be updated to match instructions. Current V8 work focuses on KMS barrier migration; port standardization can be a follow-up task.

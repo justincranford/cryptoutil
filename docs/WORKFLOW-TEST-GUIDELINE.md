@@ -676,7 +676,7 @@ Error response from daemon: driver failed programming external connectivity on e
 **Common Root Causes**:
 
 - Multiple services include same telemetry compose file
-- Shared OTEL collector ports (4317, 4318, 8888, 13133)
+- Shared OTEL collector ports (4317, 4318, 8070, 13133)
 - Attempting to run multiple product stacks simultaneously
 
 **Prevention**:

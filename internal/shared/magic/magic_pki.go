@@ -9,6 +9,6 @@ const (
 	OTLPServicePKICA = "pki-ca"
 
 	// PKICAServicePort is the default public API port for pki-ca service.
-	// Port range for PKI CA: 8443-8449 (per architecture.instructions.md).
-	PKICAServicePort = 8443
+	// Port range for PKI CA: 8050-8059 (standardized).
+	PKICAServicePort = 8050
 )

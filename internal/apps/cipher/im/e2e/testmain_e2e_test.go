@@ -27,9 +27,9 @@ var (
 	postgres2Container = cryptoutilSharedMagic.CipherE2EPostgreSQL2Container // "cipher-im-pg-2"
 
 	// Service URLs (mapped from container ports to host ports).
-	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8888"
-	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8889"
-	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8890"
+	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8070"
+	postgres1PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EPostgreSQL1PublicPort) // "https://127.0.0.1:8071"
+	postgres2PublicURL = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EPostgreSQL2PublicPort) // "https://127.0.0.1:8072"
 	grafanaURL         = fmt.Sprintf("http://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2EGrafanaPort)            // "http://127.0.0.1:3000"
 
 	healthChecks = map[string]string{

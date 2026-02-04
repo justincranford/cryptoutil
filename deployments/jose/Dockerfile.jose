@@ -134,7 +134,7 @@ WORKDIR /app
 USER jose
 
 # Expose ports.
-EXPOSE 8092 9092
+EXPOSE 8060 9092
 
 # Healthcheck using wget (available in Alpine).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \

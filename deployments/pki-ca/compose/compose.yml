@@ -49,8 +49,8 @@ services:
       - ca-intermediate-data:/app/data
       - ../../../configs/ca:/app/configs:ro
     ports:
-      - "8443:8443"
-      - "9443:9443"
+      - "8050:8050"
+      - "9050:9090"
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 30s
@@ -76,7 +76,7 @@ services:
       - CA_DATABASE_PORT=5432
       - CA_DATABASE_NAME=ca
       - CA_DATABASE_USER=ca
-      - CA_PARENT_URL=https://ca-intermediate:8443
+      - CA_PARENT_URL=https://ca-intermediate:8050
     secrets:
       - db_password
       - ca_key_password
@@ -84,8 +84,8 @@ services:
       - ca-issuing-data:/app/data
       - ../../../configs/ca:/app/configs:ro
     ports:
-      - "8444:8443"
-      - "9444:9443"
+      - "8444:8050"
+      - "9051:9090"
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       interval: 30s

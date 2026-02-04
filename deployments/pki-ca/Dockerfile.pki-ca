@@ -134,7 +134,7 @@ WORKDIR /app
 USER ca
 
 # Expose ports.
-EXPOSE 8093 9093
+EXPOSE 9093 9093
 
 # Healthcheck using wget (available in Alpine).
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \

@@ -14,7 +14,7 @@ authz:
   idle_timeout: 120s
   admin_enabled: true
   admin_bind_address: 127.0.0.1
-  admin_port: 9443
+  admin_port: 9090
 
 idp:
   name: idp-prod

@@ -103,7 +103,7 @@ services:
     container_name: template-sqlite
     hostname: template-sqlite
     ports:
-      - "8880:8888"  # Public HTTPS API ONLY - external access
+      - "8870:8070"  # Public HTTPS API ONLY - external access
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
@@ -147,7 +147,7 @@ services:
     secrets:
       - postgres_url.secret
     ports:
-      - "8881:8888"  # Public HTTPS API ONLY - external access
+      - "8871:8070"  # Public HTTPS API ONLY - external access
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
@@ -195,7 +195,7 @@ services:
     secrets:
       - postgres_url.secret
     ports:
-      - "8882:8888"  # Public HTTPS API ONLY - external access
+      - "8872:8070"  # Public HTTPS API ONLY - external access
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"

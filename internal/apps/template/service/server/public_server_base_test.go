@@ -457,7 +457,7 @@ func TestPublicServerBase_AccessorMethods(t *testing.T) {
 
 	cfg := &PublicServerConfig{
 		BindAddress: cryptoutilSharedMagic.IPv4Loopback,
-		Port:        8888,
+		Port:        8070,
 		TLSMaterial: createTestTLSMaterial(t),
 	}
 

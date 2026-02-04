@@ -222,7 +222,7 @@ The CORRECT design is:
 - CA uses `/livez` instead of `/admin/api/v1/livez` (non-standard)
 - JOSE uses port 9092 for admin instead of 9090
 - Port ranges in instructions don't match implementations
-- cipher-im uses 8888, should use 8070
+- cipher-im uses 8070, should use 8070
 
 **User Requirements**: New standardized port assignments for all 9 product-services.
 
@@ -268,9 +268,9 @@ The CORRECT design is:
 
 **Proactive Changes** (NOT iterative discovery):
 - sm-kms: Keep 8080 (already correct)
-- cipher-im: Change 8888 → 8070
-- jose-ja: Change 8092 → 8060
-- pki-ca: Change 8443 → 8050
+- cipher-im: Change 8070 → 8070
+- jose-ja: Change 8060 → 8060
+- pki-ca: Change 8050 → 8050
 - Update ALL compose files with correct port mappings
 - Update ALL config files with correct ports
 - Update ALL test files with correct ports

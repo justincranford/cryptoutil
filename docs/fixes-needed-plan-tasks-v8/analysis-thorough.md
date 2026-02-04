@@ -616,31 +616,31 @@ kms-postgres-2:
 # deployments/ca/compose.yml
 ca-sqlite:
   ports:
-    - "8443:8443"  # HTTPS public (SQLite)
+    - "8050:8050"  # HTTPS public (SQLite)
     
 ca-postgres-1:
   ports:
-    - "8444:8443"  # HTTPS public (PG1)
+    - "8444:8050"  # HTTPS public (PG1)
     
 ca-postgres-2:
   ports:
-    - "8445:8443"  # HTTPS public (PG2)
+    - "8445:8050"  # HTTPS public (PG2)
 ```
-- Container port: 8443
+- Container port: 8050
 - Admin port: NOT EXPOSED (uses different pattern)
-- Health check: `https://127.0.0.1:8443/livez` (NON-STANDARD - no /admin/api/v1/ prefix)
+- Health check: `https://127.0.0.1:8050/livez` (NON-STANDARD - no /admin/api/v1/ prefix)
 
 #### jose-ja (JOSE - JWK Authority)
 ```yaml
 # deployments/jose/compose.yml
 jose-server:
   ports:
-    - "8092:8092"  # Public API (HTTPS)
+    - "8060:8060"  # Public API (HTTPS)
     - "9092:9092"  # Admin API (HTTPS) - EXPOSED!
 ```
-- Container port: 8092 (public), 9092 (admin)
+- Container port: 8060 (public), 9092 (admin)
 - **ISSUE**: Admin port 9092 is EXPOSED to host (violates security pattern)
-- **DISCREPANCY**: Instructions document 9443-9449, implementation uses 8092
+- **DISCREPANCY**: Instructions document 8060-9449, implementation uses 8060
 
 #### identity-authz (OAuth 2.1 Authorization Server)
 ```yaml
@@ -696,17 +696,17 @@ identity-rs:
 # deployments/template/compose.yml (cipher-im binary used)
 cipher-im-sqlite:
   ports:
-    - "8880:8888"  # Public HTTPS API
+    - "8880:8070"  # Public HTTPS API
     
 cipher-im-postgres-1:
   ports:
-    - "8881:8888"
+    - "8881:8070"
     
 cipher-im-postgres-2:
   ports:
-    - "8882:8888"
+    - "8882:8070"
 ```
-- Container port: 8888
+- Container port: 8070
 - Admin port: 9090 (NOT exposed)
 - Health check: `https://127.0.0.1:9090/admin/api/v1/livez`
 

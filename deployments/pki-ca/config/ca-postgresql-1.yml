@@ -8,7 +8,7 @@
 service-name: "ca-postgres-1"
 
 # Public API port (mapped externally as 8444)
-bind-public-port: 8443
+bind-public-port: 8050
 
 # Database backend (PostgreSQL - URL passed via --database-url flag)
 database:

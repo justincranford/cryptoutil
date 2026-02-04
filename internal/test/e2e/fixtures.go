@@ -125,7 +125,7 @@ func (f *TestFixture) initializeServiceURLs() {
 	f.postgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose2) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8443"    // CA E2E service uses port 8443 (from compose)
-	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8092"  // JOSE E2E service uses port 8092 (from compose)
+	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8060"  // JOSE E2E service uses port 8060 (from compose)
 	f.authzURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8090" // Identity AuthZ uses port 8090 (from compose)
 	f.idpURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + "8091"   // Identity IdP uses port 8091 (from compose)
 	f.grafanaURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)

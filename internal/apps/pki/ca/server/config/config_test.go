@@ -34,10 +34,10 @@ func TestNewTestConfig_BasicCreation(t *testing.T) {
 }
 
 func TestNewTestConfig_CustomPortAndAddress(t *testing.T) {
-	cfg := NewTestConfig("0.0.0.0", 8443, false)
+	cfg := NewTestConfig("0.0.0.0", 8050, false)
 
 	require.Equal(t, "0.0.0.0", cfg.BindPublicAddress)
-	require.Equal(t, uint16(8443), cfg.BindPublicPort)
+	require.Equal(t, uint16(8050), cfg.BindPublicPort)
 	require.False(t, cfg.DevMode)
 }
 

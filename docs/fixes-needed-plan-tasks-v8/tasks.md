@@ -548,12 +548,12 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 
 ## Phase 11: Port Range Standardization (All Services)
 
-### Task 11.1: Update cipher-im Port (8888 → 8070)
+### Task 11.1: Update cipher-im Port (8070 → 8070)
 - **Status**: ❌ Not Started
 - **Estimated**: 1.5h
 - **Actual**:
 - **Dependencies**: Phase 10 complete
-- **Description**: Change cipher-im from 8888 to 8070
+- **Description**: Change cipher-im from 8070 to 8070
 - **Acceptance Criteria**:
   - [ ] Server code uses 8070
   - [ ] Config files use 8070
@@ -564,12 +564,12 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
   - `configs/cipher/im/*.yml`
   - `cmd/cipher-im/docker-compose.yml`
 
-### Task 11.2: Update jose-ja Public Port (8092 → 8060)
+### Task 11.2: Update jose-ja Public Port (8060 → 8060)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Actual**:
 - **Dependencies**: Task 10.4
-- **Description**: Change jose-ja public port from 8092 to 8060
+- **Description**: Change jose-ja public port from 8060 to 8060
 - **Acceptance Criteria**:
   - [ ] Server code uses 8060
   - [ ] Config files use 8060
@@ -578,12 +578,12 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
   - `internal/apps/jose/ja/server/*.go`
   - `deployments/jose/compose.yml`
 
-### Task 11.3: Update pki-ca Public Port (8443 → 8050)
+### Task 11.3: Update pki-ca Public Port (8050 → 8050)
 - **Status**: ❌ Not Started
 - **Estimated**: 1h
 - **Actual**:
 - **Dependencies**: Task 9.4
-- **Description**: Change pki-ca public port from 8443 to 8050
+- **Description**: Change pki-ca public port from 8050 to 8050
 - **Acceptance Criteria**:
   - [ ] Server code uses 8050
   - [ ] Config files use 8050

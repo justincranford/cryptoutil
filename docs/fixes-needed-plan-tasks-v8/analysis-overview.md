@@ -173,9 +173,9 @@ TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 | Service | Container Port | Host Port Range | Admin Port | Status |
 |---------|----------------|-----------------|------------|--------|
 | sm-kms | 8080 | 8080-8089 | 9090 | ✅ Conformant |
-| cipher-im | **8070** | 8070-8079 | 9090 | ⚠️ Currently 8888 |
-| jose-ja | **8060** | 8060-8069 | **9090** | ⚠️ Currently 8092/9092 |
-| pki-ca | **8050** | 8050-8059 | 9090 | ⚠️ Currently 8443 |
+| cipher-im | **8070** | 8070-8079 | 9090 | ⚠️ Currently 8070 |
+| jose-ja | **8060** | 8060-8069 | **9090** | ⚠️ Currently 8060/9092 |
+| pki-ca | **8050** | 8050-8059 | 9090 | ⚠️ Currently 8050 |
 | identity-authz | 8100 | 8100-8109 | 9090 | Planned |
 | identity-idp | 8110 | 8110-8119 | 9090 | Planned |
 | identity-rs | 8120 | 8120-8129 | 9090 | Planned |
@@ -184,9 +184,9 @@ TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 
 ### Key Changes from V8 Phases 9-14
 
-1. **cipher-im**: 8888 → 8070 (Phase 11.1)
-2. **jose-ja**: 8092 → 8060 public, 9092 → 9090 admin (Phases 10, 11.2)
-3. **pki-ca**: 8443 → 8050, health path `/livez` → `/admin/api/v1/livez` (Phases 9, 11.3)
+1. **cipher-im**: 8070 → 8070 (Phase 11.1)
+2. **jose-ja**: 8060 → 8060 public, 9092 → 9090 admin (Phases 10, 11.2)
+3. **pki-ca**: 8050 → 8050, health path `/livez` → `/admin/api/v1/livez` (Phases 9, 11.3)
 4. **All services**: Admin port standardized to 9090
 
 ### Health Path Standard

@@ -59,7 +59,7 @@ RUN mkdir -p /app/data /app/configs && \
 
 USER ca
 
-EXPOSE 8443 9443
+EXPOSE 8050 9443
 
 ENTRYPOINT ["/app/ca-service"]
 CMD ["--config=/app/configs/ca.yaml"]

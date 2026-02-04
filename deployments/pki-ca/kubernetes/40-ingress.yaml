@@ -27,7 +27,7 @@ spec:
               service:
                 name: ca-issuing
                 port:
-                  number: 8443
+                  number: 8050
 ---
 # Ingress for OCSP Responder
 apiVersion: networking.k8s.io/v1
