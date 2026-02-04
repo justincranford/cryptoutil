@@ -1,6 +1,6 @@
 # Tasks - Complete KMS Migration (V8)
 
-**Status**: 29 of 59 tasks complete (49%)
+**Status**: 32 of 59 tasks complete (54%)
 **Last Updated**: 2026-02-14
 **Purpose**: Complete the ACTUAL remaining work from V7
 
@@ -370,9 +370,9 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 ## Phase 8: pki-ca Renaming
 
 ### Task 8.1: Rename cmd/ca-server to cmd/pki-ca
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Phase 7 complete
 - **Description**: Rename cmd entry
 - **Acceptance Criteria**:
@@ -381,9 +381,9 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Evidence**: Directory listing
 
 ### Task 8.2: Move internal/apps/ca to internal/apps/pki/ca
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 2h
-- **Actual**:
+- **Actual**: 0.5h
 - **Dependencies**: Task 8.1
 - **Description**: Move to correct product directory
 - **Acceptance Criteria**:
@@ -394,9 +394,9 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Evidence**: Directory listing, test results
 
 ### Task 8.3: Update Deployment Files
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 1h
-- **Actual**:
+- **Actual**: 0.5h
 - **Dependencies**: Task 8.2
 - **Description**: Update compose.yml, Dockerfile
 - **Acceptance Criteria**:
