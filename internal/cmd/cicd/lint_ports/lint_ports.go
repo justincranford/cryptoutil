@@ -95,6 +95,7 @@ func checkFile(filePath string, legacyPorts []uint16) []Violation {
 
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
+	prevLine := "" // Track previous line for comment context.
 
 	legacyPortSet := make(map[uint16]bool)
 	for _, p := range legacyPorts {
@@ -119,8 +120,9 @@ func checkFile(filePath string, legacyPorts []uint16) []Violation {
 
 			port := uint16(portNum)
 
-			// Skip if it's an OTEL collector port in OTEL-related files.
-			if IsOtelCollectorPort(port) && isOtelRelatedFile(filePath) {
+			// Skip if it's an OTEL collector port in OTEL-related files, lines, or comments.
+			// Check file path OR current line content OR previous line (comment) for OTEL-related terms.
+			if IsOtelCollectorPort(port) && (isOtelRelatedFile(filePath) || isOtelRelatedContent(line) || isOtelRelatedContent(prevLine)) {
 				continue
 			}
 
@@ -137,6 +139,8 @@ func checkFile(filePath string, legacyPorts []uint16) []Violation {
 				})
 			}
 		}
+
+		prevLine = line // Store current line for next iteration.
 	}
 
 	return violations
@@ -149,6 +153,16 @@ func isOtelRelatedFile(filePath string) bool {
 	return strings.Contains(lowerPath, "otel") ||
 		strings.Contains(lowerPath, "opentelemetry") ||
 		strings.Contains(lowerPath, "telemetry")
+}
+
+// isOtelRelatedContent checks if a line of code contains OTEL-related terms.
+// This catches cases like constant definitions with "Otel" in the name.
+func isOtelRelatedContent(line string) bool {
+	lowerLine := strings.ToLower(line)
+
+	return strings.Contains(lowerLine, "otel") ||
+		strings.Contains(lowerLine, "opentelemetry") ||
+		strings.Contains(lowerLine, "telemetry")
 }
 
 // getServiceForLegacyPort returns the service name that used the given legacy port.

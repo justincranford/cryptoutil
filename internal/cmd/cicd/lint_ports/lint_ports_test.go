@@ -514,3 +514,63 @@ const port4 = 12345 // 5-digit port
 	err = Lint(logger, filesByExtension)
 	require.NoError(t, err, "Non-legacy ports should not trigger violations")
 }
+
+// TestIsOtelRelatedContent tests that OTEL-related terms in line content are detected.
+func TestIsOtelRelatedContent(t *testing.T) {
+t.Parallel()
+
+tests := []struct {
+name    string
+content string
+want    bool
+}{
+{name: "otel in constant name", content: "PortOtelCollectorReceivedMetrics uint16 = 8889", want: true},
+{name: "telemetry in comment", content: "// OpenTelemetry metrics port", want: true},
+{name: "opentelemetry in text", content: "// Use OpenTelemetry for observability", want: true},
+{name: "OTEL uppercase", content: "const OTEL_PORT = 8888", want: true},
+{name: "no otel terms", content: "const port = 8080", want: false},
+{name: "cipher-im port", content: "const cipherPort = 8888", want: false},
+{name: "empty line", content: "", want: false},
+}
+
+for _, tt := range tests {
+t.Run(tt.name, func(t *testing.T) {
+t.Parallel()
+
+got := isOtelRelatedContent(tt.content)
+require.Equal(t, tt.want, got)
+})
+}
+}
+
+// TestLint_SkipsCollectorPortsInMagicFile tests that collector ports are skipped
+// when the line content contains related terms (even if file path doesn't).
+// NOTE: Function name avoids "otel/telemetry" to prevent t.TempDir() path matching.
+func TestLint_SkipsCollectorPortsInMagicFile(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a file with "magic" in name (NOT collector-related path)
+	// but with collector-related content (comments or constant names contain collector terms).
+	// This mirrors magic_network.go where the comment above contains "OpenTelemetry".
+	magicFile := filepath.Join(tempDir, "magic_network.go")
+	err := os.WriteFile(magicFile, []byte(`package magic
+
+// Default OpenTelemetry collector internal metrics port (Prometheus).
+const DefaultPublicPortInternalMetrics uint16 = 8888
+// PortOtelCollectorReceivedMetrics - Default OpenTelemetry collector received metrics port.
+const PortOtelCollectorReceivedMetrics uint16 = 8889
+`), 0o600)
+	require.NoError(t, err)
+require.False(t, isOtelRelatedFile(magicFile), "File path should NOT be otel-related")
+
+logger := cryptoutilCmdCicdCommon.NewLogger("test")
+filesByExtension := map[string][]string{
+"go": {magicFile},
+}
+
+// Should pass because line content contains OTEL-related terms.
+err = Lint(logger, filesByExtension)
+require.NoError(t, err, "OTEL ports in OTEL-related content should NOT be flagged")
+}
