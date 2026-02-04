@@ -144,6 +144,7 @@ const (
 	  lint-text      - [Linter] Enforce UTF-8 encoding without BOM for text files
 	  lint-go        - [Linter] Check for circular dependencies in Go packages
 	  lint-compose   - [Linter] Detect admin port 9090 exposure in Docker Compose files
+	  lint-ports     - [Linter] Enforce standardized port assignments (no legacy ports)
 	  format-go      - [Formatter] Auto-fix Go files (any -> any, loop var copies)
 	  lint-go-test   - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
 	  format-go-test - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
@@ -156,6 +157,7 @@ var ValidCommands = map[string]bool{
 	"lint-text":      true,
 	"lint-go":        true,
 	"lint-compose":   true,
+	"lint-ports":     true,
 	"format-go":      true,
 	"lint-go-test":   true,
 	"format-go-test": true,

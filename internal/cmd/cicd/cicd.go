@@ -17,6 +17,7 @@ import (
 	cryptoutilCmdCicdLintCompose "cryptoutil/internal/cmd/cicd/lint_compose"
 	cryptoutilCmdCicdLintGo "cryptoutil/internal/cmd/cicd/lint_go"
 	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/cmd/cicd/lint_go_mod"
+	cryptoutilCmdCicdLintPorts "cryptoutil/internal/cmd/cicd/lint_ports"
 	cryptoutilCmdCicdLintGotest "cryptoutil/internal/cmd/cicd/lint_gotest"
 	cryptoutilCmdCicdLintText "cryptoutil/internal/cmd/cicd/lint_text"
 	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/cmd/cicd/lint_workflow"
@@ -33,6 +34,7 @@ const (
 	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
 	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
 	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
+	cmdLintPorts    = "lint-ports"     // [Linter] Port assignment validation (standardized ports).
 )
 
 // Run executes the specified CI/CD check commands.
@@ -83,6 +85,8 @@ func Run(commands []string) error {
 			cmdErr = cryptoutilCmdCicdLintWorkflow.Lint(logger, filesByExtension)
 		case cmdLintGoMod:
 			cmdErr = cryptoutilCmdCicdLintGoMod.Lint(logger)
+		case cmdLintPorts:
+			cmdErr = cryptoutilCmdCicdLintPorts.Lint(logger, filesByExtension)
 		}
 
 		cmdDuration := time.Since(cmdStart)
