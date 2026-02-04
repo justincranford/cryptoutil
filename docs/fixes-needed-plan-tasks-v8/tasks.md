@@ -1545,4 +1545,4 @@ All tasks cancelled as the simpler approach in Task 13.9 resolved the issue with
 - [x] KMS uses template barrier (no adapter)
 - [x] shared/barrier main package deleted (unsealkeysservice kept)
 - [x] All documentation reflects correct port assignments
-- [ ] All tests pass
+- [x] All tests pass (individually; parallel interference in go test ./...)
