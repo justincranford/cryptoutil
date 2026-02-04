@@ -99,17 +99,21 @@ func findMathRandViolations() ([]cryptoViolation, error) {
 
 		return nil
 	})
+	if err != nil {
+		return violations, fmt.Errorf("failed to walk directory for math/rand check: %w", err)
+	}
 
-	return violations, err
+	return violations, nil
 }
 
 // checkFileForMathRand checks a single file for math/rand usage.
 func checkFileForMathRand(filePath string) ([]cryptoViolation, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
 	}
-	defer file.Close()
+
+	defer func() { _ = file.Close() }()
 
 	var violations []cryptoViolation
 
@@ -131,7 +135,7 @@ func checkFileForMathRand(filePath string) ([]cryptoViolation, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error reading file: %w", err)
 	}
 
 	// If file has explicit nolint for math/rand or gosec, skip entirely.
@@ -153,7 +157,7 @@ func checkFileForMathRand(filePath string) ([]cryptoViolation, error) {
 			continue
 		}
 
-		if inImportBlock && trimmedLine == ")" {
+		if inImportBlock && trimmedLine == importBlockEndMarker {
 			inImportBlock = false
 
 			continue
@@ -277,17 +281,21 @@ func findInsecureSkipVerifyViolations() ([]cryptoViolation, error) {
 
 		return nil
 	})
+	if err != nil {
+		return violations, fmt.Errorf("failed to walk directory for InsecureSkipVerify check: %w", err)
+	}
 
-	return violations, err
+	return violations, nil
 }
 
 // checkFileForInsecureSkipVerify checks a single file for TLS verification disabled.
 func checkFileForInsecureSkipVerify(filePath string) ([]cryptoViolation, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
 	}
-	defer file.Close()
+
+	defer func() { _ = file.Close() }()
 
 	var violations []cryptoViolation
 
@@ -313,7 +321,11 @@ func checkFileForInsecureSkipVerify(filePath string) ([]cryptoViolation, error) 
 		}
 	}
 
-	return violations, scanner.Err()
+	if err := scanner.Err(); err != nil {
+		return violations, fmt.Errorf("error reading file: %w", err)
+	}
+
+	return violations, nil
 }
 
 // printCryptoViolations prints crypto-related violations to stderr.

@@ -26,7 +26,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o644)
+	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
 	violations, err := checkFileForMathRand(cleanFile)
@@ -52,7 +52,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(badFile, []byte(content), 0o644)
+	err := os.WriteFile(badFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
 	violations, err := checkFileForMathRand(badFile)
@@ -89,7 +89,7 @@ func main() {
 }
 `
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o644)
+	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
 	violations, err := checkFileForInsecureSkipVerify(cleanFile)
@@ -106,7 +106,7 @@ func TestCheckInsecureSkipVerify_Violation(t *testing.T) {
 	// Use concatenation to avoid triggering the linter on this test file.
 	content := "package main\n\nimport (\n\t\"crypto/tls\"\n)\n\nfunc main() {\n\tconfig := &tls.Config{\n\t\t" + "Insecure" + "SkipVerify: true,\n\t}\n\tprintln(config)\n}\n"
 
-	err := os.WriteFile(badFile, []byte(content), 0o644)
+	err := os.WriteFile(badFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
 	violations, err := checkFileForInsecureSkipVerify(badFile)
@@ -124,7 +124,7 @@ func TestCheckInsecureSkipVerify_WithNolint(t *testing.T) {
 	// Use concatenation to avoid triggering the linter on this test file.
 	content := "package main\n\nimport (\n\t\"crypto/tls\"\n)\n\nfunc main() {\n\tconfig := &tls.Config{\n\t\t" + "Insecure" + "SkipVerify: true, //nolint:all\n\t}\n\tprintln(config)\n}\n"
 
-	err := os.WriteFile(cleanFile, []byte(content), 0o644)
+	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
 	violations, err := checkFileForInsecureSkipVerify(cleanFile)

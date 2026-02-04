@@ -14,8 +14,9 @@ import (
 
 // Directory exclusions for lint checks.
 const (
-	excludeDirVendor = "vendor"
-	excludeDirGit    = ".git"
+	excludeDirVendor     = "vendor"
+	excludeDirGit        = ".git"
+	importBlockEndMarker = ")" // End of import block marker.
 )
 
 // LinterFunc is a function type for individual Go linters.
@@ -351,7 +352,7 @@ func checkGoFileForUnaliasedCryptoutilImports(path string) ([]string, error) {
 			continue
 		}
 
-		if trimmed == ")" && inImportBlock {
+		if trimmed == importBlockEndMarker && inImportBlock {
 			inImportBlock = false
 
 			continue
