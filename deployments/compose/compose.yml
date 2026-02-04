@@ -510,11 +510,11 @@ services:
 
     healthcheck:
 
-      # CA uses wget and /livez endpoint (not /admin/api/v1/livez).
+      # CA uses standard admin livez endpoint.
 
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:8050/livez"]
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 60s
 
@@ -589,7 +589,7 @@ services:
 
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
-             "https://127.0.0.1:8060/admin/api/v1/livez"]
+             "https://127.0.0.1:9090/admin/api/v1/livez"]
 
       start_period: 30s
 

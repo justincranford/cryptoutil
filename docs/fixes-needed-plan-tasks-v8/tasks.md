@@ -906,28 +906,28 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 ## Phase 14: Post-Mortem and Documentation Audit
 
 ### Task 14.1: Run lint-ports Full Validation
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 1.5h
 - **Dependencies**: Phase 12 complete
 - **Description**: Run lint-ports across entire codebase
 - **Acceptance Criteria**:
-  - [ ] `go run ./internal/cmd/cicd lint-ports` passes
-  - [ ] Zero violations
-- **Evidence**: lint output
+  - [x] `go run ./internal/cmd/cicd lint-ports` passes
+  - [x] Zero violations
+- **Evidence**: lint-ports: 83→0 violations, commit 9e46dc3e
 
 ### Task 14.2: Verify All Health Paths
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Estimated**: 0.5h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Phases 9-13 complete
 - **Description**: Verify all services use `/admin/api/v1/livez`
 - **Acceptance Criteria**:
-  - [ ] sm-kms: `/admin/api/v1/livez`
-  - [ ] cipher-im: `/admin/api/v1/livez`
-  - [ ] jose-ja: `/admin/api/v1/livez`
-  - [ ] pki-ca: `/admin/api/v1/livez`
-- **Evidence**: grep output from compose files
+  - [x] sm-kms: `/admin/api/v1/livez` on port 9090
+  - [x] cipher-im: `/admin/api/v1/livez` on port 9090
+  - [x] jose-ja: `/admin/api/v1/livez` on port 9090
+  - [x] pki-ca: `/admin/api/v1/livez` on port 9090
+- **Evidence**: Fixed compose.yml CA/JOSE health checks, CI E2E workflow standardized
 
 ### Task 14.3: Update analysis-overview.md Final State
 - **Status**: ❌ Not Started
