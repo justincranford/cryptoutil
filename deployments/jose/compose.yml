@@ -53,7 +53,7 @@ services:
       - --config=/etc/jose/jose.yml
     ports:
       - "8060:8060"  # Public API (HTTPS)
-      - "9090:9090"  # Admin API (HTTPS)
+      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     volumes:
       - ./config/jose.yml:/etc/jose/jose.yml:ro
     depends_on:
