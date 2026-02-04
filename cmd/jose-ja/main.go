@@ -4,11 +4,11 @@
 package main
 
 import (
-"os"
+	"os"
 
-ja "cryptoutil/internal/apps/jose/ja"
+	ja "cryptoutil/internal/apps/jose/ja"
 )
 
 func main() {
-os.Exit(ja.Main(os.Args, os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(ja.Main(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

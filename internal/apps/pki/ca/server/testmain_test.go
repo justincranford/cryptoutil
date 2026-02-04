@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 )
 
 var (

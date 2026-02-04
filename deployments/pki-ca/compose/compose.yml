@@ -29,7 +29,7 @@ services:
   ca-intermediate:
     build:
       context: ../../../
-      dockerfile: deployments/ca/compose/Dockerfile.ca
+      dockerfile: deployments/pki-ca/compose/Dockerfile.pki-ca
       args:
         CA_TYPE: intermediate
     container_name: ca-intermediate
@@ -63,7 +63,7 @@ services:
   ca-issuing:
     build:
       context: ../../../
-      dockerfile: deployments/ca/compose/Dockerfile.ca
+      dockerfile: deployments/pki-ca/compose/Dockerfile.pki-ca
       args:
         CA_TYPE: issuing
     container_name: ca-issuing
@@ -98,7 +98,7 @@ services:
   ca-ocsp:
     build:
       context: ../../../
-      dockerfile: deployments/ca/compose/Dockerfile.ocsp
+      dockerfile: deployments/pki-ca/compose/Dockerfile.ocsp
     container_name: ca-ocsp
     depends_on:
       ca-database:

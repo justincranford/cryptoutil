@@ -17,7 +17,7 @@ tls-key-file: ""
 cors-origins:
   - "https://localhost:8093"
   - "https://127.0.0.1:8093"
-  - "https://ca-server:8093"
+  - "https://pki-ca:8093"
 
 # mTLS configuration for client authentication.
 mtls:
@@ -27,8 +27,8 @@ mtls:
 # OTLP telemetry - connects to collector sidecar.
 otlp-enabled: true
 otlp-endpoint: "opentelemetry-collector-contrib:4317"
-otlp-service: "ca-server"
-otlp-hostname: "ca-server"
+otlp-service: "pki-ca"
+otlp-hostname: "pki-ca"
 
 # Logging.
 log-level: "DEBUG"

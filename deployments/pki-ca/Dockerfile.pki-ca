@@ -2,7 +2,7 @@
 # CA Server Dockerfile
 # Use BuildKit syntax to enable cache mounts (fast rebuilds)
 # To build with cache mounts set DOCKER_BUILDKIT=1
-# Example: DOCKER_BUILDKIT=1 docker build -t ca-server -f deployments/ca/Dockerfile.ca-server .
+# Example: DOCKER_BUILDKIT=1 docker build -t pki-ca -f deployments/pki-ca/Dockerfile.pki-ca .
 #
 #############################################################################################
 ARG APP_VERSION=UNSET
@@ -39,7 +39,7 @@ RUN set -e; \
     fi; \
     if [ -n "$errors" ]; then \
         printf "%b" "$errors" >&2; \
-        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t ca-server -f deployments/ca/Dockerfile.ca-server ." >&2; \
+        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t pki-ca -f deployments/pki-ca/Dockerfile.pki-ca ." >&2; \
         exit 1; \
     fi
 
@@ -79,13 +79,13 @@ COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod \
 	--mount=type=cache,target=/root/.cache/go-build \
 	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/ca-server ./cmd/ca-server
+	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/pki-ca ./cmd/pki-ca
 
 # Validate that the binary is statically linked.
 SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/ca-server 2>/dev/null; then \
+RUN if ldd /app/pki-ca 2>/dev/null; then \
         echo "✗ Binary is dynamically linked - failing build"; \
-        ldd /app/ca-server; \
+        ldd /app/pki-ca; \
         exit 1; \
     else \
         echo "✓ Binary is statically linked"; \
@@ -122,7 +122,7 @@ RUN adduser -D -H -u 65532 -s /sbin/nologin ca
 
 # Copy build artifacts.
 COPY --from=validation /app/.build-params /app/.build-params
-COPY --from=builder --chown=65532:65532 /app/ca-server /app/ca-server
+COPY --from=builder --chown=65532:65532 /app/pki-ca /app/pki-ca
 COPY --from=builder --chown=65532:65532 /app/run /app/run
 
 # Create directories for config, data, and secrets.
@@ -141,5 +141,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9093/livez || exit 1
 
 # Default entrypoint.
-ENTRYPOINT ["/app/ca-server"]
-CMD ["start", "--config=/etc/ca/ca.yml"]
+ENTRYPOINT ["/app/pki-ca"]
+CMD ["start", "--config=/etc/pki-ca/ca.yml"]

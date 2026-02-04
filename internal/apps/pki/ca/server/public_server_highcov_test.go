@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/ca/server/config"
+	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 )
 
 // TestCAServer_HandleOCSP tests the OCSP endpoint.

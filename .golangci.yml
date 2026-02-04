@@ -409,7 +409,7 @@ linters:
         - pkg: "cryptoutil/internal/cipher/server"
           alias: cryptoutilCipherServer
         # Cryptoutil apps
-        - pkg: "cryptoutil/internal/apps/ca/server/config"
+        - pkg: "cryptoutil/internal/apps/pki/ca/server/config"
           alias: cryptoutilAppsCaServerConfig
         - pkg: "cryptoutil/internal/apps/cipher"
           alias: cryptoutilAppsCipher
@@ -445,7 +445,7 @@ linters:
           alias: cryptoutilAppsTemplateServiceServer
         - pkg: "cryptoutil/internal/apps/template/service/server/repository"
           alias: cryptoutilAppsTemplateServiceServerRepository
-        - pkg: "cryptoutil/internal/apps/ca/server"
+        - pkg: "cryptoutil/internal/apps/pki/ca/server"
           alias: cryptoutilAppsCaServer
         - pkg: "cryptoutil/internal/apps/cipher/im/client"
           alias: cryptoutilAppsCipherImClient
