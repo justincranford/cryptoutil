@@ -44,14 +44,13 @@ func NewPublicServer(
 
 // registerRoutes sets up the CA API endpoints.
 // Called by ServerBuilder after NewPublicServer returns.
+//
+// Note: Health check endpoints are provided by service-template:
+// - Admin: /admin/api/v1/livez, /admin/api/v1/readyz (via AdminServer)
+// - Public: /service/api/v1/health, /browser/api/v1/health (via PublicServerBase).
 func (s *PublicServer) registerRoutes() error {
 	// Get underlying Fiber app from base for route registration.
 	app := s.base.App()
-
-	// Health endpoints (no auth required).
-	app.Get("/health", s.handleHealth)
-	app.Get("/livez", s.handleLivez)
-	app.Get("/readyz", s.handleReadyz)
 
 	// Register CA API handlers using oapi-codegen generated code.
 	// Routes registered at /service/api/v1/ca/* path prefix.
@@ -76,36 +75,6 @@ func (s *PublicServer) registerRoutes() error {
 		app.Post("/service/api/v1/ocsp", s.handleOCSP)
 		app.Post("/browser/api/v1/ocsp", s.handleOCSP)
 		app.Post("/.well-known/pki-ca/ocsp", s.handleOCSP)
-	}
-
-	return nil
-}
-
-// handleHealth returns server health status.
-func (s *PublicServer) handleHealth(c *fiber.Ctx) error {
-	if err := c.JSON(fiber.Map{
-		"status": "healthy",
-		"time":   c.Context().Time().UTC().Format("2006-01-02T15:04:05Z"),
-	}); err != nil {
-		return fmt.Errorf("failed to send health response: %w", err)
-	}
-
-	return nil
-}
-
-// handleLivez returns liveness status.
-func (s *PublicServer) handleLivez(c *fiber.Ctx) error {
-	if err := c.SendString("OK"); err != nil {
-		return fmt.Errorf("failed to send liveness response: %w", err)
-	}
-
-	return nil
-}
-
-// handleReadyz returns readiness status.
-func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
-	if err := c.SendString("OK"); err != nil {
-		return fmt.Errorf("failed to send readiness response: %w", err)
 	}
 
 	return nil

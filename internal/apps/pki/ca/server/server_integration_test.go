@@ -69,32 +69,15 @@ func TestCAServer_TemplateServices(t *testing.T) {
 }
 
 func TestCAServer_PublicHealth(t *testing.T) {
-	// Test /health endpoint on public server.
-	healthReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/health", testPublicBaseURL), nil)
+	// Test /service/api/v1/health endpoint on public server (provided by template).
+	// Note: /admin/api/v1/livez and /admin/api/v1/readyz are tested in TestCAServer_Lifecycle.
+	healthReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/service/api/v1/health", testPublicBaseURL), nil)
 	require.NoError(t, err, "health request creation should succeed")
 
 	healthResp, err := testHTTPClient.Do(healthReq)
 	require.NoError(t, err, "health request should succeed")
 	require.Equal(t, http.StatusOK, healthResp.StatusCode, "health should return 200 OK")
 	require.NoError(t, healthResp.Body.Close())
-
-	// Test /livez endpoint on public server.
-	livezReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/livez", testPublicBaseURL), nil)
-	require.NoError(t, err, "livez request creation should succeed")
-
-	livezResp, err := testHTTPClient.Do(livezReq)
-	require.NoError(t, err, "livez request should succeed")
-	require.Equal(t, http.StatusOK, livezResp.StatusCode, "livez should return 200 OK")
-	require.NoError(t, livezResp.Body.Close())
-
-	// Test /readyz endpoint on public server.
-	readyzReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/readyz", testPublicBaseURL), nil)
-	require.NoError(t, err, "readyz request creation should succeed")
-
-	readyzResp, err := testHTTPClient.Do(readyzReq)
-	require.NoError(t, err, "readyz request should succeed")
-	require.Equal(t, http.StatusOK, readyzResp.StatusCode, "readyz should return 200 OK")
-	require.NoError(t, readyzResp.Body.Close())
 }
 
 func TestCAServer_CRLEndpoint(t *testing.T) {

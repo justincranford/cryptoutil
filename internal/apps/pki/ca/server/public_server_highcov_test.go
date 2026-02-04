@@ -197,6 +197,9 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 }
 
 // TestCAServer_HealthEndpoints_EdgeCases tests health endpoint edge cases.
+// Health endpoints are provided by service-template:
+// - Admin: /admin/api/v1/livez, /admin/api/v1/readyz (via AdminServer)
+// - Public: /service/api/v1/health, /browser/api/v1/health (via PublicServerBase).
 func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	t.Parallel()
 
@@ -218,14 +221,15 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	)
 
 	for i := 0; i < maxWaitAttempts; i++ {
-		if server.PublicPort() > 0 {
+		if server.PublicPort() > 0 && server.AdminPort() > 0 {
 			break
 		}
 
 		time.Sleep(waitInterval)
 	}
 
-	require.Greater(t, server.PublicPort(), 0, "server did not bind to port")
+	require.Greater(t, server.PublicPort(), 0, "server did not bind to public port")
+	require.Greater(t, server.AdminPort(), 0, "server did not bind to admin port")
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -237,29 +241,64 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 		},
 	}
 
-	// Test all health endpoints.
-	endpoints := []string{"/health", "/livez", "/readyz"}
-	for _, endpoint := range endpoints {
-		t.Run(endpoint, func(t *testing.T) {
-			url := server.PublicBaseURL() + endpoint
-			req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
-			require.NoError(t, err)
-			resp, err := client.Do(req)
-			require.NoError(t, err)
+	// Test public health endpoint.
+	t.Run("/service/api/v1/health", func(t *testing.T) {
+		url := server.PublicBaseURL() + "/service/api/v1/health"
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+		require.NoError(t, err)
+		resp, err := client.Do(req)
+		require.NoError(t, err)
 
-			defer func() {
-				require.NoError(t, resp.Body.Close())
-			}()
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
 
-			// Should return 200.
-			require.Equal(t, http.StatusOK, resp.StatusCode, "endpoint %s failed", endpoint)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "public health endpoint failed")
 
-			// Read body.
-			body, err := io.ReadAll(resp.Body)
-			require.NoError(t, err)
-			require.NotEmpty(t, body)
-		})
-	}
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.NotEmpty(t, body)
+	})
+
+	// Test admin livez endpoint.
+	t.Run("/admin/api/v1/livez", func(t *testing.T) {
+		url := server.AdminBaseURL() + "/admin/api/v1/livez"
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+		require.NoError(t, err)
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode, "admin livez endpoint failed")
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.NotEmpty(t, body)
+	})
+
+	// Test admin readyz endpoint.
+	t.Run("/admin/api/v1/readyz", func(t *testing.T) {
+		url := server.AdminBaseURL() + "/admin/api/v1/readyz"
+		req, err := http.NewRequestWithContext(context.Background(), "GET", url, nil)
+		require.NoError(t, err)
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+
+		defer func() {
+			require.NoError(t, resp.Body.Close())
+		}()
+
+		// Readyz may return 503 if server is not fully ready yet.
+		require.True(t, resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusServiceUnavailable,
+			"admin readyz endpoint returned unexpected status: %d", resp.StatusCode)
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.NotEmpty(t, body)
+	})
 
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
