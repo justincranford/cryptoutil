@@ -7,11 +7,11 @@
 
 **ALL issues are blockers - NO exceptions:**
 
-- âœ… **Fix issues immediately** - E2E timeouts, test failures, build errors = STOP and FIX
-- âœ… **Treat as BLOCKING** - ALL issues block next task
-- âœ… **Do NOT defer** - No "later", no "non-critical", no "nice-to-have"
-- âŒ **NEVER skip** - Cannot mark complete with known issues
-- âŒ **NEVER de-prioritize** - Quality ALWAYS highest priority
+- Ã¢Å“â€¦ **Fix issues immediately** - E2E timeouts, test failures, build errors = STOP and FIX
+- Ã¢Å“â€¦ **Treat as BLOCKING** - ALL issues block next task
+- Ã¢Å“â€¦ **Do NOT defer** - No "later", no "non-critical", no "nice-to-have"
+- Ã¢ÂÅ’ **NEVER skip** - Cannot mark complete with known issues
+- Ã¢ÂÅ’ **NEVER de-prioritize** - Quality ALWAYS highest priority
 
 **Example of WRONG approach**: Treating cipher-im E2E timeouts as "non-blocking" was WRONG.
 
@@ -21,7 +21,7 @@
 
 #### Task 0.1: E2E Health Timeout Reproduction
 
-- **Status**: âœ… Complete
+- **Status**: Ã¢Å“â€¦ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.3h
@@ -39,7 +39,7 @@
 
 #### Task 0.2: Multi-Service E2E Health Check Survey
 
-- **Status**: âœ… Complete
+- **Status**: Ã¢Å“â€¦ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.2h
@@ -61,7 +61,7 @@
 
 #### Task 0.3: Docker Compose Health Configuration Audit
 
-- **Status**: âœ… Complete
+- **Status**: Ã¢Å“â€¦ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
@@ -93,7 +93,7 @@
 
 #### Task 0.5: V8 Incomplete Task Identification
 
-- **Status**: âœ… Complete
+- **Status**: Ã¢Å“â€¦ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.3h
@@ -126,7 +126,7 @@
 
 #### Task 0.7: Import Path Breakage Verification
 
-- **Status**: âœ… Complete
+- **Status**: Ã¢Å“â€¦ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
@@ -143,7 +143,7 @@
 
 #### Task 0.8: KMS Client Import Audit
 
-- **Status**: âœ… Complete
+- **Status**: Ã¢Å“â€¦ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
@@ -161,7 +161,7 @@
 
 #### Task 0.9: unsealkeysservice Location Verification
 
-- **Status**: âœ… Complete
+- **Status**: Ã¢Å“â€¦ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
