@@ -296,6 +296,55 @@ V10 addresses critical gaps discovered in V8/V9 completion claims and recurring 
 
 ### Phase 7: Quality Gates & Documentation (2h)
 
+### Phase 8: Dockerfile/Compose Standardization (6h)
+
+**Objective**: Implement Decision 1 - standardize all services to consistent Dockerfile/compose.yml locations and names
+
+#### 8.1 Audit Current State (0.5h)
+
+- Inventory all Dockerfiles (location, names)
+- Inventory all compose.yml files (location, names)
+- Identify violations of standard (docker-compose.yml, Dockerfile.*, multiple locations)
+- Document migration plan per service
+
+#### 8.2 Rename Inconsistent Files (1h)
+
+- Rename docker-compose.yml  compose.yml where found
+- Rename Dockerfile.kms  Dockerfile, Dockerfile.jose  Dockerfile, etc.
+- Update all references in documentation README files
+- Verify builds still work after renames
+
+#### 8.3 Move cmd/ Files to deployments/ (2h)
+
+- Move cmd/cipher-im/Dockerfile  deployments/cipher/Dockerfile
+- Move cmd/cipher-im/docker-compose.yml  deployments/cipher/compose.yml (if exists)
+- Remove cmd/cipher-im/.dockerignore (use root .dockerignore only)
+- Update all internal references (import paths, build scripts)
+- Verify cipher-im builds and E2E tests pass
+
+#### 8.4 Remove Redundant Documentation (0.5h)
+
+- Delete cmd/cipher-im/API.md (OpenAPI/Swagger UI sufficient)
+- Delete cmd/cipher-im/ENCRYPTION.md (if content needed, move to docs/)
+- Update README.md references to removed files
+- Verify no broken links
+
+#### 8.5 Centralize Telemetry Configs (1h)
+
+- Create deployments/telemetry/ directory
+- Move otel-collector-config.yaml to deployments/telemetry/otel-collector.yml
+- Move grafana-otel-lgtm config (if multiple) to deployments/telemetry/
+- Update all compose.yml files to reference shared configs
+- Verify telemetry stack starts correctly
+
+#### 8.6 Create CI/CD Lint Checks (1h)
+
+- Add lint-dockerfile-location check to cicd tools
+- Verify all Dockerfiles in deployments/**/Dockerfile pattern
+- Verify all compose.yml in deployments/**/compose.yml pattern
+- Reject docker-compose.yml, Dockerfile.*, Dockerfile in cmd/
+- Add to pre-commit hooks and CI workflows
+- Test lint check catches violations
 **Objective**: Ensure all fixes meet quality standards
 
 #### 7.1 Comprehensive Testing (1h)
@@ -322,6 +371,96 @@ V10 addresses critical gaps discovered in V8/V9 completion claims and recurring 
 - Add: Best practices for E2E health checks
 - Update: Architecture docs if cmd structure changed
 - Document: All updates made
+
+## Quizme V2 Decisions (2026-02-05)
+
+### Decision 1: Dockerfile/Compose Standardization (Q1)
+
+**Question**: How to resolve cmd/ structure inconsistency across services?
+
+**User Answer**: E (Custom) - Standardization is MANDATORY with the following requirements:
+
+**Requirements**:
+1. **All Dockerfile and compose.yml MUST be in deployments/** with consistent single names:
+   - CORRECT: deployments/cipher/Dockerfile, deployments/cipher/compose.yml
+   - WRONG: docker-compose.yml, Dockerfile.kms, Dockerfile.jose
+2. **Remove redundant documentation**:
+   - Delete API.md and ENCRYPTION.md (OpenAPI docs and Swagger UI are sufficient)
+3. **Single reusable telemetry configs**:
+   - Shared otel-collector-contrib and grafana-otel-lgtm configs in deployments/telemetry/
+4. **Single .dockerignore**:
+   - Only at project root, remove all cmd/*/.dockerignore files
+5. **cmd/ contains ONLY Go files**:
+   - Simple entry points pointing to internal/ implementations
+6. **Add CI/CD lint checks**:
+   - Verify Dockerfile and compose.yml location and naming
+   - Block PRs that violate standards
+
+**Impact**: Eliminates drift risk, improves discoverability, enforces consistency
+
+### Decision 2: V8 Task 17.5 Health Endpoint Status (Q2)
+
+**Question**: Is V8 Task 17.5 complete or does it need verification?  
+
+**User Answer**: E (Custom) - "YOU ARE SUPPOSED TO FIND THIS OUT, NOT ASK ME!!!"
+
+**Agent Verification Results**:
+
+ **CORRECT** (/admin/api/v1/livez:9090):
+- cipher-im:  wget <https://127.0.0.1:9090/admin/api/v1/livez>
+- identity-authz, identity-idp, identity-rp, identity-rs, identity-spa:
+- jose-ja:
+- pki-ca:
+
+ **INCORRECT**:
+- sm-kms:  Uses /app/cryptoutil kms server ready --dev instead of standard wget endpoint
+
+**Decision**: Mark V8 Task 17.5 as **87.5% complete** (7/8 services). Add V10 task to fix sm-kms health check.
+
+### Decision 3: V9 Completion Status
+
+**User Answer**: (Q3 was invalid - asked LLM to discover tasks)
+
+**Agent Verification Results**:
+- **Total Tasks**: 17
+- **Complete**: 12 (71%)
+- **Skipped** (Option C scope): 3 (Tasks 1.1, 1.4, 1.5)
+- **Deferred**: 2 (Future phases)
+
+**Decision**: V9 is **71% complete as stated**, with intentional scope reduction per Option C decision. No V10 action needed for skipped tasks.
+
+### Decision 4: cipher-im E2E Timeout Fix Strategy (Q4)
+
+**Question**: How to fix cipher-im E2E timeouts (180s insufficient)?
+
+**User Answer**: B + Analysis - Aggressive health check intervals (Docker 5s interval, 5s timeout), but 180s indicates massive inefficiency in Dockerfile or compose.yml
+
+**Requirements**:
+1. **Analyze kms compose.yml** - Previously optimized for maximum startup efficiency
+2. **Identify differences** - What makes cipher-im compose.yml slow vs kms
+3. **Apply optimizations** - Single-build shared-image pattern, schema init by first instance
+4. **Reduce cascade dependencies** - reevaluate 3-instance pattern if causing delays
+5. **Set aggressive health check intervals** - Docker 5s interval, 5s timeout
+
+**Target**: Reduce E2E timeout from 180s to <60s after optimizations
+
+### Decision 5: Dockerfile Location Standard (Q5)
+
+**User Answer**: A - REMOVE cmd/cipher-im/Dockerfile, centralize in deployments/cipher/
+
+**Rationale**: Alreadycovered by Decision 1 standardization requirements
+
+### Decision 6: jose-ja Health Endpoint Clarification (Q6)
+
+**User Answer**: B + Clarification - Fix after cipher-im, but need context: public vs private health endpoints
+
+**User Clarification**:
+- **E2E tests**: Use PUBLIC https health endpoint
+- **compose.yml**: Use PRIVATE https health endpoint (/admin/api/v1/livez:9090)
+
+**Agent Clarification**: Dockerfile HEALTHCHECK is for **container health**, uses PRIVATE endpoint. My verification showed jose-ja Dockerfile.jose CORRECTLY uses /admin/api/v1/livez:9090.
+
+**Decision**: jose-ja health endpoint is CORRECT. No fix needed. Original concern was based on incomplete context.
 
 ## Technical Decisions
 
