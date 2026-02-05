@@ -218,18 +218,23 @@
 
 #### Task 1.2: Docker Compose Health Check Standardization
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.3, Task 1.1
+- **Actual**: 0.3h
+- **Dependencies**: Task 0.3, Task 1.1
 - **Description**: Define standard health check configuration
 - **Acceptance Criteria**:
-  - [ ] Analyze: cipher-im (fails) vs jose-ja (passes) configurations
-  - [ ] Define: Standard port (9090), path (`/admin/api/v1/livez`)
-  - [ ] Define: Recommended interval, timeout, retries, start_period
-  - [ ] Document: Standard configuration pattern
-
-#### Task 1.3: E2E Test Health Check Pattern Analysis
+  - [x] Analyze: cipher-im (fails) vs jose-ja (passes) configurations
+  - [x] Define: Standard port (9090), path (`/admin/api/v1/livez`)
+  - [x] Define: Recommended interval, timeout, retries, start_period
+  - [x] Document: Standard configuration pattern
+- **Findings**:
+  - Standard: `wget /admin/api/v1/livez:9090`, interval=10s, timeout=5s, retries=5, start_period=60s
+  - Discrepancy 1: Identity E2E uses `/health` instead of `/service/api/v1/health`
+  - Discrepancy 2: sm-kms uses CLI health check instead of wget+HTTP
+  - Discrepancy 3: start_period varies (10s-60s), should standardize on 60s
+- **Evidence**: test-output/v10-e2e-health/task-1.2/analysis.md
 
 - **Status**:  Not Started
 - **Owner**: LLM Agent
