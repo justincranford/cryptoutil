@@ -177,44 +177,46 @@
   - Import pattern: `cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"`
   - Why shared: Deterministic key derivation for interoperability
 
-#### Task 0.10: unsealkeysservice Duplication Audit`r`n  - **Status**:  Complete
+#### Task 0.10: unsealkeysservice Duplication Audit
 
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.9
+- **Actual**: 0.25h
+- **Dependencies**: Task 0.9
 - **Description**: Check for duplicate unseal logic in template
 - **Acceptance Criteria**:
-  - [ ] Compare: Template barrier code vs shared unsealkeysservice
-  - [ ] Identify: Any duplicated logic
-  - [ ] Document: What's shared vs what's unique
-  - [ ] Note: If duplications found, they need fixing
+  - [x] Compare: Template barrier code vs shared unsealkeysservice
+  - [x] Identify: Any duplicated logic
+  - [x] Document: What's shared vs what's unique
+  - [x] Note: If duplications found, they need fixing
+- **Findings**: NO DUPLICATION - Template barrier correctly delegates to shared unsealkeysservice via dependency injection
+- **Evidence**: test-output/v10-import-fix/task-0.10-analysis.md
 
 ### Phase 1: E2E Health Timeout Root Cause & Fix
 
 #### Task 1.1: Service Health Endpoint Audit (Enhanced with E2E Comparative Analysis)
 
-- **Status**: \u274c Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 1h (increased from 0.5h for deeper analysis)
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.4
+- **Actual**: 0.5h
+- **Dependencies**: Task 0.4
 - **Description**: Audit ALL services for health endpoint registration + Docker health check consistency + cmd/ structure patterns
 - **Acceptance Criteria**:
-  - [ ] **Dockerfile Location Audit**: cipher-im has Dockerfile in cmd/ AND deployments/ (dual location drift risk), jose-ja/sm-kms only in deployments/ (correct centralized pattern)
-  - [ ] **Health Endpoint Audit**: jose-ja uses WRONG /health endpoint (should be /admin/api/v1/livez), sm-kms verify endpoint correctness, cipher-im correct but dual Dockerfile creates drift risk
-  - [ ] **Health Check Tool Audit**: sm-kms may use curl (should standardize on wget), cipher-im uses wget (correct), jose-ja TBD
-  - [ ] **cmd/ Structure Audit**: cipher-im 9 files (rich), jose-ja/sm-kms 1 file (minimal) - both valid but inconsistent
-  - [ ] **E2E Pattern Audit**: Verify jose-ja/sm-kms E2E tests exist, use WaitForMultipleServices pattern, compare timeout configs vs cipher-im
-  - [ ] **Template Verification**: Confirm template registers BOTH /admin/api/v1/livez AND /service/api/v1/health
-  - [ ] **Document Findings**: Specific violations per service, fix recommendations
-- **Comparative Findings** (from analysis):
-  - cipher-im: Dockerfile drift risk (cmd/ vs deployments/), correct health endpoint, 180s E2E timeout (cascade dependencies), FAILS E2E
-  - jose-ja: Centralized Dockerfile (correct), WRONG health endpoint /health, E2E status TBD
-  - sm-kms: Centralized Dockerfile (correct), health endpoint TBD (verify), health check tool may be curl not wget, E2E status TBD
-- **Fix Plan**:
-  - Remove cmd/cipher-im/Dockerfile OR sync with deployments/cipher/Dockerfile.cipher
-  - Fix deployments/jose/Dockerfile.jose: /health \u2192 /admin/api/v1/livez:9090
-  - Standardize ALL services: wget (not curl), /admin/api/v1/livez:9090
-  - Verify jose-ja/sm-kms E2E tests exist and use template patterns
+  - [x] **Dockerfile Location Audit**: cipher-im cmd/ vs deployments/ drift risk, others centralized ✅
+  - [x] **Health Endpoint Audit**: ALL services use /admin/api/v1/livez (jose-ja CORRECT, not /health as plan assumed)
+  - [x] **Health Check Tool Audit**: sm-kms uses CLI (non-standard), others use wget ✅
+  - [x] **cmd/ Structure Audit**: cipher-im 9 items (rich), others minimal
+  - [x] **E2E Pattern Audit**: Only cipher-im has E2E tests, jose-ja/sm-kms/pki-ca have NONE
+  - [x] **Template Verification**: /admin/api/v1/livez and /service/api/v1/health confirmed
+  - [x] **Document Findings**: All findings documented
+- **Key Findings**:
+  - V10 plan assumption WRONG: jose-ja uses CORRECT /admin/api/v1/livez (not /health)
+  - sm-kms: Non-standard CLI health check, needs wget+HTTP
+  - cipher-im: Dockerfile drift risk (cmd/ vs deployments/), 180s E2E timeout
+  - Only cipher-im has E2E tests - jose-ja/sm-kms/pki-ca have NONE
+- **Evidence**: test-output/v10-e2e-health/task-1.1/analysis.md
 
 #### Task 1.2: Docker Compose Health Check Standardization
 
