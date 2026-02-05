@@ -238,16 +238,23 @@
   - Discrepancy 3: start_period varies (10s-60s), should standardize on 60s
 - **Evidence**: test-output/v10-e2e-health/task-1.2/analysis.md
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.1, Task 0.4
+- **Actual**: 0.5h
+- **Dependencies**: Task 0.1, Task 0.4
 - **Description**: Analyze E2E test health check patterns
 - **Acceptance Criteria**:
-  - [ ] Review: cipher-im E2E test WaitForHealth logic
-  - [ ] Check: Timeout values (current vs recommended)
-  - [ ] Check: Endpoint paths used (should match docker-compose)
-  - [ ] Document: Test-side issues if any
+  - [x] Review: cipher-im E2E test WaitForHealth logic
+  - [x] Check: Timeout values (current vs recommended)
+  - [x] Check: Endpoint paths used (should match docker-compose)
+  - [x] Document: Test-side issues if any
+- **Findings**:
+  - cipher-im uses CORRECT endpoint `/service/api/v1/health` (180s timeout)
+  - identity uses WRONG endpoint `/health` which does NOT exist (ROOT CAUSE)
+  - Compose manager WaitForHealth polls every 2s with timeout - correct implementation
+  - Docker HC uses `/admin/api/v1/livez:9090`, E2E uses `/service/api/v1/health` - intentionally different
+- **Evidence**: test-output/v10-e2e-health/task-1.3/analysis.md
 
 #### Task 1.4: Root Cause Determination
 
