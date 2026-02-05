@@ -18,6 +18,71 @@ V10 addresses critical gaps discovered in V8/V9 completion claims and recurring 
 5. **unsealkeysservice Location** - Kept in `internal/shared/barrier/unsealkeysservice/` (shared by template + all services)
 6. **sm-kms cmd Inconsistency** - Uses `cmd/sm-kms/main.go` while cipher-im/jose-ja have richer structures
 
+## Quality Mandate - MANDATORY
+
+**ALL issues are blockers - NO exceptions:**
+
+- ✅ **Fix issues immediately** - When E2E timeouts, test failures, build errors, or ANY issue discovered, STOP and FIX
+- ✅ **Treat as BLOCKING** - ALL issues block progress to next task
+- ✅ **Do NOT defer** - No "we'll fix later", no "non-critical", no "nice-to-have"
+- ❌ **NEVER skip** - Cannot mark task complete with known issues
+- ❌ **NEVER de-prioritize** - Quality is ALWAYS highest priority
+
+**Rationale**: Maintaining maximum quality is absolutely paramount. **Example of WRONG approach**: Treating cipher-im E2E timeouts as "non-blocking" was WRONG - should have stopped all work and fixed immediately.
+
+**This mandate applies to**: Code quality, test coverage, E2E reliability, build health, documentation accuracy, ALL aspects of work.
+
+## Executive Summary - E2E Structural Analysis
+
+**Root Cause of cipher-im E2E Timeouts** (comparative analysis cipher-im vs jose-ja vs sm-kms):
+
+### Dockerfile Location Inconsistency
+
+| Service | cmd/ Dockerfile | deployments/ Dockerfile | Issue |
+|---------|----------------|------------------------|-------|
+| cipher-im | ✅ cmd/cipher-im/Dockerfile | ✅ deployments/cipher/Dockerfile.cipher | Dual location (potential drift) |
+| jose-ja | ❌ None | ✅ deployments/jose/Dockerfile.jose | Centralized (correct) |
+| sm-kms | ❌ None | ✅ deployments/kms/Dockerfile.kms | Centralized (correct) |
+
+**Finding**: cipher-im maintains Dockerfile in BOTH cmd/ AND deployments/ - creates drift risk, maintenance burden.
+
+### cmd/ Structure Inconsistency
+
+| Service | cmd/ Files | Pattern |
+|---------|-----------|-------|
+| cipher-im | 9 files (main.go, Dockerfile, compose, README, API.md, ENCRYPTION.md, otel-collector-config.yaml, .dockerignore, secrets/) | Rich structure |
+| jose-ja | 1 file (main.go) | Minimal |
+| sm-kms | 1 file (main.go) | Minimal |
+
+**Finding**: cipher-im cmd/ is self-contained development environment. jose-ja/sm-kms delegate to deployments/. Both patterns valid but inconsistent.
+
+### E2E Test Pattern Consistency
+
+| Service | E2E Location | TestMain Pattern | Health Timeout | Status |
+|---------|-------------|-----------------|----------------|--------|
+| cipher-im | internal/apps/cipher/im/e2e/ | ✅ WaitForMultipleServices | 180s (increased from 90s) | FAILS with timeout |
+| jose-ja | internal/apps/jose/ja/e2e/ | TBD (needs verification) | TBD | TBD |
+| sm-kms | internal/apps/sm/kms/e2e/ | TBD (needs verification) | TBD | TBD |
+| identity | internal/apps/identity/e2e/ | ✅ WaitForMultipleServices | 90s | PASSES |
+
+**Finding**: cipher-im uses service-template pattern (WaitForMultipleServices) correctly. Need to verify jose-ja/sm-kms patterns and compare why cipher-im fails.
+
+### Health Endpoint Inconsistency (from docker-health-checks.md)
+
+| Service | Dockerfile Health Check | Endpoint | Tool | Issue |
+|---------|------------------------|----------|------|-------|
+| cipher-im | ✅ Defined | /admin/api/v1/livez:9090 | wget | ✅ Correct |
+| jose-ja | ✅ Defined (in deployments/) | /health (WRONG) | TBD | ❌ Should be /admin/api/v1/livez |
+| sm-kms | ✅ Defined (in deployments/) | /admin/api/v1/livez:9090 (verify) | curl (should be wget) | Partially correct |
+
+**Finding**: JOSE uses wrong endpoint `/health` instead of standard `/admin/api/v1/livez`. This violates architecture standard.
+
+### Hypothesis: cipher-im Timeout Root Cause
+
+**Suspected**: cipher-im's 180s timeout (increased from 90s due to cascade dependencies: sqlite 30s → pg-1 30s → pg-2 30s = 90s worst case) suggests environment-specific issues (CI/CD slower than local, Docker container startup overhead). jose-ja/sm-kms may pass because simpler configurations (single DB instance vs 3-instance cascade).
+
+**Action Required**: Verify jose-ja/sm-kms E2E actually exist and pass, compare configurations, identify why cipher-im uniquely fails.
+
 ## Technical Context
 
 - **Language**: Go 1.25.5
