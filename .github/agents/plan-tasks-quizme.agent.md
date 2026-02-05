@@ -79,7 +79,8 @@ This agent helps you create, update, and maintain **simple custom plans** autono
 **Plus optional quizme file** (ephemeral, deleted after answers merged):
 
 - **`<work-dir>/quizme-v#.md`** - Questions to clarify unknowns, risks, inefficiencies ONLY
-  - Format: A-D multiple choice + E (blank fill-in) with blank Choice field
+  - Format: A-D options + E (blank) + **Answer:** field (blank)
+  - Questions ask USER for decisions, NOT LLM to discover tasks
   - Temporary - deleted after answers merged into plan.md/tasks.md
 
 **User must specify directory path** where files will be created/updated.
@@ -133,8 +134,10 @@ This will:
 - Create `<work-dir>/plan.md` from template
 - Create `<work-dir>/tasks.md` from template
 - Optionally create `<work-dir>/quizme-v1.md` for unknowns/risks/inefficiencies
-  - A-D and E (blank fill-in) questions
-  - Choice field blank for user to answer
+  - A-D options + E (blank) + **Answer:** field
+  - Questions ask USER for decisions, NOT LLM to discover tasks
+  - E option: BLANK (no text, no underscores)
+  - **Answer:** field: BLANK for user to fill with A, B, C, D, or E
 - Initialize directory if needed
 - **THEN IMMEDIATELY**: Execute next action (update if needed, or complete)
 
@@ -478,8 +481,10 @@ ls <directory-path>/tasks.md
 3. Create `<work-dir>/tasks.md` from template
 
 4. Optionally create `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies ONLY
-   - Contains A-D and E (blank fill-in) multiple choice questions
-   - Contains choice field left blank for user to fill
+   - Contains A-D options + E (blank) + **Answer:** field
+   - Questions ask USER for decisions, NOT LLM to discover tasks
+   - E option: BLANK (no text, no underscores)
+   - **Answer:** field: BLANK for user to fill with A, B, C, D, or E
    - ONLY for: unknowns, risks, inefficiencies that need clarification
    - Ephemeral - deleted after answers merged into plan.md/tasks.md
 
@@ -600,11 +605,37 @@ Running frequent Unit + integration + E2E tests locally:
 - ✅ Risks that need assessment
 - ✅ Inefficiencies that need decision
 
+**CRITICAL: Questions MUST be directed at USER, NOT discovery tasks for LLM**
+
+- ❌ WRONG: "What tasks should be created to..." (asking LLM to discover tasks)
+- ❌ WRONG: "Agent must analyze..." (asking LLM to do analysis)
+- ✅ CORRECT: "Which approach should we use for..." (asking USER for decision)
+- ✅ CORRECT: "What is your preference for..." (asking USER for input)
+
 **Quizme Format** (A-D and E blank fill-in):
 
 - Multiple choice questions A-D with one correct answer
-- Option E: blank fill-in for custom answer
-- Choice field: LEFT BLANK for user to select/fill
+- Option E: BLANK (no text, no underscores) for custom answer
+- **Answer:** field: BLANK for user to fill with A, B, C, D, or E
+- Each question MUST have separate **Answer:** line after all options
+
+**Format Example**:
+
+```markdown
+## Question 1: Topic
+
+**Question**: Your question here?
+
+**A)** Option A description
+**B)** Option B description
+**C)** Option C description
+**D)** Option D description
+**E)**
+
+**Answer**:
+
+**Rationale**: Why this question matters
+```
 
 **After user answers**: Merge into plan.md/tasks.md, DELETE quizme-v#.md
 

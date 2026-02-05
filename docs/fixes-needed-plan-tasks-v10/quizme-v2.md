@@ -91,7 +91,19 @@ This quizme file contains NEW questions + one carryover from V1 requiring clarif
 - [ ] **C**: **Standardize on Hybrid** - All services: main.go + README.md + API.md + secrets/ in cmd/, Dockerfile + compose + shared configs in deployments/
 - [ ] **D**: **Keep as-is with fix** - Remove cipher-im Dockerfile from cmd/ (eliminate drift), accept inconsistency across services
 
-**E**: Custom Answer: _______________
+**E**: Custom Answer: SEE BELOW; STANDARDIZATION IS MANDATORY
+```
+all Dockerfile and compose.yml must be in deployments/, and use consistent single names (e.g. names like docker-compose.yml and Dockerfile.kms and Dockerfile.jose are wrong, names like Dockerfile and compose.yml are correct); add phase and tasks to address it, update all references, and thoroughly test
+add phase and tasks to add cicd lint checks to verify location and name of Dockerfile and compose yml
+***
+why do API.md and ENCRYPTION.md exist? openapi docs and swagger ui aresufficient
+***
+there is supposed to be single reusable config files in deployments/ for otel-collector-contrib and grafana lgtm containers
+***
+there must be only one .dockerignore at the root of the project, no additional ones
+***
+cmd/ is only supposed to contain go files, and be simply pointer to internal/ files
+```
 
 ---
 
@@ -117,7 +129,7 @@ This quizme file contains NEW questions + one carryover from V1 requiring clarif
 - [ ] **C**: **Work not done** - Full audit needed (all services), complete in V10
 - [ ] **D**: **Inconclusive** - Need to test each service manually before deciding
 
-**E**: Custom Answer: _______________
+**E**: Custom Answer: YOU ARE SUPPOSED TO FIND THIS OUT, NOT ASK ME!!!
 
 ---
 
@@ -167,7 +179,7 @@ Given cascade dependencies require 90s minimum, 30s E2E timeout would fail immed
 - [ ] **C**: Eliminate cascade (run tests against single instance, not 3-instance cascade)
 - [ ] **D**: I misunderstood - keep 180s E2E, fix root cause (Docker startup, config)
 
-**E**: Custom Answer: _______________
+**E**: Custom Answer: B, but 180s is way too long and indicates there is massive inefficiency in Dockerfile or compose.yml; look at structure of kms compose.yml since it was previously optimized for maximum startup efficiency, analyze what is different in other compose yml files like cipher-im and that leading to extreme slowness and therefore too long of 180s wait time in e2e tests
 
 ---
 
@@ -176,7 +188,7 @@ Given cascade dependencies require 90s minimum, 30s E2E timeout would fail immed
 **Issue**: cipher-im has Dockerfile in BOTH cmd/ and deployments/, causing drift risk.
 
 **Options**:
-- [ ] **A**: **REMOVE cmd/cipher-im/Dockerfile** - Centralize in deployments/cipher/, all services consistent
+- [x] **A**: **REMOVE cmd/cipher-im/Dockerfile** - Centralize in deployments/cipher/, all services consistent
 - [ ] **B**: **REMOVE deployments/cipher/Dockerfile.cipher** - Keep in cmd/, developers find it easily
 - [ ] **C**: **SYNC both locations** - Add automation to keep cmd/ and deployments/ in sync (Makefile, script)
 - [ ] **D**: **Symlink** - cmd/Dockerfile  ../deployments/cipher/Dockerfile.cipher (single source)
@@ -197,7 +209,7 @@ Given cascade dependencies require 90s minimum, 30s E2E timeout would fail immed
 - [ ] **C**: **P2-MEDIUM** - Fix in V10 Phase 7 (quality gates)
 - [ ] **D**: **Defer to V11** - Not blocking cipher-im fix, lower priority
 
-**E**: Custom Answer: _______________
+**E**: Custom Answer: B, but i think you need clarification; e2e tests are supposed to use public https health endpoint, and compose.yml are supposed to use private https health endpoints. when you say "jose-ja uses WRONG /health endpoint", i don't have sufficient context to know if you mean the public https endpoint or the private https endpoint. i have given you clarification, so use it to determine the correct answer.
 
 ---
 
