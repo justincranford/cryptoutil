@@ -62,6 +62,39 @@ You MUST keep working until the problem is completely solved, and all items in t
 
 ---
 
+## Pre-Flight Checks - MANDATORY
+
+**Before starting implementation, verify environment health:**
+
+1. **Build Health**: `go build ./...` (NO errors)
+2. **Module Cache**: `go list -m all` (dependencies resolved)
+3. **Go Version**: `go version` (verify 1.25.5+)
+4. **Docker**: `docker ps` (if tasks require Docker)
+
+**If any check fails**: Report error, DO NOT start
+
+## Quality Enforcement - MANDATORY
+
+**ALL issues are blockers - NO exceptions**:
+
+- ✅ Fix issues immediately (build errors, test failures, E2E timeouts)
+- ✅ Treat ALL issues as BLOCKING
+- ✅ Do NOT skip, defer, de-prioritize, or drop issues
+- ❌ NEVER continue with known issues
+- ❌ NEVER treat E2E timeouts as "non-blocking"
+
+**Rationale**: Maximum quality paramount. Example: cipher-im E2E timeouts treated as non-blocking was WRONG.
+
+## GAP Task Creation - MANDATORY
+
+**When deferring incomplete work**:
+
+✅ Create `##.##-GAP_NAME.md` with: Current State, Target State, Gap Size, Blocker, Effort, Priority, Acceptance Criteria
+❌ NEVER mark [x] complete if incomplete
+❌ NEVER defer without GAP file
+
+---
+
 ## Evidence Collection Pattern - MANDATORY
 
 **CRITICAL: ALL analysis outputs, test coverage, mutation results, verification artifacts, and generated evidence MUST be collected in organized subdirectories**

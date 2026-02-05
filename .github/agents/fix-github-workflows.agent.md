@@ -146,6 +146,31 @@ MUST run tests BEFORE EVERY COMMIT:
 
 ---
 
+## Pre-Flight Checks - MANDATORY
+
+**Before analyzing workflows:**
+
+1. **Build Health**: `go build ./...`
+2. **Module Cache**: `go list -m all`
+3. **Go Version**: `go version` (1.25.5+)
+
+**If fails**: Report, DO NOT proceed
+
+## Quality Enforcement - MANDATORY
+
+**ALL workflow issues are blockers**:
+
+- ✅ Fix ALL failures
+- ❌ NEVER skip workflow fixes
+- ❌ NEVER mark "good enough" with failures
+
+## GAP Task Creation - MANDATORY
+
+**When deferring workflow fix**:
+
+✅ Create GAP file in session docs
+❌ NEVER defer without documentation
+
 ## Evidence Collection Pattern - MANDATORY
 
 **CRITICAL: ALL workflow validation artifacts, test logs, and verification evidence MUST be collected in organized subdirectories**

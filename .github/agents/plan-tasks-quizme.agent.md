@@ -428,6 +428,19 @@ EOF
 - [ ] No security vulnerabilities
 ```
 
+## Pre-Flight Checks - MANDATORY
+
+**Before ANY action (create/update/review), verify environment health:**
+
+1. **Build Health**: `go build ./...` (NO errors, confirms project compiles)
+2. **Module Cache**: `go list -m all` (verify dependencies resolved)
+3. **Go Version**: `go version` (verify 1.25.5+)
+4. **Working Directory**: Confirm you're in project root (c:\Dev\Projects\cryptoutil)
+
+**If any check fails**: Report error, DO NOT proceed with action
+
+**Rationale**: Prevents creating/updating docs based on broken codebase state
+
 ## Workflow Steps
 
 ### Step 1: Analyze User Input
@@ -550,6 +563,34 @@ Running frequent Unit + integration + E2E tests locally:
 - ✅ Tests passing with coverage
 - ✅ Linting clean
 - ✅ Acceptance criteria verified
+
+### GAP Task Creation - MANDATORY
+
+**When task is incomplete but being deferred**:
+
+✅ MUST create `##.##-GAP_NAME.md` with:
+- Current State: What's been done
+- Target State: What's needed for 100%
+- Gap Size: Quantify remaining work (LOE, complexity)
+- Blocker Details: Why can't complete now
+- Estimated Effort: Hours/days to complete
+- Priority: P0-P3 classification
+- Acceptance Criteria: How to verify when complete
+
+❌ NEVER mark task incomplete without GAP file
+❌ NEVER defer work without documenting blocker
+
+### Quality Enforcement - MANDATORY
+
+**ALL issues are blockers - NO exceptions**:
+
+- ✅ Fix issues immediately when discovered
+- ✅ Treat E2E timeouts, test failures, build errors as BLOCKING
+- ✅ Do NOT skip, defer, de-prioritize, or drop issues
+- ❌ NEVER treat issues as "non-blocking" or "minor"
+- ❌ NEVER continue to next task with known issues
+
+**Rationale**: Maintaining maximum quality is absolutely paramount. Example: Treating cipher-im E2E timeouts as non-blocking was WRONG.
 
 ### Quizme File Purpose
 

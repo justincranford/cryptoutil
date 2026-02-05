@@ -84,6 +84,35 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 
 ---
 
+## Pre-Flight Checks - MANDATORY
+
+**Before starting work:**
+
+1. **Build Health**: `go build ./...`
+2. **Module Cache**: `go list -m all`
+3. **Go Version**: `go version` (1.25.5+)
+4. **Docker**: `docker ps` (if needed)
+
+**If fails**: Report, DO NOT proceed
+
+## Quality Enforcement - MANDATORY
+
+**ALL issues are blockers**:
+
+- ✅ Fix immediately
+- ✅ E2E timeouts, test failures = BLOCKING
+- ❌ NEVER continue with issues
+- ❌ NEVER treat as "non-blocking"
+
+## GAP Task Creation - MANDATORY
+
+**When deferring**:
+
+✅ Create `##.##-GAP_NAME.md`
+❌ NEVER defer without GAP
+
+---
+
 ## Anti-Patterns to Avoid
 
 **WRONG Examples** (NEVER do these):
