@@ -69,9 +69,13 @@ func checkHostPortRangesInFile(filePath string) []Violation {
 	scanner := bufio.NewScanner(file)
 	lineNum := 0
 	currentService := ""
+	inServicesBlock := false
 
-	// Pattern to match service definitions like "  service-name:".
-	servicePattern := regexp.MustCompile(`^(\s{0,4})([a-zA-Z][a-zA-Z0-9_-]*):(\s*)$`)
+	// Pattern to match "services:" at root level.
+	servicesPattern := regexp.MustCompile(`^services:\s*$`)
+
+	// Pattern to match service definitions like "  service-name:" (2 spaces indentation under services).
+	servicePattern := regexp.MustCompile(`^\s{2}([a-zA-Z][a-zA-Z0-9_-]*):\s*$`)
 
 	// Pattern to match port mappings like "- 8080:8080" or "- "8080:8080"".
 	portMappingPattern := regexp.MustCompile(`-\s*"?(\d+):(\d+)"?`)
@@ -80,11 +84,28 @@ func checkHostPortRangesInFile(filePath string) []Violation {
 		lineNum++
 		line := scanner.Text()
 
-		// Check if this is a service definition.
-		if match := servicePattern.FindStringSubmatch(line); match != nil {
-			currentService = match[2]
+		// Check if we're entering the services block.
+		if servicesPattern.MatchString(line) {
+			inServicesBlock = true
 
 			continue
+		}
+
+		// Reset if we hit a new top-level key (no indentation).
+		if len(line) > 0 && line[0] != ' ' && line[0] != '\t' {
+			inServicesBlock = false
+			currentService = ""
+
+			continue
+		}
+
+		// Check if this is a service definition (only when in services block).
+		if inServicesBlock {
+			if match := servicePattern.FindStringSubmatch(line); match != nil {
+				currentService = match[1]
+
+				continue
+			}
 		}
 
 		// Check for port mappings.

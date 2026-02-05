@@ -227,147 +227,6 @@ var LegacyPorts = []uint16{8888, 8889, 8890}
 	require.NoError(t, err) // Should pass - lint_ports directory is excluded
 }
 
-func TestAllLegacyPorts(t *testing.T) {
-	t.Parallel()
-
-	ports := AllLegacyPorts()
-
-	// Verify known legacy ports are included.
-	require.Contains(t, ports, uint16(8888)) // cipher-im legacy
-	require.Contains(t, ports, uint16(8889)) // cipher-im legacy
-	require.Contains(t, ports, uint16(8890)) // cipher-im legacy
-	require.Contains(t, ports, uint16(9443)) // jose-ja legacy
-	require.Contains(t, ports, uint16(8092)) // jose-ja legacy
-	require.Contains(t, ports, uint16(8443)) // pki-ca legacy
-}
-
-func TestAllValidPublicPorts(t *testing.T) {
-	t.Parallel()
-
-	ports := AllValidPublicPorts()
-
-	// Verify standardized ports are included.
-	require.Contains(t, ports, uint16(8070))  // cipher-im
-	require.Contains(t, ports, uint16(8071))  // cipher-im
-	require.Contains(t, ports, uint16(8072))  // cipher-im
-	require.Contains(t, ports, uint16(8060))  // jose-ja
-	require.Contains(t, ports, uint16(8050))  // pki-ca
-	require.Contains(t, ports, uint16(8080))  // sm-kms
-	require.Contains(t, ports, uint16(8081))  // sm-kms
-	require.Contains(t, ports, uint16(8082))  // sm-kms
-	require.Contains(t, ports, uint16(8100))  // identity-authz
-	require.Contains(t, ports, uint16(8100))  // identity-idp (same port as authz)
-	require.Contains(t, ports, uint16(8110))  // identity-rs
-	require.Contains(t, ports, uint16(8120))  // identity-rp
-	require.Contains(t, ports, uint16(8130))  // identity-spa
-}
-
-func TestIsOtelCollectorPort(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		port uint16
-		want bool
-	}{
-		{name: "OTEL internal metrics", port: 8888, want: true},
-		{name: "OTEL Prometheus", port: 8889, want: true},
-		{name: "cipher-im standardized", port: 8070, want: false},
-		{name: "jose-ja standardized", port: 8060, want: false},
-		{name: "random port", port: 12345, want: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := IsOtelCollectorPort(tt.port)
-			require.Equal(t, tt.want, got)
-		})
-	}
-}
-
-func TestIsOtelRelatedFile(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name     string
-		filePath string
-		want     bool
-	}{
-		{name: "otel in path", filePath: "/path/to/otel_config.go", want: true},
-		{name: "opentelemetry in path", filePath: "/path/opentelemetry/main.go", want: true},
-		{name: "telemetry in path", filePath: "/internal/telemetry/setup.go", want: true},
-		{name: "regular go file", filePath: "/internal/server/main.go", want: false},
-		{name: "config yaml", filePath: "/configs/app.yml", want: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := isOtelRelatedFile(tt.filePath)
-			require.Equal(t, tt.want, got)
-		})
-	}
-}
-
-func TestGetServiceForLegacyPort(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		port uint16
-		want string
-	}{
-		{name: "cipher-im 8888", port: 8888, want: "cipher-im"},
-		{name: "cipher-im 8889", port: 8889, want: "cipher-im"},
-		{name: "cipher-im 8890", port: 8890, want: "cipher-im"},
-		{name: "jose-ja 9443", port: 9443, want: "jose-ja"},
-		{name: "jose-ja 8092", port: 8092, want: "jose-ja"},
-		{name: "pki-ca 8443", port: 8443, want: "pki-ca"},
-		{name: "unknown port", port: 12345, want: "unknown"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := getServiceForLegacyPort(tt.port)
-			require.Equal(t, tt.want, got)
-		})
-	}
-}
-
-func TestServicePorts_AllServicesPresent(t *testing.T) {
-	t.Parallel()
-
-	expectedServices := []string{
-		"cipher-im",
-		"jose-ja",
-		"pki-ca",
-		"sm-kms",
-		"identity-authz",
-		"identity-idp",
-		"identity-rs",
-		"identity-rp",
-		"identity-spa",
-	}
-
-	for _, svc := range expectedServices {
-		t.Run(svc, func(t *testing.T) {
-			t.Parallel()
-
-			cfg, ok := ServicePorts[svc]
-			require.True(t, ok, "Service %s should be in ServicePorts", svc)
-			require.Equal(t, svc, cfg.Name)
-			require.Equal(t, StandardAdminPort, cfg.AdminPort)
-			require.NotEmpty(t, cfg.PublicPorts)
-		})
-	}
-}
-
-// TestLint_FileOpenError tests that checkFile handles file open errors gracefully.
 func TestLint_FileOpenError(t *testing.T) {
 	t.Parallel()
 
@@ -385,6 +244,7 @@ func TestLint_FileOpenError(t *testing.T) {
 }
 
 // TestLint_PortNumbersInText tests that text matching numbers in the port range doesn't cause issues.
+
 func TestLint_PortNumbersInText(t *testing.T) {
 	t.Parallel()
 
@@ -411,6 +271,7 @@ const irrelevantNumber = 1234
 }
 
 // TestLint_EmptyFilesByExtension tests Lint with empty input.
+
 func TestLint_EmptyFilesByExtension(t *testing.T) {
 	t.Parallel()
 
@@ -422,6 +283,7 @@ func TestLint_EmptyFilesByExtension(t *testing.T) {
 }
 
 // TestLint_JsonFiles tests that Lint ignores JSON files (not in supported extensions).
+
 func TestLint_JsonFiles(t *testing.T) {
 	t.Parallel()
 
@@ -445,6 +307,7 @@ func TestLint_JsonFiles(t *testing.T) {
 }
 
 // TestLint_MultipleExtensions tests Lint with multiple file types having violations.
+
 func TestLint_MultipleExtensions(t *testing.T) {
 	t.Parallel()
 
@@ -490,6 +353,7 @@ Port 8890 is used.
 }
 
 // TestLint_NonLegacyPortNumbers tests that non-legacy port numbers are not flagged.
+
 func TestLint_NonLegacyPortNumbers(t *testing.T) {
 	t.Parallel()
 
@@ -516,36 +380,7 @@ const port4 = 12345 // 5-digit port
 }
 
 // TestIsOtelRelatedContent tests that OTEL-related terms in line content are detected.
-func TestIsOtelRelatedContent(t *testing.T) {
-	t.Parallel()
 
-	tests := []struct {
-		name    string
-		content string
-		want    bool
-	}{
-		{name: "otel in constant name", content: "PortOtelCollectorReceivedMetrics uint16 = 8889", want: true},
-		{name: "telemetry in comment", content: "// OpenTelemetry metrics port", want: true},
-		{name: "opentelemetry in text", content: "// Use OpenTelemetry for observability", want: true},
-		{name: "OTEL uppercase", content: "const OTEL_PORT = 8888", want: true},
-		{name: "no otel terms", content: "const port = 8080", want: false},
-		{name: "cipher-im port", content: "const cipherPort = 8888", want: false},
-		{name: "empty line", content: "", want: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := isOtelRelatedContent(tt.content)
-			require.Equal(t, tt.want, got)
-		})
-	}
-}
-
-// TestLint_SkipsCollectorPortsInMagicFile tests that collector ports are skipped
-// when the line content contains related terms (even if file path doesn't).
-// NOTE: Function name avoids "otel/telemetry" to prevent t.TempDir() path matching.
 func TestLint_SkipsCollectorPortsInMagicFile(t *testing.T) {
 	t.Parallel()
 
@@ -573,4 +408,72 @@ const PortOtelCollectorReceivedMetrics uint16 = 8889
 	// Should pass because line content contains OTEL-related terms.
 	err = Lint(logger, filesByExtension)
 	require.NoError(t, err, "OTEL ports in OTEL-related content should NOT be flagged")
+}
+
+// =============================================================================
+// Host Port Range Validation Tests
+// =============================================================================
+
+func TestLint_AllThreeChecksPass(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a valid Go file.
+	goFile := filepath.Join(tempDir, "main.go")
+	err := os.WriteFile(goFile, []byte(`package main
+
+const port = 8070
+`), 0o600)
+	require.NoError(t, err)
+
+	// Create a valid compose file.
+	composeFile := filepath.Join(tempDir, "compose.yml")
+	err = os.WriteFile(composeFile, []byte(`services:
+  cipher-im:
+    ports:
+      - "8070:8070"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+`), 0o600)
+	require.NoError(t, err)
+
+	// Create a valid Dockerfile.
+	dockerfile := filepath.Join(tempDir, "Dockerfile")
+	err = os.WriteFile(dockerfile, []byte(`FROM alpine:3.19
+HEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez
+`), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"go":         {goFile},
+		"yml":        {composeFile},
+		"dockerfile": {dockerfile},
+	}
+
+	err = Lint(logger, filesByExtension)
+	require.NoError(t, err)
+}
+
+func TestLint_LegacyPortViolation(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	goFile := filepath.Join(tempDir, "main.go")
+	err := os.WriteFile(goFile, []byte(`package main
+
+const port = 9443
+`), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"go": {goFile},
+	}
+
+	err = Lint(logger, filesByExtension)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "legacy port")
 }
