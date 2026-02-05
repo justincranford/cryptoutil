@@ -163,17 +163,21 @@
 
 #### Task 0.9: unsealkeysservice Location Verification
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Verify unsealkeysservice location and usage
 - **Acceptance Criteria**:
-  - [ ] Confirm: `internal/shared/barrier/unsealkeysservice/` exists
-  - [ ] Check: Template uses it correctly
-  - [ ] Check: Services use it correctly
-  - [ ] Document: Import pattern, why shared
+  - [x] Confirm: `internal/shared/barrier/unsealkeysservice/` exists
+  - [x] Check: Template uses it correctly
+  - [x] Check: Services use it correctly
+  - [x] Document: Import pattern, why shared
+- **Evidence**: test-output/v10-import-fix/task-0.9-analysis.md (local only)
+- **Findings**: Shared location verified, 4 services use it (template, cipher-im, jose-ja, sm-kms)
+  - Import pattern: `cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"`
+  - Why shared: Deterministic key derivation for interoperability
 
 #### Task 0.10: unsealkeysservice Duplication Audit
 
