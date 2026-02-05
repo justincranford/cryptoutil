@@ -90,7 +90,7 @@ type Error struct {
 	Code string `json:"code"`
 
 	// Details Additional error details
-	Details *map[string]interface{} `json:"details,omitempty"`
+	Details *map[string]any `json:"details,omitempty"`
 
 	// Message Human-readable error message
 	Message string `json:"message"`
@@ -127,7 +127,7 @@ type MaterialKey struct {
 }
 
 // MaterialKeyGenerate Request body for generating a new material key (empty object)
-type MaterialKeyGenerate = map[string]interface{}
+type MaterialKeyGenerate = map[string]any
 
 // MaterialKeyImport defines model for MaterialKeyImport.
 type MaterialKeyImport struct {

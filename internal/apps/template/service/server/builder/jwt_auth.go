@@ -40,7 +40,7 @@ type JWTClaims struct {
 	Scopes    []string
 	TenantID  string
 	RealmID   string
-	Extra     map[string]interface{}
+	Extra     map[string]any
 }
 
 // JWTAuthConfig configures JWT authentication.

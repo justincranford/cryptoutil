@@ -30,7 +30,7 @@ type BeginWebAuthnRegistrationRequest struct {
 }
 
 type BeginWebAuthnRegistrationResponse struct {
-	Options   interface{} `json:"options"`
+	Options   any `json:"options"`
 	SessionID string      `json:"session_id"`
 }
 
@@ -53,7 +53,7 @@ type BeginWebAuthnAuthenticationRequest struct {
 }
 
 type BeginWebAuthnAuthenticationResponse struct {
-	Options   interface{} `json:"options"`
+	Options   any `json:"options"`
 	SessionID string      `json:"session_id"`
 }
 

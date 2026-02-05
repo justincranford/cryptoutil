@@ -67,7 +67,7 @@ func TestTOTPEnrollment_HappyPath(t *testing.T) {
 	require.Contains(t, qrCodeURI, issuer, "QR code should contain issuer")
 	require.Contains(t, qrCodeURI, accountName, "QR code should contain account name")
 
-	backupCodes, ok := enrollResp["backup_codes"].([]interface{})
+	backupCodes, ok := enrollResp["backup_codes"].([]any)
 	require.True(t, ok, "backup_codes should be array")
 	require.Len(t, backupCodes, 10, "Should generate 10 backup codes")
 
@@ -308,7 +308,7 @@ func TestBackupCodes_GenerateAndVerify(t *testing.T) {
 
 	enrollResp := enrollTOTP(t, app, userID, "CryptoUtil", "testuser@example.com")
 
-	backupCodes, ok := enrollResp["backup_codes"].([]interface{})
+	backupCodes, ok := enrollResp["backup_codes"].([]any)
 	require.True(t, ok, "backup_codes should be array")
 	require.Len(t, backupCodes, 10, "Should generate 10 backup codes")
 
@@ -349,7 +349,7 @@ func TestBackupCodes_GenerateAndVerify(t *testing.T) {
 	// Generate new backup codes.
 	regenerateResp := generateBackupCodes(t, app, userID, 201)
 
-	newCodes, ok := regenerateResp["backup_codes"].([]interface{})
+	newCodes, ok := regenerateResp["backup_codes"].([]any)
 	require.True(t, ok, "backup_codes should be array")
 	require.Len(t, newCodes, 10, "Should generate 10 new backup codes")
 

@@ -24,7 +24,7 @@ func CreateInsecureHTTPClient() *http.Client {
 	return &http.Client{
 		Timeout: cryptoutilMagic.DockerHTTPClientTimeoutSeconds * time.Second,
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // G402: E2E testing with self-signed certs
 		},
 	}
 }

@@ -549,7 +549,7 @@ func (tms *TestableMockServices) waitForServicesReady(ctx context.Context) error
 	client := &http.Client{
 		Timeout: healthCheckTimeoutService,
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // G402: E2E testing with self-signed certs
 		},
 	}
 

@@ -23,7 +23,7 @@ type realmServiceProvider interface {
 // realmLookup is a minimal interface for looking up the first active realm for a tenant.
 // This avoids tight coupling to the full RealmService interface.
 type realmLookup interface {
-	GetFirstActiveRealm(ctx context.Context, tenantID googleUuid.UUID) (interface{}, error)
+	GetFirstActiveRealm(ctx context.Context, tenantID googleUuid.UUID) (any, error)
 }
 
 // realmIDGetter is implemented by realm objects that expose their realm ID.

@@ -195,7 +195,7 @@ func TestOpenAPIConfig_MiddlewareExecution(t *testing.T) {
 			Version: "1.0.0",
 		},
 		Paths: &openapi3.Paths{
-			Extensions: map[string]interface{}{},
+			Extensions: map[string]any{},
 		},
 	}
 
@@ -204,7 +204,7 @@ func TestOpenAPIConfig_MiddlewareExecution(t *testing.T) {
 		Get: &openapi3.Operation{
 			OperationID: "getTest",
 			Responses: &openapi3.Responses{
-				Extensions: map[string]interface{}{},
+				Extensions: map[string]any{},
 			},
 		},
 	})

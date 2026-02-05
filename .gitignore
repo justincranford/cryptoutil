@@ -80,9 +80,8 @@ dast-reports/
 e2e-reports/
 load-reports/
 test-results/
-test-results/
-workflow-reports/
 test-output/
+workflow-reports/
 
 # Virtual environments
 venv/
