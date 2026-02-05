@@ -7,11 +7,11 @@
 
 **ALL issues are blockers - NO exceptions:**
 
-- ✅ **Fix issues immediately** - E2E timeouts, test failures, build errors = STOP and FIX
-- ✅ **Treat as BLOCKING** - ALL issues block next task
-- ✅ **Do NOT defer** - No "later", no "non-critical", no "nice-to-have"
-- ❌ **NEVER skip** - Cannot mark complete with known issues
-- ❌ **NEVER de-prioritize** - Quality ALWAYS highest priority
+- âœ… **Fix issues immediately** - E2E timeouts, test failures, build errors = STOP and FIX
+- âœ… **Treat as BLOCKING** - ALL issues block next task
+- âœ… **Do NOT defer** - No "later", no "non-critical", no "nice-to-have"
+- âŒ **NEVER skip** - Cannot mark complete with known issues
+- âŒ **NEVER de-prioritize** - Quality ALWAYS highest priority
 
 **Example of WRONG approach**: Treating cipher-im E2E timeouts as "non-blocking" was WRONG.
 
@@ -21,7 +21,7 @@
 
 #### Task 0.1: E2E Health Timeout Reproduction
 
-- **Status**: ✅ Complete
+- **Status**: âœ… Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.3h
@@ -39,7 +39,7 @@
 
 #### Task 0.2: Multi-Service E2E Health Check Survey
 
-- **Status**: ✅ Complete
+- **Status**: âœ… Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.2h
@@ -61,7 +61,7 @@
 
 #### Task 0.3: Docker Compose Health Configuration Audit
 
-- **Status**: ✅ Complete
+- **Status**: âœ… Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
@@ -83,8 +83,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: None
+- **Actual**: 0.25h`r`n- **Dependencies**: None
 - **Description**: Compare health endpoint paths across services
 - **Acceptance Criteria**:
   - [ ] Check: What template base registers (both paths expected)
@@ -94,7 +93,7 @@
 
 #### Task 0.5: V8 Incomplete Task Identification
 
-- **Status**: ✅ Complete
+- **Status**: âœ… Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.3h
@@ -117,8 +116,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: None
+- **Actual**: 0.25h`r`n- **Dependencies**: None
 - **Description**: List and classify all 5 incomplete V9 tasks
 - **Acceptance Criteria**:
   - [ ] Read: docs/fixes-needed-plan-tasks-v9/tasks.md
@@ -128,7 +126,7 @@
 
 #### Task 0.7: Import Path Breakage Verification
 
-- **Status**: ✅ Complete
+- **Status**: âœ… Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
@@ -145,7 +143,7 @@
 
 #### Task 0.8: KMS Client Import Audit
 
-- **Status**: ✅ Complete
+- **Status**: âœ… Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
@@ -163,7 +161,7 @@
 
 #### Task 0.9: unsealkeysservice Location Verification
 
-- **Status**: ✅ Complete
+- **Status**: âœ… Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
 - **Actual**: 0.25h
@@ -179,13 +177,11 @@
   - Import pattern: `cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"`
   - Why shared: Deterministic key derivation for interoperability
 
-#### Task 0.10: unsealkeysservice Duplication Audit
+#### Task 0.10: unsealkeysservice Duplication Audit`r`n  - **Status**:  Complete
 
-- **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 0.9
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.9
 - **Description**: Check for duplicate unseal logic in template
 - **Acceptance Criteria**:
   - [ ] Compare: Template barrier code vs shared unsealkeysservice
@@ -200,8 +196,7 @@
 - **Status**: \u274c Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 1h (increased from 0.5h for deeper analysis)
-- **Actual**:
-- **Dependencies**: Task 0.4
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.4
 - **Description**: Audit ALL services for health endpoint registration + Docker health check consistency + cmd/ structure patterns
 - **Acceptance Criteria**:
   - [ ] **Dockerfile Location Audit**: cipher-im has Dockerfile in cmd/ AND deployments/ (dual location drift risk), jose-ja/sm-kms only in deployments/ (correct centralized pattern)
@@ -226,8 +221,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 0.3, Task 1.1
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.3, Task 1.1
 - **Description**: Define standard health check configuration
 - **Acceptance Criteria**:
   - [ ] Analyze: cipher-im (fails) vs jose-ja (passes) configurations
@@ -240,8 +234,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 0.1, Task 0.4
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.1, Task 0.4
 - **Description**: Analyze E2E test health check patterns
 - **Acceptance Criteria**:
   - [ ] Review: cipher-im E2E test WaitForHealth logic
@@ -254,8 +247,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Tasks 1.1, 1.2, 1.3
+- **Actual**: 0.25h`r`n- **Dependencies**: Tasks 1.1, 1.2, 1.3
 - **Description**: Determine root cause of E2E health timeouts
 - **Acceptance Criteria**:
   - [ ] Analyze: All evidence from Phase 0 and Tasks 1.1-1.3
@@ -268,8 +260,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 1.4
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 1.4
 - **Description**: Apply fixes to cipher-im based on root cause
 - **Acceptance Criteria**:
   - [ ] Fix: docker-compose.yml health checks (if needed)
@@ -282,8 +273,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 1.5
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 1.5
 - **Description**: Apply standard health check pattern to all services
 - **Acceptance Criteria**:
   - [ ] Update: jose-ja, sm-kms, pki-ca, identity-* docker-compose files
@@ -296,8 +286,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 1.6
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 1.6
 - **Description**: Run all E2E tests to verify fixes
 - **Acceptance Criteria**:
   - [ ] Test: cipher-im E2E (should pass within 60s)
@@ -311,8 +300,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 1.7
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 1.7
 - **Description**: Document lessons learned about E2E health timeouts
 - **Acceptance Criteria**:
   - [ ] Document: Root cause analysis
@@ -327,8 +315,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**:
-- **Dependencies**: Task 0.7
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.7
 - **Description**: Refactor assertions.go to use new KMS client path
 - **Acceptance Criteria**:
   - [ ] Change: `cryptoutil/internal/kms/client`  `cryptoutil/internal/apps/sm/kms/client`
@@ -340,8 +327,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 0.8
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.8
 - **Description**: Find and list all files importing old KMS client
 - **Acceptance Criteria**:
   - [ ] Run: `grep -r "internal/kms/client" . --include="*.go" --exclude-dir=vendor`
@@ -354,8 +340,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 2.2
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 2.2
 - **Description**: Update all files to use new KMS client path
 - **Acceptance Criteria**:
   - [ ] Update: All identified files
@@ -368,8 +353,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 2.3
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 2.3
 - **Description**: Confirm no legacy `internal/kms` imports remain
 - **Acceptance Criteria**:
   - [ ] Run: `grep -r "internal/kms" . --include="*.go" --exclude-dir=vendor`
@@ -382,8 +366,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 2.4
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 2.4
 - **Description**: Run E2E tests to verify import fixes work
 - **Acceptance Criteria**:
   - [ ] Run: All E2E tests
@@ -398,8 +381,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**:
-- **Dependencies**: Task 0.5
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.5
 - **Description**: Review the 1 incomplete V8 task in detail
 - **Acceptance Criteria**:
   - [ ] Read: Task description and acceptance criteria
@@ -412,8 +394,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 3.1
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 3.1
 - **Description**: Complete the remaining V8 task
 - **Acceptance Criteria**:
   - [ ] Implement: Required work (TBD from Task 3.1)
@@ -426,8 +407,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**:
-- **Dependencies**: Task 3.2
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 3.2
 - **Description**: Mark V8 complete in documentation
 - **Acceptance Criteria**:
   - [ ] Update: docs/fixes-needed-plan-tasks-v8/tasks.md (mark task complete)
@@ -442,8 +422,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 0.6
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.6
 - **Description**: Determine which V9 tasks are V10 immediate
 - **Acceptance Criteria**:
   - [ ] Review: All 5 incomplete V9 tasks
@@ -456,8 +435,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 4.1
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 4.1
 - **Description**: Complete first V9 priority task (TBD from Task 4.1)
 - **Acceptance Criteria**:
   - [ ] Implement: Required work
@@ -470,8 +448,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 4.2
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 4.2
 - **Description**: Complete second V9 priority task (if classified immediate)
 - **Acceptance Criteria**:
   - [ ] Implement: Required work
@@ -484,8 +461,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 4.3
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 4.3
 - **Description**: Complete third V9 priority task (if classified immediate)
 - **Acceptance Criteria**:
   - [ ] Implement: Required work
@@ -498,8 +474,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Tasks 4.2, 4.3, 4.4
+- **Actual**: 0.25h`r`n- **Dependencies**: Tasks 4.2, 4.3, 4.4
 - **Description**: Update V9 documentation with new completion status
 - **Acceptance Criteria**:
   - [ ] Update: docs/fixes-needed-plan-tasks-v9/tasks.md (mark completed tasks)
@@ -514,8 +489,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: None
+- **Actual**: 0.25h`r`n- **Dependencies**: None
 - **Description**: Compare sm-kms cmd with cipher-im/jose-ja
 - **Acceptance Criteria**:
   - [ ] List: Files in cmd/cipher-im/ (baseline)
@@ -529,8 +503,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 5.1
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 5.1
 - **Description**: Classify which files are mandatory for sm-kms
 - **Acceptance Criteria**:
   - [ ] Classify: main.go (mandatory)
@@ -544,8 +517,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 5.2
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 5.2
 - **Description**: Create Dockerfile for sm-kms (if determined necessary)
 - **Acceptance Criteria**:
   - [ ] Create: cmd/sm-kms/Dockerfile
@@ -558,8 +530,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 5.3
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 5.3
 - **Description**: Create docker-compose.yml for sm-kms (if determined necessary)
 - **Acceptance Criteria**:
   - [ ] Create: cmd/sm-kms/docker-compose.yml
@@ -572,8 +543,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 5.4
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 5.4
 - **Description**: Add README and other docs to cmd/sm-kms/ (if determined necessary)
 - **Acceptance Criteria**:
   - [ ] Create: cmd/sm-kms/README.md
@@ -586,8 +556,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Tasks 5.3, 5.4, 5.5
+- **Actual**: 0.25h`r`n- **Dependencies**: Tasks 5.3, 5.4, 5.5
 - **Description**: Verify sm-kms cmd structure works
 - **Acceptance Criteria**:
   - [ ] Build: `go build ./cmd/sm-kms/`
@@ -603,8 +572,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 0.9
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.9
 - **Description**: Document how all services use unsealkeysservice
 - **Acceptance Criteria**:
   - [ ] Check: Template usage pattern
@@ -618,8 +586,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 6.1
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 6.1
 - **Description**: Analyze template barrier for unseal logic duplication
 - **Acceptance Criteria**:
   - [ ] Review: internal/apps/template/service/server/barrier/ code
@@ -632,8 +599,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 6.2
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 6.2
 - **Description**: Refactor to eliminate duplicate code (if found)
 - **Acceptance Criteria**:
   - [ ] Refactor: Remove duplications
@@ -648,8 +614,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: All previous tasks
+- **Actual**: 0.25h`r`n- **Dependencies**: All previous tasks
 - **Description**: Verify all unit tests pass
 - **Acceptance Criteria**:
   - [ ] Run: `go test ./... -short`
@@ -661,8 +626,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 7.1
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 7.1
 - **Description**: Verify all integration tests pass
 - **Acceptance Criteria**:
   - [ ] Run: Integration tests for all services
@@ -674,8 +638,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**:
-- **Dependencies**: Task 7.2
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 7.2
 - **Description**: Verify all E2E tests pass with NO timeouts
 - **Acceptance Criteria**:
   - [ ] Run: cipher-im E2E
@@ -690,8 +653,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: None (parallel with tests)
+- **Actual**: 0.25h`r`n- **Dependencies**: None (parallel with tests)
 - **Description**: Verify all linters pass
 - **Acceptance Criteria**:
   - [ ] Run: `golangci-lint run`
@@ -706,8 +668,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**:
-- **Dependencies**: None (parallel with tests)
+- **Actual**: 0.25h`r`n- **Dependencies**: None (parallel with tests)
 - **Description**: Verify all packages build successfully
 - **Acceptance Criteria**:
   - [ ] Run: `go build ./...`
@@ -719,8 +680,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**:
-- **Dependencies**: Task 3.3
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 3.3
 - **Description**: Finalize V8 plan.md and tasks.md updates
 - **Acceptance Criteria**:
   - [ ] Verify: docs/fixes-needed-plan-tasks-v8/tasks.md shows 59/59 (100%)
@@ -732,8 +692,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**:
-- **Dependencies**: Task 4.5
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 4.5
 - **Description**: Finalize V9 plan.md and tasks.md updates
 - **Acceptance Criteria**:
   - [ ] Verify: Completed tasks marked
@@ -746,8 +705,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
-- **Dependencies**: Task 1.8
+- **Actual**: 0.25h`r`n- **Dependencies**: Task 1.8
 - **Description**: Document E2E health timeout lessons learned
 - **Acceptance Criteria**:
   - [ ] Add: Section to V10 plan.md
@@ -760,8 +718,7 @@
 - **Status**:  Not Started
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**:
-- **Dependencies**: All tasks
+- **Actual**: 0.25h`r`n- **Dependencies**: All tasks
 - **Description**: Update V10 plan.md to status Complete
 - **Acceptance Criteria**:
   - [ ] Update: plan.md status from Planning to Complete
