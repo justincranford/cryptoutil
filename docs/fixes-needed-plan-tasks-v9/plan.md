@@ -18,6 +18,7 @@ V9 carries forward deferred Phase 19 enhancements and addresses new improvements
 ## Executive Decisions
 
 ### Decision 1: lint-ports Enhancement Scope
+
 **Options**:
 - A: Only container port validation
 - B: Container port + host port range validation
@@ -29,6 +30,7 @@ V9 carries forward deferred Phase 19 enhancements and addresses new improvements
 **Rationale**: Covers critical validations (ports and health paths) without documentation validation overhead. Aligns with V8 port standardization and Phase 3 health path fixes.
 
 ### Decision 2: lint_go Pre-existing Issues
+
 **Options**:
 - A: Fix lint_go issues in V9 (errcheck, goconst, gosec)
 - B: Defer lint_go issues to separate cleanup plan
@@ -86,7 +88,7 @@ V9 carries forward deferred Phase 19 enhancements and addresses new improvements
 **Background**: E2E tests for identity services fail with Docker infrastructure issues. This is NOT related to port/health work but needs investigation.
 
 **Root Causes Identified**:
-1. **Wrong health check paths**: Docker Compose and Dockerfiles used `/health` on wrong ports (18000, 18100, etc.) instead of `/admin/api/v1/livez` on port 9090
+1. **Wrong health check paths**: Docker Compose and Dockerfiles used `/health` on wrong ports instead of `/admin/api/v1/livez` on port 9090
 2. **Port conflict**: Both identity-authz and identity-idp were configured for port 8100
 3. **Config override bug**: All 5 identity services unconditionally overwrite config-specified port with default port value, ignoring config file settings
 

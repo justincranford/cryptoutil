@@ -216,7 +216,7 @@ services:
       - --authz-url=https://identity-authz:8100
       - --idp-url=https://identity-idp:8100
     ports:
-      - "8120-8129:8120"  # Port range for scaling
+      - "8130:8120"  # Standardized port for identity-spa
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     environment:
       - LOG_LEVEL=INFO

@@ -24,6 +24,11 @@ func lintHealthPaths(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension ma
 
 	// Check Dockerfiles.
 	for _, filePath := range filesByExtension["dockerfile"] {
+		// Skip third-party services (Grafana, OTEL collector).
+		if isOtelRelatedFile(filePath) {
+			continue
+		}
+
 		fileViolations := checkHealthPathsInDockerfile(filePath)
 		violations = append(violations, fileViolations...)
 	}
@@ -33,6 +38,11 @@ func lintHealthPaths(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension ma
 
 	for _, filePath := range allYamlFiles {
 		if !isComposeFile(filePath) {
+			continue
+		}
+
+		// Skip third-party services (Grafana, OTEL collector).
+		if isOtelRelatedFile(filePath) {
 			continue
 		}
 
