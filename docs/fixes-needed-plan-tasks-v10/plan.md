@@ -466,10 +466,16 @@ V10 addresses critical gaps discovered in V8/V9 completion claims and recurring 
 
 ### Decision 1: E2E Health Timeout Root Cause
 
-- **Chosen**: TBD (based on Phase 0.1 + 1.1-1.3 analysis)
-- **Rationale**: Need evidence before deciding (config issue vs code issue vs test issue)
-- **Alternatives**: (Will document after analysis)
-- **Impact**: Determines fix approach
+- **Chosen**: MULTI-LAYER (TEST + CONFIG + INFRA)
+- **Rationale**: Evidence from Phase 0 and Tasks 1.1-1.3 shows issues at multiple layers
+- **Primary Root Cause**: identity uses non-existent `/health` endpoint (TEST layer)
+  - Fix: Change `IdentityE2EHealthEndpoint` from `/health` to `/service/api/v1/health`
+- **Secondary Root Cause**: cipher-im has slow startup (71+ EOF errors) (INFRA layer)
+  - Fix: Increase start_period, add explicit readiness checks
+- **Tertiary Root Cause**: sm-kms uses non-standard CLI health check (CONFIG layer)
+  - Fix: Update to wget+HTTP pattern consistent with other services
+- **Evidence**: test-output/v10-e2e-health/task-1.4/analysis.md
+- **Impact**: Tasks 1.5-1.6 will fix all three layers
 
 ### Decision 2: V9 Task Prioritization
 

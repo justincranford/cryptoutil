@@ -258,16 +258,22 @@
 
 #### Task 1.4: Root Cause Determination
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: 0.25h`r`n- **Dependencies**: Tasks 1.1, 1.2, 1.3
+- **Actual**: 0.25h
+- **Dependencies**: Tasks 1.1, 1.2, 1.3
 - **Description**: Determine root cause of E2E health timeouts
 - **Acceptance Criteria**:
-  - [ ] Analyze: All evidence from Phase 0 and Tasks 1.1-1.3
-  - [ ] Identify: Primary root cause (config vs code vs test)
-  - [ ] Document: Root cause analysis with evidence
-  - [ ] Update: plan.md Decision 1 with findings
+  - [x] Analyze: All evidence from Phase 0 and Tasks 1.1-1.3
+  - [x] Identify: Primary root cause (config vs code vs test)
+  - [x] Document: Root cause analysis with evidence
+  - [x] Update: plan.md Decision 1 with findings
+- **Findings**:
+  - **Primary**: identity uses `/health` endpoint that doesn't exist (TEST layer)
+  - **Secondary**: cipher-im has slow startup, 71+ EOF errors (INFRA layer)
+  - **Tertiary**: sm-kms uses CLI health check instead of wget+HTTP (CONFIG layer)
+- **Evidence**: test-output/v10-e2e-health/task-1.4/analysis.md
 
 #### Task 1.5: Fix cipher-im Health Checks
 
