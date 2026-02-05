@@ -128,17 +128,20 @@
 
 #### Task 0.7: Import Path Breakage Verification
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: None
 - **Description**: Confirm internal/test/e2e/assertions.go import error
 - **Acceptance Criteria**:
-  - [ ] Try: `go build ./internal/test/e2e/`
-  - [ ] Confirm: Compile error on missing `internal/kms/client`
-  - [ ] Verify: New location `internal/apps/sm/kms/client` exists
-  - [ ] Document: Exact error message
+  - [x] Try: `go build -tags=e2e ./internal/test/e2e/` (note: requires e2e tag)
+  - [x] Confirm: Compile error on missing `internal/kms/client`
+  - [x] Verify: New location `internal/apps/sm/kms/client` exists
+  - [x] Document: Exact error message
+- **Evidence**: test-output/v10-import-fix/task-0.7-analysis.md (local only)
+- **Error**: `internal\test\e2e\assertions.go:15:2: package cryptoutil/internal/kms/client is not in std`
+- **Root Cause**: Build tag `//go:build e2e` excluded files without tag, old import path no longer exists after V8 migration
 
 #### Task 0.8: KMS Client Import Audit
 
