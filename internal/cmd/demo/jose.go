@@ -18,5 +18,6 @@ import (
 func runJOSEDemo(ctx context.Context, config *Config) int {
 	fmt.Fprintln(os.Stderr, "JOSE demo temporarily disabled during jose-ja migration (Phase 7)")
 	fmt.Fprintln(os.Stderr, "Will be restored after internal/jose deletion (Task 7.4)")
+
 	return 0 // Don't fail the demo command
 }

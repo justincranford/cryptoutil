@@ -9,7 +9,7 @@ package config
 // - identity-authz: 8100-8109 (shares with idp)
 // - identity-idp: 8100-8109 (shares with authz)
 // - identity-rs: 8110-8119
-// All admin ports: 9090
+// All admin ports: 9090.
 const (
 	defaultAuthZPort      = 8100 // Default AuthZ server port.
 	defaultAuthZAdminPort = 9090 // Default AuthZ admin port.

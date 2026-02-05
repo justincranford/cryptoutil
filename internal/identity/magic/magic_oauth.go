@@ -140,7 +140,7 @@ const (
 // - identity-idp: 8100-8109 (shares with authz)
 // - identity-rs: 8110-8119
 // - identity-rp: 8120-8129
-// - identity-spa: 8130-8139
+// - identity-spa: 8130-8139.
 const (
 	DefaultAuthZPort = 8100 // Default OAuth 2.1 authorization server port.
 	DefaultIDPPort   = 8100 // Default OIDC identity provider server port (shares with authz).

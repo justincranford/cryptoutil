@@ -94,7 +94,7 @@ const (
 // - identity-idp: 8100-8109 (shares with authz)
 // - identity-rs: 8110-8119
 // - identity-rp: 8120-8129
-// - identity-spa: 8130-8139
+// - identity-spa: 8130-8139.
 const (
 	// OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
 	OTLPServiceIdentityAuthz = "identity-authz"
@@ -131,7 +131,7 @@ const (
 // E2E Test Configuration for identity services.
 const (
 	// IdentityE2EComposeFile is the path to the identity docker compose file (relative from e2e test directory).
-	// Path: internal/apps/identity/e2e → ../../../../deployments/identity/compose.e2e.yml
+	// Path: internal/apps/identity/e2e → ../../../../deployments/identity/compose.e2e.yml.
 	IdentityE2EComposeFile = "../../../../deployments/identity/compose.e2e.yml"
 
 	// IdentityE2EAuthzContainer is the identity-authz container name.
