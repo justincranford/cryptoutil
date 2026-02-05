@@ -173,6 +173,6 @@ const (
 	// IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
 	IdentityE2ESPAPublicPort = 8130
 	// IdentityE2EHealthEndpoint is the public health check endpoint.
-	// Uses /health for liveness checks (matches cipher-im pattern).
-	IdentityE2EHealthEndpoint = "/health"
+	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).
+	IdentityE2EHealthEndpoint = "/service/api/v1/health"
 )

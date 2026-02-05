@@ -295,16 +295,26 @@
 
 #### Task 1.6: Standardize All Service Health Checks
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 1.5
+- **Actual**: 0.25h
+- **Dependencies**: Task 1.5
 - **Description**: Apply standard health check pattern to all services
 - **Acceptance Criteria**:
-  - [ ] Update: jose-ja, sm-kms, pki-ca, identity-* docker-compose files
-  - [ ] Standardize: Port 9090, path `/admin/api/v1/livez`
-  - [ ] Standardize: Timing values
-  - [ ] Document: All files changed
+  - [x] Update: jose-ja, sm-kms, pki-ca, identity-* docker-compose files
+  - [x] Standardize: Port 9090, path `/admin/api/v1/livez`
+  - [x] Standardize: Timing values
+  - [x] Document: All files changed
+- **Findings**:
+  - CRITICAL FIX: `IdentityE2EHealthEndpoint` changed `/health` → `/service/api/v1/health`
+  - jose-ja start_period: 30s → 60s
+  - identity (5 services) start_period: 30s → 60s
+  - sm-kms, pki-ca already had correct 60s start_period
+- **Files Modified**:
+  - `internal/shared/magic/magic_identity.go`
+  - `deployments/jose/compose.yml`
+  - `deployments/identity/compose.e2e.yml`
 
 #### Task 1.7: E2E Test Validation
 
