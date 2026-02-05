@@ -145,17 +145,21 @@
 
 #### Task 0.8: KMS Client Import Audit
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.25h
-- **Actual**:
+- **Actual**: 0.25h
 - **Dependencies**: Task 0.7
 - **Description**: Find all files importing old KMS client path
 - **Acceptance Criteria**:
-  - [ ] Run: `grep -r "internal/kms/client" . --include="*.go"`
-  - [ ] List: All affected files
-  - [ ] Estimate: Refactoring LOE
-  - [ ] Document: Scope of changes needed
+  - [x] Run: `grep -r "internal/kms/client" . --include="*.go"` (PowerShell equivalent)
+  - [x] List: All affected files
+  - [x] Estimate: Refactoring LOE
+  - [x] Document: Scope of changes needed
+- **Evidence**: test-output/v10-import-fix/task-0.8-analysis.md (local only)
+- **Findings**: 3 files affected (internal/test/e2e/), all use `//go:build e2e` tag
+  - assertions.go (line 15), fixtures.go (line 21), test_suite.go (line 15)
+  - LOE: 0.25h for simple search-replace + verification
 
 #### Task 0.9: unsealkeysservice Location Verification
 
