@@ -328,14 +328,6 @@ EOF
 
 ## Phases
 
-### Phase 0: Research & Discovery (Xh) [Status: ☐ TODO]
-**Objective**: [What will be discovered/decided]
-- Research unknowns identified in Technical Context
-- Document decisions in research.md
-- Resolve all "NEEDS CLARIFICATION" items
-- Document comparative analysis if multiple patterns observed
-- **Success**: [How we'll know Phase 0 is complete]
-
 ### Phase 1: Foundation (Xh) [Status: ☐ TODO]
 **Objective**: [What foundational work will be done]
 - Database schema design (if applicable)
@@ -451,25 +443,6 @@ EOF
 
 ## Task Checklist
 
-### Phase 0: Research & Discovery
-
-**Phase Objective**: [What this phase will discover/decide]
-
-#### Task 0.1: Research [Topic]
-- **Status**: ❌ Not Started | ⚠️ In Progress | ✅ Complete
-- **Owner**: LLM Agent
-- **Estimated**: 2h
-- **Actual**: [Fill when complete]
-- **Dependencies**: None
-- **Description**: [What needs research]
-- **Acceptance Criteria**:
-  - [ ] Decision documented
-  - [ ] Alternatives evaluated
-  - [ ] Rationale provided
-- **Evidence** (if findings are complex):
-  - `test-output/phase0/task-0.1-analysis.md` - Decision matrix
-  - `test-output/phase0/task-0.1-research.log` - Raw findings
-
 ### Phase 1: Foundation
 
 **Phase Objective**: [What this phase will build]
@@ -479,7 +452,7 @@ EOF
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 0.1
+- **Dependencies**: None
 - **Description**: Design and implement database schema
 - **Acceptance Criteria**:
   - [ ] Migrations created (up/down)
@@ -575,7 +548,7 @@ EOF
 ## Evidence Archive
 
 [Optional: List test output directories created during this iteration]
-- `test-output/phase0/` - Phase 0 research findings
+- `test-output/phase0-research/` - Phase 0 research findings (from plan creation internal work)
 - `test-output/phase1/` - Phase 1 implementation logs
 - `test-output/coverage/` - Coverage analysis
 - `test-output/mutation/` - Mutation testing results
@@ -595,6 +568,38 @@ EOF
 **Rationale**: Prevents creating/updating docs based on broken codebase state
 
 ## Workflow Steps
+
+### Phase 0: Mandatory Research & Discovery (Internal Only - NOT Output)
+
+**CRITICAL: Phase 0 is INTERNAL WORK by the agent during plan creation. Phase 0 does NOT appear in output plan.md/tasks.md**
+
+Before creating plan.md/tasks.md, the agent MUST execute Phase 0 research:
+
+1. **Research Unknowns**:
+   - Analyze any requirements/constraints from user input
+   - Survey existing codebase patterns
+   - Identify technical decisions needed (architecture, database, framework choices)
+   - Document findings in temporary evidence directory: `test-output/phase0-research/`
+
+2. **Define Strategic Decisions**:
+   - What high-level approach will be taken?
+   - Which frameworks/patterns will be used?
+   - What are the critical success factors?
+   - Store in: `test-output/phase0-research/decisions.md`
+
+3. **Identify Risks & Mitigation**:
+   - What could go wrong?
+   - How will risks be mitigated?
+   - Store in: `test-output/phase0-research/risks.md`
+
+4. **Establish Quality Gates**:
+   - What test coverage is required?
+   - What linting standards apply?
+   - What performance targets exist?
+
+**Phase 0 OUTPUT**: Insights and decisions used to populate plan.md/tasks.md (NOT documented as a phase)
+
+---
 
 ### Step 1: Analyze User Input
 
