@@ -17,7 +17,7 @@ tools:
 
 **Quality Over Speed (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
-- ✅ **Completeness**: NO tasks skipped, NO features de-prioritized, NO shortcuts
+- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step
 - ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed

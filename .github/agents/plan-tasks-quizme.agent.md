@@ -472,7 +472,7 @@ EOF
 - ✅ **Treat as BLOCKING**: ALL issues block progress to next task
 - ✅ **Do NOT defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
 - ✅ **NEVER skip**: Cannot mark task complete with known issues
-- ✅ **NEVER de-prioritize**: Quality is ALWAYS highest priority
+- ✅ **NEVER deprioritize**: Quality is ALWAYS highest priority
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 

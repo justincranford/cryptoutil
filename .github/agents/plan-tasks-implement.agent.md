@@ -270,7 +270,7 @@ This includes:
 - Post-mortem analysis at end of EVERY phase
 
 Sequential dependencies MUST be respected.
-No task or phase may be skipped, reordered, deferred, de-prioritized.
+No task or phase may be skipped, reordered, deferred, deprioritized.
 
 --------------------------------------------
 
