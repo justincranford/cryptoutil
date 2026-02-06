@@ -364,20 +364,40 @@ EOF
 - Performance testing
 - **Success**: [What E2E success looks like]
 
-## Technical Decisions
+## Executive Decisions (for complex work with multiple strategic options)
+
+**Format**: Document decisions made during planning with alternatives considered
 
 ### Decision 1: [Topic]
-- **Chosen**: [What was chosen]
-- **Rationale**: [Why chosen]
-- **Alternatives**: [What else considered]
-- **Impact**: [Implications for implementation]
-- **Evidence**: [Supporting data, prior experience]
+
+**Options**:
+- A: [Option one]
+- B: [Option two]
+- C: [Option three] ✓ **SELECTED**
+- D: [Option four]
+- E: [blank - add more if needed]
+
+**Decision**: Option C selected - [Brief summary]
+
+**Rationale**: [Why chosen: cost/benefit, alignment with prior decisions, risk mitigation]
+
+**Alternatives Rejected**:
+- Option A: [Why not chosen]
+- Option B: [Why not chosen]
+
+**Impact**: [Technical implications, scheduling effects, risk implications]
+
+**Evidence**: [Supporting data, prior experience, experimental verification if available]
 
 ### Decision 2: [Topic]
-- **Chosen**: [Option selected]
-- **Rationale**: [Reasoning]
-- **Alternatives**: [Rejected options and why]
-- **Impact**: [Technical and scheduling effects]
+
+**Options**: [Similar format as Decision 1]
+
+**Decision**: [Choice made]
+
+**Rationale**: [Reasoning with specific examples]
+
+[Continue for additional decisions as needed]
 
 ## Risk Assessment
 
