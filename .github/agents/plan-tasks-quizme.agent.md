@@ -39,6 +39,8 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 - ✅ **Correctness**: ALL documentation must be accurate and complete
 - ✅ **Completeness**: NO steps skipped, NO shortcuts
 - ✅ **Thoroughness**: Verify all files created/updated correctly
+- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation
 - ❌ **Premature Completion**: NEVER mark complete without verification
 
@@ -286,6 +288,13 @@ EOF
 
 ## Quality Mandate - MANDATORY
 
+**Quality Attributes (NO EXCEPTIONS)**:
+- ✅ **Correctness**: ALL documentation must be accurate and complete
+- ✅ **Completeness**: NO steps skipped, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step
+- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+
 **ALL issues are blockers - NO exceptions:**
 
 - ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, or quality issues found, STOP and address
@@ -400,13 +409,34 @@ EOF
 
 ## Quality Gates - MANDATORY
 
-- ✅ All tests pass (`go test ./...`)
-- ✅ Coverage ≥95% production, ≥98% infrastructure/utility
-- ✅ Mutation testing ≥95% minimum (≥98% for infrastructure)
-- ✅ Linting clean (`golangci-lint run`)
+**Per-Action Quality Gates**:
+- ✅ All tests pass (`go test ./...`) - 100% passing, zero skips
+- ✅ Build clean (`go build ./...`) - zero errors
+- ✅ Linting clean (`golangci-lint run`) - zero warnings
 - ✅ No new TODOs without tracking in tasks.md
-- ✅ Docker Compose E2E passes
-- ✅ Build clean (`go build ./...`)
+
+**Coverage Targets (from copilot instructions)**:
+- ✅ Production code: ≥95% line coverage
+- ✅ Infrastructure/utility code: ≥98% line coverage
+- ✅ main() functions: 0% acceptable if internalMain() ≥95%
+- ✅ Generated code: Excluded from coverage (OpenAPI stubs, GORM models, protobuf)
+
+**Mutation Testing Targets (from copilot instructions)**:
+- ✅ Production code: ≥85% (Phase 4), ≥98% (Phase 5+)
+- ✅ Infrastructure/utility code: ≥98% (NO EXCEPTIONS)
+
+**Per-Phase Quality Gates**:
+- ✅ Unit + integration tests complete before moving to next phase
+- ✅ E2E tests pass (BOTH /service/** and /browser/** paths)
+- ✅ Docker Compose health checks pass
+- ✅ Race detector clean (`go test -race -count=2 ./...`)
+
+**Overall Project Quality Gates**:
+- ✅ All phases complete with evidence
+- ✅ All test categories passing (unit, integration, E2E)
+- ✅ Coverage and mutation targets met
+- ✅ CI/CD workflows green
+- ✅ Documentation updated (README, architecture, instructions)
 
 ## Success Criteria
 
@@ -428,6 +458,13 @@ EOF
 **Created**: YYYY-MM-DD
 
 ## Quality Mandate - MANDATORY
+
+**Quality Attributes (NO EXCEPTIONS)**:
+- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
+- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- ✅ **Thoroughness**: Evidence-based validation at every step
+- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 
 **ALL issues are blockers - NO exceptions:**
 
