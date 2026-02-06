@@ -491,7 +491,14 @@ func TestInitializeServicesOnCore_Success(t *testing.T) {
 	// Use unique temporary file database to avoid shared state pollution.
 	tmpDir := t.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
-	dbName := fmt.Sprintf("file://%s?mode=rwc&cache=shared", dbPath)
+
+	// Convert to proper file URI (file:///abs/path on all platforms).
+	slashPath := filepath.ToSlash(dbPath)
+	if !strings.HasPrefix(slashPath, "/") {
+		slashPath = "/" + slashPath
+	}
+
+	dbName := fmt.Sprintf("file://%s?mode=rwc&cache=shared", slashPath)
 
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:                    true,
@@ -2333,7 +2340,14 @@ func TestStartCoreWithServices_InitializeServicesFails(t *testing.T) {
 	// Use temporary file database for test isolation.
 	tmpDir := t.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
-	dbName := fmt.Sprintf("file://%s?mode=rwc&cache=shared", dbPath)
+
+	// Convert to proper file URI (file:///abs/path on all platforms).
+	slashPath := filepath.ToSlash(dbPath)
+	if !strings.HasPrefix(slashPath, "/") {
+		slashPath = "/" + slashPath
+	}
+
+	dbName := fmt.Sprintf("file://%s?mode=rwc&cache=shared", slashPath)
 
 	settings := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:                    true,

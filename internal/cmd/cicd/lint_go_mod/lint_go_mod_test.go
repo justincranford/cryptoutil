@@ -5,6 +5,7 @@ package lint_go_mod
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -862,6 +863,10 @@ func TestCheckOutdatedDeps_NoOutdatedDeps(t *testing.T) {
 // TestSaveDepCache_WriteError tests saveDepCache when directory creation fails.
 func TestSaveDepCache_WriteError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
 
 	// Create a read-only directory structure.
 	tmpDir := t.TempDir()

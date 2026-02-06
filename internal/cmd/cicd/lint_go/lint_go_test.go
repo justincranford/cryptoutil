@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +20,7 @@ import (
 
 // Test constants for repeated string literals.
 const (
+	osWindows          = "windows"
 	testCleanGoFile    = "clean.go"
 	testCleanContent   = "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
 	testMainContent    = "package main\n\nfunc main() {}\n"
@@ -1357,6 +1359,9 @@ func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
 
 func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	if runtime.GOOS == osWindows {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
 
 	// Save current directory.
 	origDir, err := os.Getwd()
@@ -1416,6 +1421,9 @@ func TestCheckNonFIPS_WithViolations(t *testing.T) {
 
 func TestFindGoFiles_ErrorPath(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	if runtime.GOOS == osWindows {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
 
 	// Save current directory.
 	origDir, err := os.Getwd()
@@ -1449,6 +1457,9 @@ func TestFindGoFiles_ErrorPath(t *testing.T) {
 
 func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	if runtime.GOOS == osWindows {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
 
 	// Save current directory.
 	origDir, err := os.Getwd()

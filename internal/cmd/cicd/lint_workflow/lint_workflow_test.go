@@ -5,6 +5,7 @@ package lint_workflow
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -308,6 +309,10 @@ func TestLoadWorkflowActionExceptions_ValidJSON(t *testing.T) {
 }
 
 func TestLoadWorkflowActionExceptions_UnreadableFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
+
 	if os.Getuid() == 0 {
 		t.Skip("Skipping test when running as root (root can read all files)")
 	}

@@ -29,7 +29,7 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilSharedTeleme
 		ExposedPorts: []string{"5432/tcp"},
 		Env:          map[string]string{"POSTGRES_DB": dbName, "POSTGRES_USER": dbUsername, "POSTGRES_PASSWORD": dbPassword},
 		// WaitingFor:   wait.ForListeningPort("5432/tcp").WithStartupTimeout(postgresContainerStartupTimeout),
-		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(cryptoutilSharedMagic.DBPostgresContainerStartupTimeout),
+		WaitingFor: wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(cryptoutilSharedMagic.DBPostgresContainerStartupTimeout),
 	}
 
 	postgresContainer, terminateContainer, err := StartContainer(ctx, telemetryService, postgresContainerRequest)

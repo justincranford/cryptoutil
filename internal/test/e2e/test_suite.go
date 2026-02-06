@@ -11,8 +11,8 @@ import (
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
 	cryptoutilClient "cryptoutil/internal/apps/sm/kms/client"
+	cryptoutilMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"

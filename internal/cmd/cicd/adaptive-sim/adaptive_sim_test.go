@@ -8,6 +8,7 @@ import (
 	json "encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -1204,6 +1205,10 @@ func TestInternalMain_MkdirAllError(t *testing.T) {
 
 func TestInternalMain_SaveResultsError(t *testing.T) {
 	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
 
 	tempDir := t.TempDir()
 	logsPath := filepath.Join(tempDir, "logs.json")
