@@ -51,3 +51,4 @@
 | [05-02.git](.github/instructions/05-02.git.instructions.md) | Instructions for local Git commands and commit conventions |
 | [05-03.dast](.github/instructions/05-03.dast.instructions.md) | Dynamic Application Security Testing |
 | [06-01.evidence-based](.github/instructions/06-01.evidence-based.instructions.md) | Instructions for evidence-based task completion and validation |
+| [06-02.agent-format](.github/instructions/06-02.agent-format.instructions.md) | Agent file format and structure standards |
