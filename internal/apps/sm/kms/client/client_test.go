@@ -1,5 +1,4 @@
-//go:build integration
-// +build integration
+//go:build integration || e2e
 
 // Copyright (c) 2025 Justin Cranford
 //

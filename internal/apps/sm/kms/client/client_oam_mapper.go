@@ -1,10 +1,9 @@
-//go:build integration
-// +build integration
+//go:build integration || e2e
 
 // Copyright (c) 2025 Justin Cranford
 
 // Package client provides KMS client functionality for cryptoutil.
-// NOTE: This file uses legacy OpenAPI client types and is only used for integration tests.
+// NOTE: This file uses legacy OpenAPI client types and is only used for integration and E2E tests.
 package client
 
 import (
