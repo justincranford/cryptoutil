@@ -283,10 +283,23 @@ EOF
 **Status**: [Planning|In Progress|Complete]
 **Created**: YYYY-MM-DD
 **Last Updated**: YYYY-MM-DD
+**Purpose**: [Brief context: what problem this addresses, what prior work was incomplete]
 
 ## Overview
 
-[Brief description of work]
+[Brief description of work, goals, and scope]
+
+## Executive Summary (Optional - for complex work)
+
+**Critical Context** (if needed):
+- [Key findings from prior phases]
+- [Critical blockers or unknowns]
+- [Decisions that affect implementation]
+
+**Assumptions & Risks**:
+- [What we're assuming is true]
+- [What could go wrong]
+- [Mitigation strategies]
 
 ## Technical Context
 
@@ -294,33 +307,44 @@ EOF
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
+- **Related Files**: [Critical files affected]
 
 ## Phases
 
 ### Phase 0: Research & Discovery (Xh)
+**Objective**: [What will be discovered/decided]
 - Research unknowns identified in Technical Context
 - Document decisions in research.md
 - Resolve all "NEEDS CLARIFICATION" items
+- **Success**: [How we'll know Phase 0 is complete]
 
 ### Phase 1: Foundation (Xh)
-- Database schema design
+**Objective**: [What foundational work will be done]
+- Database schema design (if applicable)
 - Domain model implementation
 - Repository layer with tests
+- **Success**: [What we expect to be true after]
 
 ### Phase 2: Business Logic (Xh)
+**Objective**: [What business logic will be implemented]
 - Service layer implementation
 - Validation rules
 - Unit tests (≥95% coverage)
+- **Success**: [Verification criteria]
 
 ### Phase 3: API Layer (Xh)
+**Objective**: [What API will be implemented]
 - HTTP handlers
 - OpenAPI spec
 - Integration tests
+- **Success**: [How API completeness is verified]
 
 ### Phase 4: E2E Testing (Xh)
+**Objective**: [What end-to-end scenarios will be tested]
 - Docker Compose setup
 - E2E test scenarios
 - Performance testing
+- **Success**: [What E2E success looks like]
 
 ## Technical Decisions
 
@@ -328,30 +352,40 @@ EOF
 - **Chosen**: [What was chosen]
 - **Rationale**: [Why chosen]
 - **Alternatives**: [What else considered]
-- **Impact**: [Implications]
+- **Impact**: [Implications for implementation]
+- **Evidence**: [Supporting data, prior experience]
+
+### Decision 2: [Topic]
+- **Chosen**: [Option selected]
+- **Rationale**: [Reasoning]
+- **Alternatives**: [Rejected options and why]
+- **Impact**: [Technical and scheduling effects]
 
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| [Risk description] | Low/Med/High | Low/Med/High | [Mitigation strategy] |
+| [Risk description] | Low/Med/High | Low/Med/High | [Mitigation strategy, contingency plan] |
+| [Example: E2E timeouts] | Medium | High | [Pre-test Docker config, health check audit] |
 
-## Quality Gates
+## Quality Gates - MANDATORY
 
-- ✅ All tests pass (`runTests`)
-- ✅ Coverage ≥95% production, ≥98% infrastructure
-- ✅ Mutation testing ≥95% minimum (98% ideal early), ≥98% (infrastructure)
+- ✅ All tests pass (`go test ./...`)
+- ✅ Coverage ≥95% production, ≥98% infrastructure/utility
+- ✅ Mutation testing ≥95% minimum (≥98% for infrastructure)
 - ✅ Linting clean (`golangci-lint run`)
-- ✅ No new TODOs without tracking
+- ✅ No new TODOs without tracking in tasks.md
 - ✅ Docker Compose E2E passes
+- ✅ Build clean (`go build ./...`)
 
 ## Success Criteria
 
 - [ ] All phases complete
-- [ ] Quality gates pass
+- [ ] All quality gates passing
 - [ ] E2E demo functional
-- [ ] Documentation updated
-- [ ] CI/CD green
+- [ ] Documentation updated (README, architecture, instructions)
+- [ ] CI/CD workflows green
+- [ ] Evidence archived (test output, logs, analysis)
 ```
 
 ### tasks.md Structure
@@ -361,10 +395,27 @@ EOF
 
 **Status**: X of Y tasks complete (Z%)
 **Last Updated**: YYYY-MM-DD
+**Created**: YYYY-MM-DD
+
+## Quality Mandate - MANDATORY
+
+**ALL issues are blockers - NO exceptions:**
+
+- ✅ **Fix issues immediately**: When E2E timeouts, test failures, or build errors occur, STOP and fix
+- ✅ **Treat as BLOCKING**: ALL issues block progress to next task
+- ✅ **Do NOT defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER skip**: Cannot mark task complete with known issues
+- ✅ **NEVER de-prioritize**: Quality is ALWAYS highest priority
+
+**Rationale**: Maintaining maximum quality prevents cascading failures and rework.
+
+---
 
 ## Task Checklist
 
-### Phase 0: Research
+### Phase 0: Research & Discovery
+
+**Phase Objective**: [What this phase will discover/decide]
 
 #### Task 0.1: Research [Topic]
 - **Status**: ❌ Not Started | ⚠️ In Progress | ✅ Complete
@@ -377,14 +428,19 @@ EOF
   - [ ] Decision documented
   - [ ] Alternatives evaluated
   - [ ] Rationale provided
+- **Evidence** (if findings are complex):
+  - `test-output/phase0/task-0.1-analysis.md` - Decision matrix
+  - `test-output/phase0/task-0.1-research.log` - Raw findings
 
 ### Phase 1: Foundation
+
+**Phase Objective**: [What this phase will build]
 
 #### Task 1.1: Database Schema
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 3h
-- **Actual**:
+- **Actual**: [Fill when complete]
 - **Dependencies**: Task 0.1
 - **Description**: Design and implement database schema
 - **Acceptance Criteria**:
@@ -392,43 +448,99 @@ EOF
   - [ ] Schema documented
   - [ ] Constraints defined
   - [ ] Indexes planned
+  - [ ] Tests pass: `go test ./internal/domain/migrations/...`
 - **Files**:
   - `internal/domain/migrations/0001_init.up.sql`
   - `internal/domain/migrations/0001_init.down.sql`
+  - `internal/domain/migrations_test.go`
+- **Evidence** (if issues discovered):
+  - `test-output/phase1/task-1.1-migration-test.log` - Test results
+  - `test-output/phase1/task-1.1-findings.md` - Any blockers found
 
 #### Task 1.2: Domain Models
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**:
+- **Actual**: [Fill when complete]
 - **Dependencies**: Task 1.1
 - **Description**: Implement domain entities and value objects
 - **Acceptance Criteria**:
   - [ ] Models with GORM tags
   - [ ] Validation methods
   - [ ] Tests with ≥95% coverage
+  - [ ] Coverage verified: `go test -cover ./internal/domain/...`
 - **Files**:
   - `internal/domain/models.go`
   - `internal/domain/models_test.go`
 
-[Continue for all tasks...]
+### Phase 2: Business Logic
+
+**Phase Objective**: [What business logic will be implemented]
+
+#### Task 2.1: Service Implementation
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 1.2
+- **Description**: [Service-specific details]
+- **Acceptance Criteria**:
+  - [ ] All methods implemented
+  - [ ] Unit tests ≥95% coverage
+  - [ ] Integration tests pass
+  - [ ] No linting errors: `golangci-lint run ./internal/service/...`
+- **Files**:
+  - `internal/service/impl.go`
+  - `internal/service/impl_test.go`
+
+---
 
 ## Cross-Cutting Tasks
 
-### Documentation
-- [ ] README.md updated
-- [ ] API documentation generated
-- [ ] Architecture diagrams created
-
 ### Testing
-- [ ] Unit tests ≥95% coverage
+- [ ] Unit tests ≥95% coverage (production), ≥98% (infrastructure/utility)
 - [ ] Integration tests pass
-- [ ] E2E tests pass
-- [ ] Mutation testing ≥95% minimum (98% ideal)
+- [ ] E2E tests pass (Docker Compose)
+- [ ] Mutation testing ≥95% minimum (≥98% infrastructure)
+- [ ] No skipped tests (except documented exceptions)
+- [ ] Race detector clean: `go test -race ./...`
 
-### Quality
-- [ ] Linting passes
+### Code Quality
+- [ ] Linting passes: `golangci-lint run ./...`
+- [ ] No new TODOs without tracking
 - [ ] No security vulnerabilities
+- [ ] Formatting clean: `gofumpt -s -w ./`
+- [ ] Imports organized: `goimports -w ./`
+
+### Documentation
+- [ ] README.md updated with new features
+- [ ] API documentation generated
+- [ ] Architecture decisions documented
+- [ ] Instruction files updated (if applicable)
+- [ ] Comments added for complex logic
+
+### Deployment
+- [ ] Docker build clean
+- [ ] Docker Compose health checks pass
+- [ ] E2E tests pass in Docker
+- [ ] DB migrations work forward+backward
+- [ ] Config files validated
+
+---
+
+## Notes / Deferred Work
+
+[Optional section to track decisions deferred to future iterations, blocked tasks, or decisions made but not implemented yet]
+
+---
+
+## Evidence Archive
+
+[Optional: List test output directories created during this iteration]
+- `test-output/phase0/` - Phase 0 research findings
+- `test-output/phase1/` - Phase 1 implementation logs
+- `test-output/coverage/` - Coverage analysis
+- `test-output/mutation/` - Mutation testing results
 ```
 
 ## Pre-Flight Checks - MANDATORY
@@ -481,11 +593,11 @@ ls <directory-path>/tasks.md
 3. Create `<work-dir>/tasks.md` from template
 
 4. Optionally create `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies ONLY
-   - Contains A-D options + E (blank) + **Answer:** field
+   - Contains A-D options + E (blank) + **Answer:** field (blank)
    - Questions ask USER for decisions, NOT LLM to discover tasks
    - E option: BLANK (no text, no underscores)
    - **Answer:** field: BLANK for user to fill with A, B, C, D, or E
-   - ONLY for: unknowns, risks, inefficiencies that need clarification
+   - ONLY for: unknowns, risks, gaps, inefficiencies that need clarification
    - Ephemeral - deleted after answers merged into plan.md/tasks.md
 
 5. Initialize with placeholders
