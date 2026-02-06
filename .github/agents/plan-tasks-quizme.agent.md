@@ -285,9 +285,27 @@ EOF
 **Last Updated**: YYYY-MM-DD
 **Purpose**: [Brief context: what problem this addresses, what prior work was incomplete]
 
+## Quality Mandate - MANDATORY
+
+**ALL issues are blockers - NO exceptions:**
+
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, or quality issues found, STOP and address
+- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase
+- ✅ **Document root causes** - Root cause analysis is part of planning, not optional
+- ✅ **NEVER defer critical items** - Unknown hypotheses, unverified E2E patterns, architecture inconsistencies must be resolved
+- ✅ **NEVER deprioritize quality** - Evidence-based verification is ALWAYS highest priority
+
+**Rationale**: Planning with unknowns leads to implementation waste. Discovery and hypotheses documented in plan.md prevent surprises in tasks.md.
+
 ## Overview
 
 [Brief description of work, goals, and scope]
+
+## Background (Optional - for work building on prior phases)
+
+[Context from prior phases: What prior work was completed, what was deferred, what lessons learned, what this phase carries forward]
+
+**Example**: "V8 successfully completed port standardization and health path fixes. V9 carries forward deferred lint-ports enhancements and addresses discovered import path breakages."
 
 ## Executive Summary (Optional - for complex work)
 
@@ -311,55 +329,76 @@ EOF
 
 ## Phases
 
-### Phase 0: Research & Discovery (Xh)
+### Phase 0: Research & Discovery (Xh) [Status: ☐ TODO]
 **Objective**: [What will be discovered/decided]
 - Research unknowns identified in Technical Context
 - Document decisions in research.md
 - Resolve all "NEEDS CLARIFICATION" items
+- Document comparative analysis if multiple patterns observed
 - **Success**: [How we'll know Phase 0 is complete]
 
-### Phase 1: Foundation (Xh)
+### Phase 1: Foundation (Xh) [Status: ☐ TODO]
 **Objective**: [What foundational work will be done]
 - Database schema design (if applicable)
 - Domain model implementation
 - Repository layer with tests
 - **Success**: [What we expect to be true after]
 
-### Phase 2: Business Logic (Xh)
+### Phase 2: Business Logic (Xh) [Status: ☐ TODO]
 **Objective**: [What business logic will be implemented]
 - Service layer implementation
 - Validation rules
 - Unit tests (≥95% coverage)
 - **Success**: [Verification criteria]
 
-### Phase 3: API Layer (Xh)
+### Phase 3: API Layer (Xh) [Status: ☐ TODO]
 **Objective**: [What API will be implemented]
 - HTTP handlers
 - OpenAPI spec
 - Integration tests
 - **Success**: [How API completeness is verified]
 
-### Phase 4: E2E Testing (Xh)
+### Phase 4: E2E Testing (Xh) [Status: ☐ TODO]
 **Objective**: [What end-to-end scenarios will be tested]
 - Docker Compose setup
 - E2E test scenarios
 - Performance testing
 - **Success**: [What E2E success looks like]
 
-## Technical Decisions
+## Executive Decisions (for complex work with multiple strategic options)
+
+**Format**: Document decisions made during planning with alternatives considered
 
 ### Decision 1: [Topic]
-- **Chosen**: [What was chosen]
-- **Rationale**: [Why chosen]
-- **Alternatives**: [What else considered]
-- **Impact**: [Implications for implementation]
-- **Evidence**: [Supporting data, prior experience]
+
+**Options**:
+- A: [Option one]
+- B: [Option two]
+- C: [Option three] ← **SELECTED**
+- D: [Option four]
+- E: [blank - add more if needed]
+
+**Decision**: Option C selected - [Brief summary]
+
+**Rationale**: [Why chosen: cost/benefit, alignment with prior decisions, risk mitigation]
+
+**Alternatives Rejected**:
+- Option A: [Why not chosen]
+- Option B: [Why not chosen]
+
+**Impact**: [Technical implications, scheduling effects, risk implications]
+
+**Evidence**: [Supporting data, prior experience, experimental verification if available]
 
 ### Decision 2: [Topic]
-- **Chosen**: [Option selected]
-- **Rationale**: [Reasoning]
-- **Alternatives**: [Rejected options and why]
-- **Impact**: [Technical and scheduling effects]
+
+**Options**: [Similar format as Decision 1]
+
+**Decision**: [Choice made]
+
+**Rationale**: [Reasoning with specific examples]
+
+[Continue for additional decisions as needed]
 
 ## Risk Assessment
 
