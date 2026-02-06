@@ -106,7 +106,7 @@ cmd/
 
 ```go
 func main() {
-    os.Exit(cryptoutilAppsCipherIm.IM(os.Args[1:], os.Stdout, os.Stderr))
+    os.Exit(cryptoutilAppsCipherIm.IM(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }
 ```
 
