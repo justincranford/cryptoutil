@@ -172,7 +172,7 @@ This will:
 
 ## Continuous Execution Rule - MANDATORY
 
-**After completing ANY action (create/update/review)**:
+**After completing ANY Step 4 action (create/update/review)**:
 
 - **NEVER ask "What's next?"**
 - **NEVER ask "Should I do anything else?"**
@@ -569,11 +569,28 @@ EOF
 
 ## Workflow Steps
 
-### Phase 0: Mandatory Research & Discovery (Internal Only - NOT Output)
+### Step 1: Analyze User Input
 
-**CRITICAL: Phase 0 is INTERNAL WORK by the agent during plan creation. Phase 0 does NOT appear in output plan.md/tasks.md**
+Extract:
 
-Before creating plan.md/tasks.md, the agent MUST execute Phase 0 research:
+- **Directory path** from first argument (e.g., `docs\my-work\`)
+- **Action** (create|update|review) from second argument
+
+### Step 2: Search for Existing Documentation
+
+```bash
+# Check for existing plan in specified directory
+ls <directory-path>/plan.md
+
+# Check for existing tasks in specified directory
+ls <directory-path>/tasks.md
+```
+
+### Step 3: Research & Discovery (Internal Only - NOT Output)
+
+**CRITICAL: Step 3 is INTERNAL WORK by the agent during plan creation. This step's findings do NOT appear as documentation phases in output plan.md/tasks.md**
+
+Before creating plan.md/tasks.md, the agent MUST execute research:
 
 1. **Research Unknowns**:
    - Analyze any requirements/constraints from user input
@@ -597,28 +614,11 @@ Before creating plan.md/tasks.md, the agent MUST execute Phase 0 research:
    - What linting standards apply?
    - What performance targets exist?
 
-**Phase 0 OUTPUT**: Insights and decisions used to populate plan.md/tasks.md (NOT documented as a phase)
+**Step 3 OUTPUT**: Insights and decisions used to populate plan.md/tasks.md (NOT documented as phase output)
 
 ---
 
-### Step 1: Analyze User Input
-
-Extract:
-
-- **Directory path** from first argument (e.g., `docs\my-work\`)
-- **Action** (create|update|review) from second argument
-
-### Step 2: Search for Existing Documentation
-
-```bash
-# Check for existing plan in specified directory
-ls <directory-path>/plan.md
-
-# Check for existing tasks in specified directory
-ls <directory-path>/tasks.md
-```
-
-### Step 3: Execute Action
+### Step 4: Execute Action
 
 #### CREATE Action
 
