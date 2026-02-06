@@ -5,7 +5,6 @@ tools:
   - edit/editFiles
   - search/codebase
   - search/usages
-model: claude-sonnet-4.5
 argument-hint: "[file-path or 'all']"
 ---
 

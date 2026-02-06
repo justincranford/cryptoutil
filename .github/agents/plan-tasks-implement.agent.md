@@ -13,7 +13,6 @@ tools:
   - search/changes
   - web/fetch
   - web/githubRepo
-model: claude-sonnet-4.5
 handoffs:
   - label: Create/Update Plan
     agent: plan-tasks-quizme

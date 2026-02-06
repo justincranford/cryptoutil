@@ -9,7 +9,6 @@ tools:
   - search/codebase
   - search/usages
   - search/changes
-model: claude-sonnet-4.5
 argument-hint: "[source-of-truth-file]"
 ---
 

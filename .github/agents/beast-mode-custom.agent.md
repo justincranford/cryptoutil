@@ -12,20 +12,6 @@ tools:
   - search/changes
   - web/fetch
   - web/githubRepo
-model: claude-sonnet-4.5
----
-
-# Beast Mode Custom - Continuous Work Directive
-
-**CRITICAL: NEVER STOP UNTIL USER CLICKS "STOP" BUTTON**
-
-## Core Principle
-
-Work autonomously until problem completely solved. ONLY valid stop: user clicks STOP or ALL explicit tasks complete.
-
-**When user provides task list**: Complete ALL tasks (e.g., "17 tasks" = complete all 17, not just current phase)
-
----
 
 ## Quality Over Speed - MANDATORY
 
