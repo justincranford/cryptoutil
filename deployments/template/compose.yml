@@ -13,7 +13,7 @@
 # implementation built on the template. To run E2E tests:
 #
 #   # Start cipher-im stack (tests template infrastructure)
-#   docker compose -f ../../../cmd/cipher-im/docker-compose.yml up -d
+#   docker compose -f ../../../deployments/cipher/compose.yml up -d
 #
 #   # Run cipher-im E2E tests
 #   go test -tags=e2e ./internal/apps/cipher/im/e2e/...

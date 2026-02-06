@@ -35,7 +35,7 @@ services:
     image: jose-server:dev
     build:
       context: ../..
-      dockerfile: deployments/jose/Dockerfile.jose
+      dockerfile: deployments/jose/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"

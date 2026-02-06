@@ -110,7 +110,7 @@ services:
 
       context: ../..
 
-      dockerfile: deployments/kms/Dockerfile.kms
+      dockerfile: deployments/kms/Dockerfile
 
       args:
 

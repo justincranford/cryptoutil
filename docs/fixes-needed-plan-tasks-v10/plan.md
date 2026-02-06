@@ -400,7 +400,7 @@ V10 addresses critical gaps discovered in V8/V9 completion claims and recurring 
 
 ### Decision 2: V8 Task 17.5 Health Endpoint Status (Q2)
 
-**Question**: Is V8 Task 17.5 complete or does it need verification?  
+**Question**: Is V8 Task 17.5 complete or does it need verification?
 
 **User Answer**: E (Custom) - "YOU ARE SUPPOSED TO FIND THIS OUT, NOT ASK ME!!!"
 

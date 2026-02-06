@@ -3,6 +3,7 @@
 ## Current State Audit (13 Compose Files)
 
 ### KMS Services
+
 1. `deployments/compose/compose.yml` - E2E testing compose
    - **cryptoutil-sqlite**: ✅ Uses curl to `/admin/api/v1/livez`
    - **cryptoutil-postgres-1**: ✅ Uses curl to `/admin/api/v1/livez`
@@ -13,7 +14,8 @@
    - Needs verification
 
 ### Cipher-IM Services
-3. `cmd/cipher-im/docker-compose.yml`
+
+1. `deployments/cipher/compose.yml`
    - **cipher-im-sqlite**: ✅ Uses wget to `/admin/api/v1/livez`
    - **cipher-im-pg-1**: ✅ Uses wget to `/admin/api/v1/livez`
    - **cipher-im-pg-2**: ✅ Uses wget to `/admin/api/v1/livez`
@@ -22,16 +24,19 @@
    - **opentelemetry-collector-contrib**: ❌ NO HEALTHCHECK (minimal image)
 
 ### JOSE Services
-4. `deployments/jose/compose.yml`
+
+1. `deployments/jose/compose.yml`
    - **jose-server**: ⚠️ Uses wget to `/health` (WRONG - should be `/admin/api/v1/livez`)
    - **Dependencies**: opentelemetry-collector-contrib (NO HEALTHCHECK)
 
 ### Identity Services
-5-12. `deployments/identity/*.yml` - Needs verification
+
+1. `deployments/identity/*.yml` - Needs verification (covers 5-12 compose files)
 
 ## Issues Found
 
 ### Critical Issues
+
 1. **Inconsistent Health Check Endpoints**:
    - KMS: `/admin/api/v1/livez` ✅ CORRECT
    - Cipher-IM: `/admin/api/v1/livez` ✅ CORRECT
@@ -53,6 +58,7 @@
    - retries: consistent (5)
 
 ### Non-Critical Issues
+
 1. **Port Inconsistencies**:
    - Most use admin port 9090
    - JOSE uses 9092 and checks public port 8060 (should check admin port)
@@ -60,6 +66,7 @@
 ## Best Practices (from Research)
 
 ### Docker Documentation
+
 - Use lightweight commands (wget > curl for size)
 - Set appropriate start_period (allow service initialization)
 - Use short intervals after start_period (5-10s)
@@ -67,11 +74,13 @@
 - Use 3-5 retries
 
 ### Kubernetes Health Probe Patterns
+
 - **Liveness**: Is process alive? → `/admin/api/v1/livez`
 - **Readiness**: Is service ready? → `/admin/api/v1/readyz`
 - Docker healthcheck = Kubernetes liveness probe
 
 ### Alpine Linux Considerations
+
 - `wget` is pre-installed
 - `curl` requires installation (adds ~3MB to image)
 - Prefer `wget` for minimal images

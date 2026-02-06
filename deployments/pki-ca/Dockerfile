@@ -115,10 +115,10 @@ LABEL org.opencontainers.image.title="CA Server" \
       org.opencontainers.image.licenses="MIT"
 
 # Install ca-certificates for TLS and busybox for wget (healthchecks).
-RUN apk --no-cache add ca-certificates
-
 # Create non-root user for security.
-RUN adduser -D -H -u 65532 -s /sbin/nologin ca
+# hadolint ignore=DL3018
+RUN apk --no-cache add ca-certificates && \
+    adduser -D -H -u 65532 -s /sbin/nologin ca
 
 # Copy build artifacts.
 COPY --from=validation /app/.build-params /app/.build-params

@@ -17,7 +17,7 @@ deployments/jose/
 ├── compose.yml           # Docker Compose configuration
 ├── config/
 │   └── jose.yml          # JOSE-JA configuration
-├── Dockerfile.jose       # Docker build file
+├── Dockerfile            # Docker build file
 
 configs/jose/
 └── jose-server.yml       # Default configuration template

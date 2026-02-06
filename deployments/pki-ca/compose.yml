@@ -44,7 +44,7 @@ services:
     image: cryptoutil:dev
     build:
       context: ../..
-      dockerfile: deployments/pki-ca/Dockerfile.pki-ca
+      dockerfile: deployments/pki-ca/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"

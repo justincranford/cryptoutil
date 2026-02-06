@@ -70,7 +70,7 @@ services:
   identity-authz:
     build:
       context: ../..
-      dockerfile: deployments/kms/Dockerfile.kms
+      dockerfile: deployments/kms/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"

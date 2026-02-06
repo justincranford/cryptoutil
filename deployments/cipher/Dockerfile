@@ -13,6 +13,7 @@ FROM golang:${GO_VERSION}-alpine AS builder
 WORKDIR /build
 
 # Install build dependencies
+# hadolint ignore=DL3018
 RUN apk add --no-cache \
     git \
     ca-certificates \
@@ -37,6 +38,7 @@ FROM alpine:${ALPINE_VERSION} AS runtime
 WORKDIR /app
 
 # Install runtime dependencies
+# hadolint ignore=DL3018
 RUN apk add --no-cache \
         ca-certificates \
         wget \
