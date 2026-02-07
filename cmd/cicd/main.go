@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilCmdCicd "cryptoutil/internal/cmd/cicd"
+	cryptoutilCmdCicd "cryptoutil/internal/apps/cicd"
 )
 
 // getUsage returns the usage information for the cicd command.
