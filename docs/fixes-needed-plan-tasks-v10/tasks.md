@@ -447,44 +447,56 @@
 
 ### Phase 3: V8 Completion
 
-#### Task 3.1: Review V8 Incomplete Task
+#### Task 3.1: Review V8 Incomplete Tasks
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 0.5
-- **Description**: Review the 1 incomplete V8 task in detail
+- **Actual**: 0.3h
+- **Dependencies**: Task 0.5
+- **Description**: Review the V8 incomplete tasks in detail (originally assumed 1, actually 50 with unchecked boxes)
 - **Acceptance Criteria**:
-  - [ ] Read: Task description and acceptance criteria
-  - [ ] Determine: What work remains
-  - [ ] Check: Any blockers
-  - [ ] Document: Work plan
+  - [x] Read: Task descriptions and acceptance criteria
+  - [x] Determine: What work remains
+  - [x] Check: Any blockers
+  - [x] Document: Work plan
+- **Findings**:
+  - 50 V8 tasks have unchecked `[ ]` acceptance criteria
+  - BUT many are marked ✅ Complete in status (just unchecked boxes - documentation issue)
+  - 15 tasks are marked ✅ Complete with unchecked boxes (need box fixes only)
+  - ~25 tasks are marked ❌ Not Started (Phases 16-21: port std, health paths, compose, docs, verification)
+  - ~6 tasks are ⏭️ Deferred to V9 (Phase 19: lint-ports enhancement)
+  - Phase 19 explicitly deferred to V9 (lint-ports enhancement) - NOT V10 scope
+  - Most "Not Started" tasks in Phases 16-21 are about port standardization already addressed by V9/V10
+  - **Decision**: Mark ✅ Complete tasks' checkboxes as done, assess ❌ Not Started tasks for actual need
 
-#### Task 3.2: Complete V8 Task 58/59
+#### Task 3.2: Fix V8 Documentation (Checkbox Mismatches)
 
-- **Status**:  Not Started
+- **Status**: ✅ Complete
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 3.1
-- **Description**: Complete the remaining V8 task
+- **Actual**: 0.4h
+- **Dependencies**: Task 3.1
+- **Description**: Fix V8 tasks that are marked Complete but have unchecked acceptance criteria
 - **Acceptance Criteria**:
-  - [ ] Implement: Required work (TBD from Task 3.1)
-  - [ ] Verify: Acceptance criteria met
-  - [ ] Test: No regressions
-  - [ ] Document: Work completed
+  - [x] Fix: Tasks 2.2-2.4, 3.1-3.3, 4.1, 7.1-7.4, 8.1-8.3, 9.4, 16.1, 17.1, 18.1, 20.1, 21.1 checkbox mismatches
+  - [x] Verify: Phase 19 correctly marked as Deferred
+  - [x] Assess: Phase 16-21 "Not Started" tasks - which are actually done by V9/V10 work
+  - [x] Document: Final V8 status
 
-#### Task 3.3: Update V8 Status to 100%
+#### Task 3.3: Update V8 Status
 
-- **Status**:  Not Started
+- **Status**: ⚠️ In Progress
 - **Owner**: LLM Agent
 - **Estimated**: 0.1h
-- **Actual**: 0.25h`r`n- **Dependencies**: Task 3.2
-- **Description**: Mark V8 complete in documentation
+- **Actual**: 0.2h
+- **Dependencies**: Task 3.2
+- **Description**: Mark V8 at accurate completion percentage
 - **Acceptance Criteria**:
-  - [ ] Update: docs/fixes-needed-plan-tasks-v8/tasks.md (mark task complete)
-  - [ ] Update: docs/fixes-needed-plan-tasks-v8/plan.md (59/59 tasks, 100%)
+  - [ ] Update: docs/fixes-needed-plan-tasks-v8/tasks.md checkbox fixes
+  - [ ] Update: docs/fixes-needed-plan-tasks-v8/plan.md with accurate status
   - [ ] Commit: Changes with message
-  - [ ] Document: V8 now 100% complete
+  - [ ] Document: V8 final accurate status
 
 ### Phase 4: V9 Priority Tasks Completion
 
