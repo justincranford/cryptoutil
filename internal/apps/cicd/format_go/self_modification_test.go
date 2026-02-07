@@ -14,13 +14,13 @@ import (
 //
 // This test addresses historical self-modification regressions:
 // - b934879b (Nov 17): Comments modified by pattern replacement
-// - b0e4b6ef (Dec 16): Counting logic incorrectly used "any" instead of "any"
-// - 8c855a6e (Dec 16): Test data incorrectly used "any" instead of "any"
+// - b0e4b6ef (Dec 16): Counting logic incorrectly used "any" instead of "interface{}"
+// - 8c855a6e (Dec 16): Test data incorrectly used "any" instead of "interface{}"
 //
 // Protection relies on:
-// 1. CICDSelfExclusionPatterns["format-go"] excluding internal/apps/cicd/format_go/**
+// 1. CICDSelfExclusionPatterns["format-go"] excluding internal/cmd/cicd/format_go/**
 // 2. CRITICAL comments in processGoFile() documenting self-modification risk
-// 3. Test data using any as input to verify replacement works.
+// 3. Test data using interface{} as input to verify replacement works.
 func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	t.Parallel()
 
@@ -31,22 +31,22 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	// Verify the file contains critical self-modification protection markers.
 	require.Contains(t, string(originalContent), "SELF-MODIFICATION PROTECTION:",
 		"enforce_any.go MUST contain SELF-MODIFICATION PROTECTION comment block")
-	require.Contains(t, string(originalContent), "CRITICAL: Replace `any` with any",
+	require.Contains(t, string(originalContent), "CRITICAL: Replace interface{} with any",
 		"enforce_any.go MUST contain CRITICAL comment explaining pattern replacement")
-	require.Contains(t, string(originalContent), `strings.Count(originalContent, "any")`,
-		"enforce_any.go MUST count any occurrences in original content")
+	require.Contains(t, string(originalContent), `strings.Count(originalContent, "interface{}")`,
+		"enforce_any.go MUST count interface{} occurrences, NOT any")
 
-	// Verify test data uses any (not any) to properly test replacement.
+	// Verify test data uses interface{} (not any) to properly test replacement.
 	testContent, err := os.ReadFile("format_go_test.go")
 	require.NoError(t, err, "Failed to read format_go_test.go")
 
-	// Check test constants use any as input data.
-	require.Contains(t, string(testContent), `testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x any`,
-		"Test constants MUST use any as input data, NOT any")
+	// Check test constants use interface{} as input data.
+	require.Contains(t, string(testContent), `testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{}`,
+		"Test constants MUST use interface{} as input data, NOT any")
 
-	// Verify test expectations check for correct replacement results.
+	// Verify test expectations check for 'any' after replacement.
 	require.Contains(t, string(testContent), `"File should contain 'any' after replacement"`,
 		"Tests MUST verify 'any' appears after replacement")
-	require.Contains(t, string(testContent), `"File should not contain 'any' after replacement"`,
-		"Tests MUST verify 'any' removed after replacement")
+	require.Contains(t, string(testContent), `"File should not contain 'interface{}' after replacement"`,
+		"Tests MUST verify 'interface{}' removed after replacement")
 }

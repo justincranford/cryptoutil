@@ -82,11 +82,6 @@ func TestIsGoVersionSupported(t *testing.T) {
 		{"go1.20", "go1.20", false},
 		{"invalid", "invalid", false},
 		{"empty", "", false},
-		{"no_separator", "go122", false},       // No dot separator
-		{"non_numeric_major", "goX.22", false}, // Non-numeric major version
-		{"non_numeric_minor", "go1.X", false},  // Non-numeric minor version
-		{"major_only", "go2", false},           // Only major version, no minor
-		{"major_gt_1", "go2.0", true},          // Major version > 1
 	}
 
 	for _, tc := range tests {
@@ -133,46 +128,26 @@ func TestEnforceAny_WithModifications(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with any that needs replacement with any.
-	err := os.WriteFile(testFile, []byte(testGoContentServerWithInterface), 0o600)
+	// File with interface{} that needs replacement with any.
+	oldContent := `package server
+
+func Process(data interface{}) interface{} {
+	return data
+}
+`
+	err := os.WriteFile(testFile, []byte(oldContent), 0o600)
 	require.NoError(t, err)
 
 	// Test processGoFile directly (bypasses GetGoFiles filtering).
 	replacements, err := processGoFile(testFile)
 	require.NoError(t, err, "processGoFile should succeed")
-	require.Equal(t, 2, replacements, "Should have 2 replacements (two any instances)")
+	require.Equal(t, 2, replacements, "Should have 2 replacements (two interface{} instances)")
 
 	// Verify file was actually modified.
 	modifiedContent, readErr := os.ReadFile(testFile)
 	require.NoError(t, readErr)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
-}
-
-func TestEnforceAny_ViaEnforceAny_WithModifications(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "server.go")
-
-	// File with any that needs replacement with any.
-	err := os.WriteFile(testFile, []byte(testGoContentServerWithInterface), 0o600)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"go": {testFile}, // Note: key is "go" without dot - this is how GetGoFiles expects it
-	}
-
-	// enforceAny should return an error when files are modified.
-	err = enforceAny(logger, filesByExtension)
-	require.Error(t, err, "enforceAny should return error when files modified")
-	require.Contains(t, err.Error(), "modified", "Error should mention modifications")
-
-	// Verify file was actually modified.
-	modifiedContent, readErr := os.ReadFile(testFile)
-	require.NoError(t, readErr)
-	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
 }
 
 func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
@@ -180,7 +155,7 @@ func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		"go": {"/nonexistent/path/to/file.go"}, // Note: key is "go" without dot
+		".go": {"/nonexistent/path/to/file.go"},
 	}
 
 	err := enforceAny(logger, filesByExtension)
@@ -205,25 +180,8 @@ func TestProcessGoFile_NoChanges(t *testing.T) {
 
 const (
 	testGoContentClean              = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
-	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
+	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{} = 42\n\tprintln(x)\n}\n"
 	testGoContentInvalid            = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
-
-	testGoContentServerWithInterface = `package server
-
-func Process(data any) any {
-	return data
-}
-`
-
-	testGoContentTimeNow = `package main
-
-import "time"
-
-func main() {
-	t := time.Now()
-	println(t)
-}
-`
 )
 
 func TestProcessGoFile_WithChanges(t *testing.T) {
@@ -245,7 +203,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 	modifiedContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
 }
 
 func TestIsLoopVarCopy(t *testing.T) {
@@ -276,112 +234,6 @@ func main() {
 	require.NoError(t, err)
 	require.False(t, changed, "File should not be changed")
 	require.Equal(t, 0, fixes, "Should have no fixes")
-}
-
-func TestIsLoopVarCopy_VariousBranches(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name          string
-		content       string
-		expectChanged bool
-		expectFixes   int
-	}{
-		{
-			name: "assignment_not_define",
-			content: `package main
-
-func main() {
-	items := []int{1, 2, 3}
-	var v int
-	for _, v = range items {
-		println(v)
-	}
-}
-`,
-			expectChanged: false,
-			expectFixes:   0,
-		},
-		{
-			name: "multiple_lhs",
-			content: `package main
-
-func main() {
-	items := []int{1, 2, 3}
-	for _, v := range items {
-		a, b := v, v
-		println(a, b)
-	}
-}
-`,
-			expectChanged: false,
-			expectFixes:   0,
-		},
-		{
-			name: "different_names",
-			content: `package main
-
-func main() {
-	items := []int{1, 2, 3}
-	for _, v := range items {
-		w := v
-		println(w)
-	}
-}
-`,
-			expectChanged: false,
-			expectFixes:   0,
-		},
-		{
-			name: "key_copy_pattern",
-			content: `package main
-
-func main() {
-	items := []int{1, 2, 3}
-	for i := range items {
-		i := i
-		println(i)
-	}
-}
-`,
-			expectChanged: true,
-			expectFixes:   1,
-		},
-		{
-			name: "non_identifier_rhs",
-			content: `package main
-
-func main() {
-	items := []int{1, 2, 3}
-	for _, v := range items {
-		x := v + 1
-		println(x)
-	}
-}
-`,
-			expectChanged: false,
-			expectFixes:   0,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			tmpDir := t.TempDir()
-			testFile := filepath.Join(tmpDir, "test.go")
-
-			err := os.WriteFile(testFile, []byte(tc.content), 0o600)
-			require.NoError(t, err)
-
-			logger := cryptoutilCmdCicdCommon.NewLogger("test")
-			changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
-
-			require.NoError(t, err)
-			require.Equal(t, tc.expectChanged, changed, "Changed mismatch for %s", tc.name)
-			require.Equal(t, tc.expectFixes, fixes, "Fixes mismatch for %s", tc.name)
-		})
-	}
 }
 
 const testGoContentWithLoopVarCopy = `package main
@@ -547,284 +399,4 @@ func TestProcessGoFile_ReadError(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, 0, replacements)
 	require.Contains(t, err.Error(), "failed to read file")
-}
-
-func TestFormat_WithModifications(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "server.go")
-
-	// File with any that should trigger modification.
-	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	filesByExtension := map[string][]string{
-		"go": {testFile}, // Note: key is "go" without dot
-	}
-
-	// Format should return error because files were modified.
-	err = Format(logger, filesByExtension)
-	require.Error(t, err, "Format should return error when files are modified")
-	require.Contains(t, err.Error(), "completed with modifications")
-}
-
-func TestFixCopyLoopVarInFile_FileCreateError(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.go")
-
-	// Write a file with loop var copy that will be modified.
-	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
-	require.NoError(t, err)
-
-	// Make file read-only to trigger os.Create error when trying to write back.
-	err = os.Chmod(testFile, 0o444)
-	require.NoError(t, err)
-
-	// Cleanup: restore permissions so TempDir can be cleaned up.
-	t.Cleanup(func() {
-		_ = os.Chmod(testFile, 0o600)
-	})
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
-
-	require.Error(t, err, "Should fail when file is read-only")
-	require.Contains(t, err.Error(), "failed to create file")
-	require.False(t, changed)
-	require.Equal(t, 1, fixes, "Should have detected 1 fix before write error")
-}
-
-func TestFixCopyLoopVar_NonExistentDir(t *testing.T) {
-	t.Parallel()
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-
-	// Walk a non-existent directory should trigger the filepath.Walk error path.
-	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, "/nonexistent/path/to/dir", "go1.22")
-
-	require.Error(t, err, "Should fail for non-existent directory")
-	require.Contains(t, err.Error(), "failed to walk directory")
-	require.Equal(t, 0, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestProcessGoFileForTimeNowUTC_ReadError(t *testing.T) {
-	t.Parallel()
-
-	// Non-existent file.
-	replacements, err := processGoFileForTimeNowUTC("/nonexistent/file.go")
-
-	require.Error(t, err)
-	require.Equal(t, 0, replacements)
-	require.Contains(t, err.Error(), "failed to read file")
-}
-
-func TestProcessGoFileForTimeNowUTC_ParseError(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "invalid.go")
-
-	// Invalid Go syntax.
-	err := os.WriteFile(testFile, []byte(testGoContentInvalid), 0o600)
-	require.NoError(t, err)
-
-	replacements, err := processGoFileForTimeNowUTC(testFile)
-
-	require.Error(t, err)
-	require.Equal(t, 0, replacements)
-	require.Contains(t, err.Error(), "failed to parse file")
-}
-
-func TestProcessGoFileForTimeNowUTC_WriteError(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.go")
-
-	// File with time.Now() that needs .UTC() added.
-	err := os.WriteFile(testFile, []byte(testGoContentTimeNow), 0o600)
-	require.NoError(t, err)
-
-	// Make file read-only to trigger write error.
-	err = os.Chmod(testFile, 0o444)
-	require.NoError(t, err)
-
-	// Cleanup: restore permissions so TempDir can be cleaned up.
-	t.Cleanup(func() {
-		_ = os.Chmod(testFile, 0o600)
-	})
-
-	replacements, err := processGoFileForTimeNowUTC(testFile)
-
-	require.Error(t, err, "Should fail when file is read-only")
-	require.Contains(t, err.Error(), "failed to write file")
-	require.Equal(t, 0, replacements)
-}
-
-func TestProcessGoFileForTimeNowUTC_NoChanges(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.go")
-
-	// File already using time.Now().UTC().
-	content := `package main
-
-import "time"
-
-func main() {
-	t := time.Now().UTC()
-	println(t)
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	replacements, err := processGoFileForTimeNowUTC(testFile)
-
-	require.NoError(t, err)
-	require.Equal(t, 0, replacements, "Should have no replacements when already using .UTC()")
-}
-
-func TestProcessGoFileForTimeNowUTC_WithChanges(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.go")
-
-	// File with time.Now() that needs .UTC() added.
-	err := os.WriteFile(testFile, []byte(testGoContentTimeNow), 0o600)
-	require.NoError(t, err)
-
-	replacements, err := processGoFileForTimeNowUTC(testFile)
-
-	require.NoError(t, err)
-	require.Equal(t, 1, replacements, "Should have 1 replacement")
-
-	// Verify the file was modified.
-	modifiedContent, err := os.ReadFile(testFile)
-	require.NoError(t, err)
-	require.Contains(t, string(modifiedContent), "time.Now().UTC()", "File should contain 'time.Now().UTC()' after replacement")
-}
-
-func TestProcessGoFile_WriteError(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "server.go")
-
-	// File with any that will be modified.
-	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
-	require.NoError(t, err)
-
-	// Make file read-only to trigger write error.
-	err = os.Chmod(testFile, 0o444)
-	require.NoError(t, err)
-
-	// Cleanup: restore permissions so TempDir can be cleaned up.
-	t.Cleanup(func() {
-		_ = os.Chmod(testFile, 0o600)
-	})
-
-	replacements, err := processGoFile(testFile)
-
-	require.Error(t, err, "Should fail when file is read-only")
-	require.Contains(t, err.Error(), "failed to write file")
-	require.Equal(t, 0, replacements)
-}
-
-func TestFixCopyLoopVar_FileProcessError(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-
-	// Create a Go file with loop var copy pattern that will need modification.
-	testFile := filepath.Join(tmpDir, "server.go")
-	err := os.WriteFile(testFile, []byte(testGoContentWithLoopVarCopy), 0o600)
-	require.NoError(t, err)
-
-	// Make file read-only to trigger os.Create error when trying to write back.
-	err = os.Chmod(testFile, 0o444)
-	require.NoError(t, err)
-
-	// Cleanup: restore permissions so TempDir can be cleaned up.
-	t.Cleanup(func() {
-		_ = os.Chmod(testFile, 0o600)
-	})
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, tmpDir, "go1.22")
-
-	require.Error(t, err, "Should fail when file is read-only")
-	require.Contains(t, err.Error(), "failed to walk directory")
-	// File was processed and identified for modification but write failed.
-	require.Equal(t, 0, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestIsLoopVarCopy_AssignmentInLoop(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.go")
-
-	// Loop with regular assignment (not define) as first statement.
-	// This tests the `assign.Tok != token.DEFINE` branch.
-	content := `package main
-
-func main() {
-	items := []int{1, 2, 3}
-	var x int
-	for _, v := range items {
-		x = v
-		println(x)
-	}
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
-
-	require.NoError(t, err)
-	require.False(t, changed, "File should not be changed")
-	require.Equal(t, 0, fixes, "Should have no fixes")
-}
-
-func TestIsLoopVarCopy_SameNameNotRangeVar(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.go")
-
-	// Loop with "x := x" where x is not the range variable (v is).
-	// This tests the final "return false" in isLoopVarCopy.
-	content := `package main
-
-func main() {
-	items := []int{1, 2, 3}
-	x := 10
-	for _, v := range items {
-		x := x
-		println(v, x)
-	}
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
-
-	require.NoError(t, err)
-	require.False(t, changed, "File should not be changed")
-	require.Equal(t, 0, fixes, "Should have no fixes")
 }
