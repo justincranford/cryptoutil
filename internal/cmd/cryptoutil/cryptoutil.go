@@ -10,14 +10,14 @@ import (
 	"os"
 
 	cryptoutilCmdCipher "cryptoutil/internal/apps/cipher"
-	cryptoutilCmdCryptoutilAuthz "cryptoutil/internal/cmd/cryptoutil/authz"
-	cryptoutilCmdCryptoutilCa "cryptoutil/internal/cmd/cryptoutil/ca"
-	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/cmd/cryptoutil/identity"
-	cryptoutilCmdCryptoutilIdp "cryptoutil/internal/cmd/cryptoutil/idp"
-	cryptoutilCmdCryptoutilJose "cryptoutil/internal/cmd/cryptoutil/jose"
-	cryptoutilCmdCryptoutilRp "cryptoutil/internal/cmd/cryptoutil/rp"
-	cryptoutilCmdCryptoutilRs "cryptoutil/internal/cmd/cryptoutil/rs"
-	cryptoutilCmdCryptoutilSpa "cryptoutil/internal/cmd/cryptoutil/spa"
+	cryptoutilCmdCryptoutilAuthz "cryptoutil/internal/apps/identity/authz/unified"
+	cryptoutilCmdCryptoutilCa "cryptoutil/internal/apps/pki/ca/unified"
+	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/apps/identity/unified"
+	cryptoutilCmdCryptoutilIdp "cryptoutil/internal/apps/identity/idp/unified"
+	cryptoutilCmdCryptoutilJose "cryptoutil/internal/apps/jose/unified"
+	cryptoutilCmdCryptoutilRp "cryptoutil/internal/apps/identity/rp/unified"
+	cryptoutilCmdCryptoutilRs "cryptoutil/internal/apps/identity/rs/unified"
+	cryptoutilCmdCryptoutilSpa "cryptoutil/internal/apps/identity/spa/unified"
 	cryptoutilKmsCmd "cryptoutil/internal/apps/sm/kms/cmd"
 )
 

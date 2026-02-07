@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	cryptoutilCmdCryptoutilCa "cryptoutil/internal/cmd/cryptoutil/ca"
+	cryptoutilCmdCryptoutilCa "cryptoutil/internal/apps/pki/ca/unified"
 )
 
 func main() {

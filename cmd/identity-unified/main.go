@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/cmd/cryptoutil/identity"
+	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/apps/identity/unified"
 )
 
 func main() {
