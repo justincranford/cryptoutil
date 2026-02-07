@@ -6,81 +6,61 @@
 
 ---
 
-## Product Suite Overview
+## Suite Overview - Product and Services - Complete Reference
 
-**4 Products, 9 Services**:
+This section provides the authoritative address and port bindings for all 9 services in 5 products.
 
-| Product | Service Alias | Ports | Description |
-|---------|---------------|-------|-------------|
-| **Secrets Manager** | sm-kms | 8080-8089 | Elastic key management, encryption-at-rest |
-| **PKI** | pki-ca | 8050-8449 | X.509 certificates, EST, SCEP, OCSP, CRL |
-| **JOSE** | jose-ja | 8060 | JWK/JWS/JWE/JWT operations |
-| **Identity** | identity-authz | 8080-8089 | OAuth 2.1 authorization server |
-| **Identity** | identity-idp | 8100-8109 | OIDC Identity Provider |
-| **Identity** | identity-rs | 8200-8209 | Resource Server (reference) |
-| **Identity** | identity-rp | 8300-8309 | Relying Party (reference) |
-| **Identity** | identity-spa | 8400-8409 | Single Page Application (reference) |
-| **Cipher** | cipher-im | 8070-8071 | E2E encrypted messaging |
+| Product | Service | Product-Service Identifier | Host Public Address | Host Port Range | Container Public Address | Container Public Port Range | Container Admin Private Address | Container Admin Port Range | Description |
+|---------|----------------|-----------------|------------|----------|------------|----------------|-------------------|----------|
+| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 8050-8059 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | X.509 certificates, EST, SCEP, OCSP, CRL |
+| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 8060-8069 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | JWK/JWS/JWE/JWT operations |
+| **Cipher** | **Instant Messenger (IM)** | **cipher-im** | 127.0.0.1 | 8070-8079 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | E2E encrypted messaging, encryption-at-rest |
+| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 8080-8089 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | Elastic key management, encryption-at-rest |
+| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 8100-8109 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 authorization server |
+| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 8110-8119 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OIDC 1.0 Identity Provider |
+| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 8120-8129 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Resource Server |
+| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 8130-8139 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Relying Party |
+| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 8140-8149 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Single Page Application |
 
-**Admin Port**: ALL services use 127.0.0.1:9090 for health checks and graceful shutdown.
+### Product-Service Port Design Principles
 
----
-
-## Service Ports - Complete Reference
-
-This section provides the authoritative port assignments for all 9 product-services.
-
-### Port Assignment Table
-
-| Service | Container Port | Host Port Range | Admin Port | Protocol | Status |
-|---------|----------------|-----------------|------------|----------|--------|
-| **sm-kms** | 8080 | 8080-8082 (SQLite:8080, PG1:8081, PG2:8082) | 9090 | HTTPS | Implemented |
-| **pki-ca** | 8050 | 8050-8445 (SQLite:8050, PG1:8444, PG2:8445) | 9090* | HTTPS | Implemented |
-| **jose-ja** | 8060 | 8060 | 9092 | HTTPS | Implemented |
-| **identity-authz** | 8080 | 8080-8089 (scaling) | 9090 | HTTPS | Planned |
-| **identity-idp** | 8081 | 8100-8109 (scaling) | 9090 | HTTPS | Planned |
-| **identity-rs** | 8082 | 8200-8209 (scaling) | 9090 | HTTPS | Planned |
-| **identity-rp** | 8083 | 8300-8309 (scaling) | 9090 | HTTPS | Planned |
-| **identity-spa** | 8084 | 8400-8409 (scaling) | 9090 | HTTPS | Planned |
-| **cipher-im** | 8070 | 8880-8882 (SQLite:8880, PG1:8881, PG2:8882) | 9090 | HTTPS | Implemented |
-
-*Note: pki-ca uses non-standard health check paths (`/livez`, `/readyz`) without `/admin/api/v1/` prefix.
-
-### Port Design Principles
-
-1. **Container Port Consistency**: Each service uses a fixed container port
-2. **Host Port Scaling**: Host ports allow multiple instances (port ranges)
-3. **Admin Port Isolation**: Admin APIs bind to 127.0.0.1:9090 (localhost only)
-4. **No Host Exposure for Admin**: Admin ports NEVER exposed to Docker host
-
-### Current Implementation vs Instructions Discrepancy
-
-The `.github/instructions/02-01.architecture.instructions.md` file documents:
-- jose-ja: 8060-8069 (documented) matches actual implementation
-- identity-*: 8100-8139 (documented) matches actual implementation
-
-**Status**: Port standardization complete. All identity services now use 8100 series ports:
-- identity-authz/idp: 8100-8109
-- identity-rs: 8110-8119
-- identity-rp: 8120-8129
-- identity-spa: 8130-8139
+- HTTPS protocol for all public and admin port bindings.
+- Same HTTPS 127.0.0.1:9090 for Private HTTPS Admin APIs inside Docker Compose and Kubernetes; never localhost due to IPv4 vs IPv6 dual stack issues; never exposed outside of containers.
+- Same HTTPS 0.0.0.0:8080 for Public HTTPS APIs inside Docker Compose and Kubernetes.
+- Different HTTPS 127.0.0.1 port range mappings for Public APIs on Docker host, to avoid conflicts.
+- Same health check paths (`/browser/api/v1/health`, `/service/api/v1/health`) on Public HTTPS listeners.
+- Same health check paths (`/admin/api/v1/livez`, `/admin/api/v1/readyz`) on Private HTTPS Admin listeners.
+- Same graceful shutdown path (`/admin/api/v1/shutdown`) on Private HTTPS Admin listeners.
 
 ### PostgreSQL Ports
 
-| Service | Host Port | Container Port | Notes |
-|---------|-----------|----------------|-------|
-| kms-postgres | 5432 | 5432 | Default PostgreSQL |
-| ca-postgres | 5432 | 5432 | Default PostgreSQL |
-| identity-postgres | 5433 | 5432 | Offset to avoid conflict |
-| template-postgres | 5433 | 5432 | Offset to avoid conflict |
+| Product-Service Identifier | Host Address | Host Port | Container Address | Container Port |
+|---------|-----------|----------------|----------|----------------|
+| **pki-ca** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
+| **jose-ja** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
+| **cipher-im** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
+| **sm-kms** | 127.0.0.1 | 54323 | 0.0.0.0 | 5432 |
+| **identity-authz** | 127.0.0.1 | 54324 | 0.0.0.0 | 5432 |
+| **identity-idp** | 127.0.0.1 | 54325 | 0.0.0.0 | 5432 |
+| **identity-rs** | 127.0.0.1 | 54326 | 0.0.0.0 | 5432 |
+| **identity-rp** | 127.0.0.1 | 54327 | 0.0.0.0 | 5432 |
+| **identity-spa** | 127.0.0.1 | 54328 | 0.0.0.0 | 5432 |
+
+### PostgreSQL Port Design Principles for Product-Service Databases
+
+- Same 0.0.0.0:5432 inside Docker Compose and Kubernetes.
+- Same 127.0.0.1 host address on Docker host.
+- Different host port mappings (54320-54329) for each product-service to avoid conflicts on Docker host.
 
 ### Telemetry Ports (Shared)
 
 | Service | Host Port | Container Port | Protocol |
 |---------|-----------|----------------|----------|
-| opentelemetry-collector-contrib | (internal) | 4317 | OTLP gRPC |
-| opentelemetry-collector-contrib | (internal) | 4318 | OTLP HTTP |
+| opentelemetry-collector-contrib | 4317 | 4317 | OTLP gRPC |
+| opentelemetry-collector-contrib | 4318 | 4318 | OTLP HTTP |
 | grafana-otel-lgtm | 3000 | 3000 | HTTP (UI) |
+| grafana-otel-lgtm | 4317 | 4317 | OTLP gRPC |
+| grafana-otel-lgtm | 4318 | 4318 | OTLP HTTP |
 
 ---
 
@@ -90,19 +70,27 @@ The `.github/instructions/02-01.architecture.instructions.md` file documents:
 
 ```
 cmd/
-├── cryptoutil/main.go         # Suite-level CLI (all products)
-├── cipher/main.go             # Cipher product CLI (all cipher services)
-├── cipher-im/main.go          # Cipher-IM service CLI
-├── jose/main.go               # JOSE product CLI
-├── jose-server/main.go        # JOSE-JA service CLI
-├── pki/main.go                # PKI product CLI
-├── ca-server/main.go          # PKI-CA service CLI
-├── identity/main.go           # Identity product CLI
-├── identity-unified/main.go   # Identity unified service CLI
-└── sm-kms/main.go             # SM-KMS service CLI (legacy)
+├── cryptoutil/main.go         # Suite-level CLI (all products): Delegates to `internal/apps/`
+├── cipher/main.go             # Product-level Cipher CLI: Delegates to `internal/apps/cipher/`
+├── jose/main.go               # Product-level JOSE CLI: Delegates to `internal/apps/jose/`
+├── pki/main.go                # Product-level PKI CLI: Delegates to `internal/apps/pki/`
+├── identity/main.go           # Product-level Identity CLI: Delegates to `internal/apps/identity/`
+├── sm/main.go                 # Product-level SM CLI: Delegates to `internal/apps/sm/`
+├── cipher-im/main.go          # Service-level Cipher-IM CLI: Delegates to `internal/apps/cipher/im/`
+├── jose-ja/main.go        # Service-level JOSE-JA CLI: Delegates to `internal/apps/jose/ja/`
+├── pki-ca/main.go             # Service-level PKI-CA CLI: Delegates to `internal/apps/pki/ca/`
+├── identity-authz/main.go     # Service-level Identity-Authz CLI: Delegates to `internal/apps/identity/authz/`
+├── identity-idp/main.go       # Service-level Identity-IDP CLI: Delegates to `internal/apps/identity/idp/`
+├── identity-rp/main.go        # Service-level Identity-RP CLI: Delegates to `internal/apps/identity/rp/`
+├── identity-rs/main.go        # Service-level Identity-RS CLI: Delegates to `internal/apps/identity/rs/`
+├── identity-spa/main.go       # Service-level Identity-SPA CLI: Delegates to `internal/apps/identity/spa/`
+└── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Delegates to `internal/apps/sm/kms/`
 ```
 
-**Pattern**: Thin `main()` delegates to `internal/apps/<product>/<service>/`.
+**Pattern**: Thin `main()` delegates to:
+- `internal/apps/cryptoutil/` for suite-level CLI
+- `internal/apps/<product>/` for product-level CLI
+- `internal/apps/<product>/<service>/` for service-level CLI
 
 ```go
 func main() {
