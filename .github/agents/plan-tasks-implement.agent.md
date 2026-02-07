@@ -42,6 +42,7 @@ You are in autonomous execution mode.
 - ✅ **Thoroughness**: Evidence-based validation at every step
 - ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ **Premature Completion**: NEVER mark tasks complete without objective evidence
 

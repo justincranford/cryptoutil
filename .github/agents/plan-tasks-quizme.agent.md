@@ -41,6 +41,7 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 - ✅ **Thoroughness**: Verify all files created/updated correctly
 - ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation
 - ❌ **Premature Completion**: NEVER mark complete without verification
 

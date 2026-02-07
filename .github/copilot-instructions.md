@@ -9,8 +9,8 @@
 - **ALWAYS use built-in tools over terminal commands**
 - **Custom agent tool names** - Use official [VS Code Copilot Chat Tools Reference](https://code.visualstudio.com/docs/copilot/chat/chat-tools) and [Chat Tools API Reference](https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools) for correct tool names when creating/editing `.agent.md` files
 - **ALWAYS Do regular commits and pushes** to enable workflow monitoring and validation
-- **ALWAYS bias towards accuracy, completeness, and correctness** - NEVER bias towards fast completion at the expense of quality
-- **ALWAYS take the time required to do things correctly** - Time and token budgets are not constraints for Speckit work
+- **ALWAYS bias towards quality, correctness, completeness, thoroughness, reliability, efficiency, and accuracy ** - NEVER bias towards fast completion at the expense of quality
+- **ALWAYS take the time required to do things correctly** - Time and token budgets are not constraints
 - **ALWAYS prioritize doing things right over doing things quickly** - Quality over speed is mandatory
 - **Prefer full execution over summaries**
 - **Do not ask follow-up questions unless explicitly requested**
