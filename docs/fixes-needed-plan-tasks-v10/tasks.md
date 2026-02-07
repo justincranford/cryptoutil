@@ -1179,7 +1179,7 @@
   - [x] identity-unified: Already thin (491 bytes) - delegates to internal/cmd/ (Phase 11 will relocate)
   - [x] Build: All commands compile cleanly
   - [x] Evidence: Comprehensive commit messages with sizes, compliance report
-- **Commits**: 
+- **Commits**:
   - ca486881 - identity-demo refactoring (98.8% size reduction)
   - 823cc2f4 - identity-compose refactoring (96.4% size reduction)
 
