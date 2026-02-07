@@ -6,7 +6,7 @@ package main
 import (
 "os"
 
-demo "cryptoutil/internal/cmd/identity/demo"
+	demo "cryptoutil/internal/apps/identity/demo"
 )
 
 func main() {

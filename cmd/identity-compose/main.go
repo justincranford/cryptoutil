@@ -6,7 +6,7 @@ package main
 import (
 "os"
 
-compose "cryptoutil/internal/cmd/identity/compose"
+	compose "cryptoutil/internal/apps/identity/compose"
 )
 
 func main() {
