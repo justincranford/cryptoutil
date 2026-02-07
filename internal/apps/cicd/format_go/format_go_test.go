@@ -140,13 +140,13 @@ func TestEnforceAny_WithModifications(t *testing.T) {
 	// Test processGoFile directly (bypasses GetGoFiles filtering).
 	replacements, err := processGoFile(testFile)
 	require.NoError(t, err, "processGoFile should succeed")
-	require.Equal(t, 2, replacements, "Should have 2 replacements (two interface{} instances)")
+	require.Equal(t, 2, replacements, "Should have 2 replacements (two any instances)")
 
 	// Verify file was actually modified.
 	modifiedContent, readErr := os.ReadFile(testFile)
 	require.NoError(t, readErr)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
+	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
 }
 
 func TestEnforceAny_ViaEnforceAny_WithModifications(t *testing.T) {
@@ -155,7 +155,7 @@ func TestEnforceAny_ViaEnforceAny_WithModifications(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with interface{} that needs replacement with any.
+	// File with any that needs replacement with any.
 	err := os.WriteFile(testFile, []byte(testGoContentServerWithInterface), 0o600)
 	require.NoError(t, err)
 
@@ -205,12 +205,12 @@ func TestProcessGoFile_NoChanges(t *testing.T) {
 
 const (
 	testGoContentClean              = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
-	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{} = 42\n\tprintln(x)\n}\n"
+	testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x any = 42\n\tprintln(x)\n}\n"
 	testGoContentInvalid            = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"
 
 	testGoContentServerWithInterface = `package server
 
-func Process(data interface{}) interface{} {
+func Process(data any) any {
 	return data
 }
 `
@@ -245,7 +245,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 	modifiedContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Contains(t, string(modifiedContent), "any", "File should contain 'any' after replacement")
-	require.NotContains(t, string(modifiedContent), "interface{}", "File should not contain 'interface{}' after replacement")
+	require.NotContains(t, string(modifiedContent), "any", "File should not contain 'any' after replacement")
 }
 
 func TestIsLoopVarCopy(t *testing.T) {
@@ -555,7 +555,7 @@ func TestFormat_WithModifications(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with interface{} that should trigger modification.
+	// File with any that should trigger modification.
 	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
 	require.NoError(t, err)
 
@@ -719,7 +719,7 @@ func TestProcessGoFile_WriteError(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "server.go")
 
-	// File with interface{} that will be modified.
+	// File with any that will be modified.
 	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
 	require.NoError(t, err)
 
