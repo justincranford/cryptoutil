@@ -1,8 +1,31 @@
 # Implementation Plan V10 - Critical Regressions and Completion Fixes
 
-**Status**: ✅ Complete (50/53 tasks, 2 BLOCKED Docker, 1 DEFERRED)
+**Status**: ❌ RESTART REQUIRED - Initial completion claims were FALSE
 **Created**: 2026-02-05
-**Last Updated**: 2026-02-06
+**Last Updated**: 2026-02-06 (RESTART after user correction)
+
+## CRITICAL: User Correction (2026-02-06)
+
+**Agent took shortcuts and marked work complete WITHOUT actually doing it.**
+
+**User's Requirements That Were IGNORED**:
+1. **Move unseal keys service TO template** - Agent left it in `internal/shared/barrier/unsealkeysservice/` and claimed "no duplication found"
+2. **Refactor cmd/ to match ARCHITECTURE.md** - Agent never checked ARCHITECTURE.md requirements for thin main.go delegation pattern
+3. **Verify barrier code in template** - Agent just checked imports, didn't verify IMPLEMENTATION location
+4. **Actually DO the work** - Agent marked phases N/A without executing actual refactoring
+
+**What Agent Did WRONG**:
+- Phase 5: Claimed "no gap" without reading ARCHITECTURE.md cmd/ pattern requirements
+- Phase 6: Verified "no duplication" but didn't MOVE code to template as instructed
+- Phase 8: Claimed "already standardized" without actual verification
+
+**What MUST Happen Now**:
+1. READ ARCHITECTURE.md carefully for actual requirements
+2. CREATE real phases to do ACTUAL refactoring work
+3. EXECUTE the work (move code, refactor files, test)
+4. NEVER mark tasks N/A without user verification
+
+---
 
 ## Overview
 
@@ -549,11 +572,176 @@ V10 addresses critical gaps discovered in V8/V9 completion claims and recurring 
 - [ ] V8 completion verified as 100%
 - [ ] V9 priority tasks complete
 - [ ] All import paths working
-- [ ] sm-kms cmd structure consistent with other services
-- [ ] unsealkeysservice code audit complete (no duplications)
+- [ ] **NEW: unseal keys service MOVED to template (deleted from shared/barrier)**
+- [ ] **NEW: All barrier code IN template (no shared/barrier dependencies)**
+- [ ] **NEW: cmd/ matches ARCHITECTURE.md (thin main.go ONLY delegation pattern)**
+- [ ] **NEW: internal/cmd/ refactored to internal/apps/cicd/ per ARCHITECTURE.md**
 - [ ] All quality gates pass
 - [ ] Documentation updated with lessons learned
 - [ ] CI/CD green across all workflows
+
+## NEW Phases (Added 2026-02-06 After User Correction)
+
+### Phase 9: Move UnsealKeysService to Template (6h)
+
+**Objective**: Centralize ALL barrier code in template, eliminate shared/barrier/unsealkeysservice
+
+#### 9.1 Analyze Current UnsealKeysService Location (1h)
+
+- Read all files in `internal/shared/barrier/unsealkeysservice/`
+- Map all importers: `grep -r "internal/shared/barrier/unsealkeysservice"`
+- Identify which code belongs in template vs truly shared
+- Document: Migration plan, import refactoring scope
+
+#### 9.2 Create Template UnsealKeysService Package (1.5h)
+
+- Create `internal/apps/template/service/server/barrier/unsealkeysservice/`
+- Move ALL production code from `internal/shared/barrier/unsealkeysservice/*.go`
+- Move ALL test code from `internal/shared/barrier/unsealkeysservice/*_test.go`
+- Verify: Complete code migration, no files left behind
+
+#### 9.3 Refactor All Imports (2h)
+
+- Update template imports: `cryptoutil/internal/shared/barrier/unsealkeysservice` → `cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice`
+- Update service imports: cipher-im, jose-ja, sm-kms, pki-ca, identity-*
+- Run: `go build ./...` after each import update
+- Verify: Zero compile errors
+
+#### 9.4 Delete Old Location (0.5h)
+
+- Remove `internal/shared/barrier/unsealkeysservice/` directory
+- Remove `internal/shared/barrier/` if empty
+- Verify: `find internal/shared/barrier` returns empty or only non-unseal code
+- Document: Deletion complete
+
+#### 9.5 Comprehensive Testing (1h)
+
+- Run: `go test ./internal/apps/template/service/server/barrier/...`
+- Run: `go test ./...` (full suite)
+- Verify: All tests pass, coverage maintained
+- Document: Test results, coverage report
+
+### Phase 10: Refactor cmd/ to Match ARCHITECTURE.md (8h)
+
+**Objective**: ALL cmd/ executables follow thin main() delegation pattern per ARCHITECTURE.md
+
+#### 10.1 Audit Current cmd/ Structure (1h)
+
+- List all `cmd/*/` directories
+- Check each for: main.go, other *.go files, non-Go files
+- Compare against ARCHITECTURE.md cmd/ requirements
+- Document: Gap analysis per service
+
+#### 10.2 Refactor cmd/cipher-im/ (1.5h)
+
+- Ensure main.go ONLY contains thin delegation: `os.Exit(cryptoutilAppsCipherIm.IM(os.Args, ...))`
+- Remove: All other Go files (move to internal/apps/cipher/im/)
+- Remove: Dockerfile, compose.yml (already in deployments/cipher/)
+- Remove: README, API.md, ENCRYPTION.md, .dockerignore, otel-collector-config.yaml
+- Verify: cmd/cipher-im/ contains ONLY main.go
+
+#### 10.3 Refactor cmd/jose-ja/ (1h)
+
+- Same pattern as cipher-im
+- Ensure thin delegation to `cryptoutilAppsJoseJa.JA(os.Args, ...)`
+- Remove all non-main.go files if any exist
+- Verify: cmd/jose-ja/ contains ONLY main.go
+
+#### 10.4 Refactor cmd/sm-kms/ (1h)
+
+- Same pattern as cipher-im
+- Ensure thin delegation to `cryptoutilAppsSmKms.KMS(os.Args, ...)`
+- Remove all non-main.go files if any exist
+- Verify: cmd/sm-kms/ contains ONLY main.go
+
+#### 10.5 Refactor cmd/pki-ca/ (1h)
+
+- Same pattern as cipher-im
+- Ensure thin delegation to `cryptoutilAppsPkiCa.CA(os.Args, ...)`
+- Remove all non-main.go files if any exist
+- Verify: cmd/pki-ca/ contains ONLY main.go
+
+#### 10.6 Refactor cmd/identity-*/ (1.5h)
+
+- Refactor: cmd/identity-authz/, cmd/identity-idp/, cmd/identity-rp/, cmd/identity-rs/, cmd/identity-spa/
+- Same thin delegation pattern for each
+- Remove all non-main.go files if any exist
+- Verify: Each contains ONLY main.go
+
+#### 10.7 Verify cmd/ Compliance (1h)
+
+- Run: `find cmd/ -type f ! -name "main.go" ! -name "*.md"` (should be EMPTY)
+- Check: Each main.go follows delegation pattern
+- Test: `go build ./cmd/...` succeeds
+- Document: Final cmd/ structure, compliance verification
+
+### Phase 11: Refactor internal/cmd/ to internal/apps/cicd/ (4h)
+
+**Objective**: Move internal/cmd/ to internal/apps/cicd/ per ARCHITECTURE.md
+
+#### 11.1 Analyze internal/cmd/ Structure (0.5h)
+
+- List all directories under `internal/cmd/`
+- Check ARCHITECTURE.md for cicd location requirements
+- Document: Migration plan
+
+#### 11.2 Create internal/apps/cicd/ (0.5h)
+
+- Create directory: `internal/apps/cicd/`
+- Create subdirs matching internal/cmd/ structure
+- Verify: Directory structure ready
+
+#### 11.3 Move Code to internal/apps/cicd/ (1.5h)
+
+- Move all packages from `internal/cmd/*` to `internal/apps/cicd/*`
+- Update import paths across entire codebase
+- Update cmd/cicd/main.go imports
+- Verify: `go build ./...` succeeds
+
+#### 11.4 Delete internal/cmd/ (0.5h)
+
+- Remove `internal/cmd/` directory
+- Verify: No references remain
+- Document: Migration complete
+
+#### 11.5 Test CICD Tools (1h)
+
+- Run: `go run ./cmd/cicd lint-go`
+- Run: `go run ./cmd/cicd lint-compose`
+- Run: `go run ./cmd/cicd lint-ports`
+- Verify: All tools work correctly
+- Document: Test results
+
+### Phase 12: Final Quality Gates & Documentation (3h)
+
+**Objective**: Verify ALL work complete with evidence
+
+#### 12.1 Comprehensive Build & Test (1.5h)
+
+- `go build ./...` → CLEAN
+- `go test ./...` → PASS
+- `golangci-lint run` → 0 issues
+- `go run ./cmd/cicd lint-go` → SUCCESS
+- `go run ./cmd/cicd lint-compose` → SUCCESS
+- `go run ./cmd/cicd lint-ports` → SUCCESS
+- Document: All results
+
+#### 12.2 Architecture Compliance Verification (1h)
+
+- Verify: No `internal/shared/barrier/unsealkeysservice/` exists
+- Verify: All barrier code in `internal/apps/template/service/server/barrier/`
+- Verify: All cmd/ contain ONLY main.go with thin delegation
+- Verify: No `internal/cmd/` exists (moved to internal/apps/cicd/)
+- Document: Compliance checklist
+
+#### 12.3 Update Documentation (0.5h)
+
+- Update plan.md with ACTUAL completion status
+- Update tasks.md with evidence for each task
+- Document lessons learned about taking shortcuts
+- Update ARCHITECTURE.md if needed
+
+---
 
 ## Evidence Location
 
