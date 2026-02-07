@@ -72,7 +72,7 @@ Tracks implementation progress from [tasks.md](../tasks.md). Updated continuousl
   - **Validation Results**:
     - ✅ Template server tests: ALL PASS (15 TLS + admin + public + application)
     - ✅ JOSE server tests: ALL PASS (81 tests, 3 packages)
-    - ✅ All 5 services build successfully (jose-server, demo, cryptoutil, identity-unified, ca-server)
+    - ✅ All 5 services build successfully (jose-ja, demo, cryptoutil, identity-unified, pki-ca)
     - ✅ Coverage maintained at 82.9% (improved from 64.3% baseline)
     - ✅ Zero regressions detected
 
@@ -1254,7 +1254,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - **Metrics**: ~72 lines removed, ~18 added, net -54 lines
 
 - Updated **test files** (`internal/jose/server/server_test.go`):
-  - **Created helper**: createTestTLSConfig() function (TLSModeAuto, localhost + jose-server, 127.0.0.1, ::1, 1-year validity)
+  - **Created helper**: createTestTLSConfig() function (TLSModeAuto, localhost + jose-ja, 127.0.0.1, ::1, 1-year validity)
   - **Updated 7 test cases**: All NewServer calls now include tlsCfg parameter
   - **Test cases**: TestServerLifecycle, TestAPIKeyMiddleware, TestNewServerErrorPaths (NilContext + NilSettings use nil for error testing), TestStartBlocking, TestShutdownCoverage (NormalShutdown + ShutdownWithoutStart)
   - Test compilation: ✅ PASS (all 81 tests compile successfully)
@@ -1263,7 +1263,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 - Fixed **demo application** (`internal/cmd/demo/jose.go`):
   - **Issue**: NewServer call missing TLSConfig parameter (caught by pre-commit golangci-lint)
   - **Fix**: Added cryptoutilTemplateServer import, created tlsCfg with TLSModeAuto
-  - **Pattern**: Same as tests (localhost + jose-server, 127.0.0.1, ::1, magic constant for validity)
+  - **Pattern**: Same as tests (localhost + jose-ja, 127.0.0.1, ::1, magic constant for validity)
   - Build verification: ✅ PASS
 
 - Fixed **magic number warning** (`internal/jose/server/server.go`):
@@ -1486,11 +1486,11 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
 
 **Service Build Verification** (all 5 main services):
 
-1. ✅ `cmd/jose-server` - PASS
+1. ✅ `cmd/jose-ja` - PASS
 2. ✅ `cmd/demo` - PASS
 3. ✅ `cmd/cryptoutil` - PASS
 4. ✅ `cmd/identity-unified` - PASS
-5. ✅ `cmd/ca-server` - PASS
+5. ✅ `cmd/pki-ca` - PASS
 
 **Coverage/Quality Metrics** (Final):
 
@@ -2011,7 +2011,7 @@ Chronological implementation log with mini-retrospectives. NEVER delete entries 
   - jose/server tests: ALL PASS (81 tests across 3 packages)
   - learn/server tests: ALL PASS (no regressions)
   - golangci-lint: PASS for all affected packages
-  - Build: PASS for all 5 services (jose-server, demo, cryptoutil, identity-unified, ca-server)
+  - Build: PASS for all 5 services (jose-ja, demo, cryptoutil, identity-unified, pki-ca)
 
 - **Lessons learned**:
   1. PowerShell -NoNewline flag removes import newlines (creates syntax errors)
@@ -5790,7 +5790,7 @@ ok  cryptoutil/internal/identity/rs/server     0.136s
 
 **Files to Modify**:
 1. `internal/cmd/cryptoutil/ca/ca.go` (update imports)
-2. `cmd/ca-server/main.go` (update imports)
+2. `cmd/pki-ca/main.go` (update imports)
 
 **Files to Preserve** (domain logic):
 - `internal/ca/service/issuer/*`

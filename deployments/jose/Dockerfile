@@ -2,7 +2,7 @@
 # JOSE Authority Server Dockerfile
 # Use BuildKit syntax to enable cache mounts (fast rebuilds)
 # To build with cache mounts set DOCKER_BUILDKIT=1
-# Example: DOCKER_BUILDKIT=1 docker build -t jose-server -f deployments/jose/Dockerfile.jose .
+# Example: DOCKER_BUILDKIT=1 docker build -t jose-ja -f deployments/jose/Dockerfile.jose .
 #
 #############################################################################################
 ARG APP_VERSION=UNSET
@@ -39,7 +39,7 @@ RUN set -e; \
     fi; \
     if [ -n "$errors" ]; then \
         printf "%b" "$errors" >&2; \
-        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t jose-server -f deployments/jose/Dockerfile.jose ." >&2; \
+        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t jose-ja -f deployments/jose/Dockerfile.jose ." >&2; \
         exit 1; \
     fi
 
@@ -79,13 +79,13 @@ COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod \
 	--mount=type=cache,target=/root/.cache/go-build \
 	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/jose-server ./cmd/jose-server
+	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/jose-ja ./cmd/jose-ja
 
 # Validate that the binary is statically linked.
 SHELL ["/bin/bash", "-c"]
-RUN if ldd /app/jose-server 2>/dev/null; then \
+RUN if ldd /app/jose-ja 2>/dev/null; then \
         echo "✗ Binary is dynamically linked - failing build"; \
-        ldd /app/jose-server; \
+        ldd /app/jose-ja; \
         exit 1; \
     else \
         echo "✓ Binary is statically linked"; \
@@ -122,7 +122,7 @@ RUN apk --no-cache add ca-certificates && \
 
 # Copy build artifacts.
 COPY --from=validation /app/.build-params /app/.build-params
-COPY --from=builder --chown=65532:65532 /app/jose-server /app/jose-server
+COPY --from=builder --chown=65532:65532 /app/jose-ja /app/jose-ja
 COPY --from=builder --chown=65532:65532 /app/run /app/run
 
 # Create directories for config and secrets.
@@ -141,5 +141,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez || exit 1
 
 # Default entrypoint.
-ENTRYPOINT ["/app/jose-server"]
+ENTRYPOINT ["/app/jose-ja"]
 CMD ["start", "--config=/etc/jose/jose.yml"]

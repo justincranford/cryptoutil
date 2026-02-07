@@ -8,7 +8,7 @@
 #
 # Usage:
 #   docker compose -f compose.yml up -d                # Start JOSE server
-#   docker compose -f compose.yml logs -f jose-server  # Follow logs
+#   docker compose -f compose.yml logs -f jose-ja  # Follow logs
 #   docker compose -f compose.yml down -v              # Stop and clean up
 #
 # API Endpoints (HTTPS on port 8060):
@@ -32,7 +32,7 @@ include:
 services:
   # Build JOSE server image from source.
   builder-jose:
-    image: jose-server:dev
+    image: jose-ja:dev
     build:
       context: ../..
       dockerfile: deployments/jose/Dockerfile
@@ -44,10 +44,10 @@ services:
     command: ["echo 'Build completed successfully'"]
 
   # JOSE Authority Server.
-  jose-server:
-    image: jose-server:dev
-    container_name: jose-server
-    hostname: jose-server
+  jose-ja:
+    image: jose-ja:dev
+    container_name: jose-ja
+    hostname: jose-ja
     command:
       - start
       - --config=/etc/jose/jose.yml

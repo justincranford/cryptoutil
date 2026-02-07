@@ -179,7 +179,7 @@ jobs:
         docker compose -f ./deployments/ca/compose.yml logs ca-sqlite > ./workflow-reports/e2e/ca-sqlite.log 2>&1 || true
 
         # Collect JOSE service logs
-        docker compose -f ./deployments/jose/compose.yml logs jose-server > ./workflow-reports/e2e/jose-server.log 2>&1 || true
+        docker compose -f ./deployments/jose/compose.yml logs jose-ja > ./workflow-reports/e2e/jose-ja.log 2>&1 || true
 
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)

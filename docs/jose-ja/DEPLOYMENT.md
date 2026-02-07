@@ -20,7 +20,7 @@ deployments/jose/
 ├── Dockerfile            # Docker build file
 
 configs/jose/
-└── jose-server.yml       # Default configuration template
+└── jose-ja.yml       # Default configuration template
 ```
 
 ## Quick Start
@@ -36,7 +36,7 @@ docker compose up -d
 curl -k https://localhost:9092/admin/api/v1/livez
 
 # View logs
-docker compose logs -f jose-server
+docker compose logs -f jose-ja
 ```
 
 ### Production (PostgreSQL)
@@ -99,7 +99,7 @@ JOSE-JA uses OpenTelemetry Protocol (OTLP) for telemetry export.
 otlp-enabled: true
 otlp-endpoint: "opentelemetry-collector:4317"
 otlp-service: "jose-ja"
-otlp-hostname: "jose-server-1"
+otlp-hostname: "jose-ja-1"
 ```
 
 **Note**: Prometheus scraping is NOT supported. Use OTLP for all telemetry.
@@ -167,7 +167,7 @@ openssl rand -base64 32 > secrets/unseal_key
 
 ```yaml
 services:
-  jose-server:
+  jose-ja:
     secrets:
       - tls_cert
       - tls_key
@@ -342,7 +342,7 @@ database-dsn: "file:jose.db?cache=shared&mode=rwc&_journal_mode=WAL&_busy_timeou
 Admin server binds to localhost only. Access from within container:
 
 ```bash
-docker exec jose-server wget -q -O - https://127.0.0.1:9092/admin/api/v1/livez
+docker exec jose-ja wget -q -O - https://127.0.0.1:9092/admin/api/v1/livez
 ```
 
 **3. TLS certificate errors**
@@ -359,7 +359,7 @@ openssl x509 -in tls.crt -text -noout | grep -A1 "Subject Alternative Name"
 Check container logs:
 
 ```bash
-docker compose logs jose-server
+docker compose logs jose-ja
 ```
 
 ## Cross-References

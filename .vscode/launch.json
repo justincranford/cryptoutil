@@ -28,19 +28,19 @@
             "args": ["server", "--dev=true"]
         },
         {
-            "name": "JOSE-Server: SQLite (dev mode)",
+            "name": "jose-ja: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/jose-server",
+            "program": "${workspaceFolder}/cmd/jose-ja",
             "args": ["server", "--dev=true"]
         },
         {
-            "name": "CA-Server: SQLite (dev mode)",
+            "name": "pki-ca: SQLite (dev mode)",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/cmd/ca-server",
+            "program": "${workspaceFolder}/cmd/pki-ca",
             "args": ["server", "--dev=true"]
         },
         {

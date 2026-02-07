@@ -21,7 +21,7 @@ cors-origins:
 # OTLP telemetry
 otlp-enabled: false
 otlp-endpoint: ""
-otlp-service: "ca-server"
+otlp-service: "pki-ca"
 otlp-hostname: "localhost"
 
 # Logging

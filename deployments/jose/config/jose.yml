@@ -17,13 +17,13 @@ tls-key-file: ""
 cors-origins:
   - "https://localhost:8060"
   - "https://127.0.0.1:8060"
-  - "https://jose-server:8060"
+  - "https://jose-ja:8060"
 
 # OTLP telemetry - connects to collector sidecar.
 otlp-enabled: true
 otlp-endpoint: "grpc://opentelemetry-collector-contrib:4317"
-otlp-service: "jose-server"
-otlp-hostname: "jose-server"
+otlp-service: "jose-ja"
+otlp-hostname: "jose-ja"
 
 # Logging.
 log-level: "DEBUG"

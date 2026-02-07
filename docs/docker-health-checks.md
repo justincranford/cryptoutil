@@ -26,7 +26,7 @@
 ### JOSE Services
 
 1. `deployments/jose/compose.yml`
-   - **jose-server**: ⚠️ Uses wget to `/health` (WRONG - should be `/admin/api/v1/livez`)
+   - **jose-ja**: ⚠️ Uses wget to `/health` (WRONG - should be `/admin/api/v1/livez`)
    - **Dependencies**: opentelemetry-collector-contrib (NO HEALTHCHECK)
 
 ### Identity Services

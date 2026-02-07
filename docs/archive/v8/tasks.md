@@ -349,7 +349,7 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 
 ## Phase 7: jose-ja Consolidation ✅ COMPLETE
 
-### Task 7.1: Rename cmd/jose-server to cmd/jose-ja
+### Task 7.1: Rename cmd/jose-ja to cmd/jose-ja
 
 - **Status**: ✅ Complete
 - **Estimated**: 0.5h
@@ -358,7 +358,7 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Description**: Rename cmd entry to follow pattern
 - **Acceptance Criteria**:
   - [ ] `cmd/jose-ja/main.go` exists
-  - [ ] `cmd/jose-server/` deleted
+  - [ ] `cmd/jose-ja/` deleted
   - [ ] Build succeeds
 - **Evidence**: Directory listing, build clean
 
@@ -403,7 +403,7 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 
 ## Phase 8: pki-ca Renaming ✅ COMPLETE
 
-### Task 8.1: Rename cmd/ca-server to cmd/pki-ca
+### Task 8.1: Rename cmd/pki-ca to cmd/pki-ca
 
 - **Status**: ✅ Complete
 - **Estimated**: 0.5h
@@ -412,7 +412,7 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Description**: Rename cmd entry
 - **Acceptance Criteria**:
   - [ ] `cmd/pki-ca/main.go` exists
-  - [ ] `cmd/ca-server/` deleted
+  - [ ] `cmd/pki-ca/` deleted
 - **Evidence**: Directory listing
 
 ### Task 8.2: Move internal/apps/ca to internal/apps/pki/ca
@@ -625,7 +625,7 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Files**:
   - `internal/shared/magic/magic_jose.go`
   - `internal/shared/magic/magic_network.go`
-  - `configs/jose/jose-server.yml`
+  - `configs/jose/jose-ja.yml`
   - `deployments/jose/compose.yml`
 
 ### Task 11.3: Update pki-ca Public Port (legacy → 8050)

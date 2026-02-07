@@ -89,7 +89,7 @@ func NewServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfi
 
 	// Create issuer config.
 	issuerConfig := &cryptoutilCAServiceIssuer.IssuingCAConfig{
-		Name:        "ca-server",
+		Name:        "pki-ca",
 		Certificate: caCert,
 		PrivateKey:  caKey,
 	}
@@ -169,7 +169,7 @@ func NewServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfi
 	// Create Fiber app.
 	fiberApp := fiber.New(fiber.Config{
 		AppName:       "CA Server",
-		ServerHeader:  "CA-Server",
+		ServerHeader:  "pki-ca",
 		StrictRouting: true,
 		CaseSensitive: true,
 	})
@@ -345,10 +345,10 @@ func (s *Server) generateTLSConfig() (*tls.Config, error) {
 	// Create certificate request for TLS server certificate.
 	certReq := &cryptoutilCAServiceIssuer.CertificateRequest{
 		SubjectRequest: &cryptoutilCAProfileSubject.Request{
-			CommonName:   "ca-server",
+			CommonName:   "pki-ca",
 			Organization: []string{"cryptoutil"},
 			Country:      []string{"US"},
-			DNSNames:     []string{"localhost", "ca-server"},
+			DNSNames:     []string{"localhost", "pki-ca"},
 			IPAddresses:  []string{"127.0.0.1", "::1"},
 		},
 		PublicKey:        signer.Public(),

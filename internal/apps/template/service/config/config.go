@@ -1641,7 +1641,7 @@ func NewForJOSEServer(bindAddr string, bindPort uint16, devMode bool) *ServiceTe
 		"start", // Subcommand required
 		"--bind-public-address", bindAddr,
 		"--bind-public-port", fmt.Sprintf("%d", bindPort),
-		"--otlp-service", "jose-server",
+		"--otlp-service", "jose-ja",
 	}
 
 	if devMode {
@@ -1664,7 +1664,7 @@ func NewForCAServer(bindAddr string, bindPort uint16, devMode bool) *ServiceTemp
 		"start", // Subcommand required
 		"--bind-public-address", bindAddr,
 		"--bind-public-port", fmt.Sprintf("%d", bindPort),
-		"--otlp-service", "ca-server",
+		"--otlp-service", "pki-ca",
 	}
 
 	if devMode {

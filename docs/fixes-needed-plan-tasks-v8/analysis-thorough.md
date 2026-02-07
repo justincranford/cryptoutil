@@ -651,7 +651,7 @@ ca-postgres-2:
 #### jose-ja (JOSE - JWK Authority)
 ```yaml
 # deployments/jose/compose.yml
-jose-server:
+jose-ja:
   ports:
     - "8060:8060"  # Public API (HTTPS)
     - "9092:9092"  # Admin API (HTTPS) - EXPOSED!
@@ -893,14 +893,14 @@ cmd/<product>-<service>/main.go → internal/apps/<product>/<service>/<service>.
 - `internal/apps/jose/ja/ja.go`
 
 **Actual**:
-- `cmd/jose-server/main.go` (wrong name)
+- `cmd/jose-ja/main.go` (wrong name)
 - TWO implementations:
-  - `internal/jose/` (used by jose-server)
+  - `internal/jose/` (used by jose-ja)
   - `internal/apps/jose/ja/` (exists but routing unclear)
 
 **Routing Chain**:
 ```
-cmd/jose-server/main.go
+cmd/jose-ja/main.go
   → internal/cmd/cryptoutil/jose/jose.go
     → internal/jose/server/
 ```
@@ -914,7 +914,7 @@ cmd/jose-server/main.go
 - `internal/apps/pki/ca/ca.go`
 
 **Actual**:
-- `cmd/ca-server/main.go` (wrong name)
+- `cmd/pki-ca/main.go` (wrong name)
 - `internal/apps/ca/` (wrong product directory - should be `pki/ca/`)
 
 ### Remediation Phases Required
@@ -927,13 +927,13 @@ cmd/jose-server/main.go
 5. Delete `internal/kms/` after migration
 
 **Phase B: jose-ja Consolidation**
-1. Rename `cmd/jose-server/` to `cmd/jose-ja/`
+1. Rename `cmd/jose-ja/` to `cmd/jose-ja/`
 2. Consolidate `internal/jose/` into `internal/apps/jose/ja/`
 3. Update routing in `internal/cmd/cryptoutil/jose/jose.go`
 4. Delete `internal/jose/` after consolidation
 
 **Phase C: pki-ca Renaming**
-1. Rename `cmd/ca-server/` to `cmd/pki-ca/`
+1. Rename `cmd/pki-ca/` to `cmd/pki-ca/`
 2. Move `internal/apps/ca/` to `internal/apps/pki/ca/`
 3. Update all imports
 

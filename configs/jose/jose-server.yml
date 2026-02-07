@@ -21,7 +21,7 @@ cors-origins:
 # OTLP telemetry
 otlp-enabled: false
 otlp-endpoint: ""
-otlp-service: "jose-server"
+otlp-service: "jose-ja"
 otlp-hostname: "localhost"
 
 # Logging

@@ -195,7 +195,7 @@ The CORRECT design is:
 **Objective**: Consolidate jose implementations and rename cmd entry
 
 **Tasks**:
-- Rename `cmd/jose-server/` to `cmd/jose-ja/`
+- Rename `cmd/jose-ja/` to `cmd/jose-ja/`
 - Analyze differences between `internal/jose/` and `internal/apps/jose/ja/`
 - Consolidate into `internal/apps/jose/ja/` (keep conformant structure)
 - Update routing in `internal/cmd/cryptoutil/jose/jose.go`
@@ -207,7 +207,7 @@ The CORRECT design is:
 **Objective**: Rename cmd entry and move to correct product directory
 
 **Tasks**:
-- Rename `cmd/ca-server/` to `cmd/pki-ca/`
+- Rename `cmd/pki-ca/` to `cmd/pki-ca/`
 - Move `internal/apps/ca/` to `internal/apps/pki/ca/`
 - Update all imports
 - Update deployment files

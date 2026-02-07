@@ -34,16 +34,16 @@ func NewStartCommand() *cobra.Command {
 
 Examples:
   # Start with default settings (dev mode)
-  ca-server start --dev
+  pki-ca start --dev
 
   # Start with custom config file
-  ca-server start --config ca-server.yml
+  pki-ca start --config pki-ca.yml
 
   # Start with multiple config files (merged in order)
-  ca-server start --config ca-common.yml --config ca-instance.yml --config ca-otel.yml
+  pki-ca start --config ca-common.yml --config ca-instance.yml --config ca-otel.yml
 
   # Start with custom bind address and port
-  ca-server start --bind 0.0.0.0 --port 8091`,
+  pki-ca start --bind 0.0.0.0 --port 8091`,
 		RunE: func(_ *cobra.Command, _ []string) error {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()

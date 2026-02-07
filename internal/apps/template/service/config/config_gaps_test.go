@@ -491,7 +491,7 @@ func TestNewForJOSEServer_HappyPath(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
 	require.Equal(t, uint16(8080), settings.BindPublicPort)
-	require.Equal(t, "jose-server", settings.OTLPService)
+	require.Equal(t, "jose-ja", settings.OTLPService)
 }
 
 // TestParseWithFlagSet_ValidationError tests that validation errors propagate correctly.
@@ -536,5 +536,5 @@ func TestNewForCAServer_HappyPath(t *testing.T) {
 	require.NotNil(t, settings)
 	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
 	require.Equal(t, uint16(8080), settings.BindPublicPort)
-	require.Equal(t, "ca-server", settings.OTLPService)
+	require.Equal(t, "pki-ca", settings.OTLPService)
 }

@@ -1,14 +1,12 @@
 # cryptoutil Architecture
 
-**Purpose**: Single source of truth for cryptoutil product suite design, directory structure, and deployment patterns.
+**Purpose**: Single source of truth for cryptoutil product suite architecture, design, directory structure, and deployment patterns.
 
 **Companion Document**: [SERVICE-TEMPLATE.md](SERVICE-TEMPLATE.md) - Complete blueprint for building services.
 
 ---
 
-## Suite Overview - Product and Services - Complete Reference
-
-This section provides the authoritative address and port bindings for all 9 services in 5 products.
+## Product and Services - Authoritative Reference
 
 | Product | Service | Product-Service Identifier | Host Public Address | Host Port Range | Container Public Address | Container Public Port Range | Container Admin Private Address | Container Admin Port Range | Description |
 |---------|----------------|-----------------|------------|----------|------------|----------------|-------------------|----------|
@@ -22,17 +20,40 @@ This section provides the authoritative address and port bindings for all 9 serv
 | **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 8130-8139 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Relying Party |
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 8140-8149 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Single Page Application |
 
-### Product-Service Port Design Principles
+### Product-Service Protocol Principles
 
-- HTTPS protocol for all public and admin port bindings.
-- Same HTTPS 127.0.0.1:9090 for Private HTTPS Admin APIs inside Docker Compose and Kubernetes; never localhost due to IPv4 vs IPv6 dual stack issues; never exposed outside of containers.
-- Same HTTPS 0.0.0.0:8080 for Public HTTPS APIs inside Docker Compose and Kubernetes.
-- Different HTTPS 127.0.0.1 port range mappings for Public APIs on Docker host, to avoid conflicts.
-- Same health check paths (`/browser/api/v1/health`, `/service/api/v1/health`) on Public HTTPS listeners.
-- Same health check paths (`/admin/api/v1/livez`, `/admin/api/v1/readyz`) on Private HTTPS Admin listeners.
-- Same graceful shutdown path (`/admin/api/v1/shutdown`) on Private HTTPS Admin listeners.
+These principles apply to both the Private Admin APIs and Public Business Logic APIs, for ALL 5 products and 9 services:
 
-### PostgreSQL Ports
+- ALWAYS use HTTPS for ALL API listeners; never HTTP
+- ALWAYS use IPv4 127.0.0.1 OUTSIDE of Docker Compose and Kubernetes
+- ALWAYS use port 0 for test configuration OUTSIDE of Docker Compose and Kubernetes; for example, in ALL unit tests and integration tests
+- NEVER use localhost inside Docker Compose and Kubernetes, due to IPv4 vs IPv6 dual stack issues
+- NEVER use IPv6
+
+#### Private Admin API Listener Principles
+
+These principles apply only to Admin APIs, for ALL 5 products and 9 services:
+
+- ALWAYS use IPv4 127.0.0.1:9090 INSIDE Docker Compose and Kubernetes
+- ALWAYS support same private health check paths (`/admin/api/v1/livez`, `/admin/api/v1/readyz`)
+- ALWAYS support same private graceful shutdown path (`/admin/api/v1/shutdown`)
+- NEVER expose as external port, ALWAYS keep private inside Docker Compose and Kubernetes
+
+#### Public Business Logic API Principles
+
+These principles apply only to Business Logic APIs, for ALL 5 products and 9 services:
+
+- ALWAYS use IPv4 0.0.0.0:9090 INSIDE Docker Compose and Kubernetes
+- ALWAYS use IPv4 127.0.0.1 OUTSIDE of Docker Compose and Kubernetes, and mutually exclusive port ranges
+- ALWAYS map to external port OUTSIDE of Docker Compose and Kubernetes
+- ALWAYS support same public health check path (`/admin/api/v1/health`)
+- ALWAYS support same public business logic API path structure; `/service/api/v1/*` for non-browser (headless, microservice) clients, `/browser/api/v1/*` for browser-based clients
+
+### PostgreSQL Ports Principles
+
+ALWAYS use same IPv4 0.0.0.0:5432 INSIDE Docker Compose and Kubernetes
+ALWAYS use map to unique, fixed host port per-service OUTSIDE Docker Compose and Kubernetes
+ALWAYS use IPv4 127.0.0.1 and port 0 for test-containers OUTSIDE Docker Compose and Kubernetes; for example, in ALL unit tests and integration tests
 
 | Product-Service Identifier | Host Address | Host Port | Container Address | Container Port |
 |---------|-----------|----------------|----------|----------------|
@@ -46,21 +67,18 @@ This section provides the authoritative address and port bindings for all 9 serv
 | **identity-rp** | 127.0.0.1 | 54327 | 0.0.0.0 | 5432 |
 | **identity-spa** | 127.0.0.1 | 54328 | 0.0.0.0 | 5432 |
 
-### PostgreSQL Port Design Principles for Product-Service Databases
+### Telemetry Ports Principles
 
-- Same 0.0.0.0:5432 inside Docker Compose and Kubernetes.
-- Same 127.0.0.1 host address on Docker host.
-- Different host port mappings (54320-54329) for each product-service to avoid conflicts on Docker host.
-
-### Telemetry Ports (Shared)
+ALL 5 products and 9 services MUST use a single shared telemetry stack (otel-collector + grafana-otel-lgtm)
+The shared telemetry stack MUST run INSIDE Docker Compose and Kubernetes, with fixed ports:
 
 | Service | Host Port | Container Port | Protocol |
 |---------|-----------|----------------|----------|
-| opentelemetry-collector-contrib | 4317 | 4317 | OTLP gRPC |
-| opentelemetry-collector-contrib | 4318 | 4318 | OTLP HTTP |
-| grafana-otel-lgtm | 3000 | 3000 | HTTP (UI) |
-| grafana-otel-lgtm | 4317 | 4317 | OTLP gRPC |
-| grafana-otel-lgtm | 4318 | 4318 | OTLP HTTP |
+| opentelemetry-collector-contrib | 127.0.0.1:4317 | 0.0.0.0:4317 | OTLP gRPC (no TLS) |
+| opentelemetry-collector-contrib | 127.0.0.1:4318 | 0.0.0.0:4318 | OTLP HTTP (no TLS) |
+| grafana-otel-lgtm | 127.0.0.1:3000 | 0.0.0.0:3000 | HTTP (no TLS) |
+| grafana-otel-lgtm | 127.0.0.1:4317 | 0.0.0.0:4317 | OTLP gRPC (no TLS) |
+| grafana-otel-lgtm | 127.0.0.1:4318 | 0.0.0.0:4318 | OTLP HTTP (no TLS) |
 
 ---
 
@@ -70,31 +88,41 @@ This section provides the authoritative address and port bindings for all 9 serv
 
 ```
 cmd/
-├── cryptoutil/main.go         # Suite-level CLI (all products): Delegates to `internal/apps/`
-├── cipher/main.go             # Product-level Cipher CLI: Delegates to `internal/apps/cipher/`
-├── jose/main.go               # Product-level JOSE CLI: Delegates to `internal/apps/jose/`
-├── pki/main.go                # Product-level PKI CLI: Delegates to `internal/apps/pki/`
-├── identity/main.go           # Product-level Identity CLI: Delegates to `internal/apps/identity/`
-├── sm/main.go                 # Product-level SM CLI: Delegates to `internal/apps/sm/`
-├── cipher-im/main.go          # Service-level Cipher-IM CLI: Delegates to `internal/apps/cipher/im/`
-├── jose-ja/main.go        # Service-level JOSE-JA CLI: Delegates to `internal/apps/jose/ja/`
-├── pki-ca/main.go             # Service-level PKI-CA CLI: Delegates to `internal/apps/pki/ca/`
-├── identity-authz/main.go     # Service-level Identity-Authz CLI: Delegates to `internal/apps/identity/authz/`
-├── identity-idp/main.go       # Service-level Identity-IDP CLI: Delegates to `internal/apps/identity/idp/`
-├── identity-rp/main.go        # Service-level Identity-RP CLI: Delegates to `internal/apps/identity/rp/`
-├── identity-rs/main.go        # Service-level Identity-RS CLI: Delegates to `internal/apps/identity/rs/`
-├── identity-spa/main.go       # Service-level Identity-SPA CLI: Delegates to `internal/apps/identity/spa/`
-└── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Delegates to `internal/apps/sm/kms/`
+├── cryptoutil/main.go         # Suite-level CLI (all products): Thin main() call to `internal/apps/cryptoutil.go`
+├── cipher/main.go             # Product-level Cipher CLI: Thin main() call to `internal/apps/cipher/cipher.go`
+├── jose/main.go               # Product-level JOSE CLI: Thin main() call to `internal/apps/jose/jose.go`
+├── pki/main.go                # Product-level PKI CLI: Thin main() call to `internal/apps/pki/pki.go`
+├── identity/main.go           # Product-level Identity CLI: Thin main() call to `internal/apps/identity/identity.go`
+├── sm/main.go                 # Product-level SM CLI: Thin main() call to `internal/apps/sm/sm.go`
+├── cipher-im/main.go          # Service-level Cipher-IM CLI: Thin main() call to `internal/apps/cipher/im/im.go`
+├── jose-ja/main.go            # Service-level JOSE-JA CLI: Thin main() call to `internal/apps/jose/ja/ja.go`
+├── pki-ca/main.go             # Service-level PKI-CA CLI: Thin main() call to `internal/apps/pki/ca/ca.go`
+├── identity-authz/main.go     # Service-level Identity-Authz CLI: Thin main() call to `internal/apps/identity/authz/authz.go`
+├── identity-idp/main.go       # Service-level Identity-IDP CLI: Thin main() call to `internal/apps/identity/idp/idp.go`
+├── identity-rp/main.go        # Service-level Identity-RP CLI: Thin main() call to `internal/apps/identity/rp/rp.go`
+├── identity-rs/main.go        # Service-level Identity-RS CLI: Thin main() call to `internal/apps/identity/rs/rs.go`
+├── identity-spa/main.go       # Service-level Identity-SPA CLI: Thin main() call to `internal/apps/identity/spa/spa.go`
+└── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Thin main() call to `internal/apps/sm/kms/kms.go`
 ```
 
-**Pattern**: Thin `main()` delegates to:
-- `internal/apps/cryptoutil/` for suite-level CLI
-- `internal/apps/<product>/` for product-level CLI
-- `internal/apps/<product>/<service>/` for service-level CLI
+**Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
 
+1. `cmd/cryptoutil/` for suite-level CLI
 ```go
 func main() {
-    os.Exit(cryptoutilAppsCipherIm.IM(os.Args, os.Stdin, os.Stdout, os.Stderr))
+    os.Exit(cryptoutilAppsSuite.Suite(os.Args, os.Stdin, os.Stdout, os.Stderr))
+}
+```
+2. `cmd/<product>/` for product-level CLI
+```go
+func main() {
+    os.Exit(cryptoutilApps<PRODUCT>.<PRODUCT>(os.Args, os.Stdin, os.Stdout, os.Stderr))
+}
+```
+3. `cmd/<product>/<service>/` for service-level CLI
+```go
+func main() {
+    os.Exit(cryptoutilApps<PRODUCT><SERVICE>.<SERVICE>(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }
 ```
 
@@ -102,85 +130,84 @@ func main() {
 
 ```
 internal/apps/
-├── template/                # REUSABLE template (all services import this)
+├── template/                  # REUSABLE product-service template (all 9 services for all 5 products MUST reuse this template for maximum consistency and minimum duplication)
 │   ├── service/
-│   │   ├── config/          # ServiceTemplateServerSettings
-│   │   ├── server/          # Application, PublicServerBase, AdminServer
-│   │   │   ├── application/ # ApplicationCore, ApplicationBasic
-│   │   │   ├── builder/     # ServerBuilder fluent API
-│   │   │   ├── listener/    # AdminHTTPServer
-│   │   │   ├── barrier/     # Encryption-at-rest service
+│   │   ├── config/            # ServiceTemplateServerSettings
+│   │   ├── server/            # Application, PublicServerBase, AdminServer
+│   │   │   ├── application/   # ApplicationCore, ApplicationBasic
+│   │   │   ├── builder/       # ServerBuilder fluent API
+│   │   │   ├── listener/      # AdminHTTPServer
+│   │   │   ├── barrier/       # Encryption-at-rest service
 │   │   │   ├── businesslogic/ # SessionManager, TenantRegistration
-│   │   │   ├── repository/  # TenantRepo, RealmRepo, SessionRepo
-│   │   │   └── realms/      # Authentication realm implementations
-│   │   └── testutil/        # Test helpers (NewTestSettings)
+│   │   │   ├── repository/    # TenantRepo, RealmRepo, SessionRepo
+│   │   │   └── realms/        # Authentication realm implementations
+│   │   └── testutil/          # Test helpers (NewTestSettings)
 │   └── testing/
-│       └── e2e/             # ComposeManager for E2E orchestration
+│       └── e2e/               # ComposeManager for E2E orchestration
 ├── cipher/
-│   └── im/                  # Cipher-IM service
-│       ├── domain/          # Domain models (Message, Recipient)
-│       ├── repository/      # Domain repos + migrations (2001+)
-│       ├── server/          # CipherIMServer, PublicServer
-│       │   ├── config/      # CipherImServerSettings embeds template
-│       │   └── apis/        # HTTP handlers
-│       ├── client/          # API client
-│       ├── e2e/             # E2E tests (Docker Compose)
-│       └── integration/     # Integration tests
+│   └── im/                    # Cipher-IM service
+│       ├── domain/            # Domain models (Message, Recipient)
+│       ├── repository/        # Domain repos + migrations (2001+)
+│       ├── server/            # CipherIMServer, PublicServer
+│       │   ├── config/        # CipherImServerSettings embeds template
+│       │   └── apis/          # HTTP handlers
+│       ├── client/            # API client
+│       ├── e2e/               # E2E tests (Docker Compose)
+│       └── integration/       # Integration tests
 ├── jose/
-│   └── ja/                  # JOSE-JA service (same structure)
+│   └── ja/                    # JOSE-JA service (same structure)
 ├── pki/
-│   └── ca/                  # PKI-CA service (same structure)
+│   └── ca/                    # PKI-CA service (same structure)
+├── sm/
+│   └── jose/                  # SM-KMS service (same structure)
 └── identity/
-    ├── authz/               # OAuth 2.1 Authorization Server
-    ├── idp/                 # OIDC Identity Provider
-    ├── rs/                  # Resource Server
-    ├── rp/                  # Relying Party
-    └── spa/                 # Single Page Application
+    ├── authz/                 # OAuth 2.1 Authorization Server (same structure)
+    ├── idp/                   # OIDC 1.0 Identity Provider (same structure)
+    ├── rs/                    # OAuth 2.1 Resource Server (same structure)
+    ├── rp/                    # OAuth 2.1 Relying Party (same structure)
+    └── spa/                   # OAuth 2.1 Single Page Application (same structure)
 ```
 
 ### internal/shared/ - Shared Utilities
 
 ```
 internal/shared/
-├── barrier/                 # Unseal keys service (HKDF derivation)
+├── apperr/                  # Application errors
+├── container/               # Dependency injection container
 ├── config/                  # Configuration helpers
-├── crypto/
-│   ├── hash/                # Version-based hash registries (PBKDF2, HKDF)
-│   ├── jose/                # JWK generation, JWE/JWS operations
-│   ├── tls/                 # TLS configuration helpers
-│   └── certificate/         # X.509 certificate generation
+├── crypto/                  # Cryptographic utilities
 ├── magic/                   # Named constants (ports, timeouts, paths)
+├── pool/                    # Generator pool utilities
+├── pwdgen/                  # Password generator utilities
 ├── telemetry/               # OpenTelemetry integration
 └── testutil/                # Shared test utilities
 ```
-
-### internal/kms/ - Legacy KMS (Template Source)
-
-```
-internal/kms/                # Original KMS implementation
-├── server/
-│   ├── application/         # ApplicationListener (template source)
-│   ├── businesslogic/       # Business logic services
-│   ├── handler/             # HTTP handlers
-│   ├── middleware/          # Request middleware
-│   └── repository/          # Data access
-├── client/                  # KMS API client
-└── cmd/                     # KMS CLI
-```
-
-**Note**: sm-kms is the template extraction source. Migrate LAST to ensure template maturity.
 
 ### deployments/ - Docker Compose
 
 ```
 deployments/
-├── telemetry/               # SHARED: otel-collector + grafana-lgtm
+├── telemetry/
 │   └── compose.yml
-├── cipher/
-│   ├── compose.yml          # Include telemetry, service definition
-│   ├── Dockerfile.cipher
-│   ├── config/              # YAML configs
-│   └── secrets/             # Docker secrets (*.secret, 440 perms)
+├── sm-kms/
+│   ├── config/
+|   │   ├── common.yml        # common configuration for all 3 sm-kms instances
+|   │   ├── postgresql-1.yml  # instance 1 of sm-kms; uses shared sm-kms PostgreSQL
+|   │   ├── postgresql-2.yml  # instance 2 of sm-kms; uses shared sm-kms PostgreSQL
+|   │   └── sqlite.yml        # instance 3 of sm-kms; uses non-shared in-memory sm-kms SQLite
+│   ├── secrets/
+|   │   ├──postgres_url.secret      # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──postgres_database.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──postgres_username.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──postgres_password.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──unseal_1of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_2of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_3of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_4of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_5of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   └──hash_pepper.secret       # Docker Compose secret shared by 3 instances of sm-kms; hash registries of hash algorithms
+│   ├── compose.yml                 # Docker Compose config: `builder-cryptoutil` builds Dockerfile, 3 instances of sm-kms depend on it
+│   └── Dockerfile                  # Dockerfile: compose.yml `builder-cryptoutil` builds this Dockerfile
 ├── <PRODUCT>/
 │   └── ... (same structure)
 ├── jose/
@@ -189,35 +216,11 @@ deployments/
 │   └── ... (same structure)
 ├── identity/
 │   └── ... (same structure)
-└── sm/
+└── cipher/
     └── ... (same structure)
 ```
 
-### configs/ - Application Configuration
-
-```
-configs/
-├── test/                    # Test configurations
-└── <product>/               # Production configurations
-    └── <service>.yml
-```
-
----
-
 ## CLI Patterns
-
-### Subcommands (All Services Support)
-
-| Subcommand | Description |
-|------------|-------------|
-| `server` | Start dual HTTPS servers (default) |
-| `client` | CLI client for API interaction |
-| `health` | Check all health endpoints |
-| `livez` | Check liveness only |
-| `readyz` | Check readiness only |
-| `shutdown` | Trigger graceful shutdown |
-| `init` | Initialize database/config |
-| `demo` | Run E2E demonstration |
 
 ### CLI Hierarchy
 
@@ -263,6 +266,22 @@ sm kms server --config=/etc/sm/kms.yml
 cryptoutil sm kms server --config=/etc/sm/kms.yml
 ```
 
+### CLI Subcommand
+
+All CLIs for all 9 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
+Consistency MUST be guaranteed by inheriting from service-template, which will reuse `internal/apps/template/service/<SUBCOMMAND>/` packages:
+
+| Subcommand | Description |
+|------------|-------------|
+| `server` | CLI server start with dual HTTPS listeners, for Private Admin APIs vs Public Business Logic APIs |
+| `health` | CLI client for Public health endpoint API check |
+| `livez` | CLI client for Private liveness endpoint API check |
+| `readyz` | CLI client for Private readiness endpoint API check |
+| `shutdown` | CLI client for Private graceful shutdown endpoint API trigger |
+| `client` | CLI client for Business Logic API interaction (n.b. domain-specific for each of the 9 services) |
+| `init` | CLI client for Initialize static config, like TLS certificates |
+| `demo` | CLI client for start server, inject Demo data, and run clients |
+
 ---
 
 ## Multi-Tenancy Architecture
@@ -283,93 +302,61 @@ db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 
 **CRITICAL**: Realms define authentication METHOD and POLICY, NOT data scoping.
 
-**realm_id** determines:
-1. **HOW** users authenticate (authentication method)
-2. **Password policies** (min length, complexity requirements)
-3. **Session policies** (timeout, refresh, absolute max)
-4. **MFA requirements** (required, allowed methods)
-5. **Rate limiting** (per-realm overrides)
-
 **Realms do NOT scope data** - all realms in same tenant see same data. Only `tenant_id` scopes data access.
 
-#### Realm Types (16 Supported)
+#### Realms
 
-**Federated Realm Types** (external identity providers):
+Every REALM is configurable per-service as file-based static config, dynamic database-backed config, or both.
+Services may include or omit any REALM, including file-based or database-backed.
+Requirement: A minimum of 1 realm per service MUST be configured for authentication to work.
+Recommendation: A minimum of 2 realms per service SHOULD be configured, 1 file-based for admin authentication, and 1 file-based or database-based for sessions cookie validation.
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `username_password` | Database-stored credentials | Default, internal users |
-| `ldap` | LDAP/Active Directory | Enterprise directory |
-| `oauth2` | OAuth 2.0/OIDC provider | Social login, SSO |
-| `saml` | SAML 2.0 federation | Enterprise SSO |
+All REALMS must be implemented in service-template, and inherited by all 9 services for all 9 products, for maximum consistency and minimum duplication.
 
-**Non-Federated Browser Realm Types** (`/browser/**` paths, session-based):
+All users and clients must authenticate successfully with one of the `authentication-*` realms, to receive a session cookie.
+All subsequent API calls must use the session cookie; The session cookie may be stateless (e.g. JWE, JWS) or stateful (e.g. opaque cookie).
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `jwe-session-cookie` | Encrypted JWT in cookie | Stateless secure sessions |
-| `jws-session-cookie` | Signed JWT in cookie | Stateless sessions with visibility |
-| `opaque-session-cookie` | Server-side session storage | Traditional sessions |
-| `basic-username-password` | HTTP Basic + username/password | Simple browser auth |
-| `bearer-api-token` | Bearer token from browser | API access from SPA |
-| `https-client-cert` | mTLS client certificate | High-security browser access |
+**Login Realms for Every Service**
 
-**Non-Federated Service Realm Types** (`/service/**` paths, token-based):
+| Type | Scheme | Credential | Login or Session | Credential Store |
+|------|--------|------------|-------------------------|=-----------------|
+| `https-client-cert-login-file` | HTTP/mTLS Handshake | HTTPS Client Certificate | Login | File |
+| `https-client-cert-login-database` | HTTP/mTLS Handshake | HTTPS Client Certificate | Login | Database |
+| `https-client-cert-login-federated` | HTTP/mTLS Handshake | HTTPS Client Certificate | Login | Federated |
+| `bearer-token-opaque-login-file` | HTTP Header 'Authorize' Bearer | Opaque Token | Login | File |
+| `bearer-token-opaque-login-database` | HTTP Header 'Authorize' Bearer | Opaque Token | Login | Database |
+| `bearer-token-opaque-login-federated` | HTTP Header 'Authorize' Bearer | Opaque Token | Login | Federated |
+| `bearer-token-jwe-login-file` | HTTP Header 'Authorize' Bearer | JWE Token | Login | File |
+| `bearer-token-jwe-login-database` | HTTP Header 'Authorize' Bearer | JWE Token | Login | Database |
+| `bearer-token-jwe-login-federated` | HTTP Header 'Authorize' Bearer | JWE Token | Login | Federated |
+| `bearer-token-jws-login-file` | HTTP Header 'Authorize' Bearer | JWS Token | Login | File |
+| `bearer-token-jws-login-database` | HTTP Header 'Authorize' Bearer | JWS Token | Login | Database |
+| `bearer-token-jws-login-federated` | HTTP Header 'Authorize' Bearer | JWS Token | Login | Federated |
+| `basic-username-password-login-file` | HTTP Header 'Authorize' Basic | Username/Password | Login | File |
+| `basic-username-password-login-database` | HTTP Header 'Authorize' Basic | Username/Password | Login | Database |
+| `basic-username-password-login-federated` | HTTP Header 'Authorize' Basic | Username/Password | Login | Federated |
+| `cookie-token-opaque-session-file` | HTTP Header 'Cookie' Token | Opaque Token | Session | File |
+| `cookie-token-opaque-session-database` | HTTP Header 'Cookie' Token | Opaque Token | Session | Database |
+| `cookie-token-opaque-session-federated` | HTTP Header 'Cookie' Token | Opaque Token | Session | Federated |
+| `cookie-token-jwe-session-file` | HTTP Header 'Cookie' Token | JWE Token | Session | File |
+| `cookie-token-jwe-session-database` | HTTP Header 'Cookie' Token | JWE Token | Session | Database |
+| `cookie-token-jwe-session-federated` | HTTP Header 'Cookie' Token | JWE Token | Session | Federated |
+| `cookie-token-jws-session-file` | HTTP Header 'Cookie' Token | JWS Token | Session | File |
+| `cookie-token-jws-session-database` | HTTP Header 'Cookie' Token | JWS Token | Session | Database |
+| `cookie-token-jws-session-federated` | HTTP Header 'Cookie' Token | JWS Token | Session | Federated |
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `jwe-session-token` | Encrypted JWT token | Encrypted service tokens |
-| `jws-session-token` | Signed JWT token | Signed service tokens |
-| `opaque-session-token` | Server-side token lookup | Traditional service tokens |
-| `basic-client-id-secret` | HTTP Basic + client credentials | Service-to-service |
-| `bearer-api-token` | Bearer token (shared) | API access |
-| `https-client-cert` | mTLS (shared) | High-security service auth |
+| `authorization-code-opaque-login-file` | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | Login | File |
+| `authorization-code-jwe-login-file` | OAuth 2.1 Authorization Code Flow + PKCE | JWE | Login | File |
+| `authorization-code-jws-login-file` | OAuth 2.1 Authorization Code Flow + PKCE | JWS | Login | File |
+| `authorization-code-opaque-login-database` | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | Login | Database |
+| `authorization-code-jwe-login-database` | OAuth 2.1 Authorization Code Flow + PKCE | JWE | Login | Database |
+| `authorization-code-jws-login-database` | OAuth 2.1 Authorization Code Flow + PKCE | JWS | Login | Database |
+| `authorization-code-login-federated` | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | Login | Federated |
 
-#### Realm Configuration
-
-Each realm has configurable policies:
-
-```go
-type RealmConfig struct {
-    // Password validation
-    PasswordMinLength        int   // Default: 12
-    PasswordRequireUppercase bool  // Default: true
-    PasswordRequireLowercase bool  // Default: true
-    PasswordRequireDigits    bool  // Default: true
-    PasswordRequireSpecial   bool  // Default: true
-    PasswordMinUniqueChars   int   // Default: 8
-    PasswordMaxRepeatedChars int   // Default: 3
-
-    // Session configuration
-    SessionTimeout        int   // Seconds, default: 3600 (1 hour)
-    SessionAbsoluteMax    int   // Seconds, default: 86400 (24 hours)
-    SessionRefreshEnabled bool  // Default: true
-
-    // Multi-factor authentication
-    MFARequired bool     // Default: false
-    MFAMethods  []string // e.g., ["totp", "webauthn", "sms"]
-
-    // Rate limiting overrides
-    LoginRateLimit   int // Attempts per minute, default: 5
-    MessageRateLimit int // Messages per minute, default: 10
-}
-```
-
-#### Realm vs Tenant Relationship
-
-```
-Tenant (data isolation boundary)
-├── Realm A (username_password, default policy)
-│   └── Users authenticate via database credentials
-├── Realm B (ldap, enterprise policy)
-│   └── Users authenticate via Active Directory
-└── Realm C (oauth2, federated policy)
-    └── Users authenticate via external OIDC provider
-
-All realms access SAME data (scoped by tenant_id only)
-```
-
-**Key Insight**: Users from different realms in the same tenant see the same data. The realm only controls HOW they authenticate, not WHAT they can access.
+| `webauthn-login-file` | WebAuthn (2013) | PublicKeyCredential | Login | File |
+| `webauthn-login-database` | WebAuthn (2013) | PublicKeyCredential | Login | Database |
+| `passkey-login-file` | WebAuthn (2021) Passkey | PublicKeyCredential | Login | File |
+| `passkey-login-database` | WebAuthn (2021) Passkey | PublicKeyCredential | Login | Database |
 
 ### Registration Flow
 
@@ -393,32 +380,6 @@ POST /browser/api/v1/register
 
 - User saved to `pending_users` with tenant_id
 - Tenant admin must approve via admin panel
-
----
-
-## HTTPS Endpoint Architecture
-
-### Dual Server Pattern (ALL Services)
-
-| Server | Bind Address | Purpose |
-|--------|--------------|---------|
-| **Public** | Configurable (0.0.0.0 in containers) | Business APIs, browser UIs |
-| **Admin** | 127.0.0.1:9090 ALWAYS | Health checks, graceful shutdown |
-
-### Public API Paths
-
-| Path Prefix | Client Type | Middleware |
-|-------------|-------------|------------|
-| `/service/api/v1/*` | Headless (service-to-service) | Bearer tokens, mTLS, IP allowlist |
-| `/browser/api/v1/*` | Browser (user-facing) | Session cookies, CSRF, CORS, CSP |
-
-### Admin API Paths
-
-| Endpoint | Purpose | Failure Action |
-|----------|---------|----------------|
-| `GET /admin/api/v1/livez` | Liveness (process alive?) | Restart container |
-| `GET /admin/api/v1/readyz` | Readiness (dependencies healthy?) | Remove from LB |
-| `POST /admin/api/v1/shutdown` | Graceful shutdown | N/A |
 
 ---
 

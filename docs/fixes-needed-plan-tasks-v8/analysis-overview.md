@@ -254,8 +254,8 @@ Users from different realms in the same tenant see the SAME data. The realm only
 | Service | Actual cmd/ | Actual internal/ | Status |
 |---------|-------------|------------------|--------|
 | sm-kms | NONE (via `cryptoutil kms`) | `internal/kms/` | ❌ Non-conformant |
-| jose-ja | `cmd/jose-server/` | `internal/jose/` + `internal/apps/jose/ja/` (duplicate?) | ❌ Non-conformant |
-| pki-ca | `cmd/ca-server/` | `internal/apps/ca/` | ⚠️ Partially conformant |
+| jose-ja | `cmd/jose-ja/` | `internal/jose/` + `internal/apps/jose/ja/` (duplicate?) | ❌ Non-conformant |
+| pki-ca | `cmd/pki-ca/` | `internal/apps/ca/` | ⚠️ Partially conformant |
 
 ### Key Issues
 
@@ -267,9 +267,9 @@ Users from different realms in the same tenant see the SAME data. The realm only
 
 - Create `cmd/sm-kms/main.go` delegating to `internal/apps/sm/kms/`
 - Create `internal/apps/sm/kms/` and migrate from `internal/kms/`
-- Rename `cmd/jose-server/` to `cmd/jose-ja/`
+- Rename `cmd/jose-ja/` to `cmd/jose-ja/`
 - Consolidate `internal/jose/` into `internal/apps/jose/ja/`
-- Rename `cmd/ca-server/` to `cmd/pki-ca/`
+- Rename `cmd/pki-ca/` to `cmd/pki-ca/`
 - Rename `internal/apps/ca/` to `internal/apps/pki/ca/`
 
 ---

@@ -380,12 +380,12 @@ federation:
   identity_timeout: 10s  # Per-service timeout (MANDATORY)
 
   # JOSE service for external JWE/JWS operations
-  jose_url: "https://jose-server:8280"
+  jose_url: "https://jose-ja:8280"
   jose_enabled: true
   jose_timeout: 15s      # Different timeout per service (MANDATORY)
 
   # CA service for TLS certificate operations
-  ca_url: "https://ca-server:8380"
+  ca_url: "https://pki-ca:8380"
   ca_enabled: false  # Optional - KMS can use internal TLS certs
   ca_timeout: 30s        # Longer timeout for CA operations (MANDATORY)
 
@@ -437,7 +437,7 @@ federation:
 # Docker networks provide DNS resolution
 federation:
   identity_url: "https://identity-authz:8180"  # Service name from compose.yml
-  jose_url: "https://jose-server:8280"
+  jose_url: "https://jose-ja:8280"
 ```
 
 **3. Kubernetes Service Discovery**:
@@ -446,7 +446,7 @@ federation:
 # Kubernetes DNS provides service resolution
 federation:
   identity_url: "https://identity-authz.cryptoutil-ns.svc.cluster.local:8180"
-  jose_url: "https://jose-server.cryptoutil-ns.svc.cluster.local:8280"
+  jose_url: "https://jose-ja.cryptoutil-ns.svc.cluster.local:8280"
 ```
 
 **DNS Caching** (Source: SPECKIT-CLARIFY-QUIZME-05 Q18, 2025-12-24):
