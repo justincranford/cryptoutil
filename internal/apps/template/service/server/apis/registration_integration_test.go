@@ -31,11 +31,11 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
 

@@ -11,7 +11,7 @@ import (
 	"log"
 
 	// Repository interface used instead of OrmRepository.
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 

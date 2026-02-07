@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	googleUuid "github.com/google/uuid"

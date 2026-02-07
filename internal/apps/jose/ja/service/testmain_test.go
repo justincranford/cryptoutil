@@ -18,7 +18,7 @@ import (
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"

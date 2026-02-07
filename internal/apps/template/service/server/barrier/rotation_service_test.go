@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilUnsealKeysService "cryptoutil/internal/shared/barrier/unsealkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
