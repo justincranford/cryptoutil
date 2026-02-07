@@ -7,7 +7,7 @@
 package main
 
 import (
-	cryptoutilCmdDemo "cryptoutil/internal/cmd/demo"
+	cryptoutilCmdDemo "cryptoutil/internal/apps/demo"
 )
 
 func main() {
