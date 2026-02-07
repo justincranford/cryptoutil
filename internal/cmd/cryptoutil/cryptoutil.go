@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	cryptoutilCmdCipher "cryptoutil/internal/cmd/cipher"
+	cryptoutilCmdCipher "cryptoutil/internal/apps/cipher"
 	cryptoutilCmdCryptoutilAuthz "cryptoutil/internal/cmd/cryptoutil/authz"
 	cryptoutilCmdCryptoutilCa "cryptoutil/internal/cmd/cryptoutil/ca"
 	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/cmd/cryptoutil/identity"
