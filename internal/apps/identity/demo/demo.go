@@ -63,12 +63,12 @@ func Demo(args []string, stdout, stderr io.Writer) int {
 
 	// Run the demo.
 	if err := runDemo(ctx); err != nil {
-		fmt.Fprintf(errWriter, "❌ Demo failed: %v\n", err)
+		_, _ = fmt.Fprintf(errWriter, "❌ Demo failed: %v\n", err)
 		return 1
 	}
 
-	fmt.Fprintln(outWriter, )
-	fmt.Fprintln(outWriter, "✅ Demo completed successfully!")
+	_, _ = fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter, "✅ Demo completed successfully!")
 	return 0
 }
 
@@ -86,7 +86,7 @@ func runDemo(ctx context.Context) error {
 	// Start Fiber in background.
 	go func() {
 		if listenErr := app.Listen(demoPort); listenErr != nil {
-			fmt.Fprintf(outWriter, "Server error: %v\n", listenErr)
+			_, _ = fmt.Fprintf(outWriter, "Server error: %v\n", listenErr)
 		}
 	}()
 
@@ -103,9 +103,9 @@ func runDemo(ctx context.Context) error {
 		return fmt.Errorf("failed to register client: %w", err)
 	}
 
-	fmt.Fprintf(outWriter, "   ✅ Client ID: %s\n", demoClientID)
-	fmt.Fprintf(outWriter, "   ✅ Client Name: %s\n", demoClientName)
-	fmt.Fprintf(outWriter, "   ✅ Redirect URI: %s\n", demoRedirectURI)
+	_, _ = fmt.Fprintf(outWriter, "   ✅ Client ID: %s\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   ✅ Client Name: %s\n", demoClientName)
+	_, _ = fmt.Fprintf(outWriter, "   ✅ Redirect URI: %s\n", demoRedirectURI)
 	fmt.Fprintln(outWriter, )
 
 	// Create HTTP client for requests.

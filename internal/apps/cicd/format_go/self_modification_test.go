@@ -34,7 +34,7 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	require.Contains(t, string(originalContent), "CRITICAL: Replace `any` with any",
 		"enforce_any.go MUST contain CRITICAL comment explaining pattern replacement")
 	require.Contains(t, string(originalContent), `strings.Count(originalContent, "any")`,
-		"enforce_any.go MUST count any occurrences, NOT any")
+		"enforce_any.go MUST count any occurrences in original content")
 
 	// Verify test data uses any (not any) to properly test replacement.
 	testContent, err := os.ReadFile("format_go_test.go")

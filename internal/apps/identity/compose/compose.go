@@ -17,11 +17,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 var (
 	outWriter io.Writer = os.Stdout
 	errWriter io.Writer = os.Stderr
 )
+
 const (
 	defaultTailLines      = 100
 	defaultHealthRetries  = 30

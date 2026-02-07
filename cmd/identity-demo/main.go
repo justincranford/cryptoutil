@@ -4,11 +4,11 @@
 package main
 
 import (
-"os"
+	"os"
 
 	demo "cryptoutil/internal/apps/identity/demo"
 )
 
 func main() {
-os.Exit(demo.Demo(os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(demo.Demo(os.Args[1:], os.Stdout, os.Stderr))
 }

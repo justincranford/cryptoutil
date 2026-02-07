@@ -4,11 +4,11 @@
 package main
 
 import (
-"os"
+	"os"
 
 	compose "cryptoutil/internal/apps/identity/compose"
 )
 
 func main() {
-os.Exit(compose.Compose(os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(compose.Compose(os.Args[1:], os.Stdout, os.Stderr))
 }
