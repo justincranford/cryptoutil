@@ -508,6 +508,27 @@ V10 addresses critical gaps discovered in V8/V9 completion claims and recurring 
 | sm-kms cmd changes break Docker builds | Low | Medium | Test Docker build after each file addition |
 | unsealkeysservice has undiscovered duplications | Low | Low | Comprehensive code audit in Phase 6 |
 
+## Lessons Learned: E2E Health Timeouts
+
+### Root Cause Analysis (Phase 1)
+
+1. **Primary Root Cause**: Identity E2E tests used `/health` endpoint that doesn't exist on the template public server. The correct endpoint is `/service/api/v1/health`.
+2. **Secondary**: cipher-im had slow startup with 71+ EOF errors during container initialization.
+3. **Tertiary**: sm-kms used CLI-based health check instead of wget+HTTP pattern.
+
+### Fixes Applied
+
+- **CRITICAL**: `IdentityE2EHealthEndpoint` changed from `/health` to `/service/api/v1/health` in `internal/shared/magic/magic_identity.go`
+- jose-ja and identity services: `start_period` increased from 30s to 60s
+- cipher-im PostgreSQL: `start_period` increased from 10s to 30s
+
+### Best Practices for E2E Tests
+
+1. **ALWAYS use magic constants** for health endpoints (never hardcode paths)
+2. **Docker HC vs E2E HC**: Docker healthcheck uses admin port 9090 (`/admin/api/v1/livez`), E2E tests use public port (`/service/api/v1/health`) - these are intentionally different
+3. **Standard timing**: interval=10s, timeout=5s, retries=5, start_period=60s
+4. **Use `wget --no-check-certificate`** for HTTPS health checks in Alpine containers
+
 ## Quality Gates
 
 - All tests pass (`go test ./...` with NO timeouts)
