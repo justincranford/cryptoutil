@@ -5,9 +5,9 @@ package compose
 
 import (
 	"context"
-	"io"
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/exec"

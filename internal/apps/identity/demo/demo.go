@@ -42,11 +42,11 @@ const (
 
 var demoClientSecret = "demo-secret-" + googleUuid.New().String()[:8]
 
-
 var (
 	outWriter io.Writer
 	errWriter io.Writer
 )
+
 // Demo runs the identity service demonstration.
 // args: Command-line arguments (not including program name)
 // stdout, stderr: Output streams for messages
@@ -94,7 +94,7 @@ func runDemo(ctx context.Context) error {
 	time.Sleep(cryptoutilIdentityMagic.DemoStartupDelay)
 
 	fmt.Fprintln(outWriter, "✅ Authorization server started on http://127.0.0.1:8080")
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Step 2: Register demo client.
 	fmt.Fprintln(outWriter, "📝 Step 2: Registering Demo Client...")
@@ -106,7 +106,7 @@ func runDemo(ctx context.Context) error {
 	_, _ = fmt.Fprintf(outWriter, "   ✅ Client ID: %s\n", demoClientID)
 	_, _ = fmt.Fprintf(outWriter, "   ✅ Client Name: %s\n", demoClientName)
 	_, _ = fmt.Fprintf(outWriter, "   ✅ Redirect URI: %s\n", demoRedirectURI)
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Create HTTP client for requests.
 	client := createHTTPClient()
@@ -118,12 +118,12 @@ func runDemo(ctx context.Context) error {
 		return fmt.Errorf("discovery check failed: %w", err)
 	}
 
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Step 4: Demonstrate OAuth 2.1 endpoints.
 	fmt.Fprintln(outWriter, "📋 Step 4: OAuth 2.1 Endpoint Summary")
 	printEndpointSummary()
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Step 5: Demonstrate authorization endpoint.
 	fmt.Fprintln(outWriter, "🔐 Step 5: Authorization Endpoint Demo...")
@@ -135,7 +135,7 @@ func runDemo(ctx context.Context) error {
 		fmt.Fprintf(outWriter, "⚠️ Authorization demo info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Step 6: Demonstrate token endpoint and get access token.
 	fmt.Fprintln(outWriter, "🔑 Step 6: Token Endpoint Demo...")
@@ -145,7 +145,7 @@ func runDemo(ctx context.Context) error {
 		fmt.Fprintf(outWriter, "⚠️ Token endpoint info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Step 7: Demonstrate introspection endpoint with real token.
 	fmt.Fprintln(outWriter, "🔬 Step 7: Token Introspection (BEFORE revocation)...")
@@ -154,7 +154,7 @@ func runDemo(ctx context.Context) error {
 		fmt.Fprintf(outWriter, "⚠️ Introspection info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Step 8: Demonstrate revocation endpoint with real token.
 	fmt.Fprintln(outWriter, "🗑️ Step 8: Token Revocation...")
@@ -163,7 +163,7 @@ func runDemo(ctx context.Context) error {
 		fmt.Fprintf(outWriter, "⚠️ Revocation info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	// Step 9: Demonstrate introspection after revocation.
 	fmt.Fprintln(outWriter, "🔬 Step 9: Token Introspection (AFTER revocation)...")
@@ -172,7 +172,7 @@ func runDemo(ctx context.Context) error {
 		fmt.Fprintf(outWriter, "⚠️ Introspection info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter, )
+	fmt.Fprintln(outWriter)
 
 	return nil
 }
