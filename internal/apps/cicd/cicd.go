@@ -27,14 +27,14 @@ import (
 
 const (
 	cmdLintText     = "lint-text"      // [Linter] Text file linters (UTF-8 encoding).
-	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
 	cmdLintGo       = "lint-go"        // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
-	cmdLintCompose  = "lint-compose"   // [Linter] Docker Compose file linters (admin port exposure).
-	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
 	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
-	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
-	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
+	cmdLintCompose  = "lint-compose"   // [Linter] Docker Compose file linters (admin port exposure).
 	cmdLintPorts    = "lint-ports"     // [Linter] Port assignment validation (standardized ports).
+	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
+	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
+	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
+	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
 )
 
 // Run executes the specified CI/CD check commands.

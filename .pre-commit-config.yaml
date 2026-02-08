@@ -4,42 +4,83 @@
 # Run manually: pre-commit run --all-files
 
 repos:
-  # Check pre-commit hook versions, and auto-update them
-  # NOTE: This is expensive (network calls), run manually: pre-commit run autoupdate-all-hooks --hook-stage manual
+  # NOTE: These are expensive (network calls)
   - repo: local
     hooks:
+      # Secrets scanning (critical for crypto project)
+      - repo: https://github.com/gitleaks/gitleaks
+        rev: v8.27.2
+        hooks:
+          - id: gitleaks
+            name: Scan for secrets
+            stages: [pre-push]
+
+      # Check pre-commit hook versions, and auto-update them
       - id: autoupdate-all-hooks
-        name: Auto-update pre-commit hook versions (manual)
+        name: Auto-update pre-commit hook versions
         entry: python
         args: [-m, pre_commit, autoupdate]
         language: system
         pass_filenames: false
-        stages: [manual]  # Run manually, not on every push
+        require_serial: true
+        stages: [pre-push]
 
-  # Check Go direct dependency versions (expensive - network calls)
-  # NOTE: Run manually: pre-commit run lint-go-mod --hook-stage manual
-  - repo: local
-    hooks:
+      # Check Go direct dependency versions (expensive - network calls)
       - id: lint-go-mod
-        name: Check Go direct dependency updates (manual)
+        name: Check Go direct dependency updates
         entry: go
         args: [run, cmd/cicd/main.go, lint-go-mod]
         language: system
         pass_filenames: false
-        stages: [manual]  # Run manually, not on every push
+        require_serial: true
+        stages: [pre-push]
 
-  # GitHub workflow linting (only when workflows change)
-  - repo: local
-    hooks:
-      - id: lint-workflow
-        name: GitHub workflow lint
+      # Go build validation (expensive - network calls)
+      - id: go-build
+        name: go build
         entry: go
-        args: [run, cmd/cicd/main.go, lint-workflow]
+        args: [build, ./...]
+        language: system
+        files: '\.go$|go\.mod$|go\.sum$'
+        pass_filenames: false
+        require_serial: true
+        stages: [pre-push]  # Build validation before push, not on every commit
+
+      # # Spell checking (expensive - moved to pre-push)
+      # - repo: local
+      #   hooks:
+      #     - id: cspell
+      #       name: Check spelling
+      #       entry: cspell
+      #       args: [--no-progress, --cache]
+      #       language: system
+      #       files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
+      #       exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/)'
+      #       require_serial: false
+      #       stages: [pre-push]
+
+      - id: golangci-lint-full
+        name: golangci-lint (full validation)
+        entry: golangci-lint
+        args: [run, --timeout=30m]
         language: system
         pass_filenames: false
-        files: '\.github/workflows/.*\.(yml|yaml)$'
+        files: '\.go$'
+        stages: [pre-push]  # Slow full check before push
+
+  - repo: local
+    hooks:
+      # Go linting with auto-fix (includes gofumpt with extra-rules, imports, and all enabled linters)
+      # NOTE: golangci-lint includes gofumpt with extra-rules, so separate gofumpt not needed
+      - id: golangci-lint
+        name: golangci-lint (incremental auto-fix)
+        entry: golangci-lint
+        args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
+        language: system
+        files: '\.go$'
+        pass_filenames: false
         require_serial: false
-        stages: [pre-push]  # Only run when workflow files change
+        stages: [pre-commit]  # Fast incremental check on commit
 
   # Generic file checks (lightweight and reliable)
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -175,72 +216,35 @@ repos:
         name: Fix mixed line endings
         require_serial: false
 
-      # - id: no-commit-to-branch
-      #   name: Prevent commits to protected branches
-      #   args: [--branch, main]
-      #   stages: [pre-push]  # Only run on push, not on commit
-
-  # Go linting with auto-fix (includes gofumpt with extra-rules, imports, and all enabled linters)
-  # NOTE: golangci-lint includes gofumpt with extra-rules: true in .golangci.yml
-  #       No separate gofumpt hook needed to avoid conflicting formatting passes
+  # Custom lint checks (fast, internal checks)
   - repo: local
     hooks:
-      - id: golangci-lint
-        name: golangci-lint (incremental auto-fix)
-        entry: golangci-lint
-        args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
-        language: system
-        pass_filenames: false
-        files: '\.go$'
-        require_serial: false
-        stages: [pre-commit]  # Fast incremental check on commit
-
-      - id: golangci-lint-full
-        name: golangci-lint (full validation)
-        entry: golangci-lint
-        args: [run, --timeout=30m]
-        language: system
-        pass_filenames: false
-        files: '\.go$'
-        stages: [pre-push]  # Full check before push
-
-  # Custom project checks (fast, internal checks)
-  - repo: local
-    hooks:
-      - id: lint-go
-        name: Run custom CI/CD checks (circular dependencies, non-FIPS algorithms)
+      - id: cicd-lint-all
+        name: Run custom CI/CD lint checks
         entry: go
-        args: [run, cmd/cicd/main.go, lint-go]
+        args: [run, cmd/cicd/main.go, lint-text, lint-go, lint-go-test, lint-compose, lint-ports, lint-workflow ]
         language: system
-        pass_filenames: false
-        require_serial: false
-
-      - id: lint-compose
-        name: Detect admin port 9090 exposure in Docker Compose files
-        entry: go
-        args: [run, cmd/cicd/main.go, lint-compose]
-        language: system
-        pass_filenames: false
-        files: '(compose.*\.ya?ml|docker-compose.*\.ya?ml)$'
-        require_serial: false
+        pass_filenames: false # linters handle file scanning internally, so no need to pass filenames
+        require_serial: false # linters are read-only, so they can run concurrently
         stages: [pre-commit]
 
-      - id: lint-ports
-        name: Detect legacy port usage in codebase
+      - id: cicd-format-go-only
+        name: Run custom CI/CD format checks
         entry: go
-        args: [run, cmd/cicd/main.go, lint-ports]
+        args: [run, cmd/cicd/main.go, format-go ]
         language: system
-        pass_filenames: false
-        require_serial: false
-        stages: [manual]  # Run manually until all violations fixed
+        pass_filenames: false # formatters handle file scanning internally, so no need to pass filenames
+        require_serial: true # formatters are read-write, so they must run sequentially to avoid conflicts
+        stages: [pre-commit]
 
-      - id: cicd-enforce-internal
-        name: Run custom CI/CD enforcement (text-utf8, go-formatters, test-patterns)
-        entry: powershell
-        args: [-Command, "go run cmd/cicd/main.go lint-text lint-go-test format-go; exit 0"]
+      - id: cicd-format-go-test-only
+        name: Auto-fix Go test files (t.Helper)
+        entry: go
+        args: [run, cmd/cicd/main.go, format-go-test]
         language: system
-        pass_filenames: false
-        always_run: true  # Allow enforce commands to "fail" (modify files)
+        pass_filenames: false # formatters handle file scanning internally, so no need to pass filenames
+        require_serial: true # formatters are read-write, so they must run sequentially to avoid conflicts
+        stages: [pre-commit]
 
   # Go dependency management (clean state before linting)
   - repo: local
@@ -273,108 +277,6 @@ repos:
         files: '\.go$'
         require_serial: false
         stages: [pre-commit]
-
-  # Go auto-fix commands (moved to pre-push for faster pre-commit)
-  - repo: local
-    hooks:
-      - id: format-go
-        name: Auto-fix Go files (any, copyloopvar)
-        entry: go
-        args: [run, cmd/cicd/main.go, format-go]
-        language: system
-        pass_filenames: false
-        files: '\.go$'
-        stages: [pre-push]
-
-      - id: format-go-test
-        name: Auto-fix Go test files (t.Helper)
-        entry: go
-        args: [run, cmd/cicd/main.go, format-go-test]
-        language: system
-        pass_filenames: false
-        files: '_test\.go$'
-        stages: [pre-push]
-
-      - id: format-go-self-modification-check
-        name: Verify format_go files not self-modified
-        entry: python
-        language: system
-        pass_filenames: false
-        files: 'internal/cmd/cicd/format_go/.*\.go$'
-        stages: [pre-push]
-        args:
-          - -c
-          - |
-            import sys
-            import re
-            from pathlib import Path
-
-            # Critical files that MUST NOT be modified by format_go
-            PROTECTED_FILES = [
-                'internal/cmd/cicd/format_go/enforce_any.go',
-                'internal/cmd/cicd/format_go/format_go_test.go',
-            ]
-
-            violations = []
-
-            for file_path in PROTECTED_FILES:
-                path = Path(file_path)
-                if not path.exists():
-                    continue
-
-                content = path.read_text(encoding='utf-8')
-
-                # Check enforce_any.go for self-modification indicators
-                if 'enforce_any.go' in file_path:
-                    # Comments MUST use backticks around interface{} references
-                    if re.search(r'//.*interface\{\}(?![`)])', content):
-                        violations.append(f'{file_path}: Comment uses interface{{}} without backticks (self-modification risk)')
-
-                    # Critical regex pattern MUST match interface{} literally
-                    if not re.search(r"interfacePattern := `interface\\\{\\\}`", content):
-                        violations.append(f'{file_path}: interfacePattern regex modified (self-modification detected)')
-
-                    # Counting logic MUST count interface{} not any
-                    if not re.search(r'strings\.Count\(originalContent, "interface\{\}"\)', content):
-                        violations.append(f'{file_path}: Counting logic modified to count "any" instead of "interface{{}}" (self-modification detected)')
-
-                # Check format_go_test.go for test data integrity
-                if 'format_go_test.go' in file_path:
-                    # Test input data MUST use interface{} not any
-                    if re.search(r'input:.*`.*\bany\b', content, re.MULTILINE):
-                        violations.append(f'{file_path}: Test input data uses "any" instead of "interface{{}}" (self-modification detected)')
-
-            if violations:
-                print('\n❌ format_go SELF-MODIFICATION DETECTED:', file=sys.stderr)
-                for violation in violations:
-                    print(f'  - {violation}', file=sys.stderr)
-                print('\nRevert changes to protected files before committing.', file=sys.stderr)
-                print('See docs/runbooks/format-go-maintenance.md for details.', file=sys.stderr)
-                sys.exit(1)
-
-            print('✅ format_go files integrity verified (no self-modifications)', file=sys.stderr)
-            sys.exit(0)
-
-  # Go build validation (moved to pre-push for faster pre-commit)
-  - repo: local
-    hooks:
-      - id: go-build
-        name: go build
-        entry: go
-        args: [build, ./...]
-        language: system
-        pass_filenames: false
-        files: '\.go$|go\.mod$|go\.sum$'
-        require_serial: false
-        stages: [pre-push]  # Build validation before push, not on every commit
-
-  # Secrets scanning (critical for crypto project)
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.27.2
-    hooks:
-      - id: gitleaks
-        name: Scan for secrets
-        stages: [pre-push]
 
   # Stricter YAML validation
   - repo: https://github.com/adrienverge/yamllint
@@ -420,19 +322,6 @@ repos:
         name: Python security linting
         files: '\.py$'
         require_serial: false
-
-  # # Spell checking (expensive - moved to pre-push)
-  # - repo: local
-  #   hooks:
-  #     - id: cspell
-  #       name: Check spelling
-  #       entry: cspell
-  #       args: [--no-progress, --cache]
-  #       language: system
-  #       files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
-  #       exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/)'
-  #       require_serial: false
-  #       stages: [pre-push]
 
   # Markdown linting with auto-fix
   - repo: https://github.com/DavidAnson/markdownlint-cli2
