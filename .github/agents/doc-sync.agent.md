@@ -24,7 +24,7 @@ Quick reference for all synchronization-eligible documentation across the crypto
 | `.github/copilot-instructions.md` | Entrypoint | Main agent instruction loader | New instruction files, instruction reorganization | All agents, instruction files |
 | `.github/constitution.md` | Constitutional | Overarching project principles | Fundamental principle changes, new constitutional rules | All docs, all code |
 | `.github/instructions/*.instructions.md` | Constitutional | Domain-specific detailed rules | Pattern discovery, anti-pattern identification, new best practices | READMEs, agent prompts, templates |
-| `docs/arch/ARCHITECTURE.md` | Architectural | System design, service patterns, quality gates | Architectural changes, pattern discovery, quality gate adjustments | Service templates, agent prompts, copilot instructions |
+| `docs/ARCHITECTURE.md` | Architectural | System design, service patterns, quality gates | Architectural changes, pattern discovery, quality gate adjustments | Service templates, agent prompts, copilot instructions |
 | **Spec Kit (Update frequently, specialized content)** |
 | `docs/speckit/constitution.md` | Constitutional | Spec Kit principles and rules | Constitution changes, Spec Kit workflow updates | Spec Kit templates, workflows |
 | `docs/speckit/templates/*.md` | Templates | Reusable Spec Kit document templates | Template improvements, new document types | New spec documents |
@@ -71,9 +71,9 @@ Quick reference for all synchronization-eligible documentation across the crypto
 
 | Change Type | Start Here | Then Update |
 |-------------|-----------|-------------|
-| New quality gate | `docs/arch/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `docs/speckit/constitution.md`, `.github/agents/plan-tasks-implement.agent.md` |
+| New quality gate | `docs/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `docs/speckit/constitution.md`, `.github/agents/plan-tasks-implement.agent.md` |
 | New execution rule | `.github/constitution.md` | `.github/instructions/01-02.beast-mode.md`, `.github/agents/plan-tasks-implement.agent.md`, `docs/speckit/constitution.md` |
-| New architectural pattern | `docs/arch/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), service implementations |
+| New architectural pattern | `docs/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), service implementations |
 | New testing pattern | `.github/instructions/03-02.testing.md` | `README.md`, `.github/agents/*.agent.md` (if workflow change) |
 | New pre-commit hook | `.pre-commit-config.yaml` | `docs/pre-commit-hooks.md`, `.github/instructions/03-07.linting.md` |
 | Lessons learned discovered | `test-output/<session>/lessons-learned.md` | Copilot instructions (anti-patterns), README (best practices), agent prompts (validation steps) |
@@ -113,7 +113,7 @@ Systematically identify and synchronize related documentation across the cryptou
 
 ### Source of Truth Architecture Documents (Update These First)
 
-A1. **Architecture** (`docs/arch/ARCHITECTURE.md`)
+A1. **Architecture** (`docs/ARCHITECTURE.md`)
 
 - **Purpose**: Repository Source of Truth, System design, patterns, component relationships
 - **Update Triggers**: Architectural changes, new patterns, component additions
@@ -276,7 +276,7 @@ docs(sync): synchronize [change type] across documentation
 Updated documents:
 - .github/instructions/XX.instructions.md: [change]
 - specs/002-cryptoutil/spec.md: [change]
-- docs/arch/ARCHITECTURE.md: [change]
+- docs/ARCHITECTURE.md: [change]
 
 Changes:
 - [Specific values/rules changed]
@@ -376,7 +376,7 @@ grep -r "NEVER ask.*Should I proceed" .github/ | wc -l  # Should match number of
 
 **Documents Requiring Sync**:
 
-1. Architecture (docs/arch/ARCHITECTURE.md) → Update ServerBuilder section
+1. Architecture (docs/ARCHITECTURE.md) → Update ServerBuilder section
 2. Copilot Instructions (02-02.service-template) → Update ServerBuilder requirements
 3. Copilot Instructions (03-08.server-builder) → Add merged migrations pattern
 4. Service Template Docs (docs/service-template/*.md) → Update examples
@@ -386,7 +386,7 @@ grep -r "NEVER ask.*Should I proceed" .github/ | wc -l  # Should match number of
 
 ```bash
 # Step 1: Update architecture doc
-# Edit docs/arch/ARCHITECTURE.md ServerBuilder section
+# Edit docs/ARCHITECTURE.md ServerBuilder section
 
 # Step 2: Find all ServerBuilder references
 grep -r "ServerBuilder\|merged.*migration" docs/ .github/instructions/ specs/

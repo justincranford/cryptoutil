@@ -654,9 +654,9 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Dependencies**: Tasks 11.1-11.3
 - **Description**: Update all architecture docs with new ports
 - **Acceptance Criteria**:
-  - [x] docs/arch/ARCHITECTURE.md service catalog updated
+  - [x] docs/ARCHITECTURE.md service catalog updated
 - **Files**:
-  - `docs/arch/ARCHITECTURE.md`
+  - `docs/ARCHITECTURE.md`
 
 ### Task 11.5: Update Copilot Instructions
 

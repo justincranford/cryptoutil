@@ -535,7 +535,7 @@ The template barrier must be fully self-contained before shared/barrier can be d
 - .github/instructions/02-02.service-template.instructions.md
 - .github/instructions/02-03.https-ports.instructions.md
 - README.md
-- docs/arch/ARCHITECTURE.md (if exists)
+- docs/ARCHITECTURE.md (if exists)
 
 **Tasks**:
 - 20.1: Update architecture.instructions.md service catalog
