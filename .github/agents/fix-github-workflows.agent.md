@@ -262,12 +262,25 @@ EOF
 
 **Primary Method**: Use the workflow command to execute individual workflows locally.
 
+**Docker Desktop Requirement**:
+
+**CRITICAL: Docker Desktop MUST be running locally before executing workflows**
+
+- Workflows are run locally by `act` in containers
+- If Docker Desktop not running, start it via command line:
+  - **Windows PowerShell**: `Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"`
+  - **Linux systemd**: `systemctl --user start docker-desktop`
+- Verify with: `docker ps`
+- Wait 30-60 seconds for Docker to fully initialize
+
+**Workflow Command Reference** (from docs/ARCHITECTURE.md Quality Gates):
+
 ```bash
 # Execute single workflow
-go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
+go run ./cmd/workflow -workflows=<workflow-name>
 
 # Execute multiple workflows
-go run ./cmd/workflow -workflows=dast,e2e -inputs="scan_profile=full"
+go run ./cmd/workflow -workflows=<name1>,<name2>
 
 # List available workflows
 go run ./cmd/workflow -list
@@ -276,18 +289,51 @@ go run ./cmd/workflow -list
 go run ./cmd/workflow -help
 ```
 
-**Supported Workflows**:
+**Available Workflows**:
 
-- `ci-quality`: Linting, formatting, builds
-- `ci-coverage`: Test coverage analysis
-- `ci-benchmark`: Performance benchmarks
-- `ci-fuzz`: Fuzz testing
-- `ci-race`: Race condition detection
-- `ci-sast`: Static security analysis
-- `ci-gitleaks`: Secrets scanning
-- `ci-dast`: Dynamic security testing (requires services)
-- `ci-e2e`: End-to-end integration testing (requires services)
-- `ci-load`: Load testing (requires services)
+| Workflow | Command | Purpose | Coverage Target |
+|----------|---------|---------|-----------------|
+| **build** | `go run ./cmd/workflow -workflows=build` | Build check | N/A |
+| **coverage** | `go run ./cmd/workflow -workflows=coverage` | Test coverage analysis | ≥98% required |
+| **quality** | `go run ./cmd/workflow -workflows=quality` | Quality checks (lint, format, build) | N/A |
+| **lint** | `go run ./cmd/workflow -workflows=lint` | Linting check | N/A |
+| **benchmark** | `go run ./cmd/workflow -workflows=benchmark` | Performance benchmarks | N/A |
+| **fuzz** | `go run ./cmd/workflow -workflows=fuzz` | Fuzz testing (15s per test) | N/A |
+| **race** | `go run ./cmd/workflow -workflows=race` | Race condition detection | N/A |
+| **sast** | `go run ./cmd/workflow -workflows=sast` | Static security analysis | N/A |
+| **gitleaks** | `go run ./cmd/workflow -workflows=gitleaks` | Secrets scanning | N/A |
+| **dast** | `go run ./cmd/workflow -workflows=dast` | Dynamic security testing (requires services) | N/A |
+| **mutation** | `go run ./cmd/workflow -workflows=mutation` | Mutation testing | ≥95% required |
+| **e2e** | `go run ./cmd/workflow -workflows=e2e` | End-to-end tests (BOTH `/service/**` AND `/browser/**` paths) | N/A |
+| **load** | `go run ./cmd/workflow -workflows=load` | Load testing (requires services) | N/A |
+| **ci** | `go run ./cmd/workflow -workflows=ci` | Full CI workflow (all checks) | N/A |
+
+**Workflows Without Service Dependencies** (fast execution):
+
+- build, coverage, quality, lint, benchmark, fuzz, race, sast, gitleaks, mutation
+
+**Workflows Requiring Service Dependencies** (slower execution):
+
+- dast, e2e, load (require Docker Compose services running)
+
+**Usage Examples**:
+
+```bash
+# Run quality checks before committing
+go run ./cmd/workflow -workflows=quality
+
+# Run full test suite with coverage
+go run ./cmd/workflow -workflows=coverage
+
+# Run security checks
+go run ./cmd/workflow -workflows=sast,gitleaks
+
+# Run E2E tests (requires Docker services)
+go run ./cmd/workflow -workflows=e2e
+
+# Run full CI pipeline
+go run ./cmd/workflow -workflows=ci
+```
 
 ### 2. Direct Tool Execution
 
