@@ -5,9 +5,41 @@
 package magic
 
 import (
+	"os"
+	"path/filepath"
 	"regexp"
 	"time"
 )
+
+const (
+	// CurrentDirectory is fallback when project root not found.
+	CurrentDirectory = "."
+)
+
+// getProjectRoot finds the project root by walking up the directory tree to find .git directory.
+// Returns absolute path to project root, or "." as fallback if .git not found.
+func getProjectRoot() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return CurrentDirectory // Fallback to current directory
+	}
+
+	// Walk up directory tree until .git found.
+	for {
+		gitPath := filepath.Join(dir, ".git")
+		if _, err := os.Stat(gitPath); err == nil {
+			return dir // Found project root
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Reached filesystem root without finding .git.
+			return CurrentDirectory // Fallback to current directory
+		}
+
+		dir = parent
+	}
+}
 
 // DepCheckMode represents the mode for dependency checking operations.
 type DepCheckMode int
@@ -109,14 +141,20 @@ const (
 	// CircularDepCacheFileName is the circular dependency cache file name.
 	CircularDepCacheFileName = ".cicd/circular-dep-cache.json"
 
-	// ListAllFilesStartDirectory is the ListAllFiles start directory.
-	ListAllFilesStartDirectory = "."
-
 	// ModeNameDirect is the dependency check mode name for direct dependencies.
 	ModeNameDirect = "direct"
 	// ModeNameAll is the dependency check mode name for all dependencies.
 	ModeNameAll = "all"
+)
 
+// ListAllFilesStartDirectory is the ListAllFiles start directory.
+// Uses absolute path to project root (found by walking up to .git directory).
+// This ensures file paths are always project-root-relative regardless of working directory.
+// Fixes path relativity issue where CLI (run from root) and tests (run from package dir)
+// produced different path formats, causing exclusion pattern mismatches.
+var ListAllFilesStartDirectory = getProjectRoot()
+
+const (
 	// TestCacheValidMinutes is the time constants for dependency cache testing.
 	TestCacheValidMinutes = 30
 	// TestCacheExpiredHours is the time constants for expired cache testing.

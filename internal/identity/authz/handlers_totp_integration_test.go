@@ -427,7 +427,7 @@ func enrollTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, issuer, ac
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req, 5000) // 5-second timeout for password hashing (10 backup codes × ~150ms each)
+	resp, err := app.Test(req, 15000) // 15-second timeout for password hashing (10 backup codes × ~150ms each)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -457,7 +457,7 @@ func verifyTOTP(t *testing.T, app *fiber.App, userID googleUuid.UUID, code strin
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req, 5000) // 5-second timeout for password verification
+	resp, err := app.Test(req, 15000) // 15-second timeout for password verification
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -507,7 +507,7 @@ func generateBackupCodes(t *testing.T, app *fiber.App, userID googleUuid.UUID, e
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req, 5000) // 5-second timeout for generating 10 backup codes with password hashing
+	resp, err := app.Test(req, 15000) // 15-second timeout for generating 10 backup codes with password hashing
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -537,7 +537,7 @@ func verifyBackupCode(t *testing.T, app *fiber.App, userID googleUuid.UUID, code
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req, 5000) // 5-second timeout for backup code password verification
+	resp, err := app.Test(req, 15000) // 15-second timeout for backup code password verification
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()

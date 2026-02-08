@@ -50,13 +50,14 @@ var (
 // Demo runs the identity service demonstration.
 // args: Command-line arguments (not including program name)
 // stdout, stderr: Output streams for messages
-// Returns: Exit code (0 for success, non-zero for errors)
+// Returns: Exit code (0 for success, non-zero for errors).
 func Demo(args []string, stdout, stderr io.Writer) int {
-	fmt.Fprintln(outWriter, "🚀 Identity System Demo - OAuth 2.1 Authorization Server")
+	_, _ = fmt.Fprintln(outWriter, "🚀 Identity System Demo - OAuth 2.1 Authorization Server")
 	outWriter = stdout
 	errWriter = stderr
-	fmt.Fprintln(outWriter, "=========================================================")
-	fmt.Fprintln(stdout)
+
+	_, _ = fmt.Fprintln(outWriter, "================================================================")
+	_, _ = fmt.Fprintln(stdout)
 
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilIdentityMagic.DemoTimeout)
 	defer cancel()
@@ -64,17 +65,19 @@ func Demo(args []string, stdout, stderr io.Writer) int {
 	// Run the demo.
 	if err := runDemo(ctx); err != nil {
 		_, _ = fmt.Fprintf(errWriter, "❌ Demo failed: %v\n", err)
+
 		return 1
 	}
 
 	_, _ = fmt.Fprintln(outWriter)
 	_, _ = fmt.Fprintln(outWriter, "✅ Demo completed successfully!")
+
 	return 0
 }
 
 func runDemo(ctx context.Context) error {
 	// Step 1: Start AuthZ server.
-	fmt.Fprintln(outWriter, "📦 Step 1: Starting Authorization Server...")
+	_, _ = fmt.Fprintln(outWriter, "📦 Step 1: Starting Authorization Server...")
 
 	app, repoFactory, cleanup, err := startAuthZServer(ctx)
 	if err != nil {
@@ -93,11 +96,11 @@ func runDemo(ctx context.Context) error {
 	// Give server time to start.
 	time.Sleep(cryptoutilIdentityMagic.DemoStartupDelay)
 
-	fmt.Fprintln(outWriter, "✅ Authorization server started on http://127.0.0.1:8080")
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter, "✅ Authorization server started on http://127.0.0.1:8080")
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 2: Register demo client.
-	fmt.Fprintln(outWriter, "📝 Step 2: Registering Demo Client...")
+	_, _ = fmt.Fprintln(outWriter, "📝 Step 2: Registering Demo Client...")
 
 	if err := registerDemoClient(ctx, repoFactory); err != nil {
 		return fmt.Errorf("failed to register client: %w", err)
@@ -106,73 +109,75 @@ func runDemo(ctx context.Context) error {
 	_, _ = fmt.Fprintf(outWriter, "   ✅ Client ID: %s\n", demoClientID)
 	_, _ = fmt.Fprintf(outWriter, "   ✅ Client Name: %s\n", demoClientName)
 	_, _ = fmt.Fprintf(outWriter, "   ✅ Redirect URI: %s\n", demoRedirectURI)
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Create HTTP client for requests.
 	client := createHTTPClient()
 
 	// Step 3: Check discovery endpoints.
-	fmt.Fprintln(outWriter, "🔍 Step 3: Verifying Discovery Endpoints...")
+	_, _ = fmt.Fprintln(outWriter, "🔍 Step 3: Verifying Discovery Endpoints...")
 
 	if err := checkDiscoveryEndpoints(ctx, client); err != nil {
 		return fmt.Errorf("discovery check failed: %w", err)
 	}
 
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 4: Demonstrate OAuth 2.1 endpoints.
-	fmt.Fprintln(outWriter, "📋 Step 4: OAuth 2.1 Endpoint Summary")
+	_, _ = fmt.Fprintln(outWriter, "📋 Step 4: OAuth 2.1 Endpoint Summary")
+
 	printEndpointSummary()
-	fmt.Fprintln(outWriter)
+
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 5: Demonstrate authorization endpoint.
-	fmt.Fprintln(outWriter, "🔐 Step 5: Authorization Endpoint Demo...")
+	_, _ = fmt.Fprintln(outWriter, "🔐 Step 5: Authorization Endpoint Demo...")
 
 	_, codeChallenge := generatePKCE()
 	state := generateState()
 
 	if err := demonstrateAuthorization(ctx, client, codeChallenge, state); err != nil {
-		fmt.Fprintf(outWriter, "⚠️ Authorization demo info: %v\n", err)
+		_, _ = fmt.Fprintf(outWriter, "⚠️ Authorization demo info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 6: Demonstrate token endpoint and get access token.
-	fmt.Fprintln(outWriter, "🔑 Step 6: Token Endpoint Demo...")
+	_, _ = fmt.Fprintln(outWriter, "🔑 Step 6: Token Endpoint Demo...")
 
 	accessToken, err := demonstrateTokenEndpoint(ctx, client)
 	if err != nil {
-		fmt.Fprintf(outWriter, "⚠️ Token endpoint info: %v\n", err)
+		_, _ = fmt.Fprintf(outWriter, "⚠️ Token endpoint info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 7: Demonstrate introspection endpoint with real token.
-	fmt.Fprintln(outWriter, "🔬 Step 7: Token Introspection (BEFORE revocation)...")
+	_, _ = fmt.Fprintln(outWriter, "🔬 Step 7: Token Introspection (BEFORE revocation)...")
 
 	if err := demonstrateIntrospection(ctx, client, accessToken); err != nil {
-		fmt.Fprintf(outWriter, "⚠️ Introspection info: %v\n", err)
+		_, _ = fmt.Fprintf(outWriter, "⚠️ Introspection info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 8: Demonstrate revocation endpoint with real token.
-	fmt.Fprintln(outWriter, "🗑️ Step 8: Token Revocation...")
+	_, _ = fmt.Fprintln(outWriter, "🗑️ Step 8: Token Revocation...")
 
 	if err := demonstrateRevocation(ctx, client, accessToken); err != nil {
-		fmt.Fprintf(outWriter, "⚠️ Revocation info: %v\n", err)
+		_, _ = fmt.Fprintf(outWriter, "⚠️ Revocation info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter)
 
 	// Step 9: Demonstrate introspection after revocation.
-	fmt.Fprintln(outWriter, "🔬 Step 9: Token Introspection (AFTER revocation)...")
+	_, _ = fmt.Fprintln(outWriter, "🔬 Step 9: Token Introspection (AFTER revocation)...")
 
 	if err := demonstrateIntrospectionAfterRevoke(ctx, client, accessToken); err != nil {
-		fmt.Fprintf(outWriter, "⚠️ Introspection info: %v\n", err)
+		_, _ = fmt.Fprintf(outWriter, "⚠️ Introspection info: %v\n", err)
 	}
 
-	fmt.Fprintln(outWriter)
+	_, _ = fmt.Fprintln(outWriter)
 
 	return nil
 }
@@ -266,13 +271,13 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 	authzService.RegisterRoutes(app)
 
 	cleanup := func() {
-		fmt.Fprintln(outWriter, "🛑 Shutting down server...")
+		_, _ = fmt.Fprintln(outWriter, "🛑 Shutting down server...")
 
 		if shutdownErr := app.Shutdown(); shutdownErr != nil {
-			fmt.Fprintf(outWriter, "⚠️ Shutdown error: %v\n", shutdownErr)
+			_, _ = fmt.Fprintf(outWriter, "⚠️ Shutdown error: %v\n", shutdownErr)
 		}
 
-		fmt.Fprintln(outWriter, "✅ Server stopped")
+		_, _ = fmt.Fprintln(outWriter, "✅ Server stopped")
 	}
 
 	return app, repoFactory, cleanup, nil
@@ -337,10 +342,10 @@ func checkDiscoveryEndpoints(ctx context.Context, client *http.Client) error {
 		return fmt.Errorf("oauth metadata: %w", err)
 	}
 
-	fmt.Fprintf(outWriter, "   ✅ OAuth Metadata: issuer=%s\n", oauthMeta["issuer"])
+	_, _ = fmt.Fprintf(outWriter, "   ✅ OAuth Metadata: issuer=%s\n", oauthMeta["issuer"])
 
 	grantTypes, _ := oauthMeta["grant_types_supported"].([]any) //nolint:errcheck // Demo ok assertion
-	fmt.Fprintf(outWriter, "   ✅ Grant Types: %v\n", grantTypes)
+	_, _ = fmt.Fprintf(outWriter, "   ✅ Grant Types: %v\n", grantTypes)
 
 	// Check OIDC discovery.
 	oidcURL := fmt.Sprintf("%s/.well-known/openid-configuration", demoIssuer)
@@ -350,7 +355,7 @@ func checkDiscoveryEndpoints(ctx context.Context, client *http.Client) error {
 		return fmt.Errorf("oidc discovery: %w", err)
 	}
 
-	fmt.Fprintf(outWriter, "   ✅ OIDC Discovery: issuer=%s\n", oidcMeta["issuer"])
+	_, _ = fmt.Fprintf(outWriter, "   ✅ OIDC Discovery: issuer=%s\n", oidcMeta["issuer"])
 
 	// Check JWKS.
 	jwksURL := fmt.Sprintf("%s/oauth2/v1/jwks", demoIssuer)
@@ -362,23 +367,23 @@ func checkDiscoveryEndpoints(ctx context.Context, client *http.Client) error {
 
 	keys, ok := jwks["keys"].([]any)
 	if !ok || len(keys) == 0 {
-		fmt.Fprintln(outWriter, "   ✅ JWKS: Empty (token service not configured)")
+		_, _ = fmt.Fprintln(outWriter, "   ✅ JWKS: Empty (token service not configured)")
 	} else {
-		fmt.Fprintf(outWriter, "   ✅ JWKS: %d key(s) available\n", len(keys))
+		_, _ = fmt.Fprintf(outWriter, "   ✅ JWKS: %d key(s) available\n", len(keys))
 	}
 
 	return nil
 }
 
 func printEndpointSummary() {
-	fmt.Fprintln(outWriter, "   OAuth 2.1 / OpenID Connect Endpoints:")
-	fmt.Fprintf(outWriter, "   • Discovery:     %s/.well-known/oauth-authorization-server\n", demoIssuer)
-	fmt.Fprintf(outWriter, "   • OIDC Config:   %s/.well-known/openid-configuration\n", demoIssuer)
-	fmt.Fprintf(outWriter, "   • Authorization: %s/oauth2/v1/authorize\n", demoIssuer)
-	fmt.Fprintf(outWriter, "   • Token:         %s/oauth2/v1/token\n", demoIssuer)
-	fmt.Fprintf(outWriter, "   • Introspect:    %s/oauth2/v1/introspect\n", demoIssuer)
-	fmt.Fprintf(outWriter, "   • Revoke:        %s/oauth2/v1/revoke\n", demoIssuer)
-	fmt.Fprintf(outWriter, "   • JWKS:          %s/oauth2/v1/jwks\n", demoIssuer)
+	_, _ = fmt.Fprintln(outWriter, "   OAuth 2.1 / OpenID Connect Endpoints:")
+	_, _ = fmt.Fprintf(outWriter, "   • Discovery:     %s/.well-known/oauth-authorization-server\n", demoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • OIDC Config:   %s/.well-known/openid-configuration\n", demoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Authorization: %s/oauth2/v1/authorize\n", demoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Token:         %s/oauth2/v1/token\n", demoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Introspect:    %s/oauth2/v1/introspect\n", demoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • Revoke:        %s/oauth2/v1/revoke\n", demoIssuer)
+	_, _ = fmt.Fprintf(outWriter, "   • JWKS:          %s/oauth2/v1/jwks\n", demoIssuer)
 }
 
 func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChallenge, state string) error {
@@ -413,10 +418,10 @@ func demonstrateAuthorization(ctx context.Context, client *http.Client, codeChal
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
-	fmt.Fprintf(outWriter, "   Request: GET %s?...\n", authURL)
-	fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
-	fmt.Fprintln(outWriter, "   ✅ Authorization endpoint accessible")
-	fmt.Fprintln(outWriter, "   📝 In production: would redirect to IdP login page")
+	_, _ = fmt.Fprintf(outWriter, "   Request: GET %s?...\n", authURL)
+	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	_, _ = fmt.Fprintln(outWriter, "   ✅ Authorization endpoint accessible")
+	_, _ = fmt.Fprintln(outWriter, "   📝 In production: would redirect to IdP login page")
 
 	return nil
 }
@@ -451,10 +456,10 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 		return "", fmt.Errorf("read token response: %w", err)
 	}
 
-	fmt.Fprintf(outWriter, "   Request: POST %s\n", tokenURL)
-	fmt.Fprintf(outWriter, "   Grant:   client_credentials\n")
-	fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
-	fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", tokenURL)
+	_, _ = fmt.Fprintf(outWriter, "   Grant:   client_credentials\n")
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 
 	var accessToken string
 
@@ -464,22 +469,22 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 		if err := json.Unmarshal(body, &tokenResp); err == nil {
 			if at, ok := tokenResp["access_token"].(string); ok {
 				accessToken = at
-				fmt.Fprintf(outWriter, "   ✅ Access Token (first %d): %s...\n",
+				_, _ = fmt.Fprintf(outWriter, "   ✅ Access Token (first %d): %s...\n",
 					cryptoutilIdentityMagic.DemoMinTokenChars,
 					accessToken[:min(cryptoutilIdentityMagic.DemoMinTokenChars, len(accessToken))])
 			}
 
 			if tokenType, ok := tokenResp["token_type"].(string); ok {
-				fmt.Fprintf(outWriter, "   ✅ Token Type: %s\n", tokenType)
+				_, _ = fmt.Fprintf(outWriter, "   ✅ Token Type: %s\n", tokenType)
 			}
 
 			if expiresIn, ok := tokenResp["expires_in"].(float64); ok {
-				fmt.Fprintf(outWriter, "   ✅ Expires In: %.0f seconds\n", expiresIn)
+				_, _ = fmt.Fprintf(outWriter, "   ✅ Expires In: %.0f seconds\n", expiresIn)
 			}
 		}
 	} else {
-		fmt.Fprintf(outWriter, "   ⚠️ Response: %s\n", string(body))
-		fmt.Fprintln(outWriter, "   📝 Note: Token service may need to be configured for token issuance")
+		_, _ = fmt.Fprintf(outWriter, "   ⚠️ Response: %s\n", string(body))
+		_, _ = fmt.Fprintln(outWriter, "   📝 Note: Token service may need to be configured for token issuance")
 	}
 
 	return accessToken, nil
@@ -520,20 +525,20 @@ func demonstrateIntrospection(ctx context.Context, client *http.Client, accessTo
 		return fmt.Errorf("read introspection response: %w", err)
 	}
 
-	fmt.Fprintf(outWriter, "   Request: POST %s\n", introspectURL)
-	fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
-	fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", introspectURL)
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 
 	var introspectResp map[string]any
 	if err := json.Unmarshal(body, &introspectResp); err == nil {
 		active, _ := introspectResp["active"].(bool) //nolint:errcheck // Demo ok assertion
 
 		if active && accessToken != "" {
-			fmt.Fprintln(outWriter, "   ✅ Token Active: true (issued access token validated)")
+			_, _ = fmt.Fprintln(outWriter, "   ✅ Token Active: true (issued access token validated)")
 		} else if !active && accessToken != "" {
-			fmt.Fprintln(outWriter, "   ⚠️ Token Active: false (token may not be stored)")
+			_, _ = fmt.Fprintln(outWriter, "   ⚠️ Token Active: false (token may not be stored)")
 		} else {
-			fmt.Fprintf(outWriter, "   ✅ Token Active: %v (unknown token returns inactive)\n", active)
+			_, _ = fmt.Fprintf(outWriter, "   ✅ Token Active: %v (unknown token returns inactive)\n", active)
 		}
 	}
 
@@ -570,10 +575,10 @@ func demonstrateRevocation(ctx context.Context, client *http.Client, accessToken
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Demo cleanup
 
-	fmt.Fprintf(outWriter, "   Request: POST %s\n", revokeURL)
-	fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
-	fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
-	fmt.Fprintln(outWriter, "   ✅ Revocation endpoint returns 200 per RFC 7009")
+	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", revokeURL)
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	_, _ = fmt.Fprintln(outWriter, "   ✅ Revocation endpoint returns 200 per RFC 7009")
 
 	return nil
 }
@@ -613,20 +618,20 @@ func demonstrateIntrospectionAfterRevoke(ctx context.Context, client *http.Clien
 		return fmt.Errorf("read post-revoke introspection response: %w", err)
 	}
 
-	fmt.Fprintf(outWriter, "   Request: POST %s\n", introspectURL)
-	fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
-	fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	_, _ = fmt.Fprintf(outWriter, "   Request: POST %s\n", introspectURL)
+	_, _ = fmt.Fprintf(outWriter, "   Client:  %s (Basic Auth)\n", demoClientID)
+	_, _ = fmt.Fprintf(outWriter, "   Status:  %d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
 
 	var introspectResp map[string]any
 	if err := json.Unmarshal(body, &introspectResp); err == nil {
 		active, _ := introspectResp["active"].(bool) //nolint:errcheck // Demo ok assertion
 
 		if !active && accessToken != "" {
-			fmt.Fprintln(outWriter, "   ✅ Token Active: false (revoked token correctly invalidated)")
+			_, _ = fmt.Fprintln(outWriter, "   ✅ Token Active: false (revoked token correctly invalidated)")
 		} else if active && accessToken != "" {
-			fmt.Fprintln(outWriter, "   ⚠️ Token Active: true (revocation may not have persisted)")
+			_, _ = fmt.Fprintln(outWriter, "   ⚠️ Token Active: true (revocation may not have persisted)")
 		} else {
-			fmt.Fprintf(outWriter, "   ✅ Token Active: %v\n", active)
+			_, _ = fmt.Fprintf(outWriter, "   ✅ Token Active: %v\n", active)
 		}
 	}
 

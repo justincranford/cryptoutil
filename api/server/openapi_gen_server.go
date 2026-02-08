@@ -2539,7 +2539,7 @@ type StrictServerInterface interface {
 	GetMaterialkeys(ctx context.Context, request GetMaterialkeysRequestObject) (GetMaterialkeysResponseObject, error)
 }
 
-type StrictHandlerFunc func(ctx *fiber.Ctx, args interface{}) (interface{}, error)
+type StrictHandlerFunc func(ctx *fiber.Ctx, args any) (any, error)
 
 type StrictMiddlewareFunc func(f StrictHandlerFunc, operationID string) StrictHandlerFunc
 
@@ -2562,7 +2562,7 @@ func (sh *strictHandler) PostElastickey(ctx *fiber.Ctx) error {
 	}
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickey(ctx.UserContext(), request.(PostElastickeyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2589,7 +2589,7 @@ func (sh *strictHandler) DeleteElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKey
 
 	request.ElasticKeyID = elasticKeyID
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.DeleteElastickeyElasticKeyID(ctx.UserContext(), request.(DeleteElastickeyElasticKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2616,7 +2616,7 @@ func (sh *strictHandler) GetElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKeyID 
 
 	request.ElasticKeyID = elasticKeyID
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.GetElastickeyElasticKeyID(ctx.UserContext(), request.(GetElastickeyElasticKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2649,7 +2649,7 @@ func (sh *strictHandler) PutElastickeyElasticKeyID(ctx *fiber.Ctx, elasticKeyID 
 	}
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PutElastickeyElasticKeyID(ctx.UserContext(), request.(PutElastickeyElasticKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2680,7 +2680,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDDecrypt(ctx *fiber.Ctx, elast
 	body := PostElastickeyElasticKeyIDDecryptTextRequestBody(data)
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDDecrypt(ctx.UserContext(), request.(PostElastickeyElasticKeyIDDecryptRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2712,7 +2712,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDEncrypt(ctx *fiber.Ctx, elast
 	body := PostElastickeyElasticKeyIDEncryptTextRequestBody(data)
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDEncrypt(ctx.UserContext(), request.(PostElastickeyElasticKeyIDEncryptRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2744,7 +2744,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDGenerate(ctx *fiber.Ctx, elas
 	body := PostElastickeyElasticKeyIDGenerateTextRequestBody(data)
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDGenerate(ctx.UserContext(), request.(PostElastickeyElasticKeyIDGenerateRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2777,7 +2777,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDImport(ctx *fiber.Ctx, elasti
 	}
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDImport(ctx.UserContext(), request.(PostElastickeyElasticKeyIDImportRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2810,7 +2810,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDMaterialkey(ctx *fiber.Ctx, e
 	}
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDMaterialkey(ctx.UserContext(), request.(PostElastickeyElasticKeyIDMaterialkeyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2838,7 +2838,7 @@ func (sh *strictHandler) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx *
 	request.ElasticKeyID = elasticKeyID
 	request.MaterialKeyID = materialKeyID
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx.UserContext(), request.(GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2866,7 +2866,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevok
 	request.ElasticKeyID = elasticKeyID
 	request.MaterialKeyID = materialKeyID
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevoke(ctx.UserContext(), request.(PostElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRevokeRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2894,7 +2894,7 @@ func (sh *strictHandler) GetElastickeyElasticKeyIDMaterialkeys(ctx *fiber.Ctx, e
 	request.ElasticKeyID = elasticKeyID
 	request.Params = params
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.GetElastickeyElasticKeyIDMaterialkeys(ctx.UserContext(), request.(GetElastickeyElasticKeyIDMaterialkeysRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2926,7 +2926,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDSign(ctx *fiber.Ctx, elasticK
 	body := PostElastickeyElasticKeyIDSignTextRequestBody(data)
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDSign(ctx.UserContext(), request.(PostElastickeyElasticKeyIDSignRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2957,7 +2957,7 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDVerify(ctx *fiber.Ctx, elasti
 	body := PostElastickeyElasticKeyIDVerifyTextRequestBody(data)
 	request.Body = &body
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.PostElastickeyElasticKeyIDVerify(ctx.UserContext(), request.(PostElastickeyElasticKeyIDVerifyRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -2984,7 +2984,7 @@ func (sh *strictHandler) GetElastickeys(ctx *fiber.Ctx, params GetElastickeysPar
 
 	request.Params = params
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.GetElastickeys(ctx.UserContext(), request.(GetElastickeysRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
@@ -3011,7 +3011,7 @@ func (sh *strictHandler) GetMaterialkeys(ctx *fiber.Ctx, params GetMaterialkeysP
 
 	request.Params = params
 
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+	handler := func(ctx *fiber.Ctx, request any) (any, error) {
 		return sh.ssi.GetMaterialkeys(ctx.UserContext(), request.(GetMaterialkeysRequestObject))
 	}
 	for _, middleware := range sh.middlewares {

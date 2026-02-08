@@ -17,11 +17,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-var (
-	outWriter io.Writer = os.Stdout
-	errWriter io.Writer = os.Stderr
-)
-
 const (
 	defaultTailLines      = 100
 	defaultHealthRetries  = 30
@@ -197,10 +192,8 @@ func parseScaling(scalingStr string) (map[string]int, error) {
 // Compose runs the identity compose orchestrator.
 // args: Command-line arguments (not including program name)
 // stdout, stderr: Output streams for messages
-// Returns: Exit code (0 for success, non-zero for errors)
+// Returns: Exit code (0 for success, non-zero for errors).
 func Compose(args []string, stdout, stderr io.Writer) int {
-	outWriter = stdout
-	errWriter = stderr
 	// Command-line flags
 	var (
 		composeFile    = flag.String("compose-file", "deployments/identity/compose.advanced.yml", "Path to Docker Compose file")
@@ -226,6 +219,7 @@ func Compose(args []string, stdout, stderr io.Writer) int {
 	scaling, err := parseScaling(*scalingStr)
 	if err != nil {
 		logger.Error("Failed to parse scaling", "error", err)
+
 		return 1
 	}
 
@@ -239,34 +233,41 @@ func Compose(args []string, stdout, stderr io.Writer) int {
 	case "start":
 		if err := orchestrator.start(ctx); err != nil {
 			logger.Error("Start failed", "error", err)
+
 			return 1
 		}
 		// Wait for services to become healthy
 		if err := orchestrator.waitForHealth(ctx, *healthRetries, *healthInterval); err != nil {
 			logger.Error("Health check failed", "error", err)
+
 			return 1
 		}
 	case "stop":
 		if err := orchestrator.stop(ctx, *removeVolumes); err != nil {
 			logger.Error("Stop failed", "error", err)
+
 			return 1
 		}
 	case "health":
 		if err := orchestrator.healthCheck(ctx); err != nil {
 			logger.Error("Health check failed", "error", err)
+
 			return 1
 		}
 	case "logs":
 		if err := orchestrator.logs(ctx, *service, *follow, *tail); err != nil {
 			logger.Error("Logs failed", "error", err)
+
 			return 1
 		}
 	default:
 		logger.Error("Unknown operation", "operation", *operation)
 		flag.Usage()
+
 		return 1
 	}
 
 	logger.Info("Operation completed successfully", "operation", *operation)
+
 	return 0
 }
