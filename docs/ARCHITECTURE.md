@@ -595,19 +595,51 @@ healthcheck:
 
 ## Quality Gates
 
-### Pre-Commit
+### MANDATORY Pre-Commit Quality Gates
 
-1. `golangci-lint run --fix` → zero warnings
-2. `go build ./...` → clean build
-3. `go test -coverprofile=./test-reports/cov.out ./... && go tool cover -html=./test-reports/cov.out -o ./test-reports/cov.html` → 100% tests pass with 98% code coverage
+`golangci-lint run --fix` → zero warnings
+`go build ./...` → clean build
+`go test -cover -shuffle=on ./...` → MANDATORY 100% tests pass, and ≥98% coverage per package
+
+### RECOMMENDED Pre-Commit Quality Gates
+
+`go get -u ./...` → direct dependency updates only
+`go mod tidy` → dependency tidy-up; must run after update dependencies
+`govulncheck ./...` → vulnerability scan
+
+### RECOMMENDED Pre-push Quality Gates
+
+`gremlins unleash --tags=!integration` → mutation testing
+`govulncheck ./...` → vulnerability scan
+
+### SUGGESTED Pre-push Quality Gates
+
+`go get -u all` → all dependency updates, including transitive dependencies
+`go test -bench=. -benchmem ./pkg/path` → benchmark tests
+`go test -fuzz=FuzzTestName -fuzztime=15s ./pkg/path` → fuzz tests
+`go test -race -count=3 ./...` → race detection
 
 ### CI/CD
 
-| Workflow | Requirement |
-|----------|-------------|
-| Coverage | ≥95% production, ≥98% infrastructure/utility |
-| Mutation (gremlins) | ≥85% production, ≥98% infrastructure |
-| E2E | BOTH `/service/**` AND `/browser/**` paths |
+***Docker Desktop** MUST be running locally, because workflows are run locally by `act` in containers.
+If not running, start it via command line.
+
+Here are local convenience commands to run the workflows locally for Development and Testing.
+
+`go run ./cmd/workflow -workflows=build`     → build check
+`go run ./cmd/workflow -workflows=coverage`  → workflow coverage check; ≥98% required
+`go run ./cmd/workflow -workflows=quality`   → workflow quality check
+`go run ./cmd/workflow -workflows=lint`      → linting check
+`go run ./cmd/workflow -workflows=benchmark` → workflow benchmark check
+`go run ./cmd/workflow -workflows=fuzz`      → workflow fuzz check
+`go run ./cmd/workflow -workflows=race`      → workflow race check
+`go run ./cmd/workflow -workflows=sast`      → static security analysis
+`go run ./cmd/workflow -workflows=gitleaks`  → secrets scanning
+`go run ./cmd/workflow -workflows=dast`      → dynamic security testing
+`go run ./cmd/workflow -workflows=mutation`  → mutation testing; ≥95% required
+`go run ./cmd/workflow -workflows=e2e`       → end-to-end tests; BOTH `/service/**` AND `/browser/**` paths
+`go run ./cmd/workflow -workflows=load`      → load testing
+`go run ./cmd/workflow -workflows=ci`        → full CI workflow
 
 ---
 
