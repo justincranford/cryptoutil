@@ -234,7 +234,6 @@ Users from different realms in the same tenant see the SAME data. The realm only
 ### Documentation Updates Required
 
 - [x] ARCHITECTURE.md - Expanded realm section with all 16 types
-- [x] SERVICE-TEMPLATE.md - Added Realm Pattern section
 - [ ] Verify realm implementation in cipher-im uses template correctly
 
 ---

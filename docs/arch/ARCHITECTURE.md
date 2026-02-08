@@ -2,8 +2,6 @@
 
 **Purpose**: Single source of truth for cryptoutil product suite architecture, design, directory structure, and deployment patterns.
 
-**Companion Document**: [SERVICE-TEMPLATE.md](SERVICE-TEMPLATE.md) - Complete blueprint for building services.
-
 ---
 
 ## Product and Services - Authoritative Reference
@@ -24,7 +22,7 @@
 
 These principles apply to both the Private Admin APIs and Public Business Logic APIs, for ALL 5 products and 9 services:
 
-- ALWAYS use HTTPS for ALL API listeners; never HTTP
+- ALWAYS use HTTPS for ALL API listeners; never HTTP; TLS supports autoconfig or static config
 - ALWAYS use IPv4 127.0.0.1 OUTSIDE of Docker Compose and Kubernetes
 - ALWAYS use port 0 for test configuration OUTSIDE of Docker Compose and Kubernetes; for example, in ALL unit tests and integration tests
 - NEVER use localhost inside Docker Compose and Kubernetes, due to IPv4 vs IPv6 dual stack issues
@@ -79,6 +77,65 @@ The shared telemetry stack MUST run INSIDE Docker Compose and Kubernetes, with f
 | grafana-otel-lgtm | 127.0.0.1:3000 | 0.0.0.0:3000 | HTTP (no TLS) |
 | grafana-otel-lgtm | 127.0.0.1:4317 | 0.0.0.0:4317 | OTLP gRPC (no TLS) |
 | grafana-otel-lgtm | 127.0.0.1:4318 | 0.0.0.0:4318 | OTLP HTTP (no TLS) |
+
+---
+
+## Database Architecture
+
+### Dual Database Support
+
+All 9 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
+
+Typical usages for each database for different purposes:
+- Unit tests, Fuzz tests, Benchmark tests, Mutations tests => Ephemeral SQLite instance (e.g. in-memory)
+- Integration tests, Load tests => Ephemeral PostgreSQL instance (i.e. test-container)
+- End-to-End tests => Static PostgreSQL instance (e.g. Docker Compose)
+- Production => Static PostgreSQL instance (e.g. Cloud hosted)
+- Local Development => Static SQLite instance (e.g. file); used for local development
+
+Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isolation testing; 3 service instances, 2 using a shared PostgreSQL container, and 1 using in-memory SQLite
+
+### Cross-DB Compatibility Rules
+
+```go
+// UUID fields: ALWAYS type:text (SQLite has no native UUID)
+ID googleUuid.UUID `gorm:"type:text;primaryKey"`
+
+// Nullable UUIDs: Use NullableUUID (NOT *googleUuid.UUID)
+ClientProfileID NullableUUID `gorm:"type:text;index"`
+
+// JSON arrays: ALWAYS serializer:json (NOT type:json)
+AllowedScopes []string `gorm:"serializer:json"`
+```
+
+### SQLite Configuration
+
+```go
+sqlDB.Exec("PRAGMA journal_mode=WAL;")       // Concurrent reads + 1 writer
+sqlDB.Exec("PRAGMA busy_timeout = 30000;")   // 30s retry on lock
+sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
+```
+
+### SQLite DateTime (CRITICAL)
+
+**ALWAYS use `.UTC()` when comparing with SQLite timestamps**:
+
+```go
+// ❌ WRONG: time.Now() without .UTC()
+if session.CreatedAt.After(time.Now()) { ... }
+
+// ✅ CORRECT: Always use .UTC()
+if session.CreatedAt.After(time.Now().UTC()) { ... }
+```
+
+**Pre-commit hook auto-converts** `time.Now()` → `time.Now().UTC()`.
+
+### File Numbering for SQL Go-Migrations DDL/DML Files
+
+| Range | Owner | Examples |
+|-------|-------|----------|
+| 1001-1999 | Service Template | Sessions (1001), Barrier (1002), Realms (1003), Tenants (1004), PendingUsers (1005) |
+| 2001+ | Domain | cipher-im messages (2001), jose JWKs (2001) |
 
 ---
 
@@ -298,73 +355,61 @@ db.Where("tenant_id = ?", tenantID).Find(&messages)
 db.Where("tenant_id = ? AND realm_id = ?", tenantID, realmID).Find(&messages)
 ```
 
-### Realms (Authentication Configuration Only)
+### Authentication Realms
 
 **CRITICAL**: Realms define authentication METHOD and POLICY, NOT data scoping.
 
 **Realms do NOT scope data** - all realms in same tenant see same data. Only `tenant_id` scopes data access.
 
-#### Realms
+#### Authentication Realm Types
 
-Every REALM is configurable per-service as file-based static config, dynamic database-backed config, or both.
-Services may include or omit any REALM, including file-based or database-backed.
-Requirement: A minimum of 1 realm per service MUST be configured for authentication to work.
-Recommendation: A minimum of 2 realms per service SHOULD be configured, 1 file-based for admin authentication, and 1 file-based or database-based for sessions cookie validation.
+| Realm Type | Purpose | Scheme | Credential | Credential Validators |
+|------|--------|------------|-------------------------|-----------------|
+| `https-client-cert-factor` | Create or Upgrade Session | HTTP/mTLS Handshake | HTTPS Client Certificate | File, Database, Federated |
+| `webauthn-resident-synced-factor` | Create or Upgrade Session | WebAuthn L2 Resident Synced (aka Passkeys) | Local PublicKeyCredential | File, Database, Federated |
+| `webauthn-resident-unsynced-factor` | Create or Upgrade Session | WebAuthn L2 Resident Unsynced (e.g. Windows Hello) | Local PublicKeyCredential | File, Database, Federated |
+| `webauthn-nonresident-synced-factor` | Create or Upgrade Session | WebAuthn L2 Non-Resident Synced (e.g. Azure AD) | Cloud PublicKeyCredential | File, Database, Federated |
+| `webauthn-nonresident-unsynced-factor` | Create or Upgrade Session | WebAuthn L2 Non-Resident Unsynced (e.g. YubiKey) | Cloud PublicKeyCredential | File, Database, Federated |
+| `authorization-code-opaque-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | File, Database, Federated |
+| `authorization-code-jwe-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | JWE | File, Database, Federated |
+| `authorization-code-jws-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | JWS | File, Database, Federated |
+| `bearer-token-opaque-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | Opaque Token | File, Database, Federated |
+| `bearer-token-jwe-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | JWE Token | File, Database, Federated |
+| `bearer-token-jws-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | JWS Token | File, Database, Federated |
+| `basic-username-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Username/Password | File, Database, Federated |
+| `basic-email-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Email/Password | File, Database, Federated |
+| `basic-email-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Email/RandomOTP | File, Database, Federated |
+| `basic-email-magiclink-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic + Query String | Email/Nothing & QueryParameter | File, Database, Federated |
+| `basic-sms-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/Password | File, Database, Federated |
+| `basic-sms-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/RandomOTP | File, Database, Federated |
+| `basic-sms-magiclink-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic + Query String | Phone/Nothing & QueryParameter | File, Database, Federated |
+| `basic-voice-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/RandomOTP | File, Database, Federated |
+| `basic-id-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | ID/Nothing & HOTP/TOTP | File, Database, Federated |
+| `cookie-token-opaque-session` | Use Session | HTTP Header 'Cookie' Token | Opaque Token | File, Database, Federated |
+| `cookie-token-jwe-session` | Use Session | HTTP Header 'Cookie' Token | JWE Token | File, Database, Federated |
+| `cookie-token-jws-session` | Use Session | HTTP Header 'Cookie' Token | JWS Token | File, Database, Federated |
 
-All REALMS must be implemented in service-template, and inherited by all 9 services for all 9 products, for maximum consistency and minimum duplication.
+### Authentication Realm Principals
 
-All users and clients must authenticate successfully with one of the `authentication-*` realms, to receive a session cookie.
-All subsequent API calls must use the session cookie; The session cookie may be stateless (e.g. JWE, JWS) or stateful (e.g. opaque cookie).
+1. Every service MUST configure a prioritized list of realm instances; multiple realm instances of same realm type are allowed.
+2. Every service MUST configure one or more factor realms, for creating or upgrading sessions; zero factor realms is NOT allowed.
+3. Every service MUST configure one or more session realms, for using sessions; zero session realms is NOT allowed.
+4. Every realm instance MUST specify one-and-only-one credential validator; the only valid credential validator options are file-backed, database-backed, or federated.
+5. Every factor realm instance MUST return a created or rotated session cookie on successful authentication.
+6. Every session realm instance MAY return a rotated session cookie on successful authentication; mitigates session fixation.
+7. Every service is RECOMMENDED to include at least one file-based factor realm for fallback session creation, plus at least one file-based session realm for session use.
+8. Realm design and implementation MUST be encapsulated in service-template, and inherited by all 9 services for all 5 products, for maximum consistency and minimum duplication.
+9. All browser users and headless clients MUST first authenticate successfully to a factor realm for session creation, and use the session token for all subsequent API calls.
 
-**Login Realms for Every Service**
+### Tenant and Member Registration Flow
 
-| Type | Scheme | Credential | Login or Session | Credential Store |
-|------|--------|------------|-------------------------|=-----------------|
-| `https-client-cert-login-file` | HTTP/mTLS Handshake | HTTPS Client Certificate | Login | File |
-| `https-client-cert-login-database` | HTTP/mTLS Handshake | HTTPS Client Certificate | Login | Database |
-| `https-client-cert-login-federated` | HTTP/mTLS Handshake | HTTPS Client Certificate | Login | Federated |
-| `bearer-token-opaque-login-file` | HTTP Header 'Authorize' Bearer | Opaque Token | Login | File |
-| `bearer-token-opaque-login-database` | HTTP Header 'Authorize' Bearer | Opaque Token | Login | Database |
-| `bearer-token-opaque-login-federated` | HTTP Header 'Authorize' Bearer | Opaque Token | Login | Federated |
-| `bearer-token-jwe-login-file` | HTTP Header 'Authorize' Bearer | JWE Token | Login | File |
-| `bearer-token-jwe-login-database` | HTTP Header 'Authorize' Bearer | JWE Token | Login | Database |
-| `bearer-token-jwe-login-federated` | HTTP Header 'Authorize' Bearer | JWE Token | Login | Federated |
-| `bearer-token-jws-login-file` | HTTP Header 'Authorize' Bearer | JWS Token | Login | File |
-| `bearer-token-jws-login-database` | HTTP Header 'Authorize' Bearer | JWS Token | Login | Database |
-| `bearer-token-jws-login-federated` | HTTP Header 'Authorize' Bearer | JWS Token | Login | Federated |
-| `basic-username-password-login-file` | HTTP Header 'Authorize' Basic | Username/Password | Login | File |
-| `basic-username-password-login-database` | HTTP Header 'Authorize' Basic | Username/Password | Login | Database |
-| `basic-username-password-login-federated` | HTTP Header 'Authorize' Basic | Username/Password | Login | Federated |
-| `cookie-token-opaque-session-file` | HTTP Header 'Cookie' Token | Opaque Token | Session | File |
-| `cookie-token-opaque-session-database` | HTTP Header 'Cookie' Token | Opaque Token | Session | Database |
-| `cookie-token-opaque-session-federated` | HTTP Header 'Cookie' Token | Opaque Token | Session | Federated |
-| `cookie-token-jwe-session-file` | HTTP Header 'Cookie' Token | JWE Token | Session | File |
-| `cookie-token-jwe-session-database` | HTTP Header 'Cookie' Token | JWE Token | Session | Database |
-| `cookie-token-jwe-session-federated` | HTTP Header 'Cookie' Token | JWE Token | Session | Federated |
-| `cookie-token-jws-session-file` | HTTP Header 'Cookie' Token | JWS Token | Session | File |
-| `cookie-token-jws-session-database` | HTTP Header 'Cookie' Token | JWS Token | Session | Database |
-| `cookie-token-jws-session-federated` | HTTP Header 'Cookie' Token | JWS Token | Session | Federated |
-
-| `authorization-code-opaque-login-file` | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | Login | File |
-| `authorization-code-jwe-login-file` | OAuth 2.1 Authorization Code Flow + PKCE | JWE | Login | File |
-| `authorization-code-jws-login-file` | OAuth 2.1 Authorization Code Flow + PKCE | JWS | Login | File |
-| `authorization-code-opaque-login-database` | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | Login | Database |
-| `authorization-code-jwe-login-database` | OAuth 2.1 Authorization Code Flow + PKCE | JWE | Login | Database |
-| `authorization-code-jws-login-database` | OAuth 2.1 Authorization Code Flow + PKCE | JWS | Login | Database |
-| `authorization-code-login-federated` | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | Login | Federated |
-
-| `webauthn-login-file` | WebAuthn (2013) | PublicKeyCredential | Login | File |
-| `webauthn-login-database` | WebAuthn (2013) | PublicKeyCredential | Login | Database |
-| `passkey-login-file` | WebAuthn (2021) Passkey | PublicKeyCredential | Login | File |
-| `passkey-login-database` | WebAuthn (2021) Passkey | PublicKeyCredential | Login | Database |
-
-### Registration Flow
+Tenants are never created on their own; they are automatically created when a new user registers and omits `tenant_id`; a new tenant is automatically created, and the new user is automatically assigned as the new tenant's admin.
 
 **New Tenant** (omit tenant_id):
 
 ```http
 POST /browser/api/v1/register
-{ "username": "admin@example.com", "password": "securepass" }
+{ "realm-type": "basic-username-password-factor", "realm-name": "admins", "username": "admin@example.com", "password": "securepass" }
 ```
 
 - User saved to `pending_users` (NOT `users`)
@@ -383,74 +428,6 @@ POST /browser/api/v1/register
 
 ---
 
-## Service Federation
-
-### Configuration Pattern (Static)
-
-```yaml
-federation:
-  identity_url: "https://identity-authz:8180"  # Docker Compose service name
-  identity_enabled: true
-  jose_url: "https://jose-ja:8280"
-```
-
-**No dynamic discovery**: Service URLs in config file, restart required on changes.
-
-### Fallback Pattern
-
-If federated service unavailable:
-
-```yaml
-realms:
-  - type: federated
-    provider: identity-authz
-    url: "https://identity-authz:8180"
-  - type: database
-    name: local-fallback
-    enabled: true  # Emergency operator access
-```
-
----
-
-## Database Architecture
-
-### Dual Database Support
-
-| Database | Use Case | Connection |
-|----------|----------|------------|
-| PostgreSQL 18+ | Production, E2E tests | External or test-container |
-| SQLite (in-memory) | Unit/integration tests, dev | `:memory:` or file |
-
-### Cross-DB Compatibility Rules
-
-```go
-// UUID fields: ALWAYS type:text (SQLite has no native UUID)
-ID googleUuid.UUID `gorm:"type:text;primaryKey"`
-
-// Nullable UUIDs: Use NullableUUID (NOT *googleUuid.UUID)
-ClientProfileID NullableUUID `gorm:"type:text;index"`
-
-// JSON arrays: ALWAYS serializer:json (NOT type:json)
-AllowedScopes []string `gorm:"serializer:json"`
-```
-
-### SQLite Configuration (Tests)
-
-```go
-sqlDB.Exec("PRAGMA journal_mode=WAL;")       // Concurrent reads + 1 writer
-sqlDB.Exec("PRAGMA busy_timeout = 30000;")   // 30s retry on lock
-sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
-```
-
-### Migration Versioning
-
-| Range | Owner | Examples |
-|-------|-------|----------|
-| 1001-1999 | Template | Sessions (1001), Barrier (1002), Realms (1003), Tenants (1004), PendingUsers (1005) |
-| 2001+ | Domain | cipher-im messages (2001), jose JWKs (2001) |
-
----
-
 ## Security Architecture
 
 ### FIPS 140-3 Compliance (ALWAYS Enabled)
@@ -459,80 +436,131 @@ sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
 
 | Category | Algorithms |
 |----------|------------|
-| Asymmetric | RSA ≥2048, ECDSA P-256/384/521, EdDSA 25519/448 |
-| Symmetric | AES-128/192/256 (GCM, CBC+HMAC) |
-| Digest | SHA-256/384/512, HMAC-SHA256/384/512 |
+| Asymmetric | RSA ≥2048, DH ≥2048, ECDSA P256/P384/P521, ECDH P256/P384/P521, EdDSA 25519/448, EdDH X25519/X448 |
+| Symmetric | AES-128/192/256 (GCM, CBC+HMAC, CMAC) |
+| Digest | SHA-256/384/512, HMAC-SHA-256/384/512 |
 | KDF | PBKDF2-HMAC-SHA256/384/512, HKDF-SHA256/384/512 |
 
-**Banned**: bcrypt, scrypt, Argon2, MD5, SHA-1, RSA <2048, DES, 3DES.
+**Banned**: bcrypt, scrypt, Argon2, MD5, SHA-1, RSA <2048, DH <2048, EC < P256, DES, 3DES.
 
 ### Key Hierarchy (Barrier Service)
 
 ```
 Unseal Key (Docker secrets, NEVER stored)
-    └── Root Key (encrypted at rest, rotated annually)
-        └── Intermediate Key (rotated quarterly)
-            └── Content Key (rotated per-operation or hourly)
+    └── Root Key (encrypted-at-rest with unseal key(s), rotated manually or automatically annually)
+        └── Intermediate Key (encrypted-at-rest with root key, rotated manually or automatically quarterly)
+            └── Content Key (encrypted-at-rest with intermediate key, rotated manually or automatically monthly)
+                └── Domain Data (encrypted-at-rest with content key) - Examples: Cipher-IM messages, SM-KMS JWKs, JOSE-JA JWKs, PKI-CA private keys, Identity user credentials
 ```
 
-**HKDF Derivation**: All instances with same unseal secrets derive identical keys.
+Design Intent: Unseal secret(s) or unseal key(s) are loaded by service instances at startup. To decrypt and reuse existing, sealed root keys in a database, each service instance MUST use unseal credentials to unseal the root keys. This is design intent for barrier service.
 
 ### Hash Service (Version-Based)
 
+#### Hash Types
+
+Hash service supports 4 hash types.
+1. Low-entropy, random-salt => Used for short values that DON'T need to be indexed or searched in a database (e.g. Passwords)
+2. Low-entropy, fixed-salt => Used for short values that DO need to be indexed and searched in a database (e.g. PII, Usernames, Emails, Addresses, Phone Numbers, SIN/SSN/NIN, IPs, MACs)
+3. High-entropy, random-salt => Used for long values that DON'T need to be indexed or searched in a database (e.g. Private Keys)
+4. High-entropy, fixed-salt => Used for long values that DO need to be indexed and searched in a database, inputs MUST have a minimum of 256-bits (32-bytes) of entropy
+
+##### Low-entropy vs High-entropy
+
+Low entropy: Values with >= 256-bits (32-bytes) or higher of brute-force search space; values are hashed with high-iterations PBKDF2 to mitigate brute-force attacks, because small search spaces are not big enough to mitigate brute-force attacks on their own; do not use HKDF, it does not add sufficient security for low-entropy values
+
+High entropy: Values with < 256-bits (32-bytes) of brute-force search space; values are hashed with one-iteration HKDF, because large search space is big enough to mitigate brute-force attacks on its own; do not use PBKDF2, extra iterations do not add meaningful security
+
+##### Random-salt vs Fixed-salt
+
+Random salt: Used for values that DON'T require indexing or searching in a database; non-deterministic hash outputs for the same input is best practice for security
+
+Fixed-salt: Used for values that DO require indexing or searching in a database; deterministic hash outputs for the same input are required for indexing and searching, which overrides best practice for security; to mitigate reduced security of using fixed-salt, pepper MUST be applied to all values before passing them into hash functions
+
+#### Pepper
+
+##### Pepper Usage
+
+Pepper MUST be used on all values passed into hash functions that use fixed-salt.
+Pepper SHOULD be used on all values passed into hash functions that use random-salt
+For consistency, pepper usage WILL be used on all values passed to all hash functions, regardless of salt type.
+
+##### Pepper Algorithms
+
+Pepper before deterministic hashing MUST use AES-GCM-SIV.
+Pepper before non-deterministic hashing MUST use AES-GCM-SIV or AES-GCM. The AES-256 key MUST be generated and used for the lifetime of the hash.
+
+##### Pepper Generation and Usage
+
+Use AES-GCM-SIV for pepper before doing deterministic hashing.
+
+Generation:
+1. Generate a random 32-byte AES key.
+2. Select a unique 12-byte nonce; random bytes, derived bytes, or monotonic increasing counter.
+3. Select an optional associated data (AAD).
+4. Encode the 3 values together as the pepper.
+5. Use Barrier Service to encrypt-at-rest the pepper.
+6. Persist the encrypted pepper in the database.
+
+Usage (Index and Search):
+1. Load the encrypted pepper from the database.
+2. Use Barrier Service to decrypt the pepper at runtime.
+3. Use the 3 clear values of the pepper together on the input secret.
+4. Encode the pepper inputs with the ciphertext to create in-memory encoded pepper output.
+5. Deterministic hash the encoded pepper output.
+6. Encode the pepper for persistence; type and version only.
+7. Concatenate the encoded pepper and encoded hash.
+8. Use the concatenated value for indexing or searching.
+
+Use AES-GCM for pepper before doing non-deterministic hashing:
+
+Generation:
+1. Generate a random 32-byte AES key.
+2. Encode the 1 value as the pepper.
+3. Use Barrier Service to encrypt-at-rest the pepper.
+4. Persist the encrypted pepper in the database.
+
+Usage (Store):
+1. Load the encrypted pepper from the database.
+2. Use Barrier Service to decrypt the pepper at runtime.
+3. Select a unique 12-byte nonce; random bytes, derived bytes, or monotonic increasing counter.
+4. Select an optional associated data (AAD).
+5. Use the 1 clear value of the pepper, and the 2 clear selected values, together on the input secret.
+6. Non-deterministic hash the encoded pepper output.
+7. Encode the pepper for persistence; type, version, nonce, and optional AAD.
+8. Concatenate the encoded pepper and encoded hash.
+9. Use the concatenated value for storage.
+
+Usage (Validate):
+1. Load the encrypted pepper from the database.
+2. Use Barrier Service to decrypt the pepper at runtime.
+3. Parse the unique 12-byte nonce from the stored encoded pepper.
+4. Parse the optional associated data (AAD) from the stored encoded pepper.
+5. Use the 1 clear value of the pepper, and the 2 clear parsed values, together on the input secret.
+6. Non-deterministic hash the ciphertext output from the pepper step.
+7. Compare the store hash to the computed hash.
+
+##### Low-Entropy Hash Format
+
 ```
-Hash Format: {version}:{algorithm}:{iterations}:base64(salt):base64(hash)
-Example:     {5}:PBKDF2-HMAC-SHA256:rounds=600000:abc123...:def456...
+Format: {pepperTypeAndVersion}base64(optionalPepperNonce):base64(optionalPepperAAD)#{hashTypeAndVersion}:{algorithm}:{iterations}:base64(salt):base64(hash)
+Deterministic Example:     {d2}#{f5}:PBKDF2-HMAC-SHA256:600000:abc123...:def456...
+Non-Deterministic Example: {n2}nonce#{f5}PBKDF2-HMAC-SHA256:600000:abc123...:def456...
+Non-Deterministic Example: {n2}nonce:aad#{f5}PBKDF2-HMAC-SHA256:600000:abc123...:def456...
 ```
 
-**Current Version**: V5 (OWASP 2023, 600k iterations, HMAC-SHA256).
-
-**Pepper**: MANDATORY from Docker secrets, NEVER in DB/source.
-
----
-
-## Observability
-
-### Telemetry Stack
+##### High-Entropy Hash Format
 
 ```
-Service → otel-collector:4317 → grafana-otel-lgtm:14317
+Format: {pepperTypeAndVersion}base64(optionalPepperNonce):base64(optionalPepperAAD)#{hashTypeAndVersion}:{algorithm}:base64(salt):base64(info):base64(hash)
+Deterministic Example:     {d2}#{F5}:HKDF-HMAC-SHA256:abc123...:def456...:ghi789...
+Non-Deterministic Example: {n2}nonce#{R5}HKDF-HMAC-SHA256:abc123...:def456...:ghi789...
+Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456...:ghi789...
 ```
-
-**NEVER bypass otel-collector** (sidecar pattern mandatory).
-
-### Structured Logging
-
-```go
-logger.Info("User registered",
-    zap.String("user_id", userID.String()),
-    zap.String("tenant_id", tenantID.String()),
-    zap.Duration("duration", elapsed),
-)
-```
-
-### Metrics
-
-| Category | Metrics |
-|----------|---------|
-| HTTP | `http_requests_total`, `http_request_duration_seconds`, `http_requests_in_flight` |
-| Database | `db_connections_open`, `db_query_duration_seconds`, `db_errors_total` |
-| Crypto | `crypto_operations_total`, `crypto_operation_duration_seconds` |
 
 ---
 
 ## Docker Compose Patterns
-
-### Shared Telemetry (Include Pattern)
-
-```yaml
-# deployments/cipher/compose.yml
-include:
-  - path: ../telemetry/compose.yml
-
-services:
-  cipher-im:
-    # ...
-```
 
 ### Docker Secrets (MANDATORY)
 
@@ -561,7 +589,7 @@ healthcheck:
   interval: 5s
 ```
 
-**Use wget (Alpine), 127.0.0.1 (not localhost).**
+**Use wget (Alpine), 127.0.0.1 (not localhost), port 9090.**
 
 ---
 
@@ -570,8 +598,8 @@ healthcheck:
 ### Pre-Commit
 
 1. `golangci-lint run --fix` → zero warnings
-2. `go test ./...` → 100% pass
-3. `go build ./...` → clean build
+2. `go build ./...` → clean build
+3. `go test -coverprofile=./test-reports/cov.out ./... && go tool cover -html=./test-reports/cov.out -o ./test-reports/cov.html` → 100% tests pass with 98% code coverage
 
 ### CI/CD
 
@@ -580,48 +608,6 @@ healthcheck:
 | Coverage | ≥95% production, ≥98% infrastructure/utility |
 | Mutation (gremlins) | ≥85% production, ≥98% infrastructure |
 | E2E | BOTH `/service/**` AND `/browser/**` paths |
-
-### Test Patterns
-
-See [SERVICE-TEMPLATE.md](SERVICE-TEMPLATE.md) for mandatory test patterns.
-
----
-
-## Migration Priority
-
-| Order | Service | Status | Rationale |
-|-------|---------|--------|-----------|
-| 1 | cipher-im | ✅ Complete | Template validation |
-| 2 | jose-ja | ✅ Complete | Second stereotype |
-| 3 | pki-ca | Pending | Certificate authority |
-| 4 | identity-* | Pending | OAuth/OIDC stack |
-| 5 | sm-kms | Last | Template source, migrate after template mature |
-
----
-
-## Factory Patterns
-
-### *FromSettings Pattern (PREFERRED)
-
-Services should use `*FromSettings` factory functions for consistent, testable initialization:
-
-```go
-// ✅ PREFERRED: Settings-based factory
-func NewUnsealKeysServiceFromSettings(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
-    // Configuration-driven initialization
-}
-
-// Also acceptable: Direct constructor when settings not applicable
-func NewMessageRepository(db *gorm.DB) *MessageRepository {
-    return &MessageRepository{db: db}
-}
-```
-
-**Benefits**:
-- Configuration-driven behavior
-- Testable (inject test settings)
-- Consistent across all services
-- Self-documenting dependencies
 
 ---
 
@@ -633,25 +619,249 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 2. **YAML Configuration** (`--config=/path/to/config.yml`) - Primary configuration
 3. **CLI Parameters** (`--bind-public-port=8080`) - Overrides
 
-**CRITICAL: Environment variables NOT supported for configuration** (security, auditability).
+**CRITICAL: Environment variables NOT desirable for configuration** (security risk, not scalable, auditability).
 
 ---
 
-## API Path Patterns
+## *FromSettings Factory Pattern (PREFERRED)
 
-**NO service name in request paths**:
+Services should use settings-based factories for testability and consistency:
 
+```go
+// ✅ PREFERRED: Settings-based factory
+type UnsealKeysSettings struct {
+    KeyPaths []string `yaml:"key_paths"`
+}
+
+func NewUnsealKeysServiceFromSettings(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
+    if settings == nil {
+        return nil, errors.New("settings required")
+    }
+    return &UnsealKeysService{
+        keyPaths: settings.KeyPaths,
+    }, nil
+}
+
+// Usage in ServerBuilder
+builder.WithUnsealKeysService(func(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
+    return NewUnsealKeysServiceFromSettings(settings)
+})
 ```
-✅ /service/api/v1/elastic-jwks     (correct)
-✅ /browser/api/v1/sessions         (correct)
-❌ /service/api/v1/jose/elastic-jwks (WRONG - no service name in path)
+
+**Benefits**:
+- All configuration in one struct
+- Easy to test (pass test settings)
+- Consistent initialization across codebase
+- Self-documenting dependencies
+
+---
+
+## Test Settings Factory
+
+Every service config should have a test settings factory:
+
+```go
+// NewTestSettings returns configuration suitable for testing
+func NewTestSettings() *CipherImServerSettings {
+    return &CipherImServerSettings{
+        ServiceTemplateServerSettings: cryptoutilTemplateTestutil.NewTestSettings(),
+        MaxMessageSize:                65536,
+    }
+}
 ```
 
-**Standard Prefixes**:
+**NewTestSettings() configures**:
+- SQLite in-memory (`:memory:`)
+- Port 0 (dynamic allocation, no conflicts)
+- Auto-generated TLS certificates
+- Disabled telemetry export
+- Short timeouts for fast tests
 
-| Prefix | Purpose | Authentication |
-|--------|---------|----------------|
-| `/service/api/v1/*` | Headless APIs | Bearer tokens, mTLS |
-| `/browser/api/v1/*` | Browser APIs | Session cookies |
-| `/admin/api/v1/*` | Admin APIs | localhost only |
-| `/.well-known/*` | Discovery | Public |
+---
+
+## Testing Patterns (MANDATORY)
+
+### TestMain Pattern
+
+**ALL integration tests MUST use TestMain**:
+
+```go
+var (
+    testDB     *gorm.DB
+    testServer *Server
+)
+
+func TestMain(m *testing.M) {
+    ctx := context.Background()
+
+    // Create server with test configuration
+    cfg := config.NewTestSettings()
+    var err error
+    testServer, err = NewFromConfig(ctx, cfg)
+    if err != nil {
+        log.Fatalf("Failed to create test server: %v", err)
+    }
+
+    // Start server
+    go func() {
+        if err := testServer.Start(); err != nil {
+            log.Printf("Server error: %v", err)
+        }
+    }()
+
+    // Wait for ready
+    if err := testServer.WaitForReady(ctx, 10*time.Second); err != nil {
+        log.Fatalf("Server not ready: %v", err)
+    }
+
+    // Run tests
+    exitCode := m.Run()
+
+    // Cleanup
+    testServer.Shutdown(ctx)
+    os.Exit(exitCode)
+}
+```
+
+### Table-Driven Tests (MANDATORY)
+
+```go
+func TestSendMessage_Validation(t *testing.T) {
+    t.Parallel()
+
+    tests := []struct {
+        name    string
+        request SendMessageRequest
+        wantErr string
+    }{
+        {
+            name:    "empty content",
+            request: SendMessageRequest{Content: ""},
+            wantErr: "content required",
+        },
+        {
+            name:    "no recipients",
+            request: SendMessageRequest{Content: "hello", Recipients: nil},
+            wantErr: "at least one recipient",
+        },
+        {
+            name: "valid request",
+            request: SendMessageRequest{
+                Content:    "hello",
+                Recipients: []string{googleUuid.NewV7().String()},
+            },
+            wantErr: "",
+        },
+    }
+
+    for _, tc := range tests {
+        t.Run(tc.name, func(t *testing.T) {
+            t.Parallel()
+
+            // Use unique test data
+            tenantID := googleUuid.NewV7()
+
+            err := testServer.SendMessage(ctx, tenantID, tc.request)
+
+            if tc.wantErr != "" {
+                require.Error(t, err)
+                require.Contains(t, err.Error(), tc.wantErr)
+            } else {
+                require.NoError(t, err)
+            }
+        })
+    }
+}
+```
+
+### Handler Tests with app.Test()
+
+**ALWAYS use Fiber's in-memory testing**:
+
+```go
+func TestListMessages_Handler(t *testing.T) {
+    t.Parallel()
+
+    // Create standalone Fiber app
+    app := fiber.New(fiber.Config{DisableStartupMessage: true})
+
+    // Register handler under test
+    msgRepo := repository.NewMessageRepository(testDB)
+    handler := NewPublicServer(nil, msgRepo, nil, nil, nil)
+    app.Get("/browser/api/v1/messages", handler.ListMessages)
+
+    // Create HTTP request (no network call)
+    req := httptest.NewRequest("GET", "/browser/api/v1/messages", nil)
+    req.Header.Set("X-Tenant-ID", testTenantID.String())
+
+    // Test handler in-memory
+    resp, err := app.Test(req, -1)
+    require.NoError(t, err)
+    defer resp.Body.Close()
+
+    require.Equal(t, 200, resp.StatusCode)
+}
+```
+
+### Dynamic Test Data (UUIDv7)
+
+```go
+func TestCreate_UniqueConstraint(t *testing.T) {
+    t.Parallel()
+
+    // Generate unique IDs per test
+    tenantID := googleUuid.NewV7()
+    userID := googleUuid.NewV7()
+    msgID := googleUuid.NewV7()
+
+    msg := &Message{
+        ID:       msgID,
+        TenantID: tenantID,
+        SenderID: userID,
+        Content:  fmt.Sprintf("test_%s", msgID),
+    }
+
+    err := testRepo.Create(ctx, msg)
+    require.NoError(t, err)
+}
+```
+
+---
+
+## E2E Testing
+
+### ComposeManager
+
+Use `internal/apps/template/testing/e2e/compose.go`:
+
+```go
+func TestE2E_SendMessage(t *testing.T) {
+    if testing.Short() {
+        t.Skip("Skipping E2E test in short mode")
+    }
+
+    ctx := context.Background()
+
+    // Start Docker Compose stack
+    manager := e2e.NewComposeManager(t, "../../../deployments/cipher-im")
+    manager.Up(ctx)
+    defer manager.Down(ctx)
+
+    // Wait for service healthy
+    manager.WaitForHealthy(ctx, "cipher-im", 60*time.Second)
+
+    // Get TLS-enabled HTTP client
+    client := manager.HTTPClient()
+
+    // Test API
+    resp, err := client.Post(
+        manager.ServiceURL("cipher-im") + "/browser/api/v1/messages",
+        "application/json",
+        strings.NewReader(`{"content":"hello","recipients":["user-id"]}`),
+    )
+    require.NoError(t, err)
+    defer resp.Body.Close()
+
+    require.Equal(t, 201, resp.StatusCode)
+}
+```

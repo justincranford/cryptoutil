@@ -226,7 +226,7 @@ You are explicitly instructed NOT to:
 **Problem Completion Requirement:**
 
 You MUST iterate and keep going until the problem is solved.
-You have everything you need to resolve this problem; refer to copilot instructions, docs\arch\ARCHITECTURE.md, docs/arch/SERVICE-TEMPLATE-*.md.
+You have everything you need to resolve this problem; refer to copilot instructions, docs\arch\ARCHITECTURE.md.
 I want you to fully solve this autonomously before coming back to me.
 
 Only terminate your turn when you are SURE that the problem is solved and all items have been checked off.

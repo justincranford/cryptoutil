@@ -143,7 +143,6 @@ The CORRECT design is:
 
 **Documentation Updated**:
 - [x] ARCHITECTURE.md - Expanded realm section with all 16 realm types
-- [x] SERVICE-TEMPLATE.md - Added Realm Pattern section
 
 **Tasks**:
 - Verify cipher-im realm usage matches design (authentication only)
@@ -297,7 +296,6 @@ The CORRECT design is:
 - Update ALL config files with correct ports
 - Update ALL test files with correct ports
 - Update ARCHITECTURE.md service catalog table
-- Update SERVICE-TEMPLATE.md
 - Update 02-01.architecture.instructions.md
 - Update 02-03.https-ports.instructions.md
 
@@ -531,7 +529,6 @@ The template barrier must be fully self-contained before shared/barrier can be d
 - .github/instructions/02-03.https-ports.instructions.md
 - README.md
 - docs/arch/ARCHITECTURE.md (if exists)
-- docs/arch/SERVICE-TEMPLATE.md (if exists)
 
 **Tasks**:
 - 20.1: Update architecture.instructions.md service catalog

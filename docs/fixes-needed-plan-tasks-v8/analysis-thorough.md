@@ -844,7 +844,6 @@ type RealmConfig struct {
 | File | Change | Status |
 |------|--------|--------|
 | ARCHITECTURE.md | Expanded realm section: 16 types, config, tenant relationship | ✅ Done |
-| SERVICE-TEMPLATE.md | Added Realm Pattern section after ServiceResources | ✅ Done |
 | analysis-overview.md | Section 12 with realm summary | ✅ Done |
 | analysis-thorough.md | This detailed analysis | ✅ Done |
 

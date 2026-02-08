@@ -181,7 +181,6 @@ This comparison evaluates four key services against the service-template pattern
 
 | Aspect | KMS (sm-kms) | Service-Template | Cipher-IM | JOSE-JA |
 |--------|--------------|------------------|-----------|----------|
-| **Architecture Docs** | ⏳ Partial | ✅ `docs/arch/SERVICE-TEMPLATE-*.md` | ✅ References template | ⏳ Migration pending |
 | **API Docs** | ✅ Swagger UI | ✅ Swagger UI | ✅ Swagger UI | ⏳ Migration pending |
 | **Developer Setup** | ✅ `docs/DEV-SETUP.md` | ✅ `docs/DEV-SETUP.md` | ✅ `docs/DEV-SETUP.md` | ✅ `docs/DEV-SETUP.md` |
 | **Deployment Guides** | ⏳ Partial | ⏳ Partial | ⏳ Partial | ⏳ Partial |

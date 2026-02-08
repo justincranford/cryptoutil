@@ -43,7 +43,6 @@ Quick reference for all synchronization-eligible documentation across the crypto
 | `README.md` | Reference | Project overview, quick start, core concepts | Major feature additions, architecture changes, setup process changes | DEV-SETUP, other READMEs |
 | `docs/README.md` | Reference | Developer deep-dive, architecture details | Architecture changes, workflow changes | Project README, DEV-SETUP |
 | `docs/DEV-SETUP.md` | Reference | Development environment setup | Tool version updates, new dependencies, setup process changes | README, workflow docs |
-| `docs/arch/SERVICE-TEMPLATE-*.md` | Architectural | Service template patterns | Template pattern changes, new template features | Service implementations, copilot instructions |
 | `docs/pre-commit-hooks.md` | Reference | Pre-commit hook documentation | Hook configuration changes, new hooks, formatter updates | .pre-commit-config.yaml, copilot instructions |
 | `.github/agents/*.agent.md` | Agent Prompts | Custom agent workflows | Workflow improvements, pattern discovery, anti-pattern identification | Copilot instructions, constitution |
 | **Evidence (Temporary, test-output/ only, NEVER commit)** |
@@ -74,8 +73,8 @@ Quick reference for all synchronization-eligible documentation across the crypto
 |-------------|-----------|-------------|
 | New quality gate | `docs/arch/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `docs/speckit/constitution.md`, `.github/agents/plan-tasks-implement.agent.md` |
 | New execution rule | `.github/constitution.md` | `.github/instructions/01-02.beast-mode.md`, `.github/agents/plan-tasks-implement.agent.md`, `docs/speckit/constitution.md` |
-| New architectural pattern | `docs/arch/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), `docs/arch/SERVICE-TEMPLATE-*.md`, service implementations |
-| New testing pattern | `.github/instructions/03-02.testing.md` | `docs/arch/SERVICE-TEMPLATE-TESTING.md`, `README.md`, `.github/agents/*.agent.md` (if workflow change) |
+| New architectural pattern | `docs/arch/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), service implementations |
+| New testing pattern | `.github/instructions/03-02.testing.md` | `README.md`, `.github/agents/*.agent.md` (if workflow change) |
 | New pre-commit hook | `.pre-commit-config.yaml` | `docs/pre-commit-hooks.md`, `.github/instructions/03-07.linting.md` |
 | Lessons learned discovered | `test-output/<session>/lessons-learned.md` | Copilot instructions (anti-patterns), README (best practices), agent prompts (validation steps) |
 

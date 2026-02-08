@@ -178,7 +178,6 @@
 - **Description**: Update instruction files with correct realm definitions
 - **Acceptance Criteria**:
   - [x] ARCHITECTURE.md expanded with 16 realm types
-  - [x] SERVICE-TEMPLATE.md has Realm Pattern section
   - [x] analysis-overview.md Section 12 added
   - [x] analysis-thorough.md Section 12 added
 - **Evidence**: Documentation commits
@@ -614,10 +613,8 @@ Only `shared/barrier/unsealkeysservice/` remains (intentionally - it's standalon
 - **Description**: Update all architecture docs with new ports
 - **Acceptance Criteria**:
   - [x] docs/arch/ARCHITECTURE.md service catalog updated
-  - [x] docs/arch/SERVICE-TEMPLATE.md updated
 - **Files**:
   - `docs/arch/ARCHITECTURE.md`
-  - `docs/arch/SERVICE-TEMPLATE.md`
 
 ### Task 11.5: Update Copilot Instructions
 - **Status**: ✅ Complete
