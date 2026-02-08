@@ -22,6 +22,10 @@ handoffs:
     agent: doc-sync
     prompt: Synchronize documentation after implementation complete.
     send: false
+  - label: Fix GitHub Workflows
+    agent: fix-github-workflows
+    prompt: Fix or update GitHub Actions workflows as required by implementation or plan or tasks.
+    send: false
 ---
 
 # AUTONOMOUS EXECUTION MODE
