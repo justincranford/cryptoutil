@@ -309,8 +309,8 @@ Based on golang-standards/project-layout:
 
 #### 5.1.3 Mandatory Usage
 
-- ALL new services MUST use template (consistency, reduced duplication)
-- ALL existing services MUST be refactored to use template (iterative migration)
+- ALL new services MUST use `internal/apps/template/service/` (consistency, reduced duplication)
+- ALL existing services MUST be refactored to use `internal/apps/template/service/` (iterative migration)
 - Migration priority: cipher-im FIRST (validation) → jose-ja → pki-ca → identity services → sm-kms LAST
 
 ### 5.2 Service Builder Pattern
@@ -319,14 +319,14 @@ Based on golang-standards/project-layout:
 
 #### 5.2.1 Builder Methods
 
-- NewServerBuilder(ctx, cfg): Create builder with template config
+- NewServerBuilder(ctx, cfg): Create builder with `internal/apps/template/service/` config
 - WithDomainMigrations(fs, path): Register domain migrations (2001+)
 - WithPublicRouteRegistration(func): Register domain-specific public routes
 - Build(): Construct complete infrastructure and return ServiceResources
 
 #### 5.2.2 Merged Migrations
 
-- Template migrations: 1001-1004 (sessions, barrier, realms, tenants)
+- `internal/apps/template/service/` migrations: 1001-1004 (sessions, barrier, realms, tenants)
 - Domain migrations: 2001+ (application-specific tables)
 - mergedMigrations type: Implements fs.FS interface, unifies both for golang-migrate validation
 - Prevention: Solves "no migration found for version X" validation errors
