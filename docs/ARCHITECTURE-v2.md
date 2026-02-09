@@ -391,8 +391,11 @@ Based on golang-standards/project-layout:
 
 #### 5.2.2 Merged Migrations
 
-- `internal/apps/template/service/` migrations: 1001-1004 (sessions, barrier, realms, tenants)
-- Domain migrations: 2001+ (application-specific tables)
+| Range | Owner | Examples |
+|-------|-------|----------|
+| 1001-1999 | Service Template | Sessions (1001), Barrier (1002), Realms (1003), Tenants (1004), PendingUsers (1005) |
+| 2001+ | Domain | cipher-im messages (2001), jose JWKs (2001) |
+
 - mergedMigrations type: Implements fs.FS interface, unifies both for golang-migrate validation
 - Prevention: Solves "no migration found for version X" validation errors
 
@@ -401,6 +404,43 @@ Based on golang-standards/project-layout:
 - Returns initialized infrastructure: DB (GORM), TelemetryService, JWKGenService, BarrierService, UnsealKeysService, SessionManager, RealmService, Application
 - Shutdown functions: ShutdownCore(), ShutdownContainer()
 - Domain code receives all dependencies ready-to-use
+
+#### 5.2.4 Database Compatibility Rules
+
+##### Cross-DB Compatibility Rules
+
+```go
+// UUID fields: ALWAYS type:text (SQLite has no native UUID)
+ID googleUuid.UUID `gorm:"type:text;primaryKey"`
+
+// Nullable UUIDs: Use NullableUUID (NOT *googleUuid.UUID)
+ClientProfileID NullableUUID `gorm:"type:text;index"`
+
+// JSON arrays: ALWAYS serializer:json (NOT type:json)
+AllowedScopes []string `gorm:"serializer:json"`
+```
+
+##### SQLite Configuration
+
+```go
+sqlDB.Exec("PRAGMA journal_mode=WAL;")       // Concurrent reads + 1 writer
+sqlDB.Exec("PRAGMA busy_timeout = 30000;")   // 30s retry on lock
+sqlDB.SetMaxOpenConns(5)                     // GORM transactions need multiple
+```
+
+##### SQLite DateTime (CRITICAL)
+
+**ALWAYS use `.UTC()` when comparing with SQLite timestamps**:
+
+```go
+// ❌ WRONG: time.Now() without .UTC()
+if session.CreatedAt.After(time.Now()) { ... }
+
+// ✅ CORRECT: Always use .UTC()
+if session.CreatedAt.After(time.Now().UTC()) { ... }
+```
+
+**Pre-commit hook auto-converts** `time.Now()` → `time.Now().UTC()`.
 
 ### 5.3 Dual HTTPS Endpoint Pattern
 
@@ -614,7 +654,16 @@ Based on golang-standards/project-layout:
 
 ### 7.2 Dual Database Strategy
 
-[To be populated]
+All 9 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
+
+Typical usages for each database for different purposes:
+- Unit tests, Fuzz tests, Benchmark tests, Mutations tests => Ephemeral SQLite instance (e.g. in-memory)
+- Integration tests, Load tests => Ephemeral PostgreSQL instance (i.e. test-container)
+- End-to-End tests => Static PostgreSQL instance (e.g. Docker Compose)
+- Production => Static PostgreSQL instance (e.g. Cloud hosted)
+- Local Development => Static SQLite instance (e.g. file); used for local development
+
+Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isolation testing; 3 service instances, 2 using a shared PostgreSQL container, and 1 using in-memory SQLite
 
 ### 7.3 Database Schema Patterns
 
