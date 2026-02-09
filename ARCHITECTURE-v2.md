@@ -90,6 +90,35 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 2.1.1 Agent Architecture
+
+- Agent isolation principle (agents do NOT inherit copilot instructions)
+- YAML frontmatter requirements (name, description, tools, handoffs)
+- Autonomous execution mode patterns
+- Quality over speed enforcement
+
+#### 2.1.2 Agent Catalog
+
+- plan-tasks-quizme: Planning and task decomposition
+- plan-tasks-implement: Autonomous implementation execution
+- doc-sync: Documentation synchronization
+- fix-github-workflows: Workflow repair and validation
+- fix-tool-names: Tool name consistency enforcement
+- beast-mode-custom: Continuous execution mode
+
+#### 2.1.3 Agent Handoff Flow
+
+- Planning → Implementation → Documentation → Fix handoff chains
+- Explicit handoff triggers and conditions
+- State preservation across handoffs
+
+#### 2.1.4 Instruction File Organization
+
+- Hierarchical numbering scheme (01-01 through 07-01)
+- Auto-discovery and alphanumeric ordering
+- Single responsibility per file
+- Cross-reference patterns
+
 ### 2.2 Architecture Strategy
 
 [To be populated]
@@ -97,6 +126,20 @@ This document is structured to serve multiple audiences:
 ### 2.3 Design Strategy
 
 [To be populated]
+
+#### 2.3.1 Core Principles
+
+- Quality over speed (NO EXCEPTIONS)
+- Evidence-based validation
+- Correctness, completeness, thoroughness
+- Reliability and efficiency
+
+#### 2.3.2 Autonomous Execution Principles
+
+- Continuous work without stopping
+- No permission requests between tasks
+- Blocker documentation and parallel work
+- Task completion criteria
 
 ### 2.4 Implementation Strategy
 
@@ -266,9 +309,40 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 9.1.1 Suite-Level CLI Pattern
+
+- Unified cryptoutil executable
+- Product → Service → Subcommand routing
+- Zero-dependency binary distribution
+
+#### 9.1.2 Product-Level CLI Pattern
+
+- Separate executable per product
+- Service delegation patterns
+- Multi-service orchestration
+
+#### 9.1.3 Service-Level CLI Pattern
+
+- Standalone service executables
+- Direct subcommand execution
+- Container deployment patterns
+
 ### 9.2 Configuration Architecture & Strategy
 
 [To be populated]
+
+#### 9.2.1 Configuration Priority Order
+
+- Docker secrets (highest priority)
+- YAML configuration files
+- CLI arguments
+- Environment variables (NEVER for credentials)
+
+#### 9.2.2 Secret Management Patterns
+
+- Docker/Kubernetes secrets mounting
+- File-based secret references (file://)
+- Secret rotation strategies
 
 ### 9.3 Observability Architecture (OTLP)
 
@@ -286,6 +360,73 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+### 9.7 CI/CD Workflow Architecture
+
+[To be populated]
+
+#### 9.7.1 Workflow Catalog
+
+- ci-coverage: Test coverage collection and enforcement
+- ci-mutation: Mutation testing with gremlins
+- ci-race: Race condition detection
+- ci-benchmark: Performance benchmarking
+- ci-quality: Linting and code quality
+- ci-sast: Static application security testing
+- ci-dast: Dynamic application security testing
+- ci-e2e: End-to-end integration testing
+- ci-load: Load testing with Gatling
+- ci-gitleaks: Secret detection
+- release: Automated release workflows
+
+#### 9.7.2 Workflow Optimization Patterns
+
+- Path filters to skip irrelevant changes
+- Matrix strategies for package-level parallelization
+- Docker image pre-pull for faster execution
+- Dependency chain optimization
+- Timeout tuning (20min CI, 45min mutation, 60min E2E)
+
+#### 9.7.3 Workflow Dependencies
+
+- Critical path: Test execution for largest packages
+- Expected durations by workflow type
+- Parallel vs sequential execution patterns
+
+### 9.8 Reusable Action Patterns
+
+[To be populated]
+
+#### 9.8.1 Action Catalog
+
+- docker-images-pull: Parallel Docker image pre-fetching
+- setup-go: Go toolchain configuration
+- cache-go: Go module and build cache management
+- Additional actions TBD
+
+#### 9.8.2 Action Composition Patterns
+
+- Composite steps with shell selection
+- Input/output parameter passing
+- Cross-platform compatibility
+
+### 9.9 Pre-Commit Hook Architecture
+
+[To be populated]
+
+#### 9.9.1 Hook Execution Flow
+
+- Formatting hooks (gofmt, goimports, gofumpt)
+- Linting hooks (golangci-lint)
+- Security hooks (gitleaks, detect-secrets)
+- Custom enforcement hooks (cicd-enforce-internal)
+
+#### 9.9.2 Hook Configuration Patterns
+
+- Repository-level .pre-commit-config.yaml
+- Language-specific hooks
+- Skip patterns and exclusions
+- Fail-fast vs continue-on-error strategies
+
 ---
 
 ## 10. Testing Architecture
@@ -298,17 +439,85 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 10.2.1 Table-Driven Test Pattern
+
+- MANDATORY for multiple test cases
+- Single test function with test table
+- t.Parallel() for concurrent execution
+- UUIDv7 for dynamic test data
+
+#### 10.2.2 Fiber Handler Testing (app.Test())
+
+- MANDATORY for ALL HTTP handler tests (unit and integration)
+- In-memory testing (NO real HTTPS listeners)
+- Fast (<1ms), reliable, no network binding
+- Prevents Windows Firewall popups
+
+#### 10.2.3 Coverage Targets
+
+- ≥95% production code
+- ≥98% infrastructure/utility code
+- 0% acceptable for main() if internalMain() ≥95%
+- Generated code excluded from coverage
+
 ### 10.3 Integration Testing Strategy
 
 [To be populated]
+
+#### 10.3.1 TestMain Pattern
+
+- MANDATORY for heavyweight dependencies (PostgreSQL, servers)
+- Start resources ONCE per package
+- Share testDB, testServer across all tests
+- Prevents repeated 10-30s container startup overhead
+
+#### 10.3.2 Test Isolation with t.Parallel()
+
+- MANDATORY in ALL test functions and subtests
+- Reveals race conditions, deadlocks, data conflicts
+- If tests can't run concurrently, production can't either
+- Dynamic test data (UUIDv7) prevents conflicts
+
+#### 10.3.3 Database Testing Patterns
+
+- Use real databases (testcontainers) NOT mocks
+- SQLite WAL mode + busy_timeout for concurrent writes
+- MaxOpenConns=5 for GORM (transaction wrapper needs separate connection)
+- Cross-database compatibility (PostgreSQL + SQLite)
 
 ### 10.4 E2E Testing Strategy
 
 [To be populated]
 
+#### 10.4.1 Docker Compose Orchestration
+
+- ComposeManager for lifecycle management
+- Health check polling with TLS client
+- Sequential startup (builder → postgres → app)
+- Latency hiding strategies
+
+#### 10.4.2 E2E Test Scope
+
+- MUST test BOTH `/service/**` and `/browser/**` paths
+- Verify middleware behavior (IP allowlist, CSRF, CORS)
+- Production-like environment (Docker secrets, TLS)
+
 ### 10.5 Mutation Testing Strategy
 
 [To be populated]
+
+#### 10.5.1 Gremlins Configuration
+
+- Package-level parallelization (4-6 packages per job)
+- Exclude tests, generated code, vendor
+- Efficacy targets: ≥95% production, ≥98% infrastructure
+- Timeout optimization: sequential 45min → parallel 15-20min
+
+#### 10.5.2 Mutation Exemptions
+
+- OpenAPI-generated code (stable, no business logic)
+- GORM models (database schema definitions)
+- Protobuf-generated code (gRPC/protobuf stubs)
 
 ### 10.6 Load Testing Strategy
 
@@ -354,9 +563,56 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 11.3.1 Linter Configuration Architecture
+
+- golangci-lint v2 configuration
+- Enabled linters: errcheck, govet, staticcheck, unused, revive, gosec, etc.
+- Disabled linters with justification
+- Version-specific syntax (wsl → wsl_v5 in v2)
+
+#### 11.3.2 Linter Exclusion Patterns
+
+- Path-based exclusions (api/*, test-output/*, vendor/)
+- Rule-based exclusions (nilnil, wrapcheck for specific files)
+- Test file exemptions
+
+#### 11.3.3 Code Quality Enforcement
+
+- Zero linting errors policy (NO exceptions)
+- Auto-fixable linters (--fix workflow)
+- Manual fix requirements
+- Pre-commit hook integration
+
+#### 11.3.4 Mutation Testing Architecture
+
+- gremlins configuration and execution
+- Package-level parallelization strategy
+- Efficacy targets: ≥95% production, ≥98% infrastructure
+- Timeout optimization (sequential 45min → parallel 15-20min)
+- Exclusion patterns (generated code, test utilities)
+
 ### 11.4 Documentation Standards
 
 [To be populated]
+
+#### 11.4.1 Documentation Organization
+
+- Primary: README.md and docs/README.md (keep in 2 files)
+- Spec structure: plan.md and tasks.md patterns
+- NEVER create standalone session/analysis docs
+- Append to existing docs instead of creating new files
+
+#### 11.4.2 Documentation Frontmatter
+
+- YAML metadata for machine readability
+- Title, version, date, status, audience, tags
+- Cross-reference patterns
+
+#### 11.4.3 Lean Documentation Principle
+
+- Avoid duplication across files
+- Reference external resources
+- Single source of truth patterns
 
 ### 11.5 Review Processes
 
@@ -374,9 +630,45 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 12.2.1 Multi-Stage Dockerfile Pattern
+
+- Global ARGs at top (GO_VERSION, VCS_REF, BUILD_DATE)
+- Builder stage (compile Go binaries)
+- Validator stage (secrets validation MANDATORY)
+- Runtime stage (Alpine-based minimal image)
+- LABELs in final published image only
+
+#### 12.2.2 Build Optimization
+
+- Single build, shared image (prevents 3× build time)
+- Docker image pre-pull for faster workflow execution
+- BuildKit caching strategies
+- Cross-platform build support
+
+#### 12.2.3 Secret Validation Stage
+
+- MANDATORY in all Dockerfiles
+- Validates Docker secrets existence and permissions
+- Fails fast on missing/misconfigured secrets
+- Prevents runtime secret access errors
+
 ### 12.3 Deployment Patterns
 
 [To be populated]
+
+#### 12.3.1 Docker Compose Deployment
+
+- Secret management via Docker secrets (MANDATORY)
+- Health check configuration (interval, timeout, retries, start-period)
+- Dependency ordering (depends_on with service_healthy)
+- Network isolation patterns
+
+#### 12.3.2 Kubernetes Deployment
+
+- secretKeyRef for environment variables from secrets
+- Volume mount for file-based secrets
+- Health probes (liveness vs readiness)
+- Resource limits and requests
 
 ### 12.4 Environment Strategy
 
@@ -398,6 +690,28 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 13.2.1 Conventional Commits
+
+- Format: `<type>[scope]: <description>`
+- Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+- Breaking changes: Use `!` or `BREAKING CHANGE:`
+- Examples: `feat(auth): add OAuth2 flow`, `fix(database): prevent pool exhaustion`
+
+#### 13.2.2 Incremental Commit Strategy
+
+- ALWAYS commit incrementally (NOT amend)
+- Preserve timeline for bisect and selective revert
+- Commit each logical unit independently
+- Avoid: Repeated amend, hiding fixes, amend after push
+
+#### 13.2.3 Restore from Clean Baseline Pattern
+
+- Find last known-good commit
+- Restore entire package from clean commit
+- Verify baseline works
+- Apply targeted fix ONLY
+- Commit as NEW commit (not amend)
+
 ### 13.3 Branching Strategy
 
 [To be populated]
@@ -409,6 +723,27 @@ This document is structured to serve multiple audiences:
 ### 13.5 Development Workflow
 
 [To be populated]
+
+#### 13.5.1 Spec Structure Patterns
+
+- plan.md: Vision, phases, success criteria, anti-patterns
+- tasks.md: Phase breakdown, task checklist, dependencies
+- DETAILED.md: Session timeline with date-stamped entries
+- Coverage tracking by package
+
+#### 13.5.2 Terminal Command Auto-Approval
+
+- Pattern checking against .vscode/settings.json
+- Auto-enable: Read-only and build operations
+- Auto-disable: Destructive operations
+- autoapprove wrapper for loopback network commands
+
+#### 13.5.3 Session Documentation Strategy
+
+- MANDATORY: Append to DETAILED.md Section 2 timeline
+- Format: `### YYYY-MM-DD: Title`
+- NEVER create standalone session docs
+- DELETE completed tasks immediately from todos-*.md
 
 ---
 
@@ -473,6 +808,71 @@ This document is structured to serve multiple audiences:
 ### B.5 Configuration Reference
 
 [To be populated]
+
+### B.6 Instruction File Reference
+
+[To be populated - Mirror table from .github/copilot-instructions.md]
+
+| File | Description |
+|------|-------------|
+| 01-01.terminology | RFC 2119 keywords (MUST, SHOULD, MAY, CRITICAL) |
+| 01-02.beast-mode | Beast mode directive |
+| 02-01.architecture | Products and services architecture patterns |
+| ... | (25 total instruction files) |
+
+### B.7 Agent Catalog & Handoff Matrix
+
+[To be populated]
+
+| Agent | Description | Tools | Handoffs |
+|-------|-------------|-------|----------|
+| plan-tasks-quizme | Planning and task decomposition | edit, execute, read, search, web | → plan-tasks-implement |
+| plan-tasks-implement | Autonomous implementation execution | edit, execute, read, search, web | → doc-sync, fix-github-workflows |
+| doc-sync | Documentation synchronization | TBD | TBD |
+| fix-github-workflows | Workflow repair and validation | TBD | TBD |
+| fix-tool-names | Tool name consistency enforcement | TBD | TBD |
+| beast-mode-custom | Continuous execution mode | TBD | TBD |
+
+### B.8 CI/CD Workflow Catalog
+
+[To be populated]
+
+| Workflow | Purpose | Dependencies | Duration | Timeout |
+|----------|---------|--------------|----------|---------|
+| ci-coverage | Test coverage collection, enforce ≥95%/98% | None | 5-6min | 20min |
+| ci-mutation | Mutation testing with gremlins | None | 15-20min | 45min |
+| ci-race | Race condition detection | None | TBD | 20min |
+| ci-benchmark | Performance benchmarking | None | TBD | 30min |
+| ci-quality | Linting and code quality | None | 3-5min | 15min |
+| ci-sast | Static security analysis | None | TBD | 20min |
+| ci-dast | Dynamic security testing | PostgreSQL | TBD | 30min |
+| ci-e2e | End-to-end integration tests | Docker Compose | TBD | 60min |
+| ci-load | Load testing with Gatling | Docker Compose | TBD | 45min |
+| ci-gitleaks | Secret detection | None | 2-3min | 10min |
+| release | Automated release workflows | ci-* passing | TBD | 30min |
+
+### B.9 Reusable Action Catalog
+
+[To be populated]
+
+| Action | Description | Inputs | Outputs |
+|--------|-------------|--------|---------|
+| docker-images-pull | Parallel Docker image pre-fetching | images (newline-separated list) | None |
+| Additional actions | TBD | TBD | TBD |
+
+### B.10 Linter Rule Reference
+
+[To be populated]
+
+| Linter | Purpose | Enabled | Auto-Fix | Exclusions |
+|--------|---------|---------|----------|------------|
+| errcheck | Unchecked errors | ✅ | ❌ | Test helpers |
+| govet | Suspicious code | ✅ | ❌ | None |
+| staticcheck | Static analysis | ✅ | ❌ | Generated code |
+| wsl_v5 | Whitespace linting | ✅ | ✅ | None |
+| godot | Comment periods | ✅ | ✅ | None |
+| gosec | Security issues | ✅ | ❌ | Justified cases |
+| ... | (30+ total linters) | TBD | TBD | TBD |
 
 ---
 
