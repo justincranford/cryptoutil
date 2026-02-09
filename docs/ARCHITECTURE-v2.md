@@ -895,28 +895,68 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 ### 7.1 Multi-Tenancy Architecture & Strategy
 
-[To be populated]
-
 #### 7.1.1 Schema-Level Isolation
 
-- Each tenant gets separate schema (NOT row-level with tenant_id column)
-- Schema naming: `tenant_<uuid>.users`, `tenant_<uuid>.sessions`
-- Rationale: Data isolation, compliance, performance (per-tenant indexes)
-- Pattern: Set search_path on connection
+**MANDATORY: Schema-Level Isolation ONLY**
 
-#### 7.1.2 Tenant Registration Flow
+- Each tenant gets separate schema: `tenant_<uuid>.users`, `tenant_<uuid>.sessions`
+- NEVER use row-level multi-tenancy (single schema, tenant_id column)
+- Reason: Data isolation, compliance, performance (per-tenant indexes)
+- Pattern: Set `search_path` on connection: `SET search_path TO tenant_abc123`
 
-- tenant_id absent in register request → Create new tenant
-- tenant_id present in register request → Join existing tenant
-- Realm-based authentication (NOT for data filtering)
-- tenant_id scopes ALL data access (keys, sessions, audit logs)
+**Database Query Pattern:**
 
-#### 7.1.3 Realm vs Tenant Isolation
+```go
+// ✅ CORRECT: Schema isolation (separate schemas per tenant)
+db.Where("user_id = ?", userID).Find(&messages)
 
-- realm_id: Authentication context ONLY (session lifetimes, auth policies)
-- tenant_id: Data isolation (MANDATORY for all database queries)
-- Cross-realm access within same tenant: Supported
-- Cross-tenant access: FORBIDDEN (security boundary)
+// ❌ WRONG: Row-level isolation (single schema, tenant_id column)
+db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
+```
+
+#### 7.1.2 Authentication Realms
+
+**CRITICAL**: Realms define authentication METHOD and POLICY, NOT data scoping.
+
+**Realms do NOT scope data** - all realms in same tenant see same data. Only `tenant_id` scopes data access.
+
+#### Authentication Realm Types
+
+| Realm Type | Purpose | Scheme | Credential | Credential Validators |
+|------|--------|------------|-------------------------|-----------------|
+| `https-client-cert-factor` | Create or Upgrade Session | HTTP/mTLS Handshake | HTTPS Client Certificate | File, Database, Federated |
+| `webauthn-resident-synced-factor` | Create or Upgrade Session | WebAuthn L2 Resident Synced (aka Passkeys) | Local PublicKeyCredential | File, Database, Federated |
+| `webauthn-resident-unsynced-factor` | Create or Upgrade Session | WebAuthn L2 Resident Unsynced (e.g. Windows Hello) | Local PublicKeyCredential | File, Database, Federated |
+| `webauthn-nonresident-synced-factor` | Create or Upgrade Session | WebAuthn L2 Non-Resident Synced (e.g. Azure AD) | Cloud PublicKeyCredential | File, Database, Federated |
+| `webauthn-nonresident-unsynced-factor` | Create or Upgrade Session | WebAuthn L2 Non-Resident Unsynced (e.g. YubiKey) | Cloud PublicKeyCredential | File, Database, Federated |
+| `authorization-code-opaque-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | Opaque | File, Database, Federated |
+| `authorization-code-jwe-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | JWE | File, Database, Federated |
+| `authorization-code-jws-factor` | Create or Upgrade Session | OAuth 2.1 Authorization Code Flow + PKCE | JWS | File, Database, Federated |
+| `bearer-token-opaque-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | Opaque Token | File, Database, Federated |
+| `bearer-token-jwe-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | JWE Token | File, Database, Federated |
+| `bearer-token-jws-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Bearer | JWS Token | File, Database, Federated |
+| `basic-username-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Username/Password | File, Database, Federated |
+| `basic-email-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Email/Password | File, Database, Federated |
+| `basic-email-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Email/RandomOTP | File, Database, Federated |
+| `basic-email-magiclink-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic + Query String | Email/Nothing & QueryParameter | File, Database, Federated |
+| `basic-sms-password-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/Password | File, Database, Federated |
+| `basic-sms-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/RandomOTP | File, Database, Federated |
+| `basic-sms-magiclink-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic + Query String | Phone/Nothing & QueryParameter | File, Database, Federated |
+| `basic-voice-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | Phone/RandomOTP | File, Database, Federated |
+| `basic-id-otp-factor` | Create or Upgrade Session | HTTP Header 'Authorize' Basic | ID/Nothing & HOTP/TOTP | File, Database, Federated |
+| `cookie-token-opaque-session` | Use Session | HTTP Header 'Cookie' Token | Opaque Token | File, Database, Federated |
+| `cookie-token-jwe-session` | Use Session | HTTP Header 'Cookie' Token | JWE Token | File, Database, Federated |
+| `cookie-token-jws-session` | Use Session | HTTP Header 'Cookie' Token | JWS Token | File, Database, Federated |
+
+### Authentication Realm Principals
+
+1. Every service MUST configure a prioritized list of realm instances; multiple realm instances of same realm type are allowed.
+2. Every service MUST configure one or more factor realms, for creating or upgrading sessions; zero factor realms is NOT allowed.
+3. Every service MUST configure one or more session realms, for using sessions; zero session realms is NOT allowed.
+4. Every realm instance MUST specify one-and-only-one credential validator; the only valid credential validator options are file-backed, database-backed, or federated.
+5. Every factor realm instance MUST return a created or rotated session cookie on successful authentication.
+6. Every session realm instance MAY return a rotated session cookie on successful authentication; mitigates session fixation.
+7. Every service is RECOMMENDED to include at least one file-based factor realm for fallback session creation, plus at least one file-based session realm for session use.
 
 ### 7.2 Dual Database Strategy
 
