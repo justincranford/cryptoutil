@@ -1000,7 +1000,9 @@ Implemented via Barrier Service, Hash Service, PKI-CA, and audit logging.
 
 ### 8.1 OpenAPI-First Design
 
-[To be populated]
+cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defined in OpenAPI 3.0.3 specifications before implementation. This enables type-safe code generation, consistent validation, and automatic documentation.
+
+**Version**: OpenAPI 3.0.3 | **Structure**: components.yaml + paths.yaml | **Gen**: oapi-codegen strict-server | **Content**: application/json only
 
 #### 8.1.1 Specification Organization
 
@@ -1608,9 +1610,53 @@ func TestE2E_SendMessage(t *testing.T) {
 
 ### 11.2 Quality Gates
 
-[To be populated]
+#### 11.2.1 MANDATORY Pre-Commit Quality Gates
 
-#### 11.2.1 File Size Limits
+`golangci-lint run --fix` → zero warnings
+`go build ./...` → clean build
+`go test -cover -shuffle=on ./...` → MANDATORY 100% tests pass, and ≥98% coverage per package
+
+#### 11.2.2 RECOMMENDED Pre-Commit Quality Gates
+
+`go get -u ./...` → direct dependency updates only
+`go mod tidy` → dependency tidy-up; must run after update dependencies
+`govulncheck ./...` → vulnerability scan
+
+#### 11.2.3 RECOMMENDED Pre-push Quality Gates
+
+`gremlins unleash --tags=!integration` → mutation testing
+`govulncheck ./...` → vulnerability scan
+
+#### 11.2.4 SUGGESTED Pre-push Quality Gates
+
+`go get -u all` → all dependency updates, including transitive dependencies
+`go test -bench=. -benchmem ./pkg/path` → benchmark tests
+`go test -fuzz=FuzzTestName -fuzztime=15s ./pkg/path` → fuzz tests
+`go test -race -count=3 ./...` → race detection
+
+#### 11.2.5 CI/CD
+
+***Docker Desktop** MUST be running locally, because workflows are run locally by `act` in containers.
+If not running, start it via command line.
+
+Here are local convenience commands to run the workflows locally for Development and Testing.
+
+`go run ./cmd/workflow -workflows=build`     → build check
+`go run ./cmd/workflow -workflows=coverage`  → workflow coverage check; ≥98% required
+`go run ./cmd/workflow -workflows=quality`   → workflow quality check
+`go run ./cmd/workflow -workflows=lint`      → linting check
+`go run ./cmd/workflow -workflows=benchmark` → workflow benchmark check
+`go run ./cmd/workflow -workflows=fuzz`      → workflow fuzz check
+`go run ./cmd/workflow -workflows=race`      → workflow race check
+`go run ./cmd/workflow -workflows=sast`      → static security analysis
+`go run ./cmd/workflow -workflows=gitleaks`  → secrets scanning
+`go run ./cmd/workflow -workflows=dast`      → dynamic security testing
+`go run ./cmd/workflow -workflows=mutation`  → mutation testing; ≥95% required
+`go run ./cmd/workflow -workflows=e2e`       → end-to-end tests; BOTH `/service/**` AND `/browser/**` paths
+`go run ./cmd/workflow -workflows=load`      → load testing
+`go run ./cmd/workflow -workflows=ci`        → full CI workflow
+
+#### 11.2.6 File Size Limits
 
 | Threshold | Lines | Action |
 |-----------|-------|--------|
@@ -1620,7 +1666,7 @@ func TestE2E_SendMessage(t *testing.T) {
 
 - Rationale: Faster LLM processing, easier review, better organization, forces logical grouping
 
-#### 11.2.2 Conditional Statement Patterns
+#### 11.2.7 Conditional Statement Patterns
 
 - PREFER switch statements over if/else if/else chains for cleaner, more maintainable code
 - Pattern for mutually exclusive conditions:
@@ -1636,7 +1682,7 @@ func TestE2E_SendMessage(t *testing.T) {
   ```
 - When NOT to chain: Independent conditions, error accumulation, early returns
 
-#### 11.2.3 format_go Self-Modification Protection - CRITICAL
+#### 11.2.8 format_go Self-Modification Protection - CRITICAL
 
 - Root Cause: LLM agents lose exclusion context during narrow-focus refactoring
 - NEVER DO:
@@ -1650,7 +1696,7 @@ func TestE2E_SendMessage(t *testing.T) {
   * ✅ Verify self-exclusion patterns exist and are respected
   * ✅ Run tests after ANY changes to format_go package
 
-#### 11.2.4 Restore from Clean Baseline Pattern
+#### 11.2.9 Restore from Clean Baseline Pattern
 
 - When: Fixing regressions, multiple failed attempts, uncertain HEAD state
 - Steps:
