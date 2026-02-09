@@ -893,9 +893,7 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 ## 7. Data Architecture
 
-### 7.1 Multi-Tenancy Architecture & Strategy
-
-#### 7.1.1 Schema-Level Isolation
+### 7.1 Database Schema Patterns
 
 **MANDATORY: Schema-Level Isolation ONLY**
 
@@ -914,7 +912,9 @@ db.Where("user_id = ?", userID).Find(&messages)
 db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 ```
 
-#### 7.1.2 Authentication Realms
+### 7.2 Multi-Tenancy Architecture & Strategy
+
+#### 7.2.1 Authentication Realms
 
 **CRITICAL**: Realms define authentication METHOD and POLICY, NOT data scoping.
 
@@ -958,7 +958,7 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 6. Every session realm instance MAY return a rotated session cookie on successful authentication; mitigates session fixation.
 7. Every service is RECOMMENDED to include at least one file-based factor realm for fallback session creation, plus at least one file-based session realm for session use.
 
-### 7.2 Dual Database Strategy
+### 7.3 Dual Database Strategy
 
 All 9 services MUST support using one of PostgreSQL or SQLite, specified via configuration at startup.
 
@@ -970,10 +970,6 @@ Typical usages for each database for different purposes:
 - Local Development => Static SQLite instance (e.g. file); used for local development
 
 Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isolation testing; 3 service instances, 2 using a shared PostgreSQL container, and 1 using in-memory SQLite
-
-### 7.3 Database Schema Patterns
-
-[To be populated]
 
 ### 7.4 Migration Strategy
 
