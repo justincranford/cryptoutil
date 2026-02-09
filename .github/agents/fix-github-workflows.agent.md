@@ -415,6 +415,182 @@ Add-Content -Path docs/fixes-needed-plan-tasks-v#/issues.md -Value @"
 
 ---
 
+
+## Security-First Principles - MANDATORY
+
+**When analyzing or fixing workflows, ALWAYS apply these security-first principles:**
+
+### 1. Least Privilege - MANDATORY
+
+**Workflow permissions MUST be explicitly scoped to minimum required:**
+
+```yaml
+permissions:
+  contents: read  # ALWAYS start with read-only
+  # Only add write permissions when explicitly needed
+```
+
+**NEVER use broad permissions:**
+
+```yaml
+#  WRONG - overly permissive
+permissions: write-all
+
+#  CORRECT - explicit minimum scope
+permissions:
+  contents: read
+  pull-requests: write  # Only when creating/updating PRs
+```
+
+### 2. Action Pinning - MANDATORY
+
+**ALWAYS pin third-party actions to commit SHA (NOT tags):**
+
+```yaml
+#  WRONG - mutable tag (security risk)
+- uses: actions/checkout@v4
+
+#  CORRECT - immutable commit SHA with comment
+- uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+```
+
+**Rationale**: Tags can be moved/deleted, commit SHAs are immutable
+
+### 3. Secret Management - MANDATORY
+
+**Secrets MUST NEVER appear in:**
+- Workflow YAML files (use `${{ secrets.SECRET_NAME }}`)
+- Logs or outputs (use `::add-mask::` for dynamic secrets)
+- Error messages or debug output
+- Git history or PR diffs
+
+**Pattern for dynamic secrets:**
+
+```yaml
+- name: Mask dynamic secret
+  run: |
+    SECRET_VALUE=$(generate-secret)
+    echo "::add-mask::$SECRET_VALUE"
+    echo "SECRET_VAR=$SECRET_VALUE" >> $GITHUB_ENV
+```
+
+### 4. OIDC over Long-Lived Tokens - RECOMMENDED
+
+**Prefer OIDC for cloud provider authentication:**
+
+```yaml
+#  CORRECT - OIDC (no long-lived credentials)
+- uses: aws-actions/configure-aws-credentials@v4
+  with:
+    role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
+    aws-region: us-east-1
+```
+
+### 5. Input Validation - MANDATORY
+
+**ALWAYS validate workflow inputs and environment variables:**
+
+```yaml
+- name: Validate inputs
+  run: |
+    if [ -z "${{ inputs.workflow_name }}" ]; then
+      echo "Error: workflow_name input is required"
+      exit 1
+    fi
+    # Validate format
+    if ! [[ "${{ inputs.workflow_name }}" =~ ^[a-z0-9-]+$ ]]; then
+      echo "Error: workflow_name must be lowercase alphanumeric with hyphens"  
+      exit 1
+    fi
+```
+
+---
+
+## Clarifying Questions Checklist - MANDATORY
+
+**Before starting workflow analysis or fixes, gather this information:**
+
+### 1. Scope Clarification
+
+- [ ] **Which workflows are affected?**
+  - All workflows (`go run ./cmd/workflow -workflows=ci`)
+  - Specific workflow(s) (`go run ./cmd/workflow -workflows=quality,coverage`)
+  - Workflows with pattern (e.g., all security workflows: `sast,gitleaks,dast`)
+
+- [ ] **What is the failure symptom?**
+  - Syntax error (YAML parsing failed)
+  - Runtime error (job execution failed)
+  - Missing dependency (action/service not available)
+  - Timeout (job exceeded time limit)  
+  - Flaky test (intermittent failures)
+
+- [ ] **When did this start failing?**
+  - After specific commit (use `git log` to identify)
+  - After dependency update (check Dependabot PRs)
+  - Intermittent (flaky test or race condition)
+
+### 2. Environment Context
+
+- [ ] **Where is this running?**
+  - GitHub Actions (cloud runners)
+  - Self-hosted runners
+  - Local testing with cmd/workflow
+
+- [ ] **What are the constraints?**
+  - Time budget for fixes (urgent hotfix vs. planned improvement)
+  - Breaking change acceptable? (major version bump)
+  - Backward compatibility required? (support N-1 versions)
+
+### 3. Testing Requirements
+
+- [ ] **How should this be validated?**
+  - Local execution sufficient (`go run ./cmd/workflow -workflows=<name>`)
+  - Full CI pipeline required (all 14 workflows)
+  - Specific test coverage (e.g., E2E tests for service changes)
+
+- [ ] **What evidence is needed?**
+  - Workflow execution logs (./workflow-reports/)
+  - Test coverage reports (./test-output/coverage.html)
+  - Regression test results (before/after comparison)
+
+---
+
+## Workflow Security Checklist - MANDATORY
+
+**For EVERY workflow change, verify these 14 security requirements:**
+
+### Permissions (3 checks)
+
+- [ ] **Explicit permissions**: Each job has explicit `permissions:` block (no default permissions)
+- [ ] **Least privilege**: Permissions scoped to minimum required (`contents: read` by default)
+- [ ] **No write-all**: NEVER use `permissions: write-all` or omit permissions block
+
+### Action Security (4 checks)
+
+- [ ] **Pinned actions**: All third-party actions pinned to commit SHA (NOT tags/branches)
+- [ ] **Version comments**: Each pinned action has comment with semantic version (e.g., `# v4.1.1`)
+- [ ] **Verified publishers**: Actions from verified publishers only (GitHub, HashiCorp, AWS, etc.)
+- [ ] **Action review**: New actions reviewed for security issues (check GitHub Security Lab advisories)
+
+### Secret Management (3 checks)
+
+- [ ] **No hardcoded secrets**: All secrets use `${{ secrets.SECRET_NAME }}` (NEVER plaintext)
+- [ ] **Masked outputs**: Dynamic secrets masked with `::add-mask::` before use
+- [ ] **Minimal secret scope**: Secrets only accessible to jobs that need them
+
+### Input Validation (2 checks)
+
+- [ ] **Required inputs validated**: Non-empty check for required workflow inputs
+- [ ] **Input format validated**: Regex validation for format/character restrictions
+
+### Supply Chain Security (2 checks)
+
+- [ ] **Dependency review**: New dependencies reviewed for vulnerabilities
+- [ ] **SBOM generation**: Software Bill of Materials generated for deployments (if applicable)
+
+**Enforcement**: Run `go run ./cmd/workflow -workflows=<name> -dry-run` to catch syntax issues, then visual review for security checklist compliance.
+
+---
 ## Testing Effectiveness Methodologies
 
 ### 1. Coverage Analysis
