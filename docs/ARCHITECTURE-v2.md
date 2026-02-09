@@ -165,6 +165,9 @@ This document is structured to serve multiple audiences:
 
 - Certificate Authority (CA): X.509 certificates, EST, SCEP, OCSP, CRL
 - Product-Service Identifier: pki-ca
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
 - Public Port Range: 8050-8059 (host), 8080 (container)
 - Private Admin Port: 9090 (container only)
 
@@ -172,6 +175,9 @@ This document is structured to serve multiple audiences:
 
 - JWK Authority (JA): JWK/JWS/JWE/JWT operations
 - Product-Service Identifier: jose-ja
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
 - Public Port Range: 8060-8069 (host), 8080 (container)
 - Private Admin Port: 9090 (container only)
 
@@ -179,6 +185,9 @@ This document is structured to serve multiple audiences:
 
 - Instant Messenger (IM): E2E encrypted messaging, encryption-at-rest
 - Product-Service Identifier: cipher-im
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
 - Public Port Range: 8070-8079 (host), 8080 (container)
 - Private Admin Port: 9090 (container only)
 
@@ -186,19 +195,53 @@ This document is structured to serve multiple audiences:
 
 - Key Management Service (KMS): Elastic key management, encryption-at-rest
 - Product-Service Identifier: sm-kms
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
 - Public Port Range: 8080-8089 (host), 8080 (container)
 - Private Admin Port: 9090 (container only)
 
 #### 3.2.5 Identity Product
 
 - Authorization Server (Authz): OAuth 2.1 authorization server
+- Product-Service Identifier: identity-authz
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
+- Public Port Range: 8100-8109 (host), 8080 (container)
+- Private Admin Port: 9090 (container only)
+
 - Identity Provider (IdP): OIDC 1.0 Identity Provider
+- Product-Service Identifier: identity-idp
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
+- Public Port Range: 8110-8119 (host), 8080 (container)
+- Private Admin Port: 9090 (container only)
+
 - Resource Server (RS): OAuth 2.1 Resource Server
+- Product-Service Identifier: identity-rs
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
+- Public Port Range: 8120-8129 (host), 8080 (container)
+- Private Admin Port: 9090 (container only)
+
 - Relying Party (RP): OAuth 2.1 Relying Party
+- Product-Service Identifier: identity-rp
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
+- Public Port Range: 8130-8139 (host), 8080 (container)
+- Private Admin Port: 9090 (container only)
+
 - Single Page Application (SPA): OAuth 2.1 Single Page Application
-- Product-Service Identifiers: identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
-- Public Port Ranges: 8100-8109 (authz), 8110-8119 (idp), 8120-8129 (rs), 8130-8139 (rp), 8140-8149 (spa)
-- Private Admin Port: 9090 (all services, container only)
+- Product-Service Identifier: identity-spa
+- Host Public Address: 127.0.0.1
+- Container Public Address: 0.0.0.0
+- Container Admin Private Address: 127.0.0.1
+- Public Port Range: 8140-8149 (host), 8080 (container)
+- Private Admin Port: 9090 (container only)
 
 ### 3.3 Product-Service Relationships
 
