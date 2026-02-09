@@ -168,8 +168,6 @@ This document is structured to serve multiple audiences:
 
 ### 2.1 Agent Orchestration Strategy
 
-[To be populated]
-
 #### 2.1.1 Agent Architecture
 
 - Agent isolation principle (agents do NOT inherit copilot instructions)
@@ -211,7 +209,7 @@ This document is structured to serve multiple audiences:
 - **9 Services across 5 Products**: Independent deployment, scaling, and lifecycle
 - **Dual HTTPS Endpoints**: Public (0.0.0.0:8080) for business APIs, Private (127.0.0.1:9090) for admin operations
 - **Service Discovery**: Config file → Docker Compose → Kubernetes DNS (no caching)
-- **Federation**: Circuit breakers, fallback modes, retry strategies for dependent services
+- **Multi-Level Failover**: Services attempt credential validators in priority order (FEDERATED → DATABASE → FILE), with FILE realms as CRITICAL failsafe guaranteeing admin access
 
 #### Multi-Tenancy
 - **Schema-Level Isolation**: Each tenant gets separate schema (`tenant_<uuid>.users`)
@@ -455,11 +453,28 @@ This document is structured to serve multiple audiences:
 
 ### 3.3 Product-Service Relationships
 
-[To be populated]
+**Federation Patterns**:
+
+- **Identity ↔ JOSE**: Identity services use JOSE service for JWK/JWT operations
+- **All Services ↔ JOSE**: All services may federate to JOSE for cryptographic operations
+- **All Services ↔ Identity**: Optional OAuth 2.1 federation for authentication
+- **Immediate Failover**: Services attempt credential validators in priority order (no retry logic, no circuit breakers)
+  - **FEDERATED unreachable** → fail over to DATABASE and FILE realms
+  - **DATABASE unreachable** → fail over to FEDERATED and FILE realms
+  - **FEDERATED + DATABASE unreachable** → fail over to FILE realms (CRITICAL failsafe)
+- **FILE Realms**: Local to service, always available, MANDATORY minimum 1 FACTOR realm + 1 SESSION realm for admin/DevOps access
+
+**Service Discovery**:
+
+- Configuration file → Docker Compose DNS → Kubernetes DNS
+- MUST NOT cache DNS results (for dynamic scaling)
+
+**Cross-Service Authentication**:
+
+- mTLS (preferred) or OAuth 2.1 client credentials
+- Federation timeout: Configurable per-service (default: 10s)
 
 ### 3.4 Port Assignments & Networking
-
-[To be populated]
 
 #### 3.4.1 Port Design Principles
 
@@ -501,15 +516,31 @@ This document is structured to serve multiple audiences:
 
 ### 4.1 System Context
 
-[To be populated]
+**cryptoutil** operates as a suite of independent microservices with optional federation:
+
+- **Deployment Models**: Standalone services, federated suite, Kubernetes pods
+- **External Dependencies**: PostgreSQL (production), SQLite (dev/test), OpenTelemetry Collector, Grafana OTEL-LGTM
+- **Client Types**: Browser clients (session-based), service clients (token-based), CLI tools
+- **Integration Points**: REST APIs, Docker secrets, configuration files, health endpoints
 
 ### 4.2 Container Architecture
 
-[To be populated]
+**Container Strategy**:
+
+- **Base Image**: Alpine Linux (minimal attack surface)
+- **Multi-Stage Builds**: Builder → Validator → Runtime (secrets validation mandatory)
+- **Runtime User**: Non-root (security best practice)
+- **Health Checks**: Integrated liveness and readiness probes
+- **Secret Management**: Docker/Kubernetes secrets mounted at /run/secrets/
+- **Network Isolation**: Service-specific networks, admin endpoints localhost-only
+
+**Docker Compose Patterns**:
+
+- Single build, shared image (prevents 3× build time)
+- Health check dependencies (service_healthy, not service_started)
+- Latency hiding: First instance initializes DB, others wait
 
 ### 4.3 Component Architecture
-
-[To be populated]
 
 #### 4.3.1 Layered Architecture
 
@@ -524,8 +555,6 @@ This document is structured to serve multiple audiences:
 - Context propagation: Pass context.Context to all long-running operations
 
 ### 4.4 Code Organization
-
-[To be populated]
 
 #### 4.4.1 Go Project Structure
 
@@ -752,8 +781,6 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 ### 5.1 Service Template Pattern
 
-[To be populated]
-
 #### 5.1.1 Template Components
 
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
@@ -777,8 +804,6 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 - Migration priority: cipher-im FIRST (validation) → jose-ja → pki-ca → identity services → sm-kms LAST
 
 ### 5.2 Service Builder Pattern
-
-[To be populated]
 
 #### 5.2.1 Builder Methods
 
@@ -836,8 +861,6 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 
 ### 5.3 Dual HTTPS Endpoint Pattern
 
-[To be populated]
-
 #### 5.3.1 Public HTTPS Endpoint
 
 - Purpose: Business APIs, browser UIs, external client access
@@ -859,8 +882,6 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 - Production: Public configurable, Private ALWAYS 127.0.0.1:9090 (security isolation)
 
 ### 5.4 Dual API Path Pattern
-
-[To be populated]
 
 #### 5.4.1 Service-to-Service APIs (/service/**)
 
@@ -887,8 +908,6 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 - E2E tests MUST verify BOTH path prefixes
 
 ### 5.5 Health Check Patterns
-
-[To be populated]
 
 #### 5.5.1 Liveness Check (/admin/api/v1/livez)
 
@@ -927,15 +946,57 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 
 ### 6.1 FIPS 140-3 Compliance Strategy
 
-[To be populated]
+**CRITICAL: FIPS 140-3 mode is ALWAYS enabled by default and MUST NEVER be disabled**
+
+- **Approved Algorithms**: RSA ≥2048, ECDSA (P-256/384/521), ECDH, EdDSA (25519/448), AES ≥128 (GCM, CBC+HMAC), SHA-256/384/512, HMAC-SHA256/384/512, PBKDF2, HKDF
+- **BANNED Algorithms**: bcrypt, scrypt, Argon2, MD5, SHA-1, RSA <2048, DES, 3DES
+- **Algorithm Agility**: All cryptographic operations support configurable algorithms with FIPS-approved defaults
+- **Compliance Validation**: Automated tests verify only FIPS-approved algorithms used
 
 ### 6.2 SDLC Security Strategy
 
-[To be populated]
+**Security Gates**:
+
+- **Pre-Commit**: golangci-lint (including gosec), UTF-8 validation, auto-formatters
+- **CI/CD**: SAST (gosec), dependency scanning (govulncheck), secret detection, DAST (Nuclei, OWASP ZAP)
+- **Testing**: Security test cases, fuzzing (15s minimum), mutation testing (≥95% production, ≥98% infrastructure)
+
+**Vulnerability Management**:
+
+- Weekly `govulncheck ./...` execution
+- Sources: <https://pkg.go.dev/vuln/list>, GitHub Advisories, CVE Details
+- Incremental updates with testing before deployment
+
+**Code Review**:
+
+- Security-focused reviews for all cryptographic changes
+- Mandatory for changes to authentication, authorization, key management
+- Peer review for all production changes
 
 ### 6.3 Product Security Strategy
 
-[To be populated]
+**Defense in Depth**:
+
+- **Multi-Layer Keys**: Unseal → Root → Intermediate → Content (hierarchical encryption)
+- **Network Security**: IP allowlisting + per-IP rate limiting + CORS + CSRF + CSP
+- **Secret Management**: Docker/Kubernetes secrets (NEVER environment variables)
+- **TLS Everywhere**: TLS 1.3+ with full certificate chain validation
+- **Audit Logging**: All security events, 90-day retention minimum
+
+**Secure Defaults**:
+
+- FIPS 140-3 enabled (cannot disable)
+- TLS required for all endpoints
+- IP allowlisting enabled by default
+- Session timeouts: 30 minutes with MFA step-up
+- Auto-lock on multiple failed authentication attempts
+
+**Zero Trust**:
+
+- No caching of authorization decisions (always re-evaluate)
+- Mutual TLS for service-to-service communication
+- Least privilege principle for all operations
+- Timeout configuration mandatory for all network operations
 
 ### 6.4 Cryptographic Architecture
 
@@ -1033,23 +1094,98 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 ### 6.5 PKI Architecture & Strategy
 
-[To be populated]
+**CA/Browser Forum Baseline Requirements**:
+
+- **Serial Number**: ≥64 bits CSPRNG, non-sequential, >0, <2^159
+- **Algorithms**: RSA ≥2048, ECDSA P-256/384/521, EdDSA, SHA-256/384/512 (NEVER MD5/SHA-1)
+- **Validity**: Subscriber certs ≤398 days, Intermediate CA 5-10 years, Root CA 20-25 years
+- **Extensions**: Key Usage (critical), EKU, SAN, AKI, SKI, CRL Distribution Points, OCSP
+- **CRL/OCSP**: Update ≤7 days, OCSP response ≤7-10 days validity
+- **Audit Logging**: 7-year retention minimum
+
+**CA Architecture Patterns** (highest to lowest preference):
+
+1. **Offline Root → Online Root → Issuing CA** (Maximum security)
+2. **Online Root → Issuing CA** (Balanced)
+3. **Online Root** (Simple, dev/test acceptable)
+
+**Certificate Lifecycle**:
+
+- **Issuance**: CSR validation, identity verification, generation, signing, publication
+- **Renewal**: Pre-expiration notification (60/30/7 days), re-validation if required
+- **Revocation**: Request validation, CRL/OCSP update, notification
 
 ### 6.6 JOSE Architecture & Strategy
 
-[To be populated]
+**Elastic Key Rotation** (per-message):
+
+- **Active Key**: Current key for signing/encrypting (new JWK per message)
+- **Historical Keys**: Previous keys for verifying/decrypting (preserved indefinitely)
+- **Key ID Embedding**: Ciphertext/signature includes key ID for deterministic lookup
+- **Rotation Trigger**: Per-message, hourly, or on-demand
+
+**JOSE Operations**:
+
+- **JWK Generation**: RSA, EC, ED, symmetric keys with configurable algorithms
+- **JWS**: Signing with RS256/384/512, ES256/384/512, EdDSA
+- **JWE**: Encryption with RSA-OAEP, ECDH-ES, A128/192/256GCM
+- **JWT**: Access tokens (JWS), refresh tokens (opaque), ID tokens (JWS)
+
+**Storage Pattern**:
+
+- Domain-specific JWK tables (encrypted with Barrier service)
+- Key versioning for rotation support
+- Per-tenant key isolation
 
 ### 6.7 Key Management System Architecture
 
-[To be populated]
+**Hierarchical Key Structure**:
+
+- **Unseal Keys**: Never stored in app, provided via Docker secrets (5-of-5 required)
+- **Root Keys**: Encrypted with unseal keys, rotated annually
+- **Intermediate Keys**: Encrypted with root keys, rotated quarterly
+- **Content Keys**: Encrypted with intermediate keys, rotated per-operation or hourly
+
+**Barrier Service**:
+
+- HKDF-based deterministic key derivation (instances with same unseal secrets derive same keys)
+- AES-256-GCM encryption at rest
+- Multi-layer protection cascade
+
+**Elastic Key Management**:
+
+- Active key for encrypt/sign operations
+- Historical keys for decrypt/verify operations
+- Key ID embedded in ciphertext for deterministic lookup
+- Lazy migration on rotation (re-encrypt on next write)
 
 ### 6.8 Multi-Factor Authentication Strategy
 
-[To be populated]
+**MFA Methods**:
+
+- **Time-Based**: TOTP (Google Authenticator, Authy)
+- **Event-Based**: HOTP (YubiKey, RSA SecurID)
+- **Biometric**: WebAuthn with Passkeys (Face ID, Touch ID, Windows Hello)
+- **Hardware**: WebAuthn security keys (YubiKey, Titan Key)
+- **Push**: Mobile app push notifications
+- **OTP**: Email, SMS, phone call one-time passwords
+- **Recovery**: Backup single-use codes
+
+**Step-Up Authentication**:
+
+- Re-authentication MANDATORY every 30 minutes for high-sensitivity operations
+- MFA enrollment optional during setup, access limited until enrolled
+- Adaptive based on risk (IP change, unusual access patterns)
+
+**Common Combinations**:
+
+- Password + TOTP/WebAuthn/Push (browser clients)
+- Client ID/Secret + mTLS/Bearer (service clients)
 
 ### 6.9 Authentication & Authorization
 
-[To be populated]
+**Authentication Methods**: 41 total (13 headless + 28 browser)
+**Authorization**: Scope-based, RBAC, resource-level ACLs, zero-trust (no caching)
 
 #### 6.9.1 Authentication Realm Architecture
 
@@ -1150,7 +1286,12 @@ db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 4. Every realm instance MUST specify one-and-only-one credential validator; the only valid credential validator options are file-backed, database-backed, or federated.
 5. Every factor realm instance MUST return a created or rotated session cookie on successful authentication.
 6. Every session realm instance MAY return a rotated session cookie on successful authentication; mitigates session fixation.
-7. Every service is RECOMMENDED to include at least one file-based factor realm for fallback session creation, plus at least one file-based session realm for session use.
+7. Every service MUST include at least one FILE-based factor realm for fallback session creation, plus at least one FILE-based session realm for session use. FILE realms are CRITICAL failsafes - local to the service, always available, ensuring admin/DevOps can always access the service.
+8. **Multi-Level Failover Pattern**: Services attempt credential validators in configured priority order (no circuit breakers, no retry logic):
+   - **FEDERATED unreachable** → services continue with DATABASE and FILE realms
+   - **DATABASE unreachable** → services continue with FEDERATED and FILE realms
+   - **FEDERATED + DATABASE unreachable** → services continue with FILE realms (CRITICAL failsafe)
+   - FILE realms provide disaster recovery / high availability guarantees for administrative access even when all external dependencies are unavailable.
 
 ### 7.3 Dual Database Strategy
 
@@ -1225,8 +1366,6 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 
 ### 8.2 REST Conventions
 
-[To be populated]
-
 #### 8.2.1 Resource Naming
 
 - Plural nouns: /keys, /certificates
@@ -1258,8 +1397,6 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 
 ### 8.3 API Versioning
 
-[To be populated]
-
 #### 8.3.1 Versioning Strategy
 
 - Path-based versioning: /api/v1/, /api/v2/
@@ -1273,8 +1410,6 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 - Parallel operation of N and N-1 versions
 
 ### 8.4 Error Handling
-
-[To be populated]
 
 #### 8.4.1 Error Schema Format
 
@@ -1295,8 +1430,6 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 - Never expose internal implementation details
 
 ### 8.5 API Security
-
-[To be populated]
 
 #### 8.5.1 Dual Path Security
 
@@ -1321,8 +1454,6 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 ## 9. Infrastructure Architecture
 
 ### 9.1 CLI Patterns & Strategy
-
-[To be populated]
 
 #### 9.1.1 Suite-Level CLI Pattern
 
@@ -1412,23 +1543,127 @@ func NewTestSettings() *CipherImServerSettings {
 
 ### 9.3 Observability Architecture (OTLP)
 
-[To be populated]
+**Telemetry Flow** (MANDATORY sidecar pattern):
+
+```
+cryptoutil services → opentelemetry-collector (OTLP :4317/:4318) → grafana-otel-lgtm (:14317/:14318)
+```
+
+**NEVER Direct**: ❌ cryptoutil → grafana-otel-lgtm (bypasses sidecar)
+
+**Configuration**:
+
+```yaml
+telemetry:
+  otlp_endpoint: "opentelemetry-collector:4317"  # Sidecar, not upstream
+  protocol: "grpc"  # grpc (default) or http (firewall-friendly)
+```
+
+**Protocols**:
+
+- **gRPC** (:4317) - Default, efficient binary protocol
+- **HTTP** (:4318) - Firewall-friendly, universal compatibility
 
 ### 9.4 Telemetry Strategy
 
-[To be populated]
+**Structured Logging** (MANDATORY):
+
+```go
+log.Info("operation completed",
+  "user_id", userID,
+  "operation", "key_generation",
+  "duration_ms", duration.Milliseconds(),
+)
+```
+
+**Standard Fields**: timestamp, level, message, trace_id, span_id, service.name, service.version
+
+**Prometheus Metrics** (MANDATORY categories):
+
+- **HTTP**: http_requests_total, http_request_duration_seconds, http_requests_in_flight
+- **Database**: db_connections_open/idle, db_query_duration_seconds, db_errors_total
+- **Crypto**: crypto_operations_total, crypto_operation_duration_seconds, crypto_errors_total
+- **Keys**: keys_total, key_rotations_total, key_usage_total
+
+**Sensitive Data Protection**:
+
+- NEVER log: Passwords, API keys, tokens, private keys, PII
+- Safe to log: Key IDs, user IDs, resource IDs, operation types, durations, counts
 
 ### 9.5 Container Architecture
 
-[To be populated]
+**Multi-Stage Dockerfile Pattern**:
+
+```dockerfile
+# Global ARGs
+ARG GO_VERSION=1.25.5
+ARG VCS_REF
+ARG BUILD_DATE
+
+# Builder stage
+FROM golang:${GO_VERSION}-alpine AS builder
+WORKDIR /src
+# Build logic...
+
+# Validator stage (secrets validation MANDATORY)
+FROM alpine:3.19 AS validator
+WORKDIR /validation
+RUN echo "🔍 Validating Docker secrets..."
+# Validation logic...
+
+# Runtime stage
+FROM alpine:3.19 AS runtime
+WORKDIR /app
+COPY --from=validator /app/cryptoutil /app/cryptoutil
+```
+
+**Container Best Practices**:
+
+- Base image: Alpine Linux (minimal attack surface)
+- Runtime user: Non-root (security)
+- Health checks: Integrated liveness/readiness
+- Secret validation: MANDATORY validator stage
+- Network isolation: Admin endpoints localhost-only
 
 ### 9.6 Orchestration Patterns
 
-[To be populated]
+**Docker Compose**:
+
+- Single build, shared image (prevents 3× build time)
+- Health check dependencies (service_healthy, not service_started)
+- Latency hiding: First instance initializes DB, others wait
+- Expected startup: builder 30-60s, postgres 5-30s, cryptoutil 10-35s
+
+**Kubernetes**:
+
+- StatefulSet for services with persistent state
+- Deployment for stateless services
+- ConfigMaps for non-sensitive config
+- Secrets for credentials (base64 encoded)
+- Service mesh: Istio/Linkerd for mTLS
+
+**Service Discovery**:
+
+- Config file → Docker Compose DNS → Kubernetes DNS
+- MUST NOT cache DNS results (for dynamic scaling)
+- Health monitoring: Poll federated services every 30s
 
 ### 9.7 CI/CD Workflow Architecture
 
-[To be populated]
+**Workflow Categories**:
+
+- **CI**: ci-quality (lint/format/build), ci-test (unit tests), ci-coverage (≥95%/98%), ci-benchmark, ci-mutation (≥95%/98%), ci-race (concurrency)
+- **Security**: ci-sast (gosec), ci-gitleaks (secret detection), ci-dast (Nuclei/ZAP)
+- **Integration**: ci-e2e (Docker Compose), ci-load (Gatling)
+
+**Quality Gates** (MANDATORY before merge):
+
+- Build clean: go build ./...
+- Linting clean: golangci-lint run
+- Tests pass: 100%, zero skips
+- Coverage: ≥95% production, ≥98% infrastructure/utility
+- Mutation: ≥95% production, ≥98% infrastructure/utility
+- Security: SAST/DAST clean
 
 #### 9.7.1 Workflow Catalog
 
@@ -1460,7 +1695,11 @@ func NewTestSettings() *CipherImServerSettings {
 
 ### 9.8 Reusable Action Patterns
 
-[To be populated]
+**GitHub Actions** reusable actions provide consistency across workflows:
+
+- **docker-images-pull**: Parallel image pre-fetching to avoid rate limits
+- **Input/Output patterns**: Parameter passing, cross-platform compatibility
+- **Composite steps**: Shell selection, error handling
 
 #### 9.8.1 Action Catalog
 
@@ -1476,8 +1715,6 @@ func NewTestSettings() *CipherImServerSettings {
 - Cross-platform compatibility
 
 ### 9.9 Pre-Commit Hook Architecture
-
-[To be populated]
 
 #### 9.9.1 Hook Execution Flow
 
@@ -1499,11 +1736,20 @@ func NewTestSettings() *CipherImServerSettings {
 
 ### 10.1 Testing Strategy Overview
 
-[To be populated]
+**Testing Pyramid**:
+
+- **Unit Tests**: Fast (<15s per package), isolated, table-driven, t.Parallel()
+- **Integration Tests**: TestMain pattern, shared resources, GORM repositories
+- **E2E Tests**: Docker Compose, production-like, cross-service validation
+
+**Coverage Requirements**:
+
+- Production code: ≥95%
+- Infrastructure/utility: ≥98%
+- Mutation testing: ≥95% production, ≥98% infrastructure/utility
+- Race detection: go test -race -count=2 (probabilistic execution)
 
 ### 10.2 Unit Testing Strategy
-
-[To be populated]
 
 #### 10.2.1 Table-Driven Test Pattern
 
@@ -1608,8 +1854,6 @@ func TestListMessages_Handler(t *testing.T) {
 
 ### 10.3 Integration Testing Strategy
 
-[To be populated]
-
 #### 10.3.1 TestMain Pattern
 
 **ALL integration tests MUST use TestMain for heavyweight dependencies**:
@@ -1674,7 +1918,14 @@ func TestMain(m *testing.M) {
 
 ### 10.4 E2E Testing Strategy
 
-[To be populated]
+**Production-Like Environment**:
+
+- Docker Compose with PostgreSQL, OpenTelemetry, services
+- Docker secrets for credentials
+- TLS-enabled HTTP client for secure testing
+- Health check polling before test execution
+
+**E2E Test Scope**: MUST test BOTH /service/** and /browser/** paths, verify middleware (IP allowlist, CSRF, CORS), cross-service integration
 
 #### 10.4.1 Docker Compose Orchestration
 
@@ -1726,7 +1977,14 @@ func TestE2E_SendMessage(t *testing.T) {
 
 ### 10.5 Mutation Testing Strategy
 
-[To be populated]
+**Efficacy Targets**:
+
+- Production code: ≥95%
+- Infrastructure/utility: ≥98%
+
+**Parallelization**: 4-6 packages per GitHub Actions matrix job (sequential 45min → parallel 15-20min)
+
+**Exemptions**: OpenAPI-generated, GORM models, Protobuf stubs
 
 #### 10.5.1 Gremlins Configuration
 
@@ -1743,31 +2001,82 @@ func TestE2E_SendMessage(t *testing.T) {
 
 ### 10.6 Load Testing Strategy
 
-[To be populated]
+**Tool**: Gatling (Scala-based, Java 21 LTS required)
+
+**Scenarios**:
+
+- Baseline load: 100 users, 5 min duration
+- Peak load: 1000 users, 10 min duration
+- Stress test: Ramp to failure
+
+**Metrics**: Response time (p50/p95/p99), throughput (req/s), error rate
 
 ### 10.7 Fuzz Testing Strategy
 
-[To be populated]
+**Requirements**:
+
+- Fuzz test files: *_fuzz_test.go (ONLY fuzz functions, exclude property tests with //go:build !fuzz)
+- Minimum fuzz time: 15 seconds per test
+- Always run from project root: go test -fuzz=FuzzXXX -fuzztime=15s ./path
+- Unique function names: MUST NOT be substrings of others (e.g., FuzzHKDFAllVariants not FuzzHKDF)
 
 ### 10.8 Benchmark Testing Strategy
 
-[To be populated]
+**Mandatory for crypto operations**:
+
+```go
+func BenchmarkAESEncrypt(b *testing.B) {
+    key := make([]byte, 32)
+    plaintext := make([]byte, 1024)
+    b.ResetTimer()
+    for i := 0; i < b.N; i++ {
+        _, _ = encrypt(key, plaintext)
+    }
+}
+```
+
+**Execution**: go test -bench=. -benchmem ./pkg/crypto
 
 ### 10.9 Race Detection Strategy
 
-[To be populated]
+**Probabilistic Execution**: go test -race -count=2 ./... (requires CGO_ENABLED=1)
+
+**Why count=2+**: Race detector uses randomization, single execution may miss races
+
+**CI/CD**: go test -race -count=5 ./... for more coverage
 
 ### 10.10 SAST Strategy
 
-[To be populated]
+**Tool**: gosec (part of golangci-lint)
+
+**Key Checks**:
+
+- G401: Weak crypto (MD5, DES)
+- G501: Import blocklist
+- G505: Weak random (math/rand)
+
+**Suppressions**: MUST include justification (#nosec G401 -- MD5 used for non-cryptographic checksums only)
 
 ### 10.11 DAST Strategy
 
-[To be populated]
+**Tools**: Nuclei, OWASP ZAP
+
+**Nuclei**:
+
+- Quick scan: nuclei -target URL -severity info,low (1-2 min)
+- Comprehensive: nuclei -target URL -severity medium,high,critical (5-15 min)
+- Performance: nuclei -target URL -c 25 -rl 100
+
+**OWASP ZAP**:
+
+- Baseline: zap-baseline.py -t URL (5-10 min, passive)
+- Full scan: zap-full-scan.py -t URL (30-60 min, active)
 
 ### 10.12 Workflow Testing Strategy
 
-[To be populated]
+**Local Testing**: go run ./cmd/workflow -workflows=dast,e2e -inputs="key=value"
+
+**Act Compatibility**: NEVER use -t timeout, ALWAYS specify -workflows, use -inputs for params
 
 ---
 
@@ -1775,7 +2084,15 @@ func TestE2E_SendMessage(t *testing.T) {
 
 ### 11.1 Maximum Quality Strategy
 
-[To be populated]
+**Quality Over Speed** (NO EXCEPTIONS):
+
+- ✅ Correctness: ALL code functionally correct with comprehensive tests
+- ✅ Completeness: NO tasks skipped, NO shortcuts
+- ✅ Thoroughness: Evidence-based validation at every step
+- ✅ Reliability: Quality gates enforced (≥95%/98% coverage/mutation)
+- ❌ Time Pressure: NEVER rush, skip validation, defer quality checks
+
+**Priorities**: Correctness, completeness, thoroughness ≫ implementation speed
 
 #### 11.1.1 Go Version Consistency
 
@@ -1910,8 +2227,6 @@ Here are local convenience commands to run the workflows locally for Development
 
 ### 11.3 Code Quality Standards
 
-[To be populated]
-
 #### 11.3.1 Linter Configuration Architecture
 
 - golangci-lint v2 configuration
@@ -1942,8 +2257,6 @@ Here are local convenience commands to run the workflows locally for Development
 
 ### 11.4 Documentation Standards
 
-[To be populated]
-
 #### 11.4.1 Documentation Organization
 
 - Primary: README.md and docs/README.md (keep in 2 files)
@@ -1965,7 +2278,20 @@ Here are local convenience commands to run the workflows locally for Development
 
 ### 11.5 Review Processes
 
-[To be populated]
+**Pull Request Requirements**:
+
+- Title: type(scope): description (<72 chars)
+- Tests added: ≥95%/98% coverage
+- Linting passes: golangci-lint clean
+- Docs updated: README, ARCHITECTURE-v2.md, instruction files
+- Security: No sensitive data, input validation, secure defaults
+
+**PR Size Guidelines**:
+
+- <200 lines: Small (ideal)
+- 200-500 lines: Medium (acceptable)
+- 500-1000 lines: Large (consider splitting)
+- 1000+ lines: Epic (MUST break down)
 
 ---
 
@@ -1973,11 +2299,11 @@ Here are local convenience commands to run the workflows locally for Development
 
 ### 12.1 CI/CD Automation Strategy
 
-[To be populated]
+**Workflow Matrix**: ci-quality (lint/format/build), ci-coverage/mutation/race (test analysis), ci-sast/dast (security), ci-e2e/benchmark/load (integration/performance)
+
+**Quality Gates before merge**: Build clean, linting clean, tests pass (100%), coverage (≥95%/98%), mutation (≥95%/98%), security (SAST/DAST clean)
 
 ### 12.2 Build Pipeline
-
-[To be populated]
 
 #### 12.2.1 Multi-Stage Dockerfile Pattern
 
@@ -2003,7 +2329,9 @@ Here are local convenience commands to run the workflows locally for Development
 
 ### 12.3 Deployment Patterns
 
-[To be populated]
+**Environments**: Development (SQLite, local), Testing (test-containers, CI), Staging (Docker Compose, TLS), Production (Kubernetes, cloud)
+
+**Secret Management**: Docker/Kubernetes secrets (MANDATORY), NEVER inline environment variables
 
 #### 12.3.1 Docker Compose Deployment
 
@@ -2050,11 +2378,15 @@ healthcheck:
 
 ### 12.4 Environment Strategy
 
-[To be populated]
+**Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
+**Testing**: test-containers (PostgreSQL), dynamic ports, ephemeral instances
+**Production**: PostgreSQL (cloud), static ports, full telemetry, TLS required
 
 ### 12.5 Release Management
 
-[To be populated]
+**Versioning**: Semantic versioning (major.minor.patch)
+**Release Process**: Tag creation, CHANGELOG generation, artifact publishing
+**Rollback Strategy**: Previous version stable, blue-green deployment
 
 ---
 
@@ -2062,11 +2394,10 @@ healthcheck:
 
 ### 13.1 Coding Standards
 
-[To be populated]
+**Go Best Practices**: Effective Go, Code Review Comments, Go Proverbs
+**Project Patterns**: See [03-01.coding.instructions.md](.github/instructions/03-01.coding.instructions.md) for file size limits, default values, conditional statements
 
 ### 13.2 Version Control
-
-[To be populated]
 
 #### 13.2.1 Conventional Commits
 
@@ -2092,15 +2423,17 @@ healthcheck:
 
 ### 13.3 Branching Strategy
 
-[To be populated]
+**Main branch**: Always stable, deployable, protected
+**Feature branches**: Short-lived (<7 days), rebased on main before merge
+**Release branches**: For production releases, cherry-pick hotfixes
 
 ### 13.4 Code Review
 
-[To be populated]
+**Requirements**: 2+ approvals for core changes, 1 approval for docs/tests
+**Checklist**: Tests added, docs updated, linting passes, security reviewed
+**Size limits**: <500 lines ideal, >1000 lines requires breakdown
 
 ### 13.5 Development Workflow
-
-[To be populated]
 
 #### 13.5.1 Spec Structure Patterns
 
@@ -2129,23 +2462,34 @@ healthcheck:
 
 ### 14.1 Monitoring & Alerting
 
-[To be populated]
+**Metrics**: Prometheus (HTTP, DB, crypto, keys)
+**Logging**: Structured logs via OpenTelemetry
+**Tracing**: Distributed traces via OTLP
+**Dashboards**: Grafana LGTM (Loki, Tempo, Prometheus)
 
 ### 14.2 Incident Management
 
-[To be populated]
+**Post-Mortem Template**: docs/P0.X-INCIDENT_NAME.md - Summary, root cause, timeline, impact, lessons, action items
+**Severity Levels**: P0 (critical), P1 (high), P2 (medium), P3 (low)
+**Response Time**: P0 <15min, P1 <1hr, P2 <1 day, P3 <1 week
 
 ### 14.3 Performance Management
 
-[To be populated]
+**Benchmarks**: Crypto operations, HTTP endpoints, database queries
+**Load Testing**: Gatling scenarios (baseline, peak, stress)
+**Optimization**: Profile hot paths, caching strategies, connection pooling
 
 ### 14.4 Capacity Planning
 
-[To be populated]
+**Resource Limits**: Memory, CPU, disk, network
+**Scaling Triggers**: >70% utilization sustained >5min
+**Horizontal Scaling**: Stateless services, PostgreSQL read replicas (future)
 
 ### 14.5 Disaster Recovery
 
-[To be populated]
+**Backup Strategy**: PostgreSQL daily snapshots, 30-day retention
+**Recovery Time**: RTO <4 hours, RPO <1 hour
+**Testing**: Quarterly DR drills, documented runbooks
 
 ---
 
@@ -2153,15 +2497,30 @@ healthcheck:
 
 ### A.1 Architectural Decision Records (ADRs)
 
-[To be populated]
+**ADR Template**:
+
+- Title: ADR-NNNN-descriptive-name
+- Status: Proposed, Accepted, Deprecated, Superseded
+- Context: Problem statement, constraints, requirements
+- Decision: Chosen approach with rationale
+- Consequences: Trade-offs, benefits, risks
+
+**Location**: docs/adr/
 
 ### A.2 Technology Selection Decisions
 
-[To be populated]
+**Go 1.25.5**: Static typing, fast compilation, excellent concurrency, CGO-free (portability)
+**PostgreSQL + SQLite**: Production (ACID, scalability) + Dev/Test (zero-config, in-memory)
+**GORM**: Cross-DB compatibility, migrations, type-safe queries
+**Fiber**: Fast HTTP framework, Express-like API, low memory footprint
+**OpenTelemetry**: Vendor-neutral observability, OTLP standard, future-proof
 
 ### A.3 Pattern Selection Decisions
 
-[To be populated]
+**Service Template**: Eliminates 48,000+ lines per service, ensures consistency
+**Dual HTTPS**: Security (public vs admin), network isolation, health checks
+**Multi-Tenancy**: Schema-level isolation (not row-level), compliance, performance
+**Hierarchical Keys**: Defense in depth, key rotation, compliance (FIPS 140-3)
 
 ---
 
@@ -2169,27 +2528,82 @@ healthcheck:
 
 ### B.1 Service Port Assignments
 
-[To be populated]
+**See Section 3.2 Product-Service Port Assignments** for complete table
+
+**Summary**: pki-ca (8050-8059), jose-ja (8060-8069), cipher-im (8070-8079), sm-kms (8080-8089), identity-authz (8100-8109), identity-idp (8110-8119), identity-rs (8120-8129), identity-rp (8130-8139), identity-spa (8140-8149)
 
 ### B.2 Database Port Assignments
 
-[To be populated]
+**See Section 3.4.2 PostgreSQL Ports** for complete table
+
+**Summary**: Host ports 54320-54328 map to container port 5432 for 9 services
 
 ### B.3 Technology Stack
 
-[To be populated]
+**Languages**: Go 1.25.5 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
+**Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
+**Frameworks**: Fiber (HTTP), GORM (ORM), oapi-codegen (OpenAPI)
+**Observability**: OpenTelemetry, Grafana LGTM (Loki, Tempo, Prometheus)
+**Security**: FIPS 140-3 approved algorithms, Docker/Kubernetes secrets
+**Testing**: testify, gremlins (mutation), Nuclei/ZAP (DAST), Gatling (load)
 
 ### B.4 Dependency Matrix
 
-[To be populated]
+**Core Dependencies**:
+
+- github.com/gofiber/fiber/v3 (HTTP framework)
+- gorm.io/gorm (ORM)
+- github.com/google/uuid/v7 (UUIDv7)
+- go.opentelemetry.io/otel (telemetry)
+- github.com/go-jose/go-jose/v4 (JOSE)
+
+**Test Dependencies**: testify, testcontainers-go, httptest
 
 ### B.5 Configuration Reference
 
-[To be populated]
+**Priority Order**: Docker secrets > YAML > CLI parameters (NO env vars for secrets)
+
+**Standard Files**:
+
+- config.yml: Main configuration
+- secrets/*.secret: Credentials (chmod 440)
 
 ### B.6 Instruction File Reference
 
-[To be populated - Mirror table from .github/copilot-instructions.md]
+**See .github/copilot-instructions.md** for complete table of 26 instruction files
+
+**Summary**: 01-terminology/beast-mode, 02-architecture (9 files), 03-development (8 files), 04-ci-cd (2 files), 05-platform (3 files), 06-evidence (2 files), 07-patterns (1 file)
+
+### B.7 Agent Catalog & Handoff Matrix
+
+**Agents Available**:
+
+- plan-tasks-quizme: Planning and task decomposition → hands off to plan-tasks-implement
+- plan-tasks-implement: Autonomous implementation execution
+- doc-sync: Documentation synchronization
+- fix-github-workflows: Workflow repair and validation
+- fix-tool-names: Tool name consistency enforcement
+- beast-mode-custom: Continuous execution mode
+
+**See .github/agents/*.agent.md** for complete agent definitions
+
+### B.8 CI/CD Workflow Catalog
+
+**See Section 9.7.1 Workflow Catalog** for complete list
+
+**Summary**: ci-quality, ci-coverage, ci-mutation, ci-race, ci-benchmark, ci-sast, ci-dast, ci-e2e, ci-load, ci-gitleaks
+
+### B.9 Reusable Action Catalog
+
+**See Section 9.8.1 Action Catalog** for complete list
+
+**Summary**: docker-images-pull (parallel image pre-fetching), cache-go (Go module cache)
+
+### B.10 Linter Rule Reference
+
+**See .golangci.yml** for complete configuration
+
+**Summary**: 30+ linters enabled (errcheck, govet, staticcheck, wsl_v5, godot, gosec, etc.)
 
 | File | Description |
 |------|-------------|
@@ -2199,8 +2613,6 @@ healthcheck:
 | ... | (25 total instruction files) |
 
 ### B.7 Agent Catalog & Handoff Matrix
-
-[To be populated]
 
 | Agent | Description | Tools | Handoffs |
 |-------|-------------|-------|----------|
@@ -2212,8 +2624,6 @@ healthcheck:
 | beast-mode-custom | Continuous execution mode | TBD | TBD |
 
 ### B.8 CI/CD Workflow Catalog
-
-[To be populated]
 
 | Workflow | Purpose | Dependencies | Duration | Timeout |
 |----------|---------|--------------|----------|---------|
@@ -2231,16 +2641,12 @@ healthcheck:
 
 ### B.9 Reusable Action Catalog
 
-[To be populated]
-
 | Action | Description | Inputs | Outputs |
 |--------|-------------|--------|---------|
 | docker-images-pull | Parallel Docker image pre-fetching | images (newline-separated list) | None |
 | Additional actions | TBD | TBD | TBD |
 
 ### B.10 Linter Rule Reference
-
-[To be populated]
 
 | Linter | Purpose | Enabled | Auto-Fix | Exclusions |
 |--------|---------|---------|----------|------------|
@@ -2258,19 +2664,35 @@ healthcheck:
 
 ### C.1 FIPS 140-3 Compliance
 
-[To be populated]
+**Status**: ALWAYS enabled, NEVER disabled
+
+**Approved Algorithms**: RSA ≥2048, ECDSA (P-256/384/521), ECDH, EdDSA (25519/448), AES ≥128 (GCM, CBC+HMAC), SHA-256/384/512, HMAC-SHA256/384/512, PBKDF2, HKDF
+
+**BANNED**: bcrypt, scrypt, Argon2, MD5, SHA-1, RSA <2048, DES, 3DES
 
 ### C.2 PKI Standards Compliance
 
-[To be populated]
+**CA/Browser Forum Baseline Requirements**:
+
+- Serial ≥64 bits CSPRNG, >0, <2^159
+- Validity ≤398 days (subscriber), 5-10 years (intermediate), 20-25 years (root)
+- Extensions: Key Usage (critical), EKU, SAN, AKI, SKI, CRL, OCSP
+- Audit logging: 7-year retention
+
+**Validation**: DV (<30 days), OV/EV (<13 months), CAA DNS checks
 
 ### C.3 OAuth 2.1 / OIDC 1.0 Compliance
 
-[To be populated]
+**OAuth 2.1**: Authorization Code + PKCE, Client Credentials, Token Exchange
+**OIDC 1.0**: ID Token (JWS), UserInfo endpoint, Discovery (.well-known/openid-configuration)
+
+**Security**: HTTPS required, state parameter, nonce in ID tokens, consent tracking
 
 ### C.4 Security Standards Compliance
 
-[To be populated]
+**OWASP**: Password Storage Cheat Sheet (peppering, PBKDF2), Top 10
+**NIST**: FIPS 140-3 (crypto), SP 800-63 (digital identity)
+**Zero Trust**: No caching authz, mTLS, least privilege, audit logging (90-day retention)
 
 ---
 
