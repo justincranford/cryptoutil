@@ -263,10 +263,17 @@ This document is structured to serve multiple audiences:
 
 #### 3.4.2 PostgreSQL Ports
 
-- Container address: 0.0.0.0:5432 (all services)
-- Host address: 127.0.0.1 (all services)
-- Host port ranges: 54320-54328 (one per service to avoid conflicts)
-- Examples: pki-ca (54320), jose-ja (54321), cipher-im (54322), sm-kms (54323), identity-authz (54324)
+| Product-Service Identifier | Host Address | Host Port | Container Address | Container Port |
+|---------|-----------|----------------|----------|----------------|
+| **pki-ca** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
+| **jose-ja** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
+| **cipher-im** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
+| **sm-kms** | 127.0.0.1 | 54323 | 0.0.0.0 | 5432 |
+| **identity-authz** | 127.0.0.1 | 54324 | 0.0.0.0 | 5432 |
+| **identity-idp** | 127.0.0.1 | 54325 | 0.0.0.0 | 5432 |
+| **identity-rs** | 127.0.0.1 | 54326 | 0.0.0.0 | 5432 |
+| **identity-rp** | 127.0.0.1 | 54327 | 0.0.0.0 | 5432 |
+| **identity-spa** | 127.0.0.1 | 54328 | 0.0.0.0 | 5432 |
 
 #### 3.4.3 Telemetry Ports (Shared)
 
