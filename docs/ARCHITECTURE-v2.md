@@ -984,7 +984,15 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 
 ### 7.5 Data Security & Encryption
 
-[To be populated]
+cryptoutil ensures enterprise-grade data security through:
+
+- **FIPS 140-3 Compliance**: NIST-approved algorithms only (see [6.4.1](#641-fips-140-3-compliance-always-enabled))
+- **Hierarchical Key Management**: Unseal → Root → Intermediate → Content keys (see [6.4.2](#642-key-hierarchy-barrier-service))
+- **Version-Based Hashing**: Entropy-based algorithm selection (see [6.4.3](#643-hash-service-version-based))
+- **Encryption at Rest/In Transit**: AES-GCM and TLS 1.3+ with full validation
+- **Zero-Trust Authorization**: No caching; re-evaluation per request
+
+Implemented via Barrier Service, Hash Service, PKI-CA, and audit logging.
 
 ---
 
