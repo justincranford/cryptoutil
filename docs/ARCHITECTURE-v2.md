@@ -159,7 +159,17 @@ This document is structured to serve multiple audiences:
 
 ### 3.2 Service Catalog
 
-[To be populated]
+| Product | Service | Product-Service Identifier | Host Public Address | Host Port Range | Container Public Address | Container Public Port Range | Container Admin Private Address | Container Admin Port Range | Description |
+|---------|----------------|-----------------|------------|----------|------------|----------------|-------------------|----------|
+| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 8050-8059 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | X.509 certificates, EST, SCEP, OCSP, CRL |
+| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 8060-8069 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | JWK/JWS/JWE/JWT operations |
+| **Cipher** | **Instant Messenger (IM)** | **cipher-im** | 127.0.0.1 | 8070-8079 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | E2E encrypted messaging, encryption-at-rest |
+| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 8080-8089 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | Elastic key management, encryption-at-rest |
+| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 8100-8109 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 authorization server |
+| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 8110-8119 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OIDC 1.0 Identity Provider |
+| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 8120-8129 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Resource Server |
+| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 8130-8139 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Relying Party |
+| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 8140-8149 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Single Page Application |
 
 #### 3.2.1 PKI Product
 
@@ -277,8 +287,13 @@ This document is structured to serve multiple audiences:
 
 #### 3.4.3 Telemetry Ports (Shared)
 
-- opentelemetry-collector-contrib: 4317 (OTLP gRPC), 4318 (OTLP HTTP)
-- grafana-otel-lgtm: 3000 (HTTP UI), 4317 (OTLP gRPC), 4318 (OTLP HTTP)
+| Service | Host Port | Container Port | Protocol |
+|---------|-----------|----------------|----------|
+| opentelemetry-collector-contrib | 127.0.0.1:4317 | 0.0.0.0:4317 | OTLP gRPC (no TLS) |
+| opentelemetry-collector-contrib | 127.0.0.1:4318 | 0.0.0.0:4318 | OTLP HTTP (no TLS) |
+| grafana-otel-lgtm | 127.0.0.1:3000 | 0.0.0.0:3000 | HTTP (no TLS) |
+| grafana-otel-lgtm | 127.0.0.1:4317 | 0.0.0.0:4317 | OTLP gRPC (no TLS) |
+| grafana-otel-lgtm | 127.0.0.1:4318 | 0.0.0.0:4318 | OTLP HTTP (no TLS) |
 
 ---
 
