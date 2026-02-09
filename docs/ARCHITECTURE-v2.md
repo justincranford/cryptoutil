@@ -293,7 +293,7 @@ Based on golang-standards/project-layout:
 
 #### 5.1.1 Template Components
 
-- Two HTTPS Servers: Public (business APIs) + Admin (health checks)
+- Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
 - Two Public Paths: /browser/** (sessions) vs /service/** (tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
 - Database: PostgreSQL || SQLite with GORM
