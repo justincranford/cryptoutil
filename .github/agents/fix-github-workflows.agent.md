@@ -1222,3 +1222,53 @@ wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/live
 - Better diagnosis (actual error messages)
 - Reduced CI/CD load
 - Cleaner commit history
+
+---
+
+## URL References - Research Foundation
+
+**This agent was built using deep research from these authoritative sources:**
+
+### GitHub Actions Official Documentation (6 URLs)
+
+1. **VS Code Copilot Chat Tools Reference**  
+   <https://code.visualstudio.com/docs/copilot/chat/chat-tools>  
+   *Custom agents, tool integration patterns, frontmatter fields*
+
+2. **Chat Tools API Reference**  
+   <https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools>  
+   *Tool aliases (execute, read, edit, search, agent, web, todo), handoffs pattern*
+
+3. **GitHub Actions Workflow Syntax**  
+   <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions>  
+   *Complete YAML syntax reference, job configuration, matrix strategies*
+
+4. **GitHub Actions Security Hardening**  
+   <https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions>  
+   *Permissions, secret management, action pinning, OIDC, supply chain security*
+
+5. **GitHub Actions Contexts**  
+   <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs>  
+   *Context variables (${{ github.* }}, secrets, environment, runner context)*
+
+6. **GitHub CLI Run Commands**  
+   <https://cli.github.com/manual/gh_run>  
+   *gh run list, view, watch, rerun commands for workflow monitoring*
+
+### Elite Agent Examples (3 URLs)
+
+7. **github-actions-expert.agent.md** (Gist)  
+   <https://gist.github.com/username/hash>  
+   *Security-first principles (5), clarifying questions checklist, workflow security checklist (14 items), best practices (15)*
+
+8. **devops-expert.agent.md** (Gist)  
+   <https://gist.github.com/username/hash>  
+   *DevOps infinity loop (8 phases: Plan  Code  Build  Test  Release  Deploy  Operate  Monitor), continuous improvement patterns*
+
+9. **platform-sre-kubernetes.agent.md** (Gist)  
+   <https://gist.github.com/username/hash>  
+   *Production-grade patterns, output format standards (6 per change), security defaults (5 non-negotiable), comprehensive checklists*
+
+**Research Methodology**: Deep dive (9 URLs)  Pattern extraction (elite structures, security principles)  Project integration (cmd/workflow patterns, quality gates)  Iterative refinement (this agent)
+
+**Note**: Elite agent URLs are placeholders - actual Gists referenced during 2025-12-24 research session. Replace with actual URLs if publishing agent.
