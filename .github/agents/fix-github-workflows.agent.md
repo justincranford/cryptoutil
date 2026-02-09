@@ -130,7 +130,7 @@ docker ps
 **Why Critical**: All workflow testing infrastructure requires Docker for:
 - PostgreSQL test-containers (unit/integration tests)
 - Docker Compose orchestration (E2E tests)
-- act local workflow execution (uses Docker containers)
+- cmd/workflow uses act internally (requires Docker containers)
 
 ### 1. Local Workflow Execution (MANDATORY METHOD)
 
@@ -291,7 +291,7 @@ MUST run tests BEFORE EVERY COMMIT:
 
 **Evidence Requirements (MUST document in issues.md):**
 
-- âœ… Workflow runs successfully in act local environment
+- âœ… Workflow runs successfully in cmd/workflow local environment
 - âœ… No new errors introduced (grep logs for "error", "failed", "fatal")
 - âœ… Tracking docs updated (issues.md status â†’ Completed, categories.md pattern added)
 - âœ… Commit follows conventional format with issue reference
