@@ -4,17 +4,17 @@
 # Run manually: pre-commit run --all-files
 
 repos:
+  # Secrets scanning (critical for crypto project)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.27.2
+    hooks:
+      - id: gitleaks
+        name: Scan for secrets
+        stages: [pre-push]
+
   # NOTE: These are expensive (network calls)
   - repo: local
     hooks:
-      # Secrets scanning (critical for crypto project)
-      - repo: https://github.com/gitleaks/gitleaks
-        rev: v8.27.2
-        hooks:
-          - id: gitleaks
-            name: Scan for secrets
-            stages: [pre-push]
-
       # Check pre-commit hook versions, and auto-update them
       - id: autoupdate-all-hooks
         name: Auto-update pre-commit hook versions
