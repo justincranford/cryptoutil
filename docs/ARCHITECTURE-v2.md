@@ -589,13 +589,7 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 #### 5.2.2 Merged Migrations
 
-| Range | Owner | Examples |
-|-------|-------|----------|
-| 1001-1999 | Service Template | Sessions (1001), Barrier (1002), Realms (1003), Tenants (1004), PendingUsers (1005) |
-| 2001+ | Domain | cipher-im messages (2001), jose JWKs (2001) |
-
-- mergedMigrations type: Implements fs.FS interface, unifies both for golang-migrate validation
-- Prevention: Solves "no migration found for version X" validation errors
+*See section 7.4 Migration Strategy for details on the merged migrations pattern.*
 
 #### 5.2.3 ServiceResources
 
@@ -973,7 +967,20 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 
 ### 7.4 Migration Strategy
 
-[To be populated]
+#### Merged Migrations Pattern
+
+| Range | Owner | Examples |
+|-------|-------|----------|
+| 1001-1999 | Service Template | Sessions (1001), Barrier (1002), Realms (1003), Tenants (1004), PendingUsers (1005) |
+| 2001+ | Domain | cipher-im messages (2001), jose JWKs (2001) |
+
+- mergedMigrations type: Implements fs.FS interface, unifies both for golang-migrate validation
+- Prevention: Solves "no migration found for version X" validation errors
+
+**Migration Process**:
+1. Extract shared infrastructure migrations (1001-1999) to service template
+2. Domain services start migrations at 2001+ (never conflicts)
+3. Use mergedMigrations for unified validation during service initialization
 
 ### 7.5 Data Security & Encryption
 
