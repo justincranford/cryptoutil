@@ -268,7 +268,8 @@ docs/fixes-needed-plan-tasks-v#/
 MUST run tests BEFORE EVERY COMMIT:
 - Run `go test ./...` to verify no code regressions
 - Verify all tests pass (100%, zero skips)
-- Verify workflow syntax with `act --dryrun`
+- Verify workflow syntax with `go run ./cmd/workflow -workflows=<name> -dry-run`
+- Test workflow execution with `go run ./cmd/workflow -workflows=<name>`
 - NEVER commit workflow changes that break tests
 
 **Mutation Testing:**
@@ -282,9 +283,9 @@ MUST run tests BEFORE EVERY COMMIT:
 
 **Verification Checklist:**
 
-- [ ] **Syntax Check**: `act --dryrun -W .github/workflows/<workflow>.yml` (validates YAML syntax and structure)
-- [ ] **Local Run**: `act -j <job-name>` (executes workflow locally to catch runtime errors)
-- [ ] **Regression Check**: Verify fix doesn't break other workflows (grep for shared dependencies)
+- [ ] **Syntax Check**: `go run ./cmd/workflow -workflows=<name> -dry-run` (validates YAML syntax, structure, and configuration)
+- [ ] **Local Execution**: `go run ./cmd/workflow -workflows=<name>` (executes workflow locally to catch runtime errors)
+- [ ] **Regression Check**: Verify fix doesn't break other workflows (grep for shared dependencies, test dependent workflows)
 - [ ] **Tracking Update**: Update issues.md with fix details and categories.md with pattern
 - [ ] **Conventional Commit**: Use `ci(workflows): fix <issue>` format with detailed body
 
