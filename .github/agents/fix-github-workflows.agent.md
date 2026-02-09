@@ -591,266 +591,31 @@ permissions:
 **Enforcement**: Run `go run ./cmd/workflow -workflows=<name> -dry-run` to catch syntax issues, then visual review for security checklist compliance.
 
 ---
-## Testing Effectiveness Methodologies
 
-### 1. Coverage Analysis
+## Testing Effectiveness & Quality Assurance
 
-**Mutation Score Tracking**:
+**Coverage Analysis**: Track mutation scores (`gremlins unleash`), identify gaps (`go tool cover -func | grep -v "100.0%"`), analyze uncovered functions
 
-```bash
-# Run mutation testing
-gremlins unleash --tags=!integration
+**Test Quality Metrics**: Measure execution time (`time go test`), detect flaky tests (run 5x), identify slow tests (grep RUN/PASS timing)
 
-# Track scores over time
-echo "$(date): $(grep 'Mutation score' gremlins-report.txt)" >> mutation-history.txt
-```
+**Result Quality**: Compare test results across runs (test-run-1.json vs test-run-2.json), analyze error patterns (`grep -i "fail\|error" | sort | uniq -c`)
 
-**Coverage Gap Analysis**:
+**Integration Testing**: Check service interaction coverage (`grep federation/service.*url`), verify API contract consistency (OpenAPI/Swagger across services)
 
-```bash
-# Find uncovered functions
-go test -coverprofile=coverage.out ./...
-go tool cover -func=coverage.out | grep -v "100.0%" | sort -k3 -n
-```
+**Test Suite Health**: Monitor pass rate trends, track test count growth, measure coverage delta per commit, review skip/pending test inventory
 
-### 2. Test Quality Metrics
+**Regression Prevention**: Baseline test runs before changes, diff test results (before/after), track introduced failures, validate fix completeness
 
-**Test Execution Time Analysis**:
 
-```bash
-# Measure test execution time
-time go test ./...
+## Result Analysis & Recommendations
 
-# Identify slow tests
-go test -v ./... 2>&1 | grep -E "^=== RUN|^--- PASS" | \
-    awk '/=== RUN/{test=$2} /--- PASS/{print test, $3}' | \
-    sort -k2 -n
-```
+**Automated Reporting**: Generate reports with coverage/timing/failures (`go test -cover -v`), track trends over time, compare before/after metrics
 
-**Flaky Test Detection**:
+**Failure Triage**: Categorize by type (syntax/logic/race/timeout/infrastructure), prioritize by impact (blocking/degrading/cosmetic), identify root cause patterns
 
-```bash
-# Run tests multiple times to detect flakes
-for i in {1..5}; do
-    echo "Run $i:"
-    go test -run TestFlaky ./... || echo "FAILED"
-done
-```
+**Performance Analysis**: Track test execution time trends, identify bottlenecks (slow tests), optimize test suite (parallel execution, selective runs)
 
-### 3. Result Quality Assessment
-
-**Test Result Consistency**:
-
-```bash
-# Compare test results across runs
-go test -json ./... > test-run-1.json
-go test -json ./... > test-run-2.json
-
-# Compare outputs
-diff test-run-1.json test-run-2.json
-```
-
-**Error Pattern Analysis**:
-
-```bash
-# Analyze common failure patterns
-go test -v ./... 2>&1 | grep -i "fail\|error" | \
-    sed 's/.*\(FAIL\|ERROR\).*/\1/' | sort | uniq -c | sort -nr
-```
-
-### 4. Integration Test Effectiveness
-
-**Service Interaction Coverage**:
-
-```bash
-# Check which service combinations are tested
-grep -r "federation\|service.*url" test/ | \
-    grep -o "https://[a-z0-9-]*:[0-9]*" | sort | uniq
-```
-
-**API Contract Verification**:
-
-```bash
-# Verify API contracts match between services
-find . -name "*.yaml" -exec grep -l "openapi\|swagger" {} \; | \
-    xargs -I {} sh -c 'echo "=== {} ==="; head -20 {}'
-```
-
----
-
-## Quality Assurance Methodologies
-
-### 1. Test Suite Health Metrics
-
-**Test Suite Statistics**:
-
-```bash
-# Overall test statistics
-go test -v ./... 2>&1 | grep -E "^=== RUN|^--- (PASS|FAIL|SKIP)" | \
-    awk '
-        /=== RUN/ {tests++}
-        /--- PASS/ {passes++}
-        /--- FAIL/ {fails++}
-        /--- SKIP/ {skips++}
-        END {
-            print "Total tests:", tests
-            print "Passed:", passes
-            print "Failed:", fails
-            print "Skipped:", skips
-            print "Pass rate:", (passes/tests)*100 "%"
-        }
-    '
-```
-
-### 2. Code Quality Correlation
-
-**Linting vs Test Quality**:
-
-```bash
-# Compare linting issues with test failures
-golangci-lint run --out-format=json > lint-results.json
-go test -json ./... > test-results.json
-
-# Correlate issues (requires jq)
-jq -s '.[0] as $lint | .[1] as $test |
-    $lint[] | select(.Pos.Filename | contains("test")) |
-    . + {test_failures: ($test | map(select(.Package == (.Pos.Filename | sub("_test.go"; ""))) | select(.Action == "fail") | length))} |
-    select(.test_failures > 0)' lint-results.json test-results.json
-```
-
-### 3. Performance Benchmarking
-
-**Benchmark Result Analysis**:
-
-```bash
-# Analyze benchmark results for regressions
-go test -bench=. -benchmem ./... | \
-    awk '/^Benchmark/ {print $1, $3, $5}' | \
-    sort -k2 -n | tail -10  # Slowest benchmarks
-```
-
-**Memory Leak Detection**:
-
-```bash
-# Check for memory leaks in benchmarks
-go test -bench=. -benchmem -memprofile=mem.prof ./...
-go tool pprof -top mem.prof
-```
-
----
-
-## Result Analysis Frameworks
-
-### 1. Automated Test Reporting
-
-**Generate Comprehensive Reports**:
-
-```bash
-#!/bin/bash
-# generate-test-report.sh
-
-echo "# Test Report - $(date)" > test-report.md
-echo "" >> test-report.md
-
-# Coverage summary
-echo "## Coverage" >> test-report.md
-go test -cover ./... | grep -E "coverage|ok|FAIL" >> test-report.md
-echo "" >> test-report.md
-
-# Test timing
-echo "## Test Timing" >> test-report.md
-go test -v ./... 2>&1 | grep -E "^=== RUN|^--- PASS" | \
-    awk '/=== RUN/{test=$2; start=$0} /--- PASS/{print test, $3}' | \
-    sort -k2 -nr | head -10 >> test-report.md
-echo "" >> test-report.md
-
-# Mutation score
-echo "## Mutation Testing" >> test-report.md
-if command -v gremlins &> /dev/null; then
-    gremlins unleash --tags=!integration | grep "Mutation score" >> test-report.md
-fi
-```
-
-### 2. CI/CD Result Comparison
-
-**Compare Local vs CI Results**:
-
-```bash
-#!/bin/bash
-# compare-ci-local.sh
-
-# Get latest CI run ID
-CI_RUN_ID=$(gh run list --workflow=ci-quality --limit=1 --json databaseId --jq '.[0].databaseId')
-
-# Download CI artifacts
-gh run download $CI_RUN_ID --dir ci-artifacts
-
-# Compare results
-echo "Coverage comparison:"
-diff <(sort coverage.out) <(sort ci-artifacts/coverage.out) || echo "Coverage differs"
-
-echo "Test result comparison:"
-diff test-results.json ci-artifacts/test-results.json || echo "Test results differ"
-```
-
-### 3. Trend Analysis
-
-**Track Metrics Over Time**:
-
-```bash
-#!/bin/bash
-# track-metrics.sh
-
-DATE=$(date +%Y-%m-%d)
-
-# Coverage trend
-COVERAGE=$(go test -cover ./... 2>&1 | grep "coverage" | awk '{print $5}')
-echo "$DATE,coverage,$COVERAGE" >> metrics.csv
-
-# Test count
-TEST_COUNT=$(go test -v ./... 2>&1 | grep -c "^=== RUN")
-echo "$DATE,test_count,$TEST_COUNT" >> metrics.csv
-
-# Execution time
-EXEC_TIME=$(time go test ./... 2>&1 | grep real | awk '{print $2}')
-echo "$DATE,exec_time,$EXEC_TIME" >> metrics.csv
-```
-
----
-
-## Recommendations for Improvement
-
-### 1. Automated Testing Infrastructure
-
-- Implement automated service startup/shutdown scripts
-- Add containerized testing options for environment parity
-- Create per-service integration test suites
-
-### 2. Result Analysis Tools
-
-- Develop scripts for comparing local vs CI results
-- Implement performance regression detection
-- Add automated test quality metrics collection
-
-### 3. Security Testing Enhancement
-
-- Integrate comprehensive security scanning tools locally
-- Add security test result correlation with CI
-- Implement security testing in pre-commit hooks
-
-### 4. Quality Assurance Framework
-
-- Establish test suite health dashboards
-- Implement automated flaky test detection
-- Add code quality correlation analysis
-
-### 5. Documentation and Training
-
-- Document all local testing workflows
-- Create troubleshooting guides for common issues
-- Train team on effective local testing practices
-
----
+**Continuous Improvement**: Document failure patterns  preventive measures, update best practices based on learnings, share knowledge across team, automate repetitive fixes
 
 ## Pre-Push Checklist
 
@@ -866,338 +631,70 @@ echo "$DATE,exec_time,$EXEC_TIME" >> metrics.csv
 
 ---
 
-## Common Workflow Failures
 
-### 1. Dependency Version Conflicts
+## Common Workflow Failures - Top Patterns
 
-**Symptom**:
+**1. Variable Expansion**: Heredocs - use `${VAR}` not `$VAR`, verify with `cat config.yml` step
 
-```
-Error: github.com/goccy/go-yaml@v1.18.7 conflicts with parent requirement ^1.19.0
-```
+**2. PostgreSQL Credentials**: Match env vars to service config, verify connection string expansion, check logs for "role does not exist"
 
-**Fix**:
+**3. Docker Not Running**: Windows - start Docker Desktop, wait 30-60s, verify with `docker ps`
 
-```bash
-go get -u github.com/goccy/go-yaml@latest
-go get -u all  # Update all transitive dependencies
-go mod tidy
-go test ./...  # Verify tests pass
-```
+**4. Missing Dependencies**: Install before use (golangci-lint, act, postgresql-client), pin versions in workflows
 
-**Prevention**: Regularly run `go get -u all` before major releases
+**5. Path Issues**: Use relative paths in compose.yml, absolute in workflows with `${{ github.workspace }}`
 
-### 2. Container Startup Failures
+**6. Timeout Errors**: Increase for slow operations (DB init 60s, migrations 120s, E2E 300s)
 
-**Symptom**:
+**7. Permission Denied**: File permissions at 440 for secrets, 755 for scripts, check ownership
 
-```
-Container compose-identity-authz-e2e-1  Error
-dependency failed to start: container compose-identity-authz-e2e-1 exited (1)
-```
+**8. Port Conflicts**: Use dynamic ports (0) in tests, check `netstat -ano | findstr PORT` on Windows
 
-**Diagnosis Steps**:
+**9. Secret Access**: Mount at `/run/secrets/`, read with `file:///run/secrets/name`, never hardcode
 
-1. Download container logs from CI artifacts:
+**10. Cache Issues**: Clear with `actions/cache@v3` delete, rebuild containers with `--no-cache`
 
-   ```bash
-   gh run download <run-id> --name e2e-container-logs-<run-id>
-   ```
+**Diagnostic Approach**: Download logs  grep errors  check recent changes  compare working workflows  verify prerequisites
 
-2. Extract and view logs:
 
-   ```powershell
-   Expand-Archive container-logs_*.zip
-   Get-Content compose-identity-authz-e2e-1.log
-   ```
+## Code Archaeology Pattern
 
-3. Identify root cause from actual error message (not just exit code 1)
+**When**: Container crashes with zero symptom change despite config fixes  implementation issue, not config
 
-**Common Root Causes**:
+**Steps**: 1) Download logs from last 3-5 runs, 2) Compare byte counts (identical = no symptom change), 3) Compare with working service file structure, 4) Identify missing files (server.go, application.go, public.go, admin.go)
 
-- TLS cert file required but not configured
-- Database DSN required but not provided
-- Credential mismatch (app vs database)
-- Missing public HTTP server implementation
+**Key Insight**: Configuration debugging wastes time when architecture incomplete - code archaeology first (9 min), NOT configuration debugging (40-60 min)
 
-**Prevention**: Test Docker Compose locally before pushing:
+## Diagnostic Commands & Timing
 
-```bash
-docker compose -f deployments/compose/compose.yml up -d
-docker compose ps  # Verify all services healthy
-docker compose logs <service>  # Check for errors
-docker compose down -v
-```
+**GitHub CLI**: `gh run list --limit 10`, `gh run view <id> --log-failed`, `gh run download <id>`, `gh run rerun <id> --failed`
 
-### 3. Service Health Check Failures
+**Local Workflow Logs**: `./workflow-reports/workflow-execution/<workflow>/run-<timestamp>.log`, grep for "ERROR|FAIL|fatal"
 
-**Symptom**:
+**Container Logs**: `docker compose logs <service>`, `docker logs <container> --tail 100`, `docker inspect <container>`
 
-```
-Attempt 30/30 (backoff: 5s)
-Testing: https://127.0.0.1:9090/admin/v1/readyz
-âŒ Not ready: https://127.0.0.1:9090/admin/v1/readyz
-âŒ Application failed to become ready within timeout
-```
+**PostgreSQL**: `docker exec -it <container> psql -U user -d db -c "\dt"`, check connection with `pg_isready`
 
-**Diagnosis**:
+**File Permissions**: `ls -la secrets/`, ensure 440 for .secret files, 755 for scripts
 
-1. Check if services started successfully
-2. Verify health check endpoint exists
-3. Test health endpoint manually:
+**Port Conflicts**: Windows - `netstat -ano | findstr <port>`, Linux - `lsof -i :<port>`, `docker ps` for container ports
 
-   ```bash
-   curl -k https://127.0.0.1:9090/admin/v1/livez
-   curl -k https://127.0.0.1:9090/admin/v1/readyz
-   curl -k https://127.0.0.1:9090/admin/v1/healthz
-   ```
+**Workflow Timing Expectations**: build (2-5min), coverage (3-7min), mutation (15-25min), E2E (5-15min), full CI suite (25-45min), optimize with caching/parallelization
 
-**Common Root Causes**:
-
-- Wrong healthcheck endpoint path (/health vs /admin/v1/livez)
-- Service startup dependency issues
-- Insufficient health check timeout
-- TLS configuration mismatch (http vs https)
-
-**Prevention**: Use consistent healthcheck patterns across all services
-
-### 4. Port Conflicts (Docker Compose)
-
-**Symptom**:
-
-```
-Error response from daemon: driver failed programming external connectivity on endpoint opentelemetry-collector-contrib: Bind for 0.0.0.0:4317 failed: port is already allocated
-```
-
-**Diagnosis**:
-
-1. Check for duplicate port mappings:
-
-   ```bash
-   grep -r "ports:" deployments/compose/*.yml
-   ```
-
-2. Verify no services expose same ports to host
-
-**Common Root Causes**:
-
-- Multiple services include same telemetry compose file
-- Shared OTEL collector ports (4317, 4318, 8070, 13133)
-- Attempting to run multiple product stacks simultaneously
-
-**Prevention**:
-
-- Use container-to-container networking (no host port mappings for shared services)
-- Test sequential deployments (CA, then JOSE, then Identity)
-- Remove host port mappings for shared infrastructure
-
----
-
-## Code Archaeology Pattern (Critical Discovery)
-
-**When to Use**: Container crashes with zero symptom change after configuration fixes
-
-**Steps**:
-
-1. Download container logs from last 3-5 workflow runs
-2. Compare log byte counts across runs:
-
-   ```powershell
-   Get-ChildItem *.log | Select-Object Name, Length
-   ```
-
-3. If byte count IDENTICAL despite fixes â†’ implementation issue, not config
-4. Compare with working service (e.g., CA vs Identity):
-
-   ```bash
-   tree internal/ca/server
-   tree internal/identity/authz/server
-   ```
-
-5. Identify missing files (server.go, application.go, service.go)
-6. Review Application.Start() code for missing initialization
-7. Check NewApplication() for complete setup
-
-**Pattern Recognition**:
-
-- **Cascading errors**: Each fix changes error message (TLS â†’ DSN â†’ credentials)
-- **Zero symptom change**: Fix applied but SAME crash = missing code
-- **Decreasing byte count**: 331 â†’ 313 â†’ 196 bytes = earlier crash = deeper problem
-
-**Time Saved**: 9 minutes (code archaeology) vs 60 minutes (config debugging)
-
----
-
-## Diagnostic Commands
-
-### GitHub CLI Workflow Diagnostics
-
-```bash
-# List recent workflow runs
-gh run list --limit 10
-
-# View specific workflow run details
-gh run view <run-id>
-
-# View failed workflow logs
-gh run view <run-id> --log-failed
-
-# Download workflow artifacts
-gh run download <run-id>
-
-# Watch a running workflow
-gh run watch <run-id>
-
-# Re-run failed jobs
-gh run rerun <run-id> --failed
-
-# List workflows
-gh workflow list
-
-# View workflow file
-gh workflow view <workflow-name>
-```
-
-### Docker Compose Diagnostics
-
-```bash
-# View service status
-docker compose ps
-
-# View service logs
-docker compose logs <service>
-
-# View logs with timestamps
-docker compose logs -t <service>
-
-# Follow logs in real-time
-docker compose logs -f <service>
-
-# Execute command in running container
-docker compose exec <service> <command>
-
-# View service health checks
-docker compose ps --format json | jq '.[] | {name: .Name, status: .Status, health: .Health}'
-
-# Restart specific service
-docker compose restart <service>
-
-# Stop and remove all containers
-docker compose down -v
-```
-
-### Service Health Check Verification
-
-```bash
-# Test admin endpoints (HTTPS with self-signed cert)
-curl -k https://127.0.0.1:9090/admin/v1/livez
-curl -k https://127.0.0.1:9090/admin/v1/readyz
-curl -k https://127.0.0.1:9090/admin/v1/healthz
-
-# Test public endpoints (HTTPS)
-curl -k https://127.0.0.1:8080/ui/swagger/doc.json  # KMS SQLite
-curl -k https://127.0.0.1:8081/ui/swagger/doc.json  # KMS PostgreSQL 1
-curl -k https://127.0.0.1:8082/ui/swagger/doc.json  # KMS PostgreSQL 2
-
-# Test with wget (Alpine containers)
-wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/livez
-```
-
----
-
-## Workflow Timing Expectations
-
-| Workflow | Services | Expected Duration | Notes |
-|----------|----------|-------------------|-------|
-| ci-quality | None | 2-3 minutes | Linting, formatting, builds |
-| ci-coverage | None | 3-5 minutes | Test coverage collection |
-| ci-benchmark | None | 2-4 minutes | Performance benchmarks |
-| ci-fuzz | None | 5-10 minutes | Fuzz testing (15s per test) |
-| ci-race | None | 5-10 minutes | Race detection (10x overhead) |
-| ci-sast | None | 2-3 minutes | Static security analysis |
-| ci-gitleaks | None | 1-2 minutes | Secrets scanning |
-| ci-mutation | None | 15-20 minutes | Mutation testing (parallel) |
-| ci-e2e | Full stack | 5-10 minutes | E2E integration tests |
-| ci-load | Full stack | 5-10 minutes | Load testing |
-| ci-dast (quick) | Full stack | 3-5 minutes | Quick security scan |
-| ci-dast (full) | Full stack | 10-15 minutes | Comprehensive scan |
-
-**Notes**:
-
-- GitHub Actions runners are shared resources (variable CPU steal time)
-- Add 50-100% margin to expected times in CI/CD vs local
-- Parallel tests increase timing variability
-- Docker service startup adds 1-2 minutes overhead
-
----
 
 ## Best Practices
 
-### 1. Iterative Testing
+**Iterative Testing**: Test locally before push, fix one issue at a time, verify before next, commit each fix independently
 
-**DO**:
+**Log Analysis**: Download artifacts first, grep for errors/patterns, compare working vs failing workflows, analyze timing/resource usage
 
-- Test workflows locally BEFORE pushing
-- Fix one issue at a time
-- Verify fix works before moving to next issue
-- Commit each fix independently
+**Evidence-Based Debugging**: Reproduce locally (cmd/workflow), collect diagnostic data (logs, configs, screenshots), verify fix with before/after comparison
 
-**DON'T**:
+**Version Pinning**: Pin action versions to commit SHAs (not tags), document version in comments, review security advisories before updating
 
-- Apply multiple fixes simultaneously
-- Push without local verification
-- Batch unrelated fixes in single commit
-- Skip local testing for "simple" changes
+**Secret Management**: Never hardcode credentials, use `::add-mask::` for outputs, minimal secret scope, rotate regularly
 
-### 2. Log Analysis
-
-**DO**:
-
-- Download container logs from CI artifacts
-- Compare logs across multiple runs
-- Look for actual error messages (not just exit codes)
-- Track byte count changes (indicates earlier/later crash)
-
-**DON'T**:
-
-- Assume exit code 1 is enough diagnosis
-- Apply fixes without reading actual error messages
-- Ignore log byte count trends
-- Skip log comparison across runs
-
-### 3. Configuration vs Implementation
-
-**DO**:
-
-- Verify complete architecture exists BEFORE debugging config
-- Compare with working services (e.g., CA)
-- Check for missing files (server.go, application.go)
-- Use code archaeology when zero symptom change occurs
-
-**DON'T**:
-
-- Keep applying config fixes when symptoms don't change
-- Assume container crash is always configuration
-- Debug configuration before verifying implementation complete
-- Waste time on config when code is missing
-
-### 4. Workflow Monitoring
-
-**DO**:
-
-- Push changes to GitHub after local validation
-- Monitor workflow runs via `gh run watch`
-- Check workflow status after 5-10 minutes
-- Download artifacts if failures occur
-
-**DON'T**:
-
-- Push without local testing
-- Ignore workflow failures
-- Assume workflows will pass without verification
-- Wait hours before checking workflow status
-
----
+**Workflow Optimization**: Cache dependencies (`actions/cache@v3`), parallelize independent jobs (matrix strategy), skip redundant runs (path filters, if conditions)
 
 ## Summary
 
@@ -1225,50 +722,15 @@ wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/admin/v1/live
 
 ---
 
-## URL References - Research Foundation
 
-**This agent was built using deep research from these authoritative sources:**
+---
 
-### GitHub Actions Official Documentation (6 URLs)
+## URL References
 
-1. **VS Code Copilot Chat Tools Reference**  
-   <https://code.visualstudio.com/docs/copilot/chat/chat-tools>  
-   *Custom agents, tool integration patterns, frontmatter fields*
+**Research Sources** (9 URLs):
 
-2. **Chat Tools API Reference**  
-   <https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools>  
-   *Tool aliases (execute, read, edit, search, agent, web, todo), handoffs pattern*
+**GitHub Actions Docs**: <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions> | <https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions> | <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs> | <https://cli.github.com/manual/gh_run>
 
-3. **GitHub Actions Workflow Syntax**  
-   <https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions>  
-   *Complete YAML syntax reference, job configuration, matrix strategies*
+**VS Code Copilot**: <https://code.visualstudio.com/docs/copilot/chat/chat-tools> | <https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools>
 
-4. **GitHub Actions Security Hardening**  
-   <https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions>  
-   *Permissions, secret management, action pinning, OIDC, supply chain security*
-
-5. **GitHub Actions Contexts**  
-   <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs>  
-   *Context variables (${{ github.* }}, secrets, environment, runner context)*
-
-6. **GitHub CLI Run Commands**  
-   <https://cli.github.com/manual/gh_run>  
-   *gh run list, view, watch, rerun commands for workflow monitoring*
-
-### Elite Agent Examples (3 URLs)
-
-7. **github-actions-expert.agent.md** (Gist)  
-   <https://gist.github.com/username/hash>  
-   *Security-first principles (5), clarifying questions checklist, workflow security checklist (14 items), best practices (15)*
-
-8. **devops-expert.agent.md** (Gist)  
-   <https://gist.github.com/username/hash>  
-   *DevOps infinity loop (8 phases: Plan  Code  Build  Test  Release  Deploy  Operate  Monitor), continuous improvement patterns*
-
-9. **platform-sre-kubernetes.agent.md** (Gist)  
-   <https://gist.github.com/username/hash>  
-   *Production-grade patterns, output format standards (6 per change), security defaults (5 non-negotiable), comprehensive checklists*
-
-**Research Methodology**: Deep dive (9 URLs)  Pattern extraction (elite structures, security principles)  Project integration (cmd/workflow patterns, quality gates)  Iterative refinement (this agent)
-
-**Note**: Elite agent URLs are placeholders - actual Gists referenced during 2025-12-24 research session. Replace with actual URLs if publishing agent.
+**Elite Agents**: github-actions-expert.agent.md | devops-expert.agent.md | platform-sre-kubernetes.agent.md (Gist examples from 2025-12-24 research)
