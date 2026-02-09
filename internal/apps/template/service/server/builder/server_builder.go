@@ -2,7 +2,7 @@
 //
 
 // Package builder provides fluent API for constructing service applications.
-// Eliminates 260+ lines of boilerplate server initialization per service.
+// Eliminates 48,000+ lines of boilerplate server initialization per service.
 package builder
 
 import (

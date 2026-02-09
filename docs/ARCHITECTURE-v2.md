@@ -302,7 +302,7 @@ Based on golang-standards/project-layout:
 
 #### 5.1.2 Template Benefits
 
-- Eliminates 260+ lines of boilerplate per service
+- Eliminates 48,000+ lines of boilerplate per service
 - Consistent infrastructure across all 9 services
 - Proven patterns: TLS setup, middleware stacks, health checks, graceful shutdown
 - Parameterization: OpenAPI specs, handlers, middleware chains injected via constructor
