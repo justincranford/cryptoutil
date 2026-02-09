@@ -937,9 +937,92 @@ Based on golang-standards/project-layout:
 
 [To be populated]
 
+#### 11.1.1 Go Version Consistency
+
+- MANDATORY: Use same Go version everywhere (development, CI/CD, Docker, documentation)
+- Current Version: 1.25.5 (check go.mod)
+- Enforcement Locations: go.mod (go 1.25.5), .github/workflows/*.yml (GO_VERSION: '1.25.5'), Dockerfile (FROM golang:1.25.5-alpine), README.md (document Go 1.25.5+ requirement)
+- Update Policy: Security patches (apply immediately), minor versions (update monthly), major versions (evaluate quarterly)
+
+#### 11.1.2 CGO Ban - CRITICAL
+
+- MANDATORY: CGO_ENABLED=0 for all builds, tests, Docker, production
+- ONLY EXCEPTION: Race detector requires CGO_ENABLED=1 (Go toolchain limitation)
+- NEVER use CGO-dependent packages (e.g., github.com/mattn/go-sqlite3)
+- ALWAYS use CGO-free alternatives (e.g., modernc.org/sqlite)
+- Rationale: Maximum portability (no C toolchain), static linking (single binary), cross-compilation, no C library version conflicts
+- Detection: `go list -u -m all | grep '\[.*\]$'` (shows CGO dependencies)
+- Enforcement: Custom lint_go checker validates go.mod and imports
+
+#### 11.1.3 Import Alias Conventions
+
+- Internal packages: cryptoutil<Package> (camelCase) - Example: cryptoutilMagic, cryptoutilServer
+- Third-party packages: <vendor><Package> - Examples: crand (crypto/rand), googleUuid (github.com/google/uuid)
+- Configuration: .golangci.yml importas section enforces consistency
+- Rationale: Avoids naming conflicts, improves readability
+
+#### 11.1.4 Magic Values Organization
+
+- Shared constants: internal/shared/magic/magic_*.go (network, database, cryptography, testing)
+- Domain-specific constants: internal/<package>/magic*.go
+- Pattern: Declare as named variables, NEVER inline literals
+- Rationale: mnd (magic number detector) linter enforcement
+
 ### 11.2 Quality Gates
 
 [To be populated]
+
+#### 11.2.1 File Size Limits
+
+| Threshold | Lines | Action |
+|-----------|-------|--------|
+| Soft | 300 | Ideal target |
+| Medium | 400 | Acceptable with justification |
+| Hard | 500 | NEVER EXCEED - refactor required |
+
+- Rationale: Faster LLM processing, easier review, better organization, forces logical grouping
+
+#### 11.2.2 Conditional Statement Patterns
+
+- PREFER switch statements over if/else if/else chains for cleaner, more maintainable code
+- Pattern for mutually exclusive conditions:
+  ```go
+  switch {
+  case ctx == nil:
+      return nil, fmt.Errorf("nil context")
+  case logger == nil:
+      return nil, fmt.Errorf("nil logger")
+  default:
+      return processValid(ctx, logger, description)
+  }
+  ```
+- When NOT to chain: Independent conditions, error accumulation, early returns
+
+#### 11.2.3 format_go Self-Modification Protection - CRITICAL
+
+- Root Cause: LLM agents lose exclusion context during narrow-focus refactoring
+- NEVER DO:
+  * ❌ Modify comments in enforce_any.go without reading full package context
+  * ❌ Change backticked `interface{}` to `any` in format_go package
+  * ❌ Refactor code in isolation (single-file view)
+  * ❌ Simplify "verbose" CRITICAL comments
+- ALWAYS DO:
+  * ✅ Read complete package context before refactoring self-modifying code
+  * ✅ Check for CRITICAL/SELF-MODIFICATION tags in comments
+  * ✅ Verify self-exclusion patterns exist and are respected
+  * ✅ Run tests after ANY changes to format_go package
+
+#### 11.2.4 Restore from Clean Baseline Pattern
+
+- When: Fixing regressions, multiple failed attempts, uncertain HEAD state
+- Steps:
+  1. Find last known-good commit: `git log --grep="baseline"` or `git bisect`
+  2. Restore package: `git checkout <hash> -- path/to/package/`
+  3. Verify baseline works: `go test`
+  4. Apply ONLY new fix (targeted change)
+  5. Verify fix works
+  6. Commit as NEW commit (NOT amend)
+- Rationale: HEAD may be corrupted by failed attempts, start from verified clean state
 
 ### 11.3 Code Quality Standards
 
