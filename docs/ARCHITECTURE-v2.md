@@ -348,6 +348,204 @@ Based on golang-standards/project-layout:
 - ✅ Use /internal for private code (enforced by compiler)
 - ✅ Use /pkg for public libraries (safe for external import - currently empty by design)
 
+#### 4.4.3 CLI Entry Points
+
+```
+cmd/
+├── cryptoutil/main.go         # Suite-level CLI (all products): Thin main() call to `internal/apps/cryptoutil.go`
+├── cipher/main.go             # Product-level Cipher CLI: Thin main() call to `internal/apps/cipher/cipher.go`
+├── jose/main.go               # Product-level JOSE CLI: Thin main() call to `internal/apps/jose/jose.go`
+├── pki/main.go                # Product-level PKI CLI: Thin main() call to `internal/apps/pki/pki.go`
+├── identity/main.go           # Product-level Identity CLI: Thin main() call to `internal/apps/identity/identity.go`
+├── sm/main.go                 # Product-level SM CLI: Thin main() call to `internal/apps/sm/sm.go`
+├── cipher-im/main.go          # Service-level Cipher-IM CLI: Thin main() call to `internal/apps/cipher/im/im.go`
+├── jose-ja/main.go            # Service-level JOSE-JA CLI: Thin main() call to `internal/apps/jose/ja/ja.go`
+├── pki-ca/main.go             # Service-level PKI-CA CLI: Thin main() call to `internal/apps/pki/ca/ca.go`
+├── identity-authz/main.go     # Service-level Identity-Authz CLI: Thin main() call to `internal/apps/identity/authz/authz.go`
+├── identity-idp/main.go       # Service-level Identity-IDP CLI: Thin main() call to `internal/apps/identity/idp/idp.go`
+├── identity-rp/main.go        # Service-level Identity-RP CLI: Thin main() call to `internal/apps/identity/rp/rp.go`
+├── identity-rs/main.go        # Service-level Identity-RS CLI: Thin main() call to `internal/apps/identity/rs/rs.go`
+├── identity-spa/main.go       # Service-level Identity-SPA CLI: Thin main() call to `internal/apps/identity/spa/spa.go`
+└── sm-kms/main.go             # Service-level SM-KMS CLI (legacy): Thin main() call to `internal/apps/sm/kms/kms.go`
+```
+
+**Pattern**: Thin `main()` pattern for all cmd/ CLIs, with all logic in `internal/apps/` for maximum code reuse and testability.
+
+1. `cmd/cryptoutil/` for suite-level CLI
+```go
+func main() {
+    os.Exit(cryptoutilAppsSuite.Suite(os.Args, os.Stdin, os.Stdout, os.Stderr))
+}
+```
+2. `cmd/<product>/` for product-level CLI
+```go
+func main() {
+    os.Exit(cryptoutilApps<PRODUCT>.<PRODUCT>(os.Args, os.Stdin, os.Stdout, os.Stderr))
+}
+```
+3. `cmd/<product>/<service>/` for service-level CLI
+```go
+func main() {
+    os.Exit(cryptoutilApps<PRODUCT><SERVICE>.<SERVICE>(os.Args, os.Stdin, os.Stdout, os.Stderr))
+}
+```
+
+#### 4.4.4 Service Implementations
+
+```
+internal/apps/
+├── template/                  # REUSABLE product-service template (all 9 services for all 5 products MUST reuse this template for maximum consistency and minimum duplication)
+│   ├── service/
+│   │   ├── config/            # ServiceTemplateServerSettings
+│   │   ├── server/            # Application, PublicServerBase, AdminServer
+│   │   │   ├── application/   # ApplicationCore, ApplicationBasic
+│   │   │   ├── builder/       # ServerBuilder fluent API
+│   │   │   ├── listener/      # AdminHTTPServer
+│   │   │   ├── barrier/       # Encryption-at-rest service
+│   │   │   ├── businesslogic/ # SessionManager, TenantRegistration
+│   │   │   ├── repository/    # TenantRepo, RealmRepo, SessionRepo
+│   │   │   └── realms/        # Authentication realm implementations
+│   │   └── testutil/          # Test helpers (NewTestSettings)
+│   └── testing/
+│       └── e2e/               # ComposeManager for E2E orchestration
+├── cipher/
+│   └── im/                    # Cipher-IM service
+│       ├── domain/            # Domain models (Message, Recipient)
+│       ├── repository/        # Domain repos + migrations (2001+)
+│       ├── server/            # CipherIMServer, PublicServer
+│       │   ├── config/        # CipherImServerSettings embeds template
+│       │   └── apis/          # HTTP handlers
+│       ├── client/            # API client
+│       ├── e2e/               # E2E tests (Docker Compose)
+│       └── integration/       # Integration tests
+├── jose/
+│   └── ja/                    # JOSE-JA service (same structure)
+├── pki/
+│   └── ca/                    # PKI-CA service (same structure)
+├── sm/
+│   └── jose/                  # SM-KMS service (same structure)
+└── identity/
+    ├── authz/                 # OAuth 2.1 Authorization Server (same structure)
+    ├── idp/                   # OIDC 1.0 Identity Provider (same structure)
+    ├── rs/                    # OAuth 2.1 Resource Server (same structure)
+    ├── rp/                    # OAuth 2.1 Relying Party (same structure)
+    └── spa/                   # OAuth 2.1 Single Page Application (same structure)
+```
+
+#### 4.4.5 Shared Utilities
+
+```
+internal/shared/
+├── apperr/                  # Application errors
+├── container/               # Dependency injection container
+├── config/                  # Configuration helpers
+├── crypto/                  # Cryptographic utilities
+├── magic/                   # Named constants (ports, timeouts, paths)
+├── pool/                    # Generator pool utilities
+├── pwdgen/                  # Password generator utilities
+├── telemetry/               # OpenTelemetry integration
+└── testutil/                # Shared test utilities
+```
+
+#### 4.4.6 Docker Compose
+
+```
+deployments/
+├── telemetry/
+│   └── compose.yml
+├── sm-kms/
+│   ├── config/
+|   │   ├── common.yml        # common configuration for all 3 sm-kms instances
+|   │   ├── postgresql-1.yml  # instance 1 of sm-kms; uses shared sm-kms PostgreSQL
+|   │   ├── postgresql-2.yml  # instance 2 of sm-kms; uses shared sm-kms PostgreSQL
+|   │   └── sqlite.yml        # instance 3 of sm-kms; uses non-shared in-memory sm-kms SQLite
+│   ├── secrets/
+|   │   ├──postgres_url.secret      # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──postgres_database.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──postgres_username.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──postgres_password.secret # Docker Compose secret shared by 2 instances of sm-kms; PostgreSQL instances only
+|   │   ├──unseal_1of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_2of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_3of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_4of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   ├──unseal_5of5.secret       # Docker Compose secret shared by 3 instances of sm-kms; unseal service
+|   │   └──hash_pepper.secret       # Docker Compose secret shared by 3 instances of sm-kms; hash registries of hash algorithms
+│   ├── compose.yml                 # Docker Compose config: `builder-cryptoutil` builds Dockerfile, 3 instances of sm-kms depend on it
+│   └── Dockerfile                  # Dockerfile: compose.yml `builder-cryptoutil` builds this Dockerfile
+├── <PRODUCT>/
+│   └── ... (same structure)
+├── jose/
+│   └── ... (same structure)
+├── ca/
+│   └── ... (same structure)
+├── identity/
+│   └── ... (same structure)
+└── cipher/
+    └── ... (same structure)
+```
+
+#### 4.4.7 CLI Patterns
+
+### CLI Hierarchy
+
+```
+# Product-Service pattern (preferred)
+cipher-im server --config=/etc/cipher/im.yml
+
+# Service pattern
+im server --config=/etc/cipher/im.yml
+
+# Product pattern (routes to service)
+cipher im server --config=/etc/cipher/im.yml
+
+# Suite pattern (routes to product, then service)
+cryptoutil cipher im server --config=/etc/cipher/im.yml
+```
+
+```
+# Product-Service pattern (preferred)
+jose-ja server --config=/etc/jose/ja.yml
+
+# Service pattern
+ja server --config=/etc/jose/ja.yml
+
+# Product pattern (routes to service)
+jose ja server --config=/etc/jose/ja.yml
+
+# Suite pattern (routes to product, then service)
+cryptoutil jose ja server --config=/etc/jose/ja.yml
+```
+
+```
+# Product-Service pattern (preferred)
+sm-kms server --config=/etc/sm/kms.yml
+
+# Service pattern
+kms server --config=/etc/sm/kms.yml
+
+# Product pattern (routes to service)
+sm kms server --config=/etc/sm/kms.yml
+
+# Suite pattern (routes to product, then service)
+cryptoutil sm kms server --config=/etc/sm/kms.yml
+```
+
+### CLI Subcommand
+
+All CLIs for all 9 services MUST support these subcommands, with consistent behavior and config parsing and flag parsing.
+Consistency MUST be guaranteed by inheriting from service-template, which will reuse `internal/apps/template/service/<SUBCOMMAND>/` packages:
+
+| Subcommand | Description |
+|------------|-------------|
+| `server` | CLI server start with dual HTTPS listeners, for Private Admin APIs vs Public Business Logic APIs |
+| `health` | CLI client for Public health endpoint API check |
+| `livez` | CLI client for Private liveness endpoint API check |
+| `readyz` | CLI client for Private readiness endpoint API check |
+| `shutdown` | CLI client for Private graceful shutdown endpoint API trigger |
+| `client` | CLI client for Business Logic API interaction (n.b. domain-specific for each of the 9 services) |
+| `init` | CLI client for Initialize static config, like TLS certificates |
+| `demo` | CLI client for start server, inject Demo data, and run clients |
+
 ---
 
 ## 5. Service Architecture
@@ -547,9 +745,20 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 
 ### 6.4 Cryptographic Architecture
 
-[To be populated]
+#### 6.4.1 FIPS 140-3 Compliance (ALWAYS Enabled)
 
-#### 6.4.1 Barrier Service (Multi-Layer Key Hierarchy)
+**Approved Algorithms**:
+
+| Category | Algorithms |
+|----------|------------|
+| Asymmetric | RSA ≥2048, DH ≥2048, ECDSA P256/P384/P521, ECDH P256/P384/P521, EdDSA 25519/448, EdDH X25519/X448 |
+| Symmetric | AES-128/192/256 (GCM, CBC+HMAC, CMAC) |
+| Digest | SHA-256/384/512, HMAC-SHA-256/384/512 |
+| KDF | PBKDF2-HMAC-SHA256/384/512, HKDF-SHA256/384/512 |
+
+**Banned**: bcrypt, scrypt, Argon2, MD5, SHA-1, RSA <2048, DH <2048, EC < P256, DES, 3DES.
+
+#### 6.4.2 Key Hierarchy (Barrier Service)
 
 - Unseal keys (Docker secrets, NEVER stored in database)
 - Root keys (encrypted-at-rest with unseal keys)
@@ -557,14 +766,71 @@ if session.CreatedAt.After(time.Now().UTC()) { ... }
 - Content keys (encrypted-at-rest with intermediate keys)
 - Domain data encryption (encrypted-at-rest with content keys)
 
-#### 6.4.2 Unseal Modes
+```
+Unseal Key (Docker secrets, NEVER stored)
+    └── Root Key (encrypted-at-rest with unseal key(s), rotated manually or automatically annually)
+        └── Intermediate Key (encrypted-at-rest with root key, rotated manually or automatically quarterly)
+            └── Content Key (encrypted-at-rest with intermediate key, rotated manually or automatically monthly)
+                └── Domain Data (encrypted-at-rest with content key) - Examples: Cipher-IM messages, SM-KMS JWKs, JOSE-JA JWKs, PKI-CA private keys, Identity user credentials
+```
+
+Design Intent: Unseal secret(s) or unseal key(s) are loaded by service instances at startup. To decrypt and reuse existing, sealed root keys in a database, each service instance MUST use unseal credentials to unseal the root keys. This is design intent for barrier service.
+
+#### 6.4.3 Hash Service (Version-Based)
+
+Hash service supports 4 hash types.
+1. Low-entropy, random-salt => Used for short values that DON'T need to be indexed or searched in a database (e.g. Passwords)
+2. Low-entropy, fixed-salt => Used for short values that DO need to be indexed and searched in a database (e.g. PII, Usernames, Emails, Addresses, Phone Numbers, SIN/SSN/NIN, IPs, MACs)
+3. High-entropy, random-salt => Used for long values that DON'T need to be indexed or searched in a database (e.g. Private Keys)
+4. High-entropy, fixed-salt => Used for long values that DO need to be indexed and searched in a database, inputs MUST have a minimum of 256-bits (32-bytes) of entropy
+
+##### Low-entropy vs High-entropy
+
+Low entropy: Values with >= 256-bits (32-bytes) or higher of brute-force search space; values are hashed with high-iterations PBKDF2 to mitigate brute-force attacks, because small search spaces are not big enough to mitigate brute-force attacks on their own; do not use HKDF, it does not add sufficient security for low-entropy values
+
+High entropy: Values with < 256-bits (32-bytes) of brute-force search space; values are hashed with one-iteration HKDF, because large search space is big enough to mitigate brute-force attacks on its own; do not use PBKDF2, extra iterations do not add meaningful security
+
+##### Random-salt vs Fixed-salt
+
+Random salt: Used for values that DON'T require indexing or searching in a database; non-deterministic hash outputs for the same input is best practice for security
+
+Fixed-salt: Used for values that DO require indexing or searching in a database; deterministic hash outputs for the same input are required for indexing and searching, which overrides best practice for security; to mitigate reduced security of using fixed-salt, pepper MUST be applied to all values before passing them into hash functions
+
+##### Pepper
+
+Pepper MUST be used on all values passed into hash functions that use fixed-salt.
+Pepper SHOULD be used on all values passed into hash functions that use random-salt
+For consistency, pepper usage WILL be used on all values passed to all hash functions, regardless of salt type.
+
+Pepper before deterministic hashing MUST use AES-GCM-SIV.
+Pepper before non-deterministic hashing MUST use AES-GCM-SIV or AES-GCM. The AES-256 key MUST be generated and used for the lifetime of the hash.
+
+##### Low-Entropy Hash Format
+
+```
+Format: {pepperTypeAndVersion}base64(optionalPepperNonce):base64(optionalPepperAAD)#{hashTypeAndVersion}:{algorithm}:{iterations}:base64(salt):base64(hash)
+Deterministic Example:     {d2}#{f5}:PBKDF2-HMAC-SHA256:600000:abc123...:def456...
+Non-Deterministic Example: {n2}nonce#{f5}PBKDF2-HMAC-SHA256:600000:abc123...:def456...
+Non-Deterministic Example: {n2}nonce:aad#{f5}PBKDF2-HMAC-SHA256:600000:abc123...:def456...
+```
+
+##### High-Entropy Hash Format
+
+```
+Format: {pepperTypeAndVersion}base64(optionalPepperNonce):base64(optionalPepperAAD)#{hashTypeAndVersion}:{algorithm}:base64(salt):base64(info):base64(hash)
+Deterministic Example:     {d2}#{F5}:HKDF-HMAC-SHA256:abc123...:def456...:ghi789...
+Non-Deterministic Example: {n2}nonce#{R5}HKDF-HMAC-SHA256:abc123...:def456...:ghi789...
+Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456...:ghi789...
+```
+
+#### 6.4.4 Unseal Modes
 
 - Simple keys: File-based unseal key loading
 - Shared secrets: M-of-N Shamir secret sharing (e.g., 3-of-5)
 - System fingerprinting: Device-specific unseal key derivation
 - High availability patterns for multi-instance deployments
 
-#### 6.4.3 Key Rotation Strategies
+#### 6.4.5 Key Rotation Strategies
 
 - Root keys: Annual rotation (manual or automatic)
 - Intermediate keys: Quarterly rotation
@@ -825,16 +1091,67 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 
 ### 9.2 Configuration Architecture & Strategy
 
-[To be populated]
-
 #### 9.2.1 Configuration Priority Order
 
-- Docker secrets (highest priority)
-- YAML configuration files
-- CLI arguments
-- Environment variables (NEVER for credentials)
+1. **Docker Secrets** (`file:///run/secrets/secret_name`) - Sensitive values
+2. **YAML Configuration** (`--config=/path/to/config.yml`) - Primary configuration
+3. **CLI Parameters** (`--bind-public-port=8080`) - Overrides
 
-#### 9.2.2 Secret Management Patterns
+**CRITICAL: Environment variables NOT desirable for configuration** (security risk, not scalable, auditability).
+
+#### 9.2.2 *FromSettings Factory Pattern (PREFERRED)
+
+Services should use settings-based factories for testability and consistency:
+
+```go
+// ✅ PREFERRED: Settings-based factory
+type UnsealKeysSettings struct {
+    KeyPaths []string `yaml:"key_paths"`
+}
+
+func NewUnsealKeysServiceFromSettings(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
+    if settings == nil {
+        return nil, errors.New("settings required")
+    }
+    return &UnsealKeysService{
+        keyPaths: settings.KeyPaths,
+    }, nil
+}
+
+// Usage in ServerBuilder
+builder.WithUnsealKeysService(func(settings *UnsealKeysSettings) (*UnsealKeysService, error) {
+    return NewUnsealKeysServiceFromSettings(settings)
+})
+```
+
+**Benefits**:
+- All configuration in one struct
+- Easy to test (pass test settings)
+- Consistent initialization across codebase
+- Self-documenting dependencies
+
+#### 9.2.3 Test Settings Factory
+
+Every service config should have a test settings factory:
+
+```go
+// NewTestSettings returns configuration suitable for testing
+func NewTestSettings() *CipherImServerSettings {
+    return &CipherImServerSettings{
+        ServiceTemplateServerSettings: cryptoutilTemplateTestutil.NewTestSettings(),
+        MaxMessageSize:                65536,
+    }
+}
+```
+
+**NewTestSettings() configures**:
+- SQLite in-memory (`:memory:`)
+- Port 0 (dynamic allocation, no conflicts)
+- Auto-generated TLS certificates
+- Disabled telemetry export
+- Short timeouts for fast tests
+
+#### 9.2.4 Secret Management Patterns
 
 - Docker/Kubernetes secrets mounting
 - File-based secret references (file://)
@@ -937,17 +1254,97 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 
 #### 10.2.1 Table-Driven Test Pattern
 
-- MANDATORY for multiple test cases
-- Single test function with test table
+**MANDATORY for multiple test cases**:
+
+```go
+func TestSendMessage_Validation(t *testing.T) {
+    t.Parallel()
+
+    tests := []struct {
+        name    string
+        request SendMessageRequest
+        wantErr string
+    }{
+        {
+            name:    "empty content",
+            request: SendMessageRequest{Content: ""},
+            wantErr: "content required",
+        },
+        {
+            name:    "no recipients",
+            request: SendMessageRequest{Content: "hello", Recipients: nil},
+            wantErr: "at least one recipient",
+        },
+        {
+            name: "valid request",
+            request: SendMessageRequest{
+                Content:    "hello",
+                Recipients: []string{googleUuid.NewV7().String()},
+            },
+            wantErr: "",
+        },
+    }
+
+    for _, tc := range tests {
+        t.Run(tc.name, func(t *testing.T) {
+            t.Parallel()
+
+            // Use unique test data
+            tenantID := googleUuid.NewV7()
+
+            err := testServer.SendMessage(ctx, tenantID, tc.request)
+
+            if tc.wantErr != "" {
+                require.Error(t, err)
+                require.Contains(t, err.Error(), tc.wantErr)
+            } else {
+                require.NoError(t, err)
+            }
+        })
+    }
+}
+```
+
+**Benefits**:
+- Single test function for multiple validation cases
+- Easy to add new test cases (just add table row)
 - t.Parallel() for concurrent execution
-- UUIDv7 for dynamic test data
+- UUIDv7 for dynamic, conflict-free test data
 
 #### 10.2.2 Fiber Handler Testing (app.Test())
 
-- MANDATORY for ALL HTTP handler tests (unit and integration)
-- In-memory testing (NO real HTTPS listeners)
-- Fast (<1ms), reliable, no network binding
+**ALWAYS use Fiber's in-memory testing for ALL HTTP handler tests**:
+
+```go
+func TestListMessages_Handler(t *testing.T) {
+    t.Parallel()
+
+    // Create standalone Fiber app
+    app := fiber.New(fiber.Config{DisableStartupMessage: true})
+
+    // Register handler under test
+    msgRepo := repository.NewMessageRepository(testDB)
+    handler := NewPublicServer(nil, msgRepo, nil, nil, nil)
+    app.Get("/browser/api/v1/messages", handler.ListMessages)
+
+    // Create HTTP request (no network call)
+    req := httptest.NewRequest("GET", "/browser/api/v1/messages", nil)
+    req.Header.Set("X-Tenant-ID", testTenantID.String())
+
+    // Test handler in-memory
+    resp, err := app.Test(req, -1)
+    require.NoError(t, err)
+    defer resp.Body.Close()
+
+    require.Equal(t, 200, resp.StatusCode)
+}
+```
+
+**Benefits**:
+- In-memory testing (<1ms, no network binding)
 - Prevents Windows Firewall popups
+- Reliable, no port conflicts
+- Test middleware, routing, and response handling
 
 #### 10.2.3 Coverage Targets
 
@@ -962,10 +1359,51 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 
 #### 10.3.1 TestMain Pattern
 
-- MANDATORY for heavyweight dependencies (PostgreSQL, servers)
-- Start resources ONCE per package
+**ALL integration tests MUST use TestMain for heavyweight dependencies**:
+
+```go
+var (
+    testDB     *gorm.DB
+    testServer *Server
+)
+
+func TestMain(m *testing.M) {
+    ctx := context.Background()
+
+    // Create server with test configuration
+    cfg := config.NewTestSettings()
+    var err error
+    testServer, err = NewFromConfig(ctx, cfg)
+    if err != nil {
+        log.Fatalf("Failed to create test server: %v", err)
+    }
+
+    // Start server
+    go func() {
+        if err := testServer.Start(); err != nil {
+            log.Printf("Server error: %v", err)
+        }
+    }()
+
+    // Wait for ready
+    if err := testServer.WaitForReady(ctx, 10*time.Second); err != nil {
+        log.Fatalf("Server not ready: %v", err)
+    }
+
+    // Run tests
+    exitCode := m.Run()
+
+    // Cleanup
+    testServer.Shutdown(ctx)
+    os.Exit(exitCode)
+}
+```
+
+**Benefits**:
+- Start heavyweight resources (PostgreSQL containers, servers) ONCE per package
 - Share testDB, testServer across all tests
-- Prevents repeated 10-30s container startup overhead
+- Prevents repeated 10-30s startup overhead
+- Proper cleanup with defer statements
 
 #### 10.3.2 Test Isolation with t.Parallel()
 
@@ -987,10 +1425,45 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 
 #### 10.4.1 Docker Compose Orchestration
 
-- ComposeManager for lifecycle management
-- Health check polling with TLS client
-- Sequential startup (builder → postgres → app)
-- Latency hiding strategies
+**Use ComposeManager for E2E testing**:
+
+```go
+func TestE2E_SendMessage(t *testing.T) {
+    if testing.Short() {
+        t.Skip("Skipping E2E test in short mode")
+    }
+
+    ctx := context.Background()
+
+    // Start Docker Compose stack
+    manager := e2e.NewComposeManager(t, "../../../deployments/cipher-im")
+    manager.Up(ctx)
+    defer manager.Down(ctx)
+
+    // Wait for service healthy
+    manager.WaitForHealthy(ctx, "cipher-im", 60*time.Second)
+
+    // Get TLS-enabled HTTP client
+    client := manager.HTTPClient()
+
+    // Test API
+    resp, err := client.Post(
+        manager.ServiceURL("cipher-im") + "/browser/api/v1/messages",
+        "application/json",
+        strings.NewReader(`{"content":"hello","recipients":["user-id"]}`),
+    )
+    require.NoError(t, err)
+    defer resp.Body.Close()
+
+    require.Equal(t, 201, resp.StatusCode)
+}
+```
+
+**Benefits**:
+- Production-like environment (Docker secrets, TLS)
+- Automatic lifecycle management (up/down)
+- Health check polling
+- TLS-enabled HTTP client for secure testing
 
 #### 10.4.2 E2E Test Scope
 
@@ -1241,6 +1714,35 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 - Health check configuration (interval, timeout, retries, start-period)
 - Dependency ordering (depends_on with service_healthy)
 - Network isolation patterns
+
+##### Docker Secrets (MANDATORY)
+
+```yaml
+secrets:
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret  # chmod 440
+
+services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+    secrets:
+      - postgres_password.secret
+```
+
+**NEVER use inline environment variables for credentials.**
+
+##### Health Checks
+
+```yaml
+healthcheck:
+  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null",
+         "https://127.0.0.1:9090/admin/api/v1/livez"]
+  start_period: 60s
+  interval: 5s
+```
+
+**Use wget (Alpine), 127.0.0.1 (not localhost), port 9090.**
 
 #### 12.3.2 Kubernetes Deployment
 
