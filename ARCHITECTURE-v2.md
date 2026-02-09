@@ -161,6 +161,45 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 3.2.1 PKI Product
+
+- Certificate Authority (CA): X.509 certificates, EST, SCEP, OCSP, CRL
+- Product-Service Identifier: pki-ca
+- Public Port Range: 8050-8059 (host), 8080 (container)
+- Admin Port: 9090 (container only)
+
+#### 3.2.2 JOSE Product
+
+- JWK Authority (JA): JWK/JWS/JWE/JWT operations
+- Product-Service Identifier: jose-ja
+- Public Port Range: 8060-8069 (host), 8080 (container)
+- Admin Port: 9090 (container only)
+
+#### 3.2.3 Cipher Product
+
+- Instant Messenger (IM): E2E encrypted messaging, encryption-at-rest
+- Product-Service Identifier: cipher-im
+- Public Port Range: 8070-8079 (host), 8080 (container)
+- Admin Port: 9090 (container only)
+
+#### 3.2.4 Secrets Manager (SM) Product
+
+- Key Management Service (KMS): Elastic key management, encryption-at-rest
+- Product-Service Identifier: sm-kms
+- Public Port Range: 8080-8089 (host), 8080 (container)
+- Admin Port: 9090 (container only)
+
+#### 3.2.5 Identity Product
+
+- Authorization Server (Authz): OAuth 2.1 authorization server
+- Identity Provider (IdP): OIDC 1.0 Identity Provider
+- Resource Server (RS): OAuth 2.1 Resource Server
+- Relying Party (RP): OAuth 2.1 Relying Party
+- Single Page Application (SPA): OAuth 2.1 Single Page Application
+- Product-Service Identifiers: identity-authz, identity-idp, identity-rs, identity-rp, identity-spa
+- Public Port Ranges: 8100-8109 (authz), 8110-8119 (idp), 8120-8129 (rs), 8130-8139 (rp), 8140-8149 (spa)
+- Admin Port: 9090 (all services, container only)
+
 ### 3.3 Product-Service Relationships
 
 [To be populated]
@@ -168,6 +207,28 @@ This document is structured to serve multiple audiences:
 ### 3.4 Port Assignments & Networking
 
 [To be populated]
+
+#### 3.4.1 Port Design Principles
+
+- HTTPS protocol for all public and admin port bindings
+- Same HTTPS 127.0.0.1:9090 for Private HTTPS Admin APIs inside Docker Compose and Kubernetes (never localhost due to IPv4 vs IPv6 dual stack issues)
+- Same HTTPS 0.0.0.0:8080 for Public HTTPS APIs inside Docker Compose and Kubernetes
+- Different HTTPS 127.0.0.1 port range mappings for Public APIs on Docker host (to avoid conflicts)
+- Same health check paths: `/browser/api/v1/health`, `/service/api/v1/health` on Public HTTPS listeners
+- Same health check paths: `/admin/api/v1/livez`, `/admin/api/v1/readyz` on Private HTTPS Admin listeners
+- Same graceful shutdown path: `/admin/api/v1/shutdown` on Private HTTPS Admin listeners
+
+#### 3.4.2 PostgreSQL Ports
+
+- Container address: 0.0.0.0:5432 (all services)
+- Host address: 127.0.0.1 (all services)
+- Host port ranges: 54320-54328 (one per service to avoid conflicts)
+- Examples: pki-ca (54320), jose-ja (54321), cipher-im (54322), sm-kms (54323), identity-authz (54324)
+
+#### 3.4.3 Telemetry Ports (Shared)
+
+- opentelemetry-collector-contrib: 4317 (OTLP gRPC), 4318 (OTLP HTTP)
+- grafana-otel-lgtm: 3000 (HTTP UI), 4317 (OTLP gRPC), 4318 (OTLP HTTP)
 
 ---
 
@@ -185,9 +246,42 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 4.3.1 Layered Architecture
+
+- main() [cmd/] → Application [internal/*/application/] → Business Logic [internal/*/service/, internal/*/domain/] → Repositories [internal/*/repository/] → Database/External Systems
+- Dependency flow: One-way only (top → bottom)
+- Cross-cutting concerns: Telemetry, logging, error handling
+
+#### 4.3.2 Dependency Injection
+
+- Constructor injection pattern: NewService(logger, repo, config)
+- Factory pattern: *FromSettings functions for configuration-driven initialization
+- Context propagation: Pass context.Context to all long-running operations
+
 ### 4.4 Code Organization
 
 [To be populated]
+
+#### 4.4.1 Go Project Structure
+
+Based on golang-standards/project-layout:
+- cmd/: Applications (external entry points for binary executables)
+- internal/apps/: Applications (internal implementations organized as PRODUCT/SERVICE/)
+- internal/shared/: Shared utilities (apperr, barrier, config, crypto, magic, pool, telemetry, testutil, util)
+- api/: OpenAPI specs, generated code
+- configs/: Configuration files
+- deployments/: Docker Compose, Kubernetes manifests
+- docs/: Documentation
+- pkg/: Public library code (intentionally empty - all code is internal)
+- scripts/: Build/test scripts (minimal, prefer Go applications)
+- test/: Additional test files (Gatling load tests)
+
+#### 4.4.2 Directory Rules
+
+- ❌ Avoid /src directory (redundant in Go)
+- ❌ Avoid deep nesting (>4 levels indicates design issue)
+- ✅ Use /internal for private code (enforced by compiler)
+- ✅ Use /pkg for public libraries (safe for external import - currently empty by design)
 
 ---
 
@@ -197,21 +291,138 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 5.1.1 Template Components
+
+- Two HTTPS Servers: Public (business APIs) + Admin (health checks)
+- Two Public Paths: /browser/** (sessions) vs /service/** (tokens)
+- Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
+- Database: PostgreSQL || SQLite with GORM
+- Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
+- Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
+
+#### 5.1.2 Template Benefits
+
+- Eliminates 260+ lines of boilerplate per service
+- Consistent infrastructure across all 9 services
+- Proven patterns: TLS setup, middleware stacks, health checks, graceful shutdown
+- Parameterization: OpenAPI specs, handlers, middleware chains injected via constructor
+
+#### 5.1.3 Mandatory Usage
+
+- ALL new services MUST use template (consistency, reduced duplication)
+- ALL existing services MUST be refactored to use template (iterative migration)
+- Migration priority: cipher-im FIRST (validation) → jose-ja → pki-ca → identity services → sm-kms LAST
+
 ### 5.2 Service Builder Pattern
 
 [To be populated]
+
+#### 5.2.1 Builder Methods
+
+- NewServerBuilder(ctx, cfg): Create builder with template config
+- WithDomainMigrations(fs, path): Register domain migrations (2001+)
+- WithPublicRouteRegistration(func): Register domain-specific public routes
+- Build(): Construct complete infrastructure and return ServiceResources
+
+#### 5.2.2 Merged Migrations
+
+- Template migrations: 1001-1004 (sessions, barrier, realms, tenants)
+- Domain migrations: 2001+ (application-specific tables)
+- mergedMigrations type: Implements fs.FS interface, unifies both for golang-migrate validation
+- Prevention: Solves "no migration found for version X" validation errors
+
+#### 5.2.3 ServiceResources
+
+- Returns initialized infrastructure: DB (GORM), TelemetryService, JWKGenService, BarrierService, UnsealKeysService, SessionManager, RealmService, Application
+- Shutdown functions: ShutdownCore(), ShutdownContainer()
+- Domain code receives all dependencies ready-to-use
 
 ### 5.3 Dual HTTPS Endpoint Pattern
 
 [To be populated]
 
+#### 5.3.1 Public HTTPS Endpoint
+
+- Purpose: Business APIs, browser UIs, external client access
+- Default Binding: 127.0.0.1 (dev/test), 0.0.0.0 (containers)
+- Default Port: Service-specific ranges (8080-8089 KMS, 8100-8149 Identity, etc.)
+- Request Paths: /service/** (headless clients) and /browser/** (browser clients)
+
+#### 5.3.2 Private HTTPS Endpoint (Admin Server)
+
+- Purpose: Administration, health checks, graceful shutdown
+- Default Binding: 127.0.0.1 (ALWAYS - admin localhost-only in all environments)
+- Default Port: 9090 (standard, never exposed to host)
+- APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
+
+#### 5.3.3 Binding Defaults by Environment
+
+- Unit/Integration Tests: Port 0 (dynamic allocation), 127.0.0.1 (prevents Windows Firewall prompts), HTTPS (production parity)
+- Docker Containers: Public 0.0.0.0:8080 (external access), Private 127.0.0.1:9090 (admin isolated)
+- Production: Public configurable, Private ALWAYS 127.0.0.1:9090 (security isolation)
+
 ### 5.4 Dual API Path Pattern
 
 [To be populated]
 
+#### 5.4.1 Service-to-Service APIs (/service/**)
+
+- Access: Service clients ONLY (headless, non-browser)
+- Authentication: Bearer tokens, mTLS, OAuth 2.1 client credentials
+- Middleware: IP allowlist → Rate limiting → Request logging → Authentication → Authorization (scope-based)
+- Examples: /service/api/v1/keys, /service/api/v1/tokens
+- Browser clients: BLOCKED
+
+#### 5.4.2 Browser-to-Service APIs/UI (/browser/**)
+
+- Access: Browser clients ONLY (user-facing UIs)
+- Authentication: Session cookies, OAuth tokens, social login
+- Middleware: IP allowlist → CSRF protection → CORS policies → CSP headers → Rate limiting → Request logging → Authentication → Authorization (resource-level)
+- Additional Content: HTML pages, JavaScript, CSS, images, fonts
+- Examples: /browser/api/v1/keys, /browser/login, /browser/assets/app.js
+- Service clients: BLOCKED
+
+#### 5.4.3 API Consistency & Mutual Exclusivity
+
+- SAME OpenAPI Specification served at both /service/** and /browser/** paths
+- API contracts identical, only middleware/authentication differ
+- Middleware enforces authorization mutual exclusivity (headless → /service/**, browser → /browser/**)
+- E2E tests MUST verify BOTH path prefixes
+
 ### 5.5 Health Check Patterns
 
 [To be populated]
+
+#### 5.5.1 Liveness Check (/admin/api/v1/livez)
+
+- Purpose: Is process alive?
+- Check: Lightweight (goroutines not deadlocked, minimal logic)
+- Response: HTTP 200 OK (healthy) or 503 Unavailable (unhealthy)
+- Failure Action: Restart container
+- Kubernetes: liveness probe
+
+#### 5.5.2 Readiness Check (/admin/api/v1/readyz)
+
+- Purpose: Is service ready for traffic?
+- Check: Heavyweight (database connected, dependent services healthy, critical resources available)
+- Response: HTTP 200 OK (ready) or 503 Unavailable (not ready)
+- Failure Action: Remove from load balancer (do NOT restart)
+- Kubernetes: readiness probe
+
+#### 5.5.3 Graceful Shutdown (/admin/api/v1/shutdown)
+
+- Purpose: Trigger shutdown sequence
+- Actions: Stop accepting new requests, drain active requests (up to 30s timeout), close database connections, release resources, exit process
+- Response: HTTP 200 OK
+- Kubernetes: preStop hook
+
+#### 5.5.4 Why Two Separate Health Endpoints (Kubernetes Standard)
+
+| Scenario | Liveness | Readiness | Action |
+|----------|----------|-----------|--------|
+| Process alive, dependencies healthy | ✅ Pass | ✅ Pass | Serve traffic |
+| Process alive, dependencies down | ✅ Pass | ❌ Fail | Remove from LB, don't restart |
+| Process stuck/deadlocked | ❌ Fail | ❌ Fail | Restart container |
 
 ---
 
@@ -233,6 +444,28 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 6.4.1 Barrier Service (Multi-Layer Key Hierarchy)
+
+- Unseal keys (Docker secrets, NEVER stored in database)
+- Root keys (encrypted-at-rest with unseal keys)
+- Intermediate keys (encrypted-at-rest with root keys)
+- Content keys (encrypted-at-rest with intermediate keys)
+- Domain data encryption (encrypted-at-rest with content keys)
+
+#### 6.4.2 Unseal Modes
+
+- Simple keys: File-based unseal key loading
+- Shared secrets: M-of-N Shamir secret sharing (e.g., 3-of-5)
+- System fingerprinting: Device-specific unseal key derivation
+- High availability patterns for multi-instance deployments
+
+#### 6.4.3 Key Rotation Strategies
+
+- Root keys: Annual rotation (manual or automatic)
+- Intermediate keys: Quarterly rotation
+- Content keys: Monthly or per-operation rotation
+- Elastic key pattern: Active key + historical keys for decryption
+
 ### 6.5 PKI Architecture & Strategy
 
 [To be populated]
@@ -253,6 +486,38 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 6.9.1 Authentication Realm Architecture
+
+- Realm types and purposes
+- Credential validators (File, Database, Federated)
+- Session creation vs session upgrade flows
+- Multi-tenancy isolation via realms
+
+#### 6.9.2 Headless Authentication Methods (13 Total)
+
+- Non-Federated: JWE/JWS/Opaque session tokens, Basic (client ID/secret), Bearer (API token), HTTPS client cert
+- Federated: OAuth 2.1 client credentials, Bearer (federated), mTLS, JWE/JWS/Opaque access tokens, Opaque refresh tokens
+
+#### 6.9.3 Browser Authentication Methods (28 Total)
+
+- All headless methods PLUS: TOTP, HOTP, Recovery codes, WebAuthn (with/without passkeys), Push notification
+- Email/Phone factors: Password, OTP, Magic link (email/SMS/voice)
+- Social login: Google, Microsoft, GitHub, Facebook, Apple, LinkedIn, Twitter/X, Amazon, Okta
+- SAML 2.0 federation
+
+#### 6.9.4 Multi-Factor Authentication (MFA)
+
+- Step-up authentication (re-auth every 30min for high-sensitivity operations)
+- Factor enrollment workflows
+- MFA bypass policies and emergency access
+
+#### 6.9.5 Authorization Patterns
+
+- Zero trust: NO caching of authorization decisions
+- Scope-based authorization (headless)
+- Resource-based ACLs (browser)
+- Consent tracking at scope + resource granularity
+
 ---
 
 ## 7. Data Architecture
@@ -260,6 +525,27 @@ This document is structured to serve multiple audiences:
 ### 7.1 Multi-Tenancy Architecture & Strategy
 
 [To be populated]
+
+#### 7.1.1 Schema-Level Isolation
+
+- Each tenant gets separate schema (NOT row-level with tenant_id column)
+- Schema naming: `tenant_<uuid>.users`, `tenant_<uuid>.sessions`
+- Rationale: Data isolation, compliance, performance (per-tenant indexes)
+- Pattern: Set search_path on connection
+
+#### 7.1.2 Tenant Registration Flow
+
+- tenant_id absent in register request → Create new tenant
+- tenant_id present in register request → Join existing tenant
+- Realm-based authentication (NOT for data filtering)
+- tenant_id scopes ALL data access (keys, sessions, audit logs)
+
+#### 7.1.3 Realm vs Tenant Isolation
+
+- realm_id: Authentication context ONLY (session lifetimes, auth policies)
+- tenant_id: Data isolation (MANDATORY for all database queries)
+- Cross-realm access within same tenant: Supported
+- Cross-tenant access: FORBIDDEN (security boundary)
 
 ### 7.2 Dual Database Strategy
 
@@ -285,21 +571,117 @@ This document is structured to serve multiple audiences:
 
 [To be populated]
 
+#### 8.1.1 Specification Organization
+
+- Split specifications: components.yaml + paths.yaml
+- Benefits: Easier reviews, smaller diffs, reduced git conflicts, better IDE performance
+- Version: OpenAPI 3.0.3 (NOT 2.0/Swagger, NOT 3.1.x)
+
+#### 8.1.2 Code Generation with oapi-codegen
+
+- Three config files: Server, Model, Client
+- strict-server: true (type safety + validation)
+- Single source of truth for models (prevents drift)
+
+#### 8.1.3 Validation Rules
+
+- String: format (uuid), enum, minLength/maxLength, pattern
+- Number: minimum/maximum, multipleOf
+- Array: minItems/maxItems, uniqueItems, items
+- Object: required, nested properties
+
 ### 8.2 REST Conventions
 
 [To be populated]
+
+#### 8.2.1 Resource Naming
+
+- Plural nouns: /keys, /certificates
+- Singular for singletons: /config, /health
+- Kebab-case: /api-keys
+
+#### 8.2.2 HTTP Method Semantics
+
+- GET /keys: List (with pagination)
+- POST /keys: Create
+- GET /keys/{id}: Get
+- PUT /keys/{id}: Replace (full update)
+- PATCH /keys/{id}: Update (partial)
+- DELETE /keys/{id}: Delete
+
+#### 8.2.3 Status Codes
+
+- 200 OK: GET, PUT, PATCH successful
+- 201 Created: POST successful (resource created)
+- 204 No Content: DELETE successful
+- 400 Bad Request: Validation error
+- 401 Unauthorized: Missing/invalid authentication
+- 403 Forbidden: Valid auth but insufficient permissions
+- 404 Not Found: Resource does not exist
+- 409 Conflict: Duplicate resource
+- 422 Unprocessable Entity: Semantic validation error
+- 500 Internal Server Error: Unhandled server error
+- 503 Service Unavailable: Temporary unavailability
 
 ### 8.3 API Versioning
 
 [To be populated]
 
+#### 8.3.1 Versioning Strategy
+
+- Path-based versioning: /api/v1/, /api/v2/
+- N-1 backward compatibility (current + previous version)
+- Major version for breaking changes, minor version within same major
+
+#### 8.3.2 Version Lifecycle
+
+- Deprecation warning period: 6+ months
+- Documentation of migration path
+- Parallel operation of N and N-1 versions
+
 ### 8.4 Error Handling
 
 [To be populated]
 
+#### 8.4.1 Error Schema Format
+
+- Consistent format across all services
+- Required fields: code, message
+- Optional fields: details (object), requestId (uuid)
+- Example: {"code": "INVALID_KEY_SIZE", "message": "Key size must be 2048, 3072, or 4096 bits", "details": {...}, "requestId": "uuid"}
+
+#### 8.4.2 Error Code Naming
+
+- Pattern: ERR_<CATEGORY>_<SPECIFIC>
+- Examples: ERR_INVALID_REQUEST, ERR_AUTHENTICATION_FAILED, ERR_KEY_NOT_FOUND
+
+#### 8.4.3 Error Details
+
+- Provide actionable information
+- Include field-level validation errors
+- Never expose internal implementation details
+
 ### 8.5 API Security
 
 [To be populated]
+
+#### 8.5.1 Dual Path Security
+
+- `/service/**` paths: IP allowlist, rate limiting, Bearer token or mTLS authentication
+- `/browser/**` paths: CSRF protection, CORS policies, CSP headers, session cookie authentication
+- Middleware enforces mutual exclusivity
+
+#### 8.5.2 Rate Limiting
+
+- Public APIs: 100 req/min per IP (burst: 20)
+- Admin APIs: 10 req/min per IP (burst: 5)
+- Login endpoints: 5 req/min per IP (burst: 2)
+- Token bucket algorithm
+
+#### 8.5.3 Content Type
+
+- ALWAYS application/json (NEVER text/plain, application/xml)
+- Consistent error responses in JSON format
 
 ---
 
