@@ -68,19 +68,99 @@ This document is structured to serve multiple audiences:
 
 ### 1.1 Vision Statement
 
-[To be populated with vision]
+**cryptoutil** is a production-ready suite of five cryptographic-based products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, Zero-Trust principles, and security-on-by-default:
+
+1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
+2. **JSON Object Signing and Encryption (JOSE)** - JWK/JWS/JWE/JWT cryptographic operations
+3. **Cipher** - End-to-end encrypted messaging with encryption-at-rest
+4. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers
+5. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
+
+**Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents for Spec-Driven Development (SDD) and delivering modern, enterprise-ready security products.
 
 ### 1.2 Key Architectural Characteristics
 
-[To be populated with architectural characteristics]
+#### 🔐 Cryptographic Standards
+- **FIPS 140-3 Compliance**: Only NIST-approved algorithms (RSA ≥2048, AES ≥128, NIST curves, EdDSA)
+- **Key Generation**: RSA, ECDSA, ECDH, EdDSA, AES, HMAC, UUIDv7 with concurrent key pools
+- **JWE/JWS Support**: Full JSON Web Encryption and Signature implementation
+- **Hierarchical Key Management**: Multi-tier barrier system (unseal → root → intermediate → content keys)
+
+#### 🌐 API Architecture
+- **Dual Context Design**: Browser API (`/browser/api/v1/*`) with CORS/CSRF/CSP vs Service API (`/service/api/v1/*`) for service-to-service
+- **Management Interface** (`127.0.0.1:9090`): Private health checks and graceful shutdown
+- **OpenAPI-Driven**: Auto-generated handlers, models, and interactive Swagger UI
+
+#### 🛡️ Security Features
+- **Multi-layered IP allowlisting**: Individual IPs + CIDR blocks
+- **Per-IP rate limiting**: Separate thresholds for browser (100 req/sec) vs service (25 req/sec) APIs
+- **CSRF protection** with secure token handling for browser clients
+- **Content Security Policy (CSP)** for XSS prevention
+- **Encrypted key storage** with barrier system protection
+
+#### 📊 Observability & Monitoring
+- **OpenTelemetry integration**: Traces, metrics, logs via OTLP
+- **Structured logging** with slog
+- **Kubernetes-ready health endpoints**: `/admin/api/v1/livez`, `/admin/api/v1/readyz`
+- **Grafana-OTEL-LGTM stack**: Integrated Grafana, Loki, Tempo, and Prometheus
+
+#### 🏗️ Production Ready
+- **Database support**: PostgreSQL (production), SQLite (development/testing)
+- **Container deployment**: Docker Compose with secret management
+- **Configuration management**: YAML files + CLI parameters
+- **Graceful shutdown**: Signal handling and connection draining
 
 ### 1.3 Core Principles
 
-[To be populated with principles]
+#### Security-First Design
+- **Zero-Trust Architecture**: Never trust, always verify
+- **Security-on-by-default**: Secure configurations without manual hardening, encryption-at-rest barrier layer mandatory, encryption-in-transit TLS mandatory
+- **FIPS 140-3 Compliance**: Mandatory approved algorithms only
+- **Defense in Depth**: Multiple security layers (encryption-at-rest, encryption-in-transit, barrier system)
+
+#### Quality Over Speed
+- **NO EXCEPTIONS**: Quality, correctness, completeness, thoroughness, reliability, efficiency, and accuracy are ALL mandatory
+- **Evidence-based validation**: Objective proof required for task completion
+- **Reliability and efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- **Time/token pressure does NOT exist**: Work spans hours/days/weeks as needed
+
+#### Microservices Architecture
+- **Service isolation**: Each product-service runs independently
+- **Dual HTTPS endpoints**: Public (business) + Private (admin) mandatory
+- **Container-first**: Mandatory Docker support for production and E2E testing
+- **Multi-tenancy**: Schema-level isolation with tenant_id scoping
+
+#### Developer Experience
+- **OpenAPI-first**: Auto-generated code from specifications
+- **Comprehensive testing**: Build, unit, integration, E2E, code coverage, mutation, benchmark, fuzzing, race condition, property-based, load, SAST, DAST, gitleaks, linting, formatting
+- **Observability built-in**: Structured logging, tracing, metrics from day one
+- **Documentation as code**: Single source of truth for architecture and implementation
 
 ### 1.4 Success Metrics
 
-[To be populated with metrics]
+#### Code Quality
+- **Test Coverage**: ≥95% production code, ≥98% infrastructure/utility code
+- **Mutation Testing**: ≥95% efficacy production, ≥98% infrastructure/utility
+- **Linting**: Zero golangci-lint violations across all code
+- **Build**: Clean `go build ./...` with no errors or warnings
+
+#### Performance
+- **Test Execution**: <15s per package unit tests, <180s full suite
+- **API Response**: <100ms p95 for cryptographic operations
+- **Startup Time**: <10s server ready state
+- **Container Build**: <60s multi-stage Docker build
+
+#### Security
+- **Vulnerability Scanning**: Zero high/critical CVEs in dependencies
+- **Secret Management**: 100% Docker secrets (zero inline credentials)
+- **TLS Configuration**: TLS 1.3+ only, full certificate chain validation
+- **Authentication**: Multi-factor support across all services
+
+#### Operational Excellence
+- **Availability**: Health checks respond <100ms
+- **Observability**: 100% operations traced and logged
+- **Documentation**: Every feature documented in OpenAPI specs
+- **CI/CD**: All workflows passing, <15 min total pipeline time
 
 ---
 
@@ -121,11 +201,56 @@ This document is structured to serve multiple audiences:
 
 ### 2.2 Architecture Strategy
 
-[To be populated]
+#### Service Template Pattern
+- **Single Reusable Template**: All 9 services across 5 products inherit from `internal/apps/template/`
+- **Eliminates 48,000+ lines per service**: TLS setup, dual HTTPS servers, database, migrations, sessions, barrier
+- **Merged Migrations**: Template (1001-1999) + Domain (2001+) for golang-migrate validation
+- **Builder Pattern**: Fluent API with `NewServerBuilder(ctx, cfg).WithDomainMigrations(...).Build()`
+
+#### Microservices Architecture
+- **9 Services across 5 Products**: Independent deployment, scaling, and lifecycle
+- **Dual HTTPS Endpoints**: Public (0.0.0.0:8080) for business APIs, Private (127.0.0.1:9090) for admin operations
+- **Service Discovery**: Config file → Docker Compose → Kubernetes DNS (no caching)
+- **Federation**: Circuit breakers, fallback modes, retry strategies for dependent services
+
+#### Multi-Tenancy
+- **Schema-Level Isolation**: Each tenant gets separate schema (`tenant_<uuid>.users`)
+- **tenant_id Scoping**: ALL data access filtered by tenant_id (not realm_id)
+- **Realm-Based Authentication**: Authentication context only, NOT for data filtering
+- **Registration Flow**: Create new tenant OR join existing tenant
+
+#### Database Strategy
+- **Dual Database Support**: PostgreSQL (production) + SQLite (dev/test)
+- **Cross-DB Compatibility**: UUID as TEXT, serializer:json for arrays, NullableUUID for optional FKs
+- **GORM Always**: Never raw database/sql for consistency
+- **TestMain Pattern**: Heavyweight resources initialized once per package
 
 ### 2.3 Design Strategy
 
-[To be populated]
+#### Domain-Driven Design
+- **Layered Architecture**: main() → Application → Business Logic → Repositories → Database/External Systems
+- **Domain Isolation**: Identity domain cannot import server/client/api layers
+- **Bounded Contexts**: Each product-service has clear boundaries and responsibilities
+- **Repository Pattern**: Abstract data access, enable testing with real databases
+
+#### API-First Development
+- **OpenAPI 3.0.3**: Single source of truth for API contracts
+- **Code Generation**: oapi-codegen strict-server for type safety and validation
+- **Dual Path Prefixes**: `/browser/**` (session-based) vs `/service/**` (session-based)
+- **Consistent Error Schemas**: Unified error response format across all services
+
+#### Configuration Management
+- **Priority Order**: Docker secrets (highest) → YAML files → CLI parameters (lowest)
+- **NO Environment Variables**: For configuration or secrets (security violation)
+- **file:// Pattern**: Reference secrets as `file:///run/secrets/secret_name`
+- **Hot-Reload Support**: Connection pool settings reconfigurable without restart
+
+#### Security by Design
+- **Barrier Layer Key Hierarchy**: Unseal → Root → Intermediate → Content keys
+- **Elastic Key Rotation**: Active key for encrypt, historical keys for decrypt
+- **PBKDF2 for Low-Entropy**: Passwords, PII (≥600k iterations)
+- **HKDF for High-Entropy**: API keys, config blobs (deterministic derivation)
+- **Pepper MANDATORY**: All hash inputs peppered before processing
 
 #### 2.3.1 Core Principles
 
@@ -143,11 +268,56 @@ This document is structured to serve multiple audiences:
 
 ### 2.4 Implementation Strategy
 
-[To be populated]
+#### Go Best Practices
+- **Go Version**: 1.25.5+ (same everywhere: dev, CI/CD, Docker)
+- **CGO Ban**: CGO_ENABLED=0 (except race detector) for maximum portability
+- **Import Aliases**: `cryptoutil<Package>` for internal, `<vendor><Package>` for external
+- **Magic Values**: `internal/shared/magic/magic_*.go` for shared, package-specific for domain
+
+#### Testing Strategy
+- **Table-Driven Tests**: ALWAYS use for multiple test cases (NOT standalone functions)
+- **app.Test() Pattern**: ALL HTTP handler tests use in-memory testing (NO real servers)
+- **TestMain Pattern**: Heavyweight resources (PostgreSQL, servers) initialized once per package
+- **Dynamic Test Data**: UUIDv7 for all test values (thread-safe, process-safe, time-ordered)
+- **t.Parallel()**: ALWAYS use in test functions and subtests for concurrency validation
+
+#### Incremental Commits
+- **Conventional Commits**: `<type>[scope]: <description>` format mandatory
+- **Commit Strategy**: Incremental commits (NOT amend) preserve history for bisect
+- **Restore from Clean**: When fixing regressions, restore known-good baseline first
+- **Quality Gates**: Build clean, linting clean, tests pass before commit
+
+#### Continuous Execution
+- **Beast Mode**: Work autonomously until problem completely solved
+- **Quality Over Speed**: Correctness, completeness, thoroughness (NO EXCEPTIONS)
+- **NO Stopping**: Task complete → Commit → IMMEDIATELY start next task (zero pause)
+- **Blocker Handling**: Document blocker, switch to unblocked tasks, return when resolved
 
 ### 2.5 Quality Strategy
 
-[To be populated]
+#### Coverage Targets
+- **Production Code**: ≥95% minimum coverage
+- **Infrastructure/Utility**: ≥98% minimum coverage
+- **main() Functions**: 0% (exempt if internalMain() ≥95%)
+- **Generated Code**: 0% (excluded - OpenAPI, GORM models, protobuf)
+
+#### Mutation Testing
+- **Category-Based Targets**: ≥98% ideal efficacy (all packages), ≥95% mandatory minimum
+- **Tool**: gremlins v0.6.0+ (Linux CI/CD for Windows compatibility)
+- **Execution**: `gremlins unleash --tags=!integration` per package
+- **Timeouts**: 4-6 packages per parallel job, <20 minutes total
+
+#### Linting Standards
+- **Zero Exceptions**: ALL code must pass linting (production, tests, demos, utilities)
+- **golangci-lint v2**: v2.7.2+ with wsl_v5, built-in formatters
+- **Auto-Fixable**: Run `--fix` first (gofumpt, goimports, wsl, godot, importas)
+- **Critical Rules**: wsl (no suppression), godot (periods required), mnd (magic constants)
+
+#### Pre-Commit Hooks
+- **Same as CI/CD**: golangci-lint, gofumpt, goimports, cicd-enforce-internal
+- **Auto-Conversions**: `time.Now()` → `time.Now().UTC()` for SQLite compatibility
+- **UTF-8 without BOM**: All text files mandatory enforcement
+- **Hook Documentation**: Update `docs/pre-commit-hooks.md` with config changes
 
 ---
 
@@ -155,7 +325,37 @@ This document is structured to serve multiple audiences:
 
 ### 3.1 Product Overview
 
-[To be populated]
+**cryptoutil** comprises five independent products, each providing specialized cryptographic capabilities:
+
+#### 1. Private Key Infrastructure (PKI)
+- **Service**: Certificate Authority (CA)
+- **Capabilities**: X.509 certificate lifecycle management, EST, SCEP, OCSP, CRL
+- **Use Cases**: TLS certificate issuance, client authentication, code signing
+- **Architecture**: 3-tier CA hierarchy (Offline Root → Online Root → Issuing CA)
+
+#### 2. JSON Object Signing and Encryption (JOSE)
+- **Service**: JWK Authority (JA)
+- **Capabilities**: JWK/JWS/JWE/JWT cryptographic operations, elastic key rotation
+- **Use Cases**: API token generation, data encryption, digital signatures
+- **Key Features**: Per-message key rotation, automatic key versioning
+
+#### 3. Cipher
+- **Service**: Instant Messenger (IM)
+- **Capabilities**: End-to-end encrypted messaging, encryption-at-rest for messages
+- **Use Cases**: Secure communications, encrypted data storage
+- **Security**: Message-level JWKs, barrier-encrypted persistence
+
+#### 4. Secrets Manager (SM)
+- **Service**: Key Management Service (KMS)
+- **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest
+- **Use Cases**: Application secrets, database encryption keys, API key management
+- **Key Features**: Unseal-based bootstrapping, automatic key rotation
+
+#### 5. Identity
+- **Services**: Authorization Server (Authz), Identity Provider (IdP), Resource Server (RS), Relying Party (RP), Single Page Application (SPA)
+- **Capabilities**: OAuth 2.1, OIDC 1.0, WebAuthn, Passkeys, multi-factor authentication
+- **Use Cases**: User authentication, API authorization, SSO, passwordless login
+- **Key Features**: 41 authentication methods (13 headless + 28 browser), multi-tenancy
 
 ### 3.2 Service Catalog
 
