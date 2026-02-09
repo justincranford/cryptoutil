@@ -267,10 +267,10 @@ repos:
           - -c
           - |
             if grep -rn --include="*.go" "TODO.*CRITICAL\|FIXME.*CRITICAL\|TODO.*HIGH\|FIXME.*HIGH" internal/identity/ 2>/dev/null; then
-              echo "❌ ERROR: Found CRITICAL or HIGH severity TODOs - must be resolved before commit"
+              echo "[ERROR] Found CRITICAL or HIGH severity TODOs - must be resolved before commit"
               exit 1
             fi
-            echo "✅ PASS: No CRITICAL or HIGH severity TODOs found"
+            echo "[PASS] No CRITICAL or HIGH severity TODOs found"
             exit 0
         language: system
         pass_filenames: false

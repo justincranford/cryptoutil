@@ -499,7 +499,7 @@ permissions:
     fi
     # Validate format
     if ! [[ "${{ inputs.workflow_name }}" =~ ^[a-z0-9-]+$ ]]; then
-      echo "Error: workflow_name must be lowercase alphanumeric with hyphens"  
+      echo "Error: workflow_name must be lowercase alphanumeric with hyphens"
       exit 1
     fi
 ```
@@ -521,7 +521,7 @@ permissions:
   - Syntax error (YAML parsing failed)
   - Runtime error (job execution failed)
   - Missing dependency (action/service not available)
-  - Timeout (job exceeded time limit)  
+  - Timeout (job exceeded time limit)
   - Flaky test (intermittent failures)
 
 - [ ] **When did this start failing?**
