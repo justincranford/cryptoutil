@@ -32,6 +32,7 @@ func initTestConfig() *cryptoutilAppsCipherImServerConfig.CipherImServerSettings
 // TestHTTPGet tests the httpGet helper function (used by health CLI wrappers).
 func TestHTTPGet(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create server with dynamic ports.
@@ -123,6 +124,7 @@ func TestHTTPGet(t *testing.T) {
 // TestHTTPPost tests the httpPost helper function (used by shutdown CLI wrapper).
 func TestHTTPPost(t *testing.T) {
 	t.Parallel()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

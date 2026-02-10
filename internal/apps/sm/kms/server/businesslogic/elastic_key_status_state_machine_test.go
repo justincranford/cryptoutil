@@ -15,12 +15,14 @@ import (
 
 func TestTransitionInvalidState(t *testing.T) {
 	t.Parallel()
+
 	err := TransitionElasticKeyStatus("DoesNotExist", cryptoutilKmsServer.ElasticKeyStatus(cryptoutilOpenapiModel.Creating))
 	require.Error(t, err)
 }
 
 func TestTransitionValidStateNextValid(t *testing.T) {
 	t.Parallel()
+
 	for current, allowedNextStatuses := range validTransitions {
 		for next := range allowedNextStatuses {
 			t.Run("valid_"+string(current)+"_to_"+string(next), func(t *testing.T) {
@@ -33,6 +35,7 @@ func TestTransitionValidStateNextValid(t *testing.T) {
 
 func TestTransitionValidStateNextInvalid(t *testing.T) {
 	t.Parallel()
+
 	for current := range validTransitions {
 		for potentialNext := range validTransitions {
 			if potentialNext == current {
@@ -51,6 +54,7 @@ func TestTransitionValidStateNextInvalid(t *testing.T) {
 
 func TestTransitionValidStateNextSelfInvalid(t *testing.T) {
 	t.Parallel()
+
 	for current := range validTransitions {
 		t.Run("self_"+string(current), func(t *testing.T) {
 			err := TransitionElasticKeyStatus(current, current)

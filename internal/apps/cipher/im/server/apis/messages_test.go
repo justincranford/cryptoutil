@@ -159,6 +159,7 @@ func testAuthMiddleware() fiber.Handler {
 
 func TestHandleSendMessage_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
@@ -194,6 +195,7 @@ func TestHandleSendMessage_HappyPath(t *testing.T) {
 
 func TestHandleSendMessage_InvalidJSON(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
@@ -212,6 +214,7 @@ func TestHandleSendMessage_InvalidJSON(t *testing.T) {
 
 func TestHandleSendMessage_MissingSenderID(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
@@ -236,6 +239,7 @@ func TestHandleSendMessage_MissingSenderID(t *testing.T) {
 
 func TestHandleReceiveMessages_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Get("/messages/receive", testMessageHandler.HandleReceiveMessages())
@@ -263,6 +267,7 @@ func TestHandleReceiveMessages_HappyPath(t *testing.T) {
 
 func TestHandleReceiveMessages_MissingUserID(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Get("/messages/receive", testMessageHandler.HandleReceiveMessages())
@@ -280,6 +285,7 @@ func TestHandleReceiveMessages_MissingUserID(t *testing.T) {
 
 func TestHandleDeleteMessage_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create a message first
@@ -310,6 +316,7 @@ func TestHandleDeleteMessage_HappyPath(t *testing.T) {
 
 func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Delete("/messages/:id", testMessageHandler.HandleDeleteMessage())
@@ -327,6 +334,7 @@ func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
 
 func TestHandleDeleteMessage_MissingUserID(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Delete("/messages/:id", testMessageHandler.HandleDeleteMessage())
@@ -346,6 +354,7 @@ func TestHandleDeleteMessage_MissingUserID(t *testing.T) {
 // TestHandleSendMessage_EmptyMessage tests the empty message validation.
 func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
@@ -371,6 +380,7 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 // TestHandleSendMessage_EmptyReceiverIDs tests empty receiver IDs validation.
 func TestHandleSendMessage_EmptyReceiverIDs(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
@@ -396,6 +406,7 @@ func TestHandleSendMessage_EmptyReceiverIDs(t *testing.T) {
 // TestHandleSendMessage_InvalidReceiverID tests invalid receiver UUID.
 func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Post("/messages/send", testMessageHandler.HandleSendMessage())
@@ -421,6 +432,7 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 // TestHandleReceiveMessages_NoMessages tests receiving when no messages exist.
 func TestHandleReceiveMessages_NoMessages(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Get("/messages/rx", testMessageHandler.HandleReceiveMessages())
@@ -516,6 +528,7 @@ func TestHandleReceiveMessages_WithMessages(t *testing.T) {
 // TestHandleReceiveMessages_CorruptedJWK tests behavior with corrupted JWK data.
 func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create a message with corrupted encrypted JWK.
@@ -567,6 +580,7 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 // TestHandleReceiveMessages_NoJWKForRecipient tests behavior when no JWK exists.
 func TestHandleReceiveMessages_NoJWKForRecipient(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create a message WITHOUT recipient JWK (simulates missing encryption key).
@@ -611,6 +625,7 @@ func TestHandleReceiveMessages_NoJWKForRecipient(t *testing.T) {
 // TestHandleDeleteMessage_ForbiddenNotOwner tests deleting message by non-owner.
 func TestHandleDeleteMessage_ForbiddenNotOwner(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create a message as one user.
@@ -644,6 +659,7 @@ func TestHandleDeleteMessage_ForbiddenNotOwner(t *testing.T) {
 // TestHandleDeleteMessage_NotFound tests deleting non-existent message.
 func TestHandleDeleteMessage_NotFound(t *testing.T) {
 	t.Parallel()
+
 	app := fiber.New()
 	app.Use(testAuthMiddleware())
 	app.Delete("/messages/:id", testMessageHandler.HandleDeleteMessage())
