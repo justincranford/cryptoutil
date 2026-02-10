@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 Justin Cranford
+// Copyright (c) 2025 Justin Cranford
 //
 //
 
@@ -617,4 +617,3 @@ func TestPublicHTTPServer_Shutdown_Idempotent(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "already shutdown")
 }
-
