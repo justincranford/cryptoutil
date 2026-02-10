@@ -1,3 +1,0 @@
----
-agent: beast-mode-custom
----
