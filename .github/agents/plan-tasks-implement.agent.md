@@ -38,25 +38,27 @@ You are in autonomous execution mode.
 
 **User must specify directory path** where plan.md and tasks.md exist.
 
-# Quality Over Speed - MANDATORY
+# Maximum Quality Strategy - MANDATORY
 
-**Quality Over Speed (NO EXCEPTIONS):**
+**Quality Attributes (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
-- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step
-- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- ❌ **Premature Completion**: NEVER mark tasks complete without objective evidence
+- ❌ **Premature Completion**: NEVER mark phases or tasks complete without objective evidence
 
-**Priorities (NO EXCEPTIONS):**
-- ✅ Correctness, completeness, thoroughness, reliability, efficiency
-- ✅ Quality gates enforced
-- ❌ NEVER rush, skip validation, or mark tasks complete without evidence
-- ❌ Time pressure does NOT exist - work can span hours/days/weeks
-- ❌ Token pressure does NOT exist - work can span many interactions
-- ❌ Premature completion is NOT allowed
+**ALL issues are blockers - NO exceptions:**
+
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
+- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
+- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
+- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
+
+**Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 
 **Execution Pattern:** Task complete → Commit → Next task (zero pause, zero text)
 
@@ -275,7 +277,7 @@ This includes:
 - Post-mortem analysis at end of EVERY phase
 
 Sequential dependencies MUST be respected.
-No task or phase may be skipped, reordered, deferred, deprioritized.
+No task or phase may be skipped, reordered, deferred, de-prioritized.
 
 --------------------------------------------
 

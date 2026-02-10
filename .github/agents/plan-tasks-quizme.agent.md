@@ -33,17 +33,27 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 
 ---
 
-## Quality Over Speed - MANDATORY
+## Maximum Quality Strategy - MANDATORY
 
-**Quality Over Speed (NO EXCEPTIONS)**:
+**Quality Attributes (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL documentation must be accurate and complete
-- ✅ **Completeness**: NO steps skipped, NO shortcuts
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO shortcuts
 - ✅ **Thoroughness**: Verify all files created/updated correctly
-- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation
 - ❌ **Premature Completion**: NEVER mark complete without verification
+
+**ALL issues are blockers - NO exceptions:**
+
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
+- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
+- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
+- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
+
+**Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 
 **Continuous Execution (NO STOPPING)**:
 - Work continues until ALL actions complete OR user clicks STOP button
@@ -291,20 +301,23 @@ EOF
 
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL documentation must be accurate and complete
-- ✅ **Completeness**: NO steps skipped, NO shortcuts
+- ✅ **Completeness**: NO steps skipped, NO steps de-prioritized, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step
-- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark steps complete without verification
 
 **ALL issues are blockers - NO exceptions:**
 
-- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, or quality issues found, STOP and address
-- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase
-- ✅ **Document root causes** - Root cause analysis is part of planning, not optional
-- ✅ **NEVER defer critical items** - Unknown hypotheses, unverified E2E patterns, architecture inconsistencies must be resolved
-- ✅ **NEVER deprioritize quality** - Evidence-based verification is ALWAYS highest priority
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
+- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
+- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
+- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
-**Rationale**: Planning with unknowns leads to implementation waste. Discovery and hypotheses documented in plan.md prevent surprises in tasks.md.
+**Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 
 ## Overview
 
@@ -462,18 +475,22 @@ EOF
 
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
-- ✅ **Completeness**: NO tasks skipped, NO features deprioritized, NO shortcuts
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step
-- ✅ **Reliability**: Quality gates enforced (coverage/mutation targets)
+- ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ **Premature Completion**: NEVER mark phases or tasks complete without objective evidence
 
 **ALL issues are blockers - NO exceptions:**
 
-- ✅ **Fix issues immediately**: When E2E timeouts, test failures, or build errors occur, STOP and fix
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
 - ✅ **Treat as BLOCKING**: ALL issues block progress to next task
-- ✅ **Do NOT defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
-- ✅ **NEVER skip**: Cannot mark task complete with known issues
-- ✅ **NEVER deprioritize**: Quality is ALWAYS highest priority
+- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
+- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER skip**: Cannot mark phase or task complete with known issues
+- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 
@@ -755,7 +772,7 @@ Running frequent Unit + integration + E2E tests locally:
 
 ### Evidence-Based Updates
 
-**NEVER mark tasks complete without**:
+**NEVER mark phases or tasks or steps complete without**:
 
 - ✅ Git commits referencing task
 - ✅ Tests passing with coverage

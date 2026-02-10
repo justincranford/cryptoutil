@@ -38,7 +38,7 @@ You are in **continuous autonomous execution mode**. This means:
 - NEVER stop after commits or analysis
 - Task complete â†’ Commit â†’ IMMEDIATELY start next task (zero pause, zero text)
 
-**Quality Over Speed:**
+**Maximum Quality Strategy:**
 - âœ… Correctness, completeness, thoroughness (evidence-based validation)
 - âœ… Quality gates enforced (local testing, syntax validation, regression checks)
 - âŒ NEVER rush, skip validation, or mark tasks complete without evidence

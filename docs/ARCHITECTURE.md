@@ -124,7 +124,7 @@ This document is structured to serve multiple audiences:
 - **FIPS 140-3 Compliance**: Mandatory approved algorithms only
 - **Defense in Depth**: Multiple security layers (encryption-at-rest, encryption-in-transit, barrier system)
 
-#### Quality Over Speed
+#### Maximum Quality Strategy
 
 - **NO EXCEPTIONS**: Quality, correctness, completeness, thoroughness, reliability, efficiency, and accuracy are ALL mandatory
 - **Evidence-based validation**: Objective proof required for task completion
@@ -312,7 +312,7 @@ This document is structured to serve multiple audiences:
 #### Continuous Execution
 
 - **Beast Mode**: Work autonomously until problem completely solved
-- **Quality Over Speed**: Correctness, completeness, thoroughness (NO EXCEPTIONS)
+- **Maximum Quality Strategy**: Correctness, completeness, thoroughness (NO EXCEPTIONS)
 - **NO Stopping**: Task complete → Commit → IMMEDIATELY start next task (zero pause)
 - **Blocker Handling**: Document blocker, switch to unblocked tasks, return when resolved
 
@@ -2116,17 +2116,28 @@ func BenchmarkAESEncrypt(b *testing.B) {
 
 ## 11. Quality Architecture
 
-### 11.1 Maximum Quality Strategy
+### 11.1 Maximum Quality Strategy - MANDATORY
 
-**Quality Over Speed** (NO EXCEPTIONS):
-
+**Quality Attributes (NO EXCEPTIONS)**:
 - ✅ Correctness: ALL code functionally correct with comprehensive tests
-- ✅ Completeness: NO tasks skipped, NO shortcuts
+- ✅ Completeness: NO phases or tasks or steps skipped, NO features de-prioritized, NO shortcuts
 - ✅ Thoroughness: Evidence-based validation at every step
 - ✅ Reliability: Quality gates enforced (≥95%/98% coverage/mutation)
-- ❌ Time Pressure: NEVER rush, skip validation, defer quality checks
+- ✅ Efficiency: Optimized for maintainability and performance NOT implementation speed
+- ✅ Accuracy: Changes must address root cause, not just symptoms
+- ❌ Time Pressure: NEVER rush, NEVER skip validation, NEVER defer quality checks
+- ❌ Premature Completion: NEVER mark phases or tasks or steps complete without objective evidence
 
-**Priorities**: Correctness, completeness, thoroughness ≫ implementation speed
+**ALL issues are blockers - NO exceptions:**
+
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
+- ✅ **Treat as BLOCKING**: ALL issues block progress to next task
+- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
+- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER skip**: Cannot mark phase or task complete with known issues
+- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
+
+**Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 
 #### 11.1.1 Go Version Consistency
 
