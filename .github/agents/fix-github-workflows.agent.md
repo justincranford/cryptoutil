@@ -53,7 +53,7 @@ You are in **continuous autonomous execution mode**. This means:
 
 ## Workflow Analysis Approach
 
-### When No Specific Workflow Provided:
+### When No Specific Workflow Provided
 
 1. **Scan for workflow issues**:
    - Check recent GitHub Actions runs: `gh run list --limit 20`
@@ -68,7 +68,7 @@ You are in **continuous autonomous execution mode**. This means:
    - Commit with evidence
    - Verify fix in GitHub Actions
 
-### When Specific Workflow Provided:
+### When Specific Workflow Provided
 
 1. **Analyze the specific workflow**:
    - Read `.github/workflows/ci-<workflow>.yml`
@@ -412,9 +412,7 @@ Add-Content -Path docs/fixes-needed-plan-tasks-v#/issues.md -Value @"
 - ALL validation artifacts go in `./workflow-reports/` (NOT test-output/)
 - cmd/workflow automatically creates `./workflow-reports/` per internal\apps\workflow\workflow.go line 66
 
-
 ---
-
 
 ## Security-First Principles - MANDATORY
 
@@ -606,7 +604,6 @@ permissions:
 
 **Regression Prevention**: Baseline test runs before changes, diff test results (before/after), track introduced failures, validate fix completeness
 
-
 ## Result Analysis & Recommendations
 
 **Automated Reporting**: Generate reports with coverage/timing/failures (`go test -cover -v`), track trends over time, compare before/after metrics
@@ -630,7 +627,6 @@ permissions:
 7. âœ… Monitor workflow runs via `gh run watch` or GitHub UI
 
 ---
-
 
 ## Common Workflow Failures - Top Patterns
 
@@ -656,7 +652,6 @@ permissions:
 
 **Diagnostic Approach**: Download logs  grep errors  check recent changes  compare working workflows  verify prerequisites
 
-
 ## Code Archaeology Pattern
 
 **When**: Container crashes with zero symptom change despite config fixes  implementation issue, not config
@@ -680,7 +675,6 @@ permissions:
 **Port Conflicts**: Windows - `netstat -ano | findstr <port>`, Linux - `lsof -i :<port>`, `docker ps` for container ports
 
 **Workflow Timing Expectations**: build (2-5min), coverage (3-7min), mutation (15-25min), E2E (5-15min), full CI suite (25-45min), optimize with caching/parallelization
-
 
 ## Best Practices
 
@@ -721,7 +715,6 @@ permissions:
 - Cleaner commit history
 
 ---
-
 
 ---
 
