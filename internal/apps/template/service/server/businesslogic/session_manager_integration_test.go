@@ -19,6 +19,7 @@ import (
 // TestSessionManager_Integration_CrossAlgorithm tests interactions between different session algorithms.
 func TestSessionManager_Integration_CrossAlgorithm(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name               string
 		browserAlgorithm   cryptoutilSharedMagic.SessionAlgorithmType
@@ -103,6 +104,7 @@ func TestSessionManager_Integration_CrossAlgorithm(t *testing.T) {
 // TestSessionManager_Integration_SessionLifecycle tests complete session lifecycle scenarios.
 func TestSessionManager_Integration_SessionLifecycle(t *testing.T) {
 	t.Parallel()
+
 	algorithms := []struct {
 		name             string
 		browserAlgorithm cryptoutilSharedMagic.SessionAlgorithmType
