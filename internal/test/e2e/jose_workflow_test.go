@@ -19,6 +19,7 @@ import (
 
 // TestJOSEWorkflow runs JOSE E2E test.
 func TestJOSEWorkflow(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(JOSEWorkflowSuite))
 }
 

@@ -16,6 +16,7 @@ import (
 )
 
 func TestGetAvailableWorkflows(t *testing.T) {
+	t.Parallel()
 	// Create a temporary directory structure to simulate .github/workflows/
 	tempDir := t.TempDir()
 	workflowsDir := filepath.Join(tempDir, "test_workflows")
@@ -88,12 +89,14 @@ func TestGetAvailableWorkflows(t *testing.T) {
 }
 
 func TestGetAvailableWorkflows_NoWorkflowsDir(t *testing.T) {
+	t.Parallel()
 	// Test the function - should return error
 	_, err := getAvailableWorkflows(".github/workflows_nonexistent")
 	require.Error(t, err, "Expected error when workflows directory doesn't exist")
 }
 
 func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
+	t.Parallel()
 	// Test with an empty directory
 	tempDir := t.TempDir()
 	workflowsDir := filepath.Join(tempDir, "empty_workflows")

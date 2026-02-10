@@ -167,10 +167,10 @@ func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 			fs := pflag.NewFlagSet("test-override-"+tt.name, pflag.ContinueOnError)
 
 			settings, err := ParseWithFlagSet(fs, tt.args, false)
-				require.NoError(t, err, "ParseWithFlagSet() should not error")
-require.Equal(t, tt.wantMax, settings.DefaultMaxMaterials, "DefaultMaxMaterials should match expected")
+			require.NoError(t, err, "ParseWithFlagSet() should not error")
+			require.Equal(t, tt.wantMax, settings.DefaultMaxMaterials, "DefaultMaxMaterials should match expected")
 
-require.Equal(t, tt.wantAud, settings.AuditEnabled, "AuditEnabled should match expected")
+			require.Equal(t, tt.wantAud, settings.AuditEnabled, "AuditEnabled should match expected")
 
 			require.Equal(t, tt.wantRate, settings.AuditSamplingRate, "AuditSamplingRate should match expected")
 		})

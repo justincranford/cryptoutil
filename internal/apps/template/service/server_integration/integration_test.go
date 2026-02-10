@@ -18,6 +18,7 @@ import (
 
 // TestIntegration_TenantRegistration_CreateTenant tests creating a new tenant.
 func TestIntegration_TenantRegistration_CreateTenant(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
@@ -62,6 +63,7 @@ func TestIntegration_TenantRegistration_CreateTenant(t *testing.T) {
 
 // TestIntegration_TenantRegistration_ClientJoinRequest tests client join request creation.
 func TestIntegration_TenantRegistration_ClientJoinRequest(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
@@ -107,6 +109,7 @@ func TestIntegration_TenantRegistration_ClientJoinRequest(t *testing.T) {
 
 // TestIntegration_JoinRequest_Approve tests approving a join request.
 func TestIntegration_JoinRequest_Approve(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
@@ -162,6 +165,7 @@ func TestIntegration_JoinRequest_Approve(t *testing.T) {
 
 // TestIntegration_JoinRequest_Reject tests rejecting a join request.
 func TestIntegration_JoinRequest_Reject(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.

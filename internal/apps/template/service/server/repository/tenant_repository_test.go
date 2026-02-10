@@ -57,6 +57,7 @@ func uniqueTenantName(base string) string {
 }
 
 func TestTenantRepository_Create(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	repo := NewTenantRepository(db)
 	ctx := context.Background()
@@ -116,6 +117,7 @@ func TestTenantRepository_Create(t *testing.T) {
 }
 
 func TestTenantRepository_GetByID(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	repo := NewTenantRepository(db)
 	ctx := context.Background()
@@ -166,6 +168,7 @@ func TestTenantRepository_GetByID(t *testing.T) {
 }
 
 func TestTenantRepository_GetByName(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	repo := NewTenantRepository(db)
 	ctx := context.Background()
@@ -216,6 +219,7 @@ func TestTenantRepository_GetByName(t *testing.T) {
 }
 
 func TestTenantRepository_List(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	repo := NewTenantRepository(db)
 	ctx := context.Background()
@@ -300,6 +304,7 @@ func TestTenantRepository_List(t *testing.T) {
 }
 
 func TestTenantRepository_Update(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	repo := NewTenantRepository(db)
 	ctx := context.Background()
@@ -331,6 +336,7 @@ func TestTenantRepository_Update(t *testing.T) {
 }
 
 func TestTenantRepository_Delete(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	userRepo := NewUserRepository(db)
@@ -399,6 +405,7 @@ func TestTenantRepository_Delete(t *testing.T) {
 }
 
 func TestTenantRepository_CountUsersAndClients(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	userRepo := NewUserRepository(db)

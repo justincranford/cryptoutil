@@ -17,6 +17,7 @@ import (
 
 // TestOrmTransaction_GetElasticKeyMaterialKeyVersion tests getting a specific material key version.
 func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	// Create elastic key and multiple material keys.
@@ -96,6 +97,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion(t *testing.T) {
 
 // TestOrmTransaction_GetElasticKeyMaterialKeyLatest tests getting the latest material key.
 func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	var ekID googleUuid.UUID
@@ -181,6 +183,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest(t *testing.T) {
 
 // TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidElasticKeyID tests validation errors.
 func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidElasticKeyID(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Test nil elasticKeyID.
 		_, getErr := tx.GetElasticKeyMaterialKeyVersion(nil, &googleUuid.UUID{})
@@ -194,6 +197,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidElasticKeyID(t *t
 
 // TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidMaterialKeyID tests validation errors.
 func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidMaterialKeyID(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		ekID := googleUuid.New()
 
@@ -209,6 +213,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_InvalidMaterialKeyID(t *
 
 // TestOrmTransaction_GetElasticKeyMaterialKeyLatest_InvalidElasticKeyID tests validation errors.
 func TestOrmTransaction_GetElasticKeyMaterialKeyLatest_InvalidElasticKeyID(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Test zero UUID (invalid).
 		_, getErr := tx.GetElasticKeyMaterialKeyLatest(googleUuid.UUID{})
@@ -222,6 +227,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyLatest_InvalidElasticKeyID(t *te
 
 // TestOrmTransaction_GetElasticKeyMaterialKeyVersion_NotFound tests record not found error.
 func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_NotFound(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		ekID := googleUuid.New()
 		mkID := googleUuid.New()
@@ -238,6 +244,7 @@ func TestOrmTransaction_GetElasticKeyMaterialKeyVersion_NotFound(t *testing.T) {
 
 // TestOrmTransaction_GetElasticKeyMaterialKeyLatest_NotFound tests record not found error.
 func TestOrmTransaction_GetElasticKeyMaterialKeyLatest_NotFound(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		ekID := googleUuid.New()
 

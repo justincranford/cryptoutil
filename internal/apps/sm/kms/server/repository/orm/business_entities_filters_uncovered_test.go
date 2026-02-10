@@ -15,6 +15,7 @@ import (
 
 // TestApplyGetElasticKeysFilters_NilFilters tests nil filter handling.
 func TestApplyGetElasticKeysFilters_NilFilters(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&ElasticKey{})
 	filteredQuery := applyGetElasticKeysFilters(query, nil)
 	require.NotNil(t, filteredQuery)
@@ -23,6 +24,7 @@ func TestApplyGetElasticKeysFilters_NilFilters(t *testing.T) {
 
 // TestApplyKeyFilters_NilFilters tests nil filter handling.
 func TestApplyKeyFilters_NilFilters(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 	filteredQuery := applyKeyFilters(query, nil)
 	require.NotNil(t, filteredQuery)
@@ -31,6 +33,7 @@ func TestApplyKeyFilters_NilFilters(t *testing.T) {
 
 // TestApplyGetElasticKeyKeysFilters_NilFilters tests nil filter handling.
 func TestApplyGetElasticKeyKeysFilters_NilFilters(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 	filteredQuery := applyGetElasticKeyKeysFilters(query, nil)
 	require.NotNil(t, filteredQuery)
@@ -39,6 +42,7 @@ func TestApplyGetElasticKeyKeysFilters_NilFilters(t *testing.T) {
 
 // TestApplyKeyFilters_WithDates tests date filtering for material keys.
 func TestApplyKeyFilters_WithDates(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
@@ -68,6 +72,7 @@ func TestApplyKeyFilters_WithDates(t *testing.T) {
 
 // TestApplyGetElasticKeyKeysFilters_WithDates tests date filtering for elastic key material keys.
 func TestApplyGetElasticKeyKeysFilters_WithDates(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with MinimumGenerateDate.
@@ -97,6 +102,7 @@ func TestApplyGetElasticKeyKeysFilters_WithDates(t *testing.T) {
 
 // TestApplyKeyFilters_WithSort tests sorting for material keys.
 func TestApplyKeyFilters_WithSort(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with single sort field.
@@ -116,6 +122,7 @@ func TestApplyKeyFilters_WithSort(t *testing.T) {
 
 // TestApplyGetElasticKeyKeysFilters_WithSort tests sorting for elastic key material keys.
 func TestApplyGetElasticKeyKeysFilters_WithSort(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with single sort field.
@@ -135,6 +142,7 @@ func TestApplyGetElasticKeyKeysFilters_WithSort(t *testing.T) {
 
 // TestApplyGetElasticKeysFilters_WithSort tests sorting for elastic keys.
 func TestApplyGetElasticKeysFilters_WithSort(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&ElasticKey{})
 
 	// Test with single sort field.
@@ -154,6 +162,7 @@ func TestApplyGetElasticKeysFilters_WithSort(t *testing.T) {
 
 // TestApplyKeyFilters_WithPagination tests pagination for material keys.
 func TestApplyKeyFilters_WithPagination(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with pagination (PageSize > 0).
@@ -175,6 +184,7 @@ func TestApplyKeyFilters_WithPagination(t *testing.T) {
 
 // TestApplyGetElasticKeyKeysFilters_WithPagination tests pagination for elastic key material keys.
 func TestApplyGetElasticKeyKeysFilters_WithPagination(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with pagination (PageSize > 0).
@@ -196,6 +206,7 @@ func TestApplyGetElasticKeyKeysFilters_WithPagination(t *testing.T) {
 
 // TestApplyKeyFilters_WithMaterialKeyIDs tests filtering by material key IDs.
 func TestApplyKeyFilters_WithMaterialKeyIDs(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with single material key ID.
@@ -216,6 +227,7 @@ func TestApplyKeyFilters_WithMaterialKeyIDs(t *testing.T) {
 
 // TestApplyKeyFilters_WithElasticKeyIDs tests filtering by elastic key IDs.
 func TestApplyKeyFilters_WithElasticKeyIDs(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with single elastic key ID.
@@ -236,6 +248,7 @@ func TestApplyKeyFilters_WithElasticKeyIDs(t *testing.T) {
 
 // TestApplyGetElasticKeyKeysFilters_WithElasticKeyIDs tests filtering by elastic key IDs.
 func TestApplyGetElasticKeyKeysFilters_WithElasticKeyIDs(t *testing.T) {
+	t.Parallel()
 	query := testOrmRepository.gormDB.Model(&MaterialKey{})
 
 	// Test with single elastic key ID.

@@ -13,6 +13,7 @@ import (
 )
 
 func TestCAServer_Lifecycle(t *testing.T) {
+	t.Parallel()
 	// Verify admin endpoints accessible.
 	require.NotEmpty(t, testAdminBaseURL, "admin base URL should not be empty")
 
@@ -39,6 +40,7 @@ func TestCAServer_Lifecycle(t *testing.T) {
 }
 
 func TestCAServer_PortAllocation(t *testing.T) {
+	t.Parallel()
 	// Verify ports are dynamically allocated (> 0).
 	publicPort := testServer.PublicPort()
 	adminPort := testServer.AdminPort()
@@ -53,6 +55,7 @@ func TestCAServer_PortAllocation(t *testing.T) {
 }
 
 func TestCAServer_CAServices(t *testing.T) {
+	t.Parallel()
 	// Verify CA-specific services are initialized.
 	require.NotNil(t, testServer.Issuer(), "issuer service should be initialized")
 	require.NotNil(t, testServer.Storage(), "storage service should be initialized")
@@ -61,6 +64,7 @@ func TestCAServer_CAServices(t *testing.T) {
 }
 
 func TestCAServer_TemplateServices(t *testing.T) {
+	t.Parallel()
 	// Verify template services are initialized.
 	require.NotNil(t, testServer.DB(), "database should be initialized")
 	require.NotNil(t, testServer.JWKGen(), "JWK generation service should be initialized")
@@ -69,6 +73,7 @@ func TestCAServer_TemplateServices(t *testing.T) {
 }
 
 func TestCAServer_PublicHealth(t *testing.T) {
+	t.Parallel()
 	// Test /service/api/v1/health endpoint on public server (provided by template).
 	// Note: /admin/api/v1/livez and /admin/api/v1/readyz are tested in TestCAServer_Lifecycle.
 	healthReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/service/api/v1/health", testPublicBaseURL), nil)
@@ -81,6 +86,7 @@ func TestCAServer_PublicHealth(t *testing.T) {
 }
 
 func TestCAServer_CRLEndpoint(t *testing.T) {
+	t.Parallel()
 	// Test CRL distribution endpoint.
 	crlReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, fmt.Sprintf("%s/service/api/v1/crl", testPublicBaseURL), nil)
 	require.NoError(t, err, "CRL request creation should succeed")

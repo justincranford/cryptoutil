@@ -10,11 +10,13 @@ import (
 )
 
 func TestGetMergedMigrationsFS(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 	require.NotNil(t, mergedFS)
 }
 
 func TestMergedFS_Open_JoseJAFile(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Open a jose-ja migration file (2001+).
@@ -25,6 +27,7 @@ func TestMergedFS_Open_JoseJAFile(t *testing.T) {
 }
 
 func TestMergedFS_Open_TemplateFile(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Open a template migration file (1001-1004).
@@ -35,6 +38,7 @@ func TestMergedFS_Open_TemplateFile(t *testing.T) {
 }
 
 func TestMergedFS_Open_NonExistent(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Opening non-existent file should fail.
@@ -44,6 +48,7 @@ func TestMergedFS_Open_NonExistent(t *testing.T) {
 }
 
 func TestMergedFS_ReadDir(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.ReadDirFS to use ReadDir.
@@ -75,6 +80,7 @@ func TestMergedFS_ReadDir(t *testing.T) {
 }
 
 func TestMergedFS_ReadFile(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.ReadFileFS to use ReadFile.
@@ -89,6 +95,7 @@ func TestMergedFS_ReadFile(t *testing.T) {
 }
 
 func TestMergedFS_ReadFile_TemplateFile(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.ReadFileFS to use ReadFile.
@@ -103,6 +110,7 @@ func TestMergedFS_ReadFile_TemplateFile(t *testing.T) {
 }
 
 func TestMergedFS_ReadFile_NonExistent(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.ReadFileFS to use ReadFile.
@@ -116,6 +124,7 @@ func TestMergedFS_ReadFile_NonExistent(t *testing.T) {
 }
 
 func TestMergedFS_Stat_JoseJAFile(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.StatFS to use Stat.
@@ -131,6 +140,7 @@ func TestMergedFS_Stat_JoseJAFile(t *testing.T) {
 }
 
 func TestMergedFS_Stat_TemplateFile(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.StatFS to use Stat.
@@ -146,6 +156,7 @@ func TestMergedFS_Stat_TemplateFile(t *testing.T) {
 }
 
 func TestMergedFS_Stat_NonExistent(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.StatFS to use Stat.
@@ -159,6 +170,7 @@ func TestMergedFS_Stat_NonExistent(t *testing.T) {
 }
 
 func TestMergedFS_Stat_Directory(t *testing.T) {
+	t.Parallel()
 	mergedFS := GetMergedMigrationsFS()
 
 	// Cast to fs.StatFS to use Stat.

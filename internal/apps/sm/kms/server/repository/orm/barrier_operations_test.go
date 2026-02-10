@@ -14,6 +14,7 @@ import (
 
 // TestRootKeyOperations tests root key CRUD operations.
 func TestRootKeyOperations(t *testing.T) {
+	t.Parallel()
 	t.Run("Add and retrieve multiple root keys", func(t *testing.T) {
 		CleanupDatabase(t, testOrmRepository)
 
@@ -158,6 +159,7 @@ func TestRootKeyOperations(t *testing.T) {
 
 // TestIntermediateKeyOperations tests intermediate key CRUD operations.
 func TestIntermediateKeyOperations(t *testing.T) {
+	t.Parallel()
 	t.Run("Add and retrieve multiple intermediate keys", func(t *testing.T) {
 		CleanupDatabase(t, testOrmRepository)
 
@@ -302,6 +304,7 @@ func TestIntermediateKeyOperations(t *testing.T) {
 
 // TestContentKeyOperations tests content key CRUD operations.
 func TestContentKeyOperations(t *testing.T) {
+	t.Parallel()
 	t.Run("Add and retrieve multiple content keys", func(t *testing.T) {
 		CleanupDatabase(t, testOrmRepository)
 

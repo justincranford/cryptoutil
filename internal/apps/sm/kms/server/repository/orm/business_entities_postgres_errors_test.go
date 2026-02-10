@@ -17,6 +17,7 @@ const testOperationFailedMsg = "test operation failed"
 
 // TestToAppErr_PostgresUniqueViolation tests toAppErr handling of PostgreSQL unique_violation errors.
 func TestToAppErr_PostgresUniqueViolation(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -42,6 +43,7 @@ func TestToAppErr_PostgresUniqueViolation(t *testing.T) {
 
 // TestToAppErr_PostgresForeignKeyViolation tests toAppErr handling of PostgreSQL foreign_key_violation errors.
 func TestToAppErr_PostgresForeignKeyViolation(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -67,6 +69,7 @@ func TestToAppErr_PostgresForeignKeyViolation(t *testing.T) {
 
 // TestToAppErr_PostgresCheckViolation tests toAppErr handling of PostgreSQL check_violation errors.
 func TestToAppErr_PostgresCheckViolation(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -92,6 +95,7 @@ func TestToAppErr_PostgresCheckViolation(t *testing.T) {
 
 // TestToAppErr_PostgresStringDataTruncation tests toAppErr handling of PostgreSQL string_data_right_truncation errors.
 func TestToAppErr_PostgresStringDataTruncation(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -117,6 +121,7 @@ func TestToAppErr_PostgresStringDataTruncation(t *testing.T) {
 
 // TestToAppErr_UnknownPostgresError tests toAppErr handling of unknown PostgreSQL errors (fallback to 500).
 func TestToAppErr_UnknownPostgresError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {

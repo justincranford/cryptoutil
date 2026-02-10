@@ -52,6 +52,7 @@ const (
 // if Docker Desktop is not running or is configured in rootless mode. This is an environmental
 // limitation, not a code issue. The SQLite subtest will still pass and provides sufficient coverage.
 func TestInitDatabase_HappyPaths(t *testing.T) {
+	t.Parallel()
 	// Use merged filesystem to get all migrations (1001-1999 template + 2001+ cipher-im).
 	cryptoutilAppsTemplateServiceServerTestutil.HelpTestInitDatabaseHappyPaths(
 		t,
@@ -64,6 +65,7 @@ func TestInitDatabase_HappyPaths(t *testing.T) {
 
 // TestInitDatabase_SadPaths tests error handling for database initialization failures.
 func TestInitDatabase_SadPaths(t *testing.T) {
+	t.Parallel()
 	// Use merged filesystem to get all migrations (1001-1006).
 	cryptoutilAppsTemplateServiceServerTestutil.HelpTestInitDatabaseSadPaths(t, cryptoutilAppsCipherImRepository.GetMergedMigrationsFS())
 }

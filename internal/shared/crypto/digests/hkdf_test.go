@@ -30,6 +30,7 @@ type TestCaseHKDFSadPath struct {
 }
 
 func TestHKDFHappyPath(t *testing.T) {
+	t.Parallel()
 	happyPathTests := []TestCaseHKDFHappyPath{
 		{"Valid SHA512", "SHA512", []byte("secret"), []byte("salt"), []byte("info"), 64},
 		{"Valid SHA384", "SHA384", []byte("secret"), []byte("salt"), []byte("info"), 48},
@@ -58,6 +59,7 @@ func TestHKDFHappyPath(t *testing.T) {
 }
 
 func TestHKDFHappyPathDifferentDigest(t *testing.T) {
+	t.Parallel()
 	// NOTE: SHA224 uses SHA-256 internally for FIPS 140-2/140-3 compliance (see hkdf.go).
 	// Therefore SHA224 and SHA256 produce the same output. Only test SHA256, SHA384, SHA512.
 	output1, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info"), 32)
@@ -75,6 +77,7 @@ func TestHKDFHappyPathDifferentDigest(t *testing.T) {
 }
 
 func TestHKDFHappyPathDifferentSecret(t *testing.T) {
+	t.Parallel()
 	output1, err := HKDF("SHA256", []byte("secret1"), []byte("salt"), []byte("info"), 32)
 	require.NoError(t, err, "HKDF with secret1 should not fail")
 
@@ -85,6 +88,7 @@ func TestHKDFHappyPathDifferentSecret(t *testing.T) {
 }
 
 func TestHKDFHappyPathDifferentSalt(t *testing.T) {
+	t.Parallel()
 	output1, err := HKDF("SHA256", []byte("secret"), []byte("salt1"), []byte("info"), 32)
 	require.NoError(t, err, "HKDF with salt1 should not fail")
 
@@ -95,6 +99,7 @@ func TestHKDFHappyPathDifferentSalt(t *testing.T) {
 }
 
 func TestHKDFHappyPathDifferentInfo(t *testing.T) {
+	t.Parallel()
 	output1, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info1"), 28)
 	require.NoError(t, err, "HKDF with info1 should not fail")
 
@@ -105,6 +110,7 @@ func TestHKDFHappyPathDifferentInfo(t *testing.T) {
 }
 
 func TestHKDFSadPath(t *testing.T) {
+	t.Parallel()
 	sadPathTests := []TestCaseHKDFSadPath{
 		{"Invalid Digest Name", "InvalidDigest", []byte("secret"), []byte("salt"), []byte("info"), 32, ErrInvalidNilDigestFunction},
 		{"Nil Secret", "SHA256", nil, []byte("salt"), []byte("info"), 32, ErrInvalidNilSecret},

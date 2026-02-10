@@ -18,6 +18,7 @@ import (
 
 // TestBuildElasticKey tests the BuildElasticKey builder function.
 func TestBuildElasticKey(t *testing.T) {
+	t.Parallel()
 	t.Run("Build elastic key with import allowed (pending import status)", func(t *testing.T) {
 		tenantID := googleUuid.New()
 		ekID := googleUuid.New()
@@ -109,6 +110,7 @@ func TestBuildElasticKey(t *testing.T) {
 
 // TestElasticKeyStatusInitial tests the ElasticKeyStatusInitial helper function.
 func TestElasticKeyStatusInitial(t *testing.T) {
+	t.Parallel()
 	t.Run("Import allowed returns PendingImport", func(t *testing.T) {
 		status := ElasticKeyStatusInitial(true)
 		require.Equal(t, cryptoutilOpenapiModel.PendingImport, status, "Status should be PendingImport when import allowed")

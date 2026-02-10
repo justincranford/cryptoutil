@@ -14,6 +14,7 @@ import (
 
 // TestOrmRepository_Shutdown_NoOp tests shutdown (no-op implementation).
 func TestOrmRepository_Shutdown_NoOp(t *testing.T) {
+	t.Parallel()
 	// Use testOrmRepository which is created from template Core
 	require.NotNil(t, testOrmRepository)
 
@@ -30,6 +31,7 @@ func TestOrmRepository_Shutdown_NoOp(t *testing.T) {
 
 // TestNewOrmRepository_NilChecks tests nil parameter validation for GORM constructor.
 func TestNewOrmRepository_NilChecks(t *testing.T) {
+	t.Parallel()
 	// Get gormDB from testOrmRepository for success case
 	testGormDB := testOrmRepository.GormDB()
 	require.NotNil(t, testGormDB)
@@ -70,12 +72,14 @@ func TestNewOrmRepository_NilChecks(t *testing.T) {
 
 // TestOrmRepository_GormDB tests the GormDB getter.
 func TestOrmRepository_GormDB(t *testing.T) {
+	t.Parallel()
 	gormDB := testOrmRepository.GormDB()
 	require.NotNil(t, gormDB)
 }
 
 // TestNewOrmRepository_NilContext tests that nil context is accepted (context is not validated).
 func TestNewOrmRepository_NilContext(t *testing.T) {
+	t.Parallel()
 	testGormDB := testOrmRepository.GormDB()
 	require.NotNil(t, testGormDB)
 
@@ -88,6 +92,7 @@ func TestNewOrmRepository_NilContext(t *testing.T) {
 
 // TestNewOrmRepository_UsableForTransactions verifies repositories work with transactions.
 func TestNewOrmRepository_UsableForTransactions(t *testing.T) {
+	t.Parallel()
 	testGormDB := testOrmRepository.GormDB()
 	require.NotNil(t, testGormDB)
 

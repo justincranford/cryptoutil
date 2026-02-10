@@ -32,6 +32,7 @@ const (
 )
 
 func TestPoolsExample(t *testing.T) {
+	t.Parallel()
 	tempDir := t.TempDir()
 
 	ctx := context.Background()

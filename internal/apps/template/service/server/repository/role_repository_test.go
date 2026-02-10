@@ -19,6 +19,7 @@ func uniqueRoleTenantName(base string) string {
 }
 
 func TestRoleRepository_Create(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	roleRepo := NewRoleRepository(db)
@@ -89,6 +90,7 @@ func TestRoleRepository_Create(t *testing.T) {
 }
 
 func TestRoleRepository_GetByName(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	roleRepo := NewRoleRepository(db)
@@ -160,6 +162,7 @@ func TestRoleRepository_GetByName(t *testing.T) {
 }
 
 func TestUserRoleRepository_Assign(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	userRepo := NewUserRepository(db)
@@ -218,6 +221,7 @@ func TestUserRoleRepository_Assign(t *testing.T) {
 }
 
 func TestUserRoleRepository_Revoke(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	userRepo := NewUserRepository(db)
@@ -278,6 +282,7 @@ func TestUserRoleRepository_Revoke(t *testing.T) {
 }
 
 func TestClientRoleRepository_Assign(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	clientRepo := NewClientRepository(db)
@@ -335,6 +340,7 @@ func TestClientRoleRepository_Assign(t *testing.T) {
 }
 
 func TestTenantRealmRepository_Create(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	realmRepo := NewTenantRealmRepository(db)
@@ -409,6 +415,7 @@ func TestTenantRealmRepository_Create(t *testing.T) {
 }
 
 func TestTenantRealmRepository_ListByTenant(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	realmRepo := NewTenantRealmRepository(db)

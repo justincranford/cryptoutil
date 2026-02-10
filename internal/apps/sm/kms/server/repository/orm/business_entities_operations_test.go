@@ -17,6 +17,7 @@ import (
 
 // TestElasticKeyOperations tests CRUD operations for ElasticKey entity.
 func TestElasticKeyOperations(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	t.Run("Add and retrieve single elastic key", func(t *testing.T) {
@@ -163,6 +164,7 @@ func TestElasticKeyOperations(t *testing.T) {
 
 // TestMaterialKeyOperations tests CRUD operations for MaterialKey entity.
 func TestMaterialKeyOperations(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	t.Run("Add and retrieve material keys for elastic key", func(t *testing.T) {
@@ -303,6 +305,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 
 // TestBusinessEntityErrorHandling tests error cases for business entity operations.
 func TestBusinessEntityErrorHandling(t *testing.T) {
+	t.Parallel()
 	t.Run("Add elastic key with invalid UUID", func(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create elastic key with nil UUID (invalid).

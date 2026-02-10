@@ -15,6 +15,7 @@ import (
 // Root Key Error Path Tests
 
 func TestOrmTransaction_GetRootKey_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -30,6 +31,7 @@ func TestOrmTransaction_GetRootKey_NotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_GetRootKeyLatest_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -44,6 +46,7 @@ func TestOrmTransaction_GetRootKeyLatest_NotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_DeleteRootKey_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -62,6 +65,7 @@ func TestOrmTransaction_DeleteRootKey_NotFound(t *testing.T) {
 // Intermediate Key Error Path Tests
 
 func TestOrmTransaction_GetIntermediateKey_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -77,6 +81,7 @@ func TestOrmTransaction_GetIntermediateKey_NotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_GetIntermediateKeyLatest_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -91,6 +96,7 @@ func TestOrmTransaction_GetIntermediateKeyLatest_NotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_DeleteIntermediateKey_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -109,6 +115,7 @@ func TestOrmTransaction_DeleteIntermediateKey_NotFound(t *testing.T) {
 // Content Key Error Path Tests
 
 func TestOrmTransaction_GetContentKey_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -124,6 +131,7 @@ func TestOrmTransaction_GetContentKey_NotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_GetContentKeyLatest_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -138,6 +146,7 @@ func TestOrmTransaction_GetContentKeyLatest_NotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_DeleteContentKey_NotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -156,6 +165,7 @@ func TestOrmTransaction_DeleteContentKey_NotFound(t *testing.T) {
 // Database Constraint Error Tests
 
 func TestOrmTransaction_AddRootKey_DuplicateUUID(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	rootKeyID := googleUuid.New()
@@ -191,6 +201,7 @@ func TestOrmTransaction_AddRootKey_DuplicateUUID(t *testing.T) {
 }
 
 func TestOrmTransaction_AddIntermediateKey_DuplicateUUID(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	intermediateKeyID := googleUuid.New()
@@ -226,6 +237,7 @@ func TestOrmTransaction_AddIntermediateKey_DuplicateUUID(t *testing.T) {
 }
 
 func TestOrmTransaction_AddContentKey_DuplicateUUID(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	contentKeyID := googleUuid.New()

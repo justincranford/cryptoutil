@@ -16,6 +16,7 @@ import (
 
 // TestKMSWorkflow runs KMS encrypt/decrypt E2E test.
 func TestKMSWorkflow(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(KMSWorkflowSuite))
 }
 

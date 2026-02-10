@@ -17,6 +17,7 @@ import (
 // - R09-01: Configuration templates for all deployment scenarios
 // - R09-02: Configuration validation prevents startup errors.
 func TestDefaultConfig(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultConfig()
 	require.NotNil(t, cfg)
 	require.NotNil(t, cfg.AuthZ)
@@ -33,6 +34,7 @@ func TestDefaultConfig(t *testing.T) {
 }
 
 func TestLoadFromFile(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		filename    string
@@ -68,6 +70,7 @@ func TestLoadFromFile(t *testing.T) {
 }
 
 func TestSaveToFile(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultConfig()
 	tmpFile := filepath.Join(t.TempDir(), "test-config.yml")
 
@@ -88,6 +91,7 @@ func TestSaveToFile(t *testing.T) {
 }
 
 func TestServerConfigValidation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		config      *ServerConfig
@@ -130,6 +134,7 @@ func TestServerConfigValidation(t *testing.T) {
 }
 
 func TestDatabaseConfigValidation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		config      *DatabaseConfig
@@ -190,6 +195,7 @@ func TestDatabaseConfigValidation(t *testing.T) {
 }
 
 func TestTokenConfigValidation(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		config      *TokenConfig

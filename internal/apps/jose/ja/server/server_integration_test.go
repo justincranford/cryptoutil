@@ -16,6 +16,7 @@ import (
 )
 
 func TestJoseJAServer_Lifecycle(t *testing.T) {
+	t.Parallel()
 	// Verify admin endpoints accessible.
 	require.NotEmpty(t, testAdminBaseURL, "admin base URL should not be empty")
 
@@ -42,6 +43,7 @@ func TestJoseJAServer_Lifecycle(t *testing.T) {
 }
 
 func TestJoseJAServer_PortAllocation(t *testing.T) {
+	t.Parallel()
 	// Verify ports are dynamically allocated (> 0).
 	publicPort := testServer.PublicPort()
 	adminPort := testServer.AdminPort()
@@ -56,6 +58,7 @@ func TestJoseJAServer_PortAllocation(t *testing.T) {
 }
 
 func TestJoseJAServer_Accessors(t *testing.T) {
+	t.Parallel()
 	// Test all accessor methods for coverage.
 	// These are simple getters but need explicit test coverage.
 
@@ -101,6 +104,7 @@ func TestJoseJAServer_Accessors(t *testing.T) {
 }
 
 func TestJoseJAServer_ShutdownIdempotent(t *testing.T) {
+	t.Parallel()
 	// Test that calling Shutdown on an already-running server is idempotent.
 	// Note: We can't actually shut down testServer as other tests need it.
 	// This test creates a separate server instance to test shutdown coverage.

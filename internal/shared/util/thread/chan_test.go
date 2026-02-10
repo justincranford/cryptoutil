@@ -46,6 +46,7 @@ func (s *stats) record(value int64) int64 {
 }
 
 func TestChan(t *testing.T) {
+	t.Parallel()
 	s := &stats{minimum: int64(math.MaxInt64), maximum: int64(math.MinInt64)}
 	r := &stats{minimum: int64(math.MaxInt64), maximum: int64(math.MinInt64)}
 	sender := func() any {

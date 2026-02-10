@@ -15,6 +15,7 @@ import (
 const sharedSecretCount = 10
 
 func TestNewUnsealKeysServiceSharedSecrets_HappyPath(t *testing.T) {
+	t.Parallel()
 	unsealKeys, err := cryptoutilSharedUtilRandom.GenerateMultipleBytes(sharedSecretCount, 32)
 	require.NoError(t, err)
 	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets(unsealKeys, sharedSecretCount-1)
@@ -23,6 +24,7 @@ func TestNewUnsealKeysServiceSharedSecrets_HappyPath(t *testing.T) {
 }
 
 func TestNewUnsealKeysServiceSharedSecrets_SadPath_EmptySharedSecrets(t *testing.T) {
+	t.Parallel()
 	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets([][]byte{}, 1)
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -30,6 +32,7 @@ func TestNewUnsealKeysServiceSharedSecrets_SadPath_EmptySharedSecrets(t *testing
 }
 
 func TestNewUnsealKeysServiceSharedSecrets_SadPath_NilSharedSecrets(t *testing.T) {
+	t.Parallel()
 	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets(nil, 1)
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -37,6 +40,7 @@ func TestNewUnsealKeysServiceSharedSecrets_SadPath_NilSharedSecrets(t *testing.T
 }
 
 func TestNewUnsealKeysServiceSharedSecrets_SadPath_NilSharedSecret(t *testing.T) {
+	t.Parallel()
 	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets([][]byte{nil}, 1)
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -44,6 +48,7 @@ func TestNewUnsealKeysServiceSharedSecrets_SadPath_NilSharedSecret(t *testing.T)
 }
 
 func TestSharedSecretsCountGreaterThan256(t *testing.T) {
+	t.Parallel()
 	sharedSecretsM := make([][]byte, 257)
 	for i := range sharedSecretsM {
 		sharedSecretsM[i] = make([]byte, 32)
@@ -55,6 +60,7 @@ func TestSharedSecretsCountGreaterThan256(t *testing.T) {
 }
 
 func TestChooseNZero(t *testing.T) {
+	t.Parallel()
 	sharedSecretsM := [][]byte{
 		make([]byte, 32),
 	}
@@ -64,6 +70,7 @@ func TestChooseNZero(t *testing.T) {
 }
 
 func TestChooseNNegative(t *testing.T) {
+	t.Parallel()
 	sharedSecretsM := [][]byte{
 		make([]byte, 32),
 	}
@@ -73,6 +80,7 @@ func TestChooseNNegative(t *testing.T) {
 }
 
 func TestChooseNGreaterThanCount(t *testing.T) {
+	t.Parallel()
 	sharedSecretsM := [][]byte{
 		make([]byte, 32),
 		make([]byte, 32),
@@ -83,6 +91,7 @@ func TestChooseNGreaterThanCount(t *testing.T) {
 }
 
 func TestSharedSecretNil(t *testing.T) {
+	t.Parallel()
 	sharedSecretsM := [][]byte{
 		make([]byte, 32),
 		nil,
@@ -93,6 +102,7 @@ func TestSharedSecretNil(t *testing.T) {
 }
 
 func TestSharedSecretLengthLessThan32(t *testing.T) {
+	t.Parallel()
 	sharedSecretsM := [][]byte{
 		make([]byte, 32),
 		make([]byte, 31),
@@ -103,6 +113,7 @@ func TestSharedSecretLengthLessThan32(t *testing.T) {
 }
 
 func TestSharedSecretLengthGreaterThan64(t *testing.T) {
+	t.Parallel()
 	sharedSecretsM := [][]byte{
 		make([]byte, 32),
 		make([]byte, 65),

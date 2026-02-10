@@ -14,6 +14,7 @@ import (
 )
 
 func TestNewTestConfig_BasicCreation(t *testing.T) {
+	t.Parallel()
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
 	require.NotNil(t, cfg, "config should not be nil")
@@ -34,6 +35,7 @@ func TestNewTestConfig_BasicCreation(t *testing.T) {
 }
 
 func TestNewTestConfig_CustomPortAndAddress(t *testing.T) {
+	t.Parallel()
 	cfg := NewTestConfig("0.0.0.0", 8050, false)
 
 	require.Equal(t, "0.0.0.0", cfg.BindPublicAddress)
@@ -42,6 +44,7 @@ func TestNewTestConfig_CustomPortAndAddress(t *testing.T) {
 }
 
 func TestDefaultTestConfig(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 
 	require.NotNil(t, cfg, "default config should not be nil")
@@ -52,6 +55,7 @@ func TestDefaultTestConfig(t *testing.T) {
 }
 
 func TestValidateCASettings_EmptyPaths(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 
 	// Empty paths should pass validation.
@@ -60,6 +64,7 @@ func TestValidateCASettings_EmptyPaths(t *testing.T) {
 }
 
 func TestValidateCASettings_NonExistentCAConfigPath(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 	cfg.CAConfigPath = "/nonexistent/path/to/ca-config.yaml"
 
@@ -69,6 +74,7 @@ func TestValidateCASettings_NonExistentCAConfigPath(t *testing.T) {
 }
 
 func TestValidateCASettings_NonExistentProfilesPath(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 	cfg.ProfilesPath = "/nonexistent/path/to/profiles"
 
@@ -78,6 +84,7 @@ func TestValidateCASettings_NonExistentProfilesPath(t *testing.T) {
 }
 
 func TestValidateCASettings_ProfilesPathIsFile(t *testing.T) {
+	t.Parallel()
 	// Create a temporary file (not a directory).
 	tmpFile, err := os.CreateTemp("", "test-profiles-*.txt")
 	require.NoError(t, err)
@@ -96,6 +103,7 @@ func TestValidateCASettings_ProfilesPathIsFile(t *testing.T) {
 }
 
 func TestValidateCASettings_ValidPaths(t *testing.T) {
+	t.Parallel()
 	// Create temporary directory for profiles.
 	tmpDir, err := os.MkdirTemp("", "test-profiles-*")
 	require.NoError(t, err)
@@ -118,6 +126,7 @@ func TestValidateCASettings_ValidPaths(t *testing.T) {
 }
 
 func TestLogCASettings_NoError(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 
 	// logCASettings should not panic with valid config.
@@ -127,6 +136,7 @@ func TestLogCASettings_NoError(t *testing.T) {
 }
 
 func TestCAServerSettings_CASpecificDefaults(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 
 	// Verify CA-specific boolean defaults.
@@ -137,6 +147,7 @@ func TestCAServerSettings_CASpecificDefaults(t *testing.T) {
 }
 
 func TestCAServerSettings_OTLPServiceName(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 
 	// Verify OTLP service name is set to pki-ca.
@@ -144,6 +155,7 @@ func TestCAServerSettings_OTLPServiceName(t *testing.T) {
 }
 
 func TestValidateCASettings_MultipleErrors(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 	cfg.CAConfigPath = "/nonexistent/ca-config.yaml"
 	cfg.ProfilesPath = "/nonexistent/profiles"

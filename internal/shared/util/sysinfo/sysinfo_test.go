@@ -21,6 +21,7 @@ const (
 var testSysInfoProviders = []SysInfoProvider{mockSysInfoProvider, defaultSysInfoProvider}
 
 func TestSysInfo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		testFn func(t *testing.T, provider SysInfoProvider)

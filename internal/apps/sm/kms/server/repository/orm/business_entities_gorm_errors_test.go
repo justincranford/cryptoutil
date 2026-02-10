@@ -18,6 +18,7 @@ import (
 
 // TestToAppErr_GormDuplicatedKey tests toAppErr handling of gorm.ErrDuplicatedKey.
 func TestToAppErr_GormDuplicatedKey(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -75,6 +76,7 @@ func TestToAppErr_GormDuplicatedKey(t *testing.T) {
 
 // TestToAppErr_GormCheckConstraintViolated tests toAppErr handling of gorm.ErrCheckConstraintViolated.
 func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -125,6 +127,7 @@ func TestToAppErr_GormCheckConstraintViolated(t *testing.T) {
 
 // TestToAppErr_GormInvalidData tests toAppErr handling of gorm.ErrInvalidData.
 func TestToAppErr_GormInvalidData(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -145,6 +148,7 @@ func TestToAppErr_GormInvalidData(t *testing.T) {
 
 // TestToAppErr_GormInvalidValueOfLength tests toAppErr handling of gorm.ErrInvalidValueOfLength.
 func TestToAppErr_GormInvalidValueOfLength(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -164,6 +168,7 @@ func TestToAppErr_GormInvalidValueOfLength(t *testing.T) {
 
 // TestToAppErr_GormNotImplemented tests toAppErr handling of gorm.ErrNotImplemented.
 func TestToAppErr_GormNotImplemented(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {

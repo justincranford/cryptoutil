@@ -21,30 +21,35 @@ var (
 )
 
 func TestHappyPathYAML2JSON(t *testing.T) {
+	t.Parallel()
 	result, err := YAML2JSON(validYAML)
 	require.NoError(t, err)
 	require.Equal(t, validJSON, result)
 }
 
 func TestSadPathYAML2JSON(t *testing.T) {
+	t.Parallel()
 	_, err := YAML2JSON(invalidYAML)
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to parse YAML: [1:1] unexpected key name\n>  1 | key1 value1\n   2 | key2: value2\n       ^\n")
 }
 
 func TestHappyPathJSON2YAML(t *testing.T) {
+	t.Parallel()
 	result, err := JSON2YAML(validJSON)
 	require.NoError(t, err)
 	require.Equal(t, validYAML, result)
 }
 
 func TestSadPathJSON2YAML(t *testing.T) {
+	t.Parallel()
 	_, err := JSON2YAML(invalidJSON)
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to parse JSON: invalid character '}' looking for beginning of value")
 }
 
 func TestHappyPathParseYAML(t *testing.T) {
+	t.Parallel()
 	object, err := ParseYAML(validYAMLSingle)
 	require.NoError(t, err)
 
@@ -54,12 +59,14 @@ func TestHappyPathParseYAML(t *testing.T) {
 }
 
 func TestSadPathParseYAML(t *testing.T) {
+	t.Parallel()
 	_, err := ParseYAML(invalidYAML)
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to parse YAML: [1:1] unexpected key name\n>  1 | key1 value1\n   2 | key2: value2\n       ^\n")
 }
 
 func TestHappyPathParseJSON(t *testing.T) {
+	t.Parallel()
 	object, err := ParseJSON(validJSONSingle)
 	require.NoError(t, err)
 
@@ -69,30 +76,35 @@ func TestHappyPathParseJSON(t *testing.T) {
 }
 
 func TestSadPathParseJSON(t *testing.T) {
+	t.Parallel()
 	_, err := ParseJSON(invalidJSON)
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to parse JSON: invalid character '}' looking for beginning of value")
 }
 
 func TestHappyPathEncodeYAML(t *testing.T) {
+	t.Parallel()
 	result, err := EncodeYAML(singleParsedObj)
 	require.NoError(t, err)
 	require.Equal(t, validYAMLSingle, result)
 }
 
 func TestSadPathEncodeYAML(t *testing.T) {
+	t.Parallel()
 	_, err := EncodeYAML(func() {})
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to encode YAML: unknown value type func()")
 }
 
 func TestHappyPathEncodeJSON(t *testing.T) {
+	t.Parallel()
 	result, err := EncodeJSON(singleParsedObj)
 	require.NoError(t, err)
 	require.Equal(t, validJSONSingle, result)
 }
 
 func TestSadPathEncodeJSON(t *testing.T) {
+	t.Parallel()
 	_, err := EncodeJSON(func() {})
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to encode JSON: json: unsupported type: func()")

@@ -246,6 +246,7 @@ func (m *mockClientRoleRepository) Revoke(_ context.Context, _, _ googleUuid.UUI
 }
 
 func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 	roleID := googleUuid.New()
@@ -400,6 +401,7 @@ func TestRegistrationService_RegisterUser_NewTenant(t *testing.T) {
 }
 
 func TestRegistrationService_RegisterUser_ExistingTenant(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 
@@ -479,6 +481,7 @@ func TestRegistrationService_RegisterUser_ExistingTenant(t *testing.T) {
 }
 
 func TestRegistrationService_RegisterUser_ValidationErrors(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 
@@ -519,6 +522,7 @@ func TestRegistrationService_RegisterUser_ValidationErrors(t *testing.T) {
 }
 
 func TestRegistrationService_RegisterClient_NewTenant(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 	roleID := googleUuid.New()
@@ -564,6 +568,7 @@ func TestRegistrationService_RegisterClient_NewTenant(t *testing.T) {
 }
 
 func TestRegistrationService_RegisterClient_ExistingTenant(t *testing.T) {
+	t.Parallel()
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 

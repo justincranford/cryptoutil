@@ -17,6 +17,7 @@ import (
 
 // TestGetElasticKeysFilters tests the GetElasticKeysFilters struct.
 func TestGetElasticKeysFilters(t *testing.T) {
+	t.Parallel()
 	t.Run("Create filters with all fields", func(t *testing.T) {
 		ekID1 := googleUuid.New()
 		ekID2 := googleUuid.New()
@@ -86,6 +87,7 @@ func TestGetElasticKeysFilters(t *testing.T) {
 
 // TestGetElasticKeyMaterialKeysFilters tests the GetElasticKeyMaterialKeysFilters struct.
 func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
+	t.Parallel()
 	t.Run("Create filters with all fields", func(t *testing.T) {
 		ekID1 := googleUuid.New()
 		ekID2 := googleUuid.New()
@@ -140,6 +142,7 @@ func TestGetElasticKeyMaterialKeysFilters(t *testing.T) {
 
 // TestGetMaterialKeysFilters tests the GetMaterialKeysFilters struct.
 func TestGetMaterialKeysFilters(t *testing.T) {
+	t.Parallel()
 	t.Run("Create filters with all fields", func(t *testing.T) {
 		ekID1 := googleUuid.New()
 		ekID2 := googleUuid.New()

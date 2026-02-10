@@ -19,6 +19,7 @@ func uniqueUserTenantName(base string) string {
 }
 
 func TestUserRepository_Create(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	userRepo := NewUserRepository(db)
@@ -95,6 +96,7 @@ func TestUserRepository_Create(t *testing.T) {
 }
 
 func TestUserRepository_GetByUsername(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	userRepo := NewUserRepository(db)
@@ -158,6 +160,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 }
 
 func TestUserRepository_ListByTenant(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	userRepo := NewUserRepository(db)
@@ -231,6 +234,7 @@ func TestUserRepository_ListByTenant(t *testing.T) {
 }
 
 func TestClientRepository_Create(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	clientRepo := NewClientRepository(db)
@@ -290,6 +294,7 @@ func TestClientRepository_Create(t *testing.T) {
 }
 
 func TestUnverifiedUserRepository_Create(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	unverifiedUserRepo := NewUnverifiedUserRepository(db)
@@ -324,6 +329,7 @@ func TestUnverifiedUserRepository_Create(t *testing.T) {
 }
 
 func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	unverifiedUserRepo := NewUnverifiedUserRepository(db)
@@ -377,6 +383,7 @@ func TestUnverifiedUserRepository_DeleteExpired(t *testing.T) {
 }
 
 func TestUnverifiedClientRepository_DeleteExpired(t *testing.T) {
+	t.Parallel()
 	db := setupTestDB(t)
 	tenantRepo := NewTenantRepository(db)
 	unverifiedClientRepo := NewUnverifiedClientRepository(db)

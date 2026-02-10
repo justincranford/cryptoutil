@@ -27,6 +27,7 @@ func timePtr(t time.Time) *time.Time {
 }
 
 func TestApplyGetElasticKeysFilters(t *testing.T) {
+	t.Parallel()
 	require.NotNil(t, testOrmRepository)
 
 	t.Run("Filter by single ElasticKeyID", func(t *testing.T) {
@@ -275,6 +276,7 @@ func TestApplyGetElasticKeysFilters(t *testing.T) {
 }
 
 func TestApplyKeyFilters(t *testing.T) {
+	t.Parallel()
 	require.NotNil(t, testOrmRepository)
 
 	t.Run("Filter by single MaterialKeyID", func(t *testing.T) {
@@ -445,6 +447,7 @@ func TestApplyKeyFilters(t *testing.T) {
 }
 
 func TestApplyGetElasticKeyKeysFilters(t *testing.T) {
+	t.Parallel()
 	require.NotNil(t, testOrmRepository)
 
 	t.Run("Filter by single ElasticKeyID", func(t *testing.T) {

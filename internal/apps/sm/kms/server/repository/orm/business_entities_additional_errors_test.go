@@ -17,6 +17,7 @@ import (
 
 // TestAddElasticKey_DuplicateConstraintViolation tests AddElasticKey duplicate key error.
 func TestAddElasticKey_DuplicateConstraintViolation(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key successfully.
 		tenantID := googleUuid.New()
@@ -59,6 +60,7 @@ func TestAddElasticKey_DuplicateConstraintViolation(t *testing.T) {
 
 // TestGetElasticKeyMaterialKeyLatest_NotFoundError tests GetElasticKeyMaterialKeyLatest when no material keys exist.
 func TestGetElasticKeyMaterialKeyLatest_NotFoundError(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key without any material keys.
 		tenantID := googleUuid.New()
@@ -91,6 +93,7 @@ func TestGetElasticKeyMaterialKeyLatest_NotFoundError(t *testing.T) {
 
 // TestGetElasticKeyMaterialKeyVersion_NotFoundError tests GetElasticKeyMaterialKeyVersion when material key version does not exist.
 func TestGetElasticKeyMaterialKeyVersion_NotFoundError(t *testing.T) {
+	t.Parallel()
 	nonExistentElasticKeyID := googleUuid.New()
 	nonExistentMaterialKeyID := googleUuid.New()
 

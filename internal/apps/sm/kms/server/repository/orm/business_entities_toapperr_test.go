@@ -20,6 +20,7 @@ import (
 // toAppErr Error Mapping Tests
 
 func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -37,6 +38,7 @@ func TestOrmTransaction_toAppErr_GormRecordNotFound(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -54,6 +56,7 @@ func TestOrmTransaction_toAppErr_GormDuplicatedKey(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -71,6 +74,7 @@ func TestOrmTransaction_toAppErr_GormForeignKeyViolated(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -88,6 +92,7 @@ func TestOrmTransaction_toAppErr_GormCheckConstraintViolated(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -105,6 +110,7 @@ func TestOrmTransaction_toAppErr_GormInvalidData(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -122,6 +128,7 @@ func TestOrmTransaction_toAppErr_GormInvalidValueOfLength(t *testing.T) {
 }
 
 func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
@@ -141,6 +148,7 @@ func TestOrmTransaction_toAppErr_GormNotImplemented(t *testing.T) {
 // SQLite-specific error tests (trigger via actual database operations).
 
 func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	// Create elastic key.
@@ -190,6 +198,7 @@ func TestOrmTransaction_toAppErr_SQLiteUniqueConstraint(t *testing.T) {
 // Default error fallback test.
 
 func TestOrmTransaction_toAppErr_UnknownError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {

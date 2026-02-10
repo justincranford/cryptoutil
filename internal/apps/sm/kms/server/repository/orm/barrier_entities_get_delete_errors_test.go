@@ -15,6 +15,7 @@ import (
 
 // Test GetRootKeyLatest error path when no records exist.
 func TestGetRootKeyLatest_NoRecordsError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -32,6 +33,7 @@ func TestGetRootKeyLatest_NoRecordsError(t *testing.T) {
 
 // Test GetRootKey error path when key doesn't exist.
 func TestGetRootKey_NotFoundError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	nonExistentUUID := googleUuid.New()
@@ -51,6 +53,7 @@ func TestGetRootKey_NotFoundError(t *testing.T) {
 
 // Test DeleteRootKey error path when key doesn't exist.
 func TestDeleteRootKey_NotFoundError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	nonExistentUUID := googleUuid.New()
@@ -68,6 +71,7 @@ func TestDeleteRootKey_NotFoundError(t *testing.T) {
 
 // Test GetIntermediateKeyLatest error path when no records exist.
 func TestGetIntermediateKeyLatest_NoRecordsError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -85,6 +89,7 @@ func TestGetIntermediateKeyLatest_NoRecordsError(t *testing.T) {
 
 // Test GetIntermediateKey error path when key doesn't exist.
 func TestGetIntermediateKey_NotFoundError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	nonExistentUUID := googleUuid.New()
@@ -104,6 +109,7 @@ func TestGetIntermediateKey_NotFoundError(t *testing.T) {
 
 // Test DeleteIntermediateKey error path when key doesn't exist.
 func TestDeleteIntermediateKey_NotFoundError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	nonExistentUUID := googleUuid.New()
@@ -121,6 +127,7 @@ func TestDeleteIntermediateKey_NotFoundError(t *testing.T) {
 
 // Test GetContentKeyLatest error path when no records exist.
 func TestGetContentKeyLatest_NoRecordsError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -138,6 +145,7 @@ func TestGetContentKeyLatest_NoRecordsError(t *testing.T) {
 
 // Test GetContentKey error path when key doesn't exist.
 func TestGetContentKey_NotFoundError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	nonExistentUUID := googleUuid.New()
@@ -157,6 +165,7 @@ func TestGetContentKey_NotFoundError(t *testing.T) {
 
 // Test DeleteContentKey error path when key doesn't exist.
 func TestDeleteContentKey_NotFoundError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	nonExistentUUID := googleUuid.New()

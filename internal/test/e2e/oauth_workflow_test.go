@@ -12,6 +12,7 @@ import (
 
 // TestOAuthWorkflow runs OAuth 2.1 authorization code flow E2E test.
 func TestOAuthWorkflow(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(OAuthWorkflowSuite))
 }
 

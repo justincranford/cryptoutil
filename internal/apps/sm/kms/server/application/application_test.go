@@ -63,6 +63,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestHttpGetTraceHead(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name           string
 		method         string
@@ -113,6 +114,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 }
 
 func TestSecurityHeaders(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name              string
 		url               string
@@ -216,6 +218,7 @@ func TestSecurityHeaders(t *testing.T) {
 }
 
 func TestHealthChecks(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name           string
 		endpoint       string
@@ -343,6 +346,7 @@ func TestHealthChecks(t *testing.T) {
 }
 
 func TestSendServerListenerLivenessCheck(t *testing.T) {
+	t.Parallel()
 	// Update test settings to use the actual assigned port for the liveness check
 	testSettingsForLiveness := *testSettings
 	testSettingsForLiveness.BindPrivatePort = startServerListenerApplication.ActualPrivatePort
@@ -374,6 +378,7 @@ func TestSendServerListenerLivenessCheck(t *testing.T) {
 }
 
 func TestSendServerListenerReadinessCheck(t *testing.T) {
+	t.Parallel()
 	// Update test settings to use the actual assigned port for the readiness check
 	testSettingsForReadiness := *testSettings
 	testSettingsForReadiness.BindPrivatePort = startServerListenerApplication.ActualPrivatePort
@@ -423,6 +428,7 @@ func TestSendServerListenerReadinessCheck(t *testing.T) {
 }
 
 func TestRequestLoggerMiddleware(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name           string
 		method         string
@@ -512,6 +518,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 
 // List and delete PEM files created during testing.
 func TestCleanupTestCertificates(t *testing.T) {
+	t.Parallel()
 	// List PEM files in the current package directory
 	files, err := os.ReadDir(".")
 	if err != nil {

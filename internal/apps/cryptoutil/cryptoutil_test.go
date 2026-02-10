@@ -11,6 +11,7 @@ import (
 )
 
 func TestPrintUsage(t *testing.T) {
+	t.Parallel()
 	// Test that printUsage doesn't panic
 	require.NotPanics(t, func() {
 		printUsage("test-executable")

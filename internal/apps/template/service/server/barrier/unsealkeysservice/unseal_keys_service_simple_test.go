@@ -16,6 +16,7 @@ import (
 const jwkCount = 2
 
 func TestNewUnsealKeysServiceSimple_HappyPath(t *testing.T) {
+	t.Parallel()
 	unsealKeys, _, err := cryptoutilSharedCryptoJose.GenerateJWEJWKsForTest(t, jwkCount, &cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	require.NoError(t, err)
 	unsealKeysService, err := NewUnsealKeysServiceSimple(unsealKeys)
@@ -24,6 +25,7 @@ func TestNewUnsealKeysServiceSimple_HappyPath(t *testing.T) {
 }
 
 func TestNewUnsealKeysServiceSimple_SadPath_EmptyInput(t *testing.T) {
+	t.Parallel()
 	unsealKeysService, err := NewUnsealKeysServiceSimple([]joseJwk.Key{})
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -31,6 +33,7 @@ func TestNewUnsealKeysServiceSimple_SadPath_EmptyInput(t *testing.T) {
 }
 
 func TestNewUnsealKeysServiceSimple_SadPath_NilInput(t *testing.T) {
+	t.Parallel()
 	unsealKeysService, err := NewUnsealKeysServiceSimple(nil)
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)

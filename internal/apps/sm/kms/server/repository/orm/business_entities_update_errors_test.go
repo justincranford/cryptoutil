@@ -17,6 +17,7 @@ import (
 
 // TestUpdateElasticKey_InvalidUUID tests error path when updating with invalid UUID.
 func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create elastic key with zero UUID (invalid).
@@ -47,6 +48,7 @@ func TestUpdateElasticKey_InvalidUUID(t *testing.T) {
 
 // TestUpdateElasticKey_NonExistentRecord tests error path when updating non-existent record.
 func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create elastic key with non-existent UUID.
@@ -78,6 +80,7 @@ func TestUpdateElasticKey_NonExistentRecord(t *testing.T) {
 
 // TestUpdateElasticKeyStatus_InvalidUUID tests error path when updating status with invalid UUID.
 func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// Attempt update with zero UUID (invalid).
@@ -92,6 +95,7 @@ func TestUpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 
 // TestUpdateElasticKeyStatus_NonExistentRecord tests error path when updating status of non-existent record.
 func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// Attempt update on non-existent UUID.
@@ -108,6 +112,7 @@ func TestUpdateElasticKeyStatus_NonExistentRecord(t *testing.T) {
 // TestGetElasticKeys_QueryError tests error path in GetElasticKeys.
 // Note: This is difficult to trigger without database errors.
 func TestGetElasticKeys_EmptyResult(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// Query with filters that match nothing.
@@ -132,6 +137,7 @@ func TestGetElasticKeys_EmptyResult(t *testing.T) {
 
 // TestUpdateElasticKey_DatabaseConstraintViolation tests error path when violating database constraints.
 func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// First create a valid elastic key.
@@ -184,6 +190,7 @@ func TestUpdateElasticKey_DatabaseConstraintViolation(t *testing.T) {
 
 // TestUpdateElasticKeyStatus_DatabaseConstraintViolation tests error path when violating constraints.
 func TestUpdateElasticKeyStatus_DatabaseConstraintViolation(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// First create a valid elastic key.

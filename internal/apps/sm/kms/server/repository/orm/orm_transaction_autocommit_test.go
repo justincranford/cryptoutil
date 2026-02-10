@@ -16,6 +16,7 @@ import (
 
 // TestOrmTransaction_AutoCommit_CommitFailure tests that calling commit on an AutoCommit transaction fails.
 func TestOrmTransaction_AutoCommit_CommitFailure(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, AutoCommit, func(tx *OrmTransaction) error {
 		require.NotNil(t, tx)
 		require.Equal(t, AutoCommit, *tx.Mode())
@@ -33,6 +34,7 @@ func TestOrmTransaction_AutoCommit_CommitFailure(t *testing.T) {
 
 // TestOrmTransaction_AutoCommit_RollbackFailure tests that calling rollback on an AutoCommit transaction fails.
 func TestOrmTransaction_AutoCommit_RollbackFailure(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, AutoCommit, func(tx *OrmTransaction) error {
 		require.NotNil(t, tx)
 		require.Equal(t, AutoCommit, *tx.Mode())
@@ -50,6 +52,7 @@ func TestOrmTransaction_AutoCommit_RollbackFailure(t *testing.T) {
 
 // TestOrmTransaction_AutoCommit_Success tests successful AutoCommit transaction.
 func TestOrmTransaction_AutoCommit_Success(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	err := testOrmRepository.WithTransaction(testCtx, AutoCommit, func(tx *OrmTransaction) error {

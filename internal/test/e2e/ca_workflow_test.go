@@ -12,6 +12,7 @@ import (
 
 // TestCAWorkflow runs CA certificate lifecycle E2E test.
 func TestCAWorkflow(t *testing.T) {
+	t.Parallel()
 	suite.Run(t, new(CAWorkflowSuite))
 }
 

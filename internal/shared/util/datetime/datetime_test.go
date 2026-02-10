@@ -12,6 +12,7 @@ import (
 )
 
 func TestISO8601Time2String(t *testing.T) {
+	t.Parallel()
 	// Happy path
 	now := time.Now().UTC()
 	expected := now.Format(utcFormat)
@@ -28,6 +29,7 @@ func TestISO8601Time2String(t *testing.T) {
 }
 
 func TestISO8601String2Time(t *testing.T) {
+	t.Parallel()
 	// Happy path
 	now := time.Now().UTC().Format(utcFormat)
 

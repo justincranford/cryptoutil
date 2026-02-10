@@ -17,6 +17,7 @@ import (
 
 // TestGetMaterialKeysForElasticKey_EmptyResult tests successful query with no matching records.
 func TestGetMaterialKeysForElasticKey_EmptyResult(t *testing.T) {
+	t.Parallel()
 	nonExistentID := googleUuid.New()
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -32,6 +33,7 @@ func TestGetMaterialKeysForElasticKey_EmptyResult(t *testing.T) {
 
 // TestGetMaterialKeys_EmptyResult tests successful query with filters returning no matches.
 func TestGetMaterialKeys_EmptyResult(t *testing.T) {
+	t.Parallel()
 	nonExistentID := googleUuid.New()
 
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
@@ -50,6 +52,7 @@ func TestGetMaterialKeys_EmptyResult(t *testing.T) {
 
 // TestAddElasticKeyMaterialKey_DuplicateConstraintViolation tests database constraint error for duplicate key.
 func TestAddElasticKeyMaterialKey_DuplicateConstraintViolation(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key first.
 		tenantID := googleUuid.New()

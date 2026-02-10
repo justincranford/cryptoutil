@@ -21,6 +21,7 @@ import (
 // This test exercises the filter application code path for coverage purposes,
 // and verifies that using this non-existent filter field results in a database error.
 func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create an elastic key for testing.
@@ -62,6 +63,7 @@ func TestGetElasticKeysWithExportAllowedFilter(t *testing.T) {
 
 // TestGetElasticKeysWithImportAllowedFilter tests the ImportAllowed filter path.
 func TestGetElasticKeysWithImportAllowedFilter(t *testing.T) {
+	t.Parallel()
 	CleanupDatabase(t, testOrmRepository)
 
 	// Create an elastic key with ImportAllowed=true.

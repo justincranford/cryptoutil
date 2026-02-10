@@ -17,6 +17,7 @@ import (
 const expectedSysInfos = 13
 
 func TestSysInfoAll(t *testing.T) {
+	t.Parallel()
 	all, err := GetAllInfoWithTimeout(mockSysInfoProvider, 5*time.Second)
 	require.NoError(t, err)
 	require.Len(t, all, expectedSysInfos)
@@ -29,12 +30,14 @@ func TestSysInfoAll(t *testing.T) {
 }
 
 func TestSysInfoAll_Timeout(t *testing.T) {
+	t.Parallel()
 	// Mock provider executes instantly, so timeout won't trigger with it.
 	// Skip this test as timeout is only reachable with blocking operations.
 	t.Skip("Mock provider too fast to test timeout path")
 }
 
 func TestSysInfoAll_RealProvider(t *testing.T) {
+	t.Parallel()
 	// Skip on Windows - CPU info collection can take 10+ seconds which exceeds
 	// the timeout and causes test failures. Mock provider covers the code paths.
 	if runtime.GOOS == "windows" {

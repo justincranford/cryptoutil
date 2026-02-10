@@ -18,6 +18,7 @@ import (
 
 // TestOrmRepository_VerboseMode tests verbose logging during transactions.
 func TestOrmRepository_VerboseMode(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	// Enable verbose mode.
@@ -57,6 +58,7 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 
 // TestOrmTransaction_Begin_AlreadyStarted tests begin() error when transaction already started.
 func TestOrmTransaction_Begin_AlreadyStarted(t *testing.T) {
+	t.Parallel()
 	tx := &OrmTransaction{ormRepository: testOrmRepository}
 
 	// Start transaction first time.
@@ -75,6 +77,7 @@ func TestOrmTransaction_Begin_AlreadyStarted(t *testing.T) {
 
 // TestOrmTransaction_Commit_NotActive tests commit() error when transaction not active.
 func TestOrmTransaction_Commit_NotActive(t *testing.T) {
+	t.Parallel()
 	tx := &OrmTransaction{ormRepository: testOrmRepository}
 
 	// Try to commit without starting transaction.
@@ -85,6 +88,7 @@ func TestOrmTransaction_Commit_NotActive(t *testing.T) {
 
 // TestOrmTransaction_Rollback_NotActive tests rollback() error when transaction not active.
 func TestOrmTransaction_Rollback_NotActive(t *testing.T) {
+	t.Parallel()
 	tx := &OrmTransaction{ormRepository: testOrmRepository}
 
 	// Try to rollback without starting transaction.
@@ -95,6 +99,7 @@ func TestOrmTransaction_Rollback_NotActive(t *testing.T) {
 
 // TestOrmTransaction_DeferredRollback_OnFunctionError tests deferred rollback when transaction function fails.
 func TestOrmTransaction_DeferredRollback_OnFunctionError(t *testing.T) {
+	t.Parallel()
 	t.Cleanup(func() { CleanupDatabase(t, testOrmRepository) })
 
 	// Create transaction that fails in function.

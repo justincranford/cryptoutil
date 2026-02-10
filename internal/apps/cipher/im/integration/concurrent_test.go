@@ -22,6 +22,7 @@ import (
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
 // Tests robustness of database transactions, encryption/decryption, and race condition prevention.
 func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
+	t.Parallel()
 	// Use shared server from TestMain (amortizes startup cost).
 	require.NotNil(t, cipherImServer)
 	require.NotEmpty(t, sharedServiceBaseURL)

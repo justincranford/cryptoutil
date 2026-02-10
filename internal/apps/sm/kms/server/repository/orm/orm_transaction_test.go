@@ -99,6 +99,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestSQLTransaction_PanicRecovery(t *testing.T) {
+	t.Parallel()
 	defer func() {
 		if recoverValue := recover(); recoverValue != nil {
 			require.NotNil(t, recoverValue)
@@ -114,6 +115,7 @@ func TestSQLTransaction_PanicRecovery(t *testing.T) {
 }
 
 func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadWrite, *ormTransaction.Mode())
@@ -128,6 +130,7 @@ func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 }
 
 func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
+	t.Parallel()
 	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
 
 	commitErr := ormTransaction.commit()
@@ -136,6 +139,7 @@ func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 }
 
 func TestSQLTransaction_RollbackNotStartedFailure(t *testing.T) {
+	t.Parallel()
 	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
 
 	rollbackErr := ormTransaction.rollback()
@@ -144,6 +148,7 @@ func TestSQLTransaction_RollbackNotStartedFailure(t *testing.T) {
 }
 
 func TestSQLTransaction_BeginWithReadOnly(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(ormTransaction *OrmTransaction) error {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadOnly, *ormTransaction.Mode())
@@ -154,6 +159,7 @@ func TestSQLTransaction_BeginWithReadOnly(t *testing.T) {
 }
 
 func TestSQLTransaction_RollbackOnError(t *testing.T) {
+	t.Parallel()
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadWrite, *ormTransaction.Mode())
@@ -165,6 +171,7 @@ func TestSQLTransaction_RollbackOnError(t *testing.T) {
 }
 
 func TestSQLTransaction_Success(t *testing.T) {
+	t.Parallel()
 	type happyPathTestCase struct {
 		txMode      TransactionMode
 		expectError bool

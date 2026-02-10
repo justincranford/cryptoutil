@@ -14,6 +14,7 @@ import (
 )
 
 func TestValidateJoseJASettings_HappyPath(t *testing.T) {
+	t.Parallel()
 	settings := &JoseJAServerSettings{
 		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 		DefaultMaxMaterials:           cryptoutilSharedMagic.JoseJADefaultMaxMaterials,
@@ -25,6 +26,7 @@ func TestValidateJoseJASettings_HappyPath(t *testing.T) {
 }
 
 func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
+	t.Parallel()
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
@@ -69,6 +71,7 @@ func TestValidateJoseJASettings_MinMaxMaterials(t *testing.T) {
 }
 
 func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
+	t.Parallel()
 	t.Run("at_minimum", func(t *testing.T) {
 		settings := &JoseJAServerSettings{
 			ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
@@ -113,6 +116,7 @@ func TestValidateJoseJASettings_AuditSamplingRate(t *testing.T) {
 }
 
 func TestValidateJoseJASettings_MultipleErrors(t *testing.T) {
+	t.Parallel()
 	settings := &JoseJAServerSettings{
 		ServiceTemplateServerSettings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 		DefaultMaxMaterials:           0,   // Invalid: below minimum
@@ -125,6 +129,7 @@ func TestValidateJoseJASettings_MultipleErrors(t *testing.T) {
 }
 
 func TestLogJoseJASettings(t *testing.T) {
+	t.Parallel()
 	// Capture stderr output.
 	oldStderr := os.Stderr
 	r, w, _ := os.Pipe()
@@ -174,6 +179,7 @@ func TestLogJoseJASettings(t *testing.T) {
 
 // TestJoseJAServerSettings_DefaultValues verifies the default constant values.
 func TestJoseJAServerSettings_DefaultValues(t *testing.T) {
+	t.Parallel()
 	require.Equal(t, cryptoutilSharedMagic.JoseJADefaultMaxMaterials, defaultMaxMaterials)
 	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultEnabled, defaultAuditEnabled)
 	require.Equal(t, cryptoutilSharedMagic.JoseJAAuditDefaultSamplingRate, defaultAuditSamplingRate)
@@ -181,6 +187,7 @@ func TestJoseJAServerSettings_DefaultValues(t *testing.T) {
 
 // TestSettingRegistrations verifies jose-ja settings are properly configured.
 func TestSettingRegistrations(t *testing.T) {
+	t.Parallel()
 	require.Equal(t, "max-materials", maxMaterialsSetting.Name)
 	require.Equal(t, "audit-enabled", auditEnabledSetting.Name)
 	require.Equal(t, "audit-sampling-rate", auditSamplingRateSetting.Name)
@@ -198,6 +205,7 @@ func TestSettingRegistrations(t *testing.T) {
 
 // TestNewTestConfig verifies the test config helper function.
 func TestNewTestConfig(t *testing.T) {
+	t.Parallel()
 	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8080, true)
 
 	require.NotNil(t, cfg)
@@ -211,6 +219,7 @@ func TestNewTestConfig(t *testing.T) {
 
 // TestDefaultTestConfig verifies the default test config helper function.
 func TestDefaultTestConfig(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultTestConfig()
 
 	require.NotNil(t, cfg)

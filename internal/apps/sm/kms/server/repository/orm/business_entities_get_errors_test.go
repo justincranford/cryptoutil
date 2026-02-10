@@ -14,6 +14,7 @@ import (
 
 // TestGetElasticKey_NotFoundError tests GetElasticKey when record does not exist.
 func TestGetElasticKey_NotFoundError(t *testing.T) {
+	t.Parallel()
 	tenantID := googleUuid.New()
 	nonExistentID := googleUuid.New()
 
