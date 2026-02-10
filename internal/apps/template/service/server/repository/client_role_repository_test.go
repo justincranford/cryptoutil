@@ -17,20 +17,19 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func setupClientRoleTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dsn := cryptoutilSharedMagic.SQLiteInMemoryDSN
+	dsn := fmt.Sprintf("file:test_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)

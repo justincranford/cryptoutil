@@ -7,6 +7,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,15 +15,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-// setupTestDB creates an in-memory SQLite database for testing.
+// setupTestDB creates an isolated in-memory SQLite database per test for parallel safety.
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dsn := cryptoutilSharedMagic.SQLiteInMemoryDSN
+	dsn := fmt.Sprintf("file:test_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())
 
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)

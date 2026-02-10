@@ -14,7 +14,6 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityClientAuth "cryptoutil/internal/identity/authz/clientauth"

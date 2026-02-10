@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
+﻿// Copyright (c) 2025 Justin Cranford
 //
 //
 
@@ -15,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsTemplateServiceServerListener "cryptoutil/internal/apps/template/service/server/listener"

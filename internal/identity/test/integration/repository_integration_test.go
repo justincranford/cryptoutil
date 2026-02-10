@@ -10,7 +10,6 @@ import (
 	"time"
 
 	googleUuid "github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"

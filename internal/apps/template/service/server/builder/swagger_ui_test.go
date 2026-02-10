@@ -199,6 +199,11 @@ func TestSwaggerUIEndpoints(t *testing.T) {
 
 	sampleOpenAPISpec := []byte(`{"openapi":"3.0.0","info":{"title":"Test API","version":"1.0.0"},"paths":{}}`)
 
+	// Generate unique credentials for valid credentials test case.
+	validUsername := "admin-" + googleUuid.Must(googleUuid.NewV7()).String()
+	validPassword := "secret-" + googleUuid.Must(googleUuid.NewV7()).String()
+	validAuthHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(validUsername+":"+validPassword))
+
 	tests := []struct {
 		name         string
 		cfg          *SwaggerUIConfig
@@ -235,14 +240,14 @@ func TestSwaggerUIEndpoints(t *testing.T) {
 		{
 			name: "doc.json with auth required - valid auth",
 			cfg: &SwaggerUIConfig{
-				Username:              "admin-" + googleUuid.Must(googleUuid.NewV7()).String(),
-				Password:              "secret-" + googleUuid.Must(googleUuid.NewV7()).String(),
+				Username:              validUsername,
+				Password:              validPassword,
 				OpenAPISpecJSON:       sampleOpenAPISpec,
 				BrowserAPIContextPath: "/browser/api/v1",
 			},
 			method:       http.MethodGet,
 			path:         "/ui/swagger/doc.json",
-			authHeader:   "Basic " + base64.StdEncoding.EncodeToString([]byte("admin-"+googleUuid.Must(googleUuid.NewV7()).String()+":secret-"+googleUuid.Must(googleUuid.NewV7()).String())),
+			authHeader:   validAuthHeader,
 			wantStatus:   fiber.StatusOK,
 			wantContains: `"openapi":"3.0.0"`,
 		},
