@@ -34,6 +34,7 @@ func (m *mockSessionValidator) ValidateServiceSession(ctx context.Context, token
 // TestRegisterRegistrationRoutes_Integration tests route registration with real app.
 func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
 	t.Parallel()
+
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
@@ -50,6 +51,7 @@ func TestRegisterRegistrationRoutes_Integration(t *testing.T) {
 // TestRegisterRegistrationRoutes_RateLimiting tests rate limiting middleware.
 func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
 	t.Parallel()
+
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)
@@ -86,6 +88,7 @@ func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
 // TestRegisterJoinRequestManagementRoutes_Integration tests join request route registration.
 func TestRegisterJoinRequestManagementRoutes_Integration(t *testing.T) {
 	t.Parallel()
+
 	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testGormDB)
 	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testGormDB)
 	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testGormDB)

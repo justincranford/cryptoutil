@@ -19,6 +19,7 @@ import (
 
 func TestNewCleanupJob(t *testing.T) {
 	t.Parallel()
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	repoFactory := createTestRepoFactory(t)
 
@@ -57,6 +58,7 @@ func TestNewCleanupJob(t *testing.T) {
 
 func TestCleanupJob_StartAndStop(t *testing.T) {
 	t.Parallel()
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	repoFactory := createTestRepoFactory(t)
 
@@ -91,6 +93,7 @@ func TestCleanupJob_StartAndStop(t *testing.T) {
 
 func TestCleanupJob_ContextCancellation(t *testing.T) {
 	t.Parallel()
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
 	repoFactory := createTestRepoFactory(t)
 
@@ -118,6 +121,7 @@ func TestCleanupJob_ContextCancellation(t *testing.T) {
 
 func TestCleanupJob_CleanupExecution(t *testing.T) {
 	t.Parallel()
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	repoFactory := createTestRepoFactory(t)
 

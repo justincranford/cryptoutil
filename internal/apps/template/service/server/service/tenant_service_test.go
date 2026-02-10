@@ -150,6 +150,7 @@ func (m *mockRoleRepository) Delete(ctx context.Context, id googleUuid.UUID) err
 
 func TestTenantService_CreateTenant(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	tests := []struct {
@@ -235,6 +236,7 @@ func TestTenantService_CreateTenant(t *testing.T) {
 
 func TestTenantService_GetTenant(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 
@@ -296,6 +298,7 @@ func TestTenantService_GetTenant(t *testing.T) {
 
 func TestTenantService_UpdateTenant(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 
@@ -411,6 +414,7 @@ func TestTenantService_UpdateTenant(t *testing.T) {
 
 func TestTenantService_DeleteTenant(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 
@@ -479,6 +483,7 @@ func boolPtr(b bool) *bool {
 
 func TestTenantService_ListTenants(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	activeTenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:     googleUuid.New(),
@@ -558,6 +563,7 @@ func TestTenantService_ListTenants(t *testing.T) {
 
 func TestTenantService_UpdateTenant_UpdateError(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	tenantID := googleUuid.New()
 	existingTenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
@@ -587,6 +593,7 @@ func TestTenantService_UpdateTenant_UpdateError(t *testing.T) {
 
 func TestTenantService_GetTenantByName(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 	tenantName := "test-tenant"
 	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{

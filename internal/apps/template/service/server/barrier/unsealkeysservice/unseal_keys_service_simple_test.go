@@ -26,6 +26,7 @@ func TestNewUnsealKeysServiceSimple_HappyPath(t *testing.T) {
 
 func TestNewUnsealKeysServiceSimple_SadPath_EmptyInput(t *testing.T) {
 	t.Parallel()
+
 	unsealKeysService, err := NewUnsealKeysServiceSimple([]joseJwk.Key{})
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
@@ -34,6 +35,7 @@ func TestNewUnsealKeysServiceSimple_SadPath_EmptyInput(t *testing.T) {
 
 func TestNewUnsealKeysServiceSimple_SadPath_NilInput(t *testing.T) {
 	t.Parallel()
+
 	unsealKeysService, err := NewUnsealKeysServiceSimple(nil)
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)

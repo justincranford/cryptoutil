@@ -25,6 +25,7 @@ type combinationSadPath struct {
 
 func TestCombinations_HappyPath(t *testing.T) {
 	t.Parallel()
+
 	valueA := value("A")
 	valueB := value("B")
 	valueC := value("C")
@@ -84,6 +85,7 @@ func TestCombinations_HappyPath(t *testing.T) {
 
 func TestCombinationsSadPath(t *testing.T) {
 	t.Parallel()
+
 	valueA := value("A")
 
 	tests := []combinationSadPath{
@@ -101,6 +103,7 @@ func TestCombinationsSadPath(t *testing.T) {
 
 func TestEncode(t *testing.T) {
 	t.Parallel()
+
 	valueA := value("A")
 	valueB := value("B")
 	valueC := value("C")
