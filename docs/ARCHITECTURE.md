@@ -14,7 +14,7 @@ references:
   - .github/instructions/*.instructions.md
   - .github/agents/*.agent.md
   - .github/workflows/*.yml
-  - .specify/memory/constitution.md
+  - docs/speckit/constitution.md
 maintainers:
   - cryptoutil Development Team
 tags:
@@ -2705,7 +2705,7 @@ healthcheck:
 **Related Documents**:
 - `.github/copilot-instructions.md` - Copilot configuration
 - `.github/instructions/*.instructions.md` - Detailed instructions
-- `.specify/memory/constitution.md` - Project constitution
+- `docs/speckit/constitution.md` - Project constitution
 - `docs/ARCHITECTURE.md` - Legacy architecture document
 
 **Cross-References**:

@@ -22,19 +22,11 @@ Quick reference for all synchronization-eligible documentation across the crypto
 |---------------|------|---------|----------------|---------------|
 | **Source of Truth (NEVER delete, ALWAYS update)** |
 | `.github/copilot-instructions.md` | Entrypoint | Main agent instruction loader | New instruction files, instruction reorganization | All agents, instruction files |
-| `.github/constitution.md` | Constitutional | Overarching project principles | Fundamental principle changes, new constitutional rules | All docs, all code |
 | `.github/instructions/*.instructions.md` | Constitutional | Domain-specific detailed rules | Pattern discovery, anti-pattern identification, new best practices | READMEs, agent prompts, templates |
 | `docs/ARCHITECTURE.md` | Architectural | System design, service patterns, quality gates | Architectural changes, pattern discovery, quality gate adjustments | Service templates, agent prompts, copilot instructions |
-| **Spec Kit (Update frequently, specialized content)** |
-| `docs/speckit/constitution.md` | Constitutional | Spec Kit principles and rules | Constitution changes, Spec Kit workflow updates | Spec Kit templates, workflows |
-| `docs/speckit/templates/*.md` | Templates | Reusable Spec Kit document templates | Template improvements, new document types | New spec documents |
-| `specs/*/spec.md` | Specifications | Product/feature specifications | Requirement changes, scope changes | Implementation plans, tasks |
-| `specs/*/clarify.md` | Clarifications | Q&A for ambiguities | Unknowns discovered during planning, user answers | Plans, tasks |
-| `specs/*/plan.md` | Plans | High-level implementation plans | Scope changes, phase adjustments, new blockers discovered | Tasks, DETAILED |
-| `specs/*/tasks.md` | Tasks | Detailed actionable checklists | Task completion, blocker discovery, mid-execution phase creation | Plan (checkbox sync), DETAILED |
-| `specs/*/analyze/*.md` | Analysis | Deep-dive investigations | Complex technical analysis needed | Plans, tasks, DETAILED |
-| `specs/*/DETAILED.md` | Timeline | Chronological work log (Section 2 append-only) | Every work session, every task completion, every blocker | EXECUTIVE (summaries) |
-| `specs/*/EXECUTIVE.md` | Executive | High-level summaries for stakeholders | Major milestones, phase completions | External reporting |
+| **Archived Spec Kit (Read-only reference, moved from specs/ and .specify/)** |
+| `docs/speckit/constitution.md` | Constitutional | Project constitution (archived) | No active updates | Read-only reference |
+| `docs/speckit/specs-002-cryptoutil/` | Archive | Historical specs, plans, tasks | No active updates | Read-only reference |
 | **Custom Plans (Ephemeral, delete after completion)** |
 | `docs/fixes-needed-plan-tasks-v*/plan.md` | Plans | Custom fix campaign plans | Mid-execution phase discovery, blocker resolution | tasks.md (checkbox sync), completed.md |
 | `docs/fixes-needed-plan-tasks-v*/tasks.md` | Tasks | Custom fix campaign task lists | Task completion, checkbox updates | plan.md (checkbox sync), completed.md |
@@ -61,7 +53,6 @@ Quick reference for all synchronization-eligible documentation across the crypto
 - **Tasks**: Detailed actionable checklists with acceptance criteria
 - **Analysis**: Deep-dive technical investigations
 - **Timeline**: Chronological work log (DETAILED.md Section 2, append-only)
-- **Executive**: High-level summaries for stakeholders
 - **Archive**: Completed work with evidence
 - **Reference**: User-facing guides and documentation
 - **Agent Prompts**: Custom workflow automation
@@ -71,8 +62,8 @@ Quick reference for all synchronization-eligible documentation across the crypto
 
 | Change Type | Start Here | Then Update |
 |-------------|-----------|-------------|
-| New quality gate | `docs/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `docs/speckit/constitution.md`, `.github/agents/plan-tasks-implement.agent.md` |
-| New execution rule | `.github/constitution.md` | `.github/instructions/01-02.beast-mode.md`, `.github/agents/plan-tasks-implement.agent.md`, `docs/speckit/constitution.md` |
+| New quality gate | `docs/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `.github/agents/plan-tasks-implement.agent.md` |
+| New execution rule | `.github/instructions/01-02.beast-mode.instructions.md` | `.github/agents/plan-tasks-implement.agent.md`, `.github/agents/beast-mode-custom.agent.md` |
 | New architectural pattern | `docs/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), service implementations |
 | New testing pattern | `.github/instructions/03-02.testing.md` | `README.md`, `.github/agents/*.agent.md` (if workflow change) |
 | New pre-commit hook | `.pre-commit-config.yaml` | `docs/pre-commit-hooks.md`, `.github/instructions/03-07.linting.md` |
@@ -106,10 +97,10 @@ Systematically identify and synchronize related documentation across the cryptou
 
 **C2. Copilot Supplementary Instructions** (`.github/instructions/*.instructions.md`)
 
-- **26 instruction files** covering: terminology, continuous work, SpecKit, architecture, security, testing, coding standards
+- **26 instruction files** covering: terminology, continuous work, architecture, security, testing, coding standards
 - **Purpose**: Agent behavior rules, quality gates, standards enforcement, technical patterns
 - **Update Triggers**: New patterns discovered, regression prevention, anti-pattern documentation, quality gate changes
-- **Propagate To**: Specs (architectural constraints), plans (implementation patterns), architecture docs (patterns), prompts (execution rules)
+- **Propagate To**: Plans (implementation patterns), architecture docs (patterns), agents (execution rules)
 
 ### Source of Truth Architecture Documents (Update These First)
 
@@ -125,66 +116,25 @@ A2. **Service Template Docs** (`docs/arch/*.md`)
 - **Sources**: Architecture (patterns), copilot instructions (standards), implementation (validated patterns)
 - **Update Triggers**: Pattern validation, anti-pattern discovery, template refactoring
 
-### Spec Kit Documents (Update After Source of Truth)
+### Archived Spec Kit Documents (Read-Only Reference)
 
-SK1. **Constitution** (`.specify/memory/constitution.md`)
+SK1. **Constitution** (`docs/speckit/constitution.md`)
 
-- **Purpose**: Spec Kit specific Source of Truth, Project vision, quality gates, non-functional requirements, architectural constraints
-- **Update Triggers**: Quality gate changes, new NFRs, architectural decisions
-- **Propagate To**: Specs, plans, copilot instructions
+- **Status**: Archived. Spec Kit infrastructure has been removed.
+- **Purpose**: Historical project constitution reference. Active governance is in `docs/ARCHITECTURE.md` and `.github/instructions/*.instructions.md`.
 
-SK2. **Templates** (`.specify/templates`)
-    - **Purpose**: Standardized document structures for specs, plans, tasks
-    - **Sources**: SpecKit methodology, copilot instructions (SpecKit)
-    - **Update Triggers**: Methodology changes, new document types
+SK2-SK9. **Specs, Plans, Tasks, Analysis** (`docs/speckit/specs-002-cryptoutil/`)
 
-SK3. **Specs** Rerun /speckit.spec to update `specs/*/spec.md`
-
-- **Purpose**: Feature requirements, constraints, acceptance criteria
-- **Sources**: Constitution (quality gates), architecture (patterns)
-- **Update Triggers**: Requirement changes, clarifications, constitution updates
-
-SK4. **Clarify Docs** Rerun /speckit.clarify to update `specs/*/clarify.md` and create next `specs/*/CLARIFY-QUIZME-##.md`
-    - **Purpose**: Clarify contains Knowns and Unknowns, Quizme contains only unknowns and open questions
-    - **Sources**: Specs (requirements), copilot instructions (clarification patterns)
-    - **Update Triggers**: New questions, requirement clarifications
-
-SK5. **Plans** Rerun /speckit.plan to update `specs/*/plan.md`
-
-- **Purpose**: Implementation phases, task breakdown, dependencies
-- **Sources**: Specs (requirements), constitution (quality gates), copilot instructions (standards)
-- **Update Triggers**: Spec changes, quality gate updates, new phase discoveries
-
-SK6. **Tasks** Rerun /speckit.tasks to update `specs/*/tasks.md`
-
-- **Purpose**: Execution checklists, completion criteria, evidence tracking
-- **Sources**: Plans (phases/tasks), constitution (quality gates), copilot instructions (evidence requirements)
-- **Update Triggers**: Plan updates, quality gate changes, new task discoveries
-
-SK7. **Analyze** Rerun /speckit.analyze to update `specs/*/analyze.md`
-
-- **Purpose**: Gap analysis, risk assessment, test coverage analysis
-- **Sources**: Plans (tasks), copilot instructions (testing standards)
-- **Update Triggers**: Task completions, test results, risk discoveries
-
-SK8. **DETAILED.md** Apply updates from `specs/*/tasks.md` to `specs/*/implement/DETAILED.md`
-
-- **Purpose**: Task checkboxes for progress tracking, Append-only timeline of session notes
-- **Sources**: Tasks (checkboxes), implementation (discoveries)
-- **Update Triggers**: Task completion, lessons learned, constraint discoveries
-
-SK9. **EXECUTIVE.md** Apply updates from `specs/*/implement/DETAILED.md` to `specs/*/EXECUTIVE.md`
-
-- **Purpose**: High-level stakeholder overview, progress metrics, blockers, risks
-- **Sources**: DETAILED.md (progress), tasks (completion %), quality metrics
-- **Update Triggers**: Phase completion, blocker discovery, risk identification
+- **Status**: Archived. All spec kit documents moved to `docs/speckit/` for historical reference.
+- **Purpose**: Historical specifications, plans, tasks, and analysis documents.
+- **Note**: Do NOT create new speckit documents. Use `docs/todos-*.md` for task tracking.
 
 ### Custom Plan Documents (Update After Source of Truth)
 
 P1. **Fixes Needed Plan** `docs/fixes-needed-*/plan.md`
 
 - **Purpose**: High-level issues and fixes
-- **Sources**: Specs (specs/clarify/plan/aanlyze/tasks), copilot instructions (execution rules)
+- **Sources**: Copilot instructions (execution rules), architecture docs
 - **Update Triggers**: New issues discovered, fix implementations, task completions
 
 P2. **Fixes Needed Tasks** `docs/fixes-needed-*/tasks.md`
@@ -194,7 +144,7 @@ P2. **Fixes Needed Tasks** `docs/fixes-needed-*/tasks.md`
 
 ### Reference Documentation (Update When Patterns Stabilize)
 
-R1. **READMEs** (`README.md`, `docs/README.md`, `specs/*/README.md`)
+R1. **READMEs** (`README.md`, `docs/README.md`)
     - **Purpose**: Getting started, quick reference, navigation
     - **Sources**: All above (high-level summaries)
     - **Update Triggers**: Major project changes, new workflows, documentation reorganization
@@ -207,8 +157,8 @@ R1. **READMEs** (`README.md`, `docs/README.md`, `specs/*/README.md`)
 
 **Questions**:
 
-- Which source of truth document was updated? (copilot instructions, constitution, architecture, templates)
-- What type of change? (quality gates, execution rules, architectural patterns, security standards, testing standards, SpecKit methodology)
+- Which source of truth document was updated? (copilot instructions, architecture)
+- What type of change? (quality gates, execution rules, architectural patterns, security standards, testing standards)
 - What are the new/changed values or rules?
 
 **Action**: Note specific changes to propagate
@@ -221,7 +171,7 @@ R1. **READMEs** (`README.md`, `docs/README.md`, `specs/*/README.md`)
 
 ```bash
 # Example: Find all references to a value or pattern
-grep -r "<search-term>" docs/ specs/ .github/
+grep -r "<search-term>" docs/ .github/
 ```
 
 **Action**: Create list of files requiring updates with line numbers
@@ -232,9 +182,9 @@ grep -r "<search-term>" docs/ specs/ .github/
 
 **Update Order** (source of truth → derived → implementation → reference):
 
-1. **Source of Truth**: Copilot instructions, constitution, architecture, templates (ALREADY UPDATED - this is the trigger)
-2. **Derived Documents**: Specs, plans, tasks, analyze docs
-3. **Implementation Docs**: DETAILED.md, EXECUTIVE.md
+1. **Source of Truth**: Copilot instructions, architecture (ALREADY UPDATED - this is the trigger)
+2. **Derived Documents**: Plans, tasks, analysis docs
+3. **Implementation Docs**: DETAILED.md
 4. **Reference Docs**: READMEs, guides
 
 **For Each Document**:
@@ -252,10 +202,10 @@ grep -r "<search-term>" docs/ specs/ .github/
 
 ```bash
 # Verify all documents use same values
-grep -r "<value>" docs/ specs/ .github/ | sort | uniq -c
+grep -r "<value>" docs/ .github/ | sort | uniq -c
 
 # Check for no orphaned old values
-grep -r "<old-value>" docs/ specs/ .github/ | wc -l  # Should be 0
+grep -r "<old-value>" docs/ .github/ | wc -l  # Should be 0
 ```
 
 **Checklist**:
@@ -275,7 +225,6 @@ docs(sync): synchronize [change type] across documentation
 
 Updated documents:
 - .github/instructions/XX.instructions.md: [change]
-- specs/002-cryptoutil/spec.md: [change]
 - docs/ARCHITECTURE.md: [change]
 
 Changes:
@@ -328,9 +277,9 @@ Related: [task reference if applicable]
 
 Before ending documentation sync:
 
-- [ ] All source of truth documents updated (copilot instructions, constitution, architecture, templates)
-- [ ] All derived documents synchronized (specs, plans, tasks, analyze)
-- [ ] All implementation docs updated (DETAILED.md, EXECUTIVE.md)
+- [ ] All source of truth documents updated (copilot instructions, architecture)
+- [ ] All derived documents synchronized (plans, tasks)
+- [ ] All implementation docs updated (DETAILED.md)
 - [ ] All reference docs current (READMEs, guides)
 - [ ] grep searches show consistent values across all docs
 - [ ] No conflicting guidance found
@@ -380,8 +329,6 @@ grep -r "NEVER ask.*Should I proceed" .github/ | wc -l  # Should match number of
 2. Copilot Instructions (02-02.service-template) → Update ServerBuilder requirements
 3. Copilot Instructions (03-08.server-builder) → Add merged migrations pattern
 4. Service Template Docs (docs/service-template/*.md) → Update examples
-5. Specs → Update architectural constraints
-
 **Sync Workflow**:
 
 ```bash
@@ -389,7 +336,7 @@ grep -r "NEVER ask.*Should I proceed" .github/ | wc -l  # Should match number of
 # Edit docs/ARCHITECTURE.md ServerBuilder section
 
 # Step 2: Find all ServerBuilder references
-grep -r "ServerBuilder\|merged.*migration" docs/ .github/instructions/ specs/
+grep -r "ServerBuilder\|merged.*migration" docs/ .github/instructions/
 
 # Step 3: Update copilot instructions
 # Use multi_replace_string_in_file for batch updates
@@ -443,9 +390,9 @@ grep -r "merged.*migration.*1001.*2001" docs/ .github/instructions/ | wc -l
 
 Before ending documentation sync session:
 
-- [ ] All source of truth documents updated (copilot instructions, constitution, architecture)
-- [ ] All derived documents synchronized (specs, plans, tasks)
-- [ ] All implementation docs updated (DETAILED.md, EXECUTIVE.md)
+- [ ] All source of truth documents updated (copilot instructions, architecture)
+- [ ] All derived documents synchronized (plans, tasks)
+- [ ] All implementation docs updated (DETAILED.md)
 - [ ] All reference docs current (service template, READMEs)
 - [ ] grep searches show consistent values across all docs
 - [ ] No conflicting guidance found
@@ -458,19 +405,19 @@ Before ending documentation sync session:
 
 **When Changing Quality Gates**:
 
-1. Constitution → Copilot Instructions (06-01) → Specs → Plans → Tasks → DETAILED.md
+1. Copilot Instructions (06-01) → Architecture → Plans → Tasks → DETAILED.md
 
 **When Changing Execution Rules**:
 
-1. Copilot Instructions (01-02) → Prompts (all) → Plans → Tasks
+1. Copilot Instructions (01-02) → Agents (all) → Plans → Tasks
 
 **When Changing Architectural Patterns**:
 
-1. Architecture → Copilot Instructions (02-*) → Service Template → Specs → Plans
+1. Architecture → Copilot Instructions (02-*) → Service Template → Plans
 
 **When Changing Security Standards**:
 
-1. Copilot Instructions (02-07, 02-08, 02-09, 03-06) → Constitution → Specs → Plans
+1. Copilot Instructions (02-07, 02-08, 02-09, 03-06) → Architecture → Plans
 
 **When Discovering Lessons Learned**:
 
