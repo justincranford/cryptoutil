@@ -8,6 +8,7 @@ package cicd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -37,10 +38,30 @@ const (
 	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
 )
 
-// Run executes the specified CI/CD check commands.
+// Cicd executes the specified CI/CD check commands.
+// Commands are executed sequentially, collecting results for each.
+// Returns exit code: 0 for success, 1 for failure.
+func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	commands := args[1:]
+	if len(commands) == 0 {
+		_, _ = fmt.Fprint(stderr, cryptoutilSharedMagic.UsageCICD)
+
+		return 1
+	}
+
+	if err := run(commands); err != nil {
+		_, _ = fmt.Fprintf(stderr, "Error: %v\n", err)
+
+		return 1
+	}
+
+	return 0
+}
+
+// run executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
 // Returns an error if any command fails, but continues executing all commands.
-func Run(commands []string) error {
+func run(commands []string) error {
 	logger := cryptoutilCmdCicdCommon.NewLogger("Run")
 	startTime := time.Now().UTC()
 

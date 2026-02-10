@@ -6,19 +6,11 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
-	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/apps/identity/unified"
+	cryptoutilAppsIdentityUnified "cryptoutil/internal/apps/identity/unified"
 )
 
 func main() {
-	args := os.Args[1:] // Skip program name
-	if len(args) == 0 {
-		fmt.Println("Usage: identity <subcommand> [flags]")
-		fmt.Println("Subcommands: start, stop, status, health")
-		os.Exit(1)
-	}
-
-	cryptoutilCmdCryptoutilIdentity.Execute(args)
+	os.Exit(cryptoutilAppsIdentityUnified.Unified(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

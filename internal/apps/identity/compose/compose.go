@@ -190,10 +190,21 @@ func parseScaling(scalingStr string) (map[string]int, error) {
 }
 
 // Compose runs the identity compose orchestrator.
+// args: Command-line arguments (including program name)
+// stdin: Input stream (unused)
+// stdout, stderr: Output streams for messages
+// Returns: Exit code (0 for success, non-zero for errors).
+func Compose(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	cmdArgs := args[1:]
+
+	return compose(cmdArgs, stdout, stderr)
+}
+
+// compose runs the identity compose orchestrator.
 // args: Command-line arguments (not including program name)
 // stdout, stderr: Output streams for messages
 // Returns: Exit code (0 for success, non-zero for errors).
-func Compose(args []string, stdout, stderr io.Writer) int {
+func compose(args []string, stdout, stderr io.Writer) int {
 	// Command-line flags
 	var (
 		composeFile    = flag.String("compose-file", "deployments/identity/compose.advanced.yml", "Path to Docker Compose file")

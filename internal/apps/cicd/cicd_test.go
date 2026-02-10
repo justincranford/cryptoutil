@@ -4,6 +4,7 @@ package cicd
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -16,16 +17,15 @@ func TestRunUsage(t *testing.T) {
 	t.Parallel()
 
 	// Test with no commands (should return error).
-	err := Run([]string{})
-	require.Error(t, err, "Expected error when no commands provided")
-	require.Contains(t, err.Error(), "Usage: cicd <command>", "Error message should contain usage information")
+	exitCode := Cicd([]string{"cicd"}, nil, nil, os.Stderr)
+	require.Equal(t, 1, exitCode, "Expected exit code 1 when no commands provided")
 }
 
 func TestRunInvalidCommand(t *testing.T) {
 	t.Parallel()
 
 	// Test with invalid command.
-	err := Run([]string{"invalid-command"})
+	err := run([]string{"invalid-command"})
 	require.Error(t, err, "Expected error for invalid command")
 	require.Contains(t, err.Error(), "unknown command: invalid-command", "Error message should indicate unknown command")
 }
@@ -89,7 +89,7 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := Run(tc.commands)
+			err := run(tc.commands)
 			// Note: Some commands may fail due to project state (e.g., outdated dependencies).
 			// We're testing that the switch cases execute without panic, not that they pass.
 			if err != nil {
@@ -308,7 +308,7 @@ func TestGetFailedCommands_NoFailures(t *testing.T) {
 func TestRun_LintComposeCommand(t *testing.T) {
 	t.Parallel()
 
-	err := Run([]string{"lint-compose"})
+	err := run([]string{"lint-compose"})
 	// Command may pass or fail depending on compose files in project.
 	// We're testing that the switch case executes without panic.
 	if err != nil {

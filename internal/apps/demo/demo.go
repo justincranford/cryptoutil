@@ -19,6 +19,7 @@ package demo
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -109,16 +110,17 @@ func detectNoColor() bool {
 	return false
 }
 
-// Execute runs the demo CLI with command-line arguments.
-func Execute() {
-	if len(os.Args) < 2 {
+// Demo runs the demo CLI with command-line arguments.
+func Demo(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) < 2 {
 		printUsage()
-		os.Exit(ExitFailure)
+
+		return ExitFailure
 	}
 
-	command := os.Args[1]
-	args := os.Args[2:]
-	config := parseArgs(args)
+	command := args[1]
+	cmdArgs := args[2:]
+	config := parseArgs(cmdArgs)
 
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultDemoTimeout)
 	defer cancel()
@@ -148,7 +150,7 @@ func Execute() {
 		exitCode = ExitFailure
 	}
 
-	os.Exit(exitCode)
+	return exitCode
 }
 
 // parseArgs parses command-line arguments into a Config.

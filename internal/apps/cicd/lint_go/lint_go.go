@@ -30,6 +30,7 @@ var registeredLinters = []struct {
 }{
 	{"circular-deps", checkCircularDeps},
 	{"cgo-free-sqlite", checkCGOFreeSQLite},
+	{"cmd-main-pattern", checkCmdMainPattern},
 	{"non-fips-algorithms", checkNonFIPS},
 	{"no-unaliased-cryptoutil-imports", checkNoUnaliasedCryptoutilImports},
 	{"crypto-rand", checkCryptoRand},

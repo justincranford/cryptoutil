@@ -6,9 +6,9 @@ package main
 import (
 	"os"
 
-	demo "cryptoutil/internal/apps/identity/demo"
+	cryptoutilAppsIdentityDemo "cryptoutil/internal/apps/identity/demo"
 )
 
 func main() {
-	os.Exit(demo.Demo(os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsIdentityDemo.Demo(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

@@ -48,10 +48,21 @@ var (
 )
 
 // Demo runs the identity service demonstration.
+// args: Command-line arguments (including program name)
+// stdin: Input stream (unused)
+// stdout, stderr: Output streams for messages
+// Returns: Exit code (0 for success, non-zero for errors).
+func Demo(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	cmdArgs := args[1:]
+
+	return demo(cmdArgs, stdout, stderr)
+}
+
+// demo runs the identity service demonstration.
 // args: Command-line arguments (not including program name)
 // stdout, stderr: Output streams for messages
 // Returns: Exit code (0 for success, non-zero for errors).
-func Demo(args []string, stdout, stderr io.Writer) int {
+func demo(args []string, stdout, stderr io.Writer) int {
 	_, _ = fmt.Fprintln(outWriter, "🚀 Identity System Demo - OAuth 2.1 Authorization Server")
 	outWriter = stdout
 	errWriter = stderr

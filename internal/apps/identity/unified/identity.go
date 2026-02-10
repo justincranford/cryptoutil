@@ -8,6 +8,7 @@ package identity
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -28,12 +29,14 @@ const (
 	fileURLPrefix   = "file://"
 )
 
-// Execute handles Identity service commands matching KMS pattern.
+// Unified handles Identity service commands matching KMS pattern.
 // Supports: start, stop, status, health.
-func Execute(parameters []string) {
+func Unified(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	parameters := args[1:]
 	if len(parameters) < 1 {
 		printUsage()
-		os.Exit(1)
+
+		return 1
 	}
 
 	subcommand := parameters[0]
@@ -42,16 +45,25 @@ func Execute(parameters []string) {
 	switch subcommand {
 	case "start":
 		startServices(cmdParams)
+
+		return 0
 	case "stop":
 		stopServices(cmdParams)
+
+		return 0
 	case "status":
 		statusServices(cmdParams)
+
+		return 0
 	case "health":
 		healthServices(cmdParams)
+
+		return 0
 	default:
 		fmt.Printf("Unknown subcommand: %s\n", subcommand)
 		printUsage()
-		os.Exit(1)
+
+		return 1
 	}
 }
 

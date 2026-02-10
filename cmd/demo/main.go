@@ -7,9 +7,11 @@
 package main
 
 import (
-	cryptoutilCmdDemo "cryptoutil/internal/apps/demo"
+	"os"
+
+	cryptoutilAppsDemo "cryptoutil/internal/apps/demo"
 )
 
 func main() {
-	cryptoutilCmdDemo.Execute()
+	os.Exit(cryptoutilAppsDemo.Demo(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

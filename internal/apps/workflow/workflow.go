@@ -73,8 +73,13 @@ type ExecutionSummary struct {
 	CombinedLog   string
 }
 
-// Run executes the workflow runner with the provided command line arguments.
-func Run(args []string) int {
+// Workflow executes the workflow runner with the provided command line arguments.
+func Workflow(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	return run(args[1:])
+}
+
+// run executes the workflow runner with the provided command line arguments.
+func run(args []string) int {
 	// Create flag set for parsing.
 	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
 
