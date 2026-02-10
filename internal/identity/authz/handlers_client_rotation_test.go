@@ -123,12 +123,12 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	// Verify old secret NO LONGER works.
 	match, err = cryptoutilIdentityClientAuth.CompareSecret(updatedClient.ClientSecret, originalSecret)
 	require.NoError(t, err)
-	assert.False(t, match, "Old secret should not work after rotation")
+	require.False(t, match, "Old secret should not work after rotation")
 
 	// Verify new secret DOES work.
 	match, err = cryptoutilIdentityClientAuth.CompareSecret(updatedClient.ClientSecret, newSecret)
 	require.NoError(t, err)
-	assert.True(t, match, "New secret should work after rotation")
+	require.True(t, match, "New secret should work after rotation")
 }
 
 // TestClientSecretRotation_InvalidClientID validates error when authentication missing.
@@ -176,14 +176,14 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 		_ = resp.Body.Close()
 	}()
 
-	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 
 	var result map[string]any
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	assert.Equal(t, cryptoutilIdentityMagic.ErrorInvalidClient, result["error"])
-	assert.Contains(t, result["error_description"], "Client authentication failed")
+	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidClient, result["error"])
+	require.Contains(t, result["error_description"], "Client authentication failed")
 }
 
 // TestClientSecretRotation_ClientNotFound validates error handling for non-existent client.
@@ -250,11 +250,12 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 	}()
 
 	// Should fail with forbidden (client can only rotate own secret).
-	assert.Equal(t, fiber.StatusForbidden, resp.StatusCode)
+	require.Equal(t, fiber.StatusForbidden, resp.StatusCode)
 
 	var result map[string]any
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	assert.Equal(t, cryptoutilIdentityMagic.ErrorAccessDenied, result["error"])
+	require.Equal(t, cryptoutilIdentityMagic.ErrorAccessDenied, result["error"])
 }
+

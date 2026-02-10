@@ -32,8 +32,8 @@ func TestNewHTTPServers_NilContext(t *testing.T) {
 
 	h, err := NewHTTPServers(nil, settings) //nolint:staticcheck // Testing nil context handling.
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "context cannot be nil")
-	assert.Nil(t, h)
+	require.Contains(t, err.Error(), "context cannot be nil")
+	require.Nil(t, h)
 }
 
 func TestNewHTTPServers_NilSettings(t *testing.T) {
@@ -41,8 +41,8 @@ func TestNewHTTPServers_NilSettings(t *testing.T) {
 
 	h, err := NewHTTPServers(ctx, nil)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "settings cannot be nil")
-	assert.Nil(t, h)
+	require.Contains(t, err.Error(), "settings cannot be nil")
+	require.Nil(t, h)
 }
 
 func TestNewHTTPServers_StaticMode_HappyPath(t *testing.T) {
@@ -76,8 +76,8 @@ func TestNewHTTPServers_UnknownPublicTLSMode(t *testing.T) {
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unknown public TLS mode")
-	assert.Nil(t, h)
+	require.Contains(t, err.Error(), "unknown public TLS mode")
+	require.Nil(t, h)
 }
 
 func TestNewHTTPServers_UnknownPrivateTLSMode(t *testing.T) {
@@ -87,8 +87,8 @@ func TestNewHTTPServers_UnknownPrivateTLSMode(t *testing.T) {
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "unknown admin TLS mode")
-	assert.Nil(t, h)
+	require.Contains(t, err.Error(), "unknown admin TLS mode")
+	require.Nil(t, h)
 }
 
 func TestNewHTTPServers_MixedMode_HappyPath(t *testing.T) {
@@ -127,8 +127,8 @@ func TestNewHTTPServers_MixedMode_InvalidPublicCA(t *testing.T) {
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to generate public server cert from CA")
-	assert.Nil(t, h)
+	require.Contains(t, err.Error(), "failed to generate public server cert from CA")
+	require.Nil(t, h)
 }
 
 func TestNewHTTPServers_MixedMode_InvalidPrivateCA(t *testing.T) {
@@ -144,8 +144,8 @@ func TestNewHTTPServers_MixedMode_InvalidPrivateCA(t *testing.T) {
 	ctx := context.Background()
 	h, err := NewHTTPServers(ctx, settings)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to generate admin server cert from CA")
-	assert.Nil(t, h)
+	require.Contains(t, err.Error(), "failed to generate admin server cert from CA")
+	require.Nil(t, h)
 }
 
 // ========================
@@ -163,3 +163,4 @@ func TestNewHTTPServers_MixedMode_InvalidPrivateCA(t *testing.T) {
 // Coverage provided by graceful shutdown tests using app.Test() pattern.
 
 // DELETED: TestDualServers_BothServersAccessibleSimultaneously - violated copilot instructions (real concurrent HTTPS).
+

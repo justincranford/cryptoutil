@@ -33,11 +33,11 @@ func TestConfigCreation(t *testing.T) {
 	config := cryptoutilIdentityTestTestutils.CreateTestConfig(t, 8100, 8100, 8110)
 
 	require.NotNil(t, config, "config should be created")
-	assert.Equal(t, 8100, config.AuthZ.Port, "AuthZ port should match")
-	assert.Equal(t, 8100, config.IDP.Port, "IDP port should match")
-	assert.Equal(t, 8110, config.RS.Port, "RS port should match")
-	assert.Equal(t, "sqlite", config.Database.Type, "database type should be sqlite")
-	assert.Equal(t, ":memory:", config.Database.DSN, "database DSN should be in-memory")
+	require.Equal(t, 8100, config.AuthZ.Port, "AuthZ port should match")
+	require.Equal(t, 8100, config.IDP.Port, "IDP port should match")
+	require.Equal(t, 8110, config.RS.Port, "RS port should match")
+	require.Equal(t, "sqlite", config.Database.Type, "database type should be sqlite")
+	require.Equal(t, ":memory:", config.Database.DSN, "database DSN should be in-memory")
 }
 
 // TestUserRepository_CRUD tests User repository CRUD operations.
@@ -66,7 +66,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 
 				err := userRepo.Create(ctx, user)
 				require.NoError(t, err)
-				assert.NotEmpty(t, user.ID)
+				require.NotEmpty(t, user.ID)
 			},
 		},
 		{
@@ -83,8 +83,8 @@ func TestUserRepository_CRUD(t *testing.T) {
 
 				retrieved, err := userRepo.GetByID(ctx, user.ID)
 				require.NoError(t, err)
-				assert.Equal(t, user.ID, retrieved.ID)
-				assert.Equal(t, user.Sub, retrieved.Sub)
+				require.Equal(t, user.ID, retrieved.ID)
+				require.Equal(t, user.Sub, retrieved.Sub)
 			},
 		},
 		{
@@ -101,7 +101,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 
 				retrieved, err := userRepo.GetBySub(ctx, user.Sub)
 				require.NoError(t, err)
-				assert.Equal(t, user.Sub, retrieved.Sub)
+				require.Equal(t, user.Sub, retrieved.Sub)
 			},
 		},
 		{
@@ -122,7 +122,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 
 				retrieved, err := userRepo.GetByID(ctx, user.ID)
 				require.NoError(t, err)
-				assert.Equal(t, "Updated Name", retrieved.Name)
+				require.Equal(t, "Updated Name", retrieved.Name)
 			},
 		},
 		{
@@ -164,7 +164,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 
 				users, err := userRepo.List(ctx, 0, 10)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, len(users), 2)
+				require.GreaterOrEqual(t, len(users), 2)
 			},
 		},
 		{
@@ -181,7 +181,7 @@ func TestUserRepository_CRUD(t *testing.T) {
 
 				count, err := userRepo.Count(ctx)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, count, int64(1))
+				require.GreaterOrEqual(t, count, int64(1))
 			},
 		},
 	}
@@ -219,7 +219,7 @@ func TestClientRepository_CRUD(t *testing.T) {
 
 				err := clientRepo.Create(ctx, client)
 				require.NoError(t, err)
-				assert.NotEmpty(t, client.ID)
+				require.NotEmpty(t, client.ID)
 			},
 		},
 		{
@@ -235,8 +235,8 @@ func TestClientRepository_CRUD(t *testing.T) {
 
 				retrieved, err := clientRepo.GetByID(ctx, client.ID)
 				require.NoError(t, err)
-				assert.Equal(t, client.ID, retrieved.ID)
-				assert.Equal(t, client.ClientID, retrieved.ClientID)
+				require.Equal(t, client.ID, retrieved.ID)
+				require.Equal(t, client.ClientID, retrieved.ClientID)
 			},
 		},
 		{
@@ -252,7 +252,7 @@ func TestClientRepository_CRUD(t *testing.T) {
 
 				retrieved, err := clientRepo.GetByClientID(ctx, client.ClientID)
 				require.NoError(t, err)
-				assert.Equal(t, client.ClientID, retrieved.ClientID)
+				require.Equal(t, client.ClientID, retrieved.ClientID)
 			},
 		},
 		{
@@ -272,7 +272,7 @@ func TestClientRepository_CRUD(t *testing.T) {
 
 				retrieved, err := clientRepo.GetByID(ctx, client.ID)
 				require.NoError(t, err)
-				assert.Equal(t, "Updated Client", retrieved.Name)
+				require.Equal(t, "Updated Client", retrieved.Name)
 			},
 		},
 		{
@@ -311,7 +311,7 @@ func TestClientRepository_CRUD(t *testing.T) {
 
 				clients, err := clientRepo.List(ctx, 0, 10)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, len(clients), 2)
+				require.GreaterOrEqual(t, len(clients), 2)
 			},
 		},
 		{
@@ -327,7 +327,7 @@ func TestClientRepository_CRUD(t *testing.T) {
 
 				count, err := clientRepo.Count(ctx)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, count, int64(1))
+				require.GreaterOrEqual(t, count, int64(1))
 			},
 		},
 	}
@@ -379,7 +379,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 
 				err := tokenRepo.Create(ctx, token)
 				require.NoError(t, err)
-				assert.NotEmpty(t, token.ID)
+				require.NotEmpty(t, token.ID)
 			},
 		},
 		{
@@ -399,8 +399,8 @@ func TestTokenRepository_CRUD(t *testing.T) {
 
 				retrieved, err := tokenRepo.GetByID(ctx, token.ID)
 				require.NoError(t, err)
-				assert.Equal(t, token.ID, retrieved.ID)
-				assert.Equal(t, token.TokenValue, retrieved.TokenValue)
+				require.Equal(t, token.ID, retrieved.ID)
+				require.Equal(t, token.TokenValue, retrieved.TokenValue)
 			},
 		},
 		{
@@ -420,7 +420,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 
 				retrieved, err := tokenRepo.GetByTokenValue(ctx, token.TokenValue)
 				require.NoError(t, err)
-				assert.Equal(t, token.TokenValue, retrieved.TokenValue)
+				require.Equal(t, token.TokenValue, retrieved.TokenValue)
 			},
 		},
 		{
@@ -444,7 +444,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 
 				retrieved, err := tokenRepo.GetByID(ctx, token.ID)
 				require.NoError(t, err)
-				assert.Equal(t, token.Scopes, retrieved.Scopes)
+				require.Equal(t, token.Scopes, retrieved.Scopes)
 			},
 		},
 		{
@@ -495,7 +495,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 
 				tokens, err := tokenRepo.List(ctx, 0, 10)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, len(tokens), 2)
+				require.GreaterOrEqual(t, len(tokens), 2)
 			},
 		},
 		{
@@ -515,7 +515,7 @@ func TestTokenRepository_CRUD(t *testing.T) {
 
 				count, err := tokenRepo.Count(ctx)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, count, int64(1))
+				require.GreaterOrEqual(t, count, int64(1))
 			},
 		},
 	}
@@ -566,7 +566,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 
 				err := sessionRepo.Create(ctx, session)
 				require.NoError(t, err)
-				assert.NotEmpty(t, session.ID)
+				require.NotEmpty(t, session.ID)
 			},
 		},
 		{
@@ -584,8 +584,8 @@ func TestSessionRepository_CRUD(t *testing.T) {
 
 				retrieved, err := sessionRepo.GetByID(ctx, session.ID)
 				require.NoError(t, err)
-				assert.Equal(t, session.ID, retrieved.ID)
-				assert.Equal(t, session.SessionID, retrieved.SessionID)
+				require.Equal(t, session.ID, retrieved.ID)
+				require.Equal(t, session.SessionID, retrieved.SessionID)
 			},
 		},
 		{
@@ -603,7 +603,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 
 				retrieved, err := sessionRepo.GetBySessionID(ctx, session.SessionID)
 				require.NoError(t, err)
-				assert.Equal(t, session.SessionID, retrieved.SessionID)
+				require.Equal(t, session.SessionID, retrieved.SessionID)
 			},
 		},
 		{
@@ -625,7 +625,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 
 				retrieved, err := sessionRepo.GetByID(ctx, session.ID)
 				require.NoError(t, err)
-				assert.False(t, *retrieved.Active)
+				require.False(t, *retrieved.Active)
 			},
 		},
 		{
@@ -670,7 +670,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 
 				sessions, err := sessionRepo.List(ctx, 0, 10)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, len(sessions), 2)
+				require.GreaterOrEqual(t, len(sessions), 2)
 			},
 		},
 		{
@@ -688,7 +688,7 @@ func TestSessionRepository_CRUD(t *testing.T) {
 
 				count, err := sessionRepo.Count(ctx)
 				require.NoError(t, err)
-				assert.GreaterOrEqual(t, count, int64(1))
+				require.GreaterOrEqual(t, count, int64(1))
 			},
 		},
 	}
@@ -700,3 +700,4 @@ func TestSessionRepository_CRUD(t *testing.T) {
 		})
 	}
 }
+

@@ -54,7 +54,7 @@ func TestGetAvailableWorkflows(t *testing.T) {
 
 	defer func() {
 		if chdirErr := os.Chdir(originalWd); chdirErr != nil {
-			assert.NoError(t, chdirErr, "Failed to restore working directory")
+			require.NoError(t, chdirErr, "Failed to restore working directory")
 		}
 	}()
 
@@ -74,23 +74,23 @@ func TestGetAvailableWorkflows(t *testing.T) {
 		"race":     true,
 	}
 
-	assert.Equal(t, len(expectedWorkflows), len(workflows))
+	require.Equal(t, len(expectedWorkflows), len(workflows))
 
 	for workflowName := range expectedWorkflows {
-		assert.Contains(t, workflows, workflowName)
+		require.Contains(t, workflows, workflowName)
 	}
 
 	// Verify unexpected workflows are not included
 	unexpectedWorkflows := []string{"not-ci-file", "test"}
 	for _, workflowName := range unexpectedWorkflows {
-		assert.NotContains(t, workflows, workflowName)
+		require.NotContains(t, workflows, workflowName)
 	}
 }
 
 func TestGetAvailableWorkflows_NoWorkflowsDir(t *testing.T) {
 	// Test the function - should return error
 	_, err := getAvailableWorkflows(".github/workflows_nonexistent")
-	assert.Error(t, err, "Expected error when workflows directory doesn't exist")
+	require.Error(t, err, "Expected error when workflows directory doesn't exist")
 }
 
 func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
@@ -105,5 +105,6 @@ func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
 	// Test the function
 	workflows, err := getAvailableWorkflows(workflowsDir)
 	require.Error(t, err, "getAvailableWorkflows() returned error")
-	assert.Nil(t, workflows, "Expected nil workflows map for empty directory")
+	require.Nil(t, workflows, "Expected nil workflows map for empty directory")
 }
+

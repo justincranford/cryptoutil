@@ -40,7 +40,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				app, err := cryptoutilAppsTemplateServiceServer.NewApplication(ctx, publicServer, adminServer)
 				require.NoError(t, err)
 				require.NotNil(t, app)
-				assert.False(t, app.IsShutdown())
+				require.False(t, app.IsShutdown())
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				// Verify error is context deadline exceeded (expected).
 				err := <-errChan
 				require.Error(t, err)
-				assert.Contains(t, err.Error(), "context deadline exceeded")
+				require.Contains(t, err.Error(), "context deadline exceeded")
 			},
 		},
 		{
@@ -77,7 +77,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 
 				err := app.Shutdown(ctx)
 				require.NoError(t, err)
-				assert.True(t, app.IsShutdown())
+				require.True(t, app.IsShutdown())
 			},
 		},
 		{
@@ -87,7 +87,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				t.Helper()
 
 				port := app.PublicPort()
-				assert.Equal(t, 8080, port)
+				require.Equal(t, 8080, port)
 			},
 		},
 		{
@@ -97,7 +97,7 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 				t.Helper()
 
 				port := app.AdminPort()
-				assert.Equal(t, 9090, port)
+				require.Equal(t, 9090, port)
 			},
 		},
 		{
@@ -106,13 +106,13 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 			testFunc: func(t *testing.T, app *cryptoutilAppsTemplateServiceServer.Application) {
 				t.Helper()
 
-				assert.False(t, app.IsShutdown())
+				require.False(t, app.IsShutdown())
 
 				ctx := context.Background()
 				err := app.Shutdown(ctx)
 				require.NoError(t, err)
 
-				assert.True(t, app.IsShutdown())
+				require.True(t, app.IsShutdown())
 			},
 		},
 		{
@@ -150,8 +150,8 @@ func TestApplication_TableDriven_HappyPath(t *testing.T) {
 					}
 				}
 
-				assert.GreaterOrEqual(t, successCount, 1, "At least one shutdown should succeed")
-				assert.True(t, app.IsShutdown())
+				require.GreaterOrEqual(t, successCount, 1, "At least one shutdown should succeed")
+				require.True(t, app.IsShutdown())
 			},
 		},
 	}
@@ -399,8 +399,9 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 				require.NoError(t, err)
 			} else {
 				require.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError)
+				require.Contains(t, err.Error(), tt.expectedError)
 			}
 		})
 	}
 }
+

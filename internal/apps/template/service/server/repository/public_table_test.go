@@ -120,11 +120,11 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 
 				defer func() { _ = resp.Body.Close() }()
 
-				assert.Equal(t, http.StatusOK, resp.StatusCode)
+				require.Equal(t, http.StatusOK, resp.StatusCode)
 
 				body, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
-				assert.Contains(t, string(body), "healthy")
+				require.Contains(t, string(body), "healthy")
 
 				// Shutdown.
 				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -178,11 +178,11 @@ func TestPublicHTTPServer_TableDriven_HappyPath(t *testing.T) {
 
 				defer func() { _ = resp.Body.Close() }()
 
-				assert.Equal(t, http.StatusOK, resp.StatusCode)
+				require.Equal(t, http.StatusOK, resp.StatusCode)
 
 				body, err := io.ReadAll(resp.Body)
 				require.NoError(t, err)
-				assert.Contains(t, string(body), "healthy")
+				require.Contains(t, string(body), "healthy")
 
 				// Shutdown.
 				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -352,8 +352,9 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 				require.NoError(t, err)
 			} else {
 				require.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedError)
+				require.Contains(t, err.Error(), tt.expectedError)
 			}
 		})
 	}
 }
+

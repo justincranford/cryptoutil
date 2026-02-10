@@ -45,8 +45,8 @@ func TestNewPublicHTTPServer_NilContext(t *testing.T) {
 	server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(nil, cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), tlsCfg) //nolint:staticcheck // Testing nil context handling.
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "context cannot be nil")
-	assert.Nil(t, server)
+	require.Contains(t, err.Error(), "context cannot be nil")
+	require.Nil(t, server)
 }
 
 // TestNewPublicHTTPServer_NilSettings tests that NewPublicHTTPServer rejects nil settings.
@@ -58,8 +58,8 @@ func TestNewPublicHTTPServer_NilSettings(t *testing.T) {
 	server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), nil, tlsCfg)
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "settings cannot be nil")
-	assert.Nil(t, server)
+	require.Contains(t, err.Error(), "settings cannot be nil")
+	require.Nil(t, server)
 }
 
 // TestNewPublicHTTPServer_NilTLSCfg tests that NewPublicHTTPServer rejects nil TLS configuration.
@@ -69,8 +69,8 @@ func TestNewPublicHTTPServer_NilTLSCfg(t *testing.T) {
 	server, err := cryptoutilAppsTemplateServiceServerListener.NewPublicHTTPServer(context.Background(), cryptoutilAppsTemplateServiceServerTestutil.ServiceTemplateServerSettings(), nil)
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "TLS config cannot be nil")
-	assert.Nil(t, server)
+	require.Contains(t, err.Error(), "TLS config cannot be nil")
+	require.Nil(t, server)
 }
 
 // TestPublicHTTPServer_Start_Success tests public server starts and listens on dynamic port.
@@ -101,7 +101,7 @@ func TestPublicHTTPServer_Start_Success(t *testing.T) {
 
 	// Verify server is listening on a port.
 	port := server.ActualPort()
-	assert.Greater(t, port, 0)
+	require.Greater(t, port, 0)
 
 	// Shutdown server.
 	cancel()
@@ -182,7 +182,7 @@ func TestPublicHTTPServer_ServiceHealth_Healthy(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "healthy", result["status"])
+	require.Equal(t, "healthy", result["status"])
 
 	// Shutdown server.
 	cancel()
@@ -246,7 +246,7 @@ func TestPublicHTTPServer_BrowserHealth_Healthy(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "healthy", result["status"])
+	require.Equal(t, "healthy", result["status"])
 
 	// Shutdown server.
 	cancel()
@@ -301,7 +301,7 @@ func TestPublicHTTPServer_ActualPort_BeforeStart(t *testing.T) {
 
 	port := server.ActualPort()
 
-	assert.Equal(t, 0, port, "Expected port 0 before server starts")
+	require.Equal(t, 0, port, "Expected port 0 before server starts")
 }
 
 // TestPublicHTTPServer_ServiceHealth_DuringShutdown tests health endpoint during shutdown.
@@ -366,7 +366,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown(t *testing.T) {
 
 			_ = json.Unmarshal(body, &result)
 
-			assert.Equal(t, "shutting down", result["status"])
+			require.Equal(t, "shutting down", result["status"])
 		}
 	}
 
@@ -439,7 +439,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown(t *testing.T) {
 
 			_ = json.Unmarshal(body, &result)
 
-			assert.Equal(t, "shutting down", result["status"])
+			require.Equal(t, "shutting down", result["status"])
 		}
 	}
 
@@ -506,7 +506,7 @@ func TestPublicHTTPServer_PublicBaseURL(t *testing.T) {
 	// Test PublicBaseURL returns correct format.
 	baseURL := server.PublicBaseURL()
 	expectedURL := fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, port)
-	assert.Equal(t, expectedURL, baseURL)
+	require.Equal(t, expectedURL, baseURL)
 
 	// Shutdown server.
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -557,7 +557,7 @@ func TestPublicHTTPServer_ServiceHealth_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "shutting down", result["status"])
+	require.Equal(t, "shutting down", result["status"])
 }
 
 // TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory tests that /browser/api/v1/health returns 503 during shutdown.
@@ -596,7 +596,7 @@ func TestPublicHTTPServer_BrowserHealth_DuringShutdown_InMemory(t *testing.T) {
 
 	err = json.Unmarshal(body, &result)
 	require.NoError(t, err)
-	assert.Equal(t, "shutting down", result["status"])
+	require.Equal(t, "shutting down", result["status"])
 }
 
 // TestPublicHTTPServer_Shutdown_Idempotent tests that shutdown behavior is consistent.
@@ -616,5 +616,6 @@ func TestPublicHTTPServer_Shutdown_Idempotent(t *testing.T) {
 	// Subsequent shutdown calls should return error (server already shutdown).
 	err = server.Shutdown(context.Background())
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "already shutdown")
+	require.Contains(t, err.Error(), "already shutdown")
 }
+

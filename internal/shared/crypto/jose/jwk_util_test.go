@@ -67,10 +67,10 @@ func TestIsPrivateJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isPrivate, err := IsPrivateJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsPrivate, isPrivate)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsPrivate, isPrivate)
 			}
 		})
 	}
@@ -82,10 +82,10 @@ func TestIsPublicJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isPublic, err := IsPublicJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsPublic, isPublic)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsPublic, isPublic)
 			}
 		})
 	}
@@ -97,10 +97,10 @@ func TestIsAsymmetricJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isAsymmetric, err := IsAsymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsAsymmetric, isAsymmetric)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsAsymmetric, isAsymmetric)
 			}
 		})
 	}
@@ -112,10 +112,10 @@ func TestIsSymmetricJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isSymmetric, err := IsSymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsSymmetric, isSymmetric)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsSymmetric, isSymmetric)
 			}
 		})
 	}
@@ -127,10 +127,10 @@ func TestIsEncryptJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isEncrypt, err := IsEncryptJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsEncrypt, isEncrypt)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsEncrypt, isEncrypt)
 			}
 		})
 	}
@@ -142,10 +142,10 @@ func TestIsDecryptJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isDecrypt, err := IsDecryptJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsDecrypt, isDecrypt)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsDecrypt, isDecrypt)
 			}
 		})
 	}
@@ -157,10 +157,10 @@ func TestIsSignJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isSign, err := IsSignJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsSign, isSign)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsSign, isSign)
 			}
 		})
 	}
@@ -172,10 +172,10 @@ func TestIsVerifyJWK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			isVerify, err := IsVerifyJWK(tc.jwk)
 			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
+				require.ErrorIs(t, err, tc.wantErr)
 			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expectedIsVerify, isVerify)
+				require.NoError(t, err)
+				require.Equal(t, tc.expectedIsVerify, isVerify)
 			}
 		})
 	}
@@ -1376,3 +1376,4 @@ func TestCreateJWKFromKey_NilKey(t *testing.T) {
 	require.Empty(t, publicBytes)
 	require.Contains(t, err.Error(), "JWK key material must be non-nil")
 }
+
