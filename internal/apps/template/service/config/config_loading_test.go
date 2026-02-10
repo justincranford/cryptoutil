@@ -11,6 +11,8 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // NOTE: These tests now use ParseWithFlagSet() with fresh FlagSets to avoid
@@ -86,7 +88,7 @@ bind-private-port: 9999
 	require.NoError(t, err)
 
 	require.Equal(t, false, settings.DevMode, "dev field correctly maps to DevMode")
-	require.Equal(t, "0.0.0.0", settings.BindPublicAddress, "bindPublicAddress should map to BindPublicAddress")
+	require.Equal(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAddress, "bindPublicAddress should map to BindPublicAddress")
 	require.Equal(t, uint16(8070), settings.BindPublicPort, "bindPublicPort should map to BindPublicPort")
 	require.Equal(t, "127.0.0.1", settings.BindPrivateAddress, "bindPrivateAddress should map to BindPrivateAddress")
 	require.Equal(t, uint16(9999), settings.BindPrivatePort, "bindPrivatePort should map to BindPrivatePort")
@@ -160,7 +162,7 @@ tls-private-ip-addresses:
 	require.NoError(t, err)
 
 	require.Equal(t, false, settings.DevMode, "dev: false should map to DevMode: false")
-	require.Equal(t, "0.0.0.0", settings.BindPublicAddress)
+	require.Equal(t, cryptoutilSharedMagic.IPv4AnyAddress, settings.BindPublicAddress)
 	require.Equal(t, uint16(8080), settings.BindPublicPort)
 	require.Equal(t, "127.0.0.1", settings.BindPrivateAddress)
 	require.Equal(t, uint16(9090), settings.BindPrivatePort)

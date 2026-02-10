@@ -14,7 +14,7 @@ import (
 )
 
 // TestContainerModeDetection tests container mode detection logic based on bind address.
-// Container mode is triggered when BindPublicAddress == "0.0.0.0".
+// Container mode is triggered when BindPublicAddress == IPv4AnyAddress.
 func TestContainerModeDetection(t *testing.T) {
 	t.Parallel()
 
@@ -25,9 +25,9 @@ func TestContainerModeDetection(t *testing.T) {
 		wantContainerMode  bool
 	}{
 		{
-			name:               "public 0.0.0.0 triggers container mode",
-			bindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress, // "0.0.0.0"
-			bindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,   // "127.0.0.1"
+			name:               "public IPv4AnyAddress triggers container mode",
+			bindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress, 
+			bindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,   
 			wantContainerMode:  true,
 		},
 		{
@@ -37,7 +37,7 @@ func TestContainerModeDetection(t *testing.T) {
 			wantContainerMode:  false,
 		},
 		{
-			name:               "private 0.0.0.0 does NOT trigger container mode",
+			name:               "private IPv4AnyAddress does NOT trigger container mode",
 			bindPublicAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			bindPrivateAddress: cryptoutilSharedMagic.IPv4AnyAddress,
 			wantContainerMode:  false,
@@ -64,3 +64,4 @@ func TestContainerModeDetection(t *testing.T) {
 		})
 	}
 }
+

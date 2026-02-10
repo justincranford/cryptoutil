@@ -142,7 +142,7 @@ func TestMaskPassword(t *testing.T) {
 }
 
 // TestContainerModeDetection tests container mode detection logic based on bind address.
-// Container mode is triggered when BindPublicAddress == "0.0.0.0"
+// Container mode is triggered when BindPublicAddress == IPv4AnyAddress
 // Priority: P1.1 (Critical - Must Have).
 func TestContainerModeDetection(t *testing.T) {
 	t.Parallel()
@@ -154,9 +154,9 @@ func TestContainerModeDetection(t *testing.T) {
 		wantContainerMode  bool
 	}{
 		{
-			name:               "public 0.0.0.0 triggers container mode",
-			bindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress, // "0.0.0.0"
-			bindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,   // "127.0.0.1"
+			name:               "public IPv4AnyAddress triggers container mode",
+			bindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress, 
+			bindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,   
 			wantContainerMode:  true,
 		},
 		{
@@ -166,7 +166,7 @@ func TestContainerModeDetection(t *testing.T) {
 			wantContainerMode:  false,
 		},
 		{
-			name:               "private 0.0.0.0 does NOT trigger container mode",
+			name:               "private IPv4AnyAddress does NOT trigger container mode",
 			bindPublicAddress:  cryptoutilSharedMagic.IPv4Loopback,
 			bindPrivateAddress: cryptoutilSharedMagic.IPv4AnyAddress,
 			wantContainerMode:  false,
@@ -219,7 +219,7 @@ func TestMTLSConfiguration(t *testing.T) {
 		{
 			name:                  "container mode disables mTLS on private server",
 			devMode:               false,
-			bindPublicAddress:     cryptoutilSharedMagic.IPv4AnyAddress, // 0.0.0.0
+			bindPublicAddress:     cryptoutilSharedMagic.IPv4AnyAddress,
 			bindPrivateAddress:    cryptoutilSharedMagic.IPv4Loopback,
 			wantPrivateClientAuth: tls.NoClientCert,
 			wantPublicClientAuth:  tls.NoClientCert,
@@ -233,7 +233,7 @@ func TestMTLSConfiguration(t *testing.T) {
 			wantPublicClientAuth:  tls.NoClientCert, // Public never requires client certs
 		},
 		{
-			name:                  "container mode with private 0.0.0.0 still enables mTLS",
+			name:                  "container mode with private IPv4AnyAddress still enables mTLS",
 			devMode:               false,
 			bindPublicAddress:     cryptoutilSharedMagic.IPv4Loopback,
 			bindPrivateAddress:    cryptoutilSharedMagic.IPv4AnyAddress,
@@ -2405,3 +2405,4 @@ func TestStartBasic_UnsealKeysServiceFailure(t *testing.T) {
 	require.Nil(t, basic)
 	require.Contains(t, err.Error(), "failed to create unseal repository")
 }
+

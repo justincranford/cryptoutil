@@ -13,6 +13,8 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestNewFromFile_Success tests successful config loading from file.
@@ -462,9 +464,9 @@ func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
 
 	defer viper.Reset()
 
-	// In dev mode, 0.0.0.0 is rejected, so this should cause a validation error and panic
+	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
-		NewForJOSEServer("0.0.0.0", 8080, true)
+		NewForJOSEServer(cryptoutilSharedMagic.IPv4AnyAddress, 8080, true)
 	})
 }
 
@@ -475,9 +477,9 @@ func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
 
 	defer viper.Reset()
 
-	// In dev mode, 0.0.0.0 is rejected, so this should cause a validation error and panic
+	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
-		NewForCAServer("0.0.0.0", 8080, true)
+		NewForCAServer(cryptoutilSharedMagic.IPv4AnyAddress, 8080, true)
 	})
 }
 
