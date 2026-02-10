@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -133,7 +134,7 @@ func TestDBRealmRepository_CreateUser(t *testing.T) {
 		{
 			name:     "nil user",
 			user:     nil,
-			password: "password",
+			password: googleUuid.Must(googleUuid.NewV7()).String(),
 			wantErr:  true,
 		},
 		{
@@ -311,7 +312,7 @@ func TestDBRealmRepository_Authenticate(t *testing.T) {
 			name:        "user not found",
 			realmID:     "realm-1",
 			username:    "nonexistent",
-			password:    "password",
+			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserNotFound,
 		},
@@ -319,7 +320,7 @@ func TestDBRealmRepository_Authenticate(t *testing.T) {
 			name:        "disabled user",
 			realmID:     "realm-1",
 			username:    "disableduser",
-			password:    "password",
+			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserDisabled,
 		},

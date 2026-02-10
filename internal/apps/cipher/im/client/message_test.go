@@ -15,7 +15,7 @@ import (
 func TestSendMessage_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	messageID := googleUuid.New()
+	messageID := googleUuid.Must(googleUuid.NewV7())
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		require.Equal(t, http.MethodPut, r.Method)

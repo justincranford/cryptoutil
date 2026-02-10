@@ -9,12 +9,13 @@ import (
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 // Test constants for password strings.
-const (
-	testPassword = "password"
+var (
+	testPassword = googleUuid.Must(googleUuid.NewV7()).String()
 )
 
 func FastPBKDF2ParameterSet() *PBKDF2Params {

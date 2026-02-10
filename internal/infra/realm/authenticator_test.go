@@ -91,6 +91,11 @@ func TestNewAuthenticator(t *testing.T) {
 func TestAuthenticator_Authenticate(t *testing.T) {
 	t.Parallel()
 
+	// Generate unique passwords for this test run.
+	adminPassword := googleUuid.Must(googleUuid.NewV7()).String()
+	disabledUserPassword := googleUuid.Must(googleUuid.NewV7()).String()
+	wrongPassword := googleUuid.Must(googleUuid.NewV7()).String()
+
 	config := &Config{
 		Realms: []RealmConfig{
 			{
@@ -102,14 +107,14 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 					{
 						ID:           testUserID1,
 						Username:     "admin",
-						PasswordHash: createTestPasswordHash(t, "adminpass"),
+						PasswordHash: createTestPasswordHash(t, adminPassword),
 						Roles:        []string{"admin"},
 						Enabled:      true,
 					},
 					{
 						ID:           testUserID2,
 						Username:     "disabled_user",
-						PasswordHash: createTestPasswordHash(t, "password"),
+						PasswordHash: createTestPasswordHash(t, disabledUserPassword),
 						Roles:        []string{"user"},
 						Enabled:      false,
 					},
@@ -154,7 +159,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 			name:        "successful authentication",
 			realmID:     testRealmID1,
 			username:    "admin",
-			password:    "adminpass",
+			password:    adminPassword,
 			wantAuth:    true,
 			wantErrCode: AuthErrorNone,
 		},
@@ -162,7 +167,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 			name:        "wrong password",
 			realmID:     testRealmID1,
 			username:    "admin",
-			password:    "wrongpass",
+			password:    wrongPassword,
 			wantAuth:    false,
 			wantErrCode: AuthErrorPasswordMismatch,
 		},
@@ -170,7 +175,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 			name:        "user not found",
 			realmID:     testRealmID1,
 			username:    "nonexistent",
-			password:    "password",
+			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserNotFound,
 		},
@@ -178,7 +183,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 			name:        "disabled user",
 			realmID:     testRealmID1,
 			username:    "disabled_user",
-			password:    "password",
+			password:    disabledUserPassword,
 			wantAuth:    false,
 			wantErrCode: AuthErrorUserDisabled,
 		},
@@ -186,7 +191,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 			name:        "realm not found",
 			realmID:     nonExistentID,
 			username:    "admin",
-			password:    "adminpass",
+			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorRealmNotFound,
 		},
@@ -194,7 +199,7 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 			name:        "disabled realm",
 			realmID:     testRealmID2,
 			username:    "admin",
-			password:    "password",
+			password:    googleUuid.Must(googleUuid.NewV7()).String(),
 			wantAuth:    false,
 			wantErrCode: AuthErrorRealmDisabled,
 		},
@@ -229,6 +234,9 @@ func TestAuthenticator_Authenticate(t *testing.T) {
 func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 	t.Parallel()
 
+	// Generate unique password for this test run.
+	testuserPassword := googleUuid.Must(googleUuid.NewV7()).String()
+
 	config := &Config{
 		Realms: []RealmConfig{
 			{
@@ -240,7 +248,7 @@ func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 					{
 						ID:           testUserID1,
 						Username:     "testuser",
-						PasswordHash: createTestPasswordHash(t, "testpass"),
+						PasswordHash: createTestPasswordHash(t, testuserPassword),
 						Roles:        []string{"user"},
 						Enabled:      true,
 					},
@@ -258,18 +266,21 @@ func TestAuthenticator_AuthenticateByRealmName(t *testing.T) {
 	ctx := context.Background()
 
 	// Success case.
-	result := auth.AuthenticateByRealmName(ctx, "demo-realm", "testuser", "testpass")
+	result := auth.AuthenticateByRealmName(ctx, "demo-realm", "testuser", testuserPassword)
 	require.True(t, result.Authenticated)
 	require.Equal(t, "testuser", result.Username)
 
 	// Realm not found.
-	result = auth.AuthenticateByRealmName(ctx, "nonexistent-realm", "testuser", "testpass")
+	result = auth.AuthenticateByRealmName(ctx, "nonexistent-realm", "testuser", googleUuid.Must(googleUuid.NewV7()).String())
 	require.False(t, result.Authenticated)
 	require.Equal(t, AuthErrorRealmNotFound, result.ErrorCode)
 }
 
 func TestAuthenticator_ExpandPermissions(t *testing.T) {
 	t.Parallel()
+
+	// Generate unique password for this test run.
+	testPassword := googleUuid.Must(googleUuid.NewV7()).String()
 
 	config := &Config{
 		Realms: []RealmConfig{
@@ -282,7 +293,7 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 					{
 						ID:           testUserID1,
 						Username:     "superadmin",
-						PasswordHash: createTestPasswordHash(t, "password"),
+						PasswordHash: createTestPasswordHash(t, testPassword),
 						Roles:        []string{"superadmin"},
 						Enabled:      true,
 					},
@@ -320,7 +331,7 @@ func TestAuthenticator_ExpandPermissions(t *testing.T) {
 
 	ctx := context.Background()
 
-	result := auth.Authenticate(ctx, testRealmID1, "superadmin", "password")
+	result := auth.Authenticate(ctx, testRealmID1, "superadmin", testPassword)
 	require.True(t, result.Authenticated)
 
 	// Should have all inherited permissions.
@@ -456,12 +467,12 @@ func TestAuthenticator_VerifyPasswordErrors(t *testing.T) {
 		hash     string
 		password string
 	}{
-		{name: "invalid hash format", hash: "invalid", password: "password"},
-		{name: "wrong algorithm", hash: "$bcrypt$10$salt$hash", password: "password"},
-		{name: "invalid iterations", hash: "$pbkdf2-sha256$abc$salt$hash", password: "password"},
-		{name: "invalid salt encoding", hash: "$pbkdf2-sha256$10000$!!!invalid!!!$hash", password: "password"},
-		{name: "too few hash parts", hash: "$pbkdf2-sha256$10000", password: "password"},
-		{name: "empty hash", hash: "", password: "password"},
+		{name: "invalid hash format", hash: "invalid", password: googleUuid.Must(googleUuid.NewV7()).String()},
+		{name: "wrong algorithm", hash: "$bcrypt$10$salt$hash", password: googleUuid.Must(googleUuid.NewV7()).String()},
+		{name: "invalid iterations", hash: "$pbkdf2-sha256$abc$salt$hash", password: googleUuid.Must(googleUuid.NewV7()).String()},
+		{name: "invalid salt encoding", hash: "$pbkdf2-sha256$10000$!!!invalid!!!$hash", password: googleUuid.Must(googleUuid.NewV7()).String()},
+		{name: "too few hash parts", hash: "$pbkdf2-sha256$10000", password: googleUuid.Must(googleUuid.NewV7()).String()},
+		{name: "empty hash", hash: "", password: googleUuid.Must(googleUuid.NewV7()).String()},
 	}
 
 	for _, tc := range tests {

@@ -16,12 +16,18 @@ import (
 	"testing"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 // TestSwaggerUIBasicAuthMiddleware tests all middleware scenarios.
 func TestSwaggerUIBasicAuthMiddleware(t *testing.T) {
 	t.Parallel()
+
+	// Generate unique credentials for valid credentials test.
+	validUsername := "admin-" + googleUuid.Must(googleUuid.NewV7()).String()
+	validPassword := "secret-" + googleUuid.Must(googleUuid.NewV7()).String()
+	validAuthHeader := "Basic " + base64.StdEncoding.EncodeToString([]byte(validUsername+":"+validPassword))
 
 	tests := []struct {
 		name       string
@@ -42,8 +48,8 @@ func TestSwaggerUIBasicAuthMiddleware(t *testing.T) {
 		},
 		{
 			name:       "missing auth header",
-			username:   "admin",
-			password:   "secret",
+			username:   "admin-" + googleUuid.Must(googleUuid.NewV7()).String(),
+			password:   "secret-" + googleUuid.Must(googleUuid.NewV7()).String(),
 			authHeader: "",
 			wantStatus: fiber.StatusUnauthorized,
 			wantBody:   "Authentication required",
@@ -51,41 +57,41 @@ func TestSwaggerUIBasicAuthMiddleware(t *testing.T) {
 		},
 		{
 			name:       "invalid auth method",
-			username:   "admin",
-			password:   "secret",
+			username:   "admin-" + googleUuid.Must(googleUuid.NewV7()).String(),
+			password:   "secret-" + googleUuid.Must(googleUuid.NewV7()).String(),
 			authHeader: "Bearer invalid-token",
 			wantStatus: fiber.StatusUnauthorized,
 			wantBody:   "Invalid authentication method",
 		},
 		{
 			name:       "invalid base64 encoding",
-			username:   "admin",
-			password:   "secret",
+			username:   "admin-" + googleUuid.Must(googleUuid.NewV7()).String(),
+			password:   "secret-" + googleUuid.Must(googleUuid.NewV7()).String(),
 			authHeader: "Basic not-valid-base64!!!",
 			wantStatus: fiber.StatusUnauthorized,
 			wantBody:   "Invalid authentication encoding",
 		},
 		{
 			name:       "invalid credential format",
-			username:   "admin",
-			password:   "secret",
+			username:   "admin-" + googleUuid.Must(googleUuid.NewV7()).String(),
+			password:   "secret-" + googleUuid.Must(googleUuid.NewV7()).String(),
 			authHeader: "Basic " + base64.StdEncoding.EncodeToString([]byte("invalidformat")),
 			wantStatus: fiber.StatusUnauthorized,
 			wantBody:   "Invalid authentication format",
 		},
 		{
 			name:       "invalid credentials",
-			username:   "admin",
-			password:   "secret",
+			username:   "admin-" + googleUuid.Must(googleUuid.NewV7()).String(),
+			password:   "secret-" + googleUuid.Must(googleUuid.NewV7()).String(),
 			authHeader: "Basic " + base64.StdEncoding.EncodeToString([]byte("wrong:credentials")),
 			wantStatus: fiber.StatusUnauthorized,
 			wantBody:   "Invalid credentials",
 		},
 		{
 			name:       "valid credentials",
-			username:   "admin",
-			password:   "secret",
-			authHeader: "Basic " + base64.StdEncoding.EncodeToString([]byte("admin:secret")),
+			username:   validUsername,
+			password:   validPassword,
+			authHeader: validAuthHeader,
 			wantStatus: fiber.StatusOK,
 			wantBody:   "success",
 		},

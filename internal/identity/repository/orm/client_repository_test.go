@@ -27,7 +27,7 @@ func TestClientRepository_Create(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client-create",
-		ClientSecret:            "secret",
+		ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -119,7 +119,7 @@ func TestClientRepository_GetByClientID(t *testing.T) {
 	testClient := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client-get",
-		ClientSecret:            "secret",
+		ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -182,7 +182,7 @@ func TestClientRepository_Update(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client-update",
-		ClientSecret:            "secret",
+		ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -219,7 +219,7 @@ func TestClientRepository_Delete(t *testing.T) {
 	client := &cryptoutilIdentityDomain.Client{
 		ID:                      googleUuid.Must(googleUuid.NewV7()),
 		ClientID:                "test-client-delete",
-		ClientSecret:            "secret",
+		ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -256,7 +256,7 @@ func TestClientRepository_List(t *testing.T) {
 		client := &cryptoutilIdentityDomain.Client{
 			ID:                      googleUuid.Must(googleUuid.NewV7()),
 			ClientID:                "test-client-" + string(rune('0'+i)),
-			ClientSecret:            "secret",
+			ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:                    "Test Client",
 			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -298,7 +298,7 @@ func TestClientRepository_Count(t *testing.T) {
 		client := &cryptoutilIdentityDomain.Client{
 			ID:                      googleUuid.Must(googleUuid.NewV7()),
 			ClientID:                "test-client-count-" + string(rune('0'+i)),
-			ClientSecret:            "secret",
+			ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:                    "Test Client",
 			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -332,7 +332,7 @@ func TestClientRepository_GetAll(t *testing.T) {
 		client := &cryptoutilIdentityDomain.Client{
 			ID:                      googleUuid.Must(googleUuid.NewV7()),
 			ClientID:                "test-client-getall-" + string(rune('0'+i)),
-			ClientSecret:            "secret",
+			ClientSecret:            googleUuid.Must(googleUuid.NewV7()).String(),
 			ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 			Name:                    "Test Client",
 			TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
