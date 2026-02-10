@@ -53,6 +53,7 @@ const (
 
 func TestMutualTLS(t *testing.T) {
 	t.Parallel()
+
 	tlsServerSubjectsKeyPairs := testKeyGenPool.GetMany(4) // End Entity + 2 Intermediate CAs + Root CA
 	tlsClientSubjectsKeyPairs := testKeyGenPool.GetMany(3) // End Entity + 1 Intermediate CA + Root CA
 
@@ -202,6 +203,7 @@ func TestMutualTLS(t *testing.T) {
 
 func TestSerializeCASubjects(t *testing.T) {
 	t.Parallel()
+
 	subjectsKeyPairs := testKeyGenPool.GetMany(3)
 
 	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], testCACertValidity20Years, 2)
@@ -226,6 +228,7 @@ func TestSerializeCASubjects(t *testing.T) {
 
 func TestSerializeEndEntitySubjects(t *testing.T) {
 	t.Parallel()
+
 	subjectsKeyPairs := testKeyGenPool.GetMany(3)
 	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", testCACertValidity10Years)
 	verifyCASubjects(t, err, originalCASubjects)
@@ -418,6 +421,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 
 func TestNegativeDuration(t *testing.T) {
 	t.Parallel()
+
 	_, err := CertificateTemplateCA("Root CA", "Root CA", testNegativeDuration, 1)
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
