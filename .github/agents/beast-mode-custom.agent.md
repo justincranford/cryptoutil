@@ -107,9 +107,8 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 **Before starting work:**
 
 1. **Build Health**: `go build ./...`
-2. **Module Cache**: `go list -m all`
-3. **Go Version**: `go version` (1.25.5+)
-4. **Docker**: `docker ps` (if needed)
+2. **Go Version**: `go version` (1.25.5+)
+3. **Docker**: `docker ps` (if needed)
 
 **If fails**: Report, DO NOT proceed
 
@@ -121,13 +120,6 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 - ✅ E2E timeouts, test failures = BLOCKING
 - ❌ NEVER continue with issues
 - ❌ NEVER treat as "non-blocking"
-
-## GAP Task Creation - MANDATORY
-
-**When deferring**:
-
-✅ Create `##.##-GAP_NAME.md`
-❌ NEVER defer without GAP
 
 ---
 
@@ -270,7 +262,7 @@ grep -r "TODO\|FIXME\|HACK" . --include="*.*" --exclude-dir="vendor"
 
 **4. Review Recent Commits**:
 ```bash
-git log --online -20
+git log --oneline -20
 
 # Check for:
 # - Incomplete work (WIP commits)
@@ -314,27 +306,24 @@ git log --online -20
 
 ## Quality Gates (Per Task)
 
-**Testing Strategy (MANDATORY):**
+**Quality Checks (MANDATORY before every commit):**
 
-Unit + integration + E2E tests MUST be done BEFORE EVERY COMMIT:
-- Run `go test ./...` before staging changes
-- Verify all tests pass (100%, zero skips)
-- Verify coverage targets met (≥95% production, ≥98% infrastructure)
-- NEVER commit code that breaks tests
+```bash
+go build ./...                          # Must be clean
+golangci-lint run --fix                  # Auto-fix then verify clean
+go test ./... -shuffle=on                # All tests pass, zero skips
+```
 
-**Mutation Testing:**
-- Mutations NOT required unless user explicitly requests
-- Focus on Unit + integration + E2E for high-quality commits
-- If user requests mutations, run after E2E passes
+**Coverage Targets:**
+- ≥95% production code, ≥98% infrastructure/utility code
+- Mutation testing: ONLY if user explicitly requests
 
-**Before marking complete**:
-- Build clean
-- Linting clean
-- Tests pass (100%, zero skips)
+**Before marking task complete:**
+- Build clean (`go build ./...`)
+- Linting clean (`golangci-lint run`)
+- Tests pass (100%, zero skips, `go test ./... -shuffle=on`)
 - Coverage maintained
-- Mutation testing (ONLY if user requested)
-- Evidence exists
-- Git commit
+- Git commit with conventional commit message
 
 ---
 
