@@ -11,12 +11,12 @@ import (
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
 )
 
-// Execute handles JOSE service commands by delegating to ja.Main.
+// Execute handles JOSE service commands by delegating to ja.Ja.
 // This provides a unified command interface for the cryptoutil tool.
 func Execute(parameters []string) {
-	// ja.Main expects args like: ["jose-ja", "start", ...]
+	// ja.Ja expects args like: ["jose-ja", "start", ...]
 	// We receive: ["start", ...] from parameters
 	args := append([]string{"jose-ja"}, parameters...)
-	exitCode := cryptoutilAppsJoseJa.Main(args, os.Stdin, os.Stdout, os.Stderr)
+	exitCode := cryptoutilAppsJoseJa.Ja(args, os.Stdin, os.Stdout, os.Stderr)
 	os.Exit(exitCode)
 }

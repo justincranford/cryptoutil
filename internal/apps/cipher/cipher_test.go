@@ -17,7 +17,7 @@ func TestCipher_NoArguments(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := internalCipher([]string{}, &stdout, &stderr)
+	exitCode := Cipher([]string{}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
 	output := stdout.String() + stderr.String()
@@ -54,7 +54,7 @@ func TestCipher_HelpCommand(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			exitCode := Cipher(tt.args, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			output := stdout.String() + stderr.String()
@@ -93,7 +93,7 @@ func TestCipher_VersionCommand(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			exitCode := Cipher(tt.args, nil, &stdout, &stderr)
 			require.Equal(t, 0, exitCode)
 
 			combinedOutput := stdout.String() + stderr.String()
@@ -135,7 +135,7 @@ func TestCipher_UnknownService(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			exitCode := Cipher(tt.args, nil, &stdout, &stderr)
 			require.Equal(t, 1, exitCode)
 
 			combinedOutput := stdout.String() + stderr.String()
@@ -155,7 +155,7 @@ func TestCipher_IMService_RoutesCorrectly(t *testing.T) {
 	// but we can verify routing doesn't panic and handles help.
 	var stdout, stderr bytes.Buffer
 
-	exitCode := internalCipher([]string{"im", "help"}, &stdout, &stderr)
+	exitCode := Cipher([]string{"im", "help"}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
 
 	// Should show IM-specific help, not cipher product help (check combined output).
@@ -171,7 +171,7 @@ func TestCipher_IMService_InvalidSubcommand(t *testing.T) {
 
 	var stdout, stderr bytes.Buffer
 
-	exitCode := internalCipher([]string{"im", "invalid-subcommand"}, &stdout, &stderr)
+	exitCode := Cipher([]string{"im", "invalid-subcommand"}, nil, &stdout, &stderr)
 	require.Equal(t, 1, exitCode)
 
 	// Should show IM help with error.
@@ -210,7 +210,7 @@ func TestLearn_Constants(t *testing.T) {
 
 			var stdout, stderr bytes.Buffer
 
-			exitCode := internalCipher(tt.args, &stdout, &stderr)
+			exitCode := Cipher(tt.args, nil, &stdout, &stderr)
 			require.Equal(t, tt.exitCode, exitCode)
 		})
 	}
@@ -221,7 +221,12 @@ func TestLearn_Constants(t *testing.T) {
 func TestCipher_EntryPoint(t *testing.T) {
 	t.Parallel()
 
+	var stdout, stderr bytes.Buffer
+
 	// Test help flag via public entry point.
-	exitCode := Cipher([]string{"--help"})
+	exitCode := Cipher([]string{"--help"}, nil, &stdout, &stderr)
 	require.Equal(t, 0, exitCode)
+
+	output := stdout.String() + stderr.String()
+	require.Contains(t, output, "Usage: cipher")
 }

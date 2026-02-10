@@ -1,19 +1,15 @@
 // Copyright (c) 2025 Justin Cranford
+//
 
-// Package main provides the CA server entry point.
+// Package main provides the pki-ca service entry point.
 package main
 
 import (
 	"os"
 
-	cryptoutilCmdCryptoutilCa "cryptoutil/internal/apps/pki/ca/unified"
+	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
 )
 
 func main() {
-	args := os.Args[1:]
-	if len(args) == 0 {
-		args = []string{"start"}
-	}
-
-	cryptoutilCmdCryptoutilCa.Execute(args)
+	os.Exit(cryptoutilAppsPkiCa.Ca(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

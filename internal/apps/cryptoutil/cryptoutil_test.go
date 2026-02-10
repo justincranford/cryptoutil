@@ -2,9 +2,10 @@
 //
 //
 
-package cmd
+package cryptoutil
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,8 +13,16 @@ import (
 
 func TestPrintUsage(t *testing.T) {
 	t.Parallel()
+
+	var stderr bytes.Buffer
+
 	// Test that printUsage doesn't panic
 	require.NotPanics(t, func() {
-		printUsage("test-executable")
+		printUsage(&stderr)
 	})
+
+	// Verify output contains expected content
+	output := stderr.String()
+	require.Contains(t, output, "Usage: cryptoutil")
+	require.Contains(t, output, "Available products:")
 }

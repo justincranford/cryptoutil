@@ -1,14 +1,15 @@
 // Copyright (c) 2025 Justin Cranford
 //
-//
 
 // Package main provides the cryptoutil suite entry point.
 package main
 
 import (
-	cryptoutilCmdCryptoutil "cryptoutil/internal/apps/cryptoutil"
+	"os"
+
+	cryptoutilAppsCryptoutil "cryptoutil/internal/apps/cryptoutil"
 )
 
 func main() {
-	cryptoutilCmdCryptoutil.Execute()
+	os.Exit(cryptoutilAppsCryptoutil.Suite(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

@@ -1,14 +1,15 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
+// Package main provides the sm-kms service entry point.
 package main
 
 import (
-"os"
+	"os"
 
-sm "cryptoutil/internal/apps/sm/kms"
+	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm/kms"
 )
 
 func main() {
-os.Exit(sm.Main(os.Args, os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsSmKms.Kms(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

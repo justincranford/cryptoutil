@@ -1,6 +1,5 @@
 // Copyright (c) 2025 Justin Cranford
 //
-//
 
 // Package main is the entry point for the Cipher application.
 package main
@@ -12,6 +11,5 @@ import (
 )
 
 func main() {
-	exitCode := cryptoutilAppsCipher.Cipher(os.Args[1:])
-	os.Exit(exitCode)
+	os.Exit(cryptoutilAppsCipher.Cipher(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

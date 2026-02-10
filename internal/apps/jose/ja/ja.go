@@ -1,5 +1,4 @@
-// Copyright (c) 2025 Justin Cranford
-
+// Package ja provides the JWK Authority service entry point.
 package ja
 
 import (
@@ -11,12 +10,11 @@ import (
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
 )
 
-// Main is the entry point for the jose-ja service.
-// It follows the same pattern as sm-kms for consistency.
-func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+// Ja is the entry point for the jose-ja service.
+// It follows the standard pattern for service-level CLI entry points.
+func Ja(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) < 2 {
 		log.Println("Usage: jose-ja <subcommand> [flags]")
-
 		return 1
 	}
 

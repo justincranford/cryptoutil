@@ -45,15 +45,9 @@ const (
 	dialectPostgresPG = "pgx"
 )
 
-// IM implements the instant messaging service subcommand handler.
+// Im implements the instant messaging service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
-func IM(args []string, stdout, stderr io.Writer) int {
-	return internalIM(args, stdout, stderr)
-}
-
-// internalIM implements the instant messaging service subcommand handler with testable writers.
-// Handles subcommands: server, client, init, health, livez, readyz, shutdown.
-func internalIM(args []string, stdout, stderr io.Writer) int {
+func Im(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	// Default to "server" subcommand if no args provided (backward compatibility).
 	if len(args) == 0 {
 		args = []string{"server"}

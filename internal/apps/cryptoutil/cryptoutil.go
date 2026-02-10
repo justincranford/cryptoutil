@@ -2,82 +2,66 @@
 //
 //
 
-// Package cmd provides command-line interface for cryptoutil operations.
-package cmd
+// Package cryptoutil provides command-line interface for cryptoutil suite operations.
+package cryptoutil
 
 import (
 	"fmt"
-	"os"
+	"io"
 
 	cryptoutilAppsCipher "cryptoutil/internal/apps/cipher"
-	cryptoutilCmdCryptoutilAuthz "cryptoutil/internal/apps/identity/authz/unified"
-	cryptoutilCmdCryptoutilIdp "cryptoutil/internal/apps/identity/idp/unified"
-	cryptoutilCmdCryptoutilRp "cryptoutil/internal/apps/identity/rp/unified"
-	cryptoutilCmdCryptoutilRs "cryptoutil/internal/apps/identity/rs/unified"
-	cryptoutilCmdCryptoutilSpa "cryptoutil/internal/apps/identity/spa/unified"
-	cryptoutilCmdCryptoutilIdentity "cryptoutil/internal/apps/identity/unified"
-	cryptoutilCmdCryptoutilJose "cryptoutil/internal/apps/jose/unified"
-	cryptoutilCmdCryptoutilCa "cryptoutil/internal/apps/pki/ca/unified"
-	cryptoutilKmsCmd "cryptoutil/internal/apps/sm/kms/cmd"
+	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
+	cryptoutilAppsJose "cryptoutil/internal/apps/jose"
+	cryptoutilAppsPki "cryptoutil/internal/apps/pki"
+	cryptoutilAppsSm "cryptoutil/internal/apps/sm"
 )
 
-// Execute runs the cryptoutil command-line interface.
-func Execute() {
-	executable := os.Args[0] // Example executable: ./cryptoutil
-	if len(os.Args) < 2 {
-		printUsage(executable)
-		os.Exit(1)
+// Suite runs the cryptoutil suite command-line interface.
+// This is the entry point for the suite-level CLI.
+func Suite(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) < 2 {
+		printUsage(stderr)
+
+		return 1
 	}
 
-	// TODO product := os.Args[1] // Example products: sm, identity, jose, pki, cipher
-	service := os.Args[1]     // Example services: kms, ca, ja, im, authz, idp, rs, rp, spa
-	parameters := os.Args[2:] // Example parameters: --config-file, --port, --host, etc.
+	product := args[1]     // Example products: sm, identity, jose, pki, cipher
+	parameters := args[2:] // Example parameters: service names, --config-file, --port, --host, etc.
 
-	// TODO fix the switch values to use product values, and call corresponding PRODUCT.go
-	// current implementation is a mismatch of product and service names to be fixed later
-
-	switch service {
-	case "kms":
-		cryptoutilKmsCmd.Server(parameters)
-	case "identity":
-		cryptoutilCmdCryptoutilIdentity.Execute(parameters)
-	case "identity-authz":
-		cryptoutilCmdCryptoutilAuthz.Execute(parameters)
-	case "identity-idp":
-		cryptoutilCmdCryptoutilIdp.Execute(parameters)
-	case "identity-rs":
-		cryptoutilCmdCryptoutilRs.Execute(parameters)
-	case "identity-rp":
-		cryptoutilCmdCryptoutilRp.Execute(parameters)
-	case "identity-spa":
-		cryptoutilCmdCryptoutilSpa.Execute(parameters)
-	case "jose":
-		cryptoutilCmdCryptoutilJose.Execute(parameters)
-	case "ca":
-		cryptoutilCmdCryptoutilCa.Execute(parameters)
+	// Route to product command.
+	switch product {
 	case "cipher":
-		exitCode := cryptoutilAppsCipher.Cipher(parameters)
-		os.Exit(exitCode)
-	case "help":
-		printUsage(executable)
+		return cryptoutilAppsCipher.Cipher(parameters, stdin, stdout, stderr)
+	case "identity":
+		return cryptoutilAppsIdentity.Identity(parameters, stdin, stdout, stderr)
+	case "jose":
+		return cryptoutilAppsJose.Jose(parameters, stdin, stdout, stderr)
+	case "pki":
+		return cryptoutilAppsPki.Pki(parameters, stdin, stdout, stderr)
+	case "sm":
+		return cryptoutilAppsSm.Sm(parameters, stdin, stdout, stderr)
+	case "help", "--help", "-h":
+		printUsage(stderr)
+
+		return 0
 	default:
-		printUsage(executable)
-		fmt.Printf("Unknown command: %s %s\n", executable, service)
-		os.Exit(1)
+		_, _ = fmt.Fprintf(stderr, "Unknown product: %s\n\n", product)
+		printUsage(stderr)
+
+		return 1
 	}
 }
 
-func printUsage(executable string) {
-	fmt.Printf("Usage: %s <product> [options]\n", executable)
-	fmt.Println("  kms           - Key Management Service")
-	fmt.Println("  identity      - Identity Services (legacy unified)")
-	fmt.Println("  identity-authz - Identity Authorization Server")
-	fmt.Println("  identity-idp   - Identity Provider")
-	fmt.Println("  identity-rs    - Identity Resource Server")
-	fmt.Println("  identity-rp    - Identity Relying Party (BFF reference implementation)")
-	fmt.Println("  identity-spa   - Identity SPA (Single Page Application reference implementation)")
-	fmt.Println("  jose          - JOSE Authority")
-	fmt.Println("  ca            - Certificate Authority")
-	fmt.Println("  cipher        - Cipher services (educational)")
-	fmt.Println("  help          - Show this help message")
+// printUsage prints the cryptoutil suite usage information.
+func printUsage(stderr io.Writer) {
+	_, _ = fmt.Fprintln(stderr, `Usage: cryptoutil <product> [service] [options]
+
+Available products:
+  cipher      Cipher product (encrypted messaging)
+  identity    Identity product (OAuth 2.1, OIDC 1.0)
+  jose        JOSE product (JWK/JWS/JWE/JWT operations)
+  pki         PKI product (X.509 certificates, CA)
+  sm          Secrets Manager product (KMS)
+
+Use "cryptoutil <product> help" for product-specific help.`)
 }

@@ -1,14 +1,15 @@
 // Copyright (c) 2025 Justin Cranford
 //
 
+// Package main provides the jose-ja service entry point.
 package main
 
 import (
 	"os"
 
-	ja "cryptoutil/internal/apps/jose/ja"
+	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
 )
 
 func main() {
-	os.Exit(ja.Main(os.Args, os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsJoseJa.Ja(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }
