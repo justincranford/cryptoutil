@@ -1,5 +1,5 @@
 ---
-name: beast-mode-custom
+name: beast-mode
 description: Continuous autonomous work with zero stopping - quality over speed
 tools:
   - edit/editFiles

@@ -195,7 +195,7 @@ This document is structured to serve multiple audiences:
 - doc-sync: Documentation synchronization
 - fix-github-workflows: Workflow repair and validation
 - fix-tool-names: Tool name consistency enforcement
-- beast-mode-custom: Continuous execution mode
+- beast-mode: Continuous execution mode
 
 #### 2.1.3 Agent Handoff Flow
 
@@ -2628,7 +2628,7 @@ healthcheck:
 - doc-sync: Documentation synchronization
 - fix-github-workflows: Workflow repair and validation
 - fix-tool-names: Tool name consistency enforcement
-- beast-mode-custom: Continuous execution mode
+- beast-mode: Continuous execution mode
 
 **See .github/agents/*.agent.md** for complete agent definitions
 
@@ -2666,7 +2666,7 @@ healthcheck:
 | doc-sync | Documentation synchronization | TBD | TBD |
 | fix-github-workflows | Workflow repair and validation | TBD | TBD |
 | fix-tool-names | Tool name consistency enforcement | TBD | TBD |
-| beast-mode-custom | Continuous execution mode | TBD | TBD |
+| beast-mode | Continuous execution mode | TBD | TBD |
 
 ### B.8 CI/CD Workflow Catalog
 
