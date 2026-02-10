@@ -18,6 +18,7 @@ const expectedSysInfos = 13
 
 func TestSysInfoAll(t *testing.T) {
 	t.Parallel()
+
 	all, err := GetAllInfoWithTimeout(mockSysInfoProvider, 5*time.Second)
 	require.NoError(t, err)
 	require.Len(t, all, expectedSysInfos)
