@@ -11,5 +11,6 @@ import (
 func Kms(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	// TODO: Add proper command handling
 	cryptoutilKmsCmd.Server(args)
+
 	return 0
 }

@@ -15,6 +15,7 @@ import (
 func Ja(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) < 2 {
 		log.Println("Usage: jose-ja <subcommand> [flags]")
+
 		return 1
 	}
 
