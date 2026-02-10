@@ -190,11 +190,10 @@ This document is structured to serve multiple audiences:
 
 #### 2.1.2 Agent Catalog
 
-- plan-tasks-quizme: Planning and task decomposition
-- plan-tasks-implement: Autonomous implementation execution
+- implementation-planning: Planning and task decomposition
+- implementation-execution: Autonomous implementation execution
 - doc-sync: Documentation synchronization
-- fix-github-workflows: Workflow repair and validation
-- fix-tool-names: Tool name consistency enforcement
+- fix-workflows: Workflow repair and validation
 - beast-mode: Continuous execution mode
 
 #### 2.1.3 Agent Handoff Flow
@@ -2623,11 +2622,10 @@ healthcheck:
 
 **Agents Available**:
 
-- plan-tasks-quizme: Planning and task decomposition → hands off to plan-tasks-implement
-- plan-tasks-implement: Autonomous implementation execution
+- implementation-planning: Planning and task decomposition → hands off to implementation-execution
+- implementation-execution: Autonomous implementation execution
 - doc-sync: Documentation synchronization
-- fix-github-workflows: Workflow repair and validation
-- fix-tool-names: Tool name consistency enforcement
+- fix-workflows: Workflow repair and validation
 - beast-mode: Continuous execution mode
 
 **See .github/agents/*.agent.md** for complete agent definitions
@@ -2661,11 +2659,10 @@ healthcheck:
 
 | Agent | Description | Tools | Handoffs |
 |-------|-------------|-------|----------|
-| plan-tasks-quizme | Planning and task decomposition | edit, execute, read, search, web | → plan-tasks-implement |
-| plan-tasks-implement | Autonomous implementation execution | edit, execute, read, search, web | → doc-sync, fix-github-workflows |
+| implementation-planning | Planning and task decomposition | edit, execute, read, search, web | → implementation-execution |
+| implementation-execution | Autonomous implementation execution | edit, execute, read, search, web | → doc-sync, fix-workflows |
 | doc-sync | Documentation synchronization | TBD | TBD |
-| fix-github-workflows | Workflow repair and validation | TBD | TBD |
-| fix-tool-names | Tool name consistency enforcement | TBD | TBD |
+| fix-workflows | Workflow repair and validation | TBD | TBD |
 | beast-mode | Continuous execution mode | TBD | TBD |
 
 ### B.8 CI/CD Workflow Catalog

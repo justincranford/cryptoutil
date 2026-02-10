@@ -1,5 +1,5 @@
 ---
-name: plan-tasks-implement
+name: implementation-execution
 description: Execute plan/tasks autonomously without asking permission - continuous execution
 argument-hint: "<directory-path>"
 tools:
@@ -15,7 +15,7 @@ tools:
   - web/githubRepo
 handoffs:
   - label: Create/Update Plan
-    agent: plan-tasks-quizme
+    agent: implementation-planning
     prompt: Create or update plan.md and tasks.md in the specified directory.
     send: false
   - label: Sync Documentation
@@ -23,7 +23,7 @@ handoffs:
     prompt: Synchronize documentation after implementation complete.
     send: false
   - label: Fix GitHub Workflows
-    agent: fix-github-workflows
+    agent: fix-workflows
     prompt: Fix or update GitHub Actions workflows as required by implementation or plan or tasks.
     send: false
 ---
@@ -185,16 +185,16 @@ echo "See test-output/coverage-analysis/ for complete evidence" >> docs/coverage
 
 ---
 
-## Relationship with plan-tasks-quizme Agent
+## Relationship with implementation-planning Agent
 
-This agent **requires** that plan.md and tasks.md have been **created first** using `/plan-tasks-quizme <work-dir> create`.
+This agent **requires** that plan.md and tasks.md have been **created first** using `/implementation-planning <work-dir> create`.
 
 **Workflow**:
 
-1. **Preparation**: Use `/plan-tasks-quizme <work-dir> create` to create `<work-dir>/plan.md` and `<work-dir>/tasks.md`
+1. **Preparation**: Use `/implementation-planning <work-dir> create` to create `<work-dir>/plan.md` and `<work-dir>/tasks.md`
    - During creation, may generate `<work-dir>/quizme-v#.md` for unknowns/risks/inefficiencies (ephemeral, deleted after answers merged)
-2. **Implementation**: Use `/plan-tasks-implement <work-dir>` to execute the plan autonomously
-3. **Updates** (optional): Use `/plan-tasks-quizme <work-dir> update` to update docs after implementation
+2. **Implementation**: Use `/implementation-execution <work-dir>` to execute the plan autonomously
+3. **Updates** (optional): Use `/implementation-planning <work-dir> update` to update docs after implementation
 
 --------------------------------------------
 
@@ -257,7 +257,7 @@ SCOPE OF WORK
 
 You must fully execute the plan and tasks defined in:
 
-**INPUT FILES** (must exist before start - created by plan-tasks-quizme):
+**INPUT FILES** (must exist before start - created by implementation-planning):
 
 1. **`<work-dir>/plan.md`** - High-level plan with phases, decisions, quality gates
 2. **`<work-dir>/tasks.md`** - Detailed task checklist grouped by phase with `[ ]`/`[x]` status
@@ -686,13 +686,13 @@ Always tell the user what you are going to do before making a tool call with a s
 ## Usage Pattern
 
 ```bash
-/plan-tasks-implement <work-dir>
+/implementation-execution <work-dir>
 ```
 
 **Example**:
 
 ```bash
-/plan-tasks-implement docs\my-work\
+/implementation-execution docs\my-work\
 ```
 
 This will:

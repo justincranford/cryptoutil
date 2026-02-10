@@ -1,5 +1,5 @@
 ---
-name: plan-tasks-quizme
+name: implementation-planning
 description: Create, update, and review plan.md/tasks.md documentation autonomously
 argument-hint: "<directory-path> <create|update|review>"
 tools:
@@ -12,7 +12,7 @@ tools:
   - search/changes
 handoffs:
   - label: Execute Plan
-    agent: plan-tasks-implement
+    agent: implementation-execution
     prompt: Execute the plan in the specified directory.
     send: false
 ---
@@ -138,7 +138,7 @@ You are explicitly instructed NOT to:
 ### 1. Create New Custom Plan
 
 ```
-/plan-tasks-quizme <work-dir> create
+/implementation-planning <work-dir> create
 ```
 
 This will:
@@ -156,7 +156,7 @@ This will:
 ### 2. Update Existing Plan
 
 ```
-/plan-tasks-quizme <work-dir> update
+/implementation-planning <work-dir> update
 ```
 
 This will:
@@ -171,7 +171,7 @@ This will:
 ### 3. Review Documentation
 
 ```
-/plan-tasks-quizme <work-dir> review
+/implementation-planning <work-dir> review
 ```
 
 This will:
@@ -196,13 +196,13 @@ This will:
 
 **Example - Correct Pattern**:
 ```
-User: "/plan-tasks-quizme docs\new-work\ create"
+User: "/implementation-planning docs\new-work\ create"
 Agent: [Creates plan.md] → [Creates tasks.md] → [Creates quizme-v1.md if needed] → DONE (no text)
 ```
 
 **Example - WRONG Pattern (FORBIDDEN)**:
 ```
-User: "/plan-tasks-quizme docs\new-work\ create"
+User: "/implementation-planning docs\new-work\ create"
 Agent: [Creates plan.md] → "I've created plan.md. Should I create tasks.md next?"  ❌ FORBIDDEN
 ```
 ---
@@ -871,7 +871,7 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 
 ### How VS Code Copilot Processes Contexts
 
-**When you invoke an agent with `/agent-name` (e.g., `/plan-tasks-quizme`)**:
+**When you invoke an agent with `/agent-name` (e.g., `/implementation-planning`)**:
 - VS Code Copilot uses **ONLY the agent's prompt/instructions** from the `.agent.md` file
 - Copilot instructions (`.github/copilot-instructions.md` and `.github/instructions/*.instructions.md`) are **IGNORED**
 - This is by design - agents are specialized tools with their own execution contexts
@@ -885,7 +885,7 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 ### Why This Design Matters
 
 **Think of it like specialized modes**:
-- **Slash command (e.g., `/plan-tasks-quizme`)** = Specialized agent mode with its own rules
+- **Slash command (e.g., `/implementation-planning`)** = Specialized agent mode with its own rules
 - **Normal chat** = General mode with copilot instructions
 
 **Implication for agent design**:
@@ -895,7 +895,7 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 - Cross-references to copilot instructions are for user documentation only, NOT agent execution
 
 **This is why**:
-- `plan-tasks-quizme.agent.md` needed continuous execution patterns added directly
+- `implementation-planning.agent.md` needed continuous execution patterns added directly
 - Copying patterns from `01-02.beast-mode.instructions.md` into agent file was necessary
 - Simply having beast-mode in copilot instructions doesn't affect agent behavior
 
@@ -906,19 +906,19 @@ This is a key architectural decision in VS Code Copilot that explains why copilo
 **Create new custom plan**:
 
 ```
-/plan-tasks-quizme docs\database-migration\ create
+/implementation-planning docs\database-migration\ create
 ```
 
 **Update existing plan**:
 
 ```
-/plan-tasks-quizme docs\fixes-needed-plan-tasks\ update
+/implementation-planning docs\fixes-needed-plan-tasks\ update
 ```
 
 **Review consistency**:
 
 ```
-/plan-tasks-quizme docs\my-work\ review
+/implementation-planning docs\my-work\ review
 ```
 
 ---

@@ -62,8 +62,8 @@ Quick reference for all synchronization-eligible documentation across the crypto
 
 | Change Type | Start Here | Then Update |
 |-------------|-----------|-------------|
-| New quality gate | `docs/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `.github/agents/plan-tasks-implement.agent.md` |
-| New execution rule | `.github/instructions/01-02.beast-mode.instructions.md` | `.github/agents/plan-tasks-implement.agent.md`, `.github/agents/beast-mode.agent.md` |
+| New quality gate | `docs/ARCHITECTURE.md` | `.github/instructions/06-01.quality-gates.md`, `.github/agents/implementation-execution.agent.md` |
+| New execution rule | `.github/instructions/01-02.beast-mode.instructions.md` | `.github/agents/implementation-execution.agent.md`, `.github/agents/beast-mode.agent.md` |
 | New architectural pattern | `docs/ARCHITECTURE.md` | `.github/instructions/02-*.md` (relevant domain), service implementations |
 | New testing pattern | `.github/instructions/03-02.testing.md` | `README.md`, `.github/agents/*.agent.md` (if workflow change) |
 | New pre-commit hook | `.pre-commit-config.yaml` | `docs/pre-commit-hooks.md`, `.github/instructions/03-07.linting.md` |

@@ -1,5 +1,5 @@
 ---
-name: fix-github-workflows
+name: fix-workflows
 description: Elite GitHub Actions workflows specialist - systematically analyze, fix, test, commit, push, and monitor workflows with evidence-based validation
 tools:
   - edit/editFiles
