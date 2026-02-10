@@ -64,6 +64,7 @@ func TestGetTenantContext_Nil(t *testing.T) {
 func TestGetTenantID(t *testing.T) {
 	t.Parallel()
 
+	testTenantID := googleUuid.Must(googleUuid.NewV7())
 	tests := []struct {
 		name     string
 		ctx      context.Context
@@ -76,8 +77,8 @@ func TestGetTenantID(t *testing.T) {
 		},
 		{
 			name:     "with context",
-			ctx:      WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.MustParse("01234567-89ab-cdef-0123-456789abcdef")}),
-			expected: googleUuid.MustParse("01234567-89ab-cdef-0123-456789abcdef"),
+			ctx:      WithTenantContext(context.Background(), &TenantContext{TenantID: testTenantID}),
+			expected: testTenantID,
 		},
 	}
 
@@ -130,6 +131,7 @@ func TestMustGetTenantID_Success(t *testing.T) {
 func TestRequireTenantContext(t *testing.T) {
 	t.Parallel()
 
+	testTenantID := googleUuid.Must(googleUuid.NewV7())
 	tests := []struct {
 		name       string
 		ctx        context.Context
@@ -148,9 +150,9 @@ func TestRequireTenantContext(t *testing.T) {
 		},
 		{
 			name:       "valid context",
-			ctx:        WithTenantContext(context.Background(), &TenantContext{TenantID: googleUuid.MustParse("01234567-89ab-cdef-0123-456789abcdef")}),
+			ctx:        WithTenantContext(context.Background(), &TenantContext{TenantID: testTenantID}),
 			wantErr:    nil,
-			wantTenant: googleUuid.MustParse("01234567-89ab-cdef-0123-456789abcdef"),
+			wantTenant: testTenantID,
 		},
 	}
 

@@ -52,7 +52,7 @@ func TestRegisterServiceUser_Success(t *testing.T) {
 			})
 
 		default:
-			t.Fatalf("unexpected path: %s", r.URL.Path)
+			require.Failf(t, "unexpected path", "unexpected path: %s", r.URL.Path)
 		}
 	}))
 	defer server.Close()
@@ -106,7 +106,7 @@ func TestRegisterBrowserUser_Success(t *testing.T) {
 			})
 
 		default:
-			t.Fatalf("unexpected path: %s", r.URL.Path)
+			require.Failf(t, "unexpected path", "unexpected path: %s", r.URL.Path)
 		}
 	}))
 	defer server.Close()

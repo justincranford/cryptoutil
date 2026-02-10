@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
@@ -107,8 +108,9 @@ func TestHandleEnrollTOTP_MissingIssuer(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
+	testUserID := googleUuid.Must(googleUuid.NewV7()).String()
 	reqBody := cryptoutilIdentityAuthz.EnrollTOTPRequest{
-		UserID:      "550e8400-e29b-41d4-a716-446655440000",
+		UserID:      testUserID,
 		Issuer:      "",
 		AccountName: "test@example.com",
 	}
@@ -137,8 +139,9 @@ func TestHandleEnrollTOTP_MissingAccountName(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
+	testUserID := googleUuid.Must(googleUuid.NewV7()).String()
 	reqBody := cryptoutilIdentityAuthz.EnrollTOTPRequest{
-		UserID:      "550e8400-e29b-41d4-a716-446655440000",
+		UserID:      testUserID,
 		Issuer:      "CryptoUtil",
 		AccountName: "",
 	}
@@ -248,8 +251,9 @@ func TestHandleVerifyTOTP_MissingCode(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
+	testUserID := googleUuid.Must(googleUuid.NewV7()).String()
 	reqBody := cryptoutilIdentityAuthz.VerifyTOTPRequest{
-		UserID: "550e8400-e29b-41d4-a716-446655440000",
+		UserID: testUserID,
 		Code:   "",
 	}
 
@@ -425,8 +429,9 @@ func TestHandleVerifyTOTPBackupCode_MissingCode(t *testing.T) {
 	app := fiber.New()
 	svc.RegisterRoutes(app)
 
+	testUserID := googleUuid.Must(googleUuid.NewV7()).String()
 	reqBody := cryptoutilIdentityAuthz.VerifyBackupCodeRequest{
-		UserID: "550e8400-e29b-41d4-a716-446655440000",
+		UserID: testUserID,
 		Code:   "",
 	}
 

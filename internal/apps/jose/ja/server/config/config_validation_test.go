@@ -104,31 +104,19 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 	args := []string{"start"}
 
 	settings, err := ParseWithFlagSet(fs, args, false)
-	if err != nil {
-		t.Fatalf("ParseWithFlagSet() error = %v, want nil", err)
-	}
+	require.NoError(t, err, "ParseWithFlagSet() should not error")
 
 	// Verify jose-ja defaults.
-	if settings.DefaultMaxMaterials != 10 {
-		t.Errorf("DefaultMaxMaterials = %d, want 10", settings.DefaultMaxMaterials)
-	}
+	require.Equal(t, 10, settings.DefaultMaxMaterials, "DefaultMaxMaterials should be 10")
 
-	if settings.AuditEnabled != true {
-		t.Errorf("AuditEnabled = %v, want true", settings.AuditEnabled)
-	}
+	require.True(t, settings.AuditEnabled, "AuditEnabled should be true")
 
-	if settings.AuditSamplingRate != 100 {
-		t.Errorf("AuditSamplingRate = %d, want 100", settings.AuditSamplingRate)
-	}
+	require.Equal(t, 100, settings.AuditSamplingRate, "AuditSamplingRate should be 100")
 
 	// Verify template defaults inherited.
-	if settings.BindPublicPort != 8060 { // cryptoutilSharedMagic.JoseJAServicePort.
-		t.Errorf("BindPublicPort = %d, want 8060", settings.BindPublicPort)
-	}
+	require.Equal(t, uint16(8060), settings.BindPublicPort, "BindPublicPort should be 8060") // cryptoutilSharedMagic.JoseJAServicePort.
 
-	if settings.OTLPService != "jose-ja" {
-		t.Errorf("OTLPService = %q, want %q", settings.OTLPService, "jose-ja")
-	}
+	require.Equal(t, "jose-ja", settings.OTLPService, "OTLPService should be jose-ja")
 }
 
 // TestParseWithFlagSet_OverrideDefaults tests ParseWithFlagSet with command line overrides.
@@ -179,21 +167,12 @@ func TestParseWithFlagSet_OverrideDefaults(t *testing.T) {
 			fs := pflag.NewFlagSet("test-override-"+tt.name, pflag.ContinueOnError)
 
 			settings, err := ParseWithFlagSet(fs, tt.args, false)
-			if err != nil {
-				t.Fatalf("ParseWithFlagSet() error = %v, want nil", err)
-			}
+				require.NoError(t, err, "ParseWithFlagSet() should not error")
+require.Equal(t, tt.wantMax, settings.DefaultMaxMaterials, "DefaultMaxMaterials should match expected")
 
-			if settings.DefaultMaxMaterials != tt.wantMax {
-				t.Errorf("DefaultMaxMaterials = %d, want %d", settings.DefaultMaxMaterials, tt.wantMax)
-			}
+require.Equal(t, tt.wantAud, settings.AuditEnabled, "AuditEnabled should match expected")
 
-			if settings.AuditEnabled != tt.wantAud {
-				t.Errorf("AuditEnabled = %v, want %v", settings.AuditEnabled, tt.wantAud)
-			}
-
-			if settings.AuditSamplingRate != tt.wantRate {
-				t.Errorf("AuditSamplingRate = %d, want %d", settings.AuditSamplingRate, tt.wantRate)
-			}
+			require.Equal(t, tt.wantRate, settings.AuditSamplingRate, "AuditSamplingRate should match expected")
 		})
 	}
 }

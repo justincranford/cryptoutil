@@ -131,9 +131,9 @@ func TestShardManager_GetTenantSchemaName(t *testing.T) {
 	db := setupTestDB(t)
 	cfg := DefaultShardConfig()
 	m := NewShardManager(db, cfg)
-	tenantID := googleUuid.MustParse("12345678-1234-1234-1234-1234567890ab")
+	tenantID := googleUuid.Must(googleUuid.NewV7())
 	name := m.GetTenantSchemaName(tenantID)
-	require.Equal(t, "tenant_12345678-1234-1234-1234-1234567890ab", name)
+	require.Equal(t, "tenant_"+tenantID.String(), name)
 }
 
 func TestShardManager_GetDB_SchemaLevel(t *testing.T) {
