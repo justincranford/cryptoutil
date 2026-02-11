@@ -129,6 +129,8 @@ func (s *TokenService) IntrospectToken(ctx context.Context, token string) (*Toke
 	// Validate token.
 	claims, err := s.ValidateAccessToken(ctx, token)
 	if err != nil {
+		// Per RFC 7662 section 2.2, invalid tokens return active: false without error
+		//nolint:nilerr // OAuth 2.0 introspection spec requires active: false, not error propagation
 		return &TokenMetadata{
 			Active: false,
 		}, nil

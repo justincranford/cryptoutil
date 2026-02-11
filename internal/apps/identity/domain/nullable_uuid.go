@@ -74,6 +74,7 @@ func (n *NullableUUID) Scan(value any) error {
 // Value implements driver.Valuer interface.
 func (n NullableUUID) Value() (driver.Value, error) {
 	if !n.Valid {
+		//nolint:nilnil // database/sql requires (nil, nil) for SQL NULL values
 		return nil, nil
 	}
 

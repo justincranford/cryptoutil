@@ -184,6 +184,7 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 		policy, found = s.policies["default"]
 		if !found {
 			// No policy for this operation, no step-up required.
+			//nolint:nilnil // nil challenge + nil error indicates no step-up needed
 			return nil, nil
 		}
 	}
@@ -193,6 +194,7 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 		// Check if authentication is recent enough.
 		if time.Since(authTime) <= policy.MaxAge {
 			// No step-up required.
+			//nolint:nilnil // nil challenge + nil error indicates no step-up needed
 			return nil, nil
 		}
 	}
