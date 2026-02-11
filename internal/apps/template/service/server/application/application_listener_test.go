@@ -155,8 +155,8 @@ func TestContainerModeDetection(t *testing.T) {
 	}{
 		{
 			name:               "public IPv4AnyAddress triggers container mode",
-			bindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress, 
-			bindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,   
+			bindPublicAddress:  cryptoutilSharedMagic.IPv4AnyAddress,
+			bindPrivateAddress: cryptoutilSharedMagic.IPv4Loopback,
 			wantContainerMode:  true,
 		},
 		{
@@ -2405,4 +2405,3 @@ func TestStartBasic_UnsealKeysServiceFailure(t *testing.T) {
 	require.Nil(t, basic)
 	require.Contains(t, err.Error(), "failed to create unseal repository")
 }
-

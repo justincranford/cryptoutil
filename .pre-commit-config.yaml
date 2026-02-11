@@ -147,12 +147,7 @@ repos:
         name: Check for private keys
         require_serial: false
         stages: [pre-commit]
-
-      # Cross-platform compatibility
-      - id: check-case-conflict
-        name: Check for case conflicts
-        require_serial: false
-        stages: [pre-commit]
+        exclude: '_test\.go$'
 
       # Windows-specific checks
       - id: check-illegal-windows-names

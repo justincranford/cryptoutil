@@ -159,7 +159,7 @@ func (s *SecretRotationService) GetActiveSecretVersion(
 		First(&version).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, fmt.Errorf("no active secret version found for client %s: %w", clientID, gorm.ErrRecordNotFound)
 		}
 
 		return nil, fmt.Errorf("failed to query active version: %w", err)
