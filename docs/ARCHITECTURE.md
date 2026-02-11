@@ -315,6 +315,14 @@ This document is structured to serve multiple audiences:
 - **NO Stopping**: Task complete → Commit → IMMEDIATELY start next task (zero pause)
 - **Blocker Handling**: Document blocker, switch to unblocked tasks, return when resolved
 
+##### Autonomous Execution Principles
+
+- **Quality Attributes**: Correctness (functionally correct), Completeness (all tasks done), Thoroughness (evidence-based validation), Reliability (quality gates enforced), Efficiency (maintainable/performance-optimized), Accuracy (root cause fixes)
+- **Prohibited Stop Behaviors**: No status summaries, no "ready to proceed" questions, no strategic pivots with handoff, no time/token justifications, no pauses between tasks, no asking permission, no leaving uncommitted changes, no ending with analysis, no celebrations followed by stopping, no premature completion claims, no "current task done, moving to next" announcements
+- **Execution Workflow**: Complete task → Commit → Next tool invocation (zero text, zero questions); Todo list empty → Check tracking docs → Find next incomplete task → Start immediately; All tasks done/blocked → Find quality improvements → Scan for technical debt → Review recent commits → Ask user if nothing left
+- **Completion Verification Checklist**: Build clean, linting clean, tests pass (100%, zero skips), coverage maintained, mutation testing passes, evidence exists, git commit ready; After substantive change, run relevant build/tests/linters, validate code works (fast, minimal input), provide optional fenced commands for larger runs; Fix failures up to three targeted fixes, summarize root cause if still failing
+- **Blocker Resolution**: Document in tracking doc, continue with ALL unblocked tasks, maximize progress, return to blocker when resolved; NO waiting for external dependencies
+
 ### 2.5 Quality Strategy
 
 #### Coverage Targets
