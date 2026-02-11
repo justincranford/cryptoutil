@@ -25,7 +25,7 @@ import (
 	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
 	"go.opentelemetry.io/otel/metric"

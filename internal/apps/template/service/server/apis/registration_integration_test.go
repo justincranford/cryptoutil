@@ -37,7 +37,7 @@ import (
 	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 
 	// Use modernc SQLite driver (CGO-free).
 	_ "modernc.org/sqlite"

@@ -14,7 +14,7 @@ import (
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 )
 
 // DemoTenantConfig holds demo tenant configuration.

@@ -26,7 +26,7 @@ import (
 	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 )
 
 // ServiceResources contains all initialized service resources available to domain-specific code.

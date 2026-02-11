@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 
 	googleUuid "github.com/google/uuid"
 

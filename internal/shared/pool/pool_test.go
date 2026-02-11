@@ -15,7 +15,7 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"

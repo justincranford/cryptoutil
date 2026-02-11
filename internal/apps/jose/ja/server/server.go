@@ -20,7 +20,7 @@ import (
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 )
 
 // JoseJAServer represents the jose-ja service application.

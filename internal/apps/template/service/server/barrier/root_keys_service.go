@@ -13,7 +13,7 @@ import (
 	// Repository interface used instead of OrmRepository.
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 
 	googleUuid "github.com/google/uuid"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"

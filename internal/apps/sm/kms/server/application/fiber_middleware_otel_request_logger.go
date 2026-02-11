@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"time"
 
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/trace"

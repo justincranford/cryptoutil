@@ -15,7 +15,7 @@ import (
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedPool "cryptoutil/internal/shared/pool"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 )
 
 const (

@@ -15,7 +15,7 @@ import (
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"

@@ -14,7 +14,7 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/apps/sm/kms/server/repository/orm"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 
 	testify "github.com/stretchr/testify/require"
 )

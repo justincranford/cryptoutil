@@ -22,7 +22,7 @@ import (
 	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 )
 
 // TestServerResources holds shared resources created by SetupTestServer.

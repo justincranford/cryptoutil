@@ -10,7 +10,7 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 	cryptoutilSharedUtilSysinfo "cryptoutil/internal/shared/util/sysinfo"
