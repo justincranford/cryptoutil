@@ -15,7 +15,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
 )
 
 // fixedTime is a consistent timestamp for test reproducibility.

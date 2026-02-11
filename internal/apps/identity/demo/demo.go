@@ -22,12 +22,12 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityAuthz "cryptoutil/internal/identity/authz"
-	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
-	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
+	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
+	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
+	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
+	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
 )
 

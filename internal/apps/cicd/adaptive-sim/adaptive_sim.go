@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"time"
 
-	cryptoutilIdentityIdpUserauth "cryptoutil/internal/identity/idp/userauth"
+	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
 )
 
 // Version information for the adaptive simulation CLI.

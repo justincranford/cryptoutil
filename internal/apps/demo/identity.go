@@ -17,11 +17,11 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilIdentityBootstrap "cryptoutil/internal/identity/bootstrap"
-	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
-	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
+	cryptoutilIdentityBootstrap "cryptoutil/internal/apps/identity/bootstrap"
+	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
+	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
+	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
 )
 
 // Identity demo step counts.
