@@ -78,15 +78,6 @@ NEVER end your turn without having truly and completely solved the problem.
 
 ---
 
-## Priorities (NO EXCEPTIONS)
-
-- ✅ Correctness, completeness, thoroughness, reliability, efficiency
-- ✅ Quality gates enforced
-- ❌ NEVER rush, skip validation, or mark tasks complete without evidence
-- ❌ Time pressure does NOT exist - work can span hours/days/weeks
-- ❌ Token pressure does NOT exist - work can span many interactions
-- ❌ Premature completion is NOT allowed
-
 **Execution Pattern**: Task complete → Commit → Next task (zero pause, zero text)
 
 You MUST plan extensively before each function call, and reflect extensively on the outcomes of the previous function calls. DO NOT do this entire process by making function calls only, as this can impair your ability to solve the problem and think insightfully.
@@ -123,6 +114,43 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 3. **Docker**: `docker ps` (if needed)
 
 **If fails**: Report, DO NOT proceed
+
+---
+
+## Completion Verification Checklist - MANDATORY
+
+**BEFORE marking ANY task complete, verify ALL criteria**:
+
+### Build & Code Quality
+- [ ] `go build ./...` exits 0 (clean build)
+- [ ] `golangci-lint run --fix` exits 0 (zero linting errors)
+- [ ] No new TODO/FIXME comments added vs baseline
+
+### Workspace Cleanliness
+- [ ] `git status --porcelain` returns empty (no unstaged files)
+- [ ] All changes committed with conventional commit messages
+- [ ] Working tree clean, no untracked files requiring commit
+
+### Test Quality
+- [ ] `go test ./...` exits 0 (all tests pass)
+- [ ] Zero NEW test failures vs baseline (pre-existing failures documented separately)
+- [ ] Zero EXISTING test failures; always fix existing failures before marking new work complete
+- [ ] No skipped tests without explicit tracking
+- [ ] Coverage maintained or improved vs baseline
+
+### Requirements Validation
+- [ ] ALL explicit requirements from task description implemented
+- [ ] ALL quality gates implemented
+- [ ] Edge cases identified and handled
+- [ ] Documentation updated (if applicable)
+
+**Definition of Done**: "It works" ≠ "It's done"
+- **Works**: Code is functionally correct
+- **Done**: Code meets ALL quality criteria above + committed + tested
+
+**Enforcement**: If ANY checkbox unchecked → Task is NOT complete
+
+---
 
 ## Quality Enforcement - MANDATORY
 
