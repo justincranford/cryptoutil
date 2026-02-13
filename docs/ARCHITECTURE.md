@@ -2622,9 +2622,9 @@ healthcheck:
 
 ### B.6 Instruction File Reference
 
-**See .github/copilot-instructions.md** for complete table of 26 instruction files
+**See .github/copilot-instructions.md** for complete table of 18 instruction files
 
-**Summary**: 01-terminology/beast-mode, 02-architecture (9 files), 03-development (8 files), 04-ci-cd (2 files), 05-platform (3 files), 06-evidence (2 files), 07-patterns (1 file)
+**Summary**: 01-terminology/beast-mode, 02-architecture (5 files), 03-development (4 files), 04-deployment (1 file), 05-platform (2 files), 06-evidence (2 files)
 
 ### B.7 Agent Catalog & Handoff Matrix
 

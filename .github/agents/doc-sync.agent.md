@@ -326,9 +326,8 @@ grep -r "NEVER ask.*Should I proceed" .github/ | wc -l  # Should match number of
 **Documents Requiring Sync**:
 
 1. Architecture (docs/ARCHITECTURE.md) → Update ServerBuilder section
-2. Copilot Instructions (02-02.service-template) → Update ServerBuilder requirements
-3. Copilot Instructions (03-08.server-builder) → Add merged migrations pattern
-4. Service Template Docs (docs/service-template/*.md) → Update examples
+2. Copilot Instructions (02-01.architecture, 03-04.data-infrastructure) → Update ServerBuilder requirements and migrations
+3. Service Template Docs (docs/service-template/*.md) → Update examples
 **Sync Workflow**:
 
 ```bash
@@ -417,7 +416,7 @@ Before ending documentation sync session:
 
 **When Changing Security Standards**:
 
-1. Copilot Instructions (02-07, 02-08, 02-09, 03-06) → Architecture → Plans
+1. Copilot Instructions (02-07.security) → Architecture → Plans
 
 **When Discovering Lessons Learned**:
 
