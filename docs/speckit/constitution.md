@@ -184,7 +184,7 @@ ALWAYS fix linting/formatting errors - NO EXCEPTIONS (production, tests, docs, c
 - File size limits: 300 (soft), 400 (medium), 500 (hard → refactor REQUIRED)
 - Pre-commit hooks: ALWAYS fix all errors
 
-**See**: [linting.instructions.md](/.github/instructions/03-07.linting.instructions.md) for golangci-lint configuration
+**See**: [linting.instructions.md](/.github/instructions/03-05.linting.instructions.md) for golangci-lint configuration
 
 ### Evidence-Based Completion
 
