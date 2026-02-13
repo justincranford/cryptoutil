@@ -28,16 +28,16 @@
 | [01-01.terminology](.github/instructions/01-01.terminology.instructions.md) | RFC 2119 keywords (MUST, SHOULD, MAY, CRITICAL) |
 | [01-02.beast-mode](.github/instructions/01-02.beast-mode.instructions.md) | Continuous work directive |
 | [02-01.architecture](.github/instructions/02-01.architecture.instructions.md) | Architecture, service template, and HTTPS patterns |
-| [02-04.versions](.github/instructions/02-04.versions.instructions.md) | Version requirements |
-| [02-05.observability](.github/instructions/02-05.observability.instructions.md) | Observability and monitoring |
-| [02-06.openapi](.github/instructions/02-06.openapi.instructions.md) | OpenAPI spec and code generation |
-| [02-07.security](.github/instructions/02-07.security.instructions.md) | Security, cryptography, hashing, and PKI |
-| [02-10.authn](.github/instructions/02-10.authn.instructions.md) | Authentication and authorization patterns |
+| [02-02.versions](.github/instructions/02-02.versions.instructions.md) | Version requirements |
+| [02-03.observability](.github/instructions/02-03.observability.instructions.md) | Observability and monitoring |
+| [02-04.openapi](.github/instructions/02-04.openapi.instructions.md) | OpenAPI spec and code generation |
+| [02-05.security](.github/instructions/02-05.security.instructions.md) | Security, cryptography, hashing, and PKI |
+| [02-06.authn](.github/instructions/02-06.authn.instructions.md) | Authentication and authorization patterns |
 | [03-01.coding](.github/instructions/03-01.coding.instructions.md) | Coding patterns and standards |
 | [03-02.testing](.github/instructions/03-02.testing.instructions.md) | Testing standards and quality gates |
 | [03-03.golang](.github/instructions/03-03.golang.instructions.md) | Go project structure and standards |
 | [03-04.data-infrastructure](.github/instructions/03-04.data-infrastructure.instructions.md) | Database, SQLite/GORM, and server builder |
-| [03-07.linting](.github/instructions/03-07.linting.instructions.md) | Code quality and linting |
+| [03-05.linting](.github/instructions/03-05.linting.instructions.md) | Code quality and linting |
 | [04-01.deployment](.github/instructions/04-01.deployment.instructions.md) | CI/CD, Docker, and deployment |
 | [05-01.cross-platform](.github/instructions/05-01.cross-platform.instructions.md) | Platform-specific tooling |
 | [05-02.git](.github/instructions/05-02.git.instructions.md) | Git commands and commit conventions |
