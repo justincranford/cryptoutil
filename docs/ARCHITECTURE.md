@@ -188,6 +188,14 @@ This document is structured to serve multiple audiences:
 - Autonomous execution mode patterns
 - Quality over speed enforcement
 
+**Implementation Plan File Structure**:
+
+Implementation plans are composed of 4 files in `<work-dir>/`:
+- `quizme-v#.md` - Ephemeral, only during implementation-planning.agent.md (A-D options + E blank + Answer field)
+- `plan.md` - Created/updated during implementation-planning.agent.md, implemented during implementation-execution.agent.md
+- `tasks.md` - Created/updated during implementation-planning.agent.md, implemented during implementation-execution.agent.md (phases and tasks as checkboxes, updated continuously)
+- `memory.md` - Ephemeral, only during implementation-execution.agent.md (NOT in .github/instructions/memory.instruction.md - copilot instruction files are not loaded by agents)
+
 #### 2.1.2 Agent Catalog
 
 - implementation-planning: Planning and task decomposition

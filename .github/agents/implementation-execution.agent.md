@@ -716,8 +716,34 @@ This will:
 
 **Memory Management:**
 
-You have a memory that stores information about the user and their preferences. This memory is used to provide a more personalized experience.
-You can access and update this memory as needed. The memory is stored in a file called `.github/instructions/memory.instruction.md`.
+**CRITICAL: Implementation Plan File Structure**
+
+Implementation plans are composed of **4 files in `<work-dir>/`**:
+
+1. **`<work-dir>/quizme-v#.md`** - NOT used by this agent
+   - Ephemeral, ONLY during implementation-planning.agent.md
+   - Deleted after user answers merged by planning agent
+
+2. **`<work-dir>/plan.md`** - Implementation plan
+   - Created by implementation-planning.agent.md
+   - YOU implement this plan during execution
+   - Contains phases, decisions, quality gates, success criteria
+
+3. **`<work-dir>/tasks.md`** - Task breakdown
+   - Created by implementation-planning.agent.md
+   - YOU update task checkboxes continuously as you complete work
+   - Contains detailed acceptance criteria per task
+
+4. **`<work-dir>/memory.md`** - Execution context (YOU create/update this)
+   - Ephemeral, ONLY during YOUR execution (implementation-execution.agent.md)
+   - Stores session context, discoveries, blockers, decisions
+   - Located in `<work-dir>/memory.md` (NOT .github/instructions/memory.instruction.md)
+   - **CRITICAL**: Copilot instruction files are NOT loaded by agents (agent isolation)
+
+**Memory File Management**:
+
+You have a memory file that stores execution context. This memory is used to maintain session context across your work.
+You can access and update this memory as needed. The memory is stored in `<work-dir>/memory.md`.
 
 When creating a new memory file, you MUST include the following front matter at the top of the file:
 

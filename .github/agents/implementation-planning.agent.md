@@ -83,12 +83,31 @@ You MUST plan extensively before each function call, and reflect extensively on 
 
 This agent helps you create, update, and maintain **simple custom plans** autonomously.
 
-**Custom plans** use **2 input files** (created/updated by this agent):
+**Implementation Plan Composition**:
 
-- **`<work-dir>/plan.md`** - High-level implementation plan with phases and decisions
-- **`<work-dir>/tasks.md`** - Detailed task breakdown with acceptance criteria
+Custom plans are composed of **4 files in `<work-dir>/`**:
 
-**Plus optional quizme file** (ephemeral, deleted after answers merged):
+1. **`<work-dir>/quizme-v#.md`** - Ephemeral, ONLY during implementation-planning.agent.md
+   - Created by this agent to clarify unknowns/risks/inefficiencies
+   - Format: A-D options + E (blank) + Answer: field (blank)
+   - Deleted after answers merged into plan.md/tasks.md
+
+2. **`<work-dir>/plan.md`** - Core planning document
+   - Created/updated by this agent (implementation-planning.agent.md)
+   - Implemented during implementation-execution.agent.md
+   - High-level implementation plan with phases and decisions
+
+3. **`<work-dir>/tasks.md`** - Task breakdown
+   - Created/updated by this agent (implementation-planning.agent.md)
+   - Implemented during implementation-execution.agent.md
+   - Phases and tasks as checkboxes, updated continuously during execution
+
+4. **`<work-dir>/memory.md`** - Execution context (NOT created by this agent)
+   - Ephemeral, ONLY during implementation-execution.agent.md
+   - NOT a copilot instruction file (.github/instructions/ files not loaded by agents)
+   - Created/updated by implementation-execution agent for session context
+
+**Files created/updated by this agent**:
 
 - **`<work-dir>/quizme-v#.md`** - Questions to clarify unknowns, risks, inefficiencies ONLY
   - Format: A-D options + E (blank) + **Answer:** field (blank)
