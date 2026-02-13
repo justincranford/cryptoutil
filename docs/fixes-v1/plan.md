@@ -88,3 +88,33 @@ This plan contains ONLY the incomplete work from Fixes V10 that was blocked on D
 - [ ] No test timeouts or failures
 - [ ] Evidence archived in test-output/e2e/
 - [ ] Git commit with conventional format
+
+### Phase 2: Documentation Consistency (1h) [Status:  TODO]
+
+**Objective**: Fix critical documentation inconsistencies found in architecture compliance analysis (Section 1)
+
+#### 2.1 Product Count Alignment (0.5h)
+
+**Issue**: ARCHITECTURE.md says "five products", README.md says "four cryptographic services", constitution.md says "four Products"
+
+**Root Cause**: Documentation not synchronized after Cipher product added to scope
+
+**Fix**:
+- Update README.md Line 11 to "five products"  
+- Update constitution.md Line 9 to "five Products"
+- Ensure all 5 products listed: PKI, JOSE, Cipher, SM, Identity
+- **Success**: Zero references to "four products/services" remain
+
+#### 2.2 Service Implementation Status Table (0.5h)
+
+**Issue**: ARCHITECTURE.md Section 3.2 does not indicate current implementation status
+
+**Root Cause**: Architecture doc does not reflect actual codebase state  
+
+**Fix**:
+- Add implementation status column to Service Catalog table (Section 3.2)
+- Document completion status: sm-kms (Complete), pki-ca (Partial), jose-ja (Partial), cipher-im (Not Started), identity services (Mixed)
+- Link to relevant phase/task docs for incomplete services
+- **Success**: Developers can assess service maturity at a glance
+
+---

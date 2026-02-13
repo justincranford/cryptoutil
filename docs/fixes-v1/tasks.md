@@ -163,3 +163,48 @@
 ## Evidence Archive
 
 - `test-output/e2e/` - All E2E test execution logs and evidence
+
+### Phase 2: Documentation Consistency
+
+**Phase Objective**: Fix critical documentation inconsistencies from architecture compliance analysis  
+
+#### Task 2.1: Product Count Alignment
+
+- **Status**:
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None
+- **Description**: Align product count to "5 products" across all documentation
+- **Acceptance Criteria**:
+  - [ ] README.md updated to reference "five products"
+  - [ ] constitution.md updated to list "five Products"
+  - [ ] All docs list 5 products: PKI, JOSE, Cipher, SM, Identity  
+  - [ ] Zero references to "four products/services" remain
+  - [ ] Run: `grep -ri "four.*product\|four.*service" docs/ README.md` returns zero results
+- **Files**:
+  - `README.md` (Line 11)
+  - `docs/speckit/constitution.md` (Line 9)
+- **Evidence**:
+  - `test-output/doc-consistency/grep-product-count.log`
+
+#### Task 2.2: Service Implementation Status Table
+
+- **Status**:  
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: None
+- **Description**: Add service implementation status to ARCHITECTURE.md Section 3.2
+- **Acceptance Criteria**:
+  - [ ] Service Catalog table includes "Status" column
+  - [ ] Status reflects actual codebase: sm-kms (Complete), pki-ca (Partial), jose-ja (Partial), cipher-im (Not Started), identity services (Mixed)
+  - [ ] Links to phase/task docs for incomplete services
+  - [ ] Markdown table properly formatted  
+  - [ ] Linting passes: `markdownlint-cli2 docs/ARCHITECTURE.md`
+- **Files**:
+  - `docs/ARCHITECTURE.md` (Section 3.2, around Line 407)
+- **Evidence**:
+  - `test-output/doc-consistency/architecture-status-table-diff.txt`
+
+---
