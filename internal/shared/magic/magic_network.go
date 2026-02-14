@@ -106,7 +106,7 @@ const (
 	// DefaultPublicAddressCryptoutil - Default public bind address.
 	DefaultPublicAddressCryptoutil = IPv4Loopback // Use 127.0.0.1 to avoid Docker localhost=[::1] issues
 	// DefaultPublicPortCryptoutil - Default browser/server API port.
-	DefaultPublicPortCryptoutil uint16 = 8080
+	DefaultPublicPortCryptoutil uint16 = 8000
 
 	// DefaultPrivateProtocolCryptoutil - Default private bind protocol.
 	DefaultPrivateProtocolCryptoutil = ProtocolHTTPS
@@ -116,20 +116,20 @@ const (
 	DefaultPrivatePortCryptoutil uint16 = 9090
 
 	// DefaultPublicPortCryptoutilCompose0 - Port for cryptoutil SQLite instance.
-	DefaultPublicPortCryptoutilCompose0 uint16 = 8080
+	DefaultPublicPortCryptoutilCompose0 uint16 = 8000
 	// DefaultPublicPortCryptoutilCompose1 - Port for cryptoutil PostgreSQL instance 1.
-	DefaultPublicPortCryptoutilCompose1 uint16 = 8081
+	DefaultPublicPortCryptoutilCompose1 uint16 = 8001
 	// DefaultPublicPortCryptoutilCompose2 - Port for cryptoutil PostgreSQL instance 2.
-	DefaultPublicPortCryptoutilCompose2 uint16 = 8082
+	DefaultPublicPortCryptoutilCompose2 uint16 = 8002
 
 	// DefaultPublicPortJOSEServer - Port for JOSE Authority Server.
-	DefaultPublicPortJOSEServer uint16 = 8060
+	DefaultPublicPortJOSEServer uint16 = 8800
 
 	// DefaultPublicPortCAServer - Port for CA Server.
-	DefaultPublicPortCAServer uint16 = 8050
+	DefaultPublicPortCAServer uint16 = 8100
 
 	// DefaultPublicPortCipherIM - Port for Cipher Instant Messenger service.
-	DefaultPublicPortCipherIM uint16 = 8070
+	DefaultPublicPortCipherIM uint16 = 8700
 	// DefaultPrivatePortCipherIM - Admin port for Cipher Instant Messenger service.
 	DefaultPrivatePortCipherIM uint16 = 9090
 

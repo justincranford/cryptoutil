@@ -158,20 +158,20 @@ const (
 	IdentityE2EHealthPollInterval = 2 * time.Second
 
 	// IdentityE2EAuthzPublicPort is the identity-authz E2E public HTTPS port.
-	IdentityE2EAuthzPublicPort = 8100
+	IdentityE2EAuthzPublicPort = 8200
 
 	// IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
-	// Uses 8101 to avoid conflict with authz (8100) when running together in E2E.
-	IdentityE2EIDPPublicPort = 8101
+	// Uses 8301 to avoid conflict with authz (8200) when running together in E2E.
+	IdentityE2EIDPPublicPort = 8301
 
 	// IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
-	IdentityE2ERSPublicPort = 8110
+	IdentityE2ERSPublicPort = 8400
 
 	// IdentityE2ERPPublicPort is the identity-rp E2E public HTTPS port.
-	IdentityE2ERPPublicPort = 8120
+	IdentityE2ERPPublicPort = 8500
 
 	// IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
-	IdentityE2ESPAPublicPort = 8130
+	IdentityE2ESPAPublicPort = 8600
 	// IdentityE2EHealthEndpoint is the public health check endpoint.
 	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).
 	IdentityE2EHealthEndpoint = "/service/api/v1/health"

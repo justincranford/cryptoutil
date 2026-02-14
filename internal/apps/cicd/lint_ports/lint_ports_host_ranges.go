@@ -167,11 +167,11 @@ func isPortInValidRange(port uint16, cfg *ServicePortConfig) bool {
 		}
 	}
 
-	// Check if it's in the extended range (e.g., 8080-8089 for sm-kms).
-	// Public ports define the base, allow up to +9 for the range.
+	// Check if it's in the extended range (100-port blocks per service).
+	// Public ports define the base, allow up to +99 for the full range.
 	if len(cfg.PublicPorts) > 0 {
 		basePort := cfg.PublicPorts[0]
-		if port >= basePort && port < basePort+10 {
+		if port >= basePort && port < basePort+100 {
 			return true
 		}
 	}

@@ -9,7 +9,7 @@ const (
 	OTLPServiceJoseJA = "jose-ja"
 
 	// JoseJAServicePort is the default public API port for jose-ja service.
-	JoseJAServicePort = 8060
+	JoseJAServicePort = 8800
 
 	// JoseJAAdminPort is the admin API port (same for all services).
 	JoseJAAdminPort = 9090
@@ -57,7 +57,7 @@ const (
 // JOSE-JA E2E Test Configuration.
 const (
 	// JoseJAE2ESQLitePublicPort is the public port for SQLite E2E tests.
-	JoseJAE2ESQLitePublicPort = 8060
+	JoseJAE2ESQLitePublicPort = 8800
 
 	// JoseJAE2EPostgreSQL1PublicPort is the public port for first PostgreSQL E2E tests.
 	JoseJAE2EPostgreSQL1PublicPort = 9444

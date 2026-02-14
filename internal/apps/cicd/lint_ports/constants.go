@@ -24,68 +24,68 @@ const LineSeparatorLength = 60
 // ServicePorts defines the canonical port assignments for all cryptoutil services.
 // This is the single source of truth for port assignments.
 var ServicePorts = map[string]ServicePortConfig{
-	"cipher-im": {
-		Name:          "cipher-im",
-		PublicPorts:   []uint16{8070, 8071, 8072},
+	"sm-kms": {
+		Name:          "sm-kms",
+		PublicPorts:   []uint16{8000, 8001, 8002}, // Base ports for SQLite/PostgreSQL variants
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8888, 8889, 8890},
-		MagicConstant: "CipherServicePort",
-	},
-	"jose-ja": {
-		Name:          "jose-ja",
-		PublicPorts:   []uint16{8060},
-		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{9443, 8092},
-		MagicConstant: "JoseJAServicePort",
+		LegacyPorts:   []uint16{8080, 8081, 8082},
+		MagicConstant: "KMSServicePort",
 	},
 	"pki-ca": {
 		Name:          "pki-ca",
-		PublicPorts:   []uint16{8050},
+		PublicPorts:   []uint16{8100},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{8443},
+		LegacyPorts:   []uint16{8050, 8443},
 		MagicConstant: "PKICAServicePort",
-	},
-	"sm-kms": {
-		Name:          "sm-kms",
-		PublicPorts:   []uint16{8080, 8081, 8082},
-		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{},
-		MagicConstant: "KMSServicePort",
 	},
 	"identity-authz": {
 		Name:          "identity-authz",
-		PublicPorts:   []uint16{8100},
+		PublicPorts:   []uint16{8200},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{18000}, // Old 18000 series - now using 8100 series.
+		LegacyPorts:   []uint16{8100, 18000},
 		MagicConstant: "IdentityAuthzServicePort",
 	},
 	"identity-idp": {
 		Name:          "identity-idp",
-		PublicPorts:   []uint16{8100, 8101}, // 8100 default, 8101 for E2E (avoids conflict with authz).
+		PublicPorts:   []uint16{8300, 8301}, // 8300 default, 8301 for E2E (avoids conflict with authz)
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{18100}, // Old 18000 series - now using 8100 series.
+		LegacyPorts:   []uint16{8110, 8111, 8112, 18100},
 		MagicConstant: "IdentityIdpServicePort",
 	},
 	"identity-rs": {
 		Name:          "identity-rs",
-		PublicPorts:   []uint16{8110},
+		PublicPorts:   []uint16{8400},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{18200}, // Old 18000 series - now using 8100 series.
+		LegacyPorts:   []uint16{8120, 8121, 8122, 18200},
 		MagicConstant: "IdentityRsServicePort",
 	},
 	"identity-rp": {
 		Name:          "identity-rp",
-		PublicPorts:   []uint16{8120},
+		PublicPorts:   []uint16{8500},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{18300}, // Old 18000 series - now using 8100 series.
+		LegacyPorts:   []uint16{8130, 8131, 8132, 18300},
 		MagicConstant: "IdentityRpServicePort",
 	},
 	"identity-spa": {
 		Name:          "identity-spa",
-		PublicPorts:   []uint16{8130},
+		PublicPorts:   []uint16{8600},
 		AdminPort:     StandardAdminPort,
-		LegacyPorts:   []uint16{18400}, // Old 18000 series - now using 8100 series.
+		LegacyPorts:   []uint16{8140, 8141, 8142, 18400},
 		MagicConstant: "IdentitySpaServicePort",
+	},
+	"cipher-im": {
+		Name:          "cipher-im",
+		PublicPorts:   []uint16{8700, 8701, 8702},
+		AdminPort:     StandardAdminPort,
+		LegacyPorts:   []uint16{8070, 8071, 8072, 8888, 8889, 8890},
+		MagicConstant: "CipherServicePort",
+	},
+	"jose-ja": {
+		Name:          "jose-ja",
+		PublicPorts:   []uint16{8800},
+		AdminPort:     StandardAdminPort,
+		LegacyPorts:   []uint16{8060, 9443, 8092},
+		MagicConstant: "JoseJAServicePort",
 	},
 }
 

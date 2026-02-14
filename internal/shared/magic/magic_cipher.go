@@ -12,7 +12,7 @@ const (
 	OTLPServiceCipherIM = "cipher-im"
 
 	// CipherServicePort is the default public HTTPS server port for cipher-im.
-	CipherServicePort = 8070
+	CipherServicePort = 8700
 
 	// CipherAdminPort is the default private admin HTTPS server port for cipher-im.
 	CipherAdminPort = 9090
@@ -161,13 +161,13 @@ const (
 	CipherE2EHealthPollInterval = 2 * time.Second
 
 	// CipherE2ESQLitePublicPort is the SQLite instance public HTTPS port.
-	CipherE2ESQLitePublicPort = 8070
+	CipherE2ESQLitePublicPort = 8700
 
 	// CipherE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port.
-	CipherE2EPostgreSQL1PublicPort = 8071
+	CipherE2EPostgreSQL1PublicPort = 8701
 
 	// CipherE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port.
-	CipherE2EPostgreSQL2PublicPort = 8072
+	CipherE2EPostgreSQL2PublicPort = 8702
 
 	// CipherE2EGrafanaPort is the Grafana UI port.
 	CipherE2EGrafanaPort = 3000
