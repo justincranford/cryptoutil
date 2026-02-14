@@ -738,9 +738,9 @@ services:
 
       - "identity"
 
-      - "start"
+      - "authz"
 
-      - "--service=authz"
+      - "start"
 
       - "--config=/app/config/authz-e2e.yml"
 
@@ -813,9 +813,9 @@ services:
 
       - "identity"
 
-      - "start"
+      - "idp"
 
-      - "--service=idp"
+      - "start"
 
       - "--config=/app/config/idp-e2e.yml"
 
