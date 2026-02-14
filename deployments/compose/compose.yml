@@ -249,6 +249,8 @@ services:
 
     command:
 
+      - "sm"
+
       - "kms"
 
       - "start"
@@ -327,6 +329,8 @@ services:
     image: cryptoutil:dev
 
     command:
+
+      - "sm"
 
       - "kms"
 
@@ -417,6 +421,8 @@ services:
 
     command:
 
+      - "sm"
+
       - "kms"
 
       - "start"
@@ -503,6 +509,8 @@ services:
     image: cryptoutil:dev
 
     command:
+
+      - "pki"
 
       - "ca"
 
@@ -596,6 +604,8 @@ services:
     command:
 
       - "jose"
+
+      - "ja"
 
       - "start"
 
