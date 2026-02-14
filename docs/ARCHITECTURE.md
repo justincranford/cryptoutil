@@ -418,6 +418,24 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 8130-8139 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Relying Party |
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 8140-8149 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Single Page Application |
 
+**Implementation Status**:
+
+| Product-Service Identifier | Status | Completion | Notes |
+|----------------------------|--------|------------|-------|
+| **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
+| **pki-ca** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
+| **jose-ja** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
+| **cipher-im** | ❌ Not Started | 0% | Planned for Phase 3 of implementation |
+| **identity-authz** | ✅ Complete | 100% | Dual servers, Docker Compose working |
+| **identity-idp** | ✅ Complete | 100% | Dual servers, Docker Compose working |
+| **identity-rs** | ✅ Complete | 100% | Dual servers, Docker Compose working |
+| **identity-rp** | ❌ Not Started | 0% | Planned for Phase 6 of implementation |
+| **identity-spa** | ❌ Not Started | 0% | Planned for Phase 6 of implementation |
+
+**Legend**: ✅ Complete (production-ready), ⚠️ Partial (functional but missing features), ❌ Not Started
+
+**See Also**: [docs/fixes-v1/](../fixes-v1/) for current implementation work and [docs/speckit/specs-002-cryptoutil/](../speckit/specs-002-cryptoutil/) for detailed specifications.
+
 #### 3.2.1 PKI Product
 
 - Certificate Authority (CA): X.509 certificates, EST, SCEP, OCSP, CRL

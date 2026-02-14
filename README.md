@@ -2,12 +2,13 @@
 
 ## Introduction
 
-**cryptoutil** is a production-ready suite of four cryptographic services, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:
+**cryptoutil** is a production-ready suite of five cryptographic products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:
 
-1. **Key Management Service (KMS)**
-2. **Identity Service** (OAuth 2.1, OIDC 1.0, WebAuthn, Passkeys)
-3. **Certificate Authority (CA)**
-4. **JSON Object Signing and Encryption (JOSE)**
+1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
+2. **JSON Object Signing and Encryption (JOSE)** - JWK/JWS/JWE/JWT cryptographic operations
+3. **Cipher** - End-to-end encrypted messaging with encryption-at-rest
+4. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers
+5. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
 
 ### Project Background
 
