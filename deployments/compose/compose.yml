@@ -38,22 +38,20 @@
 
 
 
-include:
-
-  - path: ../telemetry/compose.yml
-
-
-
 services:
 
   # Override otel collector from telemetry/compose.yml to expose ports for E2E tests.
   # The base definition has ports commented out for multi-deployment support,
   # but E2E tests run from host and need to reach the health endpoint.
   opentelemetry-collector-contrib:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
     ports:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
       - "13133:13133" # Health check endpoint for E2E tests
+    volumes:
+      - ../telemetry/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
       start_period: 10s
@@ -63,6 +61,47 @@ services:
     networks:
       - e2e-network
       - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # Grafana OTEL LGTM stack for E2E tests.
+  grafana-otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    profiles: ["with-grafana"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"    # Grafana UI
+      - "14317:4317"   # OTLP gRPC
+      - "14318:4318"   # OTLP HTTP
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../telemetry/grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
+      - ../telemetry/grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
 
   # Healthcheck for Docker secrets availability.
 
@@ -861,11 +900,16 @@ networks:
 
 
 
+  telemetry-network:
+    driver: bridge
+
 volumes:
 
   postgres_data:
 
   identity_postgres_data:
+  grafana_data:
+    name: cryptoutil_grafana_volume
 
 
 
