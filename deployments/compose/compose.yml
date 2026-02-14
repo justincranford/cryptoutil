@@ -827,7 +827,7 @@ services:
 
     ports:
 
-      - "8100:8100"  # OIDC identity provider endpoints (config uses 8100)
+      - "8110:8110"  # OIDC identity provider endpoints (config uses 8110)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
 
     volumes:
