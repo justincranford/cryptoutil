@@ -410,15 +410,15 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 | Product | Service | Product-Service Identifier | Address (Container) [Admin] | Address (Container) [Public] | Address (Host) [Public] | Port Value (Container) [Admin] | Port Value (Container) [Public] | Port Range (Host) [Service Deployment] | Port Range (Host) [Product Deployment] | Port Range (Host) [Suite Deployment] | Description |
 |---------|---------|----------------------------|-----------------------------|-----------------------------|-------------------------|--------------------------------|---------------------------------|----------------------------------------|----------------------------------------|--------------------------------------|-------------|
-| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8050-8059 | 18050-18059 | 28050-28059 | X.509 certificates, EST, SCEP, OCSP, CRL |
-| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8060-8069 | 18060-18069 | 28060-28069 | JWK/JWS/JWE/JWT operations |
-| **Cipher** | **Instant Messenger (IM)** | **cipher-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8070-8079 | 18070-18079 | 28070-28079 | E2E encrypted messaging, encryption-at-rest |
-| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8080-8089 | 18080-18089 | 28080-28089 | Elastic key management, encryption-at-rest |
-| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8100-8109 | 18100-18109 | 28100-28109 | OAuth 2.1 authorization server |
-| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8110-8119 | 18110-18119 | 28110-28119 | OIDC 1.0 Identity Provider |
-| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8120-8129 | 18120-18129 | 28120-28129 | OAuth 2.1 Resource Server |
-| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8130-8139 | 18130-18139 | 28130-28139 | OAuth 2.1 Relying Party |
-| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8140-8149 | 18140-18149 | 28140-28149 | OAuth 2.1 Single Page Application |
+| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8000-8099 | 18000-18099 | 28000-28099 | Elastic key management, encryption-at-rest |
+| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8100-8199 | 18100-18199 | 28100-28199 | X.509 certificates, EST, SCEP, OCSP, CRL |
+| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8200-8299 | 18200-18299 | 28200-28299 | OAuth 2.1 authorization server |
+| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8300-8399 | 18300-18399 | 28300-28399 | OIDC 1.0 Identity Provider |
+| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 Resource Server |
+| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OAuth 2.1 Relying Party |
+| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
+| **Cipher** | **Instant Messenger (IM)** | **cipher-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
+| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
 
 **Implementation Status**:
 
@@ -450,9 +450,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8080-8089
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18080-18089
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28080-28089
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8000-8099
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18000-18099
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28000-28099
 
 #### 3.2.2 Cipher Product
 
@@ -466,9 +466,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8070-8079
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18070-18079
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28070-28079
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8700-8799
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18700-18799
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28700-28799
 
 #### 3.2.3 JSON Object Signing & Encryption (JOSE) Product
 
@@ -482,9 +482,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8060-8069
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18060-18069
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28060-28069
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8800-8899
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18800-18899
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28800-28899
 
 #### 3.2.4 Public Key Infrastructure (PKI) Product
 
@@ -498,9 +498,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8050-8059
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18050-18059
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28050-28059
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8100-8199
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18100-18199
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28100-28199
 
 #### 3.2.5 Identity Product
 
@@ -514,9 +514,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8100-8109
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18100-18109
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28100-28109
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8200-8299
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18200-18299
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28200-28299
 
 ##### 3.2.5.2 OIDC 1.0 Identity Provider (IdP) Service
 
@@ -528,9 +528,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8110-8119
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18110-18119
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28110-28119
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8300-8399
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18300-18399
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28300-28399
 
 ##### 3.2.5.3 OAuth 2.1 Resource Server (RS) Service
 
@@ -542,9 +542,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8120-8129
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18120-18129
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28120-28129
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8400-8499
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18400-18499
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28400-28499
 
 ##### 3.2.5.4 OAuth 2.1 Relying Party (RP) Service
 
@@ -556,9 +556,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8130-8139
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18130-18139
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28130-28139
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8500-8599
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18500-18599
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28500-28599
 
 ##### 3.2.5.5 OAuth 2.1 Single Page Application (SPA) Service
 
@@ -570,9 +570,9 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
 - Port Value (Container): Private Admin Compose+K8s APIs: 9090
 - Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8140-8149
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18140-18149
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28140-28149
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8600-8699
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18600-18699
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28600-28699
 
 ### 3.3 Product-Service Relationships
 
@@ -619,19 +619,19 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 Three deployment scenarios each use distinct host port ranges to enable concurrent operation:
 
 1. **Service Deployment** (8XXX): Single isolated service
-   - Port Range: Service-specific base (e.g., 8050-8059 for pki-ca)
+   - Port Range: Service-specific base (e.g., 8100-8199 for pki-ca)
    - Use Case: Independent service development, testing, or production deployment
-   - Example: `pki-ca` alone uses host ports 8050-8059
+   - Example: `pki-ca` alone uses host ports 8100-8199
 
 2. **Product Deployment** (18XXX): All services within a product
-   - Port Range: Service-specific base + 10000 offset (e.g., 18050-18059 for pki-ca)
+   - Port Range: Service-specific base + 10000 offset (e.g., 18100-18199 for pki-ca)
    - Use Case: Product-level integration testing, product-only deployments
-   - Example: All PKI services (currently only pki-ca) use host ports 18050-18059
+   - Example: All PKI services (currently only pki-ca) use host ports 18100-18199
 
 3. **Suite Deployment** (28XXX): All services across all products
-   - Port Range: Service-specific base + 20000 offset (e.g., 28050-28059 for pki-ca)
+   - Port Range: Service-specific base + 20000 offset (e.g., 28100-28199 for pki-ca)
    - Use Case: Full system integration, E2E testing, complete production suite
-   - Example: All 9 services across 5 products use host ports 28050-28149
+   - Example: All 9 services across 5 products use host ports 28000-28899
 
 **Port Allocation Benefits**:
 

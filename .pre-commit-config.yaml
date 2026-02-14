@@ -285,7 +285,7 @@ repos:
 
   # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.10
+    rev: v1.7.11
     hooks:
       - id: actionlint
         files: '\.github/workflows/.*\.(yml|yaml)$'
