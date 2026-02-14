@@ -1,0 +1,10 @@
+review all of the docs in docs\fixes-v1/
+if complete it will need to be deleted
+if incomplete, move the completed phases and tasks to completed.md; only incomplete must remain in plan.md and tasks.md, and summary.md can be absorbed into completed.md
+commit
+***
+create docs\fixes-v2
+- i want you to create the implementation plan.md and tasks.md to do option 3 of reorganizing config files between ./config/ and ./deployments/
+- there is mention of a lot of research which is good
+- move all of those docs over to a subdirectory docs\fixes-v2\research\
+- as part of the planning, i want a table of every single file that will be in ./config/ and ./deployments/ after the work is completed; for each one, indicate the source file (e.g. exists already in place, exists but needs to be moved from somewhere else to that final location, needs to be created from existing files, needs to be created no source files)

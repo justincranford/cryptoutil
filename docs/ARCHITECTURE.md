@@ -36,6 +36,8 @@ tags:
 
 ## Document Organization
 
+**Companion Document**: [ARCHITECTURE-INDEX.md](ARCHITECTURE-INDEX.md) provides a semantic topic index with line number ranges for efficient agent lookups. MUST be kept in sync with this document when sections are added, removed, or significantly reorganized.
+
 This document is structured to serve multiple audiences:
 - **Copilot Instructions & Agents**: Machine-parseable sections with clear directives
 - **Developers**: Detailed implementation patterns and examples

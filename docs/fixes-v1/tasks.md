@@ -57,7 +57,7 @@
   - `test-output/e2e/cipher-im/test-output.log`
   - `test-output/e2e/cipher-im/docker-ps.log`
 
-#### Task 1.2: jose-ja E2E Tests  
+#### Task 1.2: jose-ja E2E Tests
 
 - **Status**:
 - **Owner**: LLM Agent
@@ -87,7 +87,7 @@
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Docker daemon running  
+- **Dependencies**: Docker daemon running
 - **Description**: Execute sm-kms E2E tests verifying Key Management Service functionality
 - **Acceptance Criteria**:
   - [ ] Docker Compose up
@@ -166,7 +166,7 @@
 
 ### Phase 2: Documentation Consistency
 
-**Phase Objective**: Fix critical documentation inconsistencies from architecture compliance analysis  
+**Phase Objective**: Fix critical documentation inconsistencies from architecture compliance analysis
 
 #### Task 2.1: Product Count Alignment
 
@@ -179,7 +179,7 @@
 - **Acceptance Criteria**:
   - [ ] README.md updated to reference "five products"
   - [ ] constitution.md updated to list "five Products"
-  - [ ] All docs list 5 products: PKI, JOSE, Cipher, SM, Identity  
+  - [ ] All docs list 5 products: PKI, JOSE, Cipher, SM, Identity
   - [ ] Zero references to "four products/services" remain
   - [ ] Run: `grep -ri "four.*product\|four.*service" docs/ README.md` returns zero results
 - **Files**:
@@ -190,7 +190,7 @@
 
 #### Task 2.2: Service Implementation Status Table
 
-- **Status**:  
+- **Status**:
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Actual**: [Fill when complete]
@@ -200,7 +200,7 @@
   - [ ] Service Catalog table includes "Status" column
   - [ ] Status reflects actual codebase: sm-kms (Complete), pki-ca (Partial), jose-ja (Partial), cipher-im (Not Started), identity services (Mixed)
   - [ ] Links to phase/task docs for incomplete services
-  - [ ] Markdown table properly formatted  
+  - [ ] Markdown table properly formatted
   - [ ] Linting passes: `markdownlint-cli2 docs/ARCHITECTURE.md`
 - **Files**:
   - `docs/ARCHITECTURE.md` (Section 3.2, around Line 407)

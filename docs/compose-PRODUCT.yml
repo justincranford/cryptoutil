@@ -1,0 +1,333 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# PRODUCT Docker Compose Configuration Template
+#
+# This is the TEMPLATE file for standalone PRODUCT deployments with multiple services.
+# Supports 1-5 services per product, with 3 instances per service (1 SQLite + 2 PostgreSQL).
+#
+# Replace all PRODUCT, SERVICE1-5, XXXX, YYYY, ZZZZ placeholders with actual values.
+#
+# Example PRODUCTS:
+#   - pki (1 service: ca)
+#   - jose (1 service: ja)
+#   - cipher (1 service: im)
+#   - sm (1 service: kms)
+#   - identity (5 services: authz, idp, rs, rp, spa)
+#
+# Example substitutions for IDENTITY product:
+#   - PRODUCT: identity
+#   - SERVICE1: authz (base port 8100)
+#   - SERVICE2: idp (base port 8110)
+#   - SERVICE3: rs (base port 8120)
+#   - SERVICE4: rp (base port 8130)
+#   - SERVICE5: spa (base port 8140)
+#
+# Port allocation pattern (per service):
+#   - SQLite instance:     BASE_PORT
+#   - PostgreSQL instance 1: BASE_PORT+1
+#   - PostgreSQL instance 2: BASE_PORT+2
+#
+# Usage:
+#   docker compose -f compose.yml up -d                        # SQLite instances only (default: dev profile)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances (SQLite + 2x PostgreSQL per service)
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode with seed data
+#   docker compose -f compose.yml --profile ci up -d           # CI mode for testing
+#   docker compose -f compose.yml logs -f                      # View logs
+#   docker compose -f compose.yml down -v                      # Stop and clean up
+#
+# Services (example for identity product with 5 services):
+#   - identity-authz-app-sqlite-1:    https://localhost:8100 (public HTTPS)
+#   - identity-authz-app-postgres-1:  https://localhost:8101 (public HTTPS) [--profile postgres]
+#   - identity-authz-app-postgres-2:  https://localhost:8102 (public HTTPS) [--profile postgres]
+#   - identity-idp-app-sqlite-1:      https://localhost:8110 (public HTTPS)
+#   - identity-idp-app-postgres-1:    https://localhost:8111 (public HTTPS) [--profile postgres]
+#   - identity-idp-app-postgres-2:    https://localhost:8112 (public HTTPS) [--profile postgres]
+#   - identity-rs-app-sqlite-1:       https://localhost:8120 (public HTTPS)
+#   - identity-rs-app-postgres-1:     https://localhost:8121 (public HTTPS) [--profile postgres]
+#   - identity-rs-app-postgres-2:     https://localhost:8122 (public HTTPS) [--profile postgres]
+#   - identity-rp-app-sqlite-1:       https://localhost:8130 (public HTTPS)
+#   - identity-rp-app-postgres-1:     https://localhost:8131 (public HTTPS) [--profile postgres]
+#   - identity-rp-app-postgres-2:     https://localhost:8132 (public HTTPS) [--profile postgres]
+#   - identity-spa-app-sqlite-1:      https://localhost:8140 (public HTTPS)
+#   - identity-spa-app-postgres-1:    https://localhost:8141 (public HTTPS) [--profile postgres]
+#   - identity-spa-app-postgres-2:    https://localhost:8142 (public HTTPS) [--profile postgres]
+#   - PRODUCT-db-postgres-1:          localhost:5432 (PostgreSQL, shared by ALL services) [--profile postgres]
+#   - opentelemetry-collector-contrib: (internal only, no host ports)
+#   - grafana-otel-lgtm:              http://localhost:3000 (admin/admin)
+#
+# Health Checks:
+#   - Public health endpoint: https://localhost:XXXX/browser/api/v1/health (external clients)
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal container only, NEVER exposed)
+#
+# Profiles:
+#   - dev: Development mode (default) - SQLite backend, minimal services
+#   - demo: Demo mode with seeded data, SQLite backend
+#   - ci: CI mode for testing, SQLite backend
+#   - postgres: PostgreSQL backend with multiple instances (2x app per service + 1x shared db)
+#
+include:
+  - path: ../telemetry/compose.yml
+
+services:
+  # Healthcheck for Docker secrets availability.
+  # Ephemeral job that validates all secrets are mounted before any service starts.
+  healthcheck-secrets:
+    image: alpine:latest
+    secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      - postgres_url.secret
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    networks:
+      - PRODUCT-network
+
+  # Build PRODUCT image from source (shared by all services).
+  # Ephemeral job that builds Docker image once, reused by all service instances.
+  builder-PRODUCT:
+    image: PRODUCT:dev
+    build:
+      context: ../..
+      dockerfile: deployments/PRODUCT/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2026-02-14T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+
+  # PostgreSQL database for PRODUCT persistence (shared by ALL services and instances).
+  # Example: identity product has 5 services (authz, idp, rs, rp, spa), all share same PostgreSQL.
+  # See https://hub.docker.com/_/postgres#how-to-use-this-image
+  PRODUCT-db-postgres-1:
+    profiles: ["postgres"]
+    image: postgres:18
+    container_name: PRODUCT-postgres
+    hostname: PRODUCT-postgres
+    environment:
+      # CRITICAL: PostgreSQL ONLY container that uses environment variables
+      # for secrets. Apps MUST use Docker secrets, NEVER environment variables.
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    secrets:
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - PRODUCT-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  ##SERVICE1 server with SQLite backend (dev/demo/ci mode).
+  PRODUCT-SERVICE1-app-sqlite-1:
+    profiles: ["dev", "demo", "ci"]
+    image: PRODUCT:dev
+    command: ["SERVICE1", "start", "--config=/app/config/SERVICE1-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "XXXX:8080"  # HTTPS public (XXXX = SERVICE1 base port)
+    volumes:
+      - ../PRODUCT/config/SERVICE1-sqlite.yml:/app/config/SERVICE1-sqlite.yml:ro
+      - ../PRODUCT/config/SERVICE1-common.yml:/app/config/common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      # CRITICAL: ALL PRODUCT instances MUST use the SAME unseal secrets
+      # for shared encryption/decryption. NEVER use instance-specific secrets.
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-PRODUCT:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      # Use wget (available in Alpine), not curl.
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers.
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - PRODUCT-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # SERVICE1 server with PostgreSQL backend (instance 1).
+  PRODUCT-SERVICE1 256M
+        reservations:
+          memory: 128M
+
+  # SERVICE1 server with PostgreSQL backend (instance 1).
+  PRODUCT-SERVICE1-app-postgres-1:
+    profiles: ["postgres"]
+    image: PRODUCT:dev
+    command: ["SERVICE1", "start", "--config=/app/config/SERVICE1-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    working_dir: /tmp
+    ports:
+      - "XXXX+1:8080"  # HTTPS public (XXXX+1 = SERVICE1 base port + 1)
+    volumes:
+      - ../PRODUCT/config/SERVICE1-postgresql-1.yml:/app/config/SERVICE1-postgresql-1.yml:ro
+      - ../PRODUCT/config/SERVICE1-common.yml:/app/config/common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      # CRITICAL: ALL PRODUCT instances MUST use the SAME unseal secrets.
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      # PostgreSQL connection URL.
+      - postgres_url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-PRODUCT:
+        condition: service_completed_successfully
+      PRODUCT-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - PRODUCT-SERVICE-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # SERVICE1 server with PostgreSQL backend (instance 2 - shared DB with instance 1).
+  PRODUCT-SERVICE1-app-postgres-2:
+    profiles: ["postgres"]
+    image: PRODUCT:dev
+    command: ["SERVICE1", "start", "--config=/app/config/SERVICE1-postgresql-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    working_dir: /tmp
+    ports:
+      - "XXXX+2:8080"  # HTTPS public (XXXX+2 = SERVICE1 base port + 2)
+    volumes:
+      - ../PRODUCT/config/SERVICE1-postgresql-2.yml:/app/config/SERVICE1-postgresql-2.yml:ro
+      - ../PRODUCT/config/SERVICE1-common.yml:/app/config/common.yml:ro
+      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      # CRITICAL: ALL PRODUCT instances MUST use the SAME unseal secrets.
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
+      # PostgreSQL connection URL (shared with instance 1).
+      - postgres_url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-PRODUCT:
+        condition: service_completed_successfully
+      PRODUCT-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      # Wait for instance 1 to initialize shared database.
+      PRODUCT-SERVICE1-app-postgres-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - PRODUCT-SERVICE-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  ###############################################################################
+  # Additional services (SERVICE2, SERVICE3, SERVICE4, SERVICE5)
+  # Copy the SERVICE1 pattern above for each additional service.
+  # Update: PRODUCT-SERVICEX-*, base ports (YYYY, ZZZZ, etc.), config paths.
+  # Example: For identity product, duplicate SERVICE1 block 4 more times for
+  #          idp (8110), rs (8120), rp (8130), spa (8140).
+  ###############################################################################
+
+networks:
+  PRODUCT-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: PRODUCT-postgres-volume
+
+secrets:
+  # PostgreSQL secrets.
+  postgres_username.secret:
+    file: ./secrets/postgres_username.secret
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
+  postgres_database.secret:
+    file: ./secrets/postgres_database.secret
+  postgres_url.secret:
+    file: ./secrets/postgres_url.secret
+
+  # Unseal secrets (MUST be identical across ALL PRODUCT service instances).
+  # CRITICAL: ALL PRODUCT instances MUST use the SAME unseal secrets
+  # to enable shared encryption/decryption of data in the database.
+  # NEVER create instance-specific secrets - breaks cryptographic interoperability.
+  unseal_1of5.secret:
+    file: ./secrets/unseal_1of5.secret # pragma: allowlist secret
+  unseal_2of5.secret:
+    file: ./secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ./secrets/unseal_3of5.secret
+  unseal_4of5.secret:
+    file: ./secrets/unseal_4of5.secret
+  unseal_5of5.secret:
+    file: ./secrets/unseal_5of5.secret

@@ -2,8 +2,8 @@
 
 **Purpose**: Efficient LLM agent reference to semantic topics in ARCHITECTURE.md using line number ranges.
 
-**Last Updated**: 2026-02-13
-**Source**: docs/ARCHITECTURE.md (2772 lines)
+**Last Updated**: 2026-02-14
+**Source**: docs/ARCHITECTURE.md (2790 lines)
 
 ---
 
