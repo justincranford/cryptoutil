@@ -601,13 +601,43 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### 3.4.1 Port Design Principles
 
+**Container Port Bindings**:
+
 - HTTPS protocol for all public and admin port bindings
 - Same HTTPS 127.0.0.1:9090 for Private HTTPS Admin APIs inside Docker Compose and Kubernetes (never localhost due to IPv4 vs IPv6 dual stack issues)
 - Same HTTPS 0.0.0.0:8080 for Public HTTPS APIs inside Docker Compose and Kubernetes
 - Different HTTPS 127.0.0.1 port range mappings for Public APIs on Docker host (to avoid conflicts)
+
+**Standard Health Check Paths**:
+
 - Same health check paths: `/browser/api/v1/health`, `/service/api/v1/health` on Public HTTPS listeners
 - Same health check paths: `/admin/api/v1/livez`, `/admin/api/v1/readyz` on Private HTTPS Admin listeners
 - Same graceful shutdown path: `/admin/api/v1/shutdown` on Private HTTPS Admin listeners
+
+**Deployment Type Port Allocation Strategy**:
+
+Three deployment scenarios each use distinct host port ranges to enable concurrent operation:
+
+1. **Service Deployment** (8XXX): Single isolated service
+   - Port Range: Service-specific base (e.g., 8050-8059 for pki-ca)
+   - Use Case: Independent service development, testing, or production deployment
+   - Example: `pki-ca` alone uses host ports 8050-8059
+
+2. **Product Deployment** (18XXX): All services within a product
+   - Port Range: Service-specific base + 10000 offset (e.g., 18050-18059 for pki-ca)
+   - Use Case: Product-level integration testing, product-only deployments
+   - Example: All PKI services (currently only pki-ca) use host ports 18050-18059
+
+3. **Suite Deployment** (28XXX): All services across all products
+   - Port Range: Service-specific base + 20000 offset (e.g., 28050-28059 for pki-ca)
+   - Use Case: Full system integration, E2E testing, complete production suite
+   - Example: All 9 services across 5 products use host ports 28050-28149
+
+**Port Allocation Benefits**:
+
+- No port conflicts between deployment types (all three can run simultaneously)
+- Consistent port offsets simplify troubleshooting (service port + offset = deployment type)
+- Clear separation enables independent CI/CD pipelines per deployment type
 
 #### 3.4.2 PostgreSQL Ports
 
@@ -641,7 +671,8 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 **cryptoutil** operates as a suite of independent microservices with optional federation:
 
-- **Deployment Models**: Standalone services, federated suite, Kubernetes pods
+- **Architectural Deployment Models**: Standalone services, federated suite, Kubernetes pods
+- **Docker Compose Deployment Types**: Service (single service), Product (all services in one product), Suite (all services across all products) - see section 3.4.1 for port allocation strategy
 - **External Dependencies**: PostgreSQL (production), SQLite (dev/test), OpenTelemetry Collector, Grafana OTEL-LGTM
 - **Client Types**: Browser clients (session-based), service clients (token-based), CLI tools
 - **Integration Points**: REST APIs, Docker secrets, configuration files, health endpoints
