@@ -1,0 +1,559 @@
+E2E compose.yml design and structure for standalone PRODUCT-SERVICE deployment
+
+CONSTRAINTS
+- NEVER SECRET VALUES IN ENVIRONMENT VARIABLES EVER
+- ALWAYS ENVIRONMENT VARIABLES FOR POSTGRES CONTAINERS, BUT MUST BE FILE LOCATIONS OF MOUNTED SECRETS
+- NEVER ENVIRONMENT VARIABLES FOR APPLICATIONS
+
+******************
+**ephemeral jobs**
+******************
+
+PRODUCT-SERVICE-healthcheck-secrets => checks and lists unseal*.secret and postgres*secret once per compose.yml
+PRODUCT-SERVICE-builder => builds tagged image `PRODUCT-SERVICE:dev` of deployments/PRODUCT-SERVICE/Dockerfile once per compose.yml
+
+####******************
+**runtime containers**
+****####**************
+
+PRODUCT-SERVICE-db-postgres-1 => postgres:18 (latest dot release; 18.2 as of Feb 12, 2026)
+- depends on healthcheck-secrets: service_completed_successfully
+- volumes: postgres_data:/var/lib/postgresql
+- healthcheck: test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+- environment: POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+- environment: POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+- environment: POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+- secrets: postgres_username.secret
+- secrets: postgres_password.secret
+- secrets: postgres_database.secret
+- networks: PRODUCT-SERVICE-network
+
+PRODUCT-SERVICE-app-sqlite-1
+- depends on healthcheck-secrets-PRODUCT-SERVICE: service_completed_successfully
+- depends on builder-PRODUCT-SERVICE: service_completed_successfully
+- depends on opentelemetry-collector-contrib: service_started
+- depends on healthcheck-opentelemetry-collector-contrib: service_completed_successfully
+- networks: PRODUCT-SERVICE-network
+
+PRODUCT-SERVICE-app-postgres-1
+- depends on opentelemetry-collector-contrib: service_started
+- depends on healthcheck-opentelemetry-collector-contrib: service_completed_successfully
+- depends on healthcheck-secrets: service_completed_successfully
+- depends on builder-cryptoutil:  service_completed_successfully
+- depends on PRODUCT-SERVICE-db-postgres-1: service_healthy
+- networks: PRODUCT-SERVICE-network
+
+PRODUCT-SERVICE-app-postgres-2
+- depends on opentelemetry-collector-contrib: service_started
+- depends on healthcheck-opentelemetry-collector-contrib: service_completed_successfully
+- depends on healthcheck-secrets: service_completed_successfully
+- depends on builder-cryptoutil:  service_completed_successfully
+- depends on PRODUCT-SERVICE-db-postgres-1: service_healthy
+- depends on PRODUCT-SERVICE-app-postgres-1: service_healthy
+- networks: PRODUCT-SERVICE-network
+
+**********************
+**DETAILED SECTIONS**
+**********************
+
+====================
+INCLUDE DECLARATIONS
+====================
+# Required at top of compose.yml
+include:
+  - path: ../telemetry/compose.yml
+
+Purpose:
+- Provides opentelemetry-collector-contrib service (no healthcheck, use service_started)
+- Provides healthcheck-opentelemetry-collector-contrib job (ephemeral, use service_completed_successfully)
+- Provides grafana-otel-lgtm service
+- Provides telemetry-network
+- Shared across all PRODUCT-SERVICE deployments
+
+===================
+SERVICES - JOBS (EPHEMERAL)
+===================
+
+healthcheck-secrets:
+  Purpose: Validates all Docker secrets are mounted before any service starts
+  Image: alpine:latest
+  Command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+  Secrets:
+    - unseal_1of5.secret
+    - unseal_2of5.secret
+    - unseal_3of5.secret
+    - unseal_4of5.secret
+    - unseal_5of5.secret
+    - postgres_url.secret
+    - postgres_username.secret
+    - postgres_password.secret
+    - postgres_database.secret
+  Networks: PRODUCT-SERVICE-network
+  Exit Behavior: Exits after listing secrets (service_completed_successfully)
+
+builder-PRODUCT-SERVICE:
+  Purpose: Builds Docker image once, shared by all app instances
+  Image Tag: PRODUCT-SERVICE:dev
+  Build Context: ../.. (project root)
+  Dockerfile: deployments/PRODUCT-SERVICE/Dockerfile
+  Build Args:
+    - APP_VERSION: "dev"
+    - VCS_REF: "local"
+    - BUILD_DATE: "2026-02-14T00:00:00Z"
+  Entrypoint: ["sh", "-c"]
+  Command: ["echo 'Build completed successfully'"]
+  Depends On:
+    - healthcheck-secrets: service_completed_successfully
+  Exit Behavior: Exits after build completes (service_completed_successfully)
+
+===================
+SERVICES - RUNTIME DATABASES
+===================
+
+PRODUCT-SERVICE-db-postgres-1:
+  Purpose: Shared PostgreSQL database for postgres-based app instances
+  Image: postgres:18 (use latest 18.x dot release; 18.2 as of 2026-02-14)
+  Container Name: PRODUCT-SERVICE-postgres
+  Hostname: PRODUCT-SERVICE-postgres
+  Environment Variables (ONLY for Postgres container):
+    - POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+    - POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+    - POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+  Shared Memory: 256mb
+  Ports: "5432:5432" (exposed for debugging; NEVER expose to internet)
+  Volumes: postgres_data:/var/lib/postgresql
+  Secrets:
+    - postgres_username.secret
+    - postgres_password.secret
+    - postgres_database.secret
+  Depends On:
+    - healthcheck-secrets: service_completed_successfully
+  Health Check:
+    test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+    start_period: 5s
+    interval: 5s
+    timeout: 3s
+    retries: 5
+  Networks: PRODUCT-SERVICE-network
+  Resources:
+    limits:
+      memory: 512M
+    reservations:
+      memory: 256M
+  Profiles: ["postgres"] (OPTIONAL: only starts when --profile postgres specified)
+
+===================
+SERVICES - RUNTIME APPLICATIONS
+===================
+
+PRODUCT-SERVICE-app-sqlite-1:
+  Purpose: Standalone instance with in-memory SQLite database
+  Image: PRODUCT-SERVICE:dev (from builder-PRODUCT-SERVICE)
+  Container Name: PRODUCT-SERVICE-sqlite
+  Command:
+    - "SERVICE"
+    - "start"
+    - "--config=/app/config/sqlite.yml"
+    - "--config=/app/config/common.yml"
+    - "--config=/app/otel/otel.yml"
+  Working Dir: /tmp
+  Ports:
+    - "XXXX:8080"  # HTTPS public API (XXXX = service-specific base port)
+    # NEVER expose admin port 9090 to host (internal container use only)
+  Volumes:
+    - ../PRODUCT-SERVICE/config/SERVICE-sqlite.yml:/app/config/sqlite.yml:ro
+    - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
+    - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+  Secrets:
+    - unseal_1of5.secret
+    - unseal_2of5.secret
+    - unseal_3of5.secret
+    - unseal_4of5.secret
+    - unseal_5of5.secret
+  Environment:
+    - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+  Health Check:
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+    start_period: 60s
+    interval: 5s
+    timeout: 5s
+    retries: 5
+  Depends On:
+    - healthcheck-secrets: service_completed_successfully
+    - builder-PRODUCT-SERVICE: service_completed_successfully
+    - opentelemetry-collector-contrib: service_started
+    - healthcheck-opentelemetry-collector-contrib: service_completed_successfully
+  Networks:
+    - PRODUCT-SERVICE-network
+    - telemetry-network
+  Resources:
+    limits:
+      memory: 256M
+    reservations:
+      memory: 128M
+  Profiles: ["dev", "demo", "ci"] (default profiles)
+
+PRODUCT-SERVICE-app-postgres-1:
+  Purpose: First PostgreSQL-backed instance, initializes shared database
+  Image: PRODUCT-SERVICE:dev (from builder-PRODUCT-SERVICE)
+  Container Name: PRODUCT-SERVICE-postgres-1
+  Command:
+    - "SERVICE"
+    - "start"
+    - "--config=/app/config/postgresql-1.yml"
+    - "--config=/app/config/common.yml"
+    - "--config=/app/otel/otel.yml"
+  Working Dir: /tmp
+  Ports:
+    - "XXXX:8080"  # HTTPS public API (XXXX+1 = service-specific port)
+  Volumes:
+    - ../PRODUCT-SERVICE/config/SERVICE-postgresql-1.yml:/app/config/postgresql-1.yml:ro
+    - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
+    - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+  Secrets:
+    - unseal_1of5.secret
+    - unseal_2of5.secret
+    - unseal_3of5.secret
+    - unseal_4of5.secret
+    - unseal_5of5.secret
+    - postgres_url.secret
+  Environment:
+    - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+  Health Check:
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+    start_period: 60s
+    interval: 5s
+    timeout: 5s
+    retries: 5
+  Depends On:
+    - healthcheck-secrets: service_completed_successfully
+    - builder-PRODUCT-SERVICE: service_completed_successfully
+    - PRODUCT-SERVICE-db-postgres-1: service_healthy
+    - opentelemetry-collector-contrib: service_started
+    - healthcheck-opentelemetry-collector-contrib: service_completed_successfully
+  Networks:
+    - PRODUCT-SERVICE-network
+    - telemetry-network
+  Resources:
+    limits:
+      memory: 256M
+    reservations:
+      memory: 128M
+  Profiles: ["postgres"]
+
+PRODUCT-SERVICE-app-postgres-2:
+  Purpose: Second PostgreSQL-backed instance, shares database with postgres-1
+  Image: PRODUCT-SERVICE:dev (from builder-PRODUCT-SERVICE)
+  Container Name: PRODUCT-SERVICE-postgres-2
+  Command:
+    - "SERVICE"
+    - "start"
+    - "--config=/app/config/postgresql-2.yml"
+    - "--config=/app/config/common.yml"
+    - "--config=/app/otel/otel.yml"
+  Working Dir: /tmp
+  Ports:
+    - "XXXX:8080"  # HTTPS public API (XXXX+2 = service-specific port)
+  Volumes:
+    - ../PRODUCT-SERVICE/config/SERVICE-postgresql-2.yml:/app/config/postgresql-2.yml:ro
+    - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
+    - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+  Secrets:
+    - unseal_1of5.secret
+    - unseal_2of5.secret
+    - unseal_3of5.secret
+    - unseal_4of5.secret
+    - unseal_5of5.secret
+    - postgres_url.secret
+  Environment:
+    - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
+  Health Check:
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+    start_period: 60s
+    interval: 5s
+    timeout: 5s
+    retries: 5
+  Depends On:
+    - healthcheck-secrets: service_completed_successfully
+    - builder-PRODUCT-SERVICE: service_completed_successfully
+    - PRODUCT-SERVICE-db-postgres-1: service_healthy
+    - PRODUCT-SERVICE-app-postgres-1: service_healthy (CRITICAL: wait for DB init)
+    - opentelemetry-collector-contrib: service_started
+    - healthcheck-opentelemetry-collector-contrib: service_completed_successfully
+  Networks:
+    - PRODUCT-SERVICE-network
+    - telemetry-network
+  Resources:
+    limits:
+      memory: 256M
+    reservations:
+      memory: 128M
+  Profiles: ["postgres"]
+
+===================
+NETWORKS
+===================
+
+PRODUCT-SERVICE-network:
+  driver: bridge
+  Purpose: Isolates PRODUCT-SERVICE containers (apps, postgres, healthcheck)
+
+telemetry-network:
+  driver: bridge
+  Purpose: Shared by telemetry include (opentelemetry-collector-contrib, grafana-otel-lgtm)
+  Source: Defined in ../telemetry/compose.yml
+
+===================
+VOLUMES
+===================
+
+postgres_data:
+  name: PRODUCT-SERVICE-postgres-volume
+  Purpose: Persists PostgreSQL data across container restarts
+
+grafana_data:
+  name: cryptoutil_grafana_volume
+  Purpose: Persists Grafana dashboards/configs
+  Source: Defined in ../telemetry/compose.yml
+
+===================
+SECRETS
+===================
+
+PostgreSQL Secrets (profiles: ["postgres"] only):
+  postgres_username.secret:
+    file: ./secrets/postgres_username.secret
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret
+  postgres_database.secret:
+    file: ./secrets/postgres_database.secret
+  postgres_url.secret:
+    file: ./secrets/postgres_url.secret
+
+Unseal Secrets (MANDATORY for all instances):
+  unseal_1of5.secret:
+    file: ./secrets/unseal_1of5.secret
+  unseal_2of5.secret:
+    file: ./secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ./secrets/unseal_3of5.secret
+  unseal_4of5.secret:
+    file: ./secrets/unseal_4of5.secret
+  unseal_5of5.secret:
+    file: ./secrets/unseal_5of5.secret
+
+CRITICAL REQUIREMENTS:
+- SAME unseal secrets across ALL instances for key hierarchy interoperability
+- NEVER modify unseal secrets (breaks HKDF deterministic derivation)
+- File permissions: chmod 440 (r--r-----) on all .secret files
+- NEVER commit actual secret values to git
+
+===================
+SERVICE-SPECIFIC PORT MAPPINGS
+===================
+
+| PRODUCT-SERVICE | SQLite Port | PostgreSQL-1 Port | PostgreSQL-2 Port |
+|-----------------|-------------|-------------------|-------------------|
+| sm-kms          | 8080        | 8081              | 8082              |
+| pki-ca          | 8050        | 8051              | 8052              |
+| jose-ja         | 8060        | 8061              | 8062              |
+| cipher-im       | 8070        | 8071              | 8072              |
+| identity-authz  | 8100        | 8101              | 8102              |
+| identity-idp    | 8110        | 8111              | 8112              |
+| identity-rp     | 8130        | 8131              | 8132              |
+| identity-rs     | 8120        | 8121              | 8122              |
+| identity-spa    | 8140        | 8141              | 8142              |
+
+===================
+PROFILES STRATEGY
+===================
+
+Default (no --profile specified):
+  - Starts: healthcheck-secrets, builder-PRODUCT-SERVICE, sqlite instance, telemetry
+  - Skips: PostgreSQL database and postgres-backed instances
+
+--profile postgres:
+  - Starts: ALL services (healthcheck, builder, sqlite, postgres, postgres-1, postgres-2, telemetry)
+
+--profile dev:
+  - Starts: sqlite instance only (development mode)
+
+--profile demo:
+  - Starts: sqlite instance with demo/seed data
+
+--profile ci:
+  - Starts: sqlite instance in CI mode (optimized for testing)
+
+Usage Examples:
+  docker compose -f compose.yml up -d                      # SQLite only (default)
+  docker compose -f compose.yml --profile postgres up -d   # All instances
+  docker compose -f compose.yml --profile dev up -d        # Dev mode
+  docker compose -f compose.yml --profile demo up -d       # Demo with seed data
+
+===================
+DEPENDENCY GRAPH
+===================
+
+Visualization (from bottom to top):
+
+[healthcheck-secrets] (alpine ephemeral job)
+    |
+    +-- [builder-PRODUCT-SERVICE] (build ephemeral job)
+    |
+    +-- [PRODUCT-SERVICE-db-postgres-1] (postgres:18)
+            |
+            +-- [PRODUCT-SERVICE-app-postgres-1] (app instance)
+                    |
+                    +-- [PRODUCT-SERVICE-app-postgres-2] (app instance)
+
+[opentelemetry-collector-contrib] (from telemetry include)
+    |
+    +-- [healthcheck-opentelemetry-collector-contrib] (ephemeral job)
+
+[PRODUCT-SERVICE-app-sqlite-1] (app instance)
+    depends on:
+        - healthcheck-secrets
+        - builder-PRODUCT-SERVICE
+        - opentelemetry-collector-contrib
+        - healthcheck-opentelemetry-collector-contrib
+
+Critical Ordering Rules:
+1. healthcheck-secrets MUST complete before ANY other service starts
+2. builder-PRODUCT-SERVICE MUST complete before ANY app instance starts
+3. PRODUCT-SERVICE-db-postgres-1 MUST be healthy before postgres-1 starts
+4. PRODUCT-SERVICE-app-postgres-1 MUST be healthy before postgres-2 starts (DB schema init)
+5. telemetry services start in parallel (loosely coupled)
+
+===================
+HEALTHCHECK PATTERNS
+===================
+
+PostgreSQL:
+  test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+  start_period: 5s
+  interval: 5s
+  timeout: 3s
+  retries: 5
+  Rationale:
+    - Uses pg_isready (built-in PostgreSQL tool)
+    - Reads credentials from secrets (NOT hardcoded)
+    - Short intervals for fast startup detection
+
+Application (Admin Endpoint):
+  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+  start_period: 60s
+  interval: 5s
+  timeout: 5s
+  retries: 5
+  Rationale:
+    - Uses wget (available in Alpine base image)
+    - Targets 127.0.0.1 admin port (NEVER exposed to host)
+    - --no-check-certificate (self-signed TLS certs in dev)
+    - 60s start_period (allows app initialization, DB migrations)
+    - /admin/api/v1/livez (lightweight check, NOT /readyz which is heavyweight)
+
+OpenTelemetry Collector:
+  NO healthcheck (minimal image, no wget/curl)
+  Use: depends_on opentelemetry-collector-contrib: service_started
+  Rationale: Collector is resilient, apps retry OTLP connections
+
+===================
+RESOURCE LIMITS
+===================
+
+PostgreSQL:
+  limits:
+    memory: 512M
+  reservations:
+    memory: 256M
+  Rationale: Database needs more memory for caching, connections
+
+Application Instances:
+  limits:
+    memory: 256M
+  reservations:
+    memory: 128M
+  Rationale: Stateless apps, lower memory footprint
+
+Builder/Healthcheck Jobs:
+  NO resource limits (ephemeral, short-lived)
+
+===================
+SUBSTITUTION GUIDE
+===================
+
+When creating new service from template:
+
+1. Global Replacements:
+   PRODUCT-SERVICE -> actual name (e.g., sm-kms, pki-ca, jose-ja, cipher-im)
+   PRODUCT -> product name (e.g., sm, pki, jose, cipher, identity)
+   SERVICE -> service name (e.g., kms, ca, ja, im, authz, idp, rp, rs, spa)
+
+2. Port Assignments (see PORT MAPPINGS table above):
+   XXXX -> service-specific base port
+   XXXX+1 -> postgres-1 port
+   XXXX+2 -> postgres-2 port
+
+3. Config File Names:
+   SERVICE-sqlite.yml -> actual service config (e.g., kms-sqlite.yml)
+   SERVICE-postgresql-1.yml -> actual service config (e.g., kms-postgresql-1.yml)
+   SERVICE-common.yml -> actual service config (e.g., kms-common.yml)
+
+4. Command Arrays:
+   ["SERVICE", "start", ...] -> actual CLI command (e.g., ["kms", "start", ...])
+
+5. Network Names:
+   PRODUCT-SERVICE-network -> actual network (e.g., sm-kms-network)
+
+6. Volume Names:
+   PRODUCT-SERVICE-postgres-volume -> actual volume (e.g., sm-kms-postgres-volume)
+
+===================
+VALIDATION CHECKLIST
+===================
+
+Before deploying new service compose.yml:
+
+Configuration:
+  [ ] All PRODUCT-SERVICE placeholders replaced
+  [ ] Port mappings match service catalog (NO conflicts)
+  [ ] Config file paths exist in deployments/PRODUCT-SERVICE/config/
+  [ ] Dockerfile exists at deployments/PRODUCT-SERVICE/Dockerfile
+  [ ] Secrets directory exists with correct permissions (chmod 440)
+
+Networks:
+  [ ] PRODUCT-SERVICE-network defined
+  [ ] telemetry-network included from ../telemetry/compose.yml
+  [ ] All services on correct network(s)
+
+Dependencies:
+  [ ] healthcheck-secrets before all other services
+  [ ] builder before all app instances
+  [ ] postgres-1 depends on postgres database
+  [ ] postgres-2 depends on postgres-1 (for schema init)
+  [ ] All apps depend on telemetry services
+
+Health Checks:
+  [ ] PostgreSQL uses pg_isready with secret-based credentials
+  [ ] Apps use wget on 127.0.0.1:9090/admin/api/v1/livez
+  [ ] start_period sufficient for app initialization
+  [ ] Admin port 9090 NEVER exposed to host
+
+Secrets:
+  [ ] All secret files exist in ./secrets/
+  [ ] Unseal secrets IDENTICAL across all services (CRITICAL)
+  [ ] postgres_url.secret references correct hostname
+  [ ] File permissions: chmod 440 on all .secret files
+
+Profiles:
+  [ ] Default profile runs SQLite instance
+  [ ] postgres profile runs all instances
+  [ ] Profile names match conventions (dev, demo, ci, postgres)
+
+Testing:
+  [ ] docker compose config (validates YAML syntax)
+  [ ] docker compose up -d (default profile)
+  [ ] docker compose --profile postgres up -d
+  [ ] Health checks pass (docker compose ps shows "healthy")
+  [ ] Telemetry accessible (https://localhost:XXXX/metrics)
+  [ ] Grafana shows service metrics (http://localhost:3000)
