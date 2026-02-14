@@ -12,14 +12,18 @@
 - ✅ Added telemetry-network and grafana_data volume definitions
 - ✅ Fixed identity service command syntax (identity authz start, identity idp start)
 - ✅ Resolved identity service port conflict (authz=8100, idp=8110)
+- ✅ Fixed Docker Compose CLI syntax for all services (cryptoutil -> sm kms, etc.)
 - ✅ Phase 2 verification: Documentation already consistent (five products documented correctly)
 
 **In Progress**:
-- 🔄 Phase 1: E2E Test Execution - Docker Compose configuration fixed, tests ready to run
+- 🔄 Phase 1: E2E Test Execution - BLOCKED by service startup failures
 
-**Blocking Issues**:
-- Container port mapping may need adjustment based on service config files
-- E2E test infrastructure needs validation with Docker daemon
+**Blocking Issues** (see docs/fixes-v1/blockers/):
+- 🚫 P0: E2E Service Startup Failures  
+  - KMS: Migration FS configuration error
+  - CA: Cobra flag redefinition panic
+  - JOSE: Args routing through product->service->subcommand layers
+  - **Impact**: 100% blocker for Phase 1, all subsequent phases blocked
 
 ## Quality Mandate - MANDATORY
 
