@@ -204,14 +204,16 @@ This will:
 
 ## Continuous Execution Rule - MANDATORY
 
-**After completing ANY Step 4 action (create/update/review)**:
+**After completing ANY action**:
 
 - **NEVER ask "What's next?"**
 - **NEVER ask "Should I do anything else?"**
 - **NEVER provide summary and wait**
 - **ALWAYS complete ALL requested actions**
-- If user requested multiple actions, execute them ALL sequentially
+- If user requested multiple actions, execute them ALL sequentially WITHOUT STOPPING
 - When ALL actions complete, simply stop (NO status message)
+- Work continues until problem completely solved OR user clicks STOP button
+- Action complete → IMMEDIATELY start next action (zero pause, zero text to user)
 
 **Example - Correct Pattern**:
 ```
