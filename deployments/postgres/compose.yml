@@ -1,0 +1,345 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
+# Shared PostgreSQL Services for cryptoutil
+# This compose file provides PostgreSQL leader/follower and Citus distributed database infrastructure.
+# Include this file from product-specific compose files using Docker Compose includes.
+#
+# Architecture:
+#   - postgres-leader:   PostgreSQL 18 OLTP (read-write, 27 logical databases)
+#   - postgres-follower: PostgreSQL 18 OLAP (read-only replica, analytics with grouped schemas)
+#   - citus-coordinator: Citus 13 coordinator node (row-level sharding)
+#   - citus-worker-1:    Citus 13 worker node 1
+#   - citus-worker-2:    Citus 13 worker node 2
+#
+# Logical Database Architecture (Leader - OLTP):
+#   Suite-level (9 databases):
+#     - suitedeployment-pki-ca
+#     - suitedeployment-jose-ja
+#     - suitedeployment-cipher-im
+#     - suitedeployment-sm-kms
+#     - suitedeployment-identity-authz
+#     - suitedeployment-identity-idp
+#     - suitedeployment-identity-rs
+#     - suitedeployment-identity-rp
+#     - suitedeployment-identity-spa
+#
+#   Product-level (9 databases):
+#     - productdeployment-pki-ca
+#     - productdeployment-jose-ja
+#     - productdeployment-cipher-im
+#     - productdeployment-sm-kms
+#     - productdeployment-identity-authz
+#     - productdeployment-identity-idp
+#     - productdeployment-identity-rs
+#     - productdeployment-identity-rp
+#     - productdeployment-identity-spa
+#
+#   Service-level (9 databases):
+#     - servicedeployment-pki-ca
+#     - servicedeployment-jose-ja
+#     - servicedeployment-cipher-im
+#     - servicedeployment-sm-kms
+#     - servicedeployment-identity-authz
+#     - servicedeployment-identity-idp
+#     - servicedeployment-identity-rs
+#     - servicedeployment-identity-rp
+#     - servicedeployment-identity-spa
+#
+# Logical Database Architecture (Follower - OLAP):
+#   Suite-level (1 database with 9 schemas):
+#     - cryptoutil (schemas: pki_ca, jose_ja, cipher_im, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa)
+#
+#   Product-level (5 databases with schemas):
+#     - pki (schemas: ca)
+#     - jose (schemas: ja)
+#     - cipher (schemas: im)
+#     - sm (schemas: kms)
+#     - identity (schemas: authz, idp, rs, rp, spa)
+#
+#   Service-level (9 databases with 1 schema each):
+#     - pki-ca (schema: ca)
+#     - jose-ja (schema: ja)
+#     - cipher-im (schema: im)
+#     - sm-kms (schema: kms)
+#     - identity-authz (schema: authz)
+#     - identity-idp (schema: idp)
+#     - identity-rs (schema: rs)
+#     - identity-rp (schema: rp)
+#     - identity-spa (schema: spa)
+#
+# Usage: Include this in your product compose.yml:
+#   include:
+#     - path: ../postgres/compose.yml
+#
+services:
+  # PostgreSQL 18 Leader (OLTP - Read/Write)
+  # Hosts 27 logical databases (9 services × 3 deployment types)
+  postgres-leader:
+    image: postgres:18
+    container_name: cryptoutil-postgres-leader
+    hostname: postgres-leader
+    environment:
+      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_INITDB_ARGS: "-c max_connections=500 -c shared_buffers=512MB"
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+      - -c
+      - hot_standby=on
+      - -c
+      - max_connections=500
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - work_mem=16MB
+    shm_size: 512mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_leader_data:/var/lib/postgresql/data
+      - ./postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+    secrets:
+      - postgres_password.secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+  # PostgreSQL 18 Follower (OLAP - Read-Only Analytics)
+  # Logical replication from leader with grouped schemas for analytics
+  postgres-follower:
+    image: postgres:18
+    container_name: cryptoutil-postgres-follower
+    hostname: postgres-follower
+    environment:
+      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_INITDB_ARGS: "-c max_connections=200 -c shared_buffers=1GB"
+    command:
+      - postgres
+      - -c
+      - max_connections=200
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - effective_cache_size=2GB
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - work_mem=32MB
+      - -c
+      - default_transaction_read_only=on
+    shm_size: 1gb
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_follower_data:/var/lib/postgresql/data
+      - ./postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      - ./postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
+    secrets:
+      - postgres_password.secret
+    depends_on:
+      postgres-leader:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      start_period: 60s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '2.0'
+        reservations:
+          memory: 1.5G
+          cpus: '1.0'
+
+  # Citus 13 Coordinator (Distributed PostgreSQL with Row-Level Sharding)
+  citus-coordinator:
+    image: citusdata/citus:13.0-pg17
+    container_name: cryptoutil-citus-coordinator
+    hostname: citus-coordinator
+    environment:
+      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      PGUSER: cryptoutil_admin
+      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+    command:
+      - postgres
+      - -c
+      - max_connections=300
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - citus.shard_count=32
+      - -c
+      - citus.shard_replication_factor=2
+    shm_size: 512mb
+    ports:
+      - "5434:5432"
+    volumes:
+      - citus_coordinator_data:/var/lib/postgresql/data
+      - ./postgres/init-citus.sql:/docker-entrypoint-initdb.d/01-init-citus.sql:ro
+    secrets:
+      - postgres_password.secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # Citus Worker Node 1
+  citus-worker-1:
+    image: citusdata/citus:13.0-pg17
+    container_name: cryptoutil-citus-worker-1
+    hostname: citus-worker-1
+    environment:
+      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      PGUSER: cryptoutil_admin
+      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
+    shm_size: 512mb
+    volumes:
+      - citus_worker_1_data:/var/lib/postgresql/data
+    secrets:
+      - postgres_password.secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # Citus Worker Node 2
+  citus-worker-2:
+    image: citusdata/citus:13.0-pg17
+    container_name: cryptoutil-citus-worker-2
+    hostname: citus-worker-2
+    environment:
+      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      PGUSER: cryptoutil_admin
+      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
+    shm_size: 512mb
+    volumes:
+      - citus_worker_2_data:/var/lib/postgresql/data
+    secrets:
+      - postgres_password.secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - postgres-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # Citus Setup Job - Registers worker nodes with coordinator
+  citus-setup:
+    image: citusdata/citus:13.0-pg17
+    container_name: cryptoutil-citus-setup
+    environment:
+      PGUSER: cryptoutil_admin
+      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      PGHOST: citus-coordinator
+      PGDATABASE: postgres
+    command:
+      - sh
+      - -c
+      - |
+        sleep 10
+        psql -c "SELECT * FROM citus_add_node('citus-worker-1', 5432);"
+        psql -c "SELECT * FROM citus_add_node('citus-worker-2', 5432);"
+        psql -c "SELECT * FROM citus_get_active_worker_nodes();"
+        echo "Citus cluster setup complete"
+    secrets:
+      - postgres_password.secret
+    depends_on:
+      citus-coordinator:
+        condition: service_healthy
+      citus-worker-1:
+        condition: service_healthy
+      citus-worker-2:
+        condition: service_healthy
+    networks:
+      - postgres-network
+
+networks:
+  postgres-network:
+    driver: bridge
+
+volumes:
+  postgres_leader_data:
+    name: cryptoutil_postgres_leader_volume
+  postgres_follower_data:
+    name: cryptoutil_postgres_follower_volume
+  citus_coordinator_data:
+    name: cryptoutil_citus_coordinator_volume
+  citus_worker_1_data:
+    name: cryptoutil_citus_worker_1_volume
+  citus_worker_2_data:
+    name: cryptoutil_citus_worker_2_volume
+
+secrets:
+  postgres_password.secret:
+    file: ./secrets/postgres_password.secret

@@ -9,6 +9,31 @@
 #     - path: ../telemetry/compose.yml
 #
 services:
+  # Healthcheck for OpenTelemetry Collector availability.
+  # Ephemeral job that validates otel-collector is accepting connections before services start.
+  healthcheck-opentelemetry-collector-contrib:
+    image: alpine:latest
+    command:
+      - sh
+      - -c
+      - |
+        apk add --no-cache wget
+        for i in $(seq 1 30); do
+          if wget --quiet --tries=1 --spider --timeout=2 http://opentelemetry-collector-contrib:13133/ 2>/dev/null; then
+            echo "OpenTelemetry Collector is ready"
+            exit 0
+          fi
+          echo "Waiting for OpenTelemetry Collector... ($i/30)"
+          sleep 2
+        done
+        echo "OpenTelemetry Collector failed to become ready"
+        exit 1
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_started
+    networks:
+      - telemetry-network
+
   opentelemetry-collector-contrib:
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yaml"]

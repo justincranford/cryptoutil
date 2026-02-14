@@ -408,17 +408,17 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 ### 3.2 Service Catalog
 
-| Product | Service | Product-Service Identifier | Host Public Address | Host Port Range | Container Public Address | Container Public Port Range | Container Admin Private Address | Container Admin Port Range | Description |
-|---------|----------------|-----------------|------------|----------|------------|----------------|-------------------|----------|
-| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 8050-8059 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | X.509 certificates, EST, SCEP, OCSP, CRL |
-| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 8060-8069 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | JWK/JWS/JWE/JWT operations |
-| **Cipher** | **Instant Messenger (IM)** | **cipher-im** | 127.0.0.1 | 8070-8079 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | E2E encrypted messaging, encryption-at-rest |
-| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 8080-8089 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | Elastic key management, encryption-at-rest |
-| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 8100-8109 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 authorization server |
-| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 8110-8119 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OIDC 1.0 Identity Provider |
-| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 8120-8129 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Resource Server |
-| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 8130-8139 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Relying Party |
-| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 8140-8149 | 0.0.0.0 | 8080 | 127.0.0.1 | 9090 | OAuth 2.1 Single Page Application |
+| Product | Service | Product-Service Identifier | Address (Container) [Admin] | Address (Container) [Public] | Address (Host) [Public] | Port Value (Container) [Admin] | Port Value (Container) [Public] | Port Range (Host) [Service Deployment] | Port Range (Host) [Product Deployment] | Port Range (Host) [Suite Deployment] | Description |
+|---------|---------|----------------------------|-----------------------------|-----------------------------|-------------------------|--------------------------------|---------------------------------|----------------------------------------|----------------------------------------|--------------------------------------|-------------|
+| **Private Key Infrastructure (PKI)** | **Certificate Authority (CA)** | **pki-ca** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8050-8059 | 18050-18059 | 28050-28059 | X.509 certificates, EST, SCEP, OCSP, CRL |
+| **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8060-8069 | 18060-18069 | 28060-28069 | JWK/JWS/JWE/JWT operations |
+| **Cipher** | **Instant Messenger (IM)** | **cipher-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8070-8079 | 18070-18079 | 28070-28079 | E2E encrypted messaging, encryption-at-rest |
+| **Secrets Manager (SM)** | **Key Management Service (KMS)** | **sm-kms** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8080-8089 | 18080-18089 | 28080-28089 | Elastic key management, encryption-at-rest |
+| **Identity** | **Authorization Server (Authz)** | **identity-authz** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8100-8109 | 18100-18109 | 28100-28109 | OAuth 2.1 authorization server |
+| **Identity** | **Identity Provider (IdP)** | **identity-idp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8110-8119 | 18110-18119 | 28110-28119 | OIDC 1.0 Identity Provider |
+| **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8120-8129 | 18120-18129 | 28120-28129 | OAuth 2.1 Resource Server |
+| **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8130-8139 | 18130-18139 | 28130-28139 | OAuth 2.1 Relying Party |
+| **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8140-8149 | 18140-18149 | 28140-28149 | OAuth 2.1 Single Page Application |
 
 **Implementation Status**:
 
@@ -438,87 +438,141 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 **See Also**: [docs/fixes-v1/](../fixes-v1/) for current implementation work and [docs/speckit/specs-002-cryptoutil/](../speckit/specs-002-cryptoutil/) for detailed specifications.
 
-#### 3.2.1 PKI Product
+#### 3.2.1 Secrets Manager (SM) Product
 
-- Certificate Authority (CA): X.509 certificates, EST, SCEP, OCSP, CRL
-- Product-Service Identifier: pki-ca
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8050-8059 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+##### 3.2.1.1 Key Management Service (KMS) Service
 
-#### 3.2.2 JOSE Product
+- Product-Service (Unique Identifier): sm-kms
+- Service Name: Key Management Service (KMS)
+- Service Description: Elastic key management, encryption-at-rest
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8080-8089
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18080-18089
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28080-28089
 
-- JWK Authority (JA): JWK/JWS/JWE/JWT operations
-- Product-Service Identifier: jose-ja
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8060-8069 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+#### 3.2.2 Cipher Product
 
-#### 3.2.3 Cipher Product
+##### 3.2.2.1 Instant Messenger (IM) Service
 
-- Instant Messenger (IM): E2E encrypted messaging, encryption-at-rest
-- Product-Service Identifier: cipher-im
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8070-8079 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+- Product-Service (Unique Identifier): cipher-im
+- Service Name: Instant Messenger (IM)
+- Service Description: E2E encrypted messaging, encryption-at-rest
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8070-8079
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18070-18079
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28070-28079
 
-#### 3.2.4 Secrets Manager (SM) Product
+#### 3.2.3 JSON Object Signing & Encryption (JOSE) Product
 
-- Key Management Service (KMS): Elastic key management, encryption-at-rest
-- Product-Service Identifier: sm-kms
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8080-8089 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+##### 3.2.3.1 JWK Authority (JA) Service
+
+- Product-Service (Unique Identifier): jose-ja
+- Service Name: JWK Authority (JA)
+- Service Description: JWK/JWS/JWE/JWT operations
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8060-8069
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18060-18069
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28060-28069
+
+#### 3.2.4 Public Key Infrastructure (PKI) Product
+
+##### 3.2.4.1 Certificate Authority (CA) Service
+
+- Product-Service (Unique Identifier): pki-ca
+- Service Name: Certificate Authority (CA)
+- Service Description: X.509 certificates, EST, SCEP, OCSP, CRL
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8050-8059
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18050-18059
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28050-28059
 
 #### 3.2.5 Identity Product
 
-- Authorization Server (Authz): OAuth 2.1 authorization server
-- Product-Service Identifier: identity-authz
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8100-8109 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+##### 3.2.5.1 OAuth 2.1 Authorization Server (Authz) Service
 
-- Identity Provider (IdP): OIDC 1.0 Identity Provider
-- Product-Service Identifier: identity-idp
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8110-8119 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+- Product-Service (Unique Identifier): identity-authz
+- Service Name: OAuth 2.1 Authorization Server (Authz)
+- Service Description: OAuth 2.1 authorization server
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8100-8109
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18100-18109
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28100-28109
 
-- Resource Server (RS): OAuth 2.1 Resource Server
-- Product-Service Identifier: identity-rs
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8120-8129 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+##### 3.2.5.2 OIDC 1.0 Identity Provider (IdP) Service
 
-- Relying Party (RP): OAuth 2.1 Relying Party
-- Product-Service Identifier: identity-rp
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8130-8139 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+- Product-Service (Unique Identifier): identity-idp
+- Service Name: OIDC 1.0 Identity Provider (IdP)
+- Service Description: OIDC 1.0 Identity Provider
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8110-8119
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18110-18119
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28110-28119
 
-- Single Page Application (SPA): OAuth 2.1 Single Page Application
-- Product-Service Identifier: identity-spa
-- Host Public Address: 127.0.0.1
-- Container Public Address: 0.0.0.0
-- Container Admin Private Address: 127.0.0.1
-- Public Port Range: 8140-8149 (host), 8080 (container)
-- Private Admin Port: 9090 (container only)
+##### 3.2.5.3 OAuth 2.1 Resource Server (RS) Service
+
+- Product-Service (Unique Identifier): identity-rs
+- Service Name: OAuth 2.1 Resource Server (RS)
+- Service Description: OAuth 2.1 Resource Server
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8120-8129
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18120-18129
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28120-28129
+
+##### 3.2.5.4 OAuth 2.1 Relying Party (RP) Service
+
+- Product-Service (Unique Identifier): identity-rp
+- Service Name: OAuth 2.1 Relying Party (RP)
+- Service Description: OAuth 2.1 Relying Party
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8130-8139
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18130-18139
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28130-28139
+
+##### 3.2.5.5 OAuth 2.1 Single Page Application (SPA) Service
+
+- Product-Service (Unique Identifier): identity-spa
+- Service Name: OAuth 2.1 Single Page Application (SPA)
+- Service Description: OAuth 2.1 Single Page Application
+- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
+- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
+- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
+- Port Value (Container): Private Admin Compose+K8s APIs: 9090
+- Port Value (Container): Public Browser+Service APIs: 8080
+- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8140-8149
+- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18140-18149
+- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28140-28149
 
 ### 3.3 Product-Service Relationships
 
@@ -557,7 +611,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### 3.4.2 PostgreSQL Ports
 
-| Product-Service Identifier | Host Address | Host Port | Container Address | Container Port |
+| Product-Service Identifier | Address (Host) | Host Port | Container Address | Port Value (Container) |
 |---------|-----------|----------------|----------|----------------|
 | **pki-ca** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
 | **jose-ja** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
@@ -571,7 +625,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### 3.4.3 Telemetry Ports (Shared)
 
-| Service | Host Port | Container Port | Protocol |
+| Service | Host Port | Port Value (Container) | Protocol |
 |---------|-----------|----------------|----------|
 | opentelemetry-collector-contrib | 127.0.0.1:4317 | 0.0.0.0:4317 | OTLP gRPC (no TLS) |
 | opentelemetry-collector-contrib | 127.0.0.1:4318 | 0.0.0.0:4318 | OTLP HTTP (no TLS) |
@@ -835,7 +889,7 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 | Subcommand | Description |
 |------------|-------------|
-| `server` | CLI server start with dual HTTPS listeners, for Private Admin APIs vs Public Business Logic APIs |
+| `server` | CLI server start with dual HTTPS listeners, for Private Admin Compose+K8s APIs vs Public Business Logic APIs |
 | `health` | CLI client for Public health endpoint API check |
 | `livez` | CLI client for Private liveness endpoint API check |
 | `readyz` | CLI client for Private readiness endpoint API check |

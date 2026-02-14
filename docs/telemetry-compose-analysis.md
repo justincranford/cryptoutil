@@ -1,6 +1,6 @@
 # Telemetry Compose Configuration Analysis
 
-**Last Updated**: 2026-02-14  
+**Last Updated**: 2026-02-14
 **Purpose**: Analyze and document the current state of OpenTelemetry and Grafana container configurations across the repository to identify consolidation opportunities.
 
 ---
@@ -20,7 +20,7 @@
 
 ## Single Source of Truth: deployments/telemetry/compose.yml
 
-**File**: `deployments/telemetry/compose.yml`  
+**File**: `deployments/telemetry/compose.yml`
 **Purpose**: Provides shared OpenTelemetry Collector and Grafana OTEL LGTM stack for all cryptoutil services.
 
 ### Services Defined
@@ -241,7 +241,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 
 ### Phase 1: Fix Missing Service (Immediate)
 
-**Action**: Remove `healthcheck-opentelemetry-collector-contrib` references  
+**Action**: Remove `healthcheck-opentelemetry-collector-contrib` references
 **Files**:
 - `deployments/kms/compose.yml` (3 locations)
 - `docs/compose-PRODUCT-SERVICE.yml` (3 locations)
@@ -250,7 +250,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 
 ### Phase 2: Consolidate Cipher (High Priority)
 
-**Action**: Replace duplicated services with `include:` directive  
+**Action**: Replace duplicated services with `include:` directive
 **Files**:
 - `deployments/cipher/compose.yml`
 
@@ -266,7 +266,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 
 ### Phase 3: Document Template (Low Priority)
 
-**Action**: Add comments explaining intentional duplication  
+**Action**: Add comments explaining intentional duplication
 **Files**:
 - `deployments/template/compose.yml`
 
@@ -274,7 +274,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 
 ### Phase 4: Template Update (Optional)
 
-**Action**: Create `compose-PRODUCT.yml` template for multiple services per product  
+**Action**: Create `compose-PRODUCT.yml` template for multiple services per product
 **Files**:
 - `docs/compose-PRODUCT.yml` (new file, copy from `compose-PRODUCT-SERVICE.yml`)
 
@@ -318,3 +318,76 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 3. **Low**: Document intentional duplication in template
 
 **Next Steps**: Execute Phase 1 (remove missing healthcheck references) immediately, then Phase 2 (consolidate cipher) in next sprint.
+
+---
+
+## UPDATE 2026-02-14: PostgreSQL Single Source of Truth
+
+**New Infrastructure**: Created `deployments/postgres/compose.yml` as canonical source for PostgreSQL infrastructure.
+
+### PostgreSQL Services
+
+- **postgres-leader**: OLTP read-write primary (port 5432, 2GB RAM, 27 logical databases)
+- **postgres-follower**: OLAP read-only replica (port 5433, 3GB RAM, logical replication)
+- **citus-coordinator**: Distributed PostgreSQL coordinator (port 5434)
+- **citus-worker-1/2**: Worker nodes for row-level sharding (ports 5435/5436)
+- **citus-setup**: Ephemeral configuration job
+
+### Database Architecture (27 Logical Databases)
+
+**Suite Level** (1 database):
+- `suitedeployment-cryptoutil`  9 schemas (all services)
+
+**Product Level** (5 databases):
+- `productdeployment-pki`  1 schema (ca)
+- `productdeployment-jose`  1 schema (ja)
+- `productdeployment-cipher`  1 schema (im)
+- `productdeployment-sm`  1 schema (kms)
+- `productdeployment-identity`  5 schemas (authz, idp, rs, rp, spa)
+
+**Service Level** (9 databases):
+- `servicedeployment-pki-ca`, `servicedeployment-jose-ja`, `servicedeployment-cipher-im`, `servicedeployment-sm-kms`
+- `servicedeployment-identity-authz`, `servicedeployment-identity-idp`, `servicedeployment-identity-rs`, `servicedeployment-identity-rp`, `servicedeployment-identity-spa`
+
+### Template Compose Files Created
+
+1. **deployments/template/compose-cryptoutil-PRODUCT-SERVICE.yml**: Single-service deployment (3 instances)
+2. **deployments/template/compose-cryptoutil-PRODUCT.yml**: Product deployment (1-5 services, 3 instances each)
+3. **deployments/template/compose-cryptoutil.yml**: Suite deployment (all 9 services, 27 total instances)
+
+### Migration Status
+
+**Completed**:
+-  deployments/telemetry/compose.yml - Added healthcheck-opentelemetry-collector-contrib ephemeral job
+-  deployments/postgres/compose.yml - Full leader/follower/Citus infrastructure
+-  deployments/template/compose.yml - Made generic (removed cipher-im specificity)
+-  deployments/compose/compose.yml - Already uses postgres include
+-  deployments/kms/compose.yml - Added postgres include
+
+**Pending** (local postgres service removal + depends_on updates required):
+-  deployments/pki-ca/compose.yml
+-  deployments/pki-ca/compose/compose.yml
+-  deployments/cipher/compose.yml
+-  deployments/jose/compose.yml
+-  deployments/identity/compose.yml
+
+### Required Updates
+
+For each pending file:
+1. Add `- path: ../postgres/compose.yml` to include section
+2. Remove local postgres service definitions (e.g., `sm-kms-db-postgres-1`)
+3. Update `depends_on`: local postgres names  `postgres-leader`
+4. Add `postgres-network` to services connecting to postgres
+5. Remove local postgres volumes
+
+### New Best Practice
+
+**ALL compose files MUST include both**:
+```yaml
+include:
+  - path: ../telemetry/compose.yml
+  - path: ../postgres/compose.yml
+```
+
+This eliminates duplicate service definitions and ensures consistent infrastructure across all deployments.
+

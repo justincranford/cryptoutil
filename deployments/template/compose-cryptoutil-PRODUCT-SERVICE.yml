@@ -13,7 +13,7 @@
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite only (default: dev profile)
-#   docker compose -f compose.yml --profile postgres up -d     # All instances (SQLite + 2x PostgreSQL)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances (1x SQLite + 2x PostgreSQL)
 #   docker compose -f compose.yml --profile demo up -d         # Demo mode with seed data
 #   docker compose -f compose.yml --profile ci up -d           # CI mode for testing
 #   docker compose -f compose.yml logs -f                      # View logs
@@ -28,14 +28,15 @@
 #   - grafana-otel-lgtm:               http://localhost:3000 (admin/admin)
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:XXXX/browser/api/v1/health (external clients)
+#   - Public health endpoint: https://localhost:XXXX/browser/api/v1/health (external browser clients)
+#   - Public health endpoint: https://localhost:XXXX/service/api/v1/health (external non-browser clients)
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal container only, NEVER exposed)
 #
 # Profiles:
 #   - dev: Development mode (default) - SQLite backend, minimal services
 #   - demo: Demo mode with seeded data, SQLite backend
 #   - ci: CI mode for testing, SQLite backend
-#   - postgres: PostgreSQL backend with multiple instances (2x app + 1x db)
+#   - postgres: PostgreSQL backend with multiple instances (1x SQLite + 2x PostgreSQL)
 #
 include:
   - path: ../telemetry/compose.yml

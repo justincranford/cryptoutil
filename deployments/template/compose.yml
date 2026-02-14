@@ -1,32 +1,35 @@
-# Service Template Docker Compose Configuration
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# NOTE: The service-template is an INTERNAL LIBRARY, not a standalone service.
-# It provides reusable infrastructure patterns for all cryptoutil services:
+# GENERIC Service Template Docker Compose Configuration
+#
+# This is the TEMPLATE file for ANY cryptoutil service deployment.
+# Replace PRODUCT, SERVICE, XXXX placeholders with actual values.
+#
+# The service-template is an INTERNAL LIBRARY providing reusable infrastructure:
 #   - Two HTTPS servers (public + admin)
 #   - PostgreSQL/SQLite dual-database support with GORM
 #   - OpenTelemetry integration
 #   - Session management, multi-tenancy, barrier encryption
 #
+# Example substitutions:
+#   - PRODUCT: cipher, jose, pki, sm, identity
+#   - SERVICE: im, ja, ca, kms, authz, idp, rs, rp, spa
+#   - XXXX: Service base port (8050, 8060, 8070, 8080, 8100, 8110, 8120, 8130, 8140)
+#
 # E2E Testing Strategy:
 # ---------------------
-# The service-template is tested through cipher-im, which is the reference
-# implementation built on the template. To run E2E tests:
+# The service-template is tested through concrete implementations:
+#   docker compose -f ../PRODUCT/compose.yml up -d
+#   go test -tags=e2e ./internal/apps/PRODUCT/SERVICE/e2e/...
 #
-#   # Start cipher-im stack (tests template infrastructure)
-#   docker compose -f ../../../deployments/cipher/compose.yml up -d
-#
-#   # Run cipher-im E2E tests
-#   go test -tags=e2e ./internal/apps/cipher/im/e2e/...
-#
-# This compose file provides a MINIMAL stack for template validation only.
-# For production-like testing, use the cipher-im compose file.
+# Recommended reference implementation: cipher-im (migration priority FIRST)
 #
 # Services:
-#   - template-sqlite: https://localhost:8880 (public) - Standalone SQLite
-#   - template-pg-1: https://localhost:8881 (public) - Shared PostgreSQL
-#   - template-pg-2: https://localhost:8882 (public) - Shared PostgreSQL
-#   - postgres: localhost:5433 (PostgreSQL 18.1 - note: different port to avoid conflicts)
-#   - otel-collector: (internal only, no host ports)
+#   - PRODUCT-SERVICE-sqlite: https://localhost:XXXX (public) - Standalone SQLite
+#   - PRODUCT-SERVICE-pg-1: https://localhost:XXXX+1 (public) - Shared PostgreSQL
+#   - PRODUCT-SERVICE-pg-2: https://localhost:XXXX+2 (public) - Shared PostgreSQL
+#   - postgres: localhost:5432 (PostgreSQL 18 - use postgres-leader from include)
+#   - otel-collector: (internal only, no host ports - from telemetry include)
 #
 # Health Checks:
 #   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
@@ -34,83 +37,39 @@
 # Usage:
 #   docker compose up -d                        # Start all services
 #   docker compose ps                           # Check status
-#   docker compose logs -f template-sqlite      # View SQLite instance logs
+#   docker compose logs -f PRODUCT-SERVICE-sqlite      # View SQLite instance logs
 #   docker compose down                         # Stop and remove
 #   docker compose down -v                      # Stop and remove volumes
 
-name: template
+name: PRODUCT-SERVICE
+
+include:
+  - path: ../telemetry/compose.yml
+  - path: ../postgres/compose.yml
 
 services:
-  # PostgreSQL 18.1 Database (shared by template-pg-1 and template-pg-2)
-  postgres:
-    image: postgres:18.1-alpine
-    container_name: template-postgres
-    hostname: template-postgres
+  # PRODUCT-SERVICE - SQLite Standalone Instance
+  # Replace PRODUCT-SERVICE with actual service name (e.g., cipher-im, jose-ja)
+  # Replace XXXX with service base port (e.g., 8070, 8060)
+  PRODUCT-SERVICE-sqlite:
+    image: PRODUCT-SERVICE:local
+    container_name: PRODUCT-SERVICE-sqlite
+    hostname: PRODUCT-SERVICE-sqlite
     secrets:
-      - postgres_database.secret
-      - postgres_username.secret
-      - postgres_password.secret
-    environment:
-      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
     ports:
-      - "5433:5432"  # Note: Different host port (5433) to avoid conflicts with other services
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U template_user -d template"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    networks:
-      - template-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
-        reservations:
-          memory: 128M
-          cpus: '0.25'
-
-  # OpenTelemetry Collector
-  # Note: No healthcheck - otel-collector-contrib image is minimal (no curl/wget).
-  # Services depend on it with service_started (not service_healthy).
-  opentelemetry-collector-contrib:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: template-otel-collector
-    hostname: template-otel-collector
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    networks:
-      - template-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.25'
-        reservations:
-          memory: 128M
-          cpus: '0.1'
-
-  # Template Service - SQLite Standalone Instance
-  # Uses cipher-im binary as reference implementation of the template pattern.
-  template-sqlite:
-    image: cipher-im:local
-    container_name: template-sqlite
-    hostname: template-sqlite
-    ports:
-      - "8870:8070"  # Public HTTPS API ONLY - external access
+      - "XXXX:8080"  # Public HTTPS API ONLY - external access (XXXX = base port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=file::memory:?cache=shared"
-      - "--config=/etc/template/config-sqlite.yml"
+      - "--config=/etc/PRODUCT-SERVICE/config-sqlite.yml"
     volumes:
-      - ../../configs/template/config-sqlite.yml:/etc/template/config-sqlite.yml:ro
+      - ../../configs/PRODUCT/SERVICE-sqlite.yml:/etc/PRODUCT-SERVICE/config-sqlite.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -123,10 +82,11 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
-      - template-network
+      - PRODUCT-network
+      - telemetry-network
     restart: unless-stopped
     labels:
-      com.cryptoutil.service: "template"
+      com.cryptoutil.service: "PRODUCT-SERVICE"
       com.cryptoutil.backend: "sqlite"
       com.cryptoutil.instance: "1"
       com.cryptoutil.environment: "development"
@@ -139,22 +99,30 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  # Template Service - PostgreSQL Instance 1
-  template-pg-1:
-    image: cipher-im:local
-    container_name: template-pg-1
-    hostname: template-pg-1
+  # PRODUCT-SERVICE - PostgreSQL Instance 1
+  PRODUCT-SERVICE-pg-1:
+    image: PRODUCT-SERVICE:local
+    container_name: PRODUCT-SERVICE-pg-1
+    hostname: PRODUCT-SERVICE-pg-1
     secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
       - postgres_url.secret
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
     ports:
-      - "8871:8070"  # Public HTTPS API ONLY - external access
+      - "XXXX+1:8080"  # Public HTTPS API ONLY - external access (XXXX+1)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=file:///run/secrets/postgres_url.secret"
-      - "--config=/etc/template/config-pg-1.yml"
+      - "--config=/etc/PRODUCT-SERVICE/config-pg-1.yml"
     volumes:
-      - ../../configs/template/config-pg-1.yml:/etc/template/config-pg-1.yml:ro
+      - ../../configs/PRODUCT/SERVICE-pg-1.yml:/etc/PRODUCT-SERVICE/config-pg-1.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -164,17 +132,19 @@ services:
       retries: 5
       start_period: 60s
     depends_on:
-      postgres:
+      postgres-leader:
         condition: service_healthy
-      template-sqlite:
+      PRODUCT-SERVICE-sqlite:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
-      - template-network
+      - PRODUCT-network
+      - postgres-network
+      - telemetry-network
     restart: unless-stopped
     labels:
-      com.cryptoutil.service: "template"
+      com.cryptoutil.service: "PRODUCT-SERVICE"
       com.cryptoutil.backend: "postgresql"
       com.cryptoutil.instance: "1"
       com.cryptoutil.environment: "development"
@@ -187,22 +157,30 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  # Template Service - PostgreSQL Instance 2
-  template-pg-2:
-    image: cipher-im:local
-    container_name: template-pg-2
-    hostname: template-pg-2
+  # PRODUCT-SERVICE - PostgreSQL Instance 2
+  PRODUCT-SERVICE-pg-2:
+    image: PRODUCT-SERVICE:local
+    container_name: PRODUCT-SERVICE-pg-2
+    hostname: PRODUCT-SERVICE-pg-2
     secrets:
+      - unseal_1of5.secret
+      - unseal_2of5.secret
+      - unseal_3of5.secret
+      - unseal_4of5.secret
+      - unseal_5of5.secret
       - postgres_url.secret
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
     ports:
-      - "8872:8070"  # Public HTTPS API ONLY - external access
+      - "XXXX+2:8080"  # Public HTTPS API ONLY - external access (XXXX+2)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=file:///run/secrets/postgres_url.secret"
-      - "--config=/etc/template/config-pg-2.yml"
+      - "--config=/etc/PRODUCT-SERVICE/config-pg-2.yml"
     volumes:
-      - ../../configs/template/config-pg-2.yml:/etc/template/config-pg-2.yml:ro
+      - ../../configs/PRODUCT/SERVICE-pg-2.yml:/etc/PRODUCT-SERVICE/config-pg-2.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -212,17 +190,19 @@ services:
       retries: 5
       start_period: 60s
     depends_on:
-      postgres:
+      postgres-leader:
         condition: service_healthy
-      template-pg-1:
+      PRODUCT-SERVICE-pg-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
-      - template-network
+      - PRODUCT-network
+      - postgres-network
+      - telemetry-network
     restart: unless-stopped
     labels:
-      com.cryptoutil.service: "template"
+      com.cryptoutil.service: "PRODUCT-SERVICE"
       com.cryptoutil.backend: "postgresql"
       com.cryptoutil.instance: "2"
       com.cryptoutil.environment: "development"
@@ -236,6 +216,16 @@ services:
           cpus: '0.25'
 
 secrets:
+  unseal_1of5.secret:
+    file: ./secrets/unseal_1of5.secret
+  unseal_2of5.secret:
+    file: ./secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ./secrets/unseal_3of5.secret
+  unseal_4of5.secret:
+    file: ./secrets/unseal_4of5.secret
+  unseal_5of5.secret:
+    file: ./secrets/unseal_5of5.secret
   postgres_database.secret:
     file: ./secrets/postgres_database.secret
   postgres_username.secret:
@@ -246,10 +236,13 @@ secrets:
     file: ./secrets/postgres_url.secret
 
 networks:
-  template-network:
+  PRODUCT-network:
     driver: bridge
-    name: template-network
+    name: PRODUCT-network
+  postgres-network:
+    driver: bridge
+  telemetry-network:
+    driver: bridge
 
-volumes:
-  postgres_data:
-    name: template-postgres-data
+# Note: Volumes are defined in ../postgres/compose.yml (included above)
+# No local volumes needed for this template
