@@ -55,13 +55,8 @@ func NewKMSServer(
 	// Create ServerBuilder directly (no more builder_adapter.go).
 	builder := cryptoutilAppsTemplateServiceServerBuilder.NewServerBuilder(ctx, settings)
 
-	// Configure domain-only migrations (KMS has its own migration system).
-	// TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
-	builder.WithMigrationConfig(
-		cryptoutilAppsTemplateServiceServerBuilder.NewDomainOnlyMigrationConfig().
-			WithDomainFS(cryptoutilAppsSmKmsServerRepository.MigrationsFS).
-			WithDomainPath("migrations"),
-	)
+	// Configure domain migrations (KMS business tables 2001+).
+	builder.WithDomainMigrations(cryptoutilAppsSmKmsServerRepository.MigrationsFS, "migrations")
 
 	// Configure JWT auth as session-based (KMS uses template sessions).
 	builder.WithJWTAuth(
