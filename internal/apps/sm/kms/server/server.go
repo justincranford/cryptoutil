@@ -11,11 +11,12 @@ import (
 	"sync/atomic"
 
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
+	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
+	cryptoutilAppsSmKmsServerRepository "cryptoutil/internal/apps/sm/kms/server/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
-	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
-	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
@@ -57,7 +58,9 @@ func NewKMSServer(
 	// Configure domain-only migrations (KMS has its own migration system).
 	// TODO(Phase2-5): Switch to TemplateWithDomain mode once KMS uses template DB.
 	builder.WithMigrationConfig(
-		cryptoutilAppsTemplateServiceServerBuilder.NewDomainOnlyMigrationConfig(),
+		cryptoutilAppsTemplateServiceServerBuilder.NewDomainOnlyMigrationConfig().
+			WithDomainFS(cryptoutilAppsSmKmsServerRepository.MigrationsFS).
+			WithDomainPath("migrations"),
 	)
 
 	// Configure JWT auth as session-based (KMS uses template sessions).

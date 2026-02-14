@@ -102,7 +102,7 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringSliceVarP(&configFiles, "config", "c", nil, "Path to configuration file (can be specified multiple times)")
+	// Note: "config" flag is provided by template config - do not redefine it here.
 	cmd.Flags().StringVarP(&bindAddr, "bind", "b", cryptoutilSharedMagic.IPv4Loopback, "Bind address")
 	cmd.Flags().Uint16VarP(&bindPort, "port", "p", cryptoutilSharedMagic.DefaultPublicPortCAServer, "Bind port")
 	cmd.Flags().BoolVar(&devMode, "dev", false, "Enable development mode (relaxed security)")

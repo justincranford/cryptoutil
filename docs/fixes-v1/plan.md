@@ -19,7 +19,7 @@
 - 🔄 Phase 1: E2E Test Execution - BLOCKED by service startup failures
 
 **Blocking Issues** (see docs/fixes-v1/blockers/):
-- 🚫 P0: E2E Service Startup Failures  
+- 🚫 P0: E2E Service Startup Failures
   - KMS: Migration FS configuration error
   - CA: Cobra flag redefinition panic
   - JOSE: Args routing through product->service->subcommand layers

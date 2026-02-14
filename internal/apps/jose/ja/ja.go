@@ -13,16 +13,16 @@ import (
 // Ja is the entry point for the jose-ja service.
 // It follows the standard pattern for service-level CLI entry points.
 func Ja(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	if len(args) < 2 {
+	if len(args) < 1 {
 		log.Println("Usage: jose-ja <subcommand> [flags]")
 
 		return 1
 	}
 
-	subcommand := args[1]
+	subcommand := args[0]
 	switch subcommand {
 	case "start":
-		return startServer(args[2:])
+		return startServer(args[1:])
 	default:
 		log.Printf("Unknown subcommand: %s\n", subcommand)
 
