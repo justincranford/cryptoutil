@@ -118,3 +118,36 @@ This plan contains ONLY the incomplete work from Fixes V10 that was blocked on D
 - **Success**: Developers can assess service maturity at a glance
 
 ---
+
+### Phase 3: Security Architecture Verification (15h) [Status:  TODO]
+
+**Objective**: Verify PKI, JOSE, and KMS implementations match documented security architecture
+- Deep verification of PKI CA implementation (EST, SCEP, OCSP, CRL)
+- JOSE JWK rotation and elastic key ring verification
+- KMS hierarchical key barrier implementation verification
+- **Success**: All security components verified against Section 6 requirements
+
+### Phase 4: Multi-Tenancy Schema Isolation (8h) [Status:  TODO]
+
+**Objective**: Verify schema-level isolation for all services
+- Audit all services for tenant_id scoping in database queries
+- Verify PostgreSQL search_path per-connection configuration
+- Validate schema creation/migration for multi-tenant scenarios
+- **Success**: 100% tenant isolation verified, no row-level multi-tenancy
+
+### Phase 5: Quality Gates Verification (12h) [Status:  TODO]
+
+**Objective**: Verify coverage and mutation testing targets across all packages
+- Run coverage analysis: 95% production, 98% infrastructure/utility
+- Run mutation testing: 95% production minimum, 98% infrastructure
+- Identify packages below targets
+- Create remediation tasks for quality gaps
+- **Success**: All packages meet or exceed quality gate targets
+
+---
+
+## Phases Added from Architecture Compliance Analysis
+
+**Analysis Date**: 2025-02-08
+**Sections Analyzed**: 1-14 (complete)
+**Evidence**: test-output/architecture-compliance-analysis/

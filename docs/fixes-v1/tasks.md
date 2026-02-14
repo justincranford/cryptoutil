@@ -208,3 +208,157 @@
   - `test-output/doc-consistency/architecture-status-table-diff.txt`
 
 ---
+
+### Phase 3: Security Architecture Verification
+
+**Phase Objective**: Verify PKI, JOSE, and KMS match documented security architecture
+
+#### Task 3.1: PKI CA Implementation Verification
+
+- **Status**:
+- **Estimated**: 6h
+- **Dependencies**: None
+- **Description**: Deep verification of PKI CA against Section 6.5 requirements
+- **Acceptance Criteria**:
+  - [ ] EST endpoint verification
+  - [ ] SCEP endpoint verification
+  - [ ] OCSP responder verification
+  - [ ] CRL generation and distribution verification
+- **Evidence**: test-output/pki-verification/
+
+#### Task 3.2: JOSE JWK Authority Verification
+
+- **Status**:
+- **Estimated**: 5h
+- **Dependencies**: None
+- **Description**: Verify JOSE elastic key ring and per-message rotation
+- **Acceptance Criteria**:
+  - [ ] Per-message JWK rotation verified
+  - [ ] Elastic key ring active/historical keys verified
+  - [ ] Key ID embedded with ciphertext verified
+  - [ ] Deterministic lookup verified
+- **Evidence**: test-output/jose-verification/
+
+#### Task 3.3: KMS Hierarchical Barrier Verification
+
+- **Status**:
+- **Estimated**: 4h
+- **Dependencies**: None
+- **Description**: Verify KMS barrier layers (Unseal  Root  Intermediate  Content)
+- **Acceptance Criteria**:
+  - [ ] Unseal key derivation (Docker secrets) verified
+  - [ ] Root key encryption with unseal key verified
+  - [ ] Intermediate key encryption with root key verified
+  - [ ] Content key encryption with intermediate keys verified
+- **Evidence**: test-output/kms-verification/
+
+### Phase 4: Multi-Tenancy Schema Isolation
+
+**Phase Objective**: Verify schema-level tenant isolation
+
+#### Task 4.1: Tenant ID Scoping Audit
+
+- **Status**:
+- **Estimated**: 4h
+- **Dependencies**: None
+- **Description**: Audit all GORM queries filter by tenant_id
+- **Acceptance Criteria**:
+  - [ ] All repository queries include tenant_id filter
+  - [ ] No raw SQL queries bypass tenant_id
+  - [ ] Schema-level isolation verified (not row-level)
+- **Evidence**: test-output/tenant-isolation-audit/
+
+#### Task 4.2: PostgreSQL search_path Verification
+
+- **Status**:
+- **Estimated**: 2h
+- **Dependencies**: Task 4.1
+- **Description**: Verify search_path set per-connection
+- **Acceptance Criteria**:
+  - [ ] Connection pool configuration includes search_path
+  - [ ] Schema creation for new tenants verified
+  - [ ] Migration applies to tenant schemas
+- **Evidence**: test-output/postgresql-searchpath/
+
+#### Task 4.3: Multi-Tenant Migration Testing
+
+- **Status**:
+- **Estimated**: 2h
+- **Dependencies**: Task 4.2
+- **Description**: E2E test multi-tenant schema creation and migration
+- **Acceptance Criteria**:
+  - [ ] Create 3 tenant schemas
+  - [ ] Run migrations on all schemas
+  - [ ] Verify data isolation between tenants
+- **Evidence**: test-output/multi-tenant-e2e/
+
+### Phase 5: Quality Gates Verification
+
+**Phase Objective**: Verify coverage and mutation targets met
+
+#### Task 5.1: Coverage Analysis
+
+- **Status**:
+- **Estimated**: 4h
+- **Dependencies**: None
+- **Description**: Run coverage analysis on all packages
+- **Acceptance Criteria**:
+  - [ ] Production packages 95% coverage
+  - [ ] Infrastructure/utility packages 98% coverage
+  - [ ] Coverage report generated
+  - [ ] Gaps identified and documented
+- **Evidence**: test-output/coverage-analysis/
+
+#### Task 5.2: Mutation Testing Analysis
+
+- **Status**:
+- **Estimated**: 6h
+- **Dependencies**: None
+- **Description**: Run gremlins mutation testing on all packages
+- **Acceptance Criteria**:
+  - [ ] Production packages 95% efficacy minimum
+  - [ ] Infrastructure/utility packages 98% efficacy
+  - [ ] Mutation report generated
+  - [ ] Gaps identified and documented
+- **Evidence**: test-output/mutation-analysis/
+
+#### Task 5.3: Quality Gap Remediation Plan
+
+- **Status**:
+- **Estimated**: 2h
+- **Dependencies**: Task 5.1, Task 5.2
+- **Description**: Create remediation tasks for packages below targets
+- **Acceptance Criteria**:
+  - [ ] List all packages below coverage targets
+  - [ ] List all packages below mutation targets
+  - [ ] Create GAP files for each deficiency
+  - [ ] Prioritize remediation work
+- **Evidence**: docs/quality-gaps/
+
+---
+
+## Architecture Compliance Analysis Summary
+
+**Analysis Date**: 2025-02-08
+**Sections Analyzed**: 1-14 (complete ARCHITECTURE.md)
+**Evidence Location**: test-output/architecture-compliance-analysis/
+
+**Sections with No Issues**:
+- Section 1: Executive Summary (product count fixed in Phase 2)
+- Section 2: Strategic Vision & Principles
+- Section 3: Product Suite Architecture
+- Section 4: System Architecture
+- Section 12: Deployment Architecture
+- Section 13: Development Practices
+
+**Sections Deferred to E2E Testing** (Phase 1):
+- Section 5: Service Architecture (template pattern)
+- Section 8: API Architecture (dual paths /service/**and /browser/**)
+- Section 9: Infrastructure Architecture (telemetry flow)
+- Section 10: Testing Architecture (E2E tests currently BLOCKED)
+- Section 14: Operational Excellence (runtime monitoring)
+
+**New Phases Created**:
+- Phase 3: Security Architecture Verification (Section 6 findings)
+- Phase 4: Multi-Tenancy Schema Isolation (Section 7 findings)
+- Phase 5: Quality Gates Verification (Section 11 findings)
