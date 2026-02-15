@@ -3,7 +3,7 @@
 # GENERIC Service Template Docker Compose Configuration
 #
 # This is the TEMPLATE file for ANY cryptoutil service deployment.
-# Replace PRODUCT, SERVICE, XXXX placeholders with actual values.
+# Replace identity, idp, 8300 placeholders with actual values.
 #
 # The service-template is an INTERNAL LIBRARY providing reusable infrastructure:
 #   - Two HTTPS servers (public + admin)
@@ -12,22 +12,22 @@
 #   - Session management, multi-tenancy, barrier encryption
 #
 # Example substitutions:
-#   - PRODUCT: cipher, jose, pki, sm, identity
-#   - SERVICE: im, ja, ca, kms, authz, idp, rs, rp, spa
-#   - XXXX: Service base port (8000, 8100, 8200, 8300, 8400, 8500, 8600, 8700, 8800)
+#   - identity: cipher, jose, pki, sm, identity
+#   - idp: im, ja, ca, kms, authz, idp, rs, rp, spa
+#   - 8300: Service base port (8000, 8100, 8200, 8300, 8400, 8500, 8600, 8700, 8800)
 #
 # E2E Testing Strategy:
 # ---------------------
 # The service-template is tested through concrete implementations:
-#   docker compose -f ../PRODUCT/compose.yml up -d
-#   go test -tags=e2e ./internal/apps/PRODUCT/SERVICE/e2e/...
+#   docker compose -f ../identity/compose.yml up -d
+#   go test -tags=e2e ./internal/apps/identity/idp/e2e/...
 #
 # Recommended reference implementation: cipher-im (migration priority FIRST)
 #
 # Services:
-#   - PRODUCT-SERVICE-sqlite: https://localhost:XXXX (public) - Standalone SQLite
-#   - PRODUCT-SERVICE-pg-1: https://localhost:XXXX+1 (public) - Shared PostgreSQL
-#   - PRODUCT-SERVICE-pg-2: https://localhost:XXXX+2 (public) - Shared PostgreSQL
+#   - identity-idp-sqlite: https://localhost:8300 (public) - Standalone SQLite
+#   - identity-idp-pg-1: https://localhost:8300+1 (public) - Shared PostgreSQL
+#   - identity-idp-pg-2: https://localhost:8300+2 (public) - Shared PostgreSQL
 #   - postgres: localhost:5432 (PostgreSQL 18 - use postgres-leader from include)
 #   - otel-collector: (internal only, no host ports - from telemetry include)
 #
@@ -37,24 +37,24 @@
 # Usage:
 #   docker compose up -d                        # Start all services
 #   docker compose ps                           # Check status
-#   docker compose logs -f PRODUCT-SERVICE-sqlite      # View SQLite instance logs
+#   docker compose logs -f identity-idp-sqlite      # View SQLite instance logs
 #   docker compose down                         # Stop and remove
 #   docker compose down -v                      # Stop and remove volumes
 
-name: PRODUCT-SERVICE
+name: identity-idp
 
 include:
   - path: ../telemetry/compose.yml
   - path: ../postgres/compose.yml
 
 services:
-  # PRODUCT-SERVICE - SQLite Standalone Instance
-  # Replace PRODUCT-SERVICE with actual service name (e.g., cipher-im, jose-ja)
-  # Replace XXXX with service base port (e.g., 8700, 8800)
-  PRODUCT-SERVICE-sqlite:
-    image: PRODUCT-SERVICE:local
-    container_name: PRODUCT-SERVICE-sqlite
-    hostname: PRODUCT-SERVICE-sqlite
+  # identity-idp - SQLite Standalone Instance
+  # Replace identity-idp with actual service name (e.g., cipher-im, jose-ja)
+  # Replace 8300 with service base port (e.g., 8700, 8800)
+  identity-idp-sqlite:
+    image: identity-idp:local
+    container_name: identity-idp-sqlite
+    hostname: identity-idp-sqlite
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -62,14 +62,14 @@ services:
       - unseal_4of5.secret
       - unseal_5of5.secret
     ports:
-      - "XXXX:8000"  # Public HTTPS API ONLY - external access (XXXX = base port)
+      - "8300:8000"  # Public HTTPS API ONLY - external access (8300 = base port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=file::memory:?cache=shared"
-      - "--config=/etc/PRODUCT-SERVICE/config-sqlite.yml"
+      - "--config=/etc/identity-idp/config-sqlite.yml"
     volumes:
-      - ../../configs/PRODUCT/SERVICE-sqlite.yml:/etc/PRODUCT-SERVICE/config-sqlite.yml:ro
+      - ../../configs/identity/idp-sqlite.yml:/etc/identity-idp/config-sqlite.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -82,11 +82,11 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
-      - PRODUCT-network
+      - identity-network
       - telemetry-network
     restart: unless-stopped
     labels:
-      com.cryptoutil.service: "PRODUCT-SERVICE"
+      com.cryptoutil.service: "identity-idp"
       com.cryptoutil.backend: "sqlite"
       com.cryptoutil.instance: "1"
       com.cryptoutil.environment: "development"
@@ -99,11 +99,11 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  # PRODUCT-SERVICE - PostgreSQL Instance 1
-  PRODUCT-SERVICE-pg-1:
-    image: PRODUCT-SERVICE:local
-    container_name: PRODUCT-SERVICE-pg-1
-    hostname: PRODUCT-SERVICE-pg-1
+  # identity-idp - PostgreSQL Instance 1
+  identity-idp-pg-1:
+    image: identity-idp:local
+    container_name: identity-idp-pg-1
+    hostname: identity-idp-pg-1
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -115,14 +115,14 @@ services:
       - postgres_password.secret
       - postgres_database.secret
     ports:
-      - "XXXX+1:8000"  # Public HTTPS API ONLY - external access (XXXX+1)
+      - "8300+1:8000"  # Public HTTPS API ONLY - external access (8300+1)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=file:///run/secrets/postgres_url.secret"
-      - "--config=/etc/PRODUCT-SERVICE/config-pg-1.yml"
+      - "--config=/etc/identity-idp/config-pg-1.yml"
     volumes:
-      - ../../configs/PRODUCT/SERVICE-pg-1.yml:/etc/PRODUCT-SERVICE/config-pg-1.yml:ro
+      - ../../configs/identity/idp-pg-1.yml:/etc/identity-idp/config-pg-1.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -134,17 +134,17 @@ services:
     depends_on:
       postgres-leader:
         condition: service_healthy
-      PRODUCT-SERVICE-sqlite:
+      identity-idp-sqlite:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
-      - PRODUCT-network
+      - identity-network
       - postgres-network
       - telemetry-network
     restart: unless-stopped
     labels:
-      com.cryptoutil.service: "PRODUCT-SERVICE"
+      com.cryptoutil.service: "identity-idp"
       com.cryptoutil.backend: "postgresql"
       com.cryptoutil.instance: "1"
       com.cryptoutil.environment: "development"
@@ -157,11 +157,11 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  # PRODUCT-SERVICE - PostgreSQL Instance 2
-  PRODUCT-SERVICE-pg-2:
-    image: PRODUCT-SERVICE:local
-    container_name: PRODUCT-SERVICE-pg-2
-    hostname: PRODUCT-SERVICE-pg-2
+  # identity-idp - PostgreSQL Instance 2
+  identity-idp-pg-2:
+    image: identity-idp:local
+    container_name: identity-idp-pg-2
+    hostname: identity-idp-pg-2
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -173,14 +173,14 @@ services:
       - postgres_password.secret
       - postgres_database.secret
     ports:
-      - "XXXX+2:8000"  # Public HTTPS API ONLY - external access (XXXX+2)
+      - "8300+2:8000"  # Public HTTPS API ONLY - external access (8300+2)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
       - "--database-url=file:///run/secrets/postgres_url.secret"
-      - "--config=/etc/PRODUCT-SERVICE/config-pg-2.yml"
+      - "--config=/etc/identity-idp/config-pg-2.yml"
     volumes:
-      - ../../configs/PRODUCT/SERVICE-pg-2.yml:/etc/PRODUCT-SERVICE/config-pg-2.yml:ro
+      - ../../configs/identity/idp-pg-2.yml:/etc/identity-idp/config-pg-2.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "--quiet",
              "--tries=1", "--spider",
@@ -192,17 +192,17 @@ services:
     depends_on:
       postgres-leader:
         condition: service_healthy
-      PRODUCT-SERVICE-pg-1:
+      identity-idp-pg-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
-      - PRODUCT-network
+      - identity-network
       - postgres-network
       - telemetry-network
     restart: unless-stopped
     labels:
-      com.cryptoutil.service: "PRODUCT-SERVICE"
+      com.cryptoutil.service: "identity-idp"
       com.cryptoutil.backend: "postgresql"
       com.cryptoutil.instance: "2"
       com.cryptoutil.environment: "development"
@@ -236,9 +236,9 @@ secrets:
     file: ./secrets/postgres_url.secret
 
 networks:
-  PRODUCT-network:
+  identity-network:
     driver: bridge
-    name: PRODUCT-network
+    name: identity-network
   postgres-network:
     driver: bridge
   telemetry-network:
