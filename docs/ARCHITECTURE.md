@@ -2541,6 +2541,127 @@ healthcheck:
 - Health probes (liveness vs readiness)
 - Resource limits and requests
 
+#### 12.3.3 Secrets Coordination Strategy
+
+**MANDATORY: All secrets stored in Docker/Kubernetes secrets, NEVER inline environment variables.**
+
+**Secrets Structure**: Each service requires 10 secrets (5 unseal keys, 1 hash pepper, 4 PostgreSQL credentials).
+
+##### SUITE-Level Deployment (cryptoutil)
+
+**Location**: `deployments/cryptoutil/secrets/` (template pattern applied)
+
+**Consistency Requirements**:
+
+- **hash_pepper_v3.secret**: SAME value across ALL 9 services (enables cross-service PII deduplication, SSO username lookup)
+- **unseal_*.secret**: UNIQUE per service (barrier encryption independence, security isolation)
+- **postgres_*.secret**: Service-specific (27 logical databases: 9 suite + 9 product + 9 service)
+
+**Rationale**: Unified hash pepper allows username@domain lookups across identity services while maintaining per-service encryption boundaries.
+
+##### PRODUCT-Level Deployment (identity, cipher, jose, pki, sm)
+
+**Location**: `deployments/PRODUCT/secrets/` (multiple services per product)
+
+**Consistency Requirements**:
+
+- **hash_pepper_v3.secret**: SAME value within product services (identity-{authz,idp,rs,rp,spa} share pepper for SSO)
+- **unseal_*.secret**: UNIQUE per service within product (independent barrier hierarchies)
+- **postgres_*.secret**: Service-specific (each service has 3 databases: suite, product, service levels)
+
+**Example**: identity-authz, identity-idp, identity-rs, identity-rp, identity-spa share hash_pepper for unified user lookups.
+
+##### SERVICE-Level Deployment (single service)
+
+**Location**: `deployments/PRODUCT-SERVICE/secrets/` (e.g., `deployments/jose-ja/secrets/`)
+
+**Consistency Requirements**:
+
+- **hash_pepper_v3.secret**: UNIQUE per service (no cross-service lookups needed)
+- **unseal_*.secret**: UNIQUE per service (barrier encryption independence)
+- **postgres_*.secret**: Service-specific (3 databases per service)
+
+**Rationale**: Maximum isolation for standalone deployments.
+
+##### Secret File Format
+
+**Unseal Keys** (`unseal_{1,2,3,4,5}.secret`):
+
+```
+jose-ja-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3f3c3b9c3
+```
+
+- Format: `{product}-{service}-{32 hex chars}`
+- Generation: `secrets.token_hex(16)`
+- Purpose: HKDF deterministic derivation for Root Key encryption
+
+**Hash Pepper** (`hash_pepper_v3.secret`):
+
+```
+dGhpcyBpcyBhIDMyLWJ5dGUgcGVwcGVyIGZvciBoYXNoaW5nIQ==
+```
+
+- Format: Base64-encoded 32 bytes
+- Generation: `base64.b64encode(secrets.token_bytes(32))`
+- Purpose: PBKDF2/HKDF salt/pepper for PII hashing (username, email deduplication)
+
+**PostgreSQL Credentials** (`postgres_{url,username,password,database}.secret`):
+
+```
+# postgres_url.secret
+postgres://jose_ja_user:jose-ja-pass@postgres-leader:5432/jose_ja_db
+
+# postgres_username.secret
+jose_ja_user
+
+# postgres_password.secret
+jose-ja-pass-40c8c0f3c1c3b9c3f3c3b9c3f3c3b9c3
+
+# postgres_database.secret
+jose_ja_db
+```
+
+- Naming: `{product}_{service}_user`, `{product}_{service}_db`
+- Password: `{product}-{service}-pass-{32 hex chars}`
+
+##### Secret Validation
+
+**Healthcheck-Secrets Service** (in all compose templates):
+
+```yaml
+healthcheck-secrets:
+  image: alpine:3.19
+  command: >
+    sh -c "
+      for secret in unseal_1 unseal_2 unseal_3 unseal_4 unseal_5
+                   hash_pepper_v3
+                   postgres_url postgres_username postgres_password postgres_database; do
+        test -f /run/secrets/$${secret}.secret || exit 1;
+      done;
+      echo 'All secrets validated';
+    "
+  secrets:
+    - unseal_1.secret
+    - unseal_2.secret
+    - unseal_3.secret
+    - unseal_4.secret
+    - unseal_5.secret
+    - hash_pepper_v3.secret
+    - postgres_url.secret
+    - postgres_username.secret
+    - postgres_password.secret
+    - postgres_database.secret
+```
+
+**Purpose**: Fail fast on missing secrets, prevent runtime errors.
+
+##### Cross-Reference Documentation
+
+- Secrets generation scripts: `internal/cmd/cicd/secrets/` (Python secrets module)
+- Security architecture: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
+- Hash service patterns: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#hash-service-architecture)
+- Docker Compose templates: `deployments/template/compose-cryptoutil*.yml`
+
 ### 12.4 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
