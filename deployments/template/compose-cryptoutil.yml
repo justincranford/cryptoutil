@@ -100,13 +100,13 @@ services:
   pki-ca-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["pki-ca", "start", "--config=/app/config/pki-ca-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki-ca", "start", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8100:8000"  # HTTPS public
     volumes:
-      - ../pki-ca/config/pki-ca-sqlite.yml:/app/config/pki-ca-sqlite.yml:ro
-      - ../pki-ca/config/pki-ca-common.yml:/app/config/common.yml:ro
+      - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
+      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -140,13 +140,13 @@ services:
   pki-ca-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki-ca", "start", "--config=/app/config/pki-ca-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki-ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8101:8000"
     volumes:
-      - ../pki-ca/config/pki-ca-postgres.yml:/app/config/pki-ca-postgres.yml:ro
-      - ../pki-ca/config/pki-ca-common.yml:/app/config/common.yml:ro
+      - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
+      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -187,13 +187,13 @@ services:
   pki-ca-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki-ca", "start", "--config=/app/config/pki-ca-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki-ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8102:8000"
     volumes:
-      - ../pki-ca/config/pki-ca-postgres.yml:/app/config/pki-ca-postgres.yml:ro
-      - ../pki-ca/config/pki-ca-common.yml:/app/config/common.yml:ro
+      - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
+      - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -238,13 +238,13 @@ services:
   jose-ja-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["jose-ja", "start", "--config=/app/config/jose-ja-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["jose-ja", "start", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8800:8000"
     volumes:
-      - ../jose-ja/config/jose-ja-sqlite.yml:/app/config/jose-ja-sqlite.yml:ro
-      - ../jose-ja/config/jose-ja-common.yml:/app/config/common.yml:ro
+      - ../jose-ja/config/jose-ja-app-sqlite-1.yml:/app/config/jose-ja-app-sqlite-1.yml:ro
+      - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -278,13 +278,13 @@ services:
   jose-ja-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["jose-ja", "start", "--config=/app/config/jose-ja-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["jose-ja", "start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8801:8000"
     volumes:
-      - ../jose-ja/config/jose-ja-postgres.yml:/app/config/jose-ja-postgres.yml:ro
-      - ../jose-ja/config/jose-ja-common.yml:/app/config/common.yml:ro
+      - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
+      - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -325,13 +325,13 @@ services:
   jose-ja-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["jose-ja", "start", "--config=/app/config/jose-ja-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["jose-ja", "start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8802:8000"
     volumes:
-      - ../jose-ja/config/jose-ja-postgres.yml:/app/config/jose-ja-postgres.yml:ro
-      - ../jose-ja/config/jose-ja-common.yml:/app/config/common.yml:ro
+      - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
+      - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -376,13 +376,13 @@ services:
   cipher-im-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["cipher-im", "start", "--config=/app/config/cipher-im-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["cipher-im", "start", "--config=/app/config/cipher-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8700:8000"
     volumes:
-      - ../cipher-im/config/cipher-im-sqlite.yml:/app/config/cipher-im-sqlite.yml:ro
-      - ../cipher-im/config/cipher-im-common.yml:/app/config/common.yml:ro
+      - ../cipher-im/config/cipher-im-app-sqlite-1.yml:/app/config/cipher-im-app-sqlite-1.yml:ro
+      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -422,7 +422,7 @@ services:
       - "8701:8000"
     volumes:
       - ../cipher-im/config/cipher-im-postgres.yml:/app/config/cipher-im-postgres.yml:ro
-      - ../cipher-im/config/cipher-im-common.yml:/app/config/common.yml:ro
+      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -469,7 +469,7 @@ services:
       - "8702:8000"
     volumes:
       - ../cipher-im/config/cipher-im-postgres.yml:/app/config/cipher-im-postgres.yml:ro
-      - ../cipher-im/config/cipher-im-common.yml:/app/config/common.yml:ro
+      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -514,13 +514,13 @@ services:
   sm-kms-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["sm-kms", "start", "--config=/app/config/sm-kms-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm-kms", "start", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "8000:8000"
     volumes:
-      - ../sm-kms/config/sm-kms-sqlite.yml:/app/config/sm-kms-sqlite.yml:ro
-      - ../sm-kms/config/sm-kms-common.yml:/app/config/common.yml:ro
+      - ../sm-kms/config/sm-kms-app-sqlite-1.yml:/app/config/sm-kms-app-sqlite-1.yml:ro
+      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -560,7 +560,7 @@ services:
       - "8001:8000"
     volumes:
       - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
-      - ../sm-kms/config/sm-kms-common.yml:/app/config/common.yml:ro
+      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
@@ -607,7 +607,7 @@ services:
       - "8002:8000"
     volumes:
       - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
-      - ../sm-kms/config/sm-kms-common.yml:/app/config/common.yml:ro
+      - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret

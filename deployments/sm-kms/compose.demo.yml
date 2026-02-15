@@ -49,8 +49,8 @@ services:
       - "8080:8080"  # Public API (HTTPS)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     volumes:
-      - ./config/kms-common.yml:/etc/cryptoutil/common.yml:ro
-      - ./config/kms-sqlite.yml:/etc/cryptoutil/sqlite.yml:ro
+      - ./config/sm-kms-app-common.yml:/etc/cryptoutil/common.yml:ro
+      - ./config/sm-kms-app-sqlite-1.yml:/etc/cryptoutil/sqlite.yml:ro
       - ./config/demo-seed.yml:/etc/cryptoutil/demo-seed.yml:ro
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317

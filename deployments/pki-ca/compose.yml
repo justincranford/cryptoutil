@@ -99,16 +99,16 @@ services:
       [
         "ca",
         "start",
-        "--config=/app/config/ca-sqlite.yml",
-        "--config=/app/config/ca-common.yml",
+        "--config=/app/config/pki-ca-app-sqlite-1.yml",
+        "--config=/app/config/pki-ca-app-common.yml",
         "--config=/app/otel/otel.yml",
       ]
     working_dir: /tmp
     ports:
       - "8050:8050"  # HTTPS public
     volumes:
-      - ./config/ca-sqlite.yml:/app/config/ca-sqlite.yml:ro
-      - ./config/ca-common.yml:/app/config/ca-common.yml:ro
+      - ./config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
+      - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./ca-crls:/app/crls  # CRL distribution point
     secrets:
@@ -153,8 +153,8 @@ services:
       [
         "ca",
         "start",
-        "--config=/app/config/ca-postgresql-1.yml",
-        "--config=/app/config/ca-common.yml",
+        "--config=/app/config/pki-ca-app-postgresql-1.yml",
+        "--config=/app/config/pki-ca-app-common.yml",
         "--config=/app/otel/otel.yml",
         "-u",
         "file:///run/secrets/postgres_url.secret",
@@ -163,8 +163,8 @@ services:
     ports:
       - "8444:8050"  # HTTPS public
     volumes:
-      - ./config/ca-postgresql-1.yml:/app/config/ca-postgresql-1.yml:ro
-      - ./config/ca-common.yml:/app/config/ca-common.yml:ro
+      - ./config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
+      - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./ca-crls:/app/crls  # CRL distribution point
     secrets:
@@ -210,8 +210,8 @@ services:
       [
         "ca",
         "start",
-        "--config=/app/config/ca-postgresql-2.yml",
-        "--config=/app/config/ca-common.yml",
+        "--config=/app/config/pki-ca-app-postgresql-2.yml",
+        "--config=/app/config/pki-ca-app-common.yml",
         "--config=/app/otel/otel.yml",
         "-u",
         "file:///run/secrets/postgres_url.secret",
@@ -220,8 +220,8 @@ services:
     ports:
       - "8445:8050"  # HTTPS public
     volumes:
-      - ./config/ca-postgresql-2.yml:/app/config/ca-postgresql-2.yml:ro
-      - ./config/ca-common.yml:/app/config/ca-common.yml:ro
+      - ./config/pki-ca-app-postgresql-2.yml:/app/config/pki-ca-app-postgresql-2.yml:ro
+      - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./ca-crls:/app/crls  # CRL distribution point
     secrets:

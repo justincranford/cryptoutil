@@ -286,16 +286,16 @@ services:
       - "pki"
       - "ca"
       - "start"
-      - "--config=/app/config/ca-sqlite.yml"
-      - "--config=/app/config/ca-common.yml"
+      - "--config=/app/config/pki-ca-app-sqlite-1.yml"
+      - "--config=/app/config/pki-ca-app-common.yml"
       - "--config=/app/otel/otel.yml"
     working_dir: /tmp
     ports:
       - "8050:8050"  # HTTPS public (CA uses 8050, not 8080)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     volumes:
-      - ../ca/config/ca-sqlite.yml:/app/config/ca-sqlite.yml:ro
-      - ../ca/config/ca-common.yml:/app/config/ca-common.yml:ro
+      - ../ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
+      - ../ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ../ca/ca-crls:/app/crls  # CRL distribution point
     secrets:

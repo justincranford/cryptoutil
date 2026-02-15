@@ -55,7 +55,7 @@ services:
       - "8060:8060"  # Public API (HTTPS)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     volumes:
-      - ./config/ja.yml:/etc/jose/jose.yml:ro
+      - ./config/jose-ja-app-common.yml:/etc/jose/jose.yml:ro
     depends_on:
       builder-jose:
         condition: service_completed_successfully

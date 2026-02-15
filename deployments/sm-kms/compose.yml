@@ -181,7 +181,7 @@ services:
 
     image: cryptoutil:dev
 
-    command: ["server", "start", "--config=/app/config/kms-sqlite.yml", "--config=/app/config/kms-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "start", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml"]
 
     working_dir: /tmp
 
@@ -191,9 +191,9 @@ services:
 
     volumes:
 
-      - ./config/kms-sqlite.yml:/app/config/kms-sqlite.yml:ro
+      - ./config/sm-kms-app-sqlite-1.yml:/app/config/sm-kms-app-sqlite-1.yml:ro
 
-      - ./config/kms-common.yml:/app/config/kms-common.yml:ro
+      - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
 
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
 
@@ -273,7 +273,7 @@ services:
 
     image: cryptoutil:dev
 
-    command: ["server", "start", "--config=/app/config/kms-postgresql-1.yml", "--config=/app/config/kms-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
 
     working_dir: /tmp
 
@@ -283,9 +283,9 @@ services:
 
     volumes:
 
-      - ./config/kms-postgresql-1.yml:/app/config/kms-postgresql-1.yml:ro
+      - ./config/sm-kms-app-postgresql-1.yml:/app/config/sm-kms-app-postgresql-1.yml:ro
 
-      - ./config/kms-common.yml:/app/config/kms-common.yml:ro
+      - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
 
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
 
@@ -367,7 +367,7 @@ services:
 
     image: cryptoutil:dev
 
-    command: ["server", "start", "--config=/app/config/kms-postgresql-2.yml", "--config=/app/config/kms-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
 
     working_dir: /tmp
 
@@ -377,9 +377,9 @@ services:
 
     volumes:
 
-      - ./config/kms-postgresql-2.yml:/app/config/kms-postgresql-2.yml:ro
+      - ./config/sm-kms-app-postgresql-2.yml:/app/config/sm-kms-app-postgresql-2.yml:ro
 
-      - ./config/kms-common.yml:/app/config/kms-common.yml:ro
+      - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
 
       - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
 
