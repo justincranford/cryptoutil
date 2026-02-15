@@ -2662,13 +2662,68 @@ healthcheck-secrets:
 - Hash service patterns: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#hash-service-architecture)
 - Docker Compose templates: `deployments/template/compose-cryptoutil*.yml`
 
-### 12.4 Environment Strategy
+### 12.4 Deployment Structure Validation
+
+**Purpose**: Automated enforcement of consistent deployment directory structures across all services to prevent configuration drift and deployment failures.
+
+**Linter Tool**: `cicd lint-deployments <directory>` validates all deployments in a directory tree.
+
+**Implementation**: [internal/cmd/cicd/lint_deployments](/internal/cmd/cicd/lint_deployments/) package with comprehensive table-driven tests.
+
+#### 12.4.1 Deployment Types
+
+**PRODUCT-SERVICE** (e.g., cipher-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa):
+- Required directories: `secrets/`, `config/`
+- Required files: `compose.yml`, `Dockerfile`
+- Optional files: `compose.demo.yml`, `otel-collector-config.yaml`, `README.md`
+- Required secrets: 10 files (5 unseal, 1 hash pepper, 4 PostgreSQL)
+  - `unseal_1of5.secret` through `unseal_5of5.secret`
+  - `hash_pepper_v3.secret`
+  - `postgres_url.secret`, `postgres_username.secret`, `postgres_password.secret`, `postgres_database.secret`
+
+**template** (deployment template for new services):
+- Required directories: `secrets/`
+- Required files: `compose.yml`
+- Optional files: `compose.demo.yml`, `Dockerfile`, `README.md`
+- Required secrets: Same 10 files as PRODUCT-SERVICE
+
+**infrastructure** (postgres, citus, telemetry, compose):
+- Required directories: none
+- Required files: `compose.yml`
+- Optional files: `init-db.sql`, `init-citus.sql`, `README.md`
+- Required secrets: none (infrastructure secrets are optional)
+
+#### 12.4.2 Validation Rules
+
+**Directory Structure**: Each deployment type enforces specific required/optional directories.
+
+**File Requirements**: compose.yml is MANDATORY for all types; Dockerfile MANDATORY only for PRODUCT-SERVICE.
+
+**Secret Validation**: For PRODUCT-SERVICE and template types, all 10 required secrets MUST exist in `secrets/` directory.
+
+**Error Reporting**: Linter identifies missing directories, missing files, and missing secrets with actionable error messages.
+
+#### 12.4.3 CI/CD Integration
+
+**GitHub Actions Workflow**: [cicd-lint-deployments.yml](/.github/workflows/cicd-lint-deployments.yml) runs on all changes to `deployments/**`.
+
+**Quality Gate**: Deployment structure validation is MANDATORY before merge; violations block CI/CD pipeline.
+
+**Artifact Upload**: Validation reports uploaded as GitHub Actions artifacts for 7-day retention.
+
+#### 12.4.4 Cross-Reference Documentation
+
+- Secrets coordination strategy: [12.3.3 Secrets Coordination Strategy](#1233-secrets-coordination-strategy)
+- Docker Compose deployment patterns: [12.3.1 Docker Compose Deployment](#1231-docker-compose-deployment)
+- Secret management instructions: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
+
+### 12.5 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
 **Testing**: test-containers (PostgreSQL), dynamic ports, ephemeral instances
 **Production**: PostgreSQL (cloud), static ports, full telemetry, TLS required
 
-### 12.5 Release Management
+### 12.6 Release Management
 
 **Versioning**: Semantic versioning (major.minor.patch)
 **Release Process**: Tag creation, CHANGELOG generation, artifact publishing

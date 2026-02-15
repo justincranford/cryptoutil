@@ -37,13 +37,7 @@ All instruction files now have cross-references to ARCHITECTURE.md sections. No 
 
 ### CICD Tools
 
-**Unmapped CICD linters**:
-
-- [internal/cmd/cicd/lint_deployments](internal/cmd/cicd/lint_deployments/) - Deployment directory structure validation
-  - Pending: ARCHITECTURE.md Section 12.4 "Deployment Structure Validation"
-  - Validation rules: PRODUCT-SERVICE, template, infrastructure patterns
-  - Secret file requirements (10 per service)
-  - Directory structure enforcement (secrets/, config/, compose.yml, Dockerfile)
+**All CICD tools now have ARCHITECTURE.md documentation.**
 
 ---
 

@@ -175,20 +175,21 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 12. Deployment Architecture (Lines 2358-2452)
+### 12. Deployment Architecture (Lines 2463-2733)
 
-**Topics**: CI/CD automation, build pipeline, deployment patterns, environment strategy, release management
+**Topics**: CI/CD automation, build pipeline, deployment patterns, deployment structure validation, environment strategy, release management
 
 **Subsections**:
-- 12.1 CI/CD Automation Strategy (2360-2365): GitHub Actions, automated quality gates
-- 12.2 Build Pipeline (2366-2389): Build, test, coverage, mutation, SAST, DAST
-- 12.3 Deployment Patterns (2390-2438): Docker Compose, Docker secrets, health checks, multi-stage Dockerfile
-- 12.4 Environment Strategy (2439-2444): Dev, CI/CD, Docker, production
-- 12.5 Release Management (2445-2452): Semantic versioning, changelog
+- 12.1 CI/CD Automation Strategy (2465-2470): GitHub Actions, automated quality gates
+- 12.2 Build Pipeline (2471-2494): Build, test, coverage, mutation, SAST, DAST
+- 12.3 Deployment Patterns (2495-2664): Docker Compose, Docker secrets, health checks, multi-stage Dockerfile, secrets coordination
+- 12.4 Deployment Structure Validation (2665-2719): Automated validation, deployment types, validation rules, CI/CD integration
+- 12.5 Environment Strategy (2720-2725): Dev, CI/CD, Docker, production
+- 12.6 Release Management (2726-2733): Semantic versioning, changelog
 
 ---
 
-### 13. Development Practices (Lines 2453-2520)
+### 13. Development Practices (Lines 2734-2801)
 
 **Topics**: Coding standards, version control, branching strategy, code review, development workflow
 
