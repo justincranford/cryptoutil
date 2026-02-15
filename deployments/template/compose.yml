@@ -14,7 +14,7 @@
 # Example substitutions:
 #   - PRODUCT: cipher, jose, pki, sm, identity
 #   - SERVICE: im, ja, ca, kms, authz, idp, rs, rp, spa
-#   - XXXX: Service base port (8050, 8060, 8070, 8080, 8100, 8110, 8120, 8130, 8140)
+#   - XXXX: Service base port (8000, 8100, 8200, 8300, 8400, 8500, 8600, 8700, 8800)
 #
 # E2E Testing Strategy:
 # ---------------------
@@ -50,7 +50,7 @@ include:
 services:
   # PRODUCT-SERVICE - SQLite Standalone Instance
   # Replace PRODUCT-SERVICE with actual service name (e.g., cipher-im, jose-ja)
-  # Replace XXXX with service base port (e.g., 8070, 8060)
+  # Replace XXXX with service base port (e.g., 8700, 8800)
   PRODUCT-SERVICE-sqlite:
     image: PRODUCT-SERVICE:local
     container_name: PRODUCT-SERVICE-sqlite
@@ -62,7 +62,7 @@ services:
       - unseal_4of5.secret
       - unseal_5of5.secret
     ports:
-      - "XXXX:8080"  # Public HTTPS API ONLY - external access (XXXX = base port)
+      - "XXXX:8000"  # Public HTTPS API ONLY - external access (XXXX = base port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
@@ -115,7 +115,7 @@ services:
       - postgres_password.secret
       - postgres_database.secret
     ports:
-      - "XXXX+1:8080"  # Public HTTPS API ONLY - external access (XXXX+1)
+      - "XXXX+1:8000"  # Public HTTPS API ONLY - external access (XXXX+1)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
@@ -173,7 +173,7 @@ services:
       - postgres_password.secret
       - postgres_database.secret
     ports:
-      - "XXXX+2:8080"  # Public HTTPS API ONLY - external access (XXXX+2)
+      - "XXXX+2:8000"  # Public HTTPS API ONLY - external access (XXXX+2)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
