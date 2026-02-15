@@ -2717,6 +2717,117 @@ healthcheck-secrets:
 - Docker Compose deployment patterns: [12.3.1 Docker Compose Deployment](#1231-docker-compose-deployment)
 - Secret management instructions: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#secret-management---mandatory)
 
+#### 12.4.5 Config File Naming Strategy
+
+**MANDATORY Pattern**: All service config files MUST use full `{PRODUCT}-{SERVICE}-app-{variant}.yml` naming.
+
+**Standard Config File Set** (required for ALL services):
+
+- `{PRODUCT}-{SERVICE}-app-common.yml` - Shared configuration for all deployment modes (SQLite, PostgreSQL-1, PostgreSQL-2)
+- `{PRODUCT}-{SERVICE}-app-sqlite-1.yml` - SQLite in-memory configuration for single-instance development/testing
+- `{PRODUCT}-{SERVICE}-app-postgresql-1.yml` - PostgreSQL instance 1 configuration (shared database)
+- `{PRODUCT}-{SERVICE}-app-postgresql-2.yml` - PostgreSQL instance 2 configuration (shared database, high-availability pair)
+
+**Optional Config Files**:
+
+- `{PRODUCT}-{SERVICE}-e2e.yml` - End-to-end test-specific overrides
+- `{PRODUCT}-{SERVICE}-demo.yml` - Demo environment settings
+
+**Examples**:
+
+```
+deployments/sm-kms/config/
+├── sm-kms-app-common.yml
+├── sm-kms-app-sqlite-1.yml
+├── sm-kms-app-postgresql-1.yml
+├── sm-kms-app-postgresql-2.yml
+├── sm-kms-e2e.yml          (optional)
+└── sm-kms-demo.yml         (optional)
+
+deployments/jose-ja/config/
+├── jose-ja-app-common.yml
+├── jose-ja-app-sqlite-1.yml
+├── jose-ja-app-postgresql-1.yml
+└── jose-ja-app-postgresql-2.yml
+```
+
+**Rationale**:
+
+- **Explicit Product-Service Coupling**: Prevents config file collisions when multiple services deployed together
+- **Variant Clarity**: `app-sqlite-1` vs `app-postgresql-1` makes deployment mode immediately obvious
+- **Instance Numbering**: `-1` and `-2` suffixes enable horizontal scaling with unique configs per instance
+- **Tooling Support**: Linter validates presence of 4 required files, flags non-conformant naming
+
+**Migration Strategy** (Q9 Answer: Break Immediately):
+
+- NO backward compatibility period - rename all files immediately
+- NO symlinks or aliases - clean cutover
+- **Rationale**: Pre-production repository with zero deployed instances, rigid enforcement prevents future drift
+
+#### 12.4.6 Demo and Integration File Handling
+
+**Decision** (Q3 Answer: Remove from service directories):
+
+- **demo-seed.yml**: Remove from all `deployments/{PRODUCT}-{SERVICE}/config/` directories
+- **integration.yml**: Remove from all `deployments/{PRODUCT}-{SERVICE}/config/` directories
+
+**Replacement Pattern**:
+
+- Demo-specific settings → `{PRODUCT}-{SERVICE}-demo.yml` (optional file in config/)
+- E2E test settings → `{PRODUCT}-{SERVICE}-e2e.yml` (optional file in config/)
+- Integration test data → Use TestMain with test-containers (NOT Docker Compose)
+
+**Rationale**:
+
+- Ambiguous naming (`demo-seed`, `integration`) caused confusion about purpose
+- New naming (`-demo.yml`, `-e2e.yml`) aligns with PRODUCT-SERVICE prefix pattern
+- Optional nature prevents bloat when not needed
+
+**Linter Enforcement** (Q5 Answer: Warning Mode Transition):
+
+```go
+// Phase 1: Warning Mode (current)
+if file == "demo-seed.yml" || file == "integration.yml" {
+    warnings = append(warnings, fmt.Sprintf("DEPRECATED: %s should be removed or renamed to %s-demo.yml / %s-e2e.yml", 
+        file, productService, productService))
+}
+
+// Phase 2: Error Mode (after transition period)
+if file == "demo-seed.yml" || file == "integration.yml" {
+    errors = append(errors, fmt.Sprintf("FORBIDDEN: %s must be removed", file))
+}
+```
+
+**Transition Period**: Short (1-2 weeks) to avoid long-term confusion and technical debt buildup.
+
+#### 12.4.7 Linter Validation Modes
+
+**Current Mode**: Warning (transition period for non-conformant files)
+**Target Mode**: Strict (all violations block CI/CD)
+
+**Warning-Mode Violations**:
+
+- Config files not matching `{PRODUCT}-{SERVICE}-app-{variant}.yml` pattern
+- Presence of deprecated `demo-seed.yml` or `integration.yml` files
+- Missing optional config files (`-demo.yml`, `-e2e.yml`) when referenced in compose
+
+**Error-Mode Violations** (ALWAYS blocking):
+
+- Missing required config files (4 standard files)
+- Missing required secrets (10 secret files)
+- Missing required directories (`secrets/`, `config/`)
+- Missing required compose/Dockerfile files
+
+**Transition Strategy**:
+
+1. Deploy linter with warning mode
+2. Review all warnings in CI/CD logs
+3. Fix high-priority warnings (missing standards, deprecated files)
+4. Switch to error mode after validation
+5. Enforce strict mode permanently
+
+**Timeline**: Transition period MUST be short (<2 weeks) to prevent confusion and technical debt accumulation (Q5 Answer).
+
 ### 12.5 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
