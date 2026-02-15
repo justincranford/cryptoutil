@@ -16,11 +16,11 @@
 #
 # Example substitutions for IDENTITY product:
 #   - PRODUCT: identity
-#   - SERVICE1: authz (base port 8100)
-#   - SERVICE2: idp (base port 8110)
-#   - SERVICE3: rs (base port 8120)
-#   - SERVICE4: rp (base port 8130)
-#   - SERVICE5: spa (base port 8140)
+#   - SERVICE1: authz (base port 8200)
+#   - SERVICE2: idp (base port 8300)
+#   - SERVICE3: rs (base port 8400)
+#   - SERVICE4: rp (base port 8500)
+#   - SERVICE5: spa (base port 8600)
 #
 # Port allocation pattern (per service):
 #   - SQLite instance:     BASE_PORT
@@ -36,21 +36,21 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Services (example for identity product with 5 services):
-#   - identity-authz-app-sqlite-1:    https://localhost:8100 (public HTTPS)
-#   - identity-authz-app-postgres-1:  https://localhost:8101 (public HTTPS) [--profile postgres]
-#   - identity-authz-app-postgres-2:  https://localhost:8102 (public HTTPS) [--profile postgres]
-#   - identity-idp-app-sqlite-1:      https://localhost:8110 (public HTTPS)
-#   - identity-idp-app-postgres-1:    https://localhost:8111 (public HTTPS) [--profile postgres]
-#   - identity-idp-app-postgres-2:    https://localhost:8112 (public HTTPS) [--profile postgres]
-#   - identity-rs-app-sqlite-1:       https://localhost:8120 (public HTTPS)
-#   - identity-rs-app-postgres-1:     https://localhost:8121 (public HTTPS) [--profile postgres]
-#   - identity-rs-app-postgres-2:     https://localhost:8122 (public HTTPS) [--profile postgres]
-#   - identity-rp-app-sqlite-1:       https://localhost:8130 (public HTTPS)
-#   - identity-rp-app-postgres-1:     https://localhost:8131 (public HTTPS) [--profile postgres]
-#   - identity-rp-app-postgres-2:     https://localhost:8132 (public HTTPS) [--profile postgres]
-#   - identity-spa-app-sqlite-1:      https://localhost:8140 (public HTTPS)
-#   - identity-spa-app-postgres-1:    https://localhost:8141 (public HTTPS) [--profile postgres]
-#   - identity-spa-app-postgres-2:    https://localhost:8142 (public HTTPS) [--profile postgres]
+#   - identity-authz-app-sqlite-1:    https://localhost:8200 (public HTTPS)
+#   - identity-authz-app-postgres-1:  https://localhost:8201 (public HTTPS) [--profile postgres]
+#   - identity-authz-app-postgres-2:  https://localhost:8202 (public HTTPS) [--profile postgres]
+#   - identity-idp-app-sqlite-1:      https://localhost:8300 (public HTTPS)
+#   - identity-idp-app-postgres-1:    https://localhost:8301 (public HTTPS) [--profile postgres]
+#   - identity-idp-app-postgres-2:    https://localhost:8302 (public HTTPS) [--profile postgres]
+#   - identity-rs-app-sqlite-1:       https://localhost:8400 (public HTTPS)
+#   - identity-rs-app-postgres-1:     https://localhost:8401 (public HTTPS) [--profile postgres]
+#   - identity-rs-app-postgres-2:     https://localhost:8402 (public HTTPS) [--profile postgres]
+#   - identity-rp-app-sqlite-1:       https://localhost:8500 (public HTTPS)
+#   - identity-rp-app-postgres-1:     https://localhost:8501 (public HTTPS) [--profile postgres]
+#   - identity-rp-app-postgres-2:     https://localhost:8502 (public HTTPS) [--profile postgres]
+#   - identity-spa-app-sqlite-1:      https://localhost:8600 (public HTTPS)
+#   - identity-spa-app-postgres-1:    https://localhost:8601 (public HTTPS) [--profile postgres]
+#   - identity-spa-app-postgres-2:    https://localhost:8602 (public HTTPS) [--profile postgres]
 #   - PRODUCT-db-postgres-1:          localhost:5432 (PostgreSQL, shared by ALL services) [--profile postgres]
 #   - opentelemetry-collector-contrib: (internal only, no host ports)
 #   - grafana-otel-lgtm:              http://localhost:3000 (admin/admin)
@@ -152,7 +152,7 @@ services:
     command: ["SERVICE1", "start", "--config=/app/config/SERVICE1-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "XXXX:8080"  # HTTPS public (XXXX = SERVICE1 base port)
+      - "XXXX:8000"  # HTTPS public (XXXX = SERVICE1 base port)
     volumes:
       - ../PRODUCT/config/SERVICE1-sqlite.yml:/app/config/SERVICE1-sqlite.yml:ro
       - ../PRODUCT/config/SERVICE1-common.yml:/app/config/common.yml:ro
@@ -202,7 +202,7 @@ services:
     command: ["SERVICE1", "start", "--config=/app/config/SERVICE1-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp
     ports:
-      - "XXXX+1:8080"  # HTTPS public (XXXX+1 = SERVICE1 base port + 1)
+      - "XXXX+1:8000"  # HTTPS public (XXXX+1 = SERVICE1 base port + 1)
     volumes:
       - ../PRODUCT/config/SERVICE1-postgresql-1.yml:/app/config/SERVICE1-postgresql-1.yml:ro
       - ../PRODUCT/config/SERVICE1-common.yml:/app/config/common.yml:ro
@@ -248,7 +248,7 @@ services:
     command: ["SERVICE1", "start", "--config=/app/config/SERVICE1-postgresql-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp
     ports:
-      - "XXXX+2:8080"  # HTTPS public (XXXX+2 = SERVICE1 base port + 2)
+      - "XXXX+2:8000"  # HTTPS public (XXXX+2 = SERVICE1 base port + 2)
     volumes:
       - ../PRODUCT/config/SERVICE1-postgresql-2.yml:/app/config/SERVICE1-postgresql-2.yml:ro
       - ../PRODUCT/config/SERVICE1-common.yml:/app/config/common.yml:ro
@@ -295,7 +295,7 @@ services:
   # Copy the SERVICE1 pattern above for each additional service.
   # Update: PRODUCT-SERVICEX-*, base ports (YYYY, ZZZZ, etc.), config paths.
   # Example: For identity product, duplicate SERVICE1 block 4 more times for
-  #          idp (8110), rs (8120), rp (8130), spa (8140).
+  #          idp (8300), rs (8400), rp (8500), spa (8600).
   ###############################################################################
 
 networks:
