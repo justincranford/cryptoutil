@@ -11,7 +11,7 @@
 
 **Duplications Found**: 3 files duplicate telemetry service definitions instead of using `include:`:
 1. `deployments/template/compose.yml` - Full duplication of otel-collector
-2. `deployments/cipher/` - Full duplication of both otel-collector and grafana
+2. `deployments/cipher-im/` - Full duplication of both otel-collector and grafana
 3. `deployments/compose/compose.yml` - Override pattern (intended, not a bug)
 
 **Missing Service**: `healthcheck-opentelemetry-collector-contrib` is referenced as a dependency but never defined.
@@ -58,12 +58,12 @@ These services correctly reuse the canonical telemetry compose:
 
 | Service | Compose File | Include Path | Status |
 |---------|--------------|--------------|--------|
-| KMS | `deployments/kms/compose.yml` | `../telemetry/compose.yml` | ✅ Correct |
+| KMS | `deployments/sm-kms/compose.yml` | `../telemetry/compose.yml` | ✅ Correct |
 | PKI-CA | `deployments/pki-ca/compose.yml` | `../telemetry/compose.yml` | ✅ Correct |
-| JOSE-JA | `deployments/jose/compose.yml` | `../telemetry/compose.yml` | ✅ Correct |
+| JOSE-JA | `deployments/jose-ja/compose.yml` | `../telemetry/compose.yml` | ✅ Correct |
 | Identity (simple) | `deployments/identity/compose.simple.yml` | `../telemetry/compose.yml` | ✅ Correct |
 | Identity (e2e) | `deployments/identity/compose.e2e.yml` | `../telemetry/compose.yml` | ✅ Correct |
-| KMS Demo | `deployments/kms/compose.demo.yml` | `../telemetry/compose.yml` | ✅ Correct |
+| KMS Demo | `deployments/sm-kms/compose.demo.yml` | `../telemetry/compose.yml` | ✅ Correct |
 | Template (docs) | `docs/compose-PRODUCT-SERVICE.yml` | `../telemetry/compose.yml` | ✅ Correct |
 
 **Pattern**: All use `include: - path: ../telemetry/compose.yml` and reference services via `depends_on: opentelemetry-collector-contrib: condition: service_started`.
@@ -86,7 +86,7 @@ These services correctly reuse the canonical telemetry compose:
 - Deviations are expected as it tests infrastructure patterns independently
 - Document in comments why duplication exists
 
-### 2. deployments/cipher/compose.yml
+### 2. deployments/cipher-im/compose.yml
 
 **Status**: ❌ **DUPLICATION** - Should use `include:` instead
 
@@ -143,7 +143,7 @@ include:
 **Status**: ❌ **BUG** - Service referenced but never defined
 
 **Files Referencing Missing Service**:
-- `deployments/kms/compose.yml` (lines 115, 164, 211)
+- `deployments/sm-kms/compose.yml` (lines 115, 164, 211)
 - `docs/compose-PRODUCT-SERVICE.yml` (lines 147, 196, 243)
 
 **Current Pattern**:
@@ -243,7 +243,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 
 **Action**: Remove `healthcheck-opentelemetry-collector-contrib` references
 **Files**:
-- `deployments/kms/compose.yml` (3 locations)
+- `deployments/sm-kms/compose.yml` (3 locations)
 - `docs/compose-PRODUCT-SERVICE.yml` (3 locations)
 
 **Impact**: Low risk, simplifies dependencies
@@ -252,7 +252,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 
 **Action**: Replace duplicated services with `include:` directive
 **Files**:
-- `deployments/cipher/compose.yml`
+- `deployments/cipher-im/compose.yml`
 
 **Benefits**:
 - Single source of truth
@@ -260,7 +260,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 - Easier maintenance
 
 **Testing**:
-- `docker compose -f deployments/cipher/compose.yml up -d`
+- `docker compose -f deployments/cipher-im/compose.yml up -d`
 - Verify cipher-im connects to otel and grafana
 - Check `docker network ls` shows telemetry-network
 
@@ -291,10 +291,10 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 | File | Purpose | Include? | Status |
 |------|---------|----------|--------|
 | `deployments/telemetry/compose.yml` | Canonical source | N/A (is source) | ✅ Source of Truth |
-| `deployments/kms/compose.yml` | KMS deployment | ✅ Yes | ✅ Correct |
+| `deployments/sm-kms/compose.yml` | KMS deployment | ✅ Yes | ✅ Correct |
 | `deployments/pki-ca/compose.yml` | PKI-CA deployment | ✅ Yes | ✅ Correct |
-| `deployments/jose/compose.yml` | JOSE-JA deployment | ✅ Yes | ✅ Correct |
-| `deployments/cipher/compose.yml` | Cipher-IM deployment | ❌ No | ❌ Needs Refactor |
+| `deployments/jose-ja/compose.yml` | JOSE-JA deployment | ✅ Yes | ✅ Correct |
+| `deployments/cipher-im/compose.yml` | Cipher-IM deployment | ❌ No | ❌ Needs Refactor |
 | `deployments/template/compose.yml` | Template validation | ❌ No | ⚠️ Intentional |
 | `deployments/compose/compose.yml` | E2E testing | ❌ Override | ✅ Intentional |
 | `deployments/identity/compose.simple.yml` | Identity simple | ✅ Yes | ✅ Correct |
@@ -314,7 +314,7 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 
 **Improvements Needed**:
 1. **Critical**: Fix missing `healthcheck-opentelemetry-collector-contrib` service (blocks deployments)
-2. **High**: Consolidate `deployments/cipher/compose.yml` to use `include:`
+2. **High**: Consolidate `deployments/cipher-im/compose.yml` to use `include:`
 3. **Low**: Document intentional duplication in template
 
 **Next Steps**: Execute Phase 1 (remove missing healthcheck references) immediately, then Phase 2 (consolidate cipher) in next sprint.
@@ -362,13 +362,13 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 - deployments/postgres/compose.yml - Full leader/follower/Citus infrastructure
 - deployments/template/compose.yml - Made generic (removed cipher-im specificity)
 - deployments/compose/compose.yml - Already uses postgres include
-- deployments/kms/compose.yml - Added postgres include
+- deployments/sm-kms/compose.yml - Added postgres include
 
 **Pending** (local postgres service removal + depends_on updates required):
 - deployments/pki-ca/compose.yml
 - deployments/pki-ca/compose/compose.yml
-- deployments/cipher/compose.yml
-- deployments/jose/compose.yml
+- deployments/cipher-im/compose.yml
+- deployments/jose-ja/compose.yml
 - deployments/identity/compose.yml
 
 ### Required Updates

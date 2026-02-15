@@ -103,7 +103,7 @@ services:
     image: cryptoutil:dev
     build:
       context: ../..
-      dockerfile: deployments/kms/Dockerfile
+      dockerfile: deployments/sm-kms/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"

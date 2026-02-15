@@ -719,7 +719,7 @@ Comprehensive E2E testing validates complete workflows across all services (KMS,
 # Deploy all services
 docker compose -f ./deployments/compose/compose.yml up -d
 docker compose -f ./deployments/ca/compose.yml up -d
-docker compose -f ./deployments/jose/compose.yml up -d
+docker compose -f ./deployments/jose-ja/compose.yml up -d
 
 # Run E2E tests
 go test -tags=e2e -v -timeout=30m ./internal/test/e2e/
@@ -727,7 +727,7 @@ go test -tags=e2e -v -timeout=30m ./internal/test/e2e/
 # Cleanup
 docker compose -f ./deployments/compose/compose.yml down -v
 docker compose -f ./deployments/ca/compose.yml down -v
-docker compose -f ./deployments/jose/compose.yml down -v
+docker compose -f ./deployments/jose-ja/compose.yml down -v
 ```
 
 **Detailed Documentation**: See [E2E-TESTING.md](./E2E-TESTING.md) for:

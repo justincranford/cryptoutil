@@ -117,7 +117,7 @@ services:
   cipher-im-sqlite:
     build:
       context: ../..
-      dockerfile: deployments/cipher/Dockerfile
+      dockerfile: deployments/cipher-im/Dockerfile
       args:
         GO_VERSION: 1.25.5
         ALPINE_VERSION: 3.19

@@ -1,6 +1,6 @@
 # KMS Demo Compose Configuration
 #
-# Usage: docker compose -f deployments/kms/compose.demo.yml up -d
+# Usage: docker compose -f deployments/sm-kms/compose.demo.yml up -d
 #
 # This configuration is for demonstration purposes only.
 # It includes SQLite backend with demo data auto-seeding.
@@ -25,7 +25,7 @@ services:
   cryptoutil-demo:
     build:
       context: ../..
-      dockerfile: deployments/kms/Dockerfile
+      dockerfile: deployments/sm-kms/Dockerfile
       args:
         APP_VERSION: demo
         VCS_REF: demo
@@ -49,8 +49,8 @@ services:
       - "8080:8080"  # Public API (HTTPS)
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     volumes:
-      - ./config/common.yml:/etc/cryptoutil/common.yml:ro
-      - ./config/sqlite.yml:/etc/cryptoutil/sqlite.yml:ro
+      - ./config/kms-common.yml:/etc/cryptoutil/common.yml:ro
+      - ./config/kms-sqlite.yml:/etc/cryptoutil/sqlite.yml:ro
       - ./config/demo-seed.yml:/etc/cryptoutil/demo-seed.yml:ro
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector-contrib:4317

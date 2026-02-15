@@ -881,23 +881,6 @@ components:
           description: Issuer (authorization server)
           example: "https://authz.example.com"
 
-  securitySchemes:
-    clientBasicAuth:
-      type: http
-      scheme: basic
-      description: |
-        Client ID and secret via HTTP Basic Authentication.
-        Header format: Authorization: Basic base64(client_id:client_secret)
-
-    clientSecretPost:
-      type: http
-      scheme: bearer
-      description: |
-        Client authentication using client_secret in request body.
-        Note: OpenAPI 3.0 uses bearer scheme for form-based authentication.
-        Actual implementation uses client_secret as form parameter per OAuth 2.1.
-
-  schemas:
     ErrorResponse:
       type: object
       required:
@@ -1240,3 +1223,19 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/OAuth2Error'
+
+  securitySchemes:
+    clientBasicAuth:
+      type: http
+      scheme: basic
+      description: |
+        Client ID and secret via HTTP Basic Authentication.
+        Header format: Authorization: Basic base64(client_id:client_secret)
+
+    clientSecretPost:
+      type: http
+      scheme: bearer
+      description: |
+        Client authentication using client_secret in request body.
+        Note: OpenAPI 3.0 uses bearer scheme for form-based authentication.
+        Actual implementation uses client_secret as form parameter per OAuth 2.1.

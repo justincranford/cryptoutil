@@ -191,11 +191,6 @@ services:
           memory: 128M
 
   # SERVICE1 server with PostgreSQL backend (instance 1).
-  PRODUCT-SERVICE1 256M
-        reservations:
-          memory: 128M
-
-  # SERVICE1 server with PostgreSQL backend (instance 1).
   PRODUCT-SERVICE1-app-postgres-1:
     profiles: ["postgres"]
     image: PRODUCT:dev
