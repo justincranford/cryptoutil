@@ -1,0 +1,45 @@
+name: CICD - Lint Deployments
+
+on:
+  pull_request:
+    paths:
+      - 'deployments/**'
+      - 'internal/cmd/cicd/lint_deployments/**'
+      - '.github/workflows/cicd-lint-deployments.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'deployments/**'
+      - 'internal/cmd/cicd/lint_deployments/**'
+      - '.github/workflows/cicd-lint-deployments.yml'
+  workflow_dispatch:
+
+jobs:
+  lint-deployments:
+    name: Validate Deployment Structures
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.5'
+          cache: true
+
+      - name: Build cicd linter
+        run: go build -o cicd cmd/cicd/main.go
+
+      - name: Validate deployment structures
+        run: ./cicd lint-deployments deployments/
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-lint-report
+          path: deployment-lint-report.txt
+          retention-days: 7
