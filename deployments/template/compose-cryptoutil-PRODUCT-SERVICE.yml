@@ -125,7 +125,7 @@ services:
     command: ["SERVICE", "start", "--config=/app/config/sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "XXXX:8080"  # HTTPS public
+      - "XXXX:8000"  # HTTPS public
     volumes:
       - ../PRODUCT-SERVICE/config/SERVICE-sqlite.yml:/app/config/sqlite.yml:ro
       - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
@@ -172,7 +172,7 @@ services:
     command: ["SERVICE", "start", "--config=/app/config/postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp
     ports:
-      - "XXXX+1:8080"  # HTTPS public
+      - "XXXX+1:8000"  # HTTPS public
     volumes:
       - ../PRODUCT-SERVICE/config/SERVICE-postgresql-1.yml:/app/config/postgresql-1.yml:ro
       - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
@@ -219,7 +219,7 @@ services:
     command: ["SERVICE", "start", "--config=/app/config/postgresql-2.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp
     ports:
-      - "XXXX+2:8080"  # HTTPS public
+      - "XXXX+2:8000"  # HTTPS public
     volumes:
       - ../PRODUCT-SERVICE/config/SERVICE-postgresql-2.yml:/app/config/postgresql-2.yml:ro
       - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
