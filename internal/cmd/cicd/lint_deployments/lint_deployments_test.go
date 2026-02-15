@@ -70,6 +70,12 @@ require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FR
 },
 wantValid:      false,
 wantMissingDirs: []string{"config"},
+			wantMissingSecrets: []string{
+				"unseal_1of5.secret", "unseal_2of5.secret", "unseal_3of5.secret",
+				"unseal_4of5.secret", "unseal_5of5.secret", "hash_pepper_v3.secret",
+				"postgres_url.secret", "postgres_username.secret",
+				"postgres_password.secret", "postgres_database.secret",
+			},
 },
 {
 name:       "missing compose.yml",
@@ -82,6 +88,12 @@ require.NoError(t, os.WriteFile(filepath.Join(baseDir, "Dockerfile"), []byte("FR
 },
 wantValid:       false,
 wantMissingFiles: []string{"compose.yml"},
+			wantMissingSecrets: []string{
+				"unseal_1of5.secret", "unseal_2of5.secret", "unseal_3of5.secret",
+				"unseal_4of5.secret", "unseal_5of5.secret", "hash_pepper_v3.secret",
+				"postgres_url.secret", "postgres_username.secret",
+				"postgres_password.secret", "postgres_database.secret",
+			},
 },
 {
 name:       "missing Dockerfile",
@@ -94,6 +106,12 @@ require.NoError(t, os.WriteFile(filepath.Join(baseDir, "compose.yml"), []byte("v
 },
 wantValid:       false,
 wantMissingFiles: []string{"Dockerfile"},
+			wantMissingSecrets: []string{
+				"unseal_1of5.secret", "unseal_2of5.secret", "unseal_3of5.secret",
+				"unseal_4of5.secret", "unseal_5of5.secret", "hash_pepper_v3.secret",
+				"postgres_url.secret", "postgres_username.secret",
+				"postgres_password.secret", "postgres_database.secret",
+			},
 },
 {
 name:       "missing some secrets",
