@@ -358,18 +358,18 @@ cryptoutil-service → opentelemetry-collector-contrib:4317 → grafana-otel-lgt
 ### Migration Status
 
 **Completed**:
--  deployments/telemetry/compose.yml - Added healthcheck-opentelemetry-collector-contrib ephemeral job
--  deployments/postgres/compose.yml - Full leader/follower/Citus infrastructure
--  deployments/template/compose.yml - Made generic (removed cipher-im specificity)
--  deployments/compose/compose.yml - Already uses postgres include
--  deployments/kms/compose.yml - Added postgres include
+- deployments/telemetry/compose.yml - Added healthcheck-opentelemetry-collector-contrib ephemeral job
+- deployments/postgres/compose.yml - Full leader/follower/Citus infrastructure
+- deployments/template/compose.yml - Made generic (removed cipher-im specificity)
+- deployments/compose/compose.yml - Already uses postgres include
+- deployments/kms/compose.yml - Added postgres include
 
 **Pending** (local postgres service removal + depends_on updates required):
--  deployments/pki-ca/compose.yml
--  deployments/pki-ca/compose/compose.yml
--  deployments/cipher/compose.yml
--  deployments/jose/compose.yml
--  deployments/identity/compose.yml
+- deployments/pki-ca/compose.yml
+- deployments/pki-ca/compose/compose.yml
+- deployments/cipher/compose.yml
+- deployments/jose/compose.yml
+- deployments/identity/compose.yml
 
 ### Required Updates
 

@@ -27,7 +27,7 @@ failed to initialize service session JWK: unsupported JWS algorithm:
 
 ---
 
-###  2. JOSE Service (jose-e2e)
+### 2. JOSE Service (jose-e2e)
 
 **Error**:
 ```

@@ -8,7 +8,49 @@
     "links": [],
     "panels": [
       {
-        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "1": {
+                    "color": "green",
+                    "text": "UP"
+                  }
+                },
+                "type": "value"
+              },
+              {
+                "options": {
+                  "0": {
+                    "color": "red",
+                    "text": "DOWN"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
         "id": 1,
         "targets": [
           {
@@ -17,25 +59,37 @@
           }
         ],
         "title": "Service Health",
-        "type": "stat",
+        "type": "stat"
+      },
+      {
         "fieldConfig": {
           "defaults": {
-            "mappings": [
-              { "type": "value", "options": { "1": { "text": "UP", "color": "green" } } },
-              { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" } } }
-            ],
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                { "color": "red", "value": null },
-                { "color": "green", "value": 1 }
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 268435456
+                },
+                {
+                  "color": "red",
+                  "value": 536870912
+                }
               ]
-            }
+            },
+            "unit": "bytes"
           }
-        }
-      },
-      {
-        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
         "id": 2,
         "targets": [
           {
@@ -44,23 +98,36 @@
           }
         ],
         "title": "Memory Usage",
-        "type": "stat",
+        "type": "stat"
+      },
+      {
         "fieldConfig": {
           "defaults": {
-            "unit": "bytes",
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 268435456 },
-                { "color": "red", "value": 536870912 }
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 500
+                },
+                {
+                  "color": "red",
+                  "value": 1000
+                }
               ]
             }
           }
-        }
-      },
-      {
-        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
         "id": 3,
         "targets": [
           {
@@ -69,22 +136,37 @@
           }
         ],
         "title": "Goroutines",
-        "type": "stat",
+        "type": "stat"
+      },
+      {
         "fieldConfig": {
           "defaults": {
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 500 },
-                { "color": "red", "value": 1000 }
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.5
+                },
+                {
+                  "color": "red",
+                  "value": 0.8
+                }
               ]
-            }
+            },
+            "unit": "percentunit"
           }
-        }
-      },
-      {
-        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
         "id": 4,
         "targets": [
           {
@@ -93,23 +175,15 @@
           }
         ],
         "title": "CPU Usage",
-        "type": "stat",
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percentunit",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 0.5 },
-                { "color": "red", "value": 0.8 }
-              ]
-            }
-          }
-        }
+        "type": "stat"
       },
       {
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        },
         "id": 5,
         "targets": [
           {
@@ -121,7 +195,34 @@
         "type": "timeseries"
       },
       {
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            "unit": "percent"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        },
         "id": 6,
         "targets": [
           {
@@ -130,23 +231,20 @@
           }
         ],
         "title": "Error Rate (%)",
-        "type": "timeseries",
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 1 },
-                { "color": "red", "value": 5 }
-              ]
-            }
-          }
-        }
+        "type": "timeseries"
       },
       {
-        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 12
+        },
         "id": 7,
         "targets": [
           {
@@ -167,19 +265,23 @@
           }
         ],
         "title": "Response Time Percentiles",
-        "type": "timeseries",
-        "fieldConfig": {
-          "defaults": {
-            "unit": "s"
-          }
-        }
+        "type": "timeseries"
       }
     ],
     "refresh": "10s",
     "schemaVersion": 38,
-    "tags": ["cryptoutil", "health", "observability"],
-    "templating": { "list": [] },
-    "time": { "from": "now-1h", "to": "now" },
+    "tags": [
+      "cryptoutil",
+      "health",
+      "observability"
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
     "timepicker": {},
     "timezone": "browser",
     "title": "CryptoUtil Health Dashboard",

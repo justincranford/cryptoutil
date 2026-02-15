@@ -403,4 +403,3 @@ func TestApplication_TableDriven_SadPath(t *testing.T) {
 		})
 	}
 }
-

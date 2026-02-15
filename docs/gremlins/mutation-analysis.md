@@ -300,7 +300,7 @@ func TestBasicClientIDSecretConfig_ValidateMinSecretLength(t *testing.T) {
 expiresAt := time.Now().UTC().Add(DefaultRegistrationExpiryHours * time.Hour)
 ```
 
-**Mutated Code** (likely - mutation could be + instead of *, or / instead of *):
+**Mutated Code** (likely - mutation could be + instead of *, or / instead of*):
 ```go
 expiresAt := time.Now().UTC().Add(DefaultRegistrationExpiryHours + time.Hour)
 // OR
@@ -320,24 +320,24 @@ expiresAt := time.Now().UTC().Add(DefaultRegistrationExpiryHours / time.Hour)
 // Add test case in registration_service_test.go
 func TestRegister_UnverifiedClientExpiryDuration(t *testing.T) {
     before := time.Now().UTC()
-    
+
     result, err := service.Register(ctx, &RegistrationRequest{
         ClientID: "test-client",
         ClientSecret: "test-secret",
         CreateTenant: false,
         ExistingTenantID: &existingTenantID,
     })
-    
+
     require.NoError(t, err)
     require.NotNil(t, result.ExpiresAt)
-    
+
     expectedExpiry := before.Add(DefaultRegistrationExpiryHours * time.Hour)
     actualExpiry := *result.ExpiresAt
-    
+
     // Allow 1-second tolerance for test execution time
     diff := actualExpiry.Sub(expectedExpiry).Abs()
-    require.Less(t, diff, 1*time.Second, 
-        "ExpiresAt should be ~%d hours from now, got %v", 
+    require.Less(t, diff, 1*time.Second,
+        "ExpiresAt should be ~%d hours from now, got %v",
         DefaultRegistrationExpiryHours, actualExpiry)
 }
 ```

@@ -1,98 +1,191 @@
 {
   "dashboard": {
-    "annotations": { "list": [] },
+    "annotations": {
+      "list": []
+    },
     "editable": true,
     "id": null,
     "links": [],
     "panels": [
       {
-        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
-        "id": 1,
-        "targets": [
-          { "expr": "db_connections_open{job=~\"cryptoutil.*\"}", "legendFormat": "{{job}}" }
-        ],
-        "title": "Open Connections",
-        "type": "stat",
         "fieldConfig": {
           "defaults": {
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 20 },
-                { "color": "red", "value": 25 }
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 20
+                },
+                {
+                  "color": "red",
+                  "value": 25
+                }
               ]
             }
           }
-        }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "targets": [
+          {
+            "expr": "db_connections_open{job=~\"cryptoutil.*\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "title": "Open Connections",
+        "type": "stat"
       },
       {
-        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
         "id": 2,
         "targets": [
-          { "expr": "db_connections_idle{job=~\"cryptoutil.*\"}", "legendFormat": "{{job}}" }
+          {
+            "expr": "db_connections_idle{job=~\"cryptoutil.*\"}",
+            "legendFormat": "{{job}}"
+          }
         ],
         "title": "Idle Connections",
         "type": "stat"
       },
       {
-        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
         "id": 3,
         "targets": [
-          { "expr": "rate(db_query_duration_seconds_sum{job=~\"cryptoutil.*\"}[5m]) / rate(db_query_duration_seconds_count{job=~\"cryptoutil.*\"}[5m])", "legendFormat": "{{job}}" }
+          {
+            "expr": "rate(db_query_duration_seconds_sum{job=~\"cryptoutil.*\"}[5m]) / rate(db_query_duration_seconds_count{job=~\"cryptoutil.*\"}[5m])",
+            "legendFormat": "{{job}}"
+          }
         ],
         "title": "Avg Query Time",
-        "type": "stat",
-        "fieldConfig": { "defaults": { "unit": "s" } }
+        "type": "stat"
       },
       {
-        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
-        "id": 4,
-        "targets": [
-          { "expr": "rate(db_errors_total{job=~\"cryptoutil.*\"}[5m])", "legendFormat": "{{job}} {{operation}}" }
-        ],
-        "title": "Error Rate",
-        "type": "stat",
         "fieldConfig": {
           "defaults": {
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                { "color": "green", "value": null },
-                { "color": "yellow", "value": 0.1 },
-                { "color": "red", "value": 1 }
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.1
+                },
+                {
+                  "color": "red",
+                  "value": 1
+                }
               ]
             }
           }
-        }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        },
+        "id": 4,
+        "targets": [
+          {
+            "expr": "rate(db_errors_total{job=~\"cryptoutil.*\"}[5m])",
+            "legendFormat": "{{job}} {{operation}}"
+          }
+        ],
+        "title": "Error Rate",
+        "type": "stat"
       },
       {
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        },
         "id": 5,
         "targets": [
-          { "expr": "rate(db_query_duration_seconds_count{job=~\"cryptoutil.*\"}[5m])", "legendFormat": "{{job}} {{operation}}" }
+          {
+            "expr": "rate(db_query_duration_seconds_count{job=~\"cryptoutil.*\"}[5m])",
+            "legendFormat": "{{job}} {{operation}}"
+          }
         ],
         "title": "Query Rate by Operation",
         "type": "timeseries"
       },
       {
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        },
         "id": 6,
         "targets": [
-          { "expr": "histogram_quantile(0.95, rate(db_query_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))", "legendFormat": "p95 {{operation}}" },
-          { "expr": "histogram_quantile(0.99, rate(db_query_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))", "legendFormat": "p99 {{operation}}" }
+          {
+            "expr": "histogram_quantile(0.95, rate(db_query_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))",
+            "legendFormat": "p95 {{operation}}"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(db_query_duration_seconds_bucket{job=~\"cryptoutil.*\"}[5m]))",
+            "legendFormat": "p99 {{operation}}"
+          }
         ],
         "title": "Query Latency Percentiles",
-        "type": "timeseries",
-        "fieldConfig": { "defaults": { "unit": "s" } }
+        "type": "timeseries"
       },
       {
-        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 12
+        },
         "id": 7,
         "targets": [
-          { "expr": "db_connections_open{job=~\"cryptoutil.*\"}", "legendFormat": "Open" },
-          { "expr": "db_connections_idle{job=~\"cryptoutil.*\"}", "legendFormat": "Idle" },
-          { "expr": "db_connections_in_use{job=~\"cryptoutil.*\"}", "legendFormat": "In Use" }
+          {
+            "expr": "db_connections_open{job=~\"cryptoutil.*\"}",
+            "legendFormat": "Open"
+          },
+          {
+            "expr": "db_connections_idle{job=~\"cryptoutil.*\"}",
+            "legendFormat": "Idle"
+          },
+          {
+            "expr": "db_connections_in_use{job=~\"cryptoutil.*\"}",
+            "legendFormat": "In Use"
+          }
         ],
         "title": "Connection Pool Over Time",
         "type": "timeseries"
@@ -100,9 +193,18 @@
     ],
     "refresh": "10s",
     "schemaVersion": 38,
-    "tags": ["cryptoutil", "database", "observability"],
-    "templating": { "list": [] },
-    "time": { "from": "now-1h", "to": "now" },
+    "tags": [
+      "cryptoutil",
+      "database",
+      "observability"
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
     "timepicker": {},
     "timezone": "browser",
     "title": "CryptoUtil Database Dashboard",

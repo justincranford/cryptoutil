@@ -122,16 +122,19 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 **BEFORE marking ANY task complete, verify ALL criteria**:
 
 ### Build & Code Quality
+
 - [ ] `go build ./...` exits 0 (clean build)
 - [ ] `golangci-lint run --fix` exits 0 (zero linting errors)
 - [ ] No new TODO/FIXME comments added vs baseline
 
 ### Workspace Cleanliness
+
 - [ ] `git status --porcelain` returns empty (no unstaged files)
 - [ ] All changes committed with conventional commit messages
 - [ ] Working tree clean, no untracked files requiring commit
 
 ### Test Quality
+
 - [ ] `go test ./...` exits 0 (all tests pass)
 - [ ] Zero NEW test failures vs baseline (pre-existing failures documented separately)
 - [ ] Zero EXISTING test failures; always fix existing failures before marking new work complete
@@ -139,6 +142,7 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 - [ ] Coverage maintained or improved vs baseline
 
 ### Requirements Validation
+
 - [ ] ALL explicit requirements from task description implemented
 - [ ] ALL quality gates implemented
 - [ ] Edge cases identified and handled

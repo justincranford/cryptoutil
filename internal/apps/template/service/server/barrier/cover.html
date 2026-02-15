@@ -54,37 +54,37 @@
 		<div id="topbar">
 			<div id="nav">
 				<select id="files">
-				
+
 				<option value="file0">cryptoutil/internal/apps/template/service/server/barrier/barrier_repository.go (100.0%)</option>
-				
+
 				<option value="file1">cryptoutil/internal/apps/template/service/server/barrier/barrier_service.go (89.8%)</option>
-				
+
 				<option value="file2">cryptoutil/internal/apps/template/service/server/barrier/content_keys_service.go (95.6%)</option>
-				
+
 				<option value="file3">cryptoutil/internal/apps/template/service/server/barrier/gorm_barrier_repository.go (96.7%)</option>
-				
+
 				<option value="file4">cryptoutil/internal/apps/template/service/server/barrier/intermediate_keys_service.go (82.4%)</option>
-				
+
 				<option value="file5">cryptoutil/internal/apps/template/service/server/barrier/root_keys_service.go (82.1%)</option>
-				
+
 				<option value="file6">cryptoutil/internal/apps/template/service/server/barrier/rotation_handlers.go (100.0%)</option>
-				
+
 				<option value="file7">cryptoutil/internal/apps/template/service/server/barrier/rotation_service.go (91.8%)</option>
-				
+
 				<option value="file8">cryptoutil/internal/apps/template/service/server/barrier/status_handlers.go (100.0%)</option>
-				
+
 				</select>
 			</div>
 			<div id="legend">
 				<span>not tracked</span>
-			
+
 				<span class="cov0">not covered</span>
 				<span class="cov8">covered</span>
-			
+
 			</div>
 		</div>
 		<div id="content">
-		
+
 		<pre class="file" id="file0" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -200,7 +200,7 @@ func (ContentKey) TableName() string <span class="cov8" title="1">{
         return "barrier_content_keys"
 }</span>
 </pre>
-		
+
 		<pre class="file" id="file1" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -373,7 +373,7 @@ func (d *Service) Shutdown() <span class="cov8" title="1">{
         })
 }
 </pre>
-		
+
 		<pre class="file" id="file2" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -484,7 +484,7 @@ func (s *ContentKeysService) Shutdown() <span class="cov8" title="1">{
         s.intermediateKeysService = nil
 }</span>
 </pre>
-		
+
 		<pre class="file" id="file3" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -672,7 +672,7 @@ func (tx *GormTransaction) AddContentKey(key *ContentKey) error <span class="cov
         <span class="cov8" title="1">return nil</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file4" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -864,7 +864,7 @@ func (i *IntermediateKeysService) Shutdown() <span class="cov8" title="1">{
         i.rootKeysService = nil
 }</span>
 </pre>
-		
+
 		<pre class="file" id="file5" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -1043,7 +1043,7 @@ func (i *RootKeysService) Shutdown() <span class="cov8" title="1">{
         i.telemetryService = nil
 }</span>
 </pre>
-		
+
 		<pre class="file" id="file6" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -1241,7 +1241,7 @@ func RegisterRotationRoutes(adminServer *fiber.App, rotationService *RotationSer
         adminV1.Post("/content", HandleRotateContentKey(rotationService))</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file7" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -1544,7 +1544,7 @@ func (s *RotationService) RotateContentKey(ctx context.Context, reason string) (
         <span class="cov8" title="1">return result, nil</span>
 }
 </pre>
-		
+
 		<pre class="file" id="file8" style="display: none">// Copyright (c) 2025 Justin Cranford
 //
 //
@@ -1657,7 +1657,7 @@ func RegisterStatusRoutes(app *fiber.App, statusService *StatusService) <span cl
         app.Get("/admin/api/v1/barrier/keys/status", HandleGetBarrierKeysStatus(statusService))
 }</span>
 </pre>
-		
+
 		</div>
 	</body>
 	<script>

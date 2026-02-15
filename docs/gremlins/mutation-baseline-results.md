@@ -122,21 +122,25 @@ Mutation testing baseline established on Linux (ncc-1701-d) using gremlins v0.6.
 ## Next Steps
 
 ### Immediate (Task 6.2)
+
 1. Analyze lived mutations across JOSE-JA (4) and Template (25)
 2. Categorize by mutation type and severity
 3. Determine if additional tests needed or mutations acceptable
 
 ### Short-term (Task 6.3)
+
 1. Implement mutation-killing tests for high-value lived mutations
 2. Target mutations in critical paths (authentication, authorization, crypto)
 3. Skip mutations in edge cases or non-critical paths (cost/benefit analysis)
 
 ### Medium-term (Task 6.4)
+
 1. Enable continuous mutation testing in CI/CD pipeline
 2. Add mutation efficacy checks to PR workflows
 3. Set up trend tracking for mutation scores
 
 ### Blocked (Cipher-IM)
+
 1. Fix Docker compose infrastructure issues
 2. Correct OTel collector endpoint configuration
 3. Investigate E2E test exclusion tag bypass
@@ -163,4 +167,3 @@ Mutation testing baseline established on Linux (ncc-1701-d) using gremlins v0.6.
 **Infrastructure vs Business Logic**: Template service shows healthy separation - config/TLS generation code has lived mutations (non-critical infrastructure), while business logic (realm_service, registration_service) has minimal lived mutations.
 
 **Cipher-IM Blockers**: Require separate infrastructure fix track (Docker compose, OTel configuration, test exclusion tags).
-

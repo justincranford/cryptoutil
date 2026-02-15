@@ -109,4 +109,3 @@ func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
 	require.Error(t, err, "getAvailableWorkflows() returned error")
 	require.Nil(t, workflows, "Expected nil workflows map for empty directory")
 }
-

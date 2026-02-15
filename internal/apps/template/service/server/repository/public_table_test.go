@@ -356,4 +356,3 @@ func TestPublicHTTPServer_TableDriven_SadPath(t *testing.T) {
 		})
 	}
 }
-

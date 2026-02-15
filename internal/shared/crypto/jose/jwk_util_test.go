@@ -1375,4 +1375,3 @@ func TestCreateJWKFromKey_NilKey(t *testing.T) {
 	require.Empty(t, publicBytes)
 	require.Contains(t, err.Error(), "JWK key material must be non-nil")
 }
-
