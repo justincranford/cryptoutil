@@ -58,4 +58,3 @@ When documenting unmapped content:
 - Total unmapped agent sections: TBD
 - Total unmapped CICD tools: TBD
 - Coverage target: 100%
-

@@ -26,7 +26,7 @@
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** B
 
 ---
 
@@ -45,21 +45,21 @@
 
 **Options**:
 
-**A**. All configs: `{PRODUCT}-{SERVICE}-app-{db-type}-{instance}.yml`  
+**A**. All configs: `{PRODUCT}-{SERVICE}-app-{db-type}-{instance}.yml`
 Example: `sm-kms-app-sqlite-1.yml`, `sm-kms-app-postgresql-2.yml`
 
-**B**. Instance configs + common: `{PRODUCT}-{SERVICE}-app-{db-type}-{instance}.yml` AND `{PRODUCT}-{SERVICE}-app-common.yml`  
+**B**. Instance configs + common: `{PRODUCT}-{SERVICE}-app-{db-type}-{instance}.yml` AND `{PRODUCT}-{SERVICE}-app-common.yml`
 Example: `sm-kms-app-common.yml`, `sm-kms-app-sqlite-1.yml`
 
-**C**. Instance configs + special files: Same as B but allow `{PRODUCT}-{SERVICE}-<type>.yml` for demo/e2e  
-Example: `sm-kms-app-common.yml`, `sm-kms-demo.yml`, `sm-kms-e2e.yml`
+**C**. Instance configs + special files: Same as B but allow `{PRODUCT}-{SERVICE}-<type>.yml` for demo/e2e
+Example: `sm-kms-app-common.yml`, `sm-kms-e2e.yml`, `sm-kms-demo.yml`
 
-**D**. Strict prefix only: ALL files must start with `{PRODUCT}-{SERVICE}-` but suffix flexible  
+**D**. Strict prefix only: ALL files must start with `{PRODUCT}-{SERVICE}-` but suffix flexible
 Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** C
 
 ---
 
@@ -84,7 +84,7 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** D, but use naming pattern D from question 2: `sm-kms-e2e.yml`, `sm-kms-demo.yml`
 
 ---
 
@@ -106,7 +106,7 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 - `{P}-{S}-app-postgresql-2.yml`
 
 **B**. Standard + optional demo/e2e:
-- Same as A plus optional `{P}-{S}-demo.yml`, `{P}-{S}-e2e.yml`
+- Same as A plus optional `{P}-{S}-e2e.yml`, `{P}-{S}-demo.yml`
 
 **C**. Minimal required + service-specific:
 - Only `{P}-{S}-app-common.yml` required, others optional based on service needs
@@ -116,7 +116,7 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** B
 
 ---
 
@@ -138,7 +138,7 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** D, i need to review all of the warnings and decide which ones should be errors after transition period; the transaction period must be short, i want to transition to strict enforcement as soon as possible to avoid long-term confusion and technical debt
 
 ---
 
@@ -161,9 +161,9 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **D**. Current state is correct - reevaluate after examining existing compose files
 
-**E**. Other (please specify):
+**E**. Other (please specify): I don't know. I hope one compose.yml per service is sufficient, but probably not. you need to do deep analysis to see how to achieve the goals. Potentially, you might need per-suite and per-product and per-service deployment compose files for the secrets and per-suite/product/service yaml config files, and compose templates per service, and then use composition to inject/import them into a file usable compose for each situation? You may need to run experiments to work out all of the patterns, but in a fast way with alpine images, instead of the actual 9 services / 5 products / 1 suite, and do a writeup of the patterns (with evidence) in docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md.
 
-**Answer:**
+**Answer:** E
 
 ---
 
@@ -183,9 +183,9 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **D**. Link to most specific matching section - One link per concept to best ARCHITECTURE.md match
 
-**E**. Other (please specify):
+**E**. Other (please specify): Hybrid. Ideally docs/ARCHITECTURE.md format can be structured in a way that large chunks of anything can be copied verbatim with bidirectional links. That will make it easier to scale up Copilot's requirement for content sprawl into Copilot Instructions, Custom Agents, Custom Prompts, Custom Skills, AGENTS.md, and any and all other current and future files that Copilot needs. It's annoying the amount of duplication required by different Copilot things, so I need ARCHITECTURE.md to be the absolute single source of truth, and have it strategically structured to copy chunks verbatim with bidirectional links so i can approach updates in ARCHITECTURE.md first, and have Copilot propagate those verbatim updates to the other files.
 
-**Answer:**
+**Answer:** E
 
 ---
 
@@ -211,7 +211,7 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** A; ARCHITECTURE.md is the single source of truth; i want to ALWAYS be able to strategically apply updates to ARCHITECTURE.md first, then get Copilot to use the bidirectional links from ARCHITECTURE.md to strategically and autonomously propagate updates to all of the other Copilot files (Copilot Instructions, Custom Agents, Custom Prompts, Custom Skills, AGENTS.md, etc)
 
 ---
 
@@ -233,7 +233,7 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** A; no files are in use, this is pre-production repository, nothing has ever been deployed; it is too hard for me as just 1 developer to manually scale up the number of services and products, i need automation like the cicd linter for ./configs/ and ./deloyments/ to enforce rigid and repeatable directory structures, filename patterns, directory contents, file contents, etc. i need that to happen as soon as possible.
 
 ---
 
@@ -263,7 +263,7 @@ Example: `sm-kms-anything.yml` allowed, `kms-anything.yml` forbidden
 
 **E**. Other (please specify):
 
-**Answer:**
+**Answer:** A
 
 ---
 

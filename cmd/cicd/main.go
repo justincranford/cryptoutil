@@ -29,8 +29,7 @@ os.Exit(1)
 }
 
 func printUsage() {
-fmt.Println(`cicd - Cryptoutil CI/CD linter and formatter tools
-
+	fmt.Print(`cicd - Cryptoutil CI/CD linter and formatter tools
 Usage:
   cicd <command> [args]
 
