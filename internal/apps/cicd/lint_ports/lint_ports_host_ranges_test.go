@@ -80,7 +80,7 @@ func TestIsPortInValidRange(t *testing.T) {
 
 	cipherConfig := &ServicePortConfig{
 		Name:        "cipher-im",
-		PublicPorts: []uint16{8070, 8071, 8072},
+		PublicPorts: []uint16{8700, 8701, 8702},
 		AdminPort:   9090,
 	}
 
@@ -90,14 +90,14 @@ func TestIsPortInValidRange(t *testing.T) {
 		cfg  *ServicePortConfig
 		want bool
 	}{
-		{name: "public port 8070", port: 8070, cfg: cipherConfig, want: true},
-		{name: "public port 8071", port: 8071, cfg: cipherConfig, want: true},
-		{name: "public port 8072", port: 8072, cfg: cipherConfig, want: true},
+		{name: "public port 8700", port: 8700, cfg: cipherConfig, want: true},
+		{name: "public port 8701", port: 8701, cfg: cipherConfig, want: true},
+		{name: "public port 8702", port: 8702, cfg: cipherConfig, want: true},
 		{name: "admin port 9090", port: 9090, cfg: cipherConfig, want: true},
-		{name: "range port 8073", port: 8073, cfg: cipherConfig, want: true},    // In range 8070-8079
-		{name: "range port 8079", port: 8079, cfg: cipherConfig, want: true},    // Last in range
-		{name: "out of range 8080", port: 8080, cfg: cipherConfig, want: false}, // Out of range
-		{name: "out of range 8060", port: 8060, cfg: cipherConfig, want: false}, // Different service
+		{name: "range port 8703", port: 8703, cfg: cipherConfig, want: true},    // In range 8700-8799
+		{name: "range port 8799", port: 8799, cfg: cipherConfig, want: true},    // Last in range
+		{name: "out of range 8800", port: 8800, cfg: cipherConfig, want: false}, // Out of range (jose-ja territory)
+		{name: "out of range 8060", port: 8060, cfg: cipherConfig, want: false}, // Legacy jose-ja port
 		{name: "legacy port 8888", port: 8888, cfg: cipherConfig, want: false},  // Legacy
 	}
 
@@ -120,7 +120,7 @@ func TestCheckHostPortRangesInFile_ValidPorts(t *testing.T) {
 	err := os.WriteFile(composeFile, []byte(`services:
   cipher-im:
     ports:
-      - "8070:8070"
+      - "8700:8700"
       - "9090:9090"
 `), 0o600)
 	require.NoError(t, err)
@@ -138,13 +138,13 @@ func TestCheckHostPortRangesInFile_InvalidPorts(t *testing.T) {
 	err := os.WriteFile(composeFile, []byte(`services:
   cipher-im:
     ports:
-      - "8888:8070"
+      - "8070:8700"
 `), 0o600)
 	require.NoError(t, err)
 
 	violations := checkHostPortRangesInFile(composeFile)
 	require.Len(t, violations, 1)
-	require.Equal(t, uint16(8888), violations[0].Port)
+	require.Equal(t, uint16(8070), violations[0].Port)
 	require.Contains(t, violations[0].Reason, "outside valid range")
 }
 
@@ -157,7 +157,7 @@ func TestLintHostPortRanges_NoViolations(t *testing.T) {
 	err := os.WriteFile(composeFile, []byte(`services:
   jose-ja:
     ports:
-      - "8060:8060"
+      - "8800:8800"
       - "9090:9090"
 `), 0o600)
 	require.NoError(t, err)
@@ -180,7 +180,7 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
 	err := os.WriteFile(composeFile, []byte(`services:
   jose-ja:
     ports:
-      - "9443:8060"
+      - "9443:8800"
 `), 0o600)
 	require.NoError(t, err)
 
@@ -232,7 +232,7 @@ func TestCheckHostPortRangesInFile_TopLevelReset(t *testing.T) {
 	err := os.WriteFile(composeFile, []byte(`services:
   cipher-im:
     ports:
-      - "8070:8070"
+      - "8700:8700"
 networks:
   default:
     driver: bridge

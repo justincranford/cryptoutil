@@ -187,9 +187,15 @@ func printViolations(violations []Violation) {
 	fmt.Println()
 	fmt.Println(strings.Repeat("=", LineSeparatorLength))
 	fmt.Println("💡 Fix: Replace legacy ports with standardized ports:")
-	fmt.Println("   cipher-im: 8070-8072 (was 8888-8890)")
-	fmt.Println("   jose-ja: 8060 (was 9443, 8092)")
-	fmt.Println("   pki-ca: 8050 (was 8443)")
+	fmt.Println("   sm-kms: 8000-8002 (was 8080-8082)")
+	fmt.Println("   pki-ca: 8100 (was 8050, 8443)")
+	fmt.Println("   identity-authz: 8200 (was 8100, 18000)")
+	fmt.Println("   identity-idp: 8300-8301 (was 8110-8112, 18100)")
+	fmt.Println("   identity-rs: 8400 (was 8120-8122, 18200)")
+	fmt.Println("   identity-rp: 8500 (was 8130-8132, 18300)")
+	fmt.Println("   identity-spa: 8600 (was 8140-8142, 18400)")
+	fmt.Println("   cipher-im: 8700-8702 (was 8070-8072, 8888-8890)")
+	fmt.Println("   jose-ja: 8800 (was 8060, 9443, 8092)")
 	fmt.Println()
 }
 

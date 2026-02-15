@@ -28,19 +28,20 @@ func TestAllValidPublicPorts(t *testing.T) {
 	ports := AllValidPublicPorts()
 
 	// Verify standardized ports are included.
-	require.Contains(t, ports, uint16(8070)) // cipher-im
-	require.Contains(t, ports, uint16(8071)) // cipher-im
-	require.Contains(t, ports, uint16(8072)) // cipher-im
-	require.Contains(t, ports, uint16(8060)) // jose-ja
-	require.Contains(t, ports, uint16(8050)) // pki-ca
-	require.Contains(t, ports, uint16(8080)) // sm-kms
-	require.Contains(t, ports, uint16(8081)) // sm-kms
-	require.Contains(t, ports, uint16(8082)) // sm-kms
-	require.Contains(t, ports, uint16(8100)) // identity-authz
-	require.Contains(t, ports, uint16(8100)) // identity-idp (same port as authz)
-	require.Contains(t, ports, uint16(8110)) // identity-rs
-	require.Contains(t, ports, uint16(8120)) // identity-rp
-	require.Contains(t, ports, uint16(8130)) // identity-spa
+	require.Contains(t, ports, uint16(8700)) // cipher-im
+	require.Contains(t, ports, uint16(8701)) // cipher-im
+	require.Contains(t, ports, uint16(8702)) // cipher-im
+	require.Contains(t, ports, uint16(8800)) // jose-ja
+	require.Contains(t, ports, uint16(8100)) // pki-ca
+	require.Contains(t, ports, uint16(8000)) // sm-kms
+	require.Contains(t, ports, uint16(8001)) // sm-kms
+	require.Contains(t, ports, uint16(8002)) // sm-kms
+	require.Contains(t, ports, uint16(8200)) // identity-authz
+	require.Contains(t, ports, uint16(8300)) // identity-idp
+	require.Contains(t, ports, uint16(8301)) // identity-idp E2E (avoids conflict with authz)
+	require.Contains(t, ports, uint16(8400)) // identity-rs
+	require.Contains(t, ports, uint16(8500)) // identity-rp
+	require.Contains(t, ports, uint16(8600)) // identity-spa
 }
 
 func TestIsOtelCollectorPort(t *testing.T) {
@@ -53,8 +54,8 @@ func TestIsOtelCollectorPort(t *testing.T) {
 	}{
 		{name: "OTEL internal metrics", port: 8888, want: true},
 		{name: "OTEL Prometheus", port: 8889, want: true},
-		{name: "cipher-im standardized", port: 8070, want: false},
-		{name: "jose-ja standardized", port: 8060, want: false},
+		{name: "cipher-im standardized", port: 8700, want: false}, // New standardized port
+		{name: "jose-ja standardized", port: 8800, want: false},   // New standardized port
 		{name: "random port", port: 12345, want: false},
 	}
 

@@ -241,10 +241,10 @@ func (im *InfrastructureManager) WaitForServicesReachable(ctx context.Context) e
 	return nil
 }
 
-// verifyCryptoutilPortsReachable verifies HTTPS ports 8080, 8081, 8082 are accessible.
+// verifyCryptoutilPortsReachable verifies HTTPS ports 8000, 8001, 8002 are accessible.
 func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Context) error {
 	// Check public API ports for basic connectivity (not health endpoints)
-	publicPorts := []int{8080, 8081, 8082}
+	publicPorts := []int{8000, 8001, 8002}
 	for _, port := range publicPorts {
 		url := fmt.Sprintf("https://localhost:%d/ui/swagger", port)
 		Log(im.logger, "🔍 Checking public port %d at %s...", port, url)
