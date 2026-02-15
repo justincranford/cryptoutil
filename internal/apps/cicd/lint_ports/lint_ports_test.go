@@ -22,7 +22,7 @@ func TestLint_NoLegacyPorts(t *testing.T) {
 	goFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(goFile, []byte(`package main
 
-const port = 8070 // cipher-im standardized port
+const port = 8700 // cipher-im standardized port
 `), 0o600)
 	require.NoError(t, err)
 
@@ -255,8 +255,8 @@ func TestLint_PortNumbersInText(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(`package main
 
 // Some random numbers that are not legacy ports.
-const validPort = 8080
-const anotherValid = 8070
+const validPort = 8000
+const anotherValid = 8700
 const irrelevantNumber = 1234
 `), 0o600)
 	require.NoError(t, err)
@@ -363,8 +363,8 @@ func TestLint_NonLegacyPortNumbers(t *testing.T) {
 	// File with port numbers in the valid range but not legacy ports.
 	err := os.WriteFile(testFile, []byte(`package main
 
-const port1 = 8080  // standard port
-const port2 = 8081  // standard port
+const port1 = 8000  // standard port (sm-kms)
+const port2 = 8700  // standard port (cipher-im)
 const port3 = 9000  // random port
 const port4 = 12345 // 5-digit port
 `), 0o600)
@@ -423,7 +423,7 @@ func TestLint_AllThreeChecksPass(t *testing.T) {
 	goFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(goFile, []byte(`package main
 
-const port = 8070
+const port = 8700
 `), 0o600)
 	require.NoError(t, err)
 
@@ -432,7 +432,7 @@ const port = 8070
 	err = os.WriteFile(composeFile, []byte(`services:
   cipher-im:
     ports:
-      - "8070:8070"
+      - "8700:8700"
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
 `), 0o600)
