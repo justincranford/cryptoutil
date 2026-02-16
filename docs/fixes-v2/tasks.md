@@ -102,18 +102,18 @@
 - **Evidence**: `test-output/phase1/gitkeep-analysis.txt` (from planning)
 
 #### Task 1.2: Delete Duplicate OpenTelemetry Configs
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30min
-- **Actual**: [Fill when complete]
+- **Actual**: 5min
 - **Dependencies**: None
 - **Description**: Remove duplicate otel configs, keep only shared-telemetry version
 - **Acceptance Criteria**:
-  - [ ] Deleted: `deployments/template/otel-collector-config.yaml`
-  - [ ] Deleted: `deployments/cipher-im/otel-collector-config.yaml`
-  - [ ] Kept: `deployments/shared-telemetry/otel-collector-config.yaml`
-  - [ ] Verification: `find deployments/ -name otel-collector-config.yaml` (1 result only)
-  - [ ] Command: `git rm deployments/template/otel-collector-config.yaml deployments/cipher-im/otel-collector-config.yaml`
+  - [x] Deleted: `deployments/template/otel-collector-config.yaml`
+  - [x] Deleted: `deployments/cipher-im/otel-collector-config.yaml`
+  - [x] Kept: `deployments/shared-telemetry/otel/otel-collector-config.yaml`
+  - [x] Verification: `find deployments/ -name otel-collector-config.yaml` (1 result only)
+  - [x] Command: `git rm deployments/template/otel-collector-config.yaml deployments/cipher-im/otel-collector-config.yaml`
 - **Files**: None (deletions)
 - **Evidence**: `test-output/phase1/otel-config-analysis.txt` (from planning)
 
