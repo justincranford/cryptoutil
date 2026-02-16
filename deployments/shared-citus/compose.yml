@@ -44,7 +44,7 @@ services:
       - "5434:5432"
     volumes:
       - citus_coordinator_data:/var/lib/postgresql/data
-      -../shared-postgres/init-citus.sql:/docker-entrypoint-initdb.d/01-init-citus.sql:ro
+      - ../shared-postgres/init-citus.sql:/docker-entrypoint-initdb.d/01-init-citus.sql:ro
     secrets:
       - postgres_username.secret
       - postgres_password.secret
@@ -168,15 +168,17 @@ services:
 
 
 volumes:
-  - citus_coordinator_data:/var/lib/postgresql/data
-  - citus_worker_1_data:/var/lib/postgresql/data
-  - citus_worker_2_data:/var/lib/postgresql/data
   citus_coordinator_data:
-  name: cryptoutil_citus_coordinator_volume
+    name: cryptoutil_citus_coordinator_volume
   citus_worker_1_data:
-  name: cryptoutil_citus_worker_1_volume
+    name: cryptoutil_citus_worker_1_volume
   citus_worker_2_data:
-  name: cryptoutil_citus_worker_2_volume
+    name: cryptoutil_citus_worker_2_volume
+
+networks:
+  postgres-network:
+    driver: bridge
+
 secrets:
   postgres_username.secret:
     file: ./secrets/postgres_username.secret
