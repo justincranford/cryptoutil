@@ -226,12 +226,6 @@ secrets:
     file: ./secrets/unseal_4of5.secret
   unseal_5of5.secret:
     file: ./secrets/unseal_5of5.secret
-  postgres_database.secret:
-    file: ./secrets/postgres_database.secret
-  postgres_username.secret:
-    file: ./secrets/postgres_username.secret
-  postgres_password.secret:
-    file: ./secrets/postgres_password.secret
   postgres_url.secret:
     file: ./secrets/postgres_url.secret
 

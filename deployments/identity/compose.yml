@@ -27,5 +27,16 @@ include:
 # This enables shared SSO/federation within the identity product boundary.
 
 secrets:
+  # Unseal secrets (CRITICAL: shared across ALL cryptoutil instances for key hierarchy interoperability).
+  unseal_1of5.secret:
+    file: ./secrets/unseal_1of5.secret
+  unseal_2of5.secret:
+    file: ./secrets/unseal_2of5.secret
+  unseal_3of5.secret:
+    file: ./secrets/unseal_3of5.secret
+  unseal_4of5.secret:
+    file: ./secrets/unseal_4of5.secret
+  unseal_5of5.secret:
+    file: ./secrets/unseal_5of5.secret
   identity-hash_pepper.secret:
     file: ./secrets/identity-hash_pepper.secret
