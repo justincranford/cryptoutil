@@ -48,17 +48,17 @@
 - **Evidence**: N/A (simple directory creation)
 
 #### Task 0.5.2: Archive sm-kms Demo Compose File
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15min
-- **Actual**: [Fill when complete]
+- **Actual**: 3min
 - **Dependencies**: Task 0.5.1
 - **Description**: Move compose.demo.yml to archive directory
 - **Acceptance Criteria**:
-  - [ ] File moved: `deployments/sm-kms/compose.demo.yml` → `docs/demo-brainstorm/deployments/sm-kms/compose.demo.yml`
-  - [ ] Original file deleted from deployments/
-  - [ ] Git tracks move: `git mv` used
-  - [ ] Command: `ls deployments/sm-kms/` (no compose.demo.yml)
+  - [x] File moved: `deployments/sm-kms/compose.demo.yml` → `docs/demo-brainstorm/deployments/sm-kms/compose.demo.yml`
+  - [x] Original file deleted from deployments/
+  - [x] Git tracks move: `git mv` used
+  - [x] Command: `ls deployments/sm-kms/` (no compose.demo.yml)
 - **Files**:
   - `docs/demo-brainstorm/deployments/sm-kms/compose.demo.yml` (moved)
 - **Evidence**: `git log --follow docs/demo-brainstorm/deployments/sm-kms/compose.demo.yml`
