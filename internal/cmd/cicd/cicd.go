@@ -24,6 +24,10 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	switch command {
 	case "lint-deployments":
 		return cryptoutilLintDeployments.Main(args[2:])
+	case "generate-listings":
+		return cryptoutilLintDeployments.Main([]string{"generate-listings"})
+	case "validate-mirror":
+		return cryptoutilLintDeployments.Main([]string{"validate-mirror"})
 	case "help", "--help", "-h":
 		printUsage(stdout)
 
