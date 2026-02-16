@@ -162,18 +162,18 @@
 **Phase Objective**: Add docker compose config validation to pre-commit hooks
 
 #### Task 2.1: Add Compose Schema Validation to Pre-Commit
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [Fill when complete]
+- **Actual**: 15min
 - **Dependencies**: None
 - **Description**: Update .pre-commit-config.yaml to add `docker compose config --quiet` validation
 - **Acceptance Criteria**:
-  - [ ] Updated: `.pre-commit-config.yaml` with new validation step
-  - [ ] Hook runs: `docker compose config --quiet` on all compose files
-  - [ ] Targets: `deployments/**/compose*.yml`
-  - [ ] Stage: pre-commit (same as existing lint-compose)
-  - [ ] Verification: `cat .pre-commit-config.yaml | grep "docker compose config"`
+  - [x] Updated: `.pre-commit-config.yaml` with new validation step
+  - [x] Hook runs: `docker compose config --quiet` on all compose files
+  - [x] Targets: `deployments/**/compose*.yml`
+  - [x] Stage: pre-commit (same as existing lint-compose)
+  - [x] Verification: `cat .pre-commit-config.yaml | grep "docker compose config"`
 - **Files**:
   - `.pre-commit-config.yaml` (modified)
 - **Evidence**: `test-output/phase2/precommit-config-diff.txt`

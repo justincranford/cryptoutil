@@ -223,6 +223,16 @@ repos:
         require_serial: false # linters are read-only, so they can run concurrently
         stages: [pre-commit]
 
+      - id: docker-compose-config
+        name: Validate docker compose files with schema
+        entry: bash
+        args: [-c, 'for f in deployments/**/compose*.yml; do echo "Validating $f..."; docker compose -f "$f" config --quiet || exit 1; done']
+        language: system
+        files: 'deployments/.*/compose.*\.yml$'
+        pass_filenames: false
+        require_serial: false
+        stages: [pre-commit]
+
       - id: cicd-format-go-only
         name: Run custom CI/CD format checks
         entry: go
