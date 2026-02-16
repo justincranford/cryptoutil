@@ -2808,7 +2808,7 @@ deployments/jose-ja/config/
 ```go
 // Phase 1: Warning Mode (current)
 if file == "demo-seed.yml" || file == "integration.yml" {
-    warnings = append(warnings, fmt.Sprintf("DEPRECATED: %s should be removed or renamed to %s-demo.yml / %s-e2e.yml", 
+    warnings = append(warnings, fmt.Sprintf("DEPRECATED: %s should be removed or renamed to %s-demo.yml / %s-e2e.yml",
         file, productService, productService))
 }
 

@@ -4,11 +4,11 @@
 package main
 
 import (
-"os"
+	"os"
 
-cryptoutilCmdCicd "cryptoutil/internal/cmd/cicd"
+	cryptoutilCmdCicd "cryptoutil/internal/cmd/cicd"
 )
 
 func main() {
-os.Exit(cryptoutilCmdCicd.Cicd(os.Args, os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilCmdCicd.Cicd(os.Args, os.Stdin, os.Stdout, os.Stderr))
 }

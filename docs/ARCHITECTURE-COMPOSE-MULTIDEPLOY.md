@@ -96,19 +96,200 @@ services:
 
 **Caveat**: `${VAR}` in compose files is compose-time interpolation (from host env or `.env` file), NOT container runtime variable expansion.
 
-### 2.6 Path Resolution
+### 2.6 Path Resolution & Secret Inheritance
 
 **Finding**: Docker resolves secret file paths relative to the compose file that defines them, then converts to absolute paths. These absolute paths must be accessible to the Docker daemon.
+
+**Complete Secret Hierarchy** (all 5 products, all 9 services):
+
+```
+deployments/
+├── cryptoutil/                                    # SUITE-level deployment
+│   ├── compose.yml                                # Includes all PRODUCT compose files
+│   └── secrets/
+│       └── cryptoutil-hash_pepper.secret          # SUITE pepper: shared by ALL 9 services
+│
+├── sm/                                            # PRODUCT-level (single-service product)
+│   ├── compose.yml → ../sm-kms/compose.yml        # Alias to SERVICE
+│   └── secrets/
+│       └── sm-hash_pepper.secret                  # PRODUCT pepper: only for sm-kms
+│
+├── pki/                                           # PRODUCT-level (single-service product)
+│   ├── compose.yml → ../pki-ca/compose.yml
+│   └── secrets/
+│       └── pki-hash_pepper.secret                 # PRODUCT pepper: only for pki-ca
+│
+├── identity/                                      # PRODUCT-level (multi-service product)
+│   ├── compose.yml                                # Includes 5 identity services
+│   └── secrets/
+│       └── identity-hash_pepper.secret            # PRODUCT pepper: shared by 5 identity services
+│
+├── cipher/                                        # PRODUCT-level (single-service product)
+│   ├── compose.yml → ../cipher-im/compose.yml
+│   └── secrets/
+│       └── cipher-hash_pepper.secret              # PRODUCT pepper: only for cipher-im
+│
+├── jose/                                          # PRODUCT-level (single-service product)
+│   ├── compose.yml → ../jose-ja/compose.yml
+│   └── secrets/
+│       └── jose-hash_pepper.secret                # PRODUCT pepper: only for jose-ja
+│
+├── sm-kms/                                        # SERVICE-level (sm product, kms service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── sm-kms-hash_pepper.secret              # SERVICE pepper: unique to sm-kms
+│       ├── sm-kms-unseal_1of5.secret
+│       ├── sm-kms-unseal_2of5.secret
+│       ├── sm-kms-unseal_3of5.secret
+│       ├── sm-kms-unseal_4of5.secret
+│       ├── sm-kms-unseal_5of5.secret
+│       ├── sm-kms-postgres_url.secret
+│       ├── sm-kms-postgres_username.secret
+│       ├── sm-kms-postgres_password.secret
+│       └── sm-kms-postgres_database.secret
+│
+├── pki-ca/                                        # SERVICE-level (pki product, ca service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── pki-ca-hash_pepper.secret              # SERVICE pepper: unique to pki-ca
+│       ├── pki-ca-unseal_1of5.secret
+│       ├── pki-ca-unseal_2of5.secret
+│       ├── pki-ca-unseal_3of5.secret
+│       ├── pki-ca-unseal_4of5.secret
+│       ├── pki-ca-unseal_5of5.secret
+│       ├── pki-ca-postgres_url.secret
+│       ├── pki-ca-postgres_username.secret
+│       ├── pki-ca-postgres_password.secret
+│       └── pki-ca-postgres_database.secret
+│
+├── identity-authz/                                # SERVICE-level (identity product, authz service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── identity-authz-hash_pepper.secret      # SERVICE pepper: unique to identity-authz
+│       ├── identity-authz-unseal_1of5.secret
+│       ├── identity-authz-unseal_2of5.secret
+│       ├── identity-authz-unseal_3of5.secret
+│       ├── identity-authz-unseal_4of5.secret
+│       ├── identity-authz-unseal_5of5.secret
+│       ├── identity-authz-postgres_url.secret
+│       ├── identity-authz-postgres_username.secret
+│       ├── identity-authz-postgres_password.secret
+│       └── identity-authz-postgres_database.secret
+│
+├── identity-idp/                                  # SERVICE-level (identity product, idp service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── identity-idp-hash_pepper.secret        # SERVICE pepper: unique to identity-idp
+│       ├── identity-idp-unseal_1of5.secret
+│       ├── identity-idp-unseal_2of5.secret
+│       ├── identity-idp-unseal_3of5.secret
+│       ├── identity-idp-unseal_4of5.secret
+│       ├── identity-idp-unseal_5of5.secret
+│       ├── identity-idp-postgres_url.secret
+│       ├── identity-idp-postgres_username.secret
+│       ├── identity-idp-postgres_password.secret
+│       └── identity-idp-postgres_database.secret
+│
+├── identity-rp/                                   # SERVICE-level (identity product, rp service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── identity-rp-hash_pepper.secret         # SERVICE pepper: unique to identity-rp
+│       ├── identity-rp-unseal_1of5.secret
+│       ├── identity-rp-unseal_2of5.secret
+│       ├── identity-rp-unseal_3of5.secret
+│       ├── identity-rp-unseal_4of5.secret
+│       ├── identity-rp-unseal_5of5.secret
+│       ├── identity-rp-postgres_url.secret
+│       ├── identity-rp-postgres_username.secret
+│       ├── identity-rp-postgres_password.secret
+│       └── identity-rp-postgres_database.secret
+│
+├── identity-rs/                                   # SERVICE-level (identity product, rs service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── identity-rs-hash_pepper.secret         # SERVICE pepper: unique to identity-rs
+│       ├── identity-rs-unseal_1of5.secret
+│       ├── identity-rs-unseal_2of5.secret
+│       ├── identity-rs-unseal_3of5.secret
+│       ├── identity-rs-unseal_4of5.secret
+│       ├── identity-rs-unseal_5of5.secret
+│       ├── identity-rs-postgres_url.secret
+│       ├── identity-rs-postgres_username.secret
+│       ├── identity-rs-postgres_password.secret
+│       └── identity-rs-postgres_database.secret
+│
+├── identity-spa/                                  # SERVICE-level (identity product, spa service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── identity-spa-hash_pepper.secret        # SERVICE pepper: unique to identity-spa
+│       ├── identity-spa-unseal_1of5.secret
+│       ├── identity-spa-unseal_2of5.secret
+│       ├── identity-spa-unseal_3of5.secret
+│       ├── identity-spa-unseal_4of5.secret
+│       ├── identity-spa-unseal_5of5.secret
+│       ├── identity-spa-postgres_url.secret
+│       ├── identity-spa-postgres_username.secret
+│       ├── identity-spa-postgres_password.secret
+│       └── identity-spa-postgres_database.secret
+│
+├── cipher-im/                                     # SERVICE-level (cipher product, im service)
+│   ├── compose.yml
+│   └── secrets/
+│       ├── cipher-im-hash_pepper.secret           # SERVICE pepper: unique to cipher-im
+│       ├── cipher-im-unseal_1of5.secret
+│       ├── cipher-im-unseal_2of5.secret
+│       ├── cipher-im-unseal_3of5.secret
+│       ├── cipher-im-unseal_4of5.secret
+│       ├── cipher-im-unseal_5of5.secret
+│       ├── cipher-im-postgres_url.secret
+│       ├── cipher-im-postgres_username.secret
+│       ├── cipher-im-postgres_password.secret
+│       └── cipher-im-postgres_database.secret
+│
+└── jose-ja/                                       # SERVICE-level (jose product, ja service)
+    ├── compose.yml
+    └── secrets/
+        ├── jose-ja-hash_pepper.secret             # SERVICE pepper: unique to jose-ja
+        ├── jose-ja-unseal_1of5.secret
+        ├── jose-ja-unseal_2of5.secret
+        ├── jose-ja-unseal_3of5.secret
+        ├── jose-ja-unseal_4of5.secret
+        ├── jose-ja-unseal_5of5.secret
+        ├── jose-ja-postgres_url.secret
+        ├── jose-ja-postgres_username.secret
+        ├── jose-ja-postgres_password.secret
+        └── jose-ja-postgres_database.secret
+```
+
+**Pepper Inheritance by Deployment Scenario:**
+
+| Deployment Command | Pepper Used | Services Affected | Scope |
+|-------------------|-------------|-------------------|-------|
+| `cd sm-kms && docker compose up` | `sm-kms-hash_pepper.secret` | sm-kms only | SERVICE-only: unique pepper |
+| `cd pki-ca && docker compose up` | `pki-ca-hash_pepper.secret` | pki-ca only | SERVICE-only: unique pepper |
+| `cd identity-authz && docker compose up` | `identity-authz-hash_pepper.secret` | identity-authz only | SERVICE-only: unique pepper |
+| `cd identity && docker compose up` | `identity-hash_pepper.secret` | All 5 identity services (authz, idp, rp, rs, spa) | PRODUCT-level: shared within product |
+| `cd cryptoutil && docker compose up` | `cryptoutil-hash_pepper.secret` | ALL 9 services across 5 products | SUITE-level: shared globally |
+
+**Key Rules:**
+
+1. **SERVICE-only deployment**: Each service uses its own unique `{PRODUCT}-{SERVICE}-hash_pepper.secret` from its own `secrets/` directory.
+
+2. **PRODUCT-level deployment**: All services within a product share `{PRODUCT}-hash_pepper.secret` from the PRODUCT directory's `secrets/` folder. The PRODUCT compose.yml defines this secret and it overrides the SERVICE-level secrets via Docker Compose merging rules.
+
+3. **SUITE-level deployment**: All 9 services across all 5 products share `cryptoutil-hash_pepper.secret` from `deployments/cryptoutil/secrets/`. The SUITE compose.yml defines this secret at the top level, overriding both PRODUCT and SERVICE secrets.
+
+4. **Secret precedence**: SUITE > PRODUCT > SERVICE (compose merging gives precedence to the parent that includes children).
+
+5. **Unseal keys, DB credentials**: ALWAYS unique per service, NEVER shared. Only hash pepper has layered sharing.
 
 ## 3. Recommended Directory Structure
 
 ```
 deployments/
-├── shared/                              # Shared infrastructure and secrets
-│   ├── infra/
-│   │   └── compose.yml                  # Shared DB, telemetry
-│   └── secrets/
-│       └── hash_pepper-SHARED.secret    # Suite-wide hash pepper
+├── shared/                              # Shared infrastructure ONLY (NO secrets)
+│   └── infra/
+│       └── compose.yml                  # Shared DB, telemetry
 │
 ├── template/                            # Compose and config templates
 │   ├── compose.yml                      # Service compose template
@@ -135,18 +316,22 @@ deployments/
 │   └── config/
 │
 ├── identity/                            # PRODUCT level (future)
-│   └── compose.yml                      # include: ../identity-authz/compose.yml
-│                                        #          ../identity-idp/compose.yml
-│                                        #          ../identity-rp/compose.yml
-│                                        #          ../identity-rs/compose.yml
-│                                        #          ../identity-spa/compose.yml
+│   ├── compose.yml                      # include: ../identity-authz/compose.yml
+│   │                                    #          ../identity-idp/compose.yml
+│   │                                    #          ../identity-rp/compose.yml
+│   │                                    #          ../identity-rs/compose.yml
+│   │                                    #          ../identity-spa/compose.yml
+│   └── secrets/
+│       └── identity-hash_pepper.secret  # PRODUCT pepper: shared by 5 identity services
 │
 └── cryptoutil/                          # SUITE level (future)
-    └── compose.yml                      # include: ../sm/compose.yml
-                                         #          ../pki/compose.yml
-                                         #          ../identity/compose.yml
-                                         #          ../cipher/compose.yml
-                                         #          ../jose/compose.yml
+    ├── compose.yml                      # include: ../sm/compose.yml
+    │                                    #          ../pki/compose.yml
+    │                                    #          ../identity/compose.yml
+    │                                    #          ../cipher/compose.yml
+    │                                    #          ../jose/compose.yml
+    └── secrets/
+        └── cryptoutil-hash_pepper.secret # SUITE pepper: shared by ALL 9 services
 ```
 
 ## 4. Composition Patterns
@@ -174,7 +359,7 @@ services:
       - sm-kms-unseal_3of5.secret
       - sm-kms-unseal_4of5.secret
       - sm-kms-unseal_5of5.secret
-      - hash_pepper.secret
+      - sm-kms-hash_pepper.secret
       - sm-kms-postgres_url.secret
       - sm-kms-postgres_username.secret
       - sm-kms-postgres_password.secret
@@ -183,9 +368,9 @@ services:
 secrets:
   sm-kms-unseal_1of5.secret:
     file: ./secrets/sm-kms-unseal_1of5.secret
-  hash_pepper.secret:
-    file: ../shared/secrets/hash_pepper.secret
-  # ... etc
+  sm-kms-hash_pepper.secret:
+    file: ./secrets/sm-kms-hash_pepper.secret
+  # ... etc (other unseal keys, postgres credentials)
 ```
 
 ### 4.2 PRODUCT Level (Aggregation)
@@ -225,17 +410,35 @@ To avoid secret name conflicts in multi-level composition:
 | Secret Type | Naming Pattern | Example |
 |-------------|---------------|---------|
 | Unseal keys | `{PRODUCT}-{SERVICE}-unseal_{N}of5.secret` | `sm-kms-unseal_1of5.secret` |
-| Hash pepper (shared) | `hash_pepper_v3.secret` | Same file referenced by all services |
+| Hash pepper (SERVICE) | `{PRODUCT}-{SERVICE}-hash_pepper.secret` | `sm-kms-hash_pepper.secret` |
+| Hash pepper (PRODUCT) | `{PRODUCT}-hash_pepper.secret` | `identity-hash_pepper.secret` (shared by 5 services) |
+| Hash pepper (SUITE) | `cryptoutil-hash_pepper.secret` | `cryptoutil-hash_pepper.secret` (shared by all 9) |
 | PostgreSQL URL | `{PRODUCT}-{SERVICE}-postgres_url.secret` | `sm-kms-postgres_url.secret` |
 | PostgreSQL user | `{PRODUCT}-{SERVICE}-postgres_username.secret` | `jose-ja-postgres_username.secret` |
 | PostgreSQL pass | `{PRODUCT}-{SERVICE}-postgres_password.secret` | `identity-authz-postgres_password.secret` |
 | PostgreSQL DB | `{PRODUCT}-{SERVICE}-postgres_database.secret` | `pki-ca-postgres_database.secret` |
 
-### 5.2 Sharing Rules
+### 5.2 Layered Pepper Strategy
 
-- **Unique per service**: Unseal keys, PostgreSQL credentials → prefix with `{PRODUCT}-{SERVICE}-`
-- **Shared across services**: Hash pepper → single name, single file in `shared/secrets/`
-- **Level suffixes** (see ARCHITECTURE.md Section 12.3.3): `-SERVICEONLY`, `-PRODUCTONLY`, `-SUITEONLY`, `-SHARED`
+**SERVICE-only deployment** (`cd {PRODUCT}-{SERVICE} && docker compose up`):
+- Each service has unique pepper: `{PRODUCT}-{SERVICE}-hash_pepper.secret`
+- Example: `sm-kms` uses `sm-kms-hash_pepper.secret`, `pki-ca` uses `pki-ca-hash_pepper.secret`
+- **Use case**: Maximum isolation during development/testing
+
+**PRODUCT-level deployment** (`cd {PRODUCT} && docker compose up`):
+- All services within product share pepper: `{PRODUCT}-hash_pepper.secret`
+- Example: All 5 identity services (authz, idp, rp, rs, spa) share `identity-hash_pepper.secret`
+- Single-service products (sm, pki, cipher, jose): `{PRODUCT}-hash_pepper.secret` = alias to SERVICE pepper
+- **Use case**: Shared SSO/federation within product boundary
+
+**SUITE-level deployment** (`cd cryptoutil && docker compose up`):
+- All 9 services across 5 products share pepper: `cryptoutil-hash_pepper.secret`
+- **Use case**: Cross-product SSO, unified identity federation
+
+**Other Secrets (NEVER shared)**:
+- Unseal keys: ALWAYS `{PRODUCT}-{SERVICE}-unseal_{N}of5.secret` (unique per service)
+- PostgreSQL credentials: ALWAYS `{PRODUCT}-{SERVICE}-postgres_*.secret` (unique per service)
+- **Level suffixes** (see ARCHITECTURE.md Section 12.3.3): `-SERVICEONLY`, `-PRODUCTONLY`, `-SUITEONLY` used in filename hints only
 
 ## 6. Migration Path
 
@@ -250,12 +453,13 @@ Rename secret files to include `{PRODUCT}-{SERVICE}-` prefix:
 - Update compose.yml secret references
 - Update linter validation
 
-### Phase 3: Shared Infrastructure
+### Phase 3: Layered Pepper Strategy
 
-Create `deployments/shared/` directory:
-- Move hash pepper to `shared/secrets/hash_pepper_v3.secret`
-- Service compose files reference shared pepper via relative path
-- Each service remains independently deployable
+Create layered pepper secrets:
+- SERVICE-level: Each service has `{PRODUCT}-{SERVICE}-hash_pepper.secret` in its own `secrets/` directory
+- PRODUCT-level: Create `deployments/{PRODUCT}/secrets/{PRODUCT}-hash_pepper.secret` for multi-service products
+- SUITE-level: Create `deployments/cryptoutil/secrets/cryptoutil-hash_pepper.secret` for full deployment
+- Update compose.yml files to reference appropriate pepper based on deployment level
 
 ### Phase 4: Product-Level Composition
 
