@@ -114,7 +114,7 @@ func TestParseWithFlagSet_DefaultValues(t *testing.T) {
 	require.Equal(t, 100, settings.AuditSamplingRate, "AuditSamplingRate should be 100")
 
 	// Verify template defaults inherited.
-	require.Equal(t, uint16(8060), settings.BindPublicPort, "BindPublicPort should be 8060") // cryptoutilSharedMagic.JoseJAServicePort.
+	require.Equal(t, uint16(8800), settings.BindPublicPort, "BindPublicPort should be 8800") // cryptoutilSharedMagic.JoseJAServicePort.
 
 	require.Equal(t, "jose-ja", settings.OTLPService, "OTLPService should be jose-ja")
 }

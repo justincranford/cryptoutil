@@ -34,7 +34,7 @@ type ServiceConfig struct {
 
 // LoadProfile loads a profile configuration by name from configs/identity/profiles/.
 func LoadProfile(profileName string) (*ProfileConfig, error) {
-	// Get project root directory - go up 3 levels from internal/identity/config
+	// Get project root directory - go up 4 levels from internal/apps/identity/config.
 	projectRoot, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get working directory: %w", err)
@@ -42,7 +42,7 @@ func LoadProfile(profileName string) (*ProfileConfig, error) {
 
 	// Check if we're in a subdirectory (tests run from package directory)
 	if filepath.Base(projectRoot) == "config" {
-		projectRoot = filepath.Join(projectRoot, "..", "..", "..")
+		projectRoot = filepath.Join(projectRoot, "..", "..", "..", "..")
 	}
 
 	profilePath := filepath.Join(projectRoot, "configs", "identity", "profiles", profileName+".yml")

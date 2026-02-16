@@ -22,6 +22,9 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// ErrNoActiveSecretVersion indicates no active secret version exists for a client.
+var ErrNoActiveSecretVersion = errors.New("no active secret version found")
+
 // SecretRotationService handles client secret rotation operations.
 type SecretRotationService struct {
 	db *gorm.DB
@@ -159,7 +162,7 @@ func (s *SecretRotationService) GetActiveSecretVersion(
 		First(&version).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("no active secret version found for client %s: %w", clientID, gorm.ErrRecordNotFound)
+			return nil, ErrNoActiveSecretVersion
 		}
 
 		return nil, fmt.Errorf("failed to query active version: %w", err)

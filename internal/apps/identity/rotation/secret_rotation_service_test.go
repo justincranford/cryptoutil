@@ -146,7 +146,7 @@ func TestGetActiveSecretVersion(t *testing.T) {
 
 	// No active version initially.
 	version, err := service.GetActiveSecretVersion(ctx, clientID)
-	require.NoError(t, err)
+	require.ErrorIs(t, err, ErrNoActiveSecretVersion)
 	require.Nil(t, version, "Should return nil when no active version exists")
 
 	// Rotate to create version 1.
