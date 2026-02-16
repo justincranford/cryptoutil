@@ -3,7 +3,7 @@
 # CA Docker Compose Configuration
 #
 # This compose file provides the CA (Certificate Authority) services.
-# It includes shared telemetry services from deployments/telemetry/compose.yml.
+# It includes shared telemetry services from deploymen../shared-telemetry/compose.yml.
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # Default (dev profile)
@@ -19,7 +19,7 @@
 #   - postgres: PostgreSQL backend with multiple instances
 #
 include:
-  - path: ../telemetry/compose.yml
+  - path: ../shared-telemetry/compose.yml
 
 services:
   # Healthcheck for Docker secrets availability.
@@ -109,7 +109,7 @@ services:
     volumes:
       - ./config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./ca-crls:/app/crls  # CRL distribution point
     secrets:
       # CRITICAL: ALL CA instances MUST use the SAME unseal secrets
@@ -165,7 +165,7 @@ services:
     volumes:
       - ./config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./ca-crls:/app/crls  # CRL distribution point
     secrets:
       # CRITICAL: ALL CA instances MUST use the SAME unseal secrets.
@@ -222,7 +222,7 @@ services:
     volumes:
       - ./config/pki-ca-app-postgresql-2.yml:/app/config/pki-ca-app-postgresql-2.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ./ca-crls:/app/crls  # CRL distribution point
     secrets:
       # CRITICAL: ALL CA instances MUST use the SAME unseal secrets.

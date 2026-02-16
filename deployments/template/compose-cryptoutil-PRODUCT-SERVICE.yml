@@ -39,7 +39,7 @@
 #   - postgres: PostgreSQL backend with multiple instances (1x SQLite + 2x PostgreSQL)
 #
 include:
-  - path: ../telemetry/compose.yml
+  - path: ../shared-telemetry/compose.yml
 
 services:
   # Healthcheck for Docker secrets availability.
@@ -130,7 +130,7 @@ services:
     volumes:
       - ../PRODUCT-SERVICE/config/SERVICE-sqlite.yml:/app/config/sqlite.yml:ro
       - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       # CRITICAL: ALL PRODUCT-SERVICE instances MUST use the SAME unseal secrets
       # for shared encryption/decryption. NEVER use instance-specific secrets.
@@ -177,7 +177,7 @@ services:
     volumes:
       - ../PRODUCT-SERVICE/config/SERVICE-postgresql-1.yml:/app/config/postgresql-1.yml:ro
       - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       # CRITICAL: ALL PRODUCT-SERVICE instances MUST use the SAME unseal secrets.
       - unseal_1of5.secret
@@ -224,7 +224,7 @@ services:
     volumes:
       - ../PRODUCT-SERVICE/config/SERVICE-postgresql-2.yml:/app/config/postgresql-2.yml:ro
       - ../PRODUCT-SERVICE/config/SERVICE-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       # CRITICAL: ALL PRODUCT-SERVICE instances MUST use the SAME unseal secrets.
       - unseal_1of5.secret

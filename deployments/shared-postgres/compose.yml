@@ -65,7 +65,7 @@
 #
 # Usage: Include this in your product compose.yml:
 #   include:
-#     - path: ../postgres/compose.yml
+#     - path: ../shared-postgres/compose.yml
 #
 services:
   # PostgreSQL 18 Leader (OLTP - Read/Write)
@@ -75,7 +75,7 @@ services:
     container_name: cryptoutil-postgres-leader
     hostname: postgres-leader
     environment:
-      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
       POSTGRES_INITDB_ARGS: "-c max_connections=500 -c shared_buffers=512MB"
     command:
@@ -103,11 +103,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres_leader_data:/var/lib/postgresql/data
-      - ./postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      -../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
     secrets:
+      - postgres_username.secret
       - postgres_password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -130,7 +131,7 @@ services:
     container_name: cryptoutil-postgres-follower
     hostname: postgres-follower
     environment:
-      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
       POSTGRES_INITDB_ARGS: "-c max_connections=200 -c shared_buffers=1GB"
     command:
@@ -152,15 +153,16 @@ services:
       - "5433:5432"
     volumes:
       - postgres_follower_data:/var/lib/postgresql/data
-      - ./postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
-      - ./postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
+      -../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      -../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
     secrets:
+      - postgres_username.secret
       - postgres_password.secret
     depends_on:
       postgres-leader:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
       start_period: 60s
       interval: 10s
       timeout: 5s
@@ -177,9 +179,9 @@ services:
           cpus: '1.0'
 
     environment:
-      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER: cryptoutil_admin
+      PGUSER_FILE: /run/secrets/postgres_username.secret
       PGPASSWORD_FILE: /run/secrets/postgres_password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
     command:
@@ -195,9 +197,10 @@ services:
       - "5434:5432"
     volumes:
     secrets:
+      - postgres_username.secret
       - postgres_password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -214,18 +217,19 @@ services:
           cpus: '0.5'
 
     environment:
-      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER: cryptoutil_admin
+      PGUSER_FILE: /run/secrets/postgres_username.secret
       PGPASSWORD_FILE: /run/secrets/postgres_password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
     command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
     shm_size: 512mb
     volumes:
     secrets:
+      - postgres_username.secret
       - postgres_password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -242,18 +246,19 @@ services:
           cpus: '0.5'
 
     environment:
-      POSTGRES_USER: cryptoutil_admin
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER: cryptoutil_admin
+      PGUSER_FILE: /run/secrets/postgres_username.secret
       PGPASSWORD_FILE: /run/secrets/postgres_password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
     command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
     shm_size: 512mb
     volumes:
     secrets:
+      - postgres_username.secret
       - postgres_password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cryptoutil_admin -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -270,7 +275,7 @@ services:
           cpus: '0.5'
 
     environment:
-      PGUSER: cryptoutil_admin
+      PGUSER_FILE: /run/secrets/postgres_username.secret
       PGPASSWORD_FILE: /run/secrets/postgres_password.secret
       PGDATABASE: postgres
     command:
@@ -279,6 +284,7 @@ services:
       - |
         sleep 10
     secrets:
+      - postgres_username.secret
       - postgres_password.secret
     depends_on:
         condition: service_healthy
@@ -298,5 +304,9 @@ volumes:
     name: cryptoutil_postgres_follower_volume
 
 secrets:
+  postgres_username.secret:
+    file: ./secrets/postgres_username.secret
   postgres_password.secret:
     file: ./secrets/postgres_password.secret
+  postgres_database.secret:
+    file: ./secrets/postgres_database.secret

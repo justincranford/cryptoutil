@@ -6,7 +6,7 @@
 #
 # Usage: Include this in your product compose.yml:
 #   include:
-#     - path: ../telemetry/compose.yml
+#     - path: ../shared-telemetry/compose.yml
 #
 services:
   # Healthcheck for OpenTelemetry Collector availability.

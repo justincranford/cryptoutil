@@ -44,8 +44,8 @@
 name: identity-spa
 
 include:
-  - path: ../telemetry/compose.yml
-  - path: ../postgres/compose.yml
+  - path: ../shared-telemetry/compose.yml
+  - path: ../shared-postgres/compose.yml
 
 services:
   # identity-spa - SQLite Standalone Instance
@@ -244,5 +244,5 @@ networks:
   telemetry-network:
     driver: bridge
 
-# Note: Volumes are defined in ../postgres/compose.yml (included above)
+# Note: Volumes are defined in ../shared-postgres/compose.yml (included above)
 # No local volumes needed for this template

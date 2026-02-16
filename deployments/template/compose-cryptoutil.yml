@@ -53,8 +53,8 @@
 #   - postgres: PostgreSQL backend with multiple instances (2x app per service + shared infrastructure)
 #
 include:
-  - path: ../telemetry/compose.yml
-  - path: ../postgres/compose.yml
+  - path: ../shared-telemetry/compose.yml
+  - path: ../shared-postgres/compose.yml
 
 services:
   # Healthcheck for Docker secrets availability.
@@ -107,7 +107,7 @@ services:
     volumes:
       - ../pki-ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -147,7 +147,7 @@ services:
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -194,7 +194,7 @@ services:
     volumes:
       - ../pki-ca/config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -245,7 +245,7 @@ services:
     volumes:
       - ../jose-ja/config/jose-ja-app-sqlite-1.yml:/app/config/jose-ja-app-sqlite-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -285,7 +285,7 @@ services:
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -332,7 +332,7 @@ services:
     volumes:
       - ../jose-ja/config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -383,7 +383,7 @@ services:
     volumes:
       - ../cipher-im/config/cipher-im-app-sqlite-1.yml:/app/config/cipher-im-app-sqlite-1.yml:ro
       - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -423,7 +423,7 @@ services:
     volumes:
       - ../cipher-im/config/cipher-im-postgres.yml:/app/config/cipher-im-postgres.yml:ro
       - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -470,7 +470,7 @@ services:
     volumes:
       - ../cipher-im/config/cipher-im-postgres.yml:/app/config/cipher-im-postgres.yml:ro
       - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -521,7 +521,7 @@ services:
     volumes:
       - ../sm-kms/config/sm-kms-app-sqlite-1.yml:/app/config/sm-kms-app-sqlite-1.yml:ro
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -561,7 +561,7 @@ services:
     volumes:
       - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -608,7 +608,7 @@ services:
     volumes:
       - ../sm-kms/config/sm-kms-postgres.yml:/app/config/sm-kms-postgres.yml:ro
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -659,7 +659,7 @@ services:
     volumes:
       - ../identity-authz/config/identity-authz-sqlite.yml:/app/config/identity-authz-sqlite.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -699,7 +699,7 @@ services:
     volumes:
       - ../identity-authz/config/identity-authz-postgres.yml:/app/config/identity-authz-postgres.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -746,7 +746,7 @@ services:
     volumes:
       - ../identity-authz/config/identity-authz-postgres.yml:/app/config/identity-authz-postgres.yml:ro
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -797,7 +797,7 @@ services:
     volumes:
       - ../identity-idp/config/identity-idp-sqlite.yml:/app/config/identity-idp-sqlite.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -837,7 +837,7 @@ services:
     volumes:
       - ../identity-idp/config/identity-idp-postgres.yml:/app/config/identity-idp-postgres.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -884,7 +884,7 @@ services:
     volumes:
       - ../identity-idp/config/identity-idp-postgres.yml:/app/config/identity-idp-postgres.yml:ro
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -935,7 +935,7 @@ services:
     volumes:
       - ../identity-rs/config/identity-rs-sqlite.yml:/app/config/identity-rs-sqlite.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -975,7 +975,7 @@ services:
     volumes:
       - ../identity-rs/config/identity-rs-postgres.yml:/app/config/identity-rs-postgres.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -1022,7 +1022,7 @@ services:
     volumes:
       - ../identity-rs/config/identity-rs-postgres.yml:/app/config/identity-rs-postgres.yml:ro
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -1073,7 +1073,7 @@ services:
     volumes:
       - ../identity-rp/config/identity-rp-sqlite.yml:/app/config/identity-rp-sqlite.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -1113,7 +1113,7 @@ services:
     volumes:
       - ../identity-rp/config/identity-rp-postgres.yml:/app/config/identity-rp-postgres.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -1160,7 +1160,7 @@ services:
     volumes:
       - ../identity-rp/config/identity-rp-postgres.yml:/app/config/identity-rp-postgres.yml:ro
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -1211,7 +1211,7 @@ services:
     volumes:
       - ../identity-spa/config/identity-spa-sqlite.yml:/app/config/identity-spa-sqlite.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -1251,7 +1251,7 @@ services:
     volumes:
       - ../identity-spa/config/identity-spa-postgres.yml:/app/config/identity-spa-postgres.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -1298,7 +1298,7 @@ services:
     volumes:
       - ../identity-spa/config/identity-spa-postgres.yml:/app/config/identity-spa-postgres.yml:ro
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret

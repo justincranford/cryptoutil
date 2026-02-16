@@ -8,7 +8,7 @@
 
 # This compose file provides the KMS (Key Management System) services.
 
-# It includes shared telemetry services from deployments/telemetry/compose.yml.
+# It includes shared telemetry services from deploymen../shared-telemetry/compose.yml.
 
 #
 
@@ -32,8 +32,8 @@
 
 include:
 
-  - path: ../telemetry/compose.yml
-    - path: ../postgres/compose.yml
+  - path: ../shared-telemetry/compose.yml
+    - path: ../shared-postgres/compose.yml
 
 
 
@@ -195,7 +195,7 @@ services:
 
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
 
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
 
     secrets:
 
@@ -287,7 +287,7 @@ services:
 
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
 
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
 
     secrets:
 
@@ -381,7 +381,7 @@ services:
 
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
 
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
 
     secrets:
 

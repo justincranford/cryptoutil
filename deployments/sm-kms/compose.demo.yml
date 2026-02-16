@@ -18,7 +18,7 @@
 name: cryptoutil-kms-demo
 
 include:
-  - path: ../telemetry/compose.yml
+  - path: ../shared-telemetry/compose.yml
 
 services:
   # KMS Demo Server (SQLite backend with demo seeding).

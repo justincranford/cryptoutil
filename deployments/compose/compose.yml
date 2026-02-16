@@ -18,8 +18,8 @@
 #   - grafana-otel-lgtm:     http://localhost:3000
 #   - opentelemetry-collector-contrib: localhost:4317 (gRPC), localhost:4318 (HTTP), localhost:13133 (health)
 include:
-  - path: ../postgres/compose.yml
-  - path: ../telemetry/compose.yml
+  - path: ../shared-postgres/compose.yml
+  - path: ../shared-telemetry/compose.yml
 services:
   # Override otel collector from telemetry/compose.yml to expose ports for E2E tests.
   # The base definition has ports commented out for multi-deployment support,
@@ -32,7 +32,7 @@ services:
       - "4318:4318"   # OTLP HTTP
       - "13133:13133" # Health check endpoint for E2E tests
     volumes:
-      - ../telemetry/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+      - ../shared-telemetry/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
       start_period: 10s
@@ -63,8 +63,8 @@ services:
       - "14318:4318"   # OTLP HTTP
     volumes:
       - grafana_data:/var/lib/grafana
-      - ../telemetry/grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
-      - ../telemetry/grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
+      - ../shared-telemetry/grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
+      - ../shared-telemetry/grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
       start_period: 15s
@@ -164,7 +164,7 @@ services:
     volumes:
       - ../kms/config/sqlite.yml:/app/config/sqlite.yml:ro
       - ../kms/config/common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -207,7 +207,7 @@ services:
     volumes:
       - ../kms/config/postgresql-1.yml:/app/config/postgresql-1.yml:ro
       - ../kms/config/common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -253,7 +253,7 @@ services:
     volumes:
       - ../kms/config/postgresql-2.yml:/app/config/postgresql-2.yml:ro
       - ../kms/config/common.yml:/app/config/common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal_1of5.secret
       - unseal_2of5.secret
@@ -296,7 +296,7 @@ services:
     volumes:
       - ../ca/config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ../ca/config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ../ca/ca-crls:/app/crls  # CRL distribution point
     secrets:
       - unseal_1of5.secret
@@ -343,7 +343,7 @@ services:
     volumes:
       - ../jose/config/jose-sqlite.yml:/app/config/jose-sqlite.yml:ro
       - ../jose/config/jose-common.yml:/app/config/jose-common.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     environment:
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
     healthcheck:
@@ -411,7 +411,7 @@ services:
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     volumes:
       - ../identity/config/authz-e2e.yml:/app/config/authz-e2e.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     environment:
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
     healthcheck:
@@ -451,7 +451,7 @@ services:
       # Admin API (9090) NOT exposed - internal container use only (per 02-03.https-ports.instructions.md)
     volumes:
       - ../identity/config/idp-e2e.yml:/app/config/idp-e2e.yml:ro
-      - ../telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - postgres_url.secret
     environment:

@@ -122,6 +122,9 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 		validateConfigFiles(basePath, deploymentName, result)
 	}
 
+	// Check for hardcoded credentials in ALL deployment types
+	checkHardcodedCredentials(basePath, result)
+
 	return result, nil
 }
 
@@ -214,10 +217,62 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 	}
 }
 
+// checkHardcodedCredentials scans compose.yml files for hardcoded database credentials.
+// CRITICAL: ALL database credentials MUST use Docker secrets, NEVER hardcoded values.
+func checkHardcodedCredentials(basePath string, result *ValidationResult) {
+	composeFiles := []string{"compose.yml", "compose.yaml"}
+
+	for _, filename := range composeFiles {
+		composePath := filepath.Join(basePath, filename)
+
+		content, err := os.ReadFile(composePath)
+		if err != nil {
+			continue // File doesn't exist, skip
+		}
+
+		text := string(content)
+
+		lineNumber := 0
+		for _, line := range strings.Split(text, "\n") {
+			lineNumber++
+			lineTrimmed := strings.TrimSpace(line)
+
+			// Check for hardcoded POSTGRES_USER (not POSTGRES_USER_FILE)
+			if strings.Contains(lineTrimmed, "POSTGRES_USER:") && !strings.Contains(lineTrimmed, "POSTGRES_USER_FILE:") {
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("%s:%d: Hardcoded POSTGRES_USER detected. Use POSTGRES_USER_FILE with Docker secrets instead (see deployments/sm-kms/compose.yml for pattern)", filename, lineNumber))
+				result.Valid = false
+			}
+
+			// Check for hardcoded POSTGRES_PASSWORD (not POSTGRES_PASSWORD_FILE)
+			if strings.Contains(lineTrimmed, "POSTGRES_PASSWORD:") && !strings.Contains(lineTrimmed, "POSTGRES_PASSWORD_FILE:") && !strings.Contains(lineTrimmed, "#") {
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("%s:%d: Hardcoded POSTGRES_PASSWORD detected. Use POSTGRES_PASSWORD_FILE with Docker secrets instead", filename, lineNumber))
+				result.Valid = false
+			}
+
+			// Check for hardcoded POSTGRES_DB (not POSTGRES_DB_FILE)
+			if strings.Contains(lineTrimmed, "POSTGRES_DB:") && !strings.Contains(lineTrimmed, "POSTGRES_DB_FILE:") && !strings.Contains(lineTrimmed, "#") {
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("%s:%d: Hardcoded POSTGRES_DB detected. Use POSTGRES_DB_FILE with Docker secrets instead", filename, lineNumber))
+				result.Valid = false
+			}
+
+			// Check for hardcoded database URLs in connection strings
+			if strings.Contains(lineTrimmed, "postgresql://") || strings.Contains(lineTrimmed, "postgres://") {
+				if !strings.Contains(line, "file:///run/secrets/") && !strings.Contains(line, "#") {
+					result.Errors = append(result.Errors,
+						fmt.Sprintf("%s:%d: Hardcoded database URL detected. Use 'file:///run/secrets/postgres_url.secret' instead", filename, lineNumber))
+					result.Valid = false
+				}
+			}
+		}
+	}
+}
+
 // ValidateAllDeployments validates all deployments in the given root directory.
 func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) {
 	var results []ValidationResult
-
 	// Service deployments (PRODUCT-SERVICE pattern)
 	serviceNames := []string{
 		"jose-ja", "cipher-im", "pki-ca", "sm-kms",

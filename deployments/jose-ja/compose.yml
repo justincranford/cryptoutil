@@ -27,7 +27,7 @@
 #   API Key: demo-api-key-insecure (X-API-Key header)
 #
 include:
-  - path: ../telemetry/compose.yml
+  - path: ../shared-telemetry/compose.yml
 
 services:
   # Build JOSE server image from source.
