@@ -1,60 +1,67 @@
 # Implementation Plan - Deployment & Config Structure Refactoring V2
 
-**Status**: Planning
+**Status**: Ready for Execution
 **Created**: 2026-02-16
 **Last Updated**: 2026-02-16
-**Purpose**: Refactor deployment/config structure, enhance CICD validation, and establish rigid patterns for consistency
+**Purpose**: Refactor deployment/config structure, enhance CICD validation, establish rigid patterns
 
 ## Quality Mandate - MANDATORY
 
 **Quality Attributes (NO EXCEPTIONS)**:
-- ✅ **Correctness**: ALL documentation must be accurate and complete
-- ✅ **Completeness**: NO steps skipped, NO steps de-prioritized, NO shortcuts
+- ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
+- ✅ **Completeness**: NO steps skipped, ALL features fully implemented
 - ✅ **Thoroughness**: Evidence-based validation at every step
 - ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
-- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
-- ✅ **Accuracy**: Changes must address root cause, not just symptoms
-- ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- ❌ **Premature Completion**: NEVER mark steps complete without verification
+- ✅ **Efficiency**: Optimized for maintainability, NOT speed
+- ✅ **Accuracy**: Address root cause, not symptoms
+- ❌ **Time Pressure**: NEVER rush, NEVER skip validation
+- ❌ **Premature Completion**: NEVER mark complete without evidence
 
-**ALL issues are blockers - NO exceptions:**
-
-- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
-- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
-- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional
-- ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
-- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
-
-**Rationale**: Maintaining maximum quality prevents cascading failures and rework.
+**ALL issues are blockers - NO exceptions - Fix immediately**
 
 ## Overview
 
-This plan addresses critical structural issues in deployments/ and configs/ directories, establishes rigid validation patterns, and ensures consistency across all deployment levels (SUITE/PRODUCT/SERVICE).
+This plan refactors deployment/config structure with these objectives:
+1. Clean up structural inconsistencies (delete redundant files)
+2. Establish rigid validated patterns for ./deployments/ and ./configs/
+3. Mirror ./configs/ structure to match ./deployments/ (exact mirror per user decision)
+4. Comprehensive CICD validation with schema checks
+5. Archive demo files for future brainstorming phase
 
-## Background
+## Executive Decisions (From Quizme Answers)
 
-Previous work (fixes-v1) focused on documentation. V2 focuses on:
-- Cleaning up structural inconsistencies
-- Establishing rigid, validated patterns
-- Making ./configs/ as rigorous as ./deployments/
-- Comprehensive CICD validation
+### Decision 1: Demo Files → Archive for Future Research
+**Selected**: Archive under docs/demo-brainstorm/archive/, create DEMO-BRAINSTORM.md
+**Rationale**: Too much other work (deployment/config refactoring). Need deep research on demo best practices before establishing patterns. Defer to separate phase after research complete.
+**Impact**: Phase 0.5 - Archive demo files, no implementation yet
 
-## Executive Summary
+### Decision 2: ./configs/ Structure → Exact Mirror of ./deployments/
+**Selected**: Option A - configs/{cryptoutil,PRODUCT,PRODUCT-SERVICE}/ matching deployments exactly
+**Rationale**: Maximum rigor and consistency. Supports suite/product/service level runs for CLI development.
+**Impact**: Major restructuring in Phase 5 (all 55 files)
 
-**Critical Findings**:
-- .gitkeep files exist in non-empty directories (cleanup needed)
-- deployments/compose/compose.yml is ACTIVE (E2E testing, NOT redundant)
-- deployments/sm-kms/compose.demo.yml may violate patterns (needs investigation)
-- otel-collector-config.yaml duplicated in multiple locations
-- deployments/template/config/ intentionally empty (template pattern)
-- ./configs/ lacks rigorous structure validation
-- CICD linting exists but incomplete (missing comprehensive file lists)
+### Decision 3: Otel-Collector Configs → Single Canonical Source
+**Selected**: Keep ONLY shared-telemetry/otel/otel-collector-config.yaml, delete template & cipher-im copies
+**Rationale**: shared-telemetry handles ALL 27 possible service instances (9 SUITE + 9 PRODUCT + 9 SERVICE). Single source of truth prevents confusion.
+**Impact**: Delete 2 duplicate files, update docs and CICD validation
 
-**Decisions Needed**:
-- Which compose files are truly redundant?
-- Which otel-collector configs should be removed?
-- What rigid structure for ./configs/?
-- How to validate both ./deployments/ and ./configs/ comprehensively?
+### Decision 4: Implementation Priority → Execute All Phases Autonomously NOW
+**Selected**: Start immediately, execute all phases autonomously
+**Rationale**: User mandate - "STOP ASKING ME TO CONFIRM!!!"
+**Impact**: No checkpoints, continuous execution until complete
+
+### Decision 5: Config Restructuring Scope → Full Migration
+**Selected**: Move ALL 55 files, update ALL references, comprehensive migration
+**Rationale**: Maximum consistency, matches exact mirror decision
+**Impact**: High-risk but highest quality outcome
+
+## Additional Clarifications
+
+1. **template/config/**: Must have 4 config files (PRODUCT-SERVICE-app-{common,sqlite-1,postgresql-1,postgresql-2}.yml) matching sm-kms/config/ pattern. CICD must validate.
+
+2. **Pre-Commit Compose Validation**: lint-compose exists but missed VS Code validation errors. Enhance to use `docker compose config --quiet` for schema validation.
+
+3. **Simple Analysis During Planning**: .gitkeep files, otel configs, template requirements analyzed in Phase 1 (already complete).
 
 ## Technical Context
 
@@ -62,196 +69,99 @@ Previous work (fixes-v1) focused on documentation. V2 focuses on:
 - **CICD Tool**: internal/cmd/cicd/lint_deployments/
 - **Directories**: ./deployments/ (36 config files), ./configs/ (55 config files)
 - **Architecture Docs**: ARCHITECTURE.md, ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
-- **Current Validation**: Partial (lint_required_contents_deployments.go exists)
+- **Phase 1 Analysis**: Complete (evidence in test-output/phase1/)
 
 ## Phases
 
-### Phase 1: Investigation & Analysis (4h) [Status: ☐ TODO]
-**Objective**: Understand current state, identify redundancies, establish patterns
-- Catalog all .gitkeep files and determine which to remove
-- Analyze compose file purposes (deployments/compose/, sm-kms/compose.demo.yml)
-- Analyze otel-collector-config.yaml locations and determine canonical source
-- Document why deployments/template/config/ is empty
-- Understand ./configs/ structure vs ./deployments/ patterns
-- Review existing CICD lint implementation
-- **Success**: Clear understanding of what to clean, what to keep, what patterns to enforce
+### Phase 0.5: Demo Files Archive (1h) [Status: ☐ TODO]
+**Objective**: Archive demo files for future research
+- Create docs/demo-brainstorm/ and docs/demo-brainstorm/archive/
+- Move compose.demo.yml to archive
+- Create DEMO-BRAINSTORM.md stub for future research
+- **Success**: Demo files archived, path cleared for main work
 
-### Phase 2: Structural Cleanup (3h) [Status: ☐ TODO]
-**Objective**: Remove redundant files, explain architectural decisions
-- Delete .gitkeep files in non-empty directories
-- Document or delete redundant compose files
-- Document or delete redundant otel-collector-config.yaml files
-- Create RATIONALE.md explaining architectural decisions
-- **Success**: Clean directory structure with documented decisions
+### Phase 1: Structural Cleanup (2h) [Status: ☐ TODO]
+**Objective**: Remove redundant files based on completed analysis
+- Delete 2 .gitkeep files (cipher-im/config/, configs/)
+- Delete 2 duplicate otel-collector-config.yaml files (template/, cipher-im/)
+- Create template/config/ files (4 config placeholders)
+- Document decisions in RATIONALE.md
+- **Success**: Clean structure, template complete, decisions documented
+
+### Phase 2: Enhance Docker Compose Validation (3h) [Status: ☐ TODO]
+**Objective**: Prevent VS Code validation errors from reaching commits
+- Enhance lint-compose to use `docker compose config --quiet`
+- Add schema validation for all compose files
+- Test against all 24 compose files
+- Add tests with ≥98% coverage
+- **Success**: Comprehensive compose validation catches schema errors
 
 ### Phase 3: CICD Refactoring - Deployments (6h) [Status: ☐ TODO]
-**Objective**: Enhance lint_deployments with comprehensive validation
-- Refactor lint_required_contents_deployments.go with complete file lists
-- Add suite/product/service directory lists for filtering
-- Implement credential validation (no hardcoded passwords/peppers/unseals)
-- Enhance ValidateDeploymentStructure control layer
-- Add tests for all validation logic
-- **Success**: ≥95% coverage, comprehensive deployment validation
+**Objective**: Comprehensive deployment validation
+- Complete file lists for ALL expected files
+- Add suite/product/service directory filtering
+- Validate template/ contents (compose files + config files)
+- Validate shared-* directories
+- Credential validation (no hardcoded passwords/peppers/unseals)
+- Tests with ≥98% coverage
+- **Success**: Rigorous deployment structure validation
 
 ### Phase 4: CICD Refactoring - Configs (6h) [Status: ☐ TODO]
-**Objective**: Establish rigid ./configs/ validation matching ./deployments/ rigor
-- Design ./configs/ rigid structure (suite/product/service patterns)
-- Implement comprehensive lint_required_contents_configs.go
-- Add credential validation for config files
-- Validate shared directories (shared-*, template)
-- Add tests for config validation
-- **Success**: ≥95% coverage, rigorous config validation
+**Objective**: Establish rigid ./configs/ validation matching ./deployments/
+- Design exact mirror structure (cryptoutil/, PRODUCT/, PRODUCT-SERVICE/)
+- Implement comprehensive file lists
+- Add credential validation
+- Validate shared directories
+- Tests with ≥98% coverage
+- **Success**: ./configs/ validation matches ./deployments/ rigor
 
 ### Phase 5: Config Directory Restructuring (8h) [Status: ☐ TODO]
-**Objective**: Apply rigid structure to ./configs/ matching ./deployments/ patterns
-- Create suite/product/service hierarchy in ./configs/
-- Migrate existing config files to new structure
-- Ensure CLI development workflows unaffected
-- Update all references to config files
-- Test suite/product/service level runs
-- **Success**: ./configs/ matches ./deployments/ rigor, all workflows passing
+**Objective**: Migrate all 55 config files to rigid structure
+- Create suite/product/service hierarchy
+- Migrate ALL 55 files using `git mv`
+- Update ALL references in code/docs
+- Test suite/product/service level CLI runs
+- CICD validation passes
+- **Success**: ./configs/ mirrors ./deployments/, all workflows passing
 
 ### Phase 6: Documentation Updates (4h) [Status: ☐ TODO]
-**Objective**: Update ARCHITECTURE.md and propagate to linked docs
-- Document new ./configs/ structure in ARCHITECTURE.md
+**Objective**: Update ARCHITECTURE.md and propagate changes
+- Document ./configs/ rigid structure
 - Document CICD validation enhancements
-- Update ARCHITECTURE-COMPOSE-MULTIDEPLOY.md if needed
-- Propagate changes via bidirectional links
-- Update instruction files if needed
-- **Success**: Complete, accurate documentation
+- Document otel-collector canonical source
+- Update ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
+- Propagate via bidirectional links
+- **Success**: Complete accurate documentation
 
 ### Phase 7: Quality Gates (4h) [Status: ☐ TODO]
-**Objective**: Verify all quality requirements met
-- Build main code: `go build ./...`
-- Build test code: `go test ./... -run=^$`
-- Unit tests: `go test ./...` with ≥95% coverage
+**Objective**: ALL quality requirements met
+- Build: `go build ./...`
+- Tests: `go test ./...` ≥95% coverage
 - Linting: `golangci-lint run` clean
-- Pre-commit checks: All hooks passing
-- Integration tests: TestMain patterns passing
-- E2E tests: Docker Compose scenarios passing
-- Mutation testing: ≥95% (production), ≥98% (infrastructure)
+- Pre-commit: All hooks passing
+- Integration/E2E: All passing
+- Mutations: ≥95% (≥98% CICD)
 - **Success**: All quality gates green
-
-## Executive Decisions
-
-### Decision 1: deployments/compose/compose.yml
-
-**Options**:
-- A: Delete (violates e2e pattern, redundant with suite-level)
-- B: Keep as alternative e2e approach
-- C: Keep as official E2E compose file (NOT redundant) ✓ **SELECTED**
-- D: Move to internal/test/e2e/compose/
-
-**Decision**: Option C selected - Keep as official E2E infrastructure
-
-**Rationale**:
-- Actively referenced in internal/shared/magic/magic_docker.go
-- Used by internal/test/e2e/ test suite
-- Overrides otel-collector ports for host-based E2E testing
-- NOT redundant - serves specific E2E testing purpose
-- Documented in compose.yml header: "E2E Testing Compose Configuration"
-
-**Impact**: No changes needed, document purpose in ARCHITECTURE.md
-
-**Evidence**: grep shows active usage, magic_docker.go constants reference this file
-
-### Decision 2: deployments/sm-kms/compose.demo.yml
-
-**Options**:
-- A: Delete (violates demo pattern, use suite-level demo)
-- B: Keep as service-specific demo
-- C: Move to deployments/template/ as pattern
-- D: Investigate if suite/product level demo patterns exist, then decide
-
-**Decision**: Option D selected - Investigate first
-
-**Rationale**: Need to understand if suite/product level demo patterns exist before deciding if service-level demo files should exist
-
-**Impact**: Phase 1 investigation required
-
-### Decision 3: otel-collector-config.yaml Files
-
-**Options**:
-- A: Delete all except shared-telemetry/otel/otel-collector-config.yaml (canonical)
-- B: Keep template/, delete cipher-im/
-- C: Keep all for customization
-- D: Investigate usage, then decide ✓ **SELECTED**
-
-**Decision**: Option D selected - Investigate first  
-
-**Rationale**:
-- shared-telemetry/otel/ is canonical source
-- template/ might be intentional pattern example
-- cipher-im/ likely duplicate
-- Need to verify no customizations before deletion
-
-**Impact**: Phase 1 investigation, likely Phase 2 deletion
-
-### Decision 4: ./configs/ Structure
-
-**Options**:
-- A: Minimal validation (current state)
-- B: Mirror ./deployments/ exactly (suite/product/service)
-- C: Hybrid approach (less strict than deployments)
-- D: Design custom structure based on CLI usage patterns ✓ **SELECTED**
-
-**Decision**: Option D selected - Design for CLI workflows
-
-**Rationale**:
-- ./configs/ is for non-compose local development
-- Should support suite/product/service level runs like ./deployments/
-- Needs rigorous validation like ./deployments/
-- But may need different patterns (profiles/, policies/)
-
-**Impact**: Major restructuring in Phase 5, CICD validation in Phase 4
 
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| Breaking CLI workflows | Medium | High | Test all suite/product/service runs after restructuring |
-| Breaking E2E tests | Medium | High | Run E2E tests after every change, maintain compose paths |
-| Incomplete CICD validation | Medium | Medium | Comprehensive test coverage ≥95%, mutation testing |
-| Config migration errors | Medium | High | Validate all references updated, keep backups |
-| Documentation drift | Low | Medium | Bidirectional link validation, comprehensive reviews |
-
-## Quality Gates - MANDATORY
-
-**Per-Action Quality Gates**:
-- ✅ All tests pass (`go test ./...`) - 100% passing, zero skips
-- ✅ Build clean (`go build ./...`) - zero errors
-- ✅ Linting clean (`golangci-lint run`) - zero warnings
-- ✅ No new TODOs without tracking in tasks.md
-
-**Coverage Targets**:
-- ✅ Production code: ≥95% line coverage
-- ✅ Infrastructure/utility code: ≥98% line coverage  
-- ✅ CICD linting tools: ≥98% (critical infrastructure)
-
-**Mutation Testing Targets**:
-- ✅ CICD validation logic: ≥98% (NO EXCEPTIONS)
-- ✅ Production code: ≥95%
-
-**Per-Phase Quality Gates**:
-- ✅ Unit tests complete before next phase
-- ✅ Integration tests pass where applicable
-- ✅ E2E tests pass for deployment changes
-- ✅ CICD validation passes for structure changes
-
-**Overall Project Quality Gates**:
-- ✅ All phases complete with evidence
-- ✅ All test categories passing (unit, integration, E2E)
-- ✅ Coverage and mutation targets met
-- ✅ CI/CD workflows green
-- ✅ Documentation updated and validated
+| Breaking CLI workflows | Medium | High | Test every suite/product/service run after migration |
+| Breaking E2E tests | Low | High | E2E tests after every structural change |
+| Incomplete CICD validation | Low | Medium | Comprehensive test coverage ≥98%, mutation testing |
+| Config migration errors | Medium | High | Use `git mv`, validate all references, keep evidence |
+| Documentation drift | Low | Medium | Bidirectional link validation, propagation checks |
 
 ## Success Criteria
 
-- [ ] All redundant files removed with documented rationale
-- [ ] CICD lint_deployments comprehensively validates ./deployments/
-- [ ] CICD lint_deployments comprehensively validates ./configs/
-- [ ] ./configs/ has rigid structure matching ./deployments/ principles
-- [ ] All quality gates passing
-- [ ] Documentation complete and accurate (ARCHITECTURE.md updated)
+- [ ] All redundant files removed (2 .gitkeep, 2 otel configs)
+- [ ] Demo files archived for future research
+- [ ] template/config/ has 4 required config files
+- [ ] Docker Compose validation enhanced (schema checks)
+- [ ] CICD validates ./deployments/ comprehensively
+- [ ] CICD validates ./configs/ comprehensively
+- [ ] ./configs/ exact mirror of ./deployments/ (55 files migrated)
+- [ ] All quality gates passing (build, tests, coverage, mutations, linting)
+- [ ] Documentation complete and propagated
 - [ ] CI/CD workflows green
-- [ ] Evidence archived (test output, validation logs)
