@@ -2547,6 +2547,26 @@ healthcheck:
 
 **Secrets Structure**: Each service requires 10 secrets (5 unseal keys, 1 hash pepper, 4 PostgreSQL credentials).
 
+##### Secret Naming Suffixes (4 Levels)
+
+**MANDATORY**: All secret files MUST use a level suffix to indicate deployment scope:
+
+| Suffix | Location | Scope | Example |
+|--------|----------|-------|---------|
+| `-SERVICEONLY.secret` | `deployments/PRODUCT-SERVICE/secrets/` | Single service only | `unseal_1of5-SERVICEONLY.secret` |
+| `-PRODUCTONLY.secret` | `deployments/PRODUCT/secrets/` | Product services only | `postgres_url-PRODUCTONLY.secret` |
+| `-SUITEONLY.secret` | `deployments/cryptoutil/secrets/` | Suite-wide only | `admin_api_key-SUITEONLY.secret` |
+| `-SHARED.secret` | Any level | Shared across multiple levels | `hash_pepper_v3-SHARED.secret` |
+
+**Rules**:
+
+- **`-SERVICEONLY`**: Secret exists at exactly one service level. UNIQUE per service.
+- **`-PRODUCTONLY`**: Secret exists at product level only. NOT inherited by service-level deployments.
+- **`-SUITEONLY`**: Secret exists at suite level only. NOT inherited by product/service deployments.
+- **`-SHARED`**: Secret is shared across multiple deployment levels (e.g., hash pepper for SSO across identity services). The SAME value MUST be used at all levels where it appears.
+
+**Transition**: Existing service-level secrets without suffixes are valid during transition. New secrets MUST use level suffixes. When SUITE/PRODUCT directories are created, all secrets MUST use appropriate suffixes.
+
 ##### SUITE-Level Deployment (cryptoutil)
 
 **Location**: `deployments/cryptoutil/secrets/` (template pattern applied)
