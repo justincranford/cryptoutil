@@ -103,7 +103,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_leader_data:/var/lib/postgresql/data
-      -../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      - ../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
     secrets:
       - postgres_username.secret
       - postgres_password.secret
