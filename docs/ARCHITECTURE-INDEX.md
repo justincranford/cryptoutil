@@ -2,8 +2,8 @@
 
 **Purpose**: Efficient LLM agent reference to semantic topics in ARCHITECTURE.md using line number ranges.
 
-**Last Updated**: 2026-02-14
-**Source**: docs/ARCHITECTURE.md (2790 lines)
+**Last Updated**: 2026-02-16
+**Source**: docs/ARCHITECTURE.md (3356 lines)
 
 ---
 
@@ -175,54 +175,58 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 12. Deployment Architecture (Lines 2463-2733)
+### 12. Deployment Architecture (Lines 2463-3036)
 
-**Topics**: CI/CD automation, build pipeline, deployment patterns, deployment structure validation, environment strategy, release management
+**Topics**: CI/CD automation, build pipeline, deployment patterns, multi-level deployment hierarchy, deployment structure validation, environment strategy, release management
 
 **Subsections**:
 - 12.1 CI/CD Automation Strategy (2465-2470): GitHub Actions, automated quality gates
 - 12.2 Build Pipeline (2471-2494): Build, test, coverage, mutation, SAST, DAST
-- 12.3 Deployment Patterns (2495-2664): Docker Compose, Docker secrets, health checks, multi-stage Dockerfile, secrets coordination
-- 12.4 Deployment Structure Validation (2665-2719): Automated validation, deployment types, validation rules, CI/CD integration
-- 12.5 Environment Strategy (2720-2725): Dev, CI/CD, Docker, production
-- 12.6 Release Management (2726-2733): Semantic versioning, changelog
+- 12.3 Deployment Patterns (2495-2847): Docker Compose, Docker secrets, health checks, multi-stage Dockerfile, secrets coordination, multi-level hierarchy
+  - 12.3.4 Multi-Level Deployment Hierarchy (2685-2847): SUITE/PRODUCT/SERVICE tiers, layered pepper strategy, port offset strategy, linter validation
+- 12.4 Deployment Structure Validation (2848-3022): Automated validation, deployment types (SUITE/PRODUCT/PRODUCT-SERVICE), validation rules, CI/CD integration
+- 12.5 Environment Strategy (3023-3028): Dev, CI/CD, Docker, production
+- 12.6 Release Management (3029-3036): Semantic versioning, changelog
+
+**Cross-References**:
+- [ARCHITECTURE-COMPOSE-MULTIDEPLOY.md](/docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md) - Comprehensive multi-level deployment hierarchy documentation
 
 ---
 
-### 13. Development Practices (Lines 2734-2801)
+### 13. Development Practices (Lines 3037-3104)
 
 **Topics**: Coding standards, version control, branching strategy, code review, development workflow
 
 **Subsections**:
-- 13.1 Coding Standards (2455-2459): Go 1.25.5, CGO ban, import aliases, file size limits
-- 13.2 Version Control (2460-2483): Conventional commits, incremental commits, pre-commit hooks
-- 13.3 Branching Strategy (2484-2489): Main branch, feature branches, release branches
-- 13.4 Code Review (2490-2495): PR descriptions, review checklist, evidence-based approval
-- 13.5 Development Workflow (2496-2520): Local dev, testing, linting, git flow
+- 13.1 Coding Standards (3039-3043): Go 1.25.5, CGO ban, import aliases, file size limits
+- 13.2 Version Control (3044-3067): Conventional commits, incremental commits, pre-commit hooks
+- 13.3 Branching Strategy (3068-3073): Main branch, feature branches, release branches
+- 13.4 Code Review (3074-3079): PR descriptions, review checklist, evidence-based approval
+- 13.5 Development Workflow (3080-3104): Local dev, testing, linting, git flow
 
 ---
 
-### 14. Operational Excellence (Lines 2521-2554)
+### 14. Operational Excellence (Lines 3105-3138)
 
 **Topics**: Monitoring, incident management, performance, capacity planning, disaster recovery
 
 **Subsections**:
-- 14.1 Monitoring & Alerting (2523-2529): Prometheus, Grafana, OTLP
-- 14.2 Incident Management (2530-2535): Incident response, post-mortems
-- 14.3 Performance Management (2536-2541): Benchmarking, optimization
-- 14.4 Capacity Planning (2542-2547): Resource scaling, load testing
-- 14.5 Disaster Recovery (2548-2554): Backup, restore, failover
+- 14.1 Monitoring & Alerting (3107-3113): Prometheus, Grafana, OTLP
+- 14.2 Incident Management (3114-3119): Incident response, post-mortems
+- 14.3 Performance Management (3120-3125): Benchmarking, optimization
+- 14.4 Capacity Planning (3126-3131): Resource scaling, load testing
+- 14.5 Disaster Recovery (3132-3138): Backup, restore, failover
 
 ---
 
-### Appendices (Lines 2555-2772)
+### Appendices (Lines 3140-3356)
 
 **Topics**: Decision records, reference tables, compliance matrix
 
 **Subsections**:
-- Appendix A: Decision Records (2557-2639): ADRs, architectural decisions
-- Appendix B: Reference Tables (2641-2728): Service catalog, port assignments, file size limits, coverage targets
-- Appendix C: Compliance Matrix (2730-2772): FIPS 140-3, CA/BF Baseline, OAuth 2.1, OIDC 1.0, WebAuthn, NIST SP 800-63B
+- Appendix A: Decision Records (3140-3170): ADRs, architectural decisions
+- Appendix B: Reference Tables (3171-3304): Service catalog, port assignments, file size limits, coverage targets
+- Appendix C: Compliance Matrix (3305-3356): FIPS 140-3, CA/BF Baseline, OAuth 2.1, OIDC 1.0, WebAuthn, NIST SP 800-63B
 
 ---
 

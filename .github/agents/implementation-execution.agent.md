@@ -894,3 +894,10 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 - ✅ **ALWAYS conduct phase-based post-mortems**: Update all 3 created docs, identify new phases/tasks
 - ✅ **ALWAYS extract lessons immediately**: From lessons.md to permanent homes before ending session
 - ✅ **ALWAYS commit the 5 docs**: With detailed audit trail listing all task completions
+
+
+---
+
+## Cross-Reference
+
+- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.

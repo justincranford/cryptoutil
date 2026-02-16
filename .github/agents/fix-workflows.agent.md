@@ -727,3 +727,10 @@ permissions:
 **VS Code Copilot**: <https://code.visualstudio.com/docs/copilot/chat/chat-tools> | <https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features#_chat-tools>
 
 **Elite Agents**: github-actions-expert.agent.md | devops-expert.agent.md | platform-sre-kubernetes.agent.md (Gist examples from 2025-12-24 research)
+
+
+---
+
+## Cross-Reference
+
+- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.

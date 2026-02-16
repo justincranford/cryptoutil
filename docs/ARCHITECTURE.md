@@ -2682,6 +2682,169 @@ healthcheck-secrets:
 - Hash service patterns: [02-05.security.instructions.md](../.github/instructions/02-05.security.instructions.md#hash-service-architecture)
 - Docker Compose templates: `deployments/template/compose-cryptoutil*.yml`
 
+#### 12.3.4 Multi-Level Deployment Hierarchy
+
+**Purpose**: Enable flexible deployment granularity from single-service development to full suite production deployment while maintaining consistent configuration and secret management across all levels.
+
+**Implementation Status**: Implemented and validated (2026-02-16)
+
+**Three-Tier Hierarchy**:
+
+| Level | Directory | Scope | Services | Use Cases |
+|-------|-----------|-------|----------|-----------|
+| **SERVICE** | `deployments/{PRODUCT}-{SERVICE}/` | Single service | 1 | Development, testing, isolated deployment |
+| **PRODUCT** | `deployments/{PRODUCT}/` | Product services | 1-5 | Product-level testing, SSO within product |
+| **SUITE** | `deployments/cryptoutil/` | All services | 9 | Full integration, cross-product federation |
+
+##### SUITE-Level Deployment (cryptoutil)
+
+**Location**: `deployments/cryptoutil/compose.yml`
+
+**Composition Pattern**: Includes all PRODUCT-level composes via Docker Compose `include` directive.
+
+```yaml
+include:
+  - path: ../sm/compose.yml          # sm-kms service
+  - path: ../pki/compose.yml         # pki-ca service
+  - path: ../cipher/compose.yml      # cipher-im service
+  - path: ../jose/compose.yml        # jose-ja service
+  - path: ../identity/compose.yml    # identity-authz, -idp, -rp, -rs, -spa
+
+secrets:
+  cryptoutil-hash_pepper.secret:
+    file: ./secrets/cryptoutil-hash_pepper.secret
+```
+
+**Purpose**: Deploy all 9 services with unified hash pepper for cross-product SSO and PII deduplication.
+
+**Secret Sharing**: `cryptoutil-hash_pepper.secret` shared by ALL services enables username@domain lookups across identity-authz, identity-idp, jose-ja, etc.
+
+**Port Assignments**: Suite deployment uses offset +20000 (e.g., sm-kms: 28080 public, 29090 admin instead of 8080/9090).
+
+##### PRODUCT-Level Deployment (Multi-Service Products)
+
+**Example**: `deployments/identity/compose.yml` (5 services: authz, idp, rp, rs, spa)
+
+**Composition Pattern**: Includes all SERVICE-level composes for product services.
+
+```yaml
+include:
+  - path: ../identity-authz/compose.yml
+  - path: ../identity-idp/compose.yml
+  - path: ../identity-rp/compose.yml
+  - path: ../identity-rs/compose.yml
+  - path: ../identity-spa/compose.yml
+
+secrets:
+  identity-hash_pepper.secret:
+    file: ./secrets/identity-hash_pepper.secret
+```
+
+**Purpose**: Deploy all identity services with shared hash pepper for SSO within product.
+
+**Secret Sharing**: `identity-hash_pepper.secret` shared by all 5 identity services enables unified username lookups for authentication/authorization.
+
+**Port Assignments**: Product deployment uses offset +10000 (e.g., identity-authz: 18200 public, 19290 admin instead of 8200/9290).
+
+**Other Products**:
+- `deployments/sm/compose.yml` → includes `../sm-kms/` (single-service product, alias pattern)
+- `deployments/pki/compose.yml` → includes `../pki-ca/` (single-service product, alias pattern)
+- `deployments/cipher/compose.yml` → includes `../cipher-im/` (single-service product, alias pattern)
+- `deployments/jose/compose.yml` → includes `../jose-ja/` (single-service product, alias pattern)
+
+##### SERVICE-Level Deployment (Individual Services)
+
+**Example**: `deployments/sm-kms/compose.yml` (standalone sm-kms service)
+
+**Composition Pattern**: Direct service deployment with NO includes.
+
+```yaml
+services:
+  sm-kms:
+    build:
+      context: ../..
+      dockerfile: ./deployments/sm-kms/Dockerfile
+    ports:
+      - "8080:8080"   # Public API
+      - "9090:9090"   # Admin API
+
+secrets:
+  sm-kms-hash_pepper.secret:
+    file: ./secrets/sm-kms-hash_pepper.secret
+```
+
+**Purpose**: Deploy single service with unique hash pepper (NO cross-service sharing).
+
+**Secret Uniqueness**: Each SERVICE-level deployment uses unique `{PRODUCT}-{SERVICE}-hash_pepper.secret` for maximum isolation.
+
+**Port Assignments**: Service deployment uses base ports (e.g., sm-kms: 8080 public, 9090 admin).
+
+##### Layered Pepper Strategy
+
+**Three Tiers** (from most isolated to most shared):
+
+1. **SERVICE pepper** (`{PRODUCT}-{SERVICE}-hash_pepper.secret`): Unique per service, NO cross-service lookups
+2. **PRODUCT pepper** (`{PRODUCT}-hash_pepper.secret`): Shared within product services (e.g., 5 identity services)
+3. **SUITE pepper** (`cryptoutil-hash_pepper.secret`): Shared by ALL 9 services for cross-product federation
+
+**Selection Logic** (service configures which pepper to use):
+
+```yaml
+# SERVICE-only deployment (isolated)
+HASH_PEPPER_FILE: /run/secrets/sm-kms-hash_pepper.secret
+
+# PRODUCT deployment (SSO within product)
+HASH_PEPPER_FILE: /run/secrets/identity-hash_pepper.secret
+
+# SUITE deployment (cross-product federation)
+HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
+```
+
+**Rationale**: Layered peppers enable flexible deployment modes while maintaining security isolation at SERVICE level and enabling federation at PRODUCT/SUITE levels.
+
+##### Port Offset Strategy
+
+**Three Port Ranges** (prevents conflicts when multiple deployment levels running simultaneously):
+
+| Level | Offset | Example (sm-kms base 8080/9090) |
+|-------|--------|----------------------------------|
+| SERVICE | +0 | 8080 (public), 9090 (admin) |
+| PRODUCT | +10000 | 18080 (public), 19090 (admin) |
+| SUITE | +20000 | 28080 (public), 29090 (admin) |
+
+**Why**: Enables simultaneous SERVICE, PRODUCT, SUITE deployments on same host for testing without port conflicts.
+
+##### Linter Validation
+
+**PRODUCT Deployment Validation** (`cicd lint-deployments deployments/identity`):
+
+```
+✅ Required: compose.yml exists
+✅ Required: secrets/ directory exists
+✅ Required: identity-hash_pepper.secret exists in secrets/
+✅ Forbidden: unseal_*.secret MUST NOT exist (documented by .never files)
+```
+
+**SUITE Deployment Validation** (`cicd lint-deployments deployments/cryptoutil`):
+
+```
+✅ Required: compose.yml exists
+✅ Required: secrets/ directory exists
+✅ Required: cryptoutil-hash_pepper.secret exists in secrets/
+✅ Forbidden: unseal_*.secret MUST NOT exist (documented by .never files)
+```
+
+**Enforcement**: Linter validates ALL 20 deployments (9 SERVICE, 5 PRODUCT, 1 SUITE, 1 template, 4 infrastructure).
+
+**Implementation**: [internal/cmd/cicd/lint_deployments/lint_deployments.go](/internal/cmd/cicd/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
+
+##### Cross-Reference Documentation
+
+- **Comprehensive hierarchy documentation**: [ARCHITECTURE-COMPOSE-MULTIDEPLOY.md](/docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md)
+- **Secrets coordination**: [12.3.3 Secrets Coordination Strategy](#1233-secrets-coordination-strategy)
+- **Deployment validation**: [12.4 Deployment Structure Validation](#124-deployment-structure-validation)
+- **Port assignments**: [3.4.1 Port Design Principles](#341-port-design-principles)
+
 ### 12.4 Deployment Structure Validation
 
 **Purpose**: Automated enforcement of consistent deployment directory structures across all services to prevent configuration drift and deployment failures.
@@ -2691,6 +2854,28 @@ healthcheck-secrets:
 **Implementation**: [internal/cmd/cicd/lint_deployments](/internal/cmd/cicd/lint_deployments/) package with comprehensive table-driven tests.
 
 #### 12.4.1 Deployment Types
+
+**SUITE** (e.g., cryptoutil - all 9 services):
+- Required directories: `secrets/`
+- Required files: `compose.yml`
+- Optional files: `README.md`
+- Required secrets: 1 file (hash pepper ONLY, NO unseal keys)
+  - `cryptoutil-hash_pepper.secret` (shared by all 9 services)
+- Forbidden secrets (documented by `.never` files):
+  - `unseal_1of5-SUITEONLY.never` through `unseal_5of5-SUITEONLY.never`
+  - Rationale: Unseal keys MUST be unique per service (security isolation)
+- Validation function: `validateSuiteSecrets()` in lint_deployments.go
+
+**PRODUCT** (e.g., identity, sm, pki, cipher, jose):
+- Required directories: `secrets/`
+- Required files: `compose.yml`
+- Optional files: `README.md`
+- Required secrets: 1 file (hash pepper ONLY, NO unseal keys)
+  - `{PRODUCT}-hash_pepper.secret` (shared within product services)
+- Forbidden secrets (documented by `.never` files):
+  - `unseal_1of5-PRODUCTONLY.never` through `unseal_5of5-PRODUCTONLY.never`
+  - Rationale: Unseal keys MUST be unique per service (security isolation)
+- Validation function: `validateProductSecrets()` in lint_deployments.go
 
 **PRODUCT-SERVICE** (e.g., cipher-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa):
 - Required directories: `secrets/`, `config/`
@@ -2707,7 +2892,7 @@ healthcheck-secrets:
 - Optional files: `compose.demo.yml`, `Dockerfile`, `README.md`
 - Required secrets: Same 10 files as PRODUCT-SERVICE
 
-**infrastructure** (postgres, citus, telemetry, compose):
+**infrastructure** (shared-postgres, shared-citus, shared-telemetry, compose):
 - Required directories: none
 - Required files: `compose.yml`
 - Optional files: `init-db.sql`, `init-citus.sql`, `README.md`

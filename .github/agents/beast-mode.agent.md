@@ -413,3 +413,9 @@ This agent implements continuous work with ZERO stopping behaviors. The agent:
 6. ONLY stops when literally nothing left to do
 
 Quality over speed. Completeness over convenience. Evidence over claims.
+
+---
+
+## Cross-Reference
+
+- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
