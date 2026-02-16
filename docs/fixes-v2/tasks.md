@@ -301,24 +301,24 @@
 **Phase Objective**: Rigorous validation for compose and config files (quizme-v2 Q3:C, Q4:C)
 
 #### Task 4.0: Define Config File Schema
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.5h
 - **Dependencies**: None
 - **Description**: Document config file schema for validation (prerequisite for Q4:C)
 - **Acceptance Criteria**:
-  - [ ] File created: `docs/CONFIG-SCHEMA.md` OR update `docs/ARCHITECTURE.md` Section 12.5
-  - [ ] Schema documents: server settings (bind addresses, ports)
-  - [ ] Schema documents: database settings (URL, credentials via secrets)
-  - [ ] Schema documents: telemetry settings (OTLP endpoints)
-  - [ ] Schema documents: security settings (TLS, secrets references)
-  - [ ] Examples provided: `PRODUCT-SERVICE-app-common.yml` annotated
-  - [ ] Validation rules: bind address format, port ranges, secret references
-  - [ ] Command: `cat docs/CONFIG-SCHEMA.md` OR `cat docs/ARCHITECTURE.md | grep "Section 12.5"`
+  - [x] File created: `docs/CONFIG-SCHEMA.md` OR update `docs/ARCHITECTURE.md` Section 12.5
+  - [x] Schema documents: server settings (bind addresses, ports)
+  - [x] Schema documents: database settings (URL, credentials via secrets)
+  - [x] Schema documents: telemetry settings (OTLP endpoints)
+  - [x] Schema documents: security settings (TLS, secrets references)
+  - [x] Examples provided: `PRODUCT-SERVICE-app-common.yml` annotated
+  - [x] Validation rules: bind address format, port ranges, secret references
+  - [x] Command: `cat docs/CONFIG-SCHEMA.md` OR `cat docs/ARCHITECTURE.md | grep "Section 12.5"`
 - **Files**:
-  - `docs/CONFIG-SCHEMA.md` (new) OR `docs/ARCHITECTURE.md` (modified)
-- **Evidence**: `test-output/phase4/schema-definition.md`
+  - `docs/CONFIG-SCHEMA.md` (new)
+- **Evidence**: `docs/CONFIG-SCHEMA.md`
 
 #### Task 4.1: Implement Comprehensive ValidateComposeFiles (7 validation types)
 - **Status**: ❌
