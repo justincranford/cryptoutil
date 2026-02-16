@@ -126,56 +126,64 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 }
 
 // validateConfigFiles checks config directory for required files and deprecated patterns.
+// Strict enforcement mode: all violations are errors that block CI/CD.
 // See: docs/ARCHITECTURE.md Section 12.4.5 "Config File Naming Strategy".
+// See: docs/ARCHITECTURE.md Section 12.4.7 "Linter Validation Modes".
 func validateConfigFiles(basePath string, deploymentName string, result *ValidationResult) {
 	configPath := filepath.Join(basePath, "config")
 
-	// Extract PRODUCT-SERVICE parts (e.g., "sm-kms" -> product="sm", service="kms")
+	// Extract PRODUCT-SERVICE parts (e.g., "sm-kms" -> product="sm", service="kms").
 	parts := strings.Split(deploymentName, "-")
 	if len(parts) < 2 {
-		result.Warnings = append(result.Warnings,
+		result.Errors = append(result.Errors,
 			fmt.Sprintf("Cannot validate config files: deployment name '%s' does not match PRODUCT-SERVICE pattern", deploymentName))
+		result.Valid = false
 
 		return
 	}
 
-	productService := deploymentName // Full name like "sm-kms"
+	productService := deploymentName // Full name like "sm-kms".
 
-	// Define required standard config files per Section 12.4.5
+	// Define required standard config files per Section 12.4.5.
 	requiredConfigs := []string{
-		fmt.Sprintf("%s-app-common.yml", productService),         // sm-kms-app-common.yml
-		fmt.Sprintf("%s-app-sqlite-1.yml", productService),       // sm-kms-app-sqlite-1.yml
-		fmt.Sprintf("%s-app-postgresql-1.yml", productService),   // sm-kms-app-postgresql-1.yml
-		fmt.Sprintf("%s-app-postgresql-2.yml", productService),   // sm-kms-app-postgresql-2.yml
+		fmt.Sprintf("%s-app-common.yml", productService),       // sm-kms-app-common.yml.
+		fmt.Sprintf("%s-app-sqlite-1.yml", productService),     // sm-kms-app-sqlite-1.yml.
+		fmt.Sprintf("%s-app-postgresql-1.yml", productService), // sm-kms-app-postgresql-1.yml.
+		fmt.Sprintf("%s-app-postgresql-2.yml", productService), // sm-kms-app-postgresql-2.yml.
 	}
 
-	// Check for required config files
+	// Check for required config files (strict enforcement: missing = error).
 	for _, configFile := range requiredConfigs {
 		configFilePath := filepath.Join(configPath, configFile)
 		if _, err := os.Stat(configFilePath); os.IsNotExist(err) {
-			result.Warnings = append(result.Warnings,
+			result.Errors = append(result.Errors,
 				fmt.Sprintf("Missing required config file: %s (see Section 12.4.5)", configFile))
+			result.Valid = false
 		}
 	}
 
-	// Check for deprecated files (Section 12.4.6)
-	deprecatedFiles := map[string]string{
-		"demo-seed.yml":    fmt.Sprintf("%s-demo.yml", productService),
-		"integration.yml":  fmt.Sprintf("%s-e2e.yml", productService),
+	// Check for deprecated files (strict enforcement: presence = error, Section 12.4.6).
+	deprecatedFiles := []struct {
+		deprecated  string
+		replacement string
+	}{
+		{"demo-seed.yml", fmt.Sprintf("%s-demo.yml", productService)},
+		{"integration.yml", fmt.Sprintf("%s-e2e.yml", productService)},
 	}
 
-	for deprecated, replacement := range deprecatedFiles {
-		deprecatedPath := filepath.Join(configPath, deprecated)
+	for _, df := range deprecatedFiles {
+		deprecatedPath := filepath.Join(configPath, df.deprecated)
 		if _, err := os.Stat(deprecatedPath); err == nil {
-			result.Warnings = append(result.Warnings,
-				fmt.Sprintf("DEPRECATED: %s should be removed or renamed to %s (see Section 12.4.6)", deprecated, replacement))
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("DEPRECATED file must be removed: %s (rename to %s, see Section 12.4.6)", df.deprecated, df.replacement))
+			result.Valid = false
 		}
 	}
 
-	// Check for non-conformant config filenames (not matching {PRODUCT}-{SERVICE}-*.yml pattern)
+	// Check for non-conformant config filenames (strict enforcement: mismatch = error).
 	entries, err := os.ReadDir(configPath)
 	if err != nil {
-		return // Config directory doesn't exist or not readable
+		return // Config directory doesn't exist or not readable.
 	}
 
 	expectedPrefix := productService + "-"
@@ -187,20 +195,21 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 
 		filename := entry.Name()
 
-		// Skip known good files
+		// Skip known non-YAML files.
 		if filename == "README.md" || filename == ".gitkeep" {
 			continue
 		}
 
-		// Check if YAML file
+		// Check if YAML file.
 		if !strings.HasSuffix(filename, ".yml") && !strings.HasSuffix(filename, ".yaml") {
 			continue
 		}
 
-		// Check if matches expected pattern
+		// Check if matches expected pattern.
 		if !strings.HasPrefix(filename, expectedPrefix) {
-			result.Warnings = append(result.Warnings,
+			result.Errors = append(result.Errors,
 				fmt.Sprintf("Config file '%s' does not match required pattern '%s*.yml' (see Section 12.4.5)", filename, expectedPrefix))
+			result.Valid = false
 		}
 	}
 }

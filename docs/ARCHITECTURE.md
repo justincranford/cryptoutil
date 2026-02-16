@@ -2798,35 +2798,22 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 }
 ```
 
-**Transition Period**: Short (1-2 weeks) to avoid long-term confusion and technical debt buildup.
+**Transition Period**: Completed. Strict enforcement mode is now active.
 
 #### 12.4.7 Linter Validation Modes
 
-**Current Mode**: Warning (transition period for non-conformant files)
-**Target Mode**: Strict (all violations block CI/CD)
+**Current Mode**: Strict (all violations block CI/CD)
 
-**Warning-Mode Violations**:
+**ALL violations are errors (blocking)**:
 
 - Config files not matching `{PRODUCT}-{SERVICE}-app-{variant}.yml` pattern
 - Presence of deprecated `demo-seed.yml` or `integration.yml` files
-- Missing optional config files (`-demo.yml`, `-e2e.yml`) when referenced in compose
-
-**Error-Mode Violations** (ALWAYS blocking):
-
 - Missing required config files (4 standard files)
 - Missing required secrets (10 secret files)
 - Missing required directories (`secrets/`, `config/`)
 - Missing required compose/Dockerfile files
-
-**Transition Strategy**:
-
-1. Deploy linter with warning mode
-2. Review all warnings in CI/CD logs
-3. Fix high-priority warnings (missing standards, deprecated files)
-4. Switch to error mode after validation
-5. Enforce strict mode permanently
-
-**Timeline**: Transition period MUST be short (<2 weeks) to prevent confusion and technical debt accumulation (Q5 Answer).
+- Single-part deployment names (must be `PRODUCT-SERVICE` format)
+- Wrong product prefix in config file names
 
 ### 12.5 Environment Strategy
 
