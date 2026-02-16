@@ -31,9 +31,8 @@
 #
 
 include:
-
   - path: ../shared-telemetry/compose.yml
-    - path: ../shared-postgres/compose.yml
+  - path: ../shared-postgres/compose.yml
 
 
 
@@ -317,7 +316,7 @@ services:
 
         condition: service_completed_successfully
 
-      sm-kms-postgres-1:
+      sm-kms-db-postgres-1:
 
         condition: service_healthy
 
@@ -411,7 +410,7 @@ services:
 
         condition: service_completed_successfully
 
-      sm-kms-postgres-2:
+      sm-kms-db-postgres-1:
 
         condition: service_healthy
 
@@ -479,25 +478,9 @@ volumes:
 
 secrets:
 
-  # PostgreSQL secrets.
-
-  postgres_username.secret:
-
-    file: ./secrets/postgres_username.secret
-
-  postgres_password.secret:
-
-    file: ./secrets/postgres_password.secret
-
-  postgres_database.secret:
-
-    file: ./secrets/postgres_database.secret
-
+  # PostgreSQL URL secret (KMS-specific, not in shared-postgres)
   postgres_url.secret:
-
     file: ./secrets/postgres_url.secret
-
-
 
   # Unseal secrets (MUST be identical across all KMS instances).
 

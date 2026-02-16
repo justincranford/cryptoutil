@@ -126,6 +126,7 @@ services:
 
   # PostgreSQL 18 Follower (OLAP - Read-Only Analytics)
   # Logical replication from leader with grouped schemas for analytics
+
   postgres-follower:
     image: postgres:18
     container_name: cryptoutil-postgres-follower
@@ -133,6 +134,9 @@ services:
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      PGUSER_FILE: /run/secrets/postgres_username.secret
+      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
       POSTGRES_INITDB_ARGS: "-c max_connections=200 -c shared_buffers=1GB"
     command:
       - postgres
@@ -153,8 +157,8 @@ services:
       - "5433:5432"
     volumes:
       - postgres_follower_data:/var/lib/postgresql/data
-      -../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
-      -../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
+      - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+      - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
     secrets:
       - postgres_username.secret
       - postgres_password.secret
@@ -177,121 +181,6 @@ services:
         reservations:
           memory: 1.5G
           cpus: '1.0'
-
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
-      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
-    command:
-      - postgres
-      - -c
-      - max_connections=300
-      - -c
-      - shared_buffers=512MB
-      - -c
-      - -c
-    shm_size: 512mb
-    ports:
-      - "5434:5432"
-    volumes:
-    secrets:
-      - postgres_username.secret
-      - postgres_password.secret
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
-      start_period: 30s
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - postgres-network
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
-
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
-      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
-    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
-    shm_size: 512mb
-    volumes:
-    secrets:
-      - postgres_username.secret
-      - postgres_password.secret
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
-      start_period: 30s
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - postgres-network
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
-
-    environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
-      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
-    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
-    shm_size: 512mb
-    volumes:
-    secrets:
-      - postgres_username.secret
-      - postgres_password.secret
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
-      start_period: 30s
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - postgres-network
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
-
-    environment:
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGDATABASE: postgres
-    command:
-      - sh
-      - -c
-      - |
-        sleep 10
-    secrets:
-      - postgres_username.secret
-      - postgres_password.secret
-    depends_on:
-        condition: service_healthy
-        condition: service_healthy
-        condition: service_healthy
-    networks:
-      - postgres-network
 
 networks:
   postgres-network:
