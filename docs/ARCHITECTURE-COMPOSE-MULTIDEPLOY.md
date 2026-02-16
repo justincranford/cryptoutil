@@ -102,48 +102,107 @@ services:
 
 **Complete Secret Hierarchy** (all 5 products, all 9 services):
 
+**Key Changes**:
+- PRODUCT/SUITE levels use `.never` files for postgres secrets (documents prohibition)
+- PRODUCT/SUITE levels use `.never` files for unseal keys (documents prohibition)
+- Only SERVICE level contains actual postgres and unseal secrets (security isolation)
+
 ```
 deployments/
 ├── cryptoutil/                                    # SUITE-level deployment
 │   ├── compose.yml                                # Includes all PRODUCT compose files
 │   └── secrets/
-│       └── cryptoutil-hash_pepper.secret          # SUITE pepper: shared by ALL 9 services
+│       ├── cryptoutil-hash_pepper.secret          # SUITE pepper: shared by ALL 9 services
+│       ├── cryptoutil-unseal_1of5.secret.never    # Documents: unseal keys MUST NOT be shared
+│       ├── cryptoutil-unseal_2of5.secret.never
+│       ├── cryptoutil-unseal_3of5.secret.never
+│       ├── cryptoutil-unseal_4of5.secret.never
+│       ├── cryptoutil-unseal_5of5.secret.never
+│       ├── cryptoutil-postgres_url.secret.never   # Documents: postgres secrets MUST NOT be shared
+│       ├── cryptoutil-postgres_username.secret.never
+│       ├── cryptoutil-postgres_password.secret.never
+│       └── cryptoutil-postgres_database.secret.never
 │
 ├── sm/                                            # PRODUCT-level (single-service product)
 │   ├── compose.yml → ../sm-kms/compose.yml        # Alias to SERVICE
 │   └── secrets/
-│       └── sm-hash_pepper.secret                  # PRODUCT pepper: only for sm-kms
+│       ├── sm-hash_pepper.secret                  # PRODUCT pepper: only for sm-kms
+│       ├── sm-unseal_1of5.secret.never            # Documents: unseal keys MUST NOT be shared
+│       ├── sm-unseal_2of5.secret.never
+│       ├── sm-unseal_3of5.secret.never
+│       ├── sm-unseal_4of5.secret.never
+│       ├── sm-unseal_5of5.secret.never
+│       ├── sm-postgres_url.secret.never           # Documents: postgres secrets MUST NOT be shared
+│       ├── sm-postgres_username.secret.never
+│       ├── sm-postgres_password.secret.never
+│       └── sm-postgres_database.secret.never
 │
 ├── pki/                                           # PRODUCT-level (single-service product)
 │   ├── compose.yml → ../pki-ca/compose.yml
 │   └── secrets/
-│       └── pki-hash_pepper.secret                 # PRODUCT pepper: only for pki-ca
+│       ├── pki-hash_pepper.secret                 # PRODUCT pepper: only for pki-ca
+│       ├── pki-unseal_1of5.secret.never           # Documents: unseal keys MUST NOT be shared
+│       ├── pki-unseal_2of5.secret.never
+│       ├── pki-unseal_3of5.secret.never
+│       ├── pki-unseal_4of5.secret.never
+│       ├── pki-unseal_5of5.secret.never
+│       ├── pki-postgres_url.secret.never          # Documents: postgres secrets MUST NOT be shared
+│       ├── pki-postgres_username.secret.never
+│       ├── pki-postgres_password.secret.never
+│       └── pki-postgres_database.secret.never
 │
 ├── identity/                                      # PRODUCT-level (multi-service product)
 │   ├── compose.yml                                # Includes 5 identity services
 │   └── secrets/
-│       └── identity-hash_pepper.secret            # PRODUCT pepper: shared by 5 identity services
+│       ├── identity-hash_pepper.secret            # PRODUCT pepper: shared by 5 identity services
+│       ├── identity-unseal_1of5.secret.never      # Documents: unseal keys MUST NOT be shared
+│       ├── identity-unseal_2of5.secret.never
+│       ├── identity-unseal_3of5.secret.never
+│       ├── identity-unseal_4of5.secret.never
+│       ├── identity-unseal_5of5.secret.never
+│       ├── identity-postgres_url.secret.never     # Documents: postgres secrets MUST NOT be shared
+│       ├── identity-postgres_username.secret.never
+│       ├── identity-postgres_password.secret.never
+│       └── identity-postgres_database.secret.never
 │
 ├── cipher/                                        # PRODUCT-level (single-service product)
 │   ├── compose.yml → ../cipher-im/compose.yml
 │   └── secrets/
-│       └── cipher-hash_pepper.secret              # PRODUCT pepper: only for cipher-im
+│       ├── cipher-hash_pepper.secret              # PRODUCT pepper: only for cipher-im
+│       ├── cipher-unseal_1of5.secret.never        # Documents: unseal keys MUST NOT be shared
+│       ├── cipher-unseal_2of5.secret.never
+│       ├── cipher-unseal_3of5.secret.never
+│       ├── cipher-unseal_4of5.secret.never
+│       ├── cipher-unseal_5of5.secret.never
+│       ├── cipher-postgres_url.secret.never       # Documents: postgres secrets MUST NOT be shared
+│       ├── cipher-postgres_username.secret.never
+│       ├── cipher-postgres_password.secret.never
+│       └── cipher-postgres_database.secret.never
 │
 ├── jose/                                          # PRODUCT-level (single-service product)
 │   ├── compose.yml → ../jose-ja/compose.yml
 │   └── secrets/
-│       └── jose-hash_pepper.secret                # PRODUCT pepper: only for jose-ja
+│       ├── jose-hash_pepper.secret                # PRODUCT pepper: only for jose-ja
+│       ├── jose-unseal_1of5.secret.never          # Documents: unseal keys MUST NOT be shared
+│       ├── jose-unseal_2of5.secret.never
+│       ├── jose-unseal_3of5.secret.never
+│       ├── jose-unseal_4of5.secret.never
+│       ├── jose-unseal_5of5.secret.never
+│       ├── jose-postgres_url.secret.never         # Documents: postgres secrets MUST NOT be shared
+│       ├── jose-postgres_username.secret.never
+│       ├── jose-postgres_password.secret.never
+│       └── jose-postgres_database.secret.never
 │
 ├── sm-kms/                                        # SERVICE-level (sm product, kms service)
 │   ├── compose.yml
 │   └── secrets/
 │       ├── sm-kms-hash_pepper.secret              # SERVICE pepper: unique to sm-kms
-│       ├── sm-kms-unseal_1of5.secret
+│       ├── sm-kms-unseal_1of5.secret              # Actual unseal keys (service-specific)
 │       ├── sm-kms-unseal_2of5.secret
 │       ├── sm-kms-unseal_3of5.secret
 │       ├── sm-kms-unseal_4of5.secret
 │       ├── sm-kms-unseal_5of5.secret
-│       ├── sm-kms-postgres_url.secret
+│       ├── sm-kms-postgres_url.secret             # Actual postgres secrets (service-specific)
 │       ├── sm-kms-postgres_username.secret
 │       ├── sm-kms-postgres_password.secret
 │       └── sm-kms-postgres_database.secret

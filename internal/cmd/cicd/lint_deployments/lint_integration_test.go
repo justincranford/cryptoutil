@@ -201,8 +201,8 @@ func TestValidateAllDeployments_WithInfrastructure(t *testing.T) {
 
 	tmpDir := t.TempDir()
 
-	// Create a valid infrastructure deployment (e.g., postgres).
-	infraDir := filepath.Join(tmpDir, "postgres")
+	// Create a valid infrastructure deployment (e.g., shared-postgres).
+	infraDir := filepath.Join(tmpDir, "shared-postgres")
 	require.NoError(t, os.MkdirAll(infraDir, 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(infraDir, "compose.yml"), []byte("version: '3'"), 0o600))
 

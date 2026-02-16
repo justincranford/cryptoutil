@@ -1,4 +1,4 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'kms-sqlite' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'kms-sqlite-1' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -7,8 +7,8 @@ cors-origins:
   - "https://127.0.0.1:8080"
   - "https://[::1]:8080"
 
-otlp-service: kms-sqlite
-otlp-hostname: kms-sqlite
+otlp-service: kms-sqlite-1
+otlp-hostname: kms-sqlite-1
 
 # SQLite in-memory database for containerized testing.
 # Using explicit sqlite:// URL instead of dev: true allows containerized environments

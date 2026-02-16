@@ -18,7 +18,7 @@ include:
   - path: ../pki-ca/compose.yml     # pki product (ca service)
   - path: ../cipher-im/compose.yml  # cipher product (im service)
   - path: ../jose-ja/compose.yml    # jose product (ja service)
-  
+
   # Multi-service products (PRODUCT aggregates multiple SERVICEs)
   - path: ../identity/compose.yml   # identity product (authz, idp, rp, rs, spa services)
 

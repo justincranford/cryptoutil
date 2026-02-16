@@ -1,8 +1,8 @@
-# CRITICAL: This file contains COMMON settings used by ALL kms services in compose.yml
-# ALL kms instances (kms-sqlite, kms-postgres-1, kms-postgres-2)
+# CRITICAL: This file contains COMMON settings used by ALL sm-kms services in compose.yml
+# ALL sm-kms instances (kms-sqlite-1, kms-postgres-1, kms-postgres-2)
 # MUST use this file for shared configuration. Instance-specific settings belong in
-# their respective config files (kms-sqlite.yml, kms-postgresql-1.yml, kms-postgresql-2.yml)
-# Changing settings here affects ALL kms services.
+# their respective config files (kms-sqlite-1.yml, kms-postgresql-1.yml, kms-postgresql-2.yml)
+# Changing settings here affects ALL sm-kms services.
 
 # Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
 # log-level: "INFO"

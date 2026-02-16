@@ -177,7 +177,7 @@ services:
 
   # KMS server with SQLite backend (dev/demo/ci mode).
 
-  kms-sqlite:
+  kms-sqlite-1:
 
     image: cryptoutil:dev
 

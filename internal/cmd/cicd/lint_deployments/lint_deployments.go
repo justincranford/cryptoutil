@@ -22,16 +22,28 @@ type DeploymentStructure struct {
 // See: docs/ARCHITECTURE.md Section 12.4 "Deployment Structure Validation".
 func GetExpectedStructures() map[string]DeploymentStructure {
 	return map[string]DeploymentStructure{
+		"template": {
+			Name:          "Template deployment (deployments/template/)",
+			RequiredDirs:  []string{"secrets"},
+			RequiredFiles: []string{"compose.yml"},
+			RequiredSecrets: []string{
+				"hash_pepper_v3.secret", "unseal_1of5.secret", "unseal_2of5.secret",
+				"unseal_3of5.secret", "unseal_4of5.secret", "unseal_5of5.secret",
+				"postgres_username.secret", "postgres_password.secret",
+				"postgres_database.secret", "postgres_url.secret",
+			},
+			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
+		},
 		"PRODUCT-SERVICE": {
 			Name:          "PRODUCT-SERVICE deployment (e.g., jose-ja, cipher-im)",
 			RequiredDirs:  []string{"secrets", "config"},
 			RequiredFiles: []string{"compose.yml", "Dockerfile"},
-			OptionalFiles: []string{"compose.demo.yml", "otel-collector-config.yaml", "README.md"},
+			OptionalFiles: []string{}, // no optional files
 			RequiredSecrets: []string{
-				"unseal_1of5.secret", "unseal_2of5.secret", "unseal_3of5.secret",
-				"unseal_4of5.secret", "unseal_5of5.secret", "hash_pepper_v3.secret",
-				"postgres_url.secret", "postgres_username.secret",
-				"postgres_password.secret", "postgres_database.secret",
+				"hash_pepper_v3.secret", "unseal_1of5.secret", "unseal_2of5.secret",
+				"unseal_3of5.secret", "unseal_4of5.secret", "unseal_5of5.secret",
+				"postgres_username.secret", "postgres_password.secret",
+				"postgres_database.secret", "postgres_url.secret",
 			},
 			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
 		},
@@ -39,29 +51,17 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, cipher, jose)",
 			RequiredDirs:      []string{"secrets"},
 			RequiredFiles:     []string{"compose.yml"},
-			OptionalFiles:     []string{"README.md"},
-			RequiredSecrets:   []string{},
-			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
+			OptionalFiles:     []string{}, // no optional files
+			RequiredSecrets:   []string{}, // Validated by validateProductSecrets() with product-specific prefixes
+			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".never", ".md"},
 		},
 		"SUITE": {
 			Name:              "SUITE-level deployment (cryptoutil - all 9 services)",
 			RequiredDirs:      []string{"secrets"},
 			RequiredFiles:     []string{"compose.yml"},
-			OptionalFiles:     []string{"README.md"},
-			RequiredSecrets:   []string{},
-			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
-		},
-		"template": {
-			Name:          "Template deployment (deployments/template/)",
-			RequiredDirs:  []string{"secrets"},
-			RequiredFiles: []string{"compose.yml"},
-			RequiredSecrets: []string{
-				"unseal_1of5.secret", "unseal_2of5.secret", "unseal_3of5.secret",
-				"unseal_4of5.secret", "unseal_5of5.secret", "hash_pepper_v3.secret",
-				"postgres_url.secret", "postgres_username.secret",
-				"postgres_password.secret", "postgres_database.secret",
-			},
-			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
+			OptionalFiles:     []string{}, // no optional files
+			RequiredSecrets:   []string{}, // Validated by validateSuiteSecrets() with suite-specific prefixes
+			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".never", ".md"},
 		},
 		"infrastructure": {
 			Name:              "Infrastructure deployment (postgres, citus, telemetry)",
@@ -243,7 +243,7 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 	}
 }
 
-// validateProductSecrets validates PRODUCT-level hash_pepper.secret file.
+// validateProductSecrets validates PRODUCT-level hash_pepper.secret and .never files.
 // See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy".
 func validateProductSecrets(basePath string, productName string, result *ValidationResult) {
 	expectedSecret := fmt.Sprintf("%s-hash_pepper.secret", productName)
@@ -256,18 +256,31 @@ func validateProductSecrets(basePath string, productName string, result *Validat
 		result.Valid = false
 	}
 
-	for i := 1; i <= 5; i++ {
-		neverFile := fmt.Sprintf("%s-unseal_%dof5.secret.never", productName, i)
-		neverPath := filepath.Join(basePath, "secrets", neverFile)
+	// Check for .never files (documents prohibition)
+	neverFiles := []string{
+		fmt.Sprintf("%s-unseal_1of5.secret.never", productName),
+		fmt.Sprintf("%s-unseal_2of5.secret.never", productName),
+		fmt.Sprintf("%s-unseal_3of5.secret.never", productName),
+		fmt.Sprintf("%s-unseal_4of5.secret.never", productName),
+		fmt.Sprintf("%s-unseal_5of5.secret.never", productName),
+		fmt.Sprintf("%s-postgres_username.secret.never", productName),
+		fmt.Sprintf("%s-postgres_password.secret.never", productName),
+		fmt.Sprintf("%s-postgres_database.secret.never", productName),
+		fmt.Sprintf("%s-postgres_url.secret.never", productName),
+	}
 
+	for _, neverFile := range neverFiles {
+		neverPath := filepath.Join(basePath, "secrets", neverFile)
 		if _, err := os.Stat(neverPath); os.IsNotExist(err) {
-			result.Warnings = append(result.Warnings,
-				fmt.Sprintf("Missing secrets/%s - documents that unseal keys are NOT shared at PRODUCT level", neverFile))
+			result.MissingSecrets = append(result.MissingSecrets, neverFile)
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("Missing secrets/%s - documents that these secrets MUST NOT be shared at PRODUCT level", neverFile))
+			result.Valid = false
 		}
 	}
 }
 
-// validateSuiteSecrets validates SUITE-level hash_pepper.secret file.
+// validateSuiteSecrets validates SUITE-level hash_pepper.secret and .never files.
 // See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy".
 func validateSuiteSecrets(basePath string, result *ValidationResult) {
 	expectedSecret := "cryptoutil-hash_pepper.secret"
@@ -280,13 +293,26 @@ func validateSuiteSecrets(basePath string, result *ValidationResult) {
 		result.Valid = false
 	}
 
-	for i := 1; i <= 5; i++ {
-		neverFile := fmt.Sprintf("cryptoutil-unseal_%dof5.secret.never", i)
-		neverPath := filepath.Join(basePath, "secrets", neverFile)
+	// Check for .never files (documents prohibition)
+	neverFiles := []string{
+		"cryptoutil-unseal_1of5.secret.never",
+		"cryptoutil-unseal_2of5.secret.never",
+		"cryptoutil-unseal_3of5.secret.never",
+		"cryptoutil-unseal_4of5.secret.never",
+		"cryptoutil-unseal_5of5.secret.never",
+		"cryptoutil-postgres_username.secret.never",
+		"cryptoutil-postgres_password.secret.never",
+		"cryptoutil-postgres_database.secret.never",
+		"cryptoutil-postgres_url.secret.never",
+	}
 
+	for _, neverFile := range neverFiles {
+		neverPath := filepath.Join(basePath, "secrets", neverFile)
 		if _, err := os.Stat(neverPath); os.IsNotExist(err) {
-			result.Warnings = append(result.Warnings,
-				fmt.Sprintf("Missing secrets/%s - documents that unseal keys are NOT shared at SUITE level", neverFile))
+			result.MissingSecrets = append(result.MissingSecrets, neverFile)
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("Missing secrets/%s - documents that these secrets MUST NOT be shared at SUITE level", neverFile))
+			result.Valid = false
 		}
 	}
 }
@@ -365,31 +391,30 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 		}
 	}
 
+	// PRODUCT-level deployments
+	productNames := []string{"identity", "sm", "pki", "cipher", "jose"}
+	for _, product := range productNames {
+		productPath := filepath.Join(deploymentsRoot, product)
+		if _, err := os.Stat(productPath); err == nil {
+			result, err := ValidateDeploymentStructure(productPath, product, "PRODUCT")
+			if err != nil {
+				return nil, fmt.Errorf("failed to validate %s: %w", product, err)
+			}
 
-// PRODUCT-level deployments
-productNames := []string{"identity", "sm", "pki", "cipher", "jose"}
-for _, product := range productNames {
-productPath := filepath.Join(deploymentsRoot, product)
-if _, err := os.Stat(productPath); err == nil {
-result, err := ValidateDeploymentStructure(productPath, product, "PRODUCT")
-if err != nil {
-return nil, fmt.Errorf("failed to validate %s: %w", product, err)
-}
+			results = append(results, *result)
+		}
+	}
 
-results = append(results, *result)
-}
-}
+	// SUITE-level deployment
+	suitePath := filepath.Join(deploymentsRoot, "cryptoutil")
+	if _, err := os.Stat(suitePath); err == nil {
+		result, err := ValidateDeploymentStructure(suitePath, "cryptoutil", "SUITE")
+		if err != nil {
+			return nil, fmt.Errorf("failed to validate cryptoutil: %w", err)
+		}
 
-// SUITE-level deployment
-suitePath := filepath.Join(deploymentsRoot, "cryptoutil")
-if _, err := os.Stat(suitePath); err == nil {
-result, err := ValidateDeploymentStructure(suitePath, "cryptoutil", "SUITE")
-if err != nil {
-return nil, fmt.Errorf("failed to validate cryptoutil: %w", err)
-}
-
-results = append(results, *result)
-}
+		results = append(results, *result)
+	}
 	// Template deployment
 	templatePath := filepath.Join(deploymentsRoot, "template")
 	if _, err := os.Stat(templatePath); err == nil {
