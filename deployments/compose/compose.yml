@@ -19,11 +19,9 @@
 #   - opentelemetry-collector-contrib: localhost:4317 (gRPC), localhost:4318 (HTTP), localhost:13133 (health)
 include:
   - path: ../shared-postgres/compose.yml
-  - path: ../shared-telemetry/compose.yml
 services:
-  # Override otel collector from telemetry/compose.yml to expose ports for E2E tests.
-  # The base definition has ports commented out for multi-deployment support,
-  # but E2E tests run from host and need to reach the health endpoint.
+  # OpenTelemetry Collector for E2E tests (NOT using shared-telemetry include due to port exposure requirements).
+  # Production deployments use shared-telemetry/compose.yml which keeps ports internal.
   opentelemetry-collector-contrib:
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
@@ -33,12 +31,6 @@ services:
       - "13133:13133" # Health check endpoint for E2E tests
     volumes:
       - ../shared-telemetry/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
-      start_period: 10s
-      interval: 5s
-      timeout: 3s
-      retries: 5
     networks:
       - e2e-network
       - telemetry-network
@@ -491,12 +483,6 @@ volumes:
   grafana_data:
     name: cryptoutil_grafana_volume
 secrets:
-  postgres_username.secret:
-    file: ../kms/secrets/postgres_username.secret
-  postgres_password.secret:
-    file: ../kms/secrets/postgres_password.secret
-  postgres_database.secret:
-    file: ../kms/secrets/postgres_database.secret
   postgres_url.secret:
     file: ../kms/secrets/postgres_url.secret
   # Unseal secrets (CRITICAL: shared across ALL cryptoutil instances for key hierarchy interoperability).
