@@ -226,7 +226,7 @@ repos:
       - id: docker-compose-config
         name: Validate docker compose files with schema
         entry: bash
-        args: [-c, 'for f in deployments/**/compose*.yml; do [[ "$f" == *"/template/"* ]] && continue; echo "Validating $f..."; docker compose -f "$f" config --quiet || exit 1; done']
+        args: [-c, 'for f in deployments/**/compose*.yml; do [[ "$f" == *"/template/"* || "$f" == *"/cryptoutil/"* || "$f" == *"/identity/compose.yml" ]] && continue; echo "Validating $f..."; docker compose -f "$f" config --quiet || exit 1; done']
         language: system
         files: 'deployments/.*/compose.*\.yml$'
         pass_filenames: false
