@@ -140,18 +140,18 @@
 - **Evidence**: `test-output/phase1/template-config-analysis.txt` (from planning)
 
 #### Task 1.4: Verify Structural Cleanup
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30min
-- **Actual**: [Fill when complete]
+- **Actual**: 10min
 - **Dependencies**: Tasks 1.1, 1.2, 1.3
 - **Description**: Verify all Phase 1 changes correct
 - **Acceptance Criteria**:
-  - [ ] No .gitkeep in dirs with content: `find deployments/ configs/ -name .gitkeep | wc -l` (0)
-  - [ ] Single otel config: `find deployments/ -name otel-collector-config.yaml | wc -l` (1)
-  - [ ] Template has 4 configs: `ls deployments/template/config/ | wc -l` (4)
-  - [ ] All tests passing: `go test ./...`
-  - [ ] Linting clean: `golangci-lint run ./...`
+  - [x] No .gitkeep in dirs with content: `find deployments/ configs/ -name .gitkeep | wc -l` (0)
+  - [x] Single otel config: `find deployments/ -name otel-collector-config.yaml | wc -l` (1)
+  - [x] Template has 4 configs: `ls deployments/template/config/ | wc -l` (4)
+  - [x] All tests passing: `go test ./...`
+  - [x] Linting clean: `golangci-lint run ./...`
 - **Files**: None (verification task)
 - **Evidence**: `test-output/phase1/verification.log`
 
