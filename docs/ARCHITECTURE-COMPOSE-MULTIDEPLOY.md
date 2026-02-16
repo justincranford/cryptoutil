@@ -342,6 +342,266 @@ deployments/
 
 5. **Unseal keys, DB credentials**: ALWAYS unique per service, NEVER shared. Only hash pepper has layered sharing.
 
+**Config Files in ./deployments/**: Each SERVICE-level deployment includes a `config/` directory with 4 required instance-specific configuration files:
+
+```
+deployments/{PRODUCT}-{SERVICE}/config/
+├── {PRODUCT}-{SERVICE}-app-common.yml        # Common settings (all instances)
+├── {PRODUCT}-{SERVICE}-app-sqlite-1.yml      # SQLite instance #1 settings
+├── {PRODUCT}-{SERVICE}-app-postgresql-1.yml  # PostgreSQL instance #1 settings
+└── {PRODUCT}-{SERVICE}-app-postgresql-2.yml  # PostgreSQL instance #2 settings
+```
+
+**Complete Config Hierarchy** (all 9 services):
+
+```
+deployments/
+├── sm-kms/config/
+│   ├── sm-kms-app-common.yml
+│   ├── sm-kms-app-sqlite-1.yml
+│   ├── sm-kms-app-postgresql-1.yml
+│   └── sm-kms-app-postgresql-2.yml
+│
+├── pki-ca/config/
+│   ├── pki-ca-app-common.yml
+│   ├── pki-ca-app-sqlite-1.yml
+│   ├── pki-ca-app-postgresql-1.yml
+│   └── pki-ca-app-postgresql-2.yml
+│
+├── cipher-im/config/
+│   ├── cipher-im-app-common.yml
+│   ├── cipher-im-app-sqlite-1.yml
+│   ├── cipher-im-app-postgresql-1.yml
+│   └── cipher-im-app-postgresql-2.yml
+│
+├── jose-ja/config/
+│   ├── jose-ja-app-common.yml
+│   ├── jose-ja-app-sqlite-1.yml
+│   ├── jose-ja-app-postgresql-1.yml
+│   └── jose-ja-app-postgresql-2.yml
+│
+├── identity-authz/config/
+│   ├── identity-authz-app-common.yml
+│   ├── identity-authz-app-sqlite-1.yml
+│   ├── identity-authz-app-postgresql-1.yml
+│   └── identity-authz-app-postgresql-2.yml
+│
+├── identity-idp/config/
+│   ├── identity-idp-app-common.yml
+│   ├── identity-idp-app-sqlite-1.yml
+│   ├── identity-idp-app-postgresql-1.yml
+│   └── identity-idp-app-postgresql-2.yml
+│
+├── identity-rp/config/
+│   ├── identity-rp-app-common.yml
+│   ├── identity-rp-app-sqlite-1.yml
+│   ├── identity-rp-app-postgresql-1.yml
+│   └── identity-rp-app-postgresql-2.yml
+│
+├── identity-rs/config/
+│   ├── identity-rs-app-common.yml
+│   ├── identity-rs-app-sqlite-1.yml
+│   ├── identity-rs-app-postgresql-1.yml
+│   └── identity-rs-app-postgresql-2.yml
+│
+└── identity-spa/config/
+    ├── identity-spa-app-common.yml
+    ├── identity-spa-app-sqlite-1.yml
+    ├── identity-spa-app-postgresql-1.yml
+    └── identity-spa-app-postgresql-2.yml
+```
+
+**Total**: 36 deployment config files (9 services × 4 files each)
+
+**Config File Content**: Deployment configs are minimal Docker Compose-specific settings, typically just:
+- Server port overrides for instance isolation
+- OTLP service names for telemetry differentiation
+- Database URL references (via Docker secrets)
+
+**Example** (`sm-kms-app-sqlite-1.yml`):
+```yaml
+server:
+  port: 8080
+```
+
+**Infrastructure Deployment** (`deployments/compose/`):
+
+```
+deployments/compose/
+└── compose.yml                                # E2E testing infrastructure
+```
+
+**Purpose**: Standalone E2E testing compose that:
+- Includes `../shared-postgres/compose.yml` and `../shared-telemetry/compose.yml`
+- Overrides otel-collector to expose ports for host-based E2E tests
+- Provides service names matching test expectations (`cryptoutil-sqlite`, `cryptoutil-postgres-1`, `cryptoutil-postgres-2`)
+- NOT referenced by other deployments (standalone E2E infrastructure)
+
+### 2.7 Standalone Configuration Directory (./configs/)
+
+**Purpose**: Rich CLI/development configuration files for local development WITHOUT Docker Compose.
+
+**Organization**: Product/service hierarchy with profiles and policies.
+
+```
+configs/
+├── ca/
+│   ├── ca-server.yml                          # PKI CA service config
+│   └── profiles/                              # CA profiles (future)
+│
+├── cipher/
+│   ├── config.yml                             # Product-level config (future)
+│   └── im/
+│       ├── config.yml                         # Base config
+│       ├── config-sqlite.yml                  # SQLite instance
+│       ├── config-pg-1.yml                    # PostgreSQL instance #1
+│       └── config-pg-2.yml                    # PostgreSQL instance #2
+│
+├── cryptoutil/
+│   └── config.yml                             # SUITE-level config (future)
+│
+├── identity/
+│   ├── authz.yml                              # Authorization server config
+│   ├── authz-docker.yml                       # Docker-specific overrides
+│   ├── idp.yml                                # Identity provider config
+│   ├── idp-docker.yml                         # Docker-specific overrides
+│   ├── rs.yml                                 # Resource server config
+│   ├── rs-docker.yml                          # Docker-specific overrides
+│   ├── development.yml                        # Development environment
+│   ├── production.yml                         # Production environment
+│   ├── test.yml                               # Test environment
+│   ├── policies/
+│   │   ├── adaptive_auth.yml                  # Adaptive authentication policy
+│   │   ├── risk_scoring.yml                   # Risk scoring policy
+│   │   └── step_up.yml                        # Step-up authentication policy
+│   └── profiles/
+│       ├── authz-idp.yml                      # Combined authz+idp
+│       ├── authz-only.yml                     # Authorization only
+│       ├── ci.yml                             # CI pipeline
+│       ├── demo.yml                           # Demo mode
+│       └── full-stack.yml                     # Full identity stack
+│
+├── jose/
+│   └── jose-server.yml                        # JOSE service config
+│
+├── observability/
+│   ├── grafana/                               # Grafana dashboards (future)
+│   └── prometheus/
+│       └── adaptive-auth-alerts.yml           # Prometheus alert rules
+│
+├── template/
+│   ├── config-sqlite.yml                      # Template SQLite config
+│   ├── config-pg-1.yml                        # Template PostgreSQL #1
+│   └── config-pg-2.yml                        # Template PostgreSQL #2
+│
+└── test/
+    └── config.yml                             # Test configuration
+```
+
+**Config File Content**: Standalone configs are comprehensive application settings:
+- Server bindings (public/private protocol/address/port)
+- TLS configuration (mode, certificates, key paths)
+- Database URLs and connection pooling
+- OTLP telemetry endpoints and sampling
+- CORS settings and allowed origins
+- Session configuration (algorithms, expiration)
+- Realm definitions and authentication methods
+- Complete application configuration (NOT minimal Docker overrides)
+
+**Example** (`configs/cipher/im/config-sqlite.yml` - partial):
+```yaml
+bind-public-protocol: "https"
+bind-public-address: "0.0.0.0"
+bind-public-port: 8070
+bind-private-protocol: "https"
+bind-private-address: "127.0.0.1"
+bind-private-port: 9090
+tls-public-mode: "auto"
+tls-private-mode: "auto"
+otlp: true
+otlp-service: "cipher-im-sqlite"
+otlp-environment: "development"
+otlp-endpoint: "http://cipher-im-otel-collector:4317"
+cors-max-age: 3600
+cors-allowed-origins:
+  - "https://localhost:8070"
+  - "https://127.0.0.1:8070"
+# ... many more settings ...
+```
+
+### 2.8 Configuration Directory Strategy: ./configs/ vs ./deployments/
+
+**When to use ./configs/**:
+- **Local development** with `go run` or compiled binaries
+- **Direct CLI execution** without Docker Compose
+- **Comprehensive configuration** with all application settings
+- **Environment-specific profiles** (development, production, test)
+- **Policy and profile variations** (adaptive auth, step-up, risk scoring)
+- **Standalone service testing** without containerization
+
+**When to use ./deployments/{SERVICE}/config/**:
+- **Docker Compose deployment** with containers
+- **Minimal instance-specific overrides** (port numbers, OTLP service names)
+- **Multi-instance deployments** (1 SQLite + 2 PostgreSQL per service)
+- **Container-based configuration injection** via volume mounts
+- **Production deployment patterns** following Docker best practices
+
+**Current Heuristics** (observed pattern):
+- **./deployments/{SERVICE}/config/**: 4 files per service (common, sqlite-1, postgresql-1, postgresql-2)
+  - Minimal configs: mainly port overrides for instance isolation
+  - Docker Compose-specific: mounted as volumes into containers
+  - Total: 36 files (9 services × 4 files)
+
+- **./configs/**: Rich hierarchy with profiles and policies
+  - Comprehensive configs: complete application settings
+  - CLI/development-specific: used with `--config-file` flag
+  - Total: 30+ files organized by product/service/purpose
+
+**Best Practice Heuristics** (recommended pattern):
+1. **Start with ./configs/** for new service development
+   - Build comprehensive standalone configuration first
+   - Validate all settings with local CLI execution
+   - Easier to debug without Docker complexity
+
+2. **Create ./deployments/{SERVICE}/config/** after CLI validation
+   - Extract minimal Docker-specific overrides (ports, OTLP names)
+   - Keep deployment configs as thin as possible
+   - Reference ./configs/ examples for setting names and values
+
+3. **Use ./configs/ profiles** for environment variations
+   - development.yml, production.yml, test.yml
+   - Policy-specific: adaptive_auth.yml, step_up.yml
+   - Profile-specific: demo.yml, ci.yml, full-stack.yml
+
+4. **Use ./deployments/{SERVICE}/config/** for instance differentiation
+   - common.yml: shared settings for all instances
+   - sqlite-1.yml: SQLite instance port override
+   - postgresql-1.yml: PostgreSQL instance #1 port override
+   - postgresql-2.yml: PostgreSQL instance #2 port override
+
+**Key Differences**:
+
+| Aspect | ./configs/ | ./deployments/{SERVICE}/config/ |
+|--------|-----------|--------------------------------|
+| **Purpose** | Local CLI development | Docker Compose deployment |
+| **Scope** | Comprehensive settings | Minimal overrides |
+| **Usage** | `go run cmd/{SERVICE}/ --config-file=configs/{SERVICE}/config.yml` | `docker compose up` |
+| **Size** | Large files (100-300 lines) | Small files (2-20 lines) |
+| **Content** | All application settings | Port numbers, OTLP names |
+| **Examples** | TLS, CORS, sessions, realms | `server.port: 8080` |
+| **Profiles** | Yes (dev, prod, test, demo) | No (instance-specific only) |
+
+**Migration Pattern** (if consolidation needed):
+- NOT RECOMMENDED: Deployment configs serve different purpose
+- Current dual structure is optimal: rich CLI configs + minimal deployment overrides
+- Future: Could generate deployment configs from ./configs/ templates, but provides little value
+
+**Rationale**:
+- Separation of concerns: Development (./configs/) vs Deployment (./deployments/)
+- Docker Compose best practice: Minimal config overrides, environment-specific volumes
+- Easier debugging: Rich standalone configs for local development
+- Production-ready: Thin deployment configs with Docker secrets and environment variables
+
 ## 3. Recommended Directory Structure
 
 ```
