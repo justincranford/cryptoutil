@@ -1,0 +1,31 @@
+# PRODUCT-level deployment - Identity product (5 services)
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 4.2
+#
+# Usage: cd deployments/identity && docker compose up
+#
+# This compose file includes all SERVICE-level compose files for the
+# identity product:
+#   - identity-authz (Authorization Server)
+#   - identity-idp (Identity Provider)
+#   - identity-rp (Relying Party)
+#   - identity-rs (Resource Server)
+#   - identity-spa (Single Page App)
+
+include:
+  - path: ../identity-authz/compose.yml
+  - path: ../identity-idp/compose.yml
+  - path: ../identity-rp/compose.yml
+  - path: ../identity-rs/compose.yml
+  - path: ../identity-spa/compose.yml
+
+# PRODUCT-level secrets (shared by all 5 identity services)
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
+#
+# When this PRODUCT compose file is used, the identity-hash_pepper.secret
+# overrides SERVICE-level hash_pepper secrets for all 5 identity services.
+#
+# This enables shared SSO/federation within the identity product boundary.
+
+secrets:
+  identity-hash_pepper.secret:
+    file: ./secrets/identity-hash_pepper.secret

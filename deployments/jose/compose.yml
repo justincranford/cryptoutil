@@ -1,0 +1,20 @@
+# PRODUCT-level deployment - JOSE product (single service: ja)
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 4.2
+#
+# Usage: cd deployments/jose && docker compose up
+#
+# For single-service products, PRODUCT-level is an alias to SERVICE-level.
+# This compose file includes the jose-ja SERVICE compose file.
+
+include:
+  - path: ../jose-ja/compose.yml
+
+# PRODUCT-level secrets (alias to SERVICE-level for single-service products)
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
+#
+# For single-service products like jose (only has ja service), the PRODUCT
+# pepper is an alias/duplicate of the SERVICE pepper for consistency.
+
+secrets:
+  jose-hash_pepper.secret:
+    file: ./secrets/jose-hash_pepper.secret

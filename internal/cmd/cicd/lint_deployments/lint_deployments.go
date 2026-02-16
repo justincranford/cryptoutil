@@ -35,6 +35,22 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			},
 			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
 		},
+		"PRODUCT": {
+			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, cipher, jose)",
+			RequiredDirs:      []string{"secrets"},
+			RequiredFiles:     []string{"compose.yml"},
+			OptionalFiles:     []string{"README.md"},
+			RequiredSecrets:   []string{},
+			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
+		},
+		"SUITE": {
+			Name:              "SUITE-level deployment (cryptoutil - all 9 services)",
+			RequiredDirs:      []string{"secrets"},
+			RequiredFiles:     []string{"compose.yml"},
+			OptionalFiles:     []string{"README.md"},
+			RequiredSecrets:   []string{},
+			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
+		},
 		"template": {
 			Name:          "Template deployment (deployments/template/)",
 			RequiredDirs:  []string{"secrets"},
@@ -120,6 +136,16 @@ func ValidateDeploymentStructure(basePath string, deploymentName string, structT
 	// Check config files for PRODUCT-SERVICE deployments
 	if structType == "PRODUCT-SERVICE" {
 		validateConfigFiles(basePath, deploymentName, result)
+	}
+
+	// Check PRODUCT-level specific requirements
+	if structType == "PRODUCT" {
+		validateProductSecrets(basePath, deploymentName, result)
+	}
+
+	// Check SUITE-level specific requirements
+	if structType == "SUITE" {
+		validateSuiteSecrets(basePath, result)
 	}
 
 	// Check for hardcoded credentials in ALL deployment types
@@ -217,6 +243,54 @@ func validateConfigFiles(basePath string, deploymentName string, result *Validat
 	}
 }
 
+// validateProductSecrets validates PRODUCT-level hash_pepper.secret file.
+// See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy".
+func validateProductSecrets(basePath string, productName string, result *ValidationResult) {
+	expectedSecret := fmt.Sprintf("%s-hash_pepper.secret", productName)
+	secretPath := filepath.Join(basePath, "secrets", expectedSecret)
+
+	if _, err := os.Stat(secretPath); os.IsNotExist(err) {
+		result.MissingSecrets = append(result.MissingSecrets, expectedSecret)
+		result.Errors = append(result.Errors,
+			fmt.Sprintf("PRODUCT-level deployment MUST have secrets/%s for shared SSO/federation within product", expectedSecret))
+		result.Valid = false
+	}
+
+	for i := 1; i <= 5; i++ {
+		neverFile := fmt.Sprintf("%s-unseal_%dof5.secret.never", productName, i)
+		neverPath := filepath.Join(basePath, "secrets", neverFile)
+
+		if _, err := os.Stat(neverPath); os.IsNotExist(err) {
+			result.Warnings = append(result.Warnings,
+				fmt.Sprintf("Missing secrets/%s - documents that unseal keys are NOT shared at PRODUCT level", neverFile))
+		}
+	}
+}
+
+// validateSuiteSecrets validates SUITE-level hash_pepper.secret file.
+// See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy".
+func validateSuiteSecrets(basePath string, result *ValidationResult) {
+	expectedSecret := "cryptoutil-hash_pepper.secret"
+	secretPath := filepath.Join(basePath, "secrets", expectedSecret)
+
+	if _, err := os.Stat(secretPath); os.IsNotExist(err) {
+		result.MissingSecrets = append(result.MissingSecrets, expectedSecret)
+		result.Errors = append(result.Errors,
+			fmt.Sprintf("SUITE-level deployment MUST have secrets/%s for cross-product SSO/federation", expectedSecret))
+		result.Valid = false
+	}
+
+	for i := 1; i <= 5; i++ {
+		neverFile := fmt.Sprintf("cryptoutil-unseal_%dof5.secret.never", i)
+		neverPath := filepath.Join(basePath, "secrets", neverFile)
+
+		if _, err := os.Stat(neverPath); os.IsNotExist(err) {
+			result.Warnings = append(result.Warnings,
+				fmt.Sprintf("Missing secrets/%s - documents that unseal keys are NOT shared at SUITE level", neverFile))
+		}
+	}
+}
+
 // checkHardcodedCredentials scans compose.yml files for hardcoded database credentials.
 // CRITICAL: ALL database credentials MUST use Docker secrets, NEVER hardcoded values.
 func checkHardcodedCredentials(basePath string, result *ValidationResult) {
@@ -291,6 +365,31 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 		}
 	}
 
+
+// PRODUCT-level deployments
+productNames := []string{"identity", "sm", "pki", "cipher", "jose"}
+for _, product := range productNames {
+productPath := filepath.Join(deploymentsRoot, product)
+if _, err := os.Stat(productPath); err == nil {
+result, err := ValidateDeploymentStructure(productPath, product, "PRODUCT")
+if err != nil {
+return nil, fmt.Errorf("failed to validate %s: %w", product, err)
+}
+
+results = append(results, *result)
+}
+}
+
+// SUITE-level deployment
+suitePath := filepath.Join(deploymentsRoot, "cryptoutil")
+if _, err := os.Stat(suitePath); err == nil {
+result, err := ValidateDeploymentStructure(suitePath, "cryptoutil", "SUITE")
+if err != nil {
+return nil, fmt.Errorf("failed to validate cryptoutil: %w", err)
+}
+
+results = append(results, *result)
+}
 	// Template deployment
 	templatePath := filepath.Join(deploymentsRoot, "template")
 	if _, err := os.Stat(templatePath); err == nil {
@@ -303,7 +402,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// Infrastructure deployments
-	infraNames := []string{"postgres", "citus", "telemetry", "compose"}
+	infraNames := []string{"shared-postgres", "shared-citus", "shared-telemetry", "compose"}
 	for _, infra := range infraNames {
 		infraPath := filepath.Join(deploymentsRoot, infra)
 		if _, err := os.Stat(infraPath); err == nil {

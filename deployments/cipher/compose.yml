@@ -1,0 +1,20 @@
+# PRODUCT-level deployment - Cipher product (single service: im)
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 4.2
+#
+# Usage: cd deployments/cipher && docker compose up
+#
+# For single-service products, PRODUCT-level is an alias to SERVICE-level.
+# This compose file includes the cipher-im SERVICE compose file.
+
+include:
+  - path: ../cipher-im/compose.yml
+
+# PRODUCT-level secrets (alias to SERVICE-level for single-service products)
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
+#
+# For single-service products like cipher (only has im service), the PRODUCT
+# pepper is an alias/duplicate of the SERVICE pepper for consistency.
+
+secrets:
+  cipher-hash_pepper.secret:
+    file: ./secrets/cipher-hash_pepper.secret
