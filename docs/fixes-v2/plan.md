@@ -1,167 +1,396 @@
-# Implementation Plan - Deployment & Config Structure Refactoring V2
+# Implementation Plan - Deployment/Config Refactoring v2
 
-**Status**: Ready for Execution
+**Status**: Planning Complete, Ready for Execution
 **Created**: 2026-02-16
 **Last Updated**: 2026-02-16
-**Purpose**: Refactor deployment/config structure, enhance CICD validation, establish rigid patterns
+**Purpose**: Comprehensive cleanup and restructuring of ./deployments/ and ./configs/ directories with rigorous validation
 
 ## Quality Mandate - MANDATORY
 
 **Quality Attributes (NO EXCEPTIONS)**:
 - ✅ **Correctness**: ALL code must be functionally correct with comprehensive tests
-- ✅ **Completeness**: NO steps skipped, ALL features fully implemented
+- ✅ **Completeness**: NO phases or tasks or steps skipped, NO shortcuts
 - ✅ **Thoroughness**: Evidence-based validation at every step
 - ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
-- ✅ **Efficiency**: Optimized for maintainability, NOT speed
-- ✅ **Accuracy**: Address root cause, not symptoms
+- ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation
-- ❌ **Premature Completion**: NEVER mark complete without evidence
+- ❌ **Premature Completion**: NEVER mark complete without verification
 
-**ALL issues are blockers - NO exceptions - Fix immediately**
+**ALL issues are blockers - NO exceptions:**
+- ✅ **Fix issues immediately** - When tests fail or quality gates not met, STOP and address
+- ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
+- ✅ **Document root causes** - Root cause analysis is MANDATORY
+- ✅ **NEVER defer**: No "we'll fix later", no "non-critical"
+- ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 ## Overview
 
-This plan refactors deployment/config structure with these objectives:
-1. Clean up structural inconsistencies (delete redundant files)
-2. Establish rigid validated patterns for ./deployments/ and ./configs/
-3. Mirror ./configs/ structure to match ./deployments/ (exact mirror per user decision)
-4. Comprehensive CICD validation with schema checks
-5. Archive demo files for future brainstorming phase
+Comprehensive refactoring of deployment and configuration management:
+1. Archive demo files (preserve for future reference)
+2. Structural cleanup (delete redundant files)
+3. Enhanced Docker Compose validation (catch schema errors)
+4. CICD lint_deployments refactoring (rigorous validation)
+5. Config directory restructuring (exact mirror of deployments)
+6. Documentation updates
+7. Comprehensive testing and quality gates
 
-## Executive Decisions (From Quizme Answers)
+## Background
 
-### Decision 1: Demo Files → Archive for Future Research
-**Selected**: Archive under docs/demo-brainstorm/archive/, create DEMO-BRAINSTORM.md
-**Rationale**: Too much other work (deployment/config refactoring). Need deep research on demo best practices before establishing patterns. Defer to separate phase after research complete.
-**Impact**: Phase 0.5 - Archive demo files, no implementation yet
+User discovered multiple issues:
+- `.gitkeep` files in directories with content
+- Duplicate `otel-collector-config.yaml` files
+- VS Code compose validation errors (manually fixed, must prevent)
+- `deployments/template/config/` incorrectly empty (needs 4 files)
+- `internal/cmd/cicd/lint_deployments/` lacking comprehensive validation
+- `./configs/` directory structure misaligned with `./deployments/`
 
-### Decision 2: ./configs/ Structure → Exact Mirror of ./deployments/
-**Selected**: Option A - configs/{cryptoutil,PRODUCT,PRODUCT-SERVICE}/ matching deployments exactly
-**Rationale**: Maximum rigor and consistency. Supports suite/product/service level runs for CLI development.
-**Impact**: Major restructuring in Phase 5 (all 55 files)
+**Previous Work**:
+- Phase 1 investigation completed (test-output/phase1/ evidence)
+- Quizme-v1 answers: Archive demos, exact mirror, delete duplicates, full restructuring, autonomous execution
+- Quizme-v2 answers: JSON listings, comprehensive validations (compose+config), orphan handling
 
-### Decision 3: Otel-Collector Configs → Single Canonical Source
-**Selected**: Keep ONLY shared-telemetry/otel/otel-collector-config.yaml, delete template & cipher-im copies
-**Rationale**: shared-telemetry handles ALL 27 possible service instances (9 SUITE + 9 PRODUCT + 9 SERVICE). Single source of truth prevents confusion.
-**Impact**: Delete 2 duplicate files, update docs and CICD validation
+## Executive Summary
 
-### Decision 4: Implementation Priority → Execute All Phases Autonomously NOW
-**Selected**: Start immediately, execute all phases autonomously
-**Rationale**: User mandate - "STOP ASKING ME TO CONFIRM!!!"
-**Impact**: No checkpoints, continuous execution until complete
+**Critical Context**:
+- User demands **RIGOROUS** comprehensive validation (quizme-v2 Q3:C, Q4:C)
+- JSON listing files with metadata enable rich validation (quizme-v2 Q1:C)
+- Deployments-driven mirror: all deployments/ MUST have configs/, but configs/ can have extras (quizme-v2 Q2:C)
+- Orphaned configs preserved in configs/orphaned/ for review (quizme-v2 Q5:C)
+- Autonomous execution: NO checkpoints, proceed through all phases (quizme-v1 Q4:A)
 
-### Decision 5: Config Restructuring Scope → Full Migration
-**Selected**: Move ALL 55 files, update ALL references, comprehensive migration
-**Rationale**: Maximum consistency, matches exact mirror decision
-**Impact**: High-risk but highest quality outcome
-
-## Additional Clarifications
-
-1. **template/config/**: Must have 4 config files (PRODUCT-SERVICE-app-{common,sqlite-1,postgresql-1,postgresql-2}.yml) matching sm-kms/config/ pattern. CICD must validate.
-
-2. **Pre-Commit Compose Validation**: lint-compose exists but missed VS Code validation errors. Enhance to use `docker compose config --quiet` for schema validation.
-
-3. **Simple Analysis During Planning**: .gitkeep files, otel configs, template requirements analyzed in Phase 1 (already complete).
+**Assumptions & Risks**:
+- Assumption: Current configs/ has orphans (no deployments/ counterpart)
+- Assumption: Config file structure is consistent enough for schema definition
+- Risk: Comprehensive validation may discover many issues requiring fixes
+- Risk: Schema definition iteration may extend Phase 4 timeline
+- Mitigation: Extensive evidence collection, incremental validation testing
 
 ## Technical Context
 
 - **Language**: Go 1.25.5
-- **CICD Tool**: internal/cmd/cicd/lint_deployments/
-- **Directories**: ./deployments/ (36 config files), ./configs/ (55 config files)
-- **Architecture Docs**: ARCHITECTURE.md, ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
-- **Phase 1 Analysis**: Complete (evidence in test-output/phase1/)
+- **Framework**: internal/cmd/cicd/ CICD tooling
+- **Database**: Not applicable (file system operations)
+- **Dependencies**: docker, docker compose, golangci-lint, pre-commit
+- **Related Files**:
+  - `internal/cmd/cicd/lint_deployments/*.go` (refactor target)
+  - `.pre-commit-config.yaml` (enhance validation)
+  - `deployments/**` (36 config files, 24 compose files, secrets)
+  - `configs/**` (55 config files to restructure)
+  - `deployments/template/config/` (needs 4 template files)
+
+**Configuration Schema Requirements** (NEW - quizme-v2 Q4:C):
+- Config files: `PRODUCT-SERVICE-app-{common,sqlite-1,postgresql-1,postgresql-2}.yml`
+- Schema must define: server settings, database settings, telemetry, security
+- Validation rules: bind addresses, ports, database URLs, secret references
+- Documentation: Add to ARCHITECTURE.md Section 12.5 or create CONFIG-SCHEMA.md
 
 ## Phases
 
-### Phase 0.5: Demo Files Archive (1h) [Status: ☐ TODO]
-**Objective**: Archive demo files for future research
-- Create docs/demo-brainstorm/ and docs/demo-brainstorm/archive/
-- Move compose.demo.yml to archive
-- Create DEMO-BRAINSTORM.md stub for future research
-- **Success**: Demo files archived, path cleared for main work
+### Phase 0.5: Demo Files Archiving (2h) [Status: ☐ TODO]
+**Objective**: Archive demo files under docs/demo-brainstorm/ (preserving for future)
+- Create directory structure
+- Move sm-kms/compose.demo.yml
+- Create DEMO-BRAINSTORM.md stub
+- **Success**: No demo files in deployments/, preserved in docs/
 
-### Phase 1: Structural Cleanup (2h) [Status: ☐ TODO]
-**Objective**: Remove redundant files based on completed analysis
-- Delete 2 .gitkeep files (cipher-im/config/, configs/)
-- Delete 2 duplicate otel-collector-config.yaml files (template/, cipher-im/)
-- Create template/config/ files (4 config placeholders)
-- Document decisions in RATIONALE.md
-- **Success**: Clean structure, template complete, decisions documented
+### Phase 1: Structural Cleanup (3h) [Status: ☐ TODO]
+**Objective**: Delete redundant files, create missing template configs
+- Task 1.1: Delete 2 .gitkeep files
+- Task 1.2: Delete 2 duplicate otel configs (keep shared-telemetry)
+- Task 1.3: Create 4 template config files
+- **Success**: No .gitkeep with content, single otel config, template complete
 
-### Phase 2: Enhance Docker Compose Validation (3h) [Status: ☐ TODO]
-**Objective**: Prevent VS Code validation errors from reaching commits
-- Enhance lint-compose to use `docker compose config --quiet`
-- Add schema validation for all compose files
-- Test against all 24 compose files
-- Add tests with ≥98% coverage
-- **Success**: Comprehensive compose validation catches schema errors
+### Phase 2: Compose Validation Enhancement (3h) [Status: ☐ TODO]
+**Objective**: Add docker compose config validation to pre-commit
+- Update .pre-commit-config.yaml with schema validation
+- Test with all compose files
+- Verify catches VS Code-reported errors
+- **Success**: Pre-commit prevents invalid compose commits
 
-### Phase 3: CICD Refactoring - Deployments (6h) [Status: ☐ TODO]
-**Objective**: Comprehensive deployment validation
-- Complete file lists for ALL expected files
-- Add suite/product/service directory filtering
-- Validate template/ contents (compose files + config files)
-- Validate shared-* directories
-- Credential validation (no hardcoded passwords/peppers/unseals)
-- Tests with ≥98% coverage
-- **Success**: Rigorous deployment structure validation
+### Phase 3: CICD Foundation (10h) [Status: ☐ TODO]
+**Objective**: Create listing files and structural mirror validation
+- Task 3.1: Generate JSON listing files with metadata (4h)
+- Task 3.2: Implement ValidateStructuralMirror (4h)
+- Task 3.3: Write comprehensive tests (2h)
+- **Success**: JSON listings exist, mirror validation correct, ≥95% coverage
 
-### Phase 4: CICD Refactoring - Configs (6h) [Status: ☐ TODO]
-**Objective**: Establish rigid ./configs/ validation matching ./deployments/
-- Design exact mirror structure (cryptoutil/, PRODUCT/, PRODUCT-SERVICE/)
-- Implement comprehensive file lists
-- Add credential validation
-- Validate shared directories
-- Tests with ≥98% coverage
-- **Success**: ./configs/ validation matches ./deployments/ rigor
+### Phase 4: CICD Comprehensive Refactoring (28h) [Status: ☐ TODO]
+**Objective**: Rigorous validation for compose and config files
+- Task 4.0: Define config file schema (3h) **[NEW]**
+- Task 4.1: Implement comprehensive ValidateComposeFiles (10h)
+- Task 4.2: Write tests for compose validation (3h)
+- Task 4.3: Implement comprehensive ValidateConfigFiles (8h)
+- Task 4.4: Write tests for config validation (4h)
+- **Success**: All validation types implemented, tested, ≥95% coverage
 
-### Phase 5: Config Directory Restructuring (8h) [Status: ☐ TODO]
-**Objective**: Migrate all 55 config files to rigid structure
-- Create suite/product/service hierarchy
-- Migrate ALL 55 files using `git mv`
-- Update ALL references in code/docs
-- Test suite/product/service level CLI runs
-- CICD validation passes
-- **Success**: ./configs/ mirrors ./deployments/, all workflows passing
+**Compose Validation Types** (7 total - quizme-v2 Q3:C):
+1. Schema validation (docker compose config --quiet)
+2. Port conflict detection
+3. Health check presence
+4. Service dependency chains
+5. Secret reference validation
+6. No hardcoded credentials
+7. Bind mount security
 
-### Phase 6: Documentation Updates (4h) [Status: ☐ TODO]
-**Objective**: Update ARCHITECTURE.md and propagate changes
-- Document ./configs/ rigid structure
-- Document CICD validation enhancements
-- Document otel-collector canonical source
-- Update ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
-- Propagate via bidirectional links
-- **Success**: Complete accurate documentation
+**Config Validation Types** (5 total - quizme-v2 Q4:C):
+1. YAML syntax
+2. Format validation (bind addresses, ports, URLs)
+3. Cross-reference with compose services
+4. Bind address policy enforcement
+5. Secret reference validation
 
-### Phase 7: Quality Gates (4h) [Status: ☐ TODO]
-**Objective**: ALL quality requirements met
-- Build: `go build ./...`
-- Tests: `go test ./...` ≥95% coverage
-- Linting: `golangci-lint run` clean
-- Pre-commit: All hooks passing
-- Integration/E2E: All passing
-- Mutations: ≥95% (≥98% CICD)
-- **Success**: All quality gates green
+### Phase 5: Config Directory Restructuring (6h) [Status: ☐ TODO]
+**Objective**: Mirror configs/ to match deployments/ structure
+- Task 5.1: Audit current configs/ structure (1h)
+- Task 5.2: Identify orphans (configs without deployments) (1h)
+- Task 5.3: Create configs/orphaned/, move orphans, restructure valid (3h)
+- Task 5.4: Validate mirror correctness (1h)
+- **Success**: Exact mirror for valid configs, orphans preserved, validation passes
+
+### Phase 6: Documentation & Integration (3h) [Status: ☐ TODO]
+**Objective**: Update docs and integrate into workflows
+- Update ARCHITECTURE.md with schema
+- Update instructions files
+- Integrate into CI/CD workflows
+- **Success**: Docs accurate, CI/CD enforces validations
+
+### Phase 7: Comprehensive Testing & Quality Gates (5h) [Status: ☐ TODO]
+**Objective**: End-to-end verification and mutation testing
+- E2E tests for all CICD commands
+- Mutation testing (≥95% minimum)
+- Pre-commit hook verification
+- **Success**: All quality gates passing, evidence documented
+
+## Executive Decisions
+
+### Decision 1: File Listing Format (quizme-v2 Q1)
+
+**Options**:
+- A: Simple newline-separated list
+- B: Hierarchical with indentation
+- C: JSON with metadata ✓ **SELECTED**
+- D: Simple list with comment headers
+
+**Decision**: Option C selected - JSON with type/status metadata
+
+**Rationale**:
+- Rich metadata enables type-specific validation (compose vs config vs secret)
+- Status tracking (required vs optional) supports validation rules
+- Future extensibility (can add: owner, validation-rules, last-modified)
+- Parsing complexity acceptable for quality benefits
+
+**Alternatives Rejected**:
+- Option A: Too simple, loses type information
+- Option B: Human-readable but hard to parse programmatically
+- Option D: Comments fragile, not machine-parseable
+
+**Impact**:
+- Task 3.1: Generate JSON (not text) - adds 1h LOE
+- ValidateStructuralMirror: Must parse JSON - adds complexity
+- Future: Can add validation-specific metadata fields
+
+**Evidence**: User selected "C" in quizme-v2.md
+
+### Decision 2: Mirror Strictness (quizme-v2 Q2)
+
+**Options**:
+- A: Exact 1:1 PRODUCT-SERVICE only
+- B: Exact 1:1 for all with placeholders
+- C: Deployments-driven strict, configs can have extras ✓ **SELECTED**
+- D: Bidirectional loose with exceptions
+
+**Decision**: Option C selected - One-way strict validation
+
+**Rationale**: User stated "the validations must be strict within each of their ./configs/ and ./deployments/ directories, but the presence of extra config files that do not have a corresponding deployment is allowed. This allows for flexibility in handling infrastructure and template cases without blocking the migration."
+
+**Interpretation**:
+- MANDATORY: Every deployments/ directory MUST have configs/ counterpart
+- ALLOWED: configs/ CAN have extras (orphaned files) - handled in Decision 5
+- Infrastructure: May have minimal configs/ (README or excluded from validation)
+- Template: Likely excluded from validation (special case)
+
+**Alternatives Rejected**:
+- Option A: Too restrictive, blocks infrastructure handling
+- Option B: Creates unnecessary placeholder directories
+- Option D: Too loose, doesn't enforce deployments → configs mirror
+
+**Impact**:
+- ValidateStructuralMirror: One-way check (deployments → configs)
+- Orphan handling: Required (see Decision 5)
+- Phase 5: Migration doesn't fail on orphans
+
+**Evidence**: User selected "C" with detailed explanation in quizme-v2.md
+
+### Decision 3: Compose Validation Scope (quizme-v2 Q3)
+
+**Options**:
+- A: Minimal (schema only) - 2h
+- B: Moderate (schema + runtime) - 4-5h
+- C: Comprehensive (schema + runtime + security) ✓ **SELECTED** - 8-10h
+- D: Staged (A now, B later, C future)
+
+**Decision**: Option C selected - Full comprehensive validation
+
+**Rationale**: User stated "C; rigourous!!!!" indicating maximum quality requirement
+
+**Validation Types** (7 total):
+1. Schema: `docker compose config --quiet`
+2. Port conflicts: Detect overlapping host port mappings
+3. Health checks: ALL services MUST have health checks
+4. Dependencies: Validate depends_on chains correct
+5. Secrets: All secrets defined in compose secrets section
+6. Credentials: NO hardcoded passwords in environment
+7. Security: NO /run/docker.sock bind mounts
+
+**Alternatives Rejected**:
+- Option A: Too minimal, misses real issues
+- Option B: Moderate but doesn't catch security issues
+- Option D: Staged approach rejected (user wants rigorous NOW)
+
+**Impact**:
+- Task 4.1 LOE: 3h → 10h (7 validation types)
+- Task 4.2 LOE: 2h → 3h (test coverage for all types)
+- Phase 4 total: +7h from original estimate
+- Pre-commit performance: May be slower (~30-60s for all validations)
+
+**Evidence**: User selected "C; rigourous!!!!" in quizme-v2.md
+
+### Decision 4: Config Validation Scope (quizme-v2 Q4)
+
+**Options**:
+- A: Minimal (YAML syntax only) - 1-2h
+- B: Moderate (syntax + format) - 3-4h
+- C: Comprehensive (syntax + format + cross-reference) ✓ **SELECTED** - 6-8h
+- D: Staged (A now, B later, C future)
+
+**Decision**: Option C selected - Full comprehensive validation
+
+**Rationale**: User stated "C; rigourous!!!!" matching compose validation requirement
+
+**Validation Types** (5 total):
+1. YAML syntax: Parse and validate well-formed
+2. Format: Bind addresses (valid IPv4/IPv6), port ranges (1-65535), database URL structure
+3. Cross-reference: Config service names match compose.yml services
+4. Policy: Admin bind MUST be 127.0.0.1, public SHOULD be 0.0.0.0 (containers)
+5. Secrets: Database passwords reference secrets (not inline)
+
+**PREREQUISITE WORK**:
+- NEW Task 4.0: Define config file schema (2-3h)
+- Schema must document: server settings, database, telemetry, security
+- Add to ARCHITECTURE.md Section 12.5 or create CONFIG-SCHEMA.md
+
+**Alternatives Rejected**:
+- Option A: Too minimal, allows nonsense configs
+- Option B: Moderate but doesn't validate correctness
+- Option D: Staged approach rejected (user wants rigorous NOW)
+
+**Impact**:
+- NEW Task 4.0: Schema definition (3h)
+- Task 4.3 LOE: 3h → 8h (5 validation types + schema)
+- Task 4.4 LOE: 2h → 4h (test all validation types)
+- Phase 4 total: +11h from original estimate
+- Risk: Schema definition may require iteration
+
+**Evidence**: User selected "C; rigourous!!!!" in quizme-v2.md
+
+### Decision 5: Orphaned Config Handling (quizme-v2 Q5)
+
+**Options**:
+- A: Validation error (refuse migration until manual cleanup)
+- B: Create placeholder deployments automatically
+- C: Orphaned directory (move to configs/orphaned/) ✓ **SELECTED**
+- D: Best-effort with logging (skip orphans)
+
+**Decision**: Option C selected - Safe preservation in orphaned directory
+
+**Rationale**: Non-destructive, preserves data, allows manual review after migration
+
+**Implementation**:
+1. Pre-migration: Identify configs/ files without deployments/ counterpart
+2. Create configs/orphaned/ directory
+3. Move all orphans during Phase 5 Task 5.3
+4. Create configs/orphaned/README.md explaining what to review
+5. Continue migration for valid configs
+6. Log to test-output/phase5/orphaned-configs.txt
+
+**Alternatives Rejected**:
+- Option A: Too restrictive, blocks autonomous execution
+- Option B: Auto-creation risky (may create wrong structure)
+- Option D: Leaving orphans in place causes confusion
+
+**Impact**:
+- Phase 5: Add orphan handling logic (+ 1-2h)
+- Manual review: Required AFTER migration (not blocking)
+- Rollback: Simple (move files back from orphaned/)
+
+**Evidence**: User selected "C" in quizme-v2.md
 
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
 |------|-------------|--------|------------|
-| Breaking CLI workflows | Medium | High | Test every suite/product/service run after migration |
-| Breaking E2E tests | Low | High | E2E tests after every structural change |
-| Incomplete CICD validation | Low | Medium | Comprehensive test coverage ≥98%, mutation testing |
-| Config migration errors | Medium | High | Use `git mv`, validate all references, keep evidence |
-| Documentation drift | Low | Medium | Bidirectional link validation, propagation checks |
+| Comprehensive validation discovers many issues | High | High | Incremental fixes, extensive testing, evidence collection |
+| Schema definition requires multiple iterations | Medium | Medium | Reference existing configs, user review after draft |
+| Pre-commit hooks too slow (>60s) | Medium | Medium | Optimize validation, consider parallel execution |
+| Orphaned config count higher than expected | Medium | Low | Orphaned directory handles any count, manual review after |
+| JSON parsing complexity causes bugs | Low | Medium | Comprehensive tests, schema validation for JSON structure |
+
+## Quality Gates - MANDATORY
+
+**Per-Action Quality Gates**:
+- ✅ All tests pass (100%, zero skips)
+- ✅ Build clean (go build ./...)
+- ✅ Linting clean (golangci-lint run)
+- ✅ No new TODOs without tracking
+
+**Coverage Targets**:
+- ✅ CICD code: ≥98% line coverage (infrastructure/utility category)
+- ✅ main() functions: 0% acceptable if internalMain() ≥98%
+- ✅ Test files themselves: Exempt from coverage
+
+**Mutation Testing Targets**:
+- ✅ CICD code: ≥98% (NO EXCEPTIONS - infrastructure/utility)
+- ✅ Validation logic: ≥95% minimum
+
+**Per-Phase Quality Gates**:
+- ✅ Unit + integration tests complete before next phase
+- ✅ E2E tests pass for CICD commands
+- ✅ Pre-commit hooks verification
+- ✅ Evidence documented (test output, logs)
+
+**Overall Project Quality Gates**:
+- ✅ All phases complete with evidence
+- ✅ All test categories passing
+- ✅ Coverage and mutation targets met
+- ✅ CI/CD workflows green
+- ✅ Documentation updated
 
 ## Success Criteria
 
-- [ ] All redundant files removed (2 .gitkeep, 2 otel configs)
-- [ ] Demo files archived for future research
-- [ ] template/config/ has 4 required config files
-- [ ] Docker Compose validation enhanced (schema checks)
-- [ ] CICD validates ./deployments/ comprehensively
-- [ ] CICD validates ./configs/ comprehensively
-- [ ] ./configs/ exact mirror of ./deployments/ (55 files migrated)
-- [ ] All quality gates passing (build, tests, coverage, mutations, linting)
-- [ ] Documentation complete and propagated
+- [ ] All 7 phases complete
+- [ ] All quality gates passing (≥98% coverage, ≥98% mutations for CICD)
+- [ ] Comprehensive validation prevents compose/config errors
+- [ ] Mirror validation ensures deployments ↔ configs correctness
+- [ ] Orphaned configs preserved for review
+- [ ] Documentation updated (ARCHITECTURE.md + CONFIG-SCHEMA.md)
 - [ ] CI/CD workflows green
+- [ ] Evidence archived (test-output/)
+
+## Timeline Summary
+
+**Updated Estimate**: 40-45 hours total (increased from 30h due to comprehensive validation scope)
+
+| Phase | Original | Updated | Reason |
+|-------|----------|---------|--------|
+| 0.5 | 2h | 2h | No change |
+| 1 | 3h | 3h | No change |
+| 2 | 3h | 3h | No change |
+| 3 | 8h | 10h | JSON complexity (+2h) |
+| 4 | 12h | 28h | Schema + comprehensive validations (+16h) |
+| 5 | 4h | 6h | Orphan handling (+2h) |
+| 6 | 3h | 3h | No change |
+| 7 | 5h | 5h | No change |
+| **Total** | **30h** | **40-45h** | **Comprehensive scope (+10-15h)** |
+
+**Justification**: User demands rigorous comprehensive validation (quizme-v2 "rigourous!!!!"). Quality over speed.
