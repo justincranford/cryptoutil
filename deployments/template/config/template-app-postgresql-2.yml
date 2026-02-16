@@ -1,0 +1,11 @@
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'SERVICE-postgres-2' service name in compose.yml
+# Changing any values here will break cryptographic interoperability and service identification
+
+# CORS configuration - HTTPS origins only (from default config)
+cors-origins:
+  - "https://localhost:PORT2"
+  - "https://127.0.0.1:PORT2"
+  - "https://[::1]:PORT2"
+
+otlp-service: SERVICE-postgresql-2
+otlp-hostname: SERVICE-postgresql-2

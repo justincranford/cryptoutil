@@ -1,0 +1,17 @@
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'SERVICE-sqlite-1' service name in compose.yml
+# Changing any values here will break cryptographic interoperability and service identification
+
+# CORS configuration - HTTPS origins only (from default config)
+cors-origins:
+  - "https://localhost:PORT"
+  - "https://127.0.0.1:PORT"
+  - "https://[::1]:PORT"
+
+otlp-service: SERVICE-sqlite-1
+otlp-hostname: SERVICE-sqlite-1
+
+# SQLite in-memory database for containerized testing.
+# Using explicit sqlite:// URL instead of dev: true allows containerized environments
+# to use bind-public-address: 0.0.0.0 (required for container networking).
+# The dev: true flag triggers validation that rejects 0.0.0.0 (intended for Windows dev).
+database-url: "sqlite://file::memory:?cache=shared"
