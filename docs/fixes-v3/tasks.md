@@ -1,6 +1,6 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 18 of 56 tasks complete (32%)
+**Status**: 19 of 56 tasks complete (34%)
 **Last Updated**: 2026-02-17 (Phase 3 in progress)
 **Created**: 2026-02-17
 
@@ -474,20 +474,20 @@
   - Additional test cases in *_test.go files (as needed to kill mutants)
 
 #### Task 3.11: Code Quality and Linting Pass
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.5h
 - **Dependencies**: Task 3.10
 - **Description**: Comprehensive linting and code quality pass for all Phase 3 code
 - **Acceptance Criteria**:
-  - [ ] Linting clean: `golangci-lint run ./internal/cmd/cicd/lint_deployments/...` (zero warnings)
-  - [ ] Build clean: `go build ./...` (zero errors)
-  - [ ] Tests pass: `go test ./...` (100% passing, zero skips)
-  - [ ] Race detector clean: `go test -race -count=2 ./internal/cmd/cicd/lint_deployments/...`
-  - [ ] No new TODOs without tracking in tasks.md
-  - [ ] File sizes ≤500 lines (soft limit 300, hard limit 500)
-  - [ ] Evidence logged: test-output/phase3/task-3.11-quality-pass.log
+  - [x] Linting clean: `golangci-lint run ./internal/cmd/cicd/lint_deployments/...` (zero warnings)
+  - [x] Build clean: `go build ./...` (zero errors)
+  - [x] Tests pass: 100% passing, zero skips, 97.9% coverage
+  - [x] Race detector clean: `go test -race -count=2 ./internal/cmd/cicd/lint_deployments/...`
+  - [x] No new TODOs without tracking in tasks.md
+  - [x] File sizes ≤500 lines - split validate_secrets_test.go (813→411+413), validate_all_test.go (557→419+149)
+  - [x] Evidence logged: test-output/phase3/task-3.11-quality-pass.log
 - **Files**:
   - `test-output/phase3/task-3.11-quality-pass.log` (linting + build + test output)
 
