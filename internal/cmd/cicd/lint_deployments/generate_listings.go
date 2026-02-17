@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 )
+
 const (
 	fileTypeSecret  = "secret"
 	fileTypeCompose = "compose"
@@ -19,7 +20,9 @@ const (
 	fileTypeOther   = "other"
 
 	filePermissions = 0o600
+	dirPermissions  = 0o750
 )
+
 // FileEntry represents metadata about a single file in the listing.
 type FileEntry struct {
 	Type   string `json:"type"`
