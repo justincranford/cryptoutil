@@ -90,4 +90,3 @@ type ValidationResult struct {
 	Errors         []string
 	Warnings       []string
 }
-

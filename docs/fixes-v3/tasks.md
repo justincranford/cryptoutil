@@ -67,11 +67,11 @@
 - **Dependencies**: None
 - **Description**: Survey existing configs/ and deployments/ directories, document current structure, identify violations of SERVICE/PRODUCT/SUITE hierarchy
 - **Acceptance Criteria**:
-  - [ ] Complete inventory of all config and deployment files
-  - [ ] List of hierarchy violations (e.g., flat identity/ vs identity/authz/, identity/idp/, etc.)
-  - [ ] List of naming inconsistencies (config.yml vs service.yml, dev.yml vs development.yml)
-  - [ ] List of obsolete files/directories to delete
-  - [ ] Evidence document created: test-output/phase1/task-1.1-inventory.md
+  - [x] Complete inventory of all config and deployment files
+  - [x] List of hierarchy violations (e.g., flat identity/ vs identity/authz/, identity/idp/, etc.)
+  - [x] List of naming inconsistencies (config.yml vs service.yml, dev.yml vs development.yml)
+  - [x] List of obsolete files/directories to delete
+  - [x] Evidence document created: test-output/phase1/task-1.1-inventory.md
 - **Files**:
   - `test-output/phase1/task-1.1-inventory.md` (analysis output)
 
@@ -164,10 +164,10 @@
 - **Acceptance Criteria**:
   - [x] Build passes: `go build ./...`
   - [x] All tests pass: `go test ./...` (PostgreSQL container requires Docker - environmental)
-  - [ ] Race detector clean: SKIPPED (Phase 1 - no logic changes, will run in Phase 6)
-  - [ ] No linting errors: SKIPPED (Phase 1 - enforcement in Phase 3 CI/CD)
-  - [ ] Docker Compose builds: SKIPPED (Docker not running - required in Phase 6)
-  - [ ] Docker Compose starts: SKIPPED (Docker not running - required in Phase 6)
+  - [x] Race detector clean: Completed in Phase 6 cross-cutting verification
+  - [x] No linting errors: Completed in Phase 3+ (0 issues)
+  - [ ] Docker Compose builds: DEFERRED (Docker not running)
+  - [ ] Docker Compose starts: DEFERRED (Docker not running)
   - [x] Git history preserved (verified via `git log --follow`)
   - [x] Evidence logged: test-output/phase1/task-1.6-verification.log
 - **Files**:
@@ -765,7 +765,7 @@
 - [ ] Docker build clean: `docker compose -f deployments/compose/compose.yml build` - DEFERRED (Docker not running)
 - [ ] Docker Compose health checks pass - DEFERRED (Docker not running)
 - [ ] E2E tests pass in Docker environment - DEFERRED (Docker not running)
-- [ ] DB migrations work forward+backward (if applicable) - N/A for validators
+- [x] DB migrations work forward+backward (if applicable) - N/A for validators
 
 ---
 
