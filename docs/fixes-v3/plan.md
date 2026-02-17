@@ -168,7 +168,7 @@ This plan addresses structural inconsistencies in configs/ and deployments/ dire
 
 ---
 
-### Phase 3: CICD Validation Implementation (18h) [Status: ☐ TODO]
+### Phase 3: CICD Validation Implementation (23h) [Status: ☐ TODO]
 
 **Objective**: Implement comprehensive cicd lint-deployments validation (8 types from quizme Q5, Q6 answers)
 
@@ -205,7 +205,7 @@ This plan addresses structural inconsistencies in configs/ and deployments/ dire
 
 ---
 
-### Phase 4: ARCHITECTURE.md Updates (6h) [Status: ☐ TODO]
+### Phase 4: ARCHITECTURE.md Updates (8h) [Status: ☐ TODO]
 
 **Objective**: Document deployment/config rigor patterns in ARCHITECTURE.md
 
@@ -216,7 +216,7 @@ This plan addresses structural inconsistencies in configs/ and deployments/ dire
    - Pre-commit hook integration
 2. **Section 12.5**: Config File Architecture
    - SERVICE/PRODUCT/SUITE hierarchy
-   - Template pattern requirements
+   - Template pattern requirements (Decision 4, Decision 4A)
    - Naming conventions
    - Schema compliance (CONFIG-SCHEMA.md reference)
 3. **Section 12.6**: Secrets Management
@@ -224,6 +224,7 @@ This plan addresses structural inconsistencies in configs/ and deployments/ dire
    - File permissions (440)
    - NO inline credentials
 4. **Config Pattern Examples**: Add examples for each validation type
+5. **Validate cross-references**: Ensure consistency with instruction files - PRIORITY 1
 
 **Success Criteria**:
 - ARCHITECTURE.md sections 12.4-12.6 complete
@@ -234,7 +235,7 @@ This plan addresses structural inconsistencies in configs/ and deployments/ dire
 
 ---
 
-### Phase 5: Instruction File Propagation (4h) [Status: ☐ TODO]
+### Phase 5: Instruction File Propagation (6h) [Status: ☐ TODO]
 
 **Objective**: Propagate ARCHITECTURE.md deployment patterns to all instruction files
 
@@ -250,6 +251,7 @@ This plan addresses structural inconsistencies in configs/ and deployments/ dire
 3. Update agent files if needed:
    - `.github/agents/implementation-planning.agent.md` (if deployment patterns referenced)
    - `.github/agents/implementation-execution.agent.md` (if deployment patterns referenced)
+4. **Automated consistency check**: Verify propagation completeness - PRIORITY 1
 
 **Propagation Verification**:
 - Search for ARCHITECTURE.md deployment sections in instruction files
@@ -404,6 +406,75 @@ This plan addresses structural inconsistencies in configs/ and deployments/ dire
 - Template updates propagate to all configs automatically
 
 **Evidence**: User selected "D" in quizme-v1.md Q4
+
+---
+
+### Decision 4A: Template Pattern Definition (CRITICAL - From Analysis)
+
+**Question**: What concrete rules define "follows template pattern" for validation?
+
+**Context**: Decision 4 mandates template-driven generation. Need concrete validation rules for Phase 2 implementation and Phase 3 ValidateSchema.
+
+**Template Pattern Compliance Rules**:
+
+```yaml
+Template Pattern Validation:
+  Naming:
+    - Pattern: {PRODUCT}-app-{variant}.yml
+    - Variants: common, sqlite-1, postgresql-1, postgresql-2
+    - Example: cipher-app-common.yml ✓, cipher_app.yml ✗, Cipher-App.yml ✗
+  
+  Structure:
+    - Required keys: service-name, bind-public-port, bind-private-port, database-url, observability
+    - Key naming: ALL kebab-case (no snake_case, no camelCase)
+    - Nesting: Max 3 levels deep
+  
+  Value Patterns:
+    - Port offsets:
+      - SERVICE: Base range (e.g., cipher-im 8700-8799)
+      - PRODUCT: SERVICE + 10000 (e.g., cipher 18700-18799)
+      - SUITE: SERVICE + 20000 (e.g., cryptoutil 28700-28799)
+    - Delegation:
+      - PRODUCT configs delegate to SERVICE configs (relative paths: ../cipher-im/)
+      - SUITE configs delegate to PRODUCT configs (relative paths: ../cipher/)
+    - Secrets:
+      - ALL credentials via file:///run/secrets/{secret-name}
+      - NO inline passwords/tokens/keys
+    - Service names:
+      - Match directory name: identity/ → service-name: identity
+      - Match delegation target: cipher/ → delegates-to: cipher-im
+```
+
+**Validation Implementation**:
+- Phase 2 Tasks 2.1-2.6: Manual checklist validation (validators not ready)
+- Phase 3 Task 3.3 ValidateSchema: Automated template pattern checks
+- Phase 6 Task 6.1: Validate all PRODUCT/SUITE configs against template rules
+
+**Examples**:
+
+**Valid PRODUCT Config** (configs/cipher/cipher-app-common.yml):
+```yaml
+service-name: cipher
+bind-public-port: 18080  # SERVICE 8080 + 10000
+bind-private-port: 9090
+delegates-to: ../cipher-im/cipher-im-app-common.yml
+password-file: file:///run/secrets/cipher_db_password
+```
+
+**Invalid PRODUCT Config** (violations):
+```yaml
+serviceName: cipher  # ✗ camelCase (should be service-name)
+bind_public_port: 18080  # ✗ snake_case (should be bind-public-port)
+bind-public-port: 8080  # ✗ No offset (should be 18080 = 8080 + 10000)
+password: "secret123"  # ✗ Inline credential (should be file:///run/secrets/)
+```
+
+**Impact**:
+- Phase 2: Tasks 2.1-2.6 acceptance criteria updated with concrete checklist
+- Phase 3: Task 3.3 ValidateSchema implements template pattern checks
+- Phase 6: Task 6.1 validates ALL PRODUCT/SUITE configs pass template rules
+
+**Evidence**: Identified in deep-analysis.md as CRITICAL improvement (Priority 1)
 
 ---
 

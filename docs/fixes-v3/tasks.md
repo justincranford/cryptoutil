@@ -1,6 +1,6 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 0 of 47 tasks complete (0%)
+**Status**: 0 of 51 tasks complete (0%)
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -533,6 +533,57 @@
 - **Evidence**:
   - `test-output/phase3/task-3.10-mutation-results.txt` - Mutation testing results
 
+#### Task 3.11: Validator Performance Benchmarks (PRIORITY 1 - From Analysis)
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.9
+- **Description**: Add performance benchmarks for all validators to ensure <5s pre-commit
+- **Acceptance Criteria**:
+  - [ ] Benchmark tests: `go test -bench=. ./internal/cmd/cicd/lint_deployments/`
+  - [ ] Target: <5s for incremental validation (staged files only)
+  - [ ] Target: <30s for full validation (all 50+ configs)
+  - [ ] Per-validator benchmarks: BenchmarkValidateNaming, BenchmarkValidateSchema, etc.
+  - [ ] Results documented: `test-output/phase3/task-3.11-benchmark-results.txt`
+  - [ ] Identify bottlenecks for optimization
+- **Files**:
+  - `internal/cmd/cicd/lint_deployments/validate_naming_bench_test.go` (new)
+  - `internal/cmd/cicd/lint_deployments/validate_schema_bench_test.go` (new)
+  - `internal/cmd/cicd/lint_deployments/validate_ports_bench_test.go` (new)
+  - (similar for all 8 validators)
+- **Evidence**:
+  - `test-output/phase3/task-3.11-benchmark-results.txt` - Benchmark report
+
+#### Task 3.12: Implement Validation Caching (PRIORITY 1 - From Analysis)
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.11
+- **Description**: Add file hash-based validation caching to achieve <5s pre-commit
+- **Acceptance Criteria**:
+  - [ ] Cache structure:
+    ```go
+    type ValidationCache struct {
+        FileHash  string    // SHA256 of file content
+        Result    error     // cached validation result
+        Timestamp time.Time // cache creation time
+    }
+    ```
+  - [ ] Cache storage: `.git/hooks/validation-cache.json`
+  - [ ] Cache invalidation: On file content change (hash mismatch)
+  - [ ] Cache hit: Skip validation, use cached result (saves ~500ms per file)
+  - [ ] Cache miss: Run validation, update cache
+  - [ ] Parallel validation: Both cached and uncached files
+  - [ ] Tests: Unit tests for cache operations (≥98% coverage)
+  - [ ] Performance: Measure cache hit improvement
+- **Files**:
+  - `internal/cmd/cicd/lint_deployments/cache.go` (new)
+  - `internal/cmd/cicd/lint_deployments/cache_test.go` (new)
+- **Evidence**:
+  - `test-output/phase3/task-3.12-cache-performance.txt` - Before/after benchmarks
+
 ---
 
 ### Phase 4: ARCHITECTURE.md Updates (6h)
@@ -615,6 +666,30 @@
 - **Files**:
   - `docs/ARCHITECTURE-INDEX.md` (updated)
 
+#### Task 4.5: Validate ARCHITECTURE.md Cross-References (PRIORITY 1 - From Analysis)
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 4.1-4.3
+- **Description**: Create tool to validate ARCHITECTURE.md cross-references are consistent
+- **Acceptance Criteria**:
+  - [ ] Created: `cmd/cicd/validate-arch-consistency/`
+  - [ ] Validates: All section references in ARCHITECTURE.md exist
+  - [ ] Validates: All references to CONFIG-SCHEMA.md point to existing sections
+  - [ ] Validates: All instruction file references to ARCHITECTURE.md sections exist
+  - [ ] Extracts: Patterns from ARCHITECTURE.md Section 12.4-12.6
+  - [ ] Checks: Each pattern mentioned in instruction files
+  - [ ] Reports: Missing references, broken links, orphaned sections
+  - [ ] Tests: Unit tests ≥98% coverage
+  - [ ] Run: `cicd validate-arch-consistency`
+- **Files**:
+  - `cmd/cicd/validate_arch_consistency.go` (new)
+  - `internal/cmd/cicd/validate_arch_consistency/validator.go` (new)
+  - `internal/cmd/cicd/validate_arch_consistency/validator_test.go` (new)
+- **Evidence**:
+  - `test-output/phase4/task-4.5-cross-ref-report.txt` - Validation report
+
 ---
 
 ### Phase 5: Instruction File Propagation (4h)
@@ -673,6 +748,44 @@
   - [ ] Documented: Changes made or "no changes needed"
 - **Evidence**:
   - `test-output/phase5/task-5.3-agent-review.txt` - Agent file review results
+
+#### Task 5.4: Automated Doc Consistency Check (PRIORITY 1 - From Analysis)
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 5.3
+- **Description**: Create tool to verify ARCHITECTURE.md patterns propagated to instruction files
+- **Acceptance Criteria**:
+  - [ ] Created: `cmd/cicd/check-doc-consistency/`
+  - [ ] Extracts: Headings from ARCHITECTURE.md sections 12.4-12.6
+  - [ ] Searches: Each heading in instruction files (.github/instructions/)
+  - [ ] Reports: Patterns in ARCHITECTURE.md but missing in instructions (not propagated)
+  - [ ] Reports: Patterns in instructions but not in ARCHITECTURE.md (orphaned)
+  - [ ] Reports: Conflicting descriptions between ARCHITECTURE.md and instructions
+  - [ ] Uses: Checklist-based approach (per deep-analysis.md recommendation)
+  - [ ] Checklist example:
+    ```markdown
+    ### ARCHITECTURE.md Section 12.4 - Deployment Validation
+    - [ ] 04-01.deployment.instructions.md: ValidateNaming documented
+    - [ ] 04-01.deployment.instructions.md: ValidateKebabCase documented
+    - [ ] 04-01.deployment.instructions.md: ValidateSchema documented
+    - [ ] 04-01.deployment.instructions.md: ValidatePorts documented
+    - [ ] 04-01.deployment.instructions.md: ValidateTelemetry documented
+    - [ ] 04-01.deployment.instructions.md: ValidateAdmin documented
+    - [ ] 04-01.deployment.instructions.md: ValidateConsistency documented
+    - [ ] 04-01.deployment.instructions.md: ValidateSecrets documented
+    - [ ] 02-01.architecture.instructions.md: Cross-reference to Section 12.4
+    ```
+  - [ ] Tests: Unit tests ≥98% coverage
+  - [ ] Run: `cicd check-doc-consistency`
+- **Files**:
+  - `cmd/cicd/check_doc_consistency.go` (new)
+  - `internal/cmd/cicd/check_doc_consistency/checker.go` (new)
+  - `internal/cmd/cicd/check_doc_consistency/checker_test.go` (new)
+  - `internal/cmd/cicd/check_doc_consistency/checklist.go` (propagation checklist)
+- **Evidence**:
+  - `test-output/phase5/task-5.4-consistency-report.txt` - Consistency check report
 
 ---
 
