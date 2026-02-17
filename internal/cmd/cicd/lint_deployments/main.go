@@ -25,6 +25,8 @@ func Main(args []string) int {
 			return mainValidateCompose(args[1:])
 		case "validate-config":
 			return mainValidateConfig(args[1:])
+		case "validate-all":
+			return mainValidateAll(args[1:])
 		}
 	}
 
@@ -170,6 +172,39 @@ func mainValidateCompose(args []string) int {
 	fmt.Print(FormatComposeValidationResult(composeResult))
 
 	if !composeResult.Valid {
+		return 1
+	}
+
+	return 0
+}
+
+// mainValidateAll handles the validate-all subcommand.
+func mainValidateAll(args []string) int {
+	deploymentsDir := defaultDeploymentsDir
+	configsDir := defaultConfigsDir
+
+	if len(args) >= 2 {
+		deploymentsDir = args[0]
+		configsDir = args[1]
+	}
+
+	// Validate directories exist.
+	if _, err := os.Stat(deploymentsDir); os.IsNotExist(err) {
+		_, _ = fmt.Fprintf(os.Stderr, "ERROR: Deployments directory does not exist: %s\n", deploymentsDir)
+
+		return 1
+	}
+
+	if _, err := os.Stat(configsDir); os.IsNotExist(err) {
+		_, _ = fmt.Fprintf(os.Stderr, "ERROR: Configs directory does not exist: %s\n", configsDir)
+
+		return 1
+	}
+
+	result := ValidateAll(deploymentsDir, configsDir)
+	fmt.Print(FormatAllValidationResult(result))
+
+	if !result.AllPassed() {
 		return 1
 	}
 

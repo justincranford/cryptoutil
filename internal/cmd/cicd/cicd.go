@@ -32,6 +32,8 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilLintDeployments.Main(append([]string{"validate-compose"}, args[2:]...))
 	case "validate-config":
 		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, args[2:]...))
+	case "validate-all":
+		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, args[2:]...))
 	case "help", "--help", "-h":
 		printUsage(stdout)
 
@@ -54,11 +56,17 @@ Commands:
   lint-deployments [dir]    Validate deployment directory structures
                             Default dir: deployments/
 
+  validate-all [deployments-dir configs-dir]
+                            Run all 8 validators sequentially with aggregated reporting
+                            Defaults: deployments/ configs/
+
   help, --help, -h          Show this help message
 
 Examples:
   cicd lint-deployments
   cicd lint-deployments /tmp/test-deployments
+  cicd validate-all
+  cicd validate-all deployments configs
 
 See: docs/ARCHITECTURE-TODO.md for architectural documentation (pending).
 `)

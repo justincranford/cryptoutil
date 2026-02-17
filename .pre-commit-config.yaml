@@ -243,6 +243,16 @@ repos:
         require_serial: false
         stages: [pre-commit]
 
+      - id: cicd-validate-all
+        name: Validate all deployment configs and compose files
+        entry: go
+        args: [run, cmd/cicd/main.go, validate-all]
+        language: system
+        files: '(configs|deployments)/.*\.(yml|yaml|secret)$'
+        pass_filenames: false
+        require_serial: true
+        stages: [pre-commit]
+
       - id: cicd-format-go-only
         name: Run custom CI/CD format checks
         entry: go
