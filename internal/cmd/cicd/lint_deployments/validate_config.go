@@ -28,8 +28,10 @@ const maxPort = 65535
 const mandatoryAdminBindAddress = "127.0.0.1"
 
 // statusPass and statusFail are shared status labels for validation output formatting.
-const statusPass = "PASS"
-const statusFail = "FAIL"
+const (
+	statusPass = "PASS"
+	statusFail = "FAIL"
+)
 
 // mandatoryProtocol is the only acceptable protocol.
 const mandatoryProtocol = "https"

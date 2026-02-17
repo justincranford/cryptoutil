@@ -69,11 +69,11 @@ func ValidateNaming(rootPath string) (*NamingValidationResult, error) {
 		relPath, _ := filepath.Rel(rootPath, path)
 
 		name := fInfo.Name()
-			// Skip template directory entirely - it uses intentional uppercase
-			// placeholders (PRODUCT-SERVICE, PRODUCT) for template substitution.
-			if fInfo.IsDir() && name == DeploymentTypeTemplate {
-				return filepath.SkipDir
-			}
+		// Skip template directory entirely - it uses intentional uppercase
+		// placeholders (PRODUCT-SERVICE, PRODUCT) for template substitution.
+		if fInfo.IsDir() && name == DeploymentTypeTemplate {
+			return filepath.SkipDir
+		}
 		// Validate directory names.
 		if fInfo.IsDir() {
 			if !isKebabCase(name) {

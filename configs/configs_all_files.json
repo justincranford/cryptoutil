@@ -36,9 +36,9 @@
   "identity/development.yml": {"type":"config","status":"OPTIONAL"},
   "identity/idp/idp-docker.yml": {"type":"config","status":"OPTIONAL"},
   "identity/idp/idp.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/policies/adaptive_auth.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/policies/risk_scoring.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/policies/step_up.yml": {"type":"config","status":"OPTIONAL"},
+  "identity/policies/adaptive-auth.yml": {"type":"config","status":"OPTIONAL"},
+  "identity/policies/risk-scoring.yml": {"type":"config","status":"OPTIONAL"},
+  "identity/policies/step-up.yml": {"type":"config","status":"OPTIONAL"},
   "identity/production.yml": {"type":"config","status":"OPTIONAL"},
   "identity/profiles/authz-idp.yml": {"type":"config","status":"OPTIONAL"},
   "identity/profiles/authz-only.yml": {"type":"config","status":"OPTIONAL"},
@@ -60,5 +60,8 @@
   "orphaned/template/config-pg-2.yml": {"type":"config","status":"OPTIONAL"},
   "orphaned/template/config-sqlite.yml": {"type":"config","status":"OPTIONAL"},
   "orphaned/test/dast-simple-unseal-secret-value-1.secret": {"type":"secret","status":"REQUIRED"},
-  "orphaned/test/test.yml": {"type":"config","status":"OPTIONAL"}
+  "orphaned/test/test.yml": {"type":"config","status":"OPTIONAL"},
+  "sm/kms/config-pg-1.yml": {"type":"config","status":"OPTIONAL"},
+  "sm/kms/config-pg-2.yml": {"type":"config","status":"OPTIONAL"},
+  "sm/kms/config-sqlite.yml": {"type":"config","status":"OPTIONAL"}
 }
