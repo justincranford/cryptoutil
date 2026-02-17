@@ -1,8 +1,8 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 0 of 57 tasks complete (0%)
-**Last Updated**: 2026-02-17
-**Created**: 2026-02-16
+**Status**: 0 of 56 tasks complete (0%)
+**Last Updated**: 2026-02-17 (Quizme-v3 integrated)
+**Created**: 2026-02-17
 
 ## Quality Mandate - MANDATORY
 
@@ -16,14 +16,19 @@
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ **Premature Completion**: NEVER mark phases or tasks complete without objective evidence
 
-**ALL issues are blockers - NO exceptions:**
-
+**ALL issues are blockers - NO exceptions**:
 - ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
 - ✅ **Treat as BLOCKING**: ALL issues block progress to next task
-- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
+- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional
 - ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
 - ✅ **NEVER skip**: Cannot mark phase or task complete with known issues
 - ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
+
+**Git Commit Policy** (from quizme-v3 Q10):
+- **Preferred**: Logical units (group related tasks, ~15-20 commits total for this project)
+- **Fallback**: Per phase (if logical grouping too burdensome, 6 commits total)
+- **Format**: Conventional commits (`refactor(phase1): restructure identity/ - Tasks 1.1-1.3`)
+- **Rationale**: Balances rollback granularity with git history cleanliness, enables bisecting
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
 
@@ -31,335 +36,214 @@
 
 ## Task Checklist
 
-### Phase 1: configs/ Directory Restructuring (12h)
+### Phase 0: Foundation Research (0h) [Status: ✅ COMPLETE]
 
-**Phase Objective**: Restructure configs/ to mirror deployments/ SERVICE-level hierarchy (9 subdirs total)
+**Phase Objective**: Internal research and discovery completed BEFORE creating output plan/tasks. This phase's findings are NOT output documentation but synthesized into plan.md Executive Decisions and tasks.md acceptance criteria.
 
-#### Task 1.1: Rename cipher/ →  cipher-im/
+#### Phase 0 NOT A NUMBERED PHASE IN OUTPUT
+- Phase 0 is internal agent work (research unknowns, define strategic decisions, identify risks)
+- Findings populate plan.md Executive Decisions section (19 decisions)
+- Findings populate tasks.md acceptance criteria (tactical requirements)
+- NO separate ANALYSIS.md file (aligns with Decision 8:A - NO standalone session docs)
+- Research artifacts stored in test-output/phase0-research/ (organized evidence)
+
+---
+
+### Phase 1: File Restructuring & Cleanup (12h)
+
+**Phase Objective**: Reorganize configs/ and deployments/ to match SERVICE/PRODUCT/SUITE hierarchy per Decision 3
+
+#### Task 1.1: Analyze Current Directory Structure
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: None
-- **Description**: Rename configs/cipher/ to configs/cipher-im/ for SERVICE-level naming consistency
+- **Description**: Survey existing configs/ and deployments/ directories, document current structure, identify violations of SERVICE/PRODUCT/SUITE hierarchy
 - **Acceptance Criteria**:
-  - [ ] Directory renamed: `git mv configs/cipher configs/cipher-im`
-  - [ ] Files inside unchanged (no content modifications)
-  - [ ] No broken paths (search codebase for "configs/cipher" references)
-  - [ ] Tests pass: `go test ./...`
-  - [ ] Build clean: `go build ./...`
+  - [ ] Complete inventory of all config and deployment files
+  - [ ] List of hierarchy violations (e.g., flat identity/ vs identity/authz/, identity/idp/, etc.)
+  - [ ] List of naming inconsistencies (config.yml vs service.yml, dev.yml vs development.yml)
+  - [ ] List of obsolete files/directories to delete
+  - [ ] Evidence document created: test-output/phase1/task-1.1-inventory.md
 - **Files**:
-  - `configs/cipher-im/` (renamed from cipher/)
-- **Evidence**:
-  - `test-output/phase1/task-1.1-rename-cipher.log` - Rename verification
+  - `test-output/phase1/task-1.1-inventory.md` (analysis output)
 
-#### Task 1.2: Rename pki/ → pki-ca/
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 1.1 (sequential to avoid path conflicts)
-- **Description**: Rename configs/pki/ to configs/pki-ca/ for SERVICE-level naming consistency
-- **Acceptance Criteria**:
-  - [ ] Directory renamed: `git mv configs/pki configs/pki-ca`
-  - [ ] Files inside unchanged
-  - [ ] No broken paths (search codebase for "configs/pki" references, exclude "configs/pki-ca")
-  - [ ] Tests pass: `go test ./...`
-  - [ ] Build clean: `go build ./...`
-- **Files**:
-  - `configs/pki-ca/` (renamed from pki/)
-- **Evidence**:
-  - `test-output/phase1/task-1.2-rename-pki.log`
-
-#### Task 1.3: Restructure identity/ → 5 SERVICE subdirs
+#### Task 1.2: Restructure identity/ into SERVICE Subdirectories
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 1.2
-- **Description**: Create 5 SERVICE subdirs (authz, idp, rp, rs, spa) under configs/identity/ per Decision 1:C
+- **Dependencies**: Task 1.1
+- **Description**: Create identity/authz/, identity/idp/, identity/rp/, identity/rs/, identity/spa/ subdirectories. Move service-specific files, preserve shared files at identity/ level.
 - **Acceptance Criteria**:
-  - [ ] 5 subdirs created: `identity/{authz,idp,rp,rs,spa}/`
-  - [ ] Files moved to correct subdirs (e.g., authz-app.yml → identity/authz/app.yml)
-  - [ ] Shared files preserved at parent: `identity/{policies/,profiles/,development.yml,production.yml,test.yml}` per Decision 2:B
-  - [ ] Relative references updated in service configs: `../development.yml`
-  - [ ] No broken paths (search for "configs/identity" references)
-  - [ ] Tests pass: `go test ./...`
+  - [ ] 5 new SERVICE subdirectories created (authz, idp, rp, rs, spa)
+  - [ ] Service-specific files moved to appropriate subdirectories
+  - [ ] Shared files remain at identity/ level (policies/, profiles/, *development.yml, *production.yml, *test.yml)
+  - [ ] Git mv used (preserves history)
+  - [ ] Zero broken references (verified by build test)
+  - [ ] Tests pass: `go test ./internal/apps/identity/...`
 - **Files**:
-  - `configs/identity/authz/` (new subdir)
-  - `configs/identity/idp/` (new subdir)
-  - `configs/identity/rp/` (new subdir)
-  - `configs/identity/rs/` (new subdir)
-  - `configs/identity/spa/` (new subdir)
-  - `configs/identity/policies/` (preserved)
-  - `configs/identity/profiles/` (preserved)
-  - `configs/identity/{development,production,test}.yml` (preserved)
-- **Evidence**:
-  - `test-output/phase1/task-1.3-identity-restructure.log`
-  - `test-output/phase1/task-1.3-file-moves.txt` (list of moved files)
+  - `configs/identity/authz/`, `configs/identity/idp/`, etc. (new directories)
+  - `deployments/identity/authz/`, `deployments/identity/idp/`, etc. (new directories)
 
-#### Task 1.4: Create sm-kms/ SERVICE directory
+#### Task 1.3: Rename Files for Consistency
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 1.2
+- **Description**: Standardize config file names (config.yml → service.yml, dev.yml → development.yml, prod.yml → production.yml)
+- **Acceptance Criteria**:
+  - [ ] All config.yml renamed to service.yml
+  - [ ] All dev.yml renamed to development.yml
+  - [ ] All prod.yml renamed to production.yml
+  - [ ] Git mv used (preserves history)
+  - [ ] Integration tests updated with new file names
+  - [ ] Docker Compose files updated with new paths
+  - [ ] **VERIFICATION STEP**: Confirm shared files still exist (policies/, profiles/, *development.yml at identity/ level)
+- **Files**:
+  - All `config.yml`, `dev.yml`, `prod.yml` files across configs/ and deployments/
+
+#### Task 1.4: Update Code References
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 1.3
-- **Description**: Create new configs/sm-kms/ SERVICE directory (previously missing from configs/)
+- **Description**: Update Go code references to new file paths and names
 - **Acceptance Criteria**:
-  - [ ] Directory created: `mkdir -p configs/sm-kms/`
-  - [ ] Placeholder config file: `configs/sm-kms/app.yml` (copy from deployments/sm-kms/ or create minimal)
-  - [ ] Template validation passes (Task 3.4 will validate once implemented)
-  - [ ] Tests pass: `go test ./...`
+  - [ ] All hardcoded paths updated
+  - [ ] Default config path constants updated
+  - [ ] CLI flag descriptions updated
+  - [ ] Build clean: `go build ./...`
+  - [ ] All tests pass: `go test ./...`
+  - [ ] No grep hits for old paths: `grep -r "config.yml\|dev.yml\|prod.yml" internal/ | grep -v ".git"`
 - **Files**:
-  - `configs/sm-kms/` (new directory)
-  - `configs/sm-kms/app.yml` (new file)
-- **Evidence**:
-  - `test-output/phase1/task-1.4-sm-kms-creation.log`
+  - `internal/apps/*/` (Go files with config path references)
 
-#### Task 1.5: Rename jose/ → jose-ja/
+#### Task 1.5: Delete Obsolete Files/Directories
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 1.4
-- **Description**: Rename configs/jose/ to configs/jose-ja/ for SERVICE-level naming consistency
+- **Description**: Remove files/directories identified as obsolete in Task 1.1
 - **Acceptance Criteria**:
-  - [ ] Directory renamed: `git mv configs/jose configs/jose-ja`
-  - [ ] Files inside unchanged
-  - [ ] No broken paths (search codebase for "configs/jose" references, exclude "configs/jose-ja")
-  - [ ] Tests pass: `go test ./...`
+  - [ ] Git rm used (preserves history of deletion)
+  - [ ] No orphaned references in code (verified by grep + build test)
+  - [ ] List of deleted files documented: test-output/phase1/task-1.5-deletions.txt
   - [ ] Build clean: `go build ./...`
+  - [ ] Tests pass: `go test ./...`
 - **Files**:
-  - `configs/jose-ja/` (renamed from jose/)
-- **Evidence**:
-  - `test-output/phase1/task-1.5-rename-jose.log`
+  - Various obsolete files (TBD from Task 1.1 analysis)
+  - `test-output/phase1/task-1.5-deletions.txt` (deletion log)
 
-#### Task 1.6: Update code references
+#### Task 1.6: Verify Restructure Correctness
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 1.5 (must complete all renames first)
-- **Description**: Update ALL code references to old config paths
+- **Dependencies**: Task 1.5
+- **Description**: Comprehensive verification that restructure preserved functionality
 - **Acceptance Criteria**:
-  - [ ] Search completed: `grep -r "configs/cipher[^-]" --include="*.go"` returns 0 results
-  - [ ] Search completed: `grep -r "configs/pki[^-]" --include="*.go"` returns 0 results
-  - [ ] Search completed: `grep -r "configs/jose[^-]" --include="*.go"` returns 0 results
-  - [ ] All imports updated (if any config path constants)
-  - [ ] All file.Open/os.ReadFile calls updated
-  - [ ] Tests pass: `go test ./...`
-  - [ ] Build clean: `go build ./...`
-  - [ ] No linting errors: `golangci-lint run ./...`
-- **Files**:
-  - Various Go files (search results will identify)
-- **Evidence**:
-  - `test-output/phase1/task-1.6-code-references.log` (grep results before/after)
-
-#### Task 1.7: Create configs/README.md
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 1.6
-- **Description**: Document configs/ hierarchy with minimal README per Decision 8:A
-- **Acceptance Criteria**:
-  - [ ] README.md created at `configs/README.md`
-  - [ ] Content: Purpose paragraph (what configs/ contains)
-  - [ ] Content: SERVICE/PRODUCT/SUITE hierarchy explanation (brief)
-  - [ ] Content: Link to ARCHITECTURE.md Section 12.5
-  - [ ] Minimal length: 5-10 lines (no comprehensive docs per Decision 8:A)
-  - [ ] Markdown formatting valid
-- **Files**:
-  - `configs/README.md` (new file)
-- **Evidence**:
-  - `test-output/phase1/task-1.7-readme-content.txt`
-
-#### Task 1.8: Phase 1 E2E Verification
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 2h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 1.7
-- **Description**: Comprehensive verification that Phase 1 restructuring is complete and correct
-- **Acceptance Criteria**:
-  - [ ] Directory count: 9 SERVICE subdirs (cipher-im, pki-ca, identity/{authz,idp,rp,rs,spa}, sm-kms, jose-ja)
-  - [ ] Shared files preserved: identity/{policies/,profiles/,*.yml} at parent
+  - [ ] Build passes: `go build ./...`
   - [ ] All tests pass: `go test ./...`
-  - [ ] Build clean: `go build ./...`
-  - [ ] Linting clean: `golangci-lint run ./...`
-  - [ ] No TODOs added without tracking
-  - [ ] Evidence collected: All task logs archived
+  - [ ] Race detector clean: `go test -race -count=2 ./...`
+  - [ ] No linting errors: `golangci-lint run ./...`
+  - [ ] Docker Compose builds: `docker compose -f deployments/compose/compose.yml build`
+  - [ ] Docker Compose starts: `docker compose -f deployments/compose/compose.yml up -d` (health checks pass)
+  - [ ] Git history preserved (verify via `git log --follow`)
+  - [ ] Evidence logged: test-output/phase1/task-1.6-verification.log
 - **Files**:
-  - N/A (verification only)
-- **Evidence**:
-  - `test-output/phase1/phase1-completion-verification.log`
-  - `test-output/phase1/directory-structure.txt` (tree output)
+  - `test-output/phase1/task-1.6-verification.log` (comprehensive verification output)
 
 ---
 
-### Phase 2: PRODUCT/SUITE Config Creation (6h)
+### Phase 2: Listing Generation & Mirror Validation (6h)
 
-**Phase Objective**: Create 5 PRODUCT-level + 1 SUITE-level configs with template pattern compliance
+**Phase Objective**: Auto-generate directory structure listings and validate configs/ mirrors deployments/ per Decision 3
 
-#### Task 2.1: Create cipher/ PRODUCT config
+#### Task 2.1: Implement generate-listings Subcommand
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 45min
+- **Estimated**: 2.5h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Phase 1 complete (Task 1.8)
-- **Description**: Create PRODUCT-level config delegating to cipher-im/ SERVICE
+- **Dependencies**: Task 1.6
+- **Description**: Create cicd lint-deployments generate-listings subcommand that generates deployments.json and configs.json listing files
 - **Acceptance Criteria**:
-  - [ ] Directory created: `configs/cipher/`
-  - [ ] Config file: `configs/cipher/config.yml` with required keys (product-name, delegation: [cipher-im])
-  - [ ] Port offset correct: PRODUCT ports = SERVICE + 10000 (per Decision 4A)
-  - [ ] README.md: Purpose + delegation + ARCHITECTURE.md link (minimal per Decision 8:A)
-  - [ ] Template validation passes (once Task 3.4 implemented)
+  - [ ] Subcommand: `cicd lint-deployments generate-listings`
+  - [ ] Output: `deployments/deployments.json` and `configs/configs.json`
+  - [ ] JSON format includes: directory tree, file list, metadata (timestamps, sizes)
+  - [ ] Handles SERVICE/PRODUCT/SUITE hierarchy correctly
+  - [ ] Unit tests ≥98% coverage: `go test -cover ./internal/cmd/cicd/lint_deployments/...`
+  - [ ] Integration test generates listing for test fixtures
+  - [ ] CLI help text documents usage
 - **Files**:
-  - `configs/cipher/config.yml` (new)
-  - `configs/cipher/README.md` (new)
-- **Evidence**:
-  - `test-output/phase2/task-2.1-cipher-product.yml` (generated config)
+  - `internal/cmd/cicd/lint_deployments/generate_listings.go` (implementation)
+  - `internal/cmd/cicd/lint_deployments/generate_listings_test.go` (unit tests)
 
-#### Task 2.2: Create pki/ PRODUCT config
+#### Task 2.2: Implement validate-mirror Subcommand
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 45min
+- **Estimated**: 2.5h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 2.1
-- **Description**: Create PRODUCT-level config delegating to pki-ca/ SERVICE
+- **Description**: Create cicd lint-deployments validate-mirror subcommand that validates configs/ structure mirrors deployments/
 - **Acceptance Criteria**:
-  - [ ] Directory created: `configs/pki/`
-  - [ ] Config file: `configs/pki/config.yml` with required keys (product-name, delegation: [pki-ca])
-  - [ ] Port offset correct: PRODUCT ports = SERVICE + 10000
-  - [ ] README.md: Minimal content per Decision 8:A
-  - [ ] Template validation passes
+  - [ ] Subcommand: `cicd lint-deployments validate-mirror`
+  - [ ] Loads deployments.json and configs.json
+  - [ ] Validates configs/ structure mirrors deployments/ (SERVICE/PRODUCT/SUITE hierarchy)
+  - [ ] Handles edge cases: PRODUCT→SERVICE mapping (pki→ca, sm-kms→sm per Decision 3)
+  - [ ] Identifies orphaned configs (exist in configs/ but not deployments/), moves to configs/orphaned/
+  - [ ] Error messages: Moderate verbosity (Decision 14:B - error code + message + suggested fix)
+  - [ ] Unit tests ≥98% coverage
+  - [ ] Integration test validates correct + incorrect structures
 - **Files**:
-  - `configs/pki/config.yml` (new)
-  - `configs/pki/README.md` (new)
-- **Evidence**:
-  - `test-output/phase2/task-2.2-pki-product.yml`
+  - `internal/cmd/cicd/lint_deployments/validate_mirror.go` (implementation)
+  - `internal/cmd/cicd/lint_deployments/validate_mirror_test.go` (unit tests)
 
-#### Task 2.3: Create identity/ PRODUCT config
+#### Task 2.3: E2E Test Listing and Mirror Validation
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 2.2
-- **Description**: Create PRODUCT-level config delegating to 5 identity services (authz, idp, rp, rs, spa)
+- **Description**: End-to-end test of generate-listings and validate-mirror on actual configs/ and deployments/ directories
 - **Acceptance Criteria**:
-  - [ ] Config file: `configs/identity/config.yml` (NOTE: identity/ already exists from Phase 1, add config.yml)
-  - [ ] Delegation array: [identity-authz, identity-idp, identity-rp, identity-rs, identity-spa]
-  - [ ] Port offset correct: PRODUCT ports = SERVICE + 10000
-  - [ ] README.md: Update existing or create if missing (minimal per Decision 8:A)
-  - [ ] Template validation passes
-  - [ ] Shared files NOT affected (policies/, profiles/, *.yml preserved)
+  - [ ] Run: `cicd lint-deployments generate-listings`
+  - [ ] Verify deployments.json and configs.json created
+  - [ ] Run: `cicd lint-deployments validate-mirror`
+  - [ ] Verify 100% pass (no structural mismatches)
+  - [ ] Test orphaned config handling (create orphaned dir, verify moved to configs/orphaned/)
+  - [ ] Evidence logged: test-output/phase2/task-2.3-e2e.log
 - **Files**:
-  - `configs/identity/config.yml` (new, identity/ dir already exists)
-  - `configs/identity/README.md` (new or updated)
-- **Evidence**:
-  - `test-output/phase2/task-2.3-identity-product.yml`
-
-#### Task 2.4: Create sm/ PRODUCT config
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 45min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 2.3
-- **Description**: Create PRODUCT-level config delegating to sm-kms/ SERVICE
-- **Acceptance Criteria**:
-  - [ ] Directory created: `configs/sm/`
-  - [ ] Config file: `configs/sm/config.yml` with required keys (product-name, delegation: [sm-kms])
-  - [ ] Port offset correct: PRODUCT ports = SERVICE + 10000
-  - [ ] README.md: Minimal content per Decision 8:A
-  - [ ] Template validation passes
-- **Files**:
-  - `configs/sm/config.yml` (new)
-  - `configs/sm/README.md` (new)
-- **Evidence**:
-  - `test-output/phase2/task-2.4-sm-product.yml`
-
-#### Task 2.5: Create jose/ PRODUCT config
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 45min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 2.4
-- **Description**: Create PRODUCT-level config delegating to jose-ja/ SERVICE
-- **Acceptance Criteria**:
-  - [ ] Directory created: `configs/jose/`
-  - [ ] Config file: `configs/jose/config.yml` with required keys (product-name, delegation: [jose-ja])
-  - [ ] Port offset correct: PRODUCT ports = SERVICE + 10000
-  - [ ] README.md: Minimal content per Decision 8:A
-  - [ ] Template validation passes
-- **Files**:
-  - `configs/jose/config.yml` (new)
-  - `configs/jose/README.md` (new)
-- **Evidence**:
-  - `test-output/phase2/task-2.5-jose-product.yml`
-
-#### Task 2.6: Create cryptoutil/ SUITE config
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 2.5
-- **Description**: Create SUITE-level config delegating to all 5 products (cipher, pki, identity, sm, jose)
-- **Acceptance Criteria**:
-  - [ ] Directory created: `configs/cryptoutil/`
-  - [ ] Config file: `configs/cryptoutil/config.yml` with required keys (suite-name, delegation: [cipher, pki, identity, sm, jose])
-  - [ ] Port offset correct: SUITE ports = SERVICE + 20000 (per Decision 4A)
-  - [ ] README.md: Minimal content per Decision 8:A
-  - [ ] Template validation passes
-- **Files**:
-  - `configs/cryptoutil/config.yml` (new)
-  - `configs/cryptoutil/README.md` (new)
-- **Evidence**:
-  - `test-output/phase2/task-2.6-cryptoutil-suite.yml`
-
-#### Task 2.7: Phase 2 E2E Verification
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 2.6
-- **Description**: Verify all PRODUCT/SUITE configs created correctly
-- **Acceptance Criteria**:
-  - [ ] 5 PRODUCT configs exist: cipher/, pki/, identity/, sm/, jose/
-  - [ ] 1 SUITE config exists: cryptoutil/
-  - [ ] All configs have README.md (minimal content)
-  - [ ] Template pattern compliance (manual check until Task 3.4 automated)
-  - [ ] Tests pass: `go test ./...`
-  - [ ] Build clean: `go build ./...`
-- **Files**:
-  - N/A (verification only)
-- **Evidence**:
-  - `test-output/phase2/phase2-completion-verification.log`
-  - `test-output/phase2/generated-configs-list.txt`
+  - `test-output/phase2/task-2.3-e2e.log` (E2E test output)
 
 ---
 
-### Phase 3: CICD Validation Implementation (23h)
+### Phase 3: Core Validators Implementation (25h)
 
-**Phase Objective**: Implement 8 validators with ≥98% coverage/mutation, parallel execution, aggressive secrets detection
+**Phase Objective**: Implement 8 comprehensive validators with ≥98% coverage/mutation per Decision 17:B (ALL cmd/cicd/ code)
 
 #### Task 3.1: Implement ValidateNaming
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 2h
+- **Estimated**: 2.5h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Phase 2 complete (Task 2.7)
-- **Description**: Validate config filename patterns per Decision 4A naming rules
+- **Dependencies**: Task 2.3
+- **Description**: Validate all deployment/config names follow kebab-case convention
 - **Acceptance Criteria**:
-  - [ ] Validator implemented: `cmd/cicd/lint-deployments/validate-naming.go`
-  - [ ] Unit tests: SERVICE (`{service-id}/{app-type}.yml`), PRODUCT (`{product-id}/config.yml`), SUITE (`cryptoutil/config.yml`)
-  - [ ] Error messages: Moderate verbosity per Decision 14:B (file, line, issue, suggested fix)
-  - [ ] Coverage ≥98%: `go test -cover ./cmd/cicd/lint-deployments/validate-naming`
-  - [ ] Tests pass: `go test ./cmd/cicd/lint-deployments/validate-naming/...`
+  - [ ] Validates directory names (SERVICE, PRODUCT, SUITE levels)
+  - [ ] Validates file names (*.yml, *.yaml, docker-compose.yml)
+  - [ ] Validates compose service names (must be kebab-case)
+  - [ ] Error messages: Moderate verbosity (Decision 14:B)
+  - [ ] Example: `ERROR: [ValidateNaming] Service directory 'PkiCA' violates kebab-case - rename to 'pki-ca' (file: deployments/PkiCA)`
+  - [ ] Unit tests ≥98% coverage
+  - [ ] Integration tests with valid + invalid fixtures
 - **Files**:
-  - `cmd/cicd/lint-deployments/validate-naming.go` (new)
-  - `cmd/cicd/lint-deployments/validate-naming_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.1-naming-coverage.txt`
+  - `internal/cmd/cicd/lint_deployments/validate_naming.go`
+  - `internal/cmd/cicd/lint_deployments/validate_naming_test.go`
 
 #### Task 3.2: Implement ValidateKebabCase
 - **Status**: ❌
@@ -367,85 +251,79 @@
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.1
-- **Description**: Validate kebab-case for keys and values
+- **Description**: Validate service names, file names, compose service names follow kebab-case (expanded scope from ValidateNaming)
 - **Acceptance Criteria**:
-  - [ ] Validator implemented: `cmd/cicd/lint-deployments/validate-kebab-case.go`
-  - [ ] Unit tests: Valid kebab-case, edge cases (numbers, leading/trailing hyphens, underscores)
-  - [ ] Error messages: Moderate verbosity per Decision 14:B
-  - [ ] Coverage ≥98%
-  - [ ] Tests pass
+  - [ ] Validates service names in YAML configs (service-name: field)
+  - [ ] Validates file names recursively (all .yml, .yaml files)
+  - [ ] Validates docker-compose.yml service entries
+  - [ ] Unit tests ≥98% coverage
+  - [ ] Integration tests with edge cases (numbers, hyphens, underscores)
 - **Files**:
-  - `cmd/cicd/lint-deployments/validate-kebab-case.go` (new)
-  - `cmd/cicd/lint-deployments/validate-kebab-case_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.2-kebab-coverage.txt`
+  - `internal/cmd/cicd/lint_deployments/validate_kebab_case.go`
+  - `internal/cmd/cicd/lint_deployments/validate_kebab_case_test.go`
 
-#### Task 3.3: Implement ValidateSchema
+#### Task 3.3: Implement ValidateSchema [UPDATED per quizme-v3 Q1]
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.2
-- **Description**: Validate configs against CONFIG-SCHEMA.md schema per Decision 10:D (embed + parse at init)
+- **Description**: Validate config files against HARDCODED Go schema (Decision 10:E per quizme-v3 Q1)
 - **Acceptance Criteria**:
-  - [ ] Embed CONFIG-SCHEMA.md: `//go:embed docs/CONFIG-SCHEMA.md`
-  - [ ] Parse at init: `var schema = parseSchema(embeddedSchema)` (cached)
-  - [ ] Validator implemented: `cmd/cicd/lint-deployments/validate-schema.go`
-  - [ ] Unit tests: Valid schema, missing required keys, invalid types
-  - [ ] ⚠️ **Q2 Note**: If user prefers Option E (delete CONFIG-SCHEMA.md), revise to hardcode schema in Go
-  - [ ] Error messages: Moderate verbosity per Decision 14:B
-  - [ ] Coverage ≥98%
-  - [ ] Tests pass
+  - [ ] **HARDCODE schema in Go**: Use Go maps for key names, value types, required fields (NO markdown parsing)
+  - [ ] **DELETE CONFIG-SCHEMA.md**: Remove docs/CONFIG-SCHEMA.md file during this task
+  - [ ] **Comprehensive code comments**: Schema rules documented inline (compensates for deleted markdown file)
+  - [ ] Validates required fields present (server-settings, observability, database, etc.)
+  - [ ] Validates value types (string, int, bool, array, object)
+  - [ ] Validates bind addresses (127.0.0.1 for admin, 0.0.0.0 for public in Docker)
+  - [ ] Validates ports (restricted ranges per SERVICE/PRODUCT/SUITE)
+  - [ ] Error messages: Moderate verbosity (Decision 14:B)
+  - [ ] Unit tests ≥98% coverage (table-driven tests for each schema rule)
+  - [ ] Integration tests with valid + invalid config files
+  - [ ] **ARCHITECTURE.md Section 12.5 reference**: Schema rules overview (brief, defers to code comments per Decision 9:A)
 - **Files**:
-  - `cmd/cicd/lint-deployments/validate-schema.go` (new)
-  -  `cmd/cicd/lint-deployments/validate-schema_test.go` (new)
-  - `cmd/cicd/lint-deployments/embed.go` (new, for //go:embed directive)
-- **Evidence**:
-  - `test-output/phase3/task-3.3-schema-coverage.txt`
-  - `test-output/phase3/task-3.3-q2-assumption.txt` (document Decision 10:D assumption)
+  - `internal/cmd/cicd/lint_deployments/validate_schema.go` (schema HARDCODED with comprehensive comments)
+  - `internal/cmd/cicd/lint_deployments/validate_schema_test.go`
+  - ~~`docs/CONFIG-SCHEMA.md`~~ (DELETED)
 
-#### Task 3.4: Implement ValidateTemplatePattern
+#### Task 3.4: Implement ValidateTemplatePattern [UPDATED per Decision 12:C]
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.3
-- **Description**: Validate naming + structure + values per Decision 12:C
+- **Description**: Validate template deployments/configs check naming + structure + values (Decision 12:C superseded Decision 4:A)
 - **Acceptance Criteria**:
-  - [ ] Naming validation: SERVICE/PRODUCT/SUITE filename patterns per Decision 4A
-  - [ ] Structure validation: Required keys (service-name, delegation), optional keys
-  - [ ] Value validation: Port offset calculations (PRODUCT=+10000, SUITE=+20000), delegation arrays, secrets paths
-  - [ ] Validator implemented: `cmd/cicd/lint-deployments/validate-template-pattern.go`
-  - [ ] Unit tests: All 3 validation types (naming, structure, values) with edge cases
-  - [ ] Error messages: Moderate verbosity per Decision 14:B
-  - [ ] Coverage ≥98%
-  - [ ] Tests pass
+  - [ ] **Naming validation**: Template names follow kebab-case, hierarchy
+  - [ ] **Structure validation**: Required files/directories present (docker-compose.yml, service.yml, etc.)
+  - [ ] **Value validation**: Port offsets correct (SERVICE 8XXX, PRODUCT 18XXX, SUITE 28XXX), secrets file format, OTLP endpoints consistent
+  - [ ] Validates deployments/template/ directory specifically
+  - [ ] Unit tests ≥98% coverage (all three validation levels)
+  - [ ] Integration tests with template fixtures
 - **Files**:
-  - `cmd/cicd/lint-deployments/validate-template-pattern.go` (new)
-  - `cmd/cicd/lint-deployments/validate-template-pattern_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.4-template-coverage.txt`
+  - `internal/cmd/cicd/lint_deployments/validate_template_pattern.go`
+  - `internal/cmd/cicd/lint_deployments/validate_template_pattern_test.go`
 
 #### Task 3.5: Implement ValidatePorts
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 2h
+- **Estimated**: 2.5h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.4
-- **Description**: Validate port ranges, offsets, conflicts
+- **Description**: Validate port offsets follow SERVICE/PRODUCT/SUITE pattern (Decision 6:B - consolidated from lint-ports)
 - **Acceptance Criteria**:
-  - [ ] Port range validation: SERVICE (8000-8999), PRODUCT (+10000), SUITE (+20000)
-  - [ ] Port conflict detection: No two services on same port
-  - [ ] Validator implemented:  `cmd/cicd/lint-deployments/validate-ports.go`
-  - [ ] Unit tests: Valid ranges, offset calculations, conflicts
-  - [ ] Error messages: Moderate verbosity per Decision 14:B
-  - [ ] Coverage ≥98%
-  - [ ] Tests pass
+  - [ ] SERVICE level: Public 8000-8999, Admin 9090
+  - [ ] PRODUCT level: Public 18000-18999, Admin 9090
+  - [ ] SUITE level: Public 28000-28999, Admin 9090
+  - [ ] Validates docker-compose.yml port mappings
+  - [ ] Validates config YAML port values
+  - [ ] Detects port conflicts (multiple services on same host port)
+  - [ ] Unit tests ≥98% coverage
+  - [ ] Integration tests with valid + conflicting ports
+  - [ ] Legacy lint-ports code migrated (Decision 6:B)
 - **Files**:
-  - `cmd/cicd/lint-deployments/validate-ports.go` (new)
-  - `cmd/cicd/lint-deployments/validate-ports_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.5-ports-coverage.txt`
+  - `internal/cmd/cicd/lint_deployments/validate_ports.go`
+  - `internal/cmd/cicd/lint_deployments/validate_ports_test.go`
 
 #### Task 3.6: Implement ValidateTelemetry
 - **Status**: ❌
@@ -453,20 +331,17 @@
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.5
-- **Description**: Validate OTLP endpoints and sidecar configuration
+- **Description**: Validate OTLP endpoints consistent across all configs
 - **Acceptance Criteria**:
-  - [ ] OTLP endpoint validation: Check protocol (grpc/http), host, port
-  - [ ] Sidecar validation: otel-collector-contrib forwarding pattern
-  - [ ] Validator implemented: `cmd/cicd/lint-deployments/validate-telemetry.go`
-  - [ ] Unit tests: Valid OTLP, missing endpoints, wrong protocols
-  - [ ] Error messages: Moderate verbosity per Decision 14:B
-  - [ ] Coverage ≥98%
-  - [ ] Tests pass
+  - [ ] Validates observability.otlp.endpoint field present
+  - [ ] Validates OTLP protocol (grpc or http)
+  - [ ] Validates endpoint format (host:port)
+  - [ ] Checks consistency: All services use same otel-collector endpoint
+  - [ ] Unit tests ≥98% coverage
+  - [ ] Integration tests with matching + mismatched endpoints
 - **Files**:
-  - `cmd/cicd/lint-deployments/validate-telemetry.go` (new)
-  - `cmd/cicd/lint-deployments/validate-telemetry_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.6-telemetry-coverage.txt`
+  - `internal/cmd/cicd/lint_deployments/validate_telemetry.go`
+  - `internal/cmd/cicd/lint_deployments/validate_telemetry_test.go`
 
 #### Task 3.7: Implement ValidateAdmin
 - **Status**: ❌
@@ -474,539 +349,411 @@
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.6
-- **Description**: Validate admin API patterns (127.0.0.1:9090 binding)
+- **Description**: Validate admin bind policy (127.0.0.1:9090 inside containers)
 - **Acceptance Criteria**:
-  - [ ] Admin binding validation: Must be 127.0.0.1 (NOT 0.0.0.0)
-  - [ ] Admin port validation: Default 9090, no conflicts
-  - [ ] Validator implemented: `cmd/cicd/lint-deployments/validate-admin.go`
-  - [ ] Unit tests: Valid binding (127.0.0.1:9090), invalid binding (0.0.0.0), port conflicts
-  - [ ] Error messages: Moderate verbosity per Decision 14:B
-  - [ ] Coverage ≥98%
-  - [ ] Tests pass
+  - [ ] Validates server-settings.bind-private-address = "127.0.0.1" (inside containers)
+  - [ ] Validates server-settings.bind-private-port = 9090
+  - [ ] Validates admin endpoints NOT exposed in docker-compose.yml ports section
+  - [ ] Unit tests ≥98% coverage
+  - [ ] Integration tests with correct + incorrect bind addresses
 - **Files**:
-  - `cmd/cicd/lint-deployments/validate-admin.go` (new)
-  - `cmd/cicd/lint-deployments/validate-admin_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.7-admin-coverage.txt`
+  - `internal/cmd/cicd/lint_deployments/validate_admin.go`
+  - `internal/cmd/cicd/lint_deployments/validate_admin_test.go`
 
-#### Task 3.8: Implement ValidateSecrets
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 2h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 3.7
-- **Description**: Aggressive secrets detection with entropy analysis per Decision 15:C
-- **Acceptance Criteria**:
-  - [ ] Layer 1: Secrets files (.secret extensions, environment: *_FILE patterns)
-  - [ ] Layer 2: Pattern matching (AWS keys, GitHub tokens, known patterns)
-  - [ ] Layer 3: Entropy analysis (Shannon entropy >4.5 bits/char for inline strings)
-  - [ ] Validator implemented: `cmd/cicd/lint-deployments/validate-secrets.go`
-  - [ ] Unit tests: Secrets files, pattern matches, high-entropy strings, false positives (UUIDs, base64 data)
-  - [ ] Error messages: Moderate verbosity per Decision 14:B
-  - [ ] Coverage ≥98%
-  - [ ] Tests pass
-- **Files**:
-  - `cmd/cicd/lint-deployments/validate-secrets.go` (new)
-  - `cmd/cicd/lint-deployments/validate-secrets_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.8-secrets-coverage.txt`
-  - `test-output/phase3/task-3.8-entropy-tests.log` (false positive analysis)
-
-#### Task 3.9: Pre-Commit Integration (Parallel Validators)
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 3.8
-- **Description**: Integrate validators into pre-commit with parallel execution per Decision 11:E
-- **Acceptance Criteria**:
-  - [ ] Parallel execution: Run 8 validators concurrently (use goroutines + errgroup)
-  - [ ] Target performance: <5s for incremental validation (50+ files)
-  - [ ] Pre-commit hook: `.pre-commit-config.yaml` entry for cicd lint-deployments
-  - [ ] Integration tests: Verify parallel execution (no race conditions)
-  - [ ] Race detector clean: `go test -race ./cmd/cicd/lint-deployments/...`
-  - [ ] Functional test: Run pre-commit locally, verify <5s
-- **Files**:
-  - `.pre-commit-config.yaml` (updated)
-  - `cmd/cicd/lint-deployments/parallel.go` (new, goroutine orchestration)
-- **Evidence**:
-  - `test-output/phase3/task-3.9-precommit-timing.log` (performance measurement)
-
-#### Task 3.10: Mutation Testing (ALL Validators)
+#### Task 3.8: Implement ValidateSecrets [UPDATED per quizme-v3 Q3]
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 3h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Task 3.9
-- **Description**: Mutation testing for ALL 8 validators, ≥98% score per Decision 17:A (NO exemptions)
+- **Dependencies**: Task 3.7
+- **Description**: Validate secrets using LENGTH threshold (Decision 15:E per quizme-v3 Q3), NO entropy calculation
 - **Acceptance Criteria**:
-  - [ ] Mutation testing: Run `gremlins unleash --tags=!integration ./cmd/cicd/lint-deployments/`
-  - [ ] ALL validators ≥98%: ValidateNaming, ValidateKebabCase, ValidateSchema, ValidateTemplatePattern, ValidatePorts, ValidateTelemetry, ValidateAdmin, ValidateSecrets
-  - [ ] Edge case tests added: Regex escaping, boundary conditions, special characters
-  - [ ] NO exemptions per Decision 17:A (even "trivial" validators must achieve ≥98%)
-  - [ ] Mutation report: `test-output/phase3/mutation-report.txt`
+  - [ ] **Length threshold**: >=32 bytes raw OR >=43 characters base64 (Decision 15:E per Q3)
+  - [ ] **NO entropy calculation**: Simpler logic, faster performance (helps meet <5s target per Decision 5:C)
+  - [ ] Validates inline strings (config YAML values)
+  - [ ] Validates file contents (Docker secrets files)
+  - [ ] Validates environment variable values
+  - [ ] **Trade-off accepted**: May miss SHORT secrets (<32 bytes) or NON-BASE64 secrets (user explicitly accepted per Q3)
+  - [ ] Error messages: Moderate verbosity with remediation (use Docker secrets file://, move to external vault)
+  - [ ] Unit tests ≥98% coverage (table-driven tests for various string lengths)
+  - [ ] Integration tests with valid + invalid secrets patterns
+  - [ ] Performance: <1s for 1000 config lines (length check is O(1) per string)
+  - [ ] **ARCHITECTURE.md Section 6.X reference**: Secrets detection strategy (length threshold + trade-offs per Decision 9:A)
 - **Files**:
-  - Various `*_test.go` files (edge case tests added)
-- **Evidence**:
-  - `test-output/phase3/task-3.10-mutation-report.txt` (gremlins output)
-  - `test-output/phase3/task-3.10-all-validators-98percent.txt` (verification)
+  - `internal/cmd/cicd/lint_deployments/validate_secrets.go`
+  - `internal/cmd/cicd/lint_deployments/validate_secrets_test.go`
 
-#### Task 3.11: Performance Benchmarks
+#### Task 3.9: Pre-Commit Integration [UPDATED per quizme-v3 Q4]
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 2h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.8
+- **Description**: Integrate all 8 validators into pre-commit hook with <5s target (Decision 5:C), sequential execution with aggregated error reporting (Decision 11:E per quizme-v3 Q4)
+- **Acceptance Criteria**:
+  - [ ] **Sequential execution**: Run validators one after another (NOT parallel, per Q4 research)
+  - [ ] **Aggregated error reporting**: Continue on failure, collect ALL results, report at end (per Q4 research pattern in cicd.go)
+  - [ ] `.pre-commit-config.yaml` updated with cicd lint-deployments hook
+  - [ ] Hook runs on config/ and deployments/ file changes only (path filters)
+  - [ ] Exit code 1 if ANY validator fails (after reporting all failures)
+  - [ ] Performance target: <5s for typical changeset (meets Decision 5:C)
+  - [ ] Unit tests for pre-commit wrapper logic ≥98%
+  - [ ] Integration test: Modify config file, trigger pre-commit, verify validators run
+  - [ ] **ARCHITECTURE.md Section 12.8 reference**: Documents sequential+aggregate error pattern (per Q4, Decision 11:E per Decision 9:A)
+- **Files**:
+  - `.pre-commit-config.yaml` (hook configuration)
+  - `internal/cmd/cicd/lint_deployments/pre_commit.go` (wrapper logic implementing sequential+aggregate)
+  - `internal/cmd/cicd/lint_deployments/pre_commit_test.go`
+
+#### Task 3.10: Mutation Testing for Validators [UPDATED per quizme-v3 Q8]
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 4h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.9
+- **Description**: Run gremlins mutation testing on ALL cmd/cicd/ code with ≥98% score target (Decision 17:B per quizme-v3 Q8)
+- **Acceptance Criteria**:
+  - [ ] **ALL cmd/cicd/ code**: Validator logic + test infrastructure + CLI wiring (per Q8 clarification)
+  - [ ] **NO exemptions**: Test infrastructure (*_test.go helper functions) and CLI wiring (main.go, cicd.go) MUST be ≥98% (per Q8: "Quality is PARAMOUNT!")
+  - [ ] Gremlins config: `gremlins unleash --tags=lint_deployments --threshold=98`
+  - [ ] ≥98% mutation score for validate_naming.go, validate_schema.go, etc.
+  - [ ] ≥98% mutation score for test infrastructure (table-driven test setup, helper functions)
+  - [ ] ≥98% mutation score for CLI wiring (main.go delegation logic)
+  - [ ] Kill all surviving mutants: Add missing test cases, strengthen assertions
+  - [ ] Document any genuine unkillable mutants (e.g., logging statements)
+  - [ ] Evidence logged: test-output/phase3/task-3.10-mutation-results.txt
+  - [ ] **ARCHITECTURE.md Section 11.2.5 reference**: Documents comprehensive ≥98% requirement for ALL cmd/cicd/ (per Q8, Decision 17:B per Decision 9:A)
+- **Files**:
+  - `test-output/phase3/task-3.10-mutation-results.txt` (gremlins output)
+  - Additional test cases in *_test.go files (as needed to kill mutants)
+
+#### Task 3.11: Code Quality and Linting Pass
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.10
-- **Description**: Benchmark individual validators and total validation time per Decision 11:E
+- **Description**: Comprehensive linting and code quality pass for all Phase 3 code
 - **Acceptance Criteria**:
-  - [ ] Benchmark tests: `*_bench_test.go` for each validator
-  - [ ] Metrics: Time per file, total time for 50+ files, memory allocation
-  - [ ] Target: <5s total for incremental validation (parallel)
-  - [ ] Baseline established: Document current performance
-  - [ ] Optimization candidates: Identify slow validators for future optimization
+  - [ ] Linting clean: `golangci-lint run ./internal/cmd/cicd/lint_deployments/...` (zero warnings)
+  - [ ] Build clean: `go build ./...` (zero errors)
+  - [ ] Tests pass: `go test ./...` (100% passing, zero skips)
+  - [ ] Race detector clean: `go test -race -count=2 ./internal/cmd/cicd/lint_deployments/...`
+  - [ ] No new TODOs without tracking in tasks.md
+  - [ ] File sizes ≤500 lines (soft limit 300, hard limit 500)
+  - [ ] Evidence logged: test-output/phase3/task-3.11-quality-pass.log
 - **Files**:
-  - `cmd/cicd/lint-deployments/*_bench_test.go` (new, 8 files)
-- **Evidence**:
-  - `test-output/phase3/task-3.11-benchmark-results.txt`
-  - `test-output/phase3/task-3.11-performance-baseline.txt`
+  - `test-output/phase3/task-3.11-quality-pass.log` (linting + build + test output)
 
-#### Task 3.12: Validation Caching (Priority 1)
+#### Task 3.12: Phase 3 E2E Validation
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.11
-- **Description**: File hash-based caching to skip validating unchanged files
+- **Description**: End-to-end validation of ALL 8 validators on actual configs/ and deployments/
 - **Acceptance Criteria**:
-  - [ ] Cache implementation: Hash file content, cache validation result
-  - [ ] Cache invalidation: Rehash on file change
-  - [ ] Integration: Pre-commit uses cache (skip unchanged files)
-  - [ ] Performance improvement: Measure cache hit rate, time savings (~500ms per cached file)
-  - [ ] Tests: Verify cache correctness (no false cache hits)
+  - [ ] Run: `cicd lint-deployments validate-all configs/`
+  - [ ] Run: `cicd lint-deployments validate-all deployments/`
+  - [ ] ALL validators pass (naming, kebab-case, schema, template-pattern, ports, telemetry, admin, secrets)
+  - [ ] Zero false positives (review warnings, confirm legitimate)
+  - [ ] Performance: <5s execution time (meets Decision 5:C target)
+  - [ ] Evidence logged: test-output/phase3/task-3.12-e2e.log (includes timing metrics)
 - **Files**:
-  - `cmd/cicd/lint-deployments/cache.go` (new)
-  - `cmd/cicd/lint-deployments/cache_test.go` (new)
-- **Evidence**:
-  - `test-output/phase3/task-3.12-cache-performance.txt`
+  - `test-output/phase3/task-3.12-e2e.log` (E2E validation output)
 
-#### Task 3.13: Phase 3 E2E Verification
+#### Task 3.13: CI/CD Workflow Integration [NEW per quizme-v3 Q9]
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 3.12
-- **Description**: Verify all 8 validators implemented with quality gates met
+- **Description**: Implement GitHub Actions workflow for cicd lint-deployments (Decision 19:E per quizme-v3 Q9 - NEVER DEFER CI/CD)
 - **Acceptance Criteria**:
-  - [ ] 8 validators exist: validate-{naming,kebab-case,schema,template-pattern,ports,telemetry,admin,secrets}
-  - [ ] Coverage ≥98% for ALL validators
-  - [ ] Mutation ≥98% for ALL validators (NO exemptions per Decision 17:A)
-  - [ ] Pre-commit functional (parallel, <5s incremental)
-  - [ ] All tests pass: `go test ./cmd/cicd/lint-deployments/...`
-  - [ ] Race detector clean: `go test -race ./cmd/cicd/lint-deployments/...`
+  - [ ] **Workflow file**: .github/workflows/cicd-lint-deployments.yml created
+  - [ ] **Triggers**: on push to main, on pull_request to main, path filters (deployments/**, configs/**)
+  - [ ] **Job**: Run `cicd lint-deployments validate-all` on deployments/ and configs/
+  - [ ] **Fail PR if validators fail**: Exit code 1 blocks merge
+  - [ ] **Artifacts**: Upload validation output (pass/fail counts, timing metrics)
+  - [ ] **Annotate PR**: Comment with validation results (optional, nice-to-have)
+  - [ ] **Test workflow**: Submit sample PR with intentional validation failure, verify workflow fails
+  - [ ] **Documentation**: README.md updated with CI/CD workflow badge + description
+  - [ ] **ARCHITECTURE.md Section 9.7 reference**: Documents NEVER DEFER principle as non-negotiable (per Q9, Decision 19:E per Decision 9:A)
 - **Files**:
-  - N/A (verification only)
-- **Evidence**:
-  - `test-output/phase3/phase3-completion-verification.log`
-  - `test-output/phase3/coverage-summary.txt` (all ≥98%)
-  - `test-output/phase3/mutation-summary.txt` (all ≥98%)
+  - `.github/workflows/cicd-lint-deployments.yml` (workflow file)
+  - `README.md` (updated with CI/CD workflow badge)
 
 ---
 
-### Phase 4: ARCHITECTURE.md Updates (6h)
+### Phase 4: ARCHITECTURE.md Documentation (4h) [UPDATED task count per quizme-v3 Q7]
 
-**Phase Objective**: Add minimal ARCHITECTURE.md sections 12.4-12.6 with ASCII diagrams (reduced from 8h due to Decision 9:A)
+**Phase Objective**: Add minimal but comprehensive ARCHITECTURE.md sections for deployment validation (Decision 9:A minimal depth, quizme-v3 Q6 moderate validator table)
 
-#### Task 4.1: Add Section 12.4 - Deployment Validation
+**TASK 4.5 REMOVED**: No cross-reference validation tool (per quizme-v3 Q7 - user wants NO tool bloat)
+
+#### Task 4.1: Write ARCHITECTURE.md Section 12.4 (Deployment Validation) [UPDATED per quizme-v3 Q6]
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 2h
+- **Estimated**: 1.5h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Phase 3 complete (Task 3.13)
-- **Description**: Minimal overview of 8 validators with ASCII diagram per Decision 9:A, Decision 16:B
+- **Dependencies**: Task 3.13
+- **Description**: Document deployment validation architecture with 8-validator reference table (Decision 9:A minimal depth, quizme-v3 Q6:C moderate table)
 - **Acceptance Criteria**:
-  - [ ] Section added: `docs/ARCHITECTURE.md` Section 12.4
-  - [ ] Content: Brief overview (1-2 paragraphs) of 8 validator types per Decision 9:A
-  - [ ] ASCII diagram: Validation flow (configs → validators → pass/fail) per Decision 16:B
-  - [ ] Defer details: Reference ValidateXXX implementations (no comprehensive docs)
-  - [ ] Cross-references: Link to Section 12.5 (Config File Architecture)
-  - [ ] Minimal depth: ~20-30 lines total (not comprehensive per Decision 9:A)
+  - [ ] **Brief overview**: 1-2 paragraphs on deployment validation purpose and strategy (per Decision 9:A)
+  - [ ] **8-validator reference table**: 1 paragraph each (per Q6:C) - name, purpose, 2-3 key rules
+    - ValidateNaming: Kebab-case enforcement, directory/file/service names
+    - ValidateKebabCase: Expanded scope, service-name fields, docker-compose entries
+    - ValidateSchema: HARDCODED schema (Decision 10:E), required fields, value types, bind addresses
+    - ValidateTemplatePattern: Naming + structure + values (Decision 12:C)
+    - ValidatePorts: SERVICE/PRODUCT/SUITE offsets, conflict detection
+    - ValidateTelemetry: OTLP endpoint consistency
+    - ValidateAdmin: 127.0.0.1:9090 bind policy
+    - ValidateSecrets: Length threshold >=32/43 (Decision 15:E)
+  - [ ] **ASCII diagram**: Validation flow (validators -> sequential execution -> aggregated errors per Decision 11:E)
+  - [ ] **Cross-references**: Point to code comments for detailed rules (aligns with Decision 9:A minimal docs philosophy)
+  - [ ] Linting clean, no broken markdown links
 - **Files**:
-  - `docs/ARCHITECTURE.md` (updated, Section 12.4 added)
-- **Evidence**:
-  - `test-output/phase4/task-4.1-section-12.4-content.txt`
+  - `docs/ARCHITECTURE.md` (Section 12.4 added)
 
-#### Task 4.2: Add Section 12.5 - Config File Architecture
+#### Task 4.2: Write ARCHITECTURE.md Section 12.5 (Config File Architecture)
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 2h
+- **Estimated**: 1h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 4.1
-- **Description**: Minimal overview of SERVICE/PRODUCT/SUITE hierarchy with ASCII diagram per Decision 9:A, Decision 16:B
+- **Description**: Document config file architecture including schema strategy (Decision 10:E hardcoded schema)
 - **Acceptance Criteria**:
-  - [ ] Section added: `docs/ARCHITECTURE.md` Section 12.5
-  - [ ] Content: Brief hierarchy explanation (1-2 paragraphs) per Decision 9:A
-  - [ ] ASCII diagram: Config delegation tree (SUITE → PRODUCT → SERVICE) per Decision 16:B
-  - [ ] Template pattern reference: Link to Decision 4A (concrete rules)
-  - [ ] Cross-references: Link to Section 12.4 (Deployment Validation), Section 12.6 (Secrets Management)
-  - [ ] Minimal depth: ~20-30 lines total
+  - [ ] **Brief overview**: Config file organization (SERVICE/PRODUCT/SUITE hierarchy per Decision 3)
+  - [ ] **Schema strategy**: HARDCODED in Go (Decision 10:E per Q1), comprehensive code comments, NO CONFIG-SCHEMA.md
+  - [ ] **File naming**: service.yml, development.yml, production.yml, test.yml conventions
+  - [ ] **Shared files**: policies/, profiles/ directories, environment-specific YAMLs at PRODUCT level
+  - [ ] **ASCII diagram**: Config directory structure (per Decision 16:B)
+  - [ ] Cross-references: ValidateSchema.go for detailed schema rules
+  - [ ] Linting clean
 - **Files**:
-  - `docs/ARCHITECTURE.md` (updated, Section 12.5 added)
-- **Evidence**:
-  - `test-output/phase4/task-4.2-section-12.5-content.txt`
+  - `docs/ARCHITECTURE.md` (Section 12.5 added)
 
-#### Task 4.3: Add Section 12.6 - Secrets Management
+#### Task 4.3: Write ARCHITECTURE.md Sections 12.6, 11.2.5, 9.7, 12.7, 6.X, 12.8 [UPDATED per quizme-v3]
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 1.5h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 4.2
-- **Description**: Minimal overview of Docker secrets priority and validation per Decision 9:A
+- **Description**: Document secrets management, mutation scope, CI/CD architecture, propagation strategy, secrets detection, error aggregation
 - **Acceptance Criteria**:
-  - [ ] Section added: `docs/ARCHITECTURE.md` Section 12.6
-  - [ ] Content: Brief secrets priority (Docker secrets > YAML > CLI) per Decision 9:A
-  - [ ] Content: Validation approach mention (aggressive detection with entropy per Decision 15:C)
-  - [ ] Defer details: Reference ValidateSecrets implementation
-  - [ ] Cross-references: Link to Section 12.4 (Deployment Validation)
-  - [ ] Minimal depth: ~15-20 lines total
+  - [ ] **Section 12.6 (Secrets Management)**: Docker secrets patterns, pepper strategy, file permissions (440), NO inline env vars
+  - [ ] **Section 11.2.5 (Mutation Testing Scope)**: ALL cmd/cicd/ ≥98% including test infrastructure and CLI wiring (per Q8, Decision 17:B)
+  - [ ] **Section 9.7 (CI/CD Workflow Architecture)**: NEVER DEFER principle as non-negotiable (per Q9, Decision 19:E), GitHub Actions enforcement
+  - [ ] **Section 12.7 (Documentation Propagation Strategy)**: Chunk-based verbatim copying (Decision 13:E), semantic units (sections preferred per Q5), explicit mapping table (per Q2)
+  - [ ] **Section 6.X (Secrets Detection Strategy)**: Length threshold >=32 bytes/43 chars (per Q3, Decision 15:E), NO entropy, trade-offs documented
+  - [ ] **Section 12.8 (Validator Error Aggregation Pattern)**: Sequential execution with aggregated error reporting (per Q4 research, Decision 11:E)
+  - [ ] All sections: Brief overview (Decision 9:A), ASCII diagrams where appropriate (Decision 16:B)
+  - [ ] Linting clean, no broken cross-references
 - **Files**:
-  - `docs/ARCHITECTURE.md` (updated, Section 12.6 added)
-- **Evidence**:
-  - `test-output/phase4/task-4.3-section-12.6-content.txt`
-
-#### Task 4.4: Add Cross-References
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 30min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 4.3
-- **Description**: Link sections 12.4-12.6 to existing ARCHITECTURE.md sections
-- **Acceptance Criteria**:
-  - [ ] Cross-reference: Section 12.4 ← link from existing sections mentioning validation
-  - [ ] Cross-reference: Section 12.5 ← link from existing sections mentioning configs/deployments
-  - [ ] Cross-reference: Section 12.6 ← link from existing sections mentioning secrets
-  - [ ] Bidirectional links: Section 12.4/12.5/12.6 link to relevant existing sections
-  - [ ] Link validation: All section numbers correct (Task 4.5 will automate)
-- **Files**:
-  - `docs/ARCHITECTURE.md` (updated, cross-references added)
-- **Evidence**:
-  - `test-output/phase4/task-4.4-cross-references-list.txt`
-
-#### Task 4.5: Cross-Reference Validation Tool (Priority 1)
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1h 30min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 4.4
-- **Description**: Automated tool to verify ARCHITECTURE.md section number consistency
-- **Acceptance Criteria**:
-  - [ ] Tool implemented: `cmd/cicd/check-arch-cross-refs`
-  - [ ] Validation: All section references exist (e.g., "Section 12.4" → actual Section 12.4 present)
-  - [ ] Validation: No broken links (orphaned references)
-  - [ ] Output: List of broken references (if any)
-  - [ ] Integration: Can be added to pre-commit or CI/CD
-  - [ ] Tests: Unit tests for tool logic
-- **Files**:
-  - `cmd/cicd/check-arch-cross-refs/main.go` (new)
-  - `cmd/cicd/check-arch-cross-refs/main_test.go` (new)
-- **Evidence**:
-  - `test-output/phase4/task-4.5-cross-ref-validation.log`
-
-#### Task 4.6: Phase 4 E2E Verification
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 30min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 4.5
-- **Description**: Verify ARCHITECTURE.md sections 12.4-12.6 complete with minimal depth per Decision 9:A
-- **Acceptance Criteria**:
-  - [ ] Sections exist: 12.4, 12.5, 12.6 in `docs/ARCHITECTURE.md`
-  - [ ] ASCII diagrams present: Validation flow, config hierarchy (NOT Mermaid per Decision 16:B)
-  - [ ] Minimal depth: Each section ~15-30 lines (not comprehensive)
-  - [ ] Cross-references valid: Task 4.5 tool passes (no broken links)
-  - [ ] Tests pass: `go test ./...`
-- **Files**:
-  - N/A (verification only)
-- **Evidence**:
-  - `test-output/phase4/phase4-completion-verification.log`
-  - `test-output/phase4/section-lengths.txt` (verify minimal depth)
+  - `docs/ARCHITECTURE.md` (Sections 12.6, 11.2.5, 9.7, 12.7, 6.X, 12.8 added)
 
 ---
 
-### Phase 5: Instruction File Propagation (7h)
+### Phase 5: Instruction File Propagation (5.5h) [UPDATED task count per quizme-v3 Q7]
 
-**Phase Objective**: Propagate ARCHITECTURE.md patterns via chunk-based verbatim copying per Decision 13:E (updated from 6h)
+**Phase Objective**: Propagate ARCHITECTURE.md chunks to instruction files using semantic units + mapping (Decision 13:E per quizme-v3 Q2+Q5)
 
-#### Task 5.1: Update 04-01.deployment.instructions.md
+**TASK 5.4 REMOVED**: No instruction file consistency tool (per quizme-v3 Q7 - user wants NO tool bloat)
+
+#### Task 5.1: Identify ARCHITECTURE.md Chunks for Propagation [UPDATED per quizme-v3 Q2+Q5]
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 2h
+- **Estimated**: 1.5h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Phase 4 complete (Task 4.6)
-- **Description**: Copy ARCHITECTURE.md Section 12.4 chunks verbatim per Decision 13:E
+- **Dependencies**: Task 4.3
+- **Description**: Identify chunks from ARCHITECTURE.md for propagation using explicit mapping table (Decision 13:E per Q2) and semantic unit boundaries (per Q5)
 - **Acceptance Criteria**:
-  - [ ] Chunks copied verbatim: Extract Section 12.4 text/diagrams from ARCHITECTURE.md, paste into 04-01.deployment.instructions.md
-  - [ ] NO paraphrasing: Text must match ARCHITECTURE.md exactly per Decision 13:E
-  - [ ] Content: 8 validator overview, validation flow diagram
-  - [ ] Cross-reference: Link to ARCHITECTURE.md Section 12.4 (for full context)
-  - [ ] Chunk boundaries: Clearly mark ARCHITECTURE.md source sections
+  - [ ] **Use explicit mapping table** (per Q2):
+    - Section 12.4 (Deployment Validation) → 04-01.deployment.instructions.md
+    - Section 12.5 (Config File Architecture) → 02-01.architecture.instructions.md, 03-04.data-infrastructure.instructions.md
+    - Section 12.6 (Secrets Management) → 02-05.security.instructions.md, 04-01.deployment.instructions.md
+    - Section 11.2.5 (Mutation Testing Scope) → 03-02.testing.instructions.md
+    - Section 9.7 (CI/CD Workflow Architecture) → 04-01.deployment.instructions.md
+    - Section 12.7 (Documentation Propagation Strategy) → copilot-instructions.md
+    - Section 6.X (Secrets Detection Strategy) → 02-05.security.instructions.md
+    - Section 12.8 (Validator Error Aggregation) → 03-01.coding.instructions.md
+  - [ ] **Semantic unit boundaries** (per Q5): Sections/subsections (e.g., "12.4.1 ValidateNaming" = 1 chunk), split if "massive" (>500 lines)
+  - [ ] List of chunks created: test-output/phase5/task-5.1-chunks.txt (chunk boundaries, destination files)
+  - [ ] No orphaned chunks (all ARCHITECTURE.md sections in 12.4-12.8 mapped)
 - **Files**:
-  - `.github/instructions/04-01.deployment.instructions.md` (updated)
-- **Evidence**:
-  - `test-output/phase5/task-5.1-deployment-instructions-chunks.txt` (copied chunks)
+  - `test-output/phase5/task-5.1-chunks.txt` (chunk mapping list)
 
-#### Task 5.2: Update 02-01.architecture.instructions.md
+#### Task 5.2: Copy Chunks to Instruction Files [UPDATED per quizme-v3 Q2+Q5]
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 2h
+- **Estimated**: 2.5h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 5.1
-- **Description**: Copy ARCHITECTURE.md Section 12.5 chunks verbatim per Decision 13:E
+- **Description**: Copy identified chunks VERBATIM from ARCHITECTURE.md to instruction files (Decision 13:E)
 - **Acceptance Criteria**:
-  - [ ] Chunks copied verbatim: Extract Section 12.5 text/diagrams from ARCHITECTURE.md, paste into 02-01.architecture.instructions.md
-  - [ ] NO paraphrasing: Text must match ARCHITECTURE.md exactly
-  - [ ] Content: SERVICE/PRODUCT/SUITE hierarchy, config delegation diagram
-  - [ ] Cross-reference: Link to ARCHITECTURE.md Section 12.5
-  - [ ] Chunk boundaries: Clearly mark ARCHITECTURE.md source sections
+  - [ ] **Verbatim copying**: No paraphrasing, exact text copied (ensures consistency)
+  - [ ] **Chunk boundaries**: Use markdown section headers (## or ###) as boundaries
+  - [ ] **Destination files**: Follow mapping table from Task 5.1
+  - [ ] **Formatting**: Preserve markdown formatting (headers, lists, code blocks, diagrams)
+  - [ ] **Cross-references**: Update links to point back to ARCHITECTURE.md (single source of truth)
+  - [ ] All instruction files updated: 02-01.architecture, 02-05.security, 03-01.coding, 03-02.testing, 03-04.data-infrastructure, 04-01.deployment, copilot-instructions.md
+  - [ ] No broken markdown links (verified by markdown linter)
+  - [ ] Evidence: git diff shows chunks added to instruction files
 - **Files**:
-  - `.github/instructions/02-01.architecture.instructions.md` (updated)
-- **Evidence**:
-  - `test-output/phase5/task-5.2-architecture-instructions-chunks.txt`
+  - `.github/instructions/02-01.architecture.instructions.md`, `.github/instructions/02-05.security.instructions.md`, etc. (chunks added)
 
-#### Task 5.3: Chunk-Based Verification Tool
+#### Task 5.3: Create cicd check-chunk-verification Tool
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 2h
+- **Estimated**: 1.5h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 5.2
-- **Description**: Implement tool to verify ARCHITECTURE.md chunks present in instruction files per Decision 13:E
+- **Description**: Create cicd check-chunk-verification tool to validate chunks present in instruction files
 - **Acceptance Criteria**:
-  - [ ] Tool implemented: `cmd/cicd/check-chunk-propagation`
-  - [ ] Extraction: Parse ARCHITECTURE.md, identify chunk boundaries (subsections, code blocks, diagrams)
-  - [ ] Verification: Search for exact chunk match in instruction files (verbatim copying required)
-  - [ ] Output: List of missing/mismatched chunks
-  - [ ] Integration: Can be added to pre-commit or CI/CD
-  - [ ] Tests: Unit tests for chunk extraction + matching logic
+  - [ ] Subcommand: `cicd check-chunk-verification`
+  - [ ] Loads chunk mapping from configuration (Task 5.1 mapping table)
+  - [ ] Validates each chunk exists in destination instruction file (exact text match)
+  - [ ] Identifies orphaned chunks (in ARCHITECTURE.md but not propagated)
+  - [ ] Identifies missing chunks (mapping says should exist, but not found in instruction file)
+  - [ ] Error messages: Moderate verbosity (Decision 14:B)
+  - [ ] Unit tests ≥98% coverage
+  - [ ] Integration test: Intentionally remove chunk, verify tool detects missing chunk
+  - [ ] Pre-commit hook integration: Run chunk verification on instruction file changes
 - **Files**:
-  - `cmd/cicd/check-chunk-propagation/main.go` (new)
-  - `cmd/cicd/check-chunk-propagation/main_test.go` (new)
-- **Evidence**:
-  - `test-output/phase5/task-5.3-chunk-verification.log`
-
-#### Task 5.4: Doc Consistency Check (Priority 1)
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 1h
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.3
-- **Description**: Checklist-based tool for systematic propagation verification
-- **Acceptance Criteria**:
-  - [ ] Tool implemented: `cmd/cicd/check-doc-consistency`
-  - [ ] Checklist: Pre-defined list of patterns to verify in each instruction file
-  - [ ] Example checks: "04-01.deployment.instructions.md contains ValidateNaming docs", "02-01.architecture.instructions.md contains config hierarchy"
-  - [ ] Output: Checklist results (pass/fail per item)
-  - [ ] Integration: Can be run manually or in CI/CD
-  - [ ] Tests: Unit tests for checklist logic
-- **Files**:
-  - `cmd/cicd/check-doc-consistency/main.go` (new)
-  - `cmd/cicd/check-doc-consistency/main_test.go` (new)
-- **Evidence**:
-  - `test-output/phase5/task-5.4-consistency-check.log`
-
-#### Task 5.5: Phase 5 E2E Verification
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 30min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 5.4
-- **Description**: Verify chunk-based propagation complete per Decision 13:E
-- **Acceptance Criteria**:
-  - [ ] ALL chunks present: Task 5.3 tool passes (no missing chunks)
-  - [ ] Consistency check: Task 5.4 tool passes (all checklist items verified)
-  - [ ] Instruction files updated: 04-01.deployment.instructions.md, 02-01.architecture.instructions.md have verbatim chunks
-  - [ ] Tests pass: `go test ./...`
-- **Files**:
-  - N/A (verification only)
-- **Evidence**:
-  - `test-output/phase5/phase5-completion-verification.log`
-  - `test-output/phase5/chunk-propagation-results.txt`
+  - `internal/cmd/cicd/check_chunk_verification.go`
+  - `internal/cmd/cicd/check_chunk_verification_test.go`
+  - `.pre-commit-config.yaml` (add chunk verification hook)
 
 ---
 
 ### Phase 6: E2E Validation (3h)
 
-**Phase Objective**: Validate 100% pass rate for ALL configs + deployments
+**Phase Objective**: End-to-end validation of ALL configs/ and deployments/ files with 100% pass rate
 
-#### Task 6.1: Validate ALL configs/ Files
+#### Task 6.1: Run Validators on ALL Configs and Deployments
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1h
+- **Estimated**: 1.5h
 - **Actual**: [Fill when complete]
-- **Dependencies**: Phase 5 complete (Task 5.5)
-- **Description**: Run cicd lint-deployments against ALL configs/ files, verify 100% pass
+- **Dependencies**: Task 5.3
+- **Description**: Comprehensive E2E validation with all 8 validators
 - **Acceptance Criteria**:
-  - [ ] Command: `cicd lint-deployments validate-all configs/`
-  - [ ] Result: 100% pass (zero failures) for ALL 15 config dirs (9 SERVICE + 5 PRODUCT + 1 SUITE)
-  - [ ] All 8 validators pass: naming, kebab-case, schema, template-pattern, ports, telemetry, admin, secrets
-  - [ ] No false positives: Review any warnings/errors, confirm legitimate issues
-  - [ ] Evidence collected: Validation output, pass/fail counts
+  - [ ] Run: `cicd lint-deployments validate-all configs/` (15 config directories: SERVICE, PRODUCT, SUITE, template, infrastructure)
+  - [ ] Run: `cicd lint-deployments validate-all deployments/` (all deployments)
+  - [ ] 100% pass rate (naming, kebab-case, schema, template-pattern, ports, telemetry, admin, secrets)
+  - [ ] Zero false positives (review warnings, confirm legitimate issues only)
+  - [ ] Performance: <5s execution time (meets Decision 5:C target)
+  - [ ] Collect evidence: test-output/phase6/task-6.1-validation-output.txt (pass/fail counts per validator, timing metrics)
+  - [ ] No warnings require --force flag (all issues resolved)
 - **Files**:
-  - N/A (validation only)
-- **Evidence**:
-  - `test-output/phase6/task-6.1-configs-validation.log`
-  - `test-output/phase6/task-6.1-pass-rate.txt` (must be 100%)
+  - `test-output/phase6/task-6.1-validation-output.txt` (comprehensive validation output)
 
-#### Task 6.2: Validate ALL deployments/ Files
+#### Task 6.2: Manual Documentation Consistency Review [UPDATED per quizme-v3 Q7]
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 1h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 6.1
-- **Description**: Run cicd lint-deployments against ALL deployments/ files, verify 100% pass
+- **Description**: Manual review of documentation consistency (NO automated tool per quizme-v3 Q7)
 - **Acceptance Criteria**:
-  - [ ] Command: `cicd lint-deployments validate-all deployments/`
-  - [ ] Result: 100% pass (zero failures) for ALL deployment files
-  - [ ] All 8 validators pass
-  - [ ] No false positives: Review any warnings/errors
-  - [ ] Evidence collected: Validation output, pass/fail counts
+  - [ ] **Manual review** (NO automated tool per Q7 - user rejected tool bloat):
+    - Verify ARCHITECTURE.md chunks propagated correctly (spot-check 3-5 chunks per Q2 mapping table)
+    - Verify cross-references point to correct sections
+    - Verify instruction files reference ARCHITECTURE.md as single source of truth
+    - Verify no broken markdown links (manual click-through OR markdown linter)
+  - [ ] **Copilot instructions consistency**: Verify `.github/instructions/*.instructions.md` files loaded in correct order
+  - [ ] **Chunk verification tool**: Run `cicd check-chunk-verification` to catch missing/orphaned chunks
+  - [ ] Document findings: test-output/phase6/task-6.2-doc-review.md (issues found, resolutions)
+  - [ ] All findings resolved before marking task complete
 - **Files**:
-  - N/A (validation only)
-- **Evidence**:
-  - `test-output/phase6/task-6.2-deployments-validation.log`
-  - `test-output/phase6/task-6.2-pass-rate.txt` (must be 100%)
+  - `test-output/phase6/task-6.2-doc-review.md` (manual review findings)
 
-#### Task 6.3: Test Sample Violations
+#### Task 6.3: CI/CD Workflow Validation [NEW per quizme-v3 Q9]
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 30min
+- **Estimated**: 0.5h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 6.2
-- **Description**: Verify validators detect intentional violations (8 validator types)
+- **Description**: Validate CI/CD workflow passes on sample PR
 - **Acceptance Criteria**:
-  - [ ] Sample violations: Create temporary config files with intentional errors (wrong naming, wrong ports, inline secrets, etc.)
-  - [ ] Detection: Run validators, verify ALL 8 types detect their respective violations
-  - [ ] Error messages: Verify moderate verbosity per Decision 14:B (issue, fix, file/line)
-  - [ ] Cleanup: Delete sample violation files after testing
-  - [ ] Evidence: Log of detected violations (8/8 validator types)
+  - [ ] Create sample PR with valid config change (add comment to service.yml)
+  - [ ] Verify GitHub Actions workflow cicd-lint-deployments runs
+  - [ ] Verify workflow PASSES (all validators pass)
+  - [ ] Create sample PR with INVALID config change (violate kebab-case)
+  - [ ] Verify workflow FAILS (validators detect issue)
+  - [ ] Verify PR is blocked from merging (status check required)
+  - [ ] Evidence: workflow run logs, PR status check screenshots
+  - [ ] Close sample PRs (cleanup)
 - **Files**:
-  - Temporary test files (deleted after testing)
-- **Evidence**:
-  - `test-output/phase6/task-6.3-sample-violations.log`
-  - `test-output/phase6/task-6.3-detection-rate.txt` (8/8 detected)
-
-#### Task 6.4: Verify Pre-Commit Integration
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 30min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 6.3
-- **Description**: Functional test of pre-commit hooks with parallel validators per Decision 11:E
-- **Acceptance Criteria**:
-  - [ ] Pre-commit installed: `pre-commit install`
-  - [ ] Functional test: Stage config files, run `pre-commit run`
-  - [ ] Performance: <5s for incremental validation (50+ files, parallel execution)
-  - [ ] Validators run: All 8 validators executed in parallel
-  - [ ] Evidence: Timing log, validator output
-- **Files**:
-  - N/A (functional test only)
-- **Evidence**:
-  - `test-output/phase6/task-6.4-precommit-timing.log` (must be <5s)
-  - `test-output/phase6/task-6.4-parallel-execution.log`
-
-#### Task 6.5: Phase 6 E2E Verification
-- **Status**: ❌
-- **Owner**: LLM Agent
-- **Estimated**: 30min
-- **Actual**: [Fill when complete]
-- **Dependencies**: Task 6.4
-- **Description**: Comprehensive E2E verification of entire implementation
-- **Acceptance Criteria**:
-  - [ ] ALL configs pass: 100% validation (Task 6.1)
-  - [ ] ALL deployments pass: 100% validation (Task 6.2)
-  - [ ] Sample violations detected: 8/8 validator types (Task 6.3)
-  - [ ] Pre-commit functional: <5s parallel execution (Task 6.4)
-  - [ ] All tests pass: `go test ./...`
-  - [ ] Coverage ≥98%: `cmd/cicd/` infrastructure code
-  - [ ] Mutation ≥98%: ALL validators (NO exemptions per Decision 17:A)
-  - [ ] Race detector clean: `go test -race ./...`
-  - [ ] Linting clean: `golangci-lint run ./...`
-- **Files**:
-  - N/A (verification only)
-- **Evidence**:
-  - `test-output/phase6/phase6-completion-verification.log`
-  - `test-output/phase6/final-quality-gates.txt` (all gates passed)
+  - `test-output/phase6/task-6.3-cicd-workflow.log` (workflow validation evidence)
 
 ---
 
 ## Cross-Cutting Tasks
 
 ### Testing
-- [ ] Unit tests ≥98% coverage (cmd/cicd/ infrastructure code per copilot instructions)
-- [ ] Integration tests pass (cross-validator interactions)
-- [ ] E2E tests pass: 100% validation pass rate (Phase 6)
-- [ ] Mutation testing ≥98% for ALL validators (NO exemptions per Decision 17:A)
+- [ ] Unit tests ≥98% coverage for ALL cmd/cicd/ code (production + test infrastructure + CLI wiring per Decision 17:B per Q8)
+- [ ] Integration tests pass (all validators with valid + invalid fixtures)
+- [ ] E2E tests pass (100% pass rate for all configs/ and deployments/)
+- [ ] Mutation testing ≥98% for ALL cmd/cicd/ (NO exemptions per Decision 17:B per Q8)
 - [ ] No skipped tests (except documented exceptions)
-- [ ] Race detector clean: `go test -race ./...`
+- [ ] Race detector clean: `go test -race -count=2 ./...`
 
 ### Code Quality
-- [ ] Linting passes: `golangci-lint run ./...`
+- [ ] Linting passes: `golangci-lint run ./...` (zero warnings)
 - [ ] No new TODOs without tracking in tasks.md
 - [ ] No security vulnerabilities: `gosec ./...`
 - [ ] Formatting clean: `gofumpt -s -w ./`
 - [ ] Imports organized: `goimports -w ./`
+- [ ] File sizes ≤500 lines (soft 300, hard 500)
 
 ### Documentation
-- [ ] ARCHITECTURE.md updated: Sections 12.4-12.6 (minimal depth per Decision 9:A)
-- [ ] Instruction files updated: Chunk-based verbatim copying per Decision 13:E (04-01.deployment.instructions.md, 02-01.architecture.instructions.md)
-- [ ] CONFIG-SCHEMA.md: Embedded in ValidateSchema per Decision 10:D (or deleted if user prefers Option E)
-- [ ] README.md files: Minimal content per Decision 8:A (configs/, PRODUCT/, SUITE/)
-- [ ] Comments: Moderate detail in validator code (primary docs per Decision 9:A)
+- [ ] README.md updated with validator usage, CI/CD workflow badge
+- [ ] ARCHITECTURE.md sections added (12.4, 12.5, 12.6, 11.2.5, 9.7, 12.7, 6.X, 12.8)
+- [ ] Instruction files updated (chunks propagated per mapping table per Q2)
+- [ ] CONFIG-SCHEMA.md DELETED (hardcoded in Go per Decision 10:E per Q1)
+- [ ] Comments added for complex logic (comprehensive inline docs per Decision 9:A)
 
 ### Deployment
-- [ ] Pre-commit functional: Parallel validators, <5s incremental per Decision 11:E
-- [ ] CI/CD integration: Optional (can add GitHub Actions workflow)
-- [ ] Config files validated: 100% pass rate
-- [ ] Deployment files validated: 100% pass rate
+- [ ] Docker build clean: `docker compose -f deployments/compose/compose.yml build`
+- [ ] Docker Compose health checks pass
+- [ ] E2E tests pass in Docker environment
+- [ ] Config files validated (100% pass rate)
+- [ ] DB migrations work forward+backward (if applicable)
+- [ ] CI/CD workflow passing (GitHub Actions cicd-lint-deployments per Decision 19:E per Q9)
 
 ---
 
 ## Notes / Deferred Work
 
-### Quizme-v2 Q2 Clarification Needed
-- **Issue**: Q2 (CONFIG-SCHEMA.md integration) was blank (unanswered)
-- **Assumption**: Using Decision 10:D (Embed + parse at init) as default
-- **Alternative**: User may prefer Decision 10:E (Delete CONFIG-SCHEMA.md, hardcode schema)
-- **Action**: User should confirm preference. If Option E preferred, revise Task 3.3 to delete CONFIG-SCHEMA.md and hardcode schema in `validate-schema.go`
+**Deferred to Future Iterations**:
+- Priority 2 work (import path fixes, port consolidation) deferred per Decision 1:B
+- Advanced template validation (beyond naming+structure+values) if needed
+- Automated documentation consistency tool (rejected per quizme-v3 Q7 - user wants NO tool bloat)
 
-### Priority 2 Improvements (Deferred to Future Iteration)
-From ANALYSIS.md, these were identified but NOT added:
-- Task 1.0: Config backup before restructure (rollback safety)
-- Task 1.7A: Migration script (automate 50+ file moves)
-- Task 2.0: PRODUCT config generation tool (reduce manual errors)
-- Task 3.13A: CI/CD GitHub Actions workflow (automated validation on PR)
-- Task 3.8A: Enhanced secrets detection (more entropy heuristics)
-
-These can be added in quizme-v3 if user wants even more rigor.
+**Decisions Made**:
+- 19 Executive Decisions finalized (8 from v1, 10 from v2, 1 new from v3)
+- CONFIG-SCHEMA.md DELETED, schema HARDCODED (Decision 10:E per Q1)
+- Secrets detection uses LENGTH threshold (Decision 15:E per Q3)
+- Error aggregation: SEQUENTIAL + AGGREGATED (Decision 11:E per Q4 research)
+- Documentation tools REMOVED (Tasks 4.5, 5.4 per Q7)
+- CI/CD workflow MANDATORY (Task 3.13, Decision 19:E per Q9)
+- Mutation testing: ALL cmd/cicd/ ≥98% (Decision 17:B per Q8)
 
 ---
 
 ## Evidence Archive
 
-**Current Documentation**:
-- `docs/fixes-v3/plan.md` - THIS FILE (implementation plan)
-- `docs/fixes-v3/tasks.md` - Implementation plan with quizme-v2 answers integrated (57 tasks, 57h LOE)
-- `docs/fixes-v3/quizme-v1.md` - DELETED (merged into Decisions 1-8)
-- `docs/fixes-v3/quizme-v2.md` - TO BE DELETED (will merge into Decisions 9-18 after user confirmation of Q2)
-- `docs/fixes-v3/ANALYSIS.md` - Deep analysis (15 improvements, Priority 1 applied)
-- `docs/fixes-v3/COMPLETION-STATUS.md` - V2 completion summary
+[Track test output directories created during implementation]
 
-**Planning Evidence**:
-- `test-output/fixes-v3-quizme-analysis/` - Quizme-v1 answers + analysis
-- `test-output/fixes-v3-quizme-v2-analysis/` - Quizme-v2 answers + analysis
+- `test-output/phase0-research/` - Phase 0 research findings (internal, synthesized into decisions)
+- `test-output/phase1/` - Phase 1 file restructuring logs, git mv verification
+- `test-output/phase2/` - Phase 2 listing generation output, mirror validation results
+- `test-output/phase3/` - Phase 3 validator implementation logs, unit/integration test output, mutation testing results (Task 3.10)
+- `test-output/phase4/` - Phase 4 ARCHITECTURE.md section drafts, ASCII diagram iterations
+- `test-output/phase5/` - Phase 5 chunk propagation verification, chunk mapping list, instruction file diffs
+- `test-output/phase6/` - Phase 6 E2E validation output (Task 6.1), manual doc review (Task 6.2), CI/CD workflow validation (Task 6.3)
+- `test-output/fixes-v3-quizme-v1-analysis/` - Quizme-v1 answers analysis (8 decisions)
+- `test-output/fixes-v3-quizme-v2-analysis/` - Quizme-v2 answers analysis (10 decisions)
+- `test-output/fixes-v3-quizme-v3-analysis/` - Quizme-v3 answers analysis (10 questions, 19 total decisions), deep analysis v2, answers-summary.md, Q4 research findings
 
-**Implementation Evidence** (to be created during Phase 1-6):
-- `test-output/phase1/` - Phase 1 restructuring logs (8 tasks)
-- `test-output/phase2/` - Phase 2 template generation logs (7 tasks)
-- `test-output/phase3/` - Phase 3 validator implementation + coverage + mutation (13 tasks)
-- `test-output/phase4/` - Phase 4 ARCHITECTURE.md updates (6 tasks)
-- `test-output/phase5/` - Phase 5 propagation verification logs (5 tasks)
-- `test-output/phase6/` - Phase 6 E2E validation results (5 tasks)
