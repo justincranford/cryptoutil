@@ -1,7 +1,12 @@
 package lint_deployments
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMapDeploymentToConfig(t *testing.T) {
@@ -382,4 +387,76 @@ func TestFormatMirrorResult(t *testing.T) {
 			t.Error("expected non-empty output for empty result")
 		}
 	})
+}
+
+// TestValidateStructuralMirror_ExcludedWithConfigs tests excluded deployments in orphan check.
+func TestValidateStructuralMirror_ExcludedWithConfigs(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	deploymentsDir := filepath.Join(tmpDir, "deployments")
+	configsDir := filepath.Join(tmpDir, "configs")
+
+	require.NoError(t, os.MkdirAll(deploymentsDir, 0o750))
+	require.NoError(t, os.MkdirAll(configsDir, 0o750))
+
+	// Create excluded deployment + a matching config deployment.
+	createTestDir(t, deploymentsDir, "shared-postgres")
+	createTestDir(t, deploymentsDir, "jose-ja")
+	createTestDir(t, configsDir, "jose")
+
+	// Add an orphan config to trigger the orphan check loop which includes excluded dirs.
+	createTestDir(t, configsDir, "orphaned")
+
+	result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
+	require.NoError(t, err)
+	assert.True(t, result.Valid)
+	assert.Len(t, result.Excluded, 1, "shared-postgres should be excluded")
+	assert.Len(t, result.Orphans, 1, "orphaned config should be reported")
+}
+
+// TestValidateStructuralMirror_UnreadableDeployments tests error when deployment dirs unreadable.
+func TestValidateStructuralMirror_UnreadableDeployments(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	deploymentsDir := filepath.Join(tmpDir, "deployments")
+	configsDir := filepath.Join(tmpDir, "configs")
+
+	require.NoError(t, os.MkdirAll(deploymentsDir, 0o750))
+	require.NoError(t, os.MkdirAll(configsDir, 0o750))
+
+	// Make deployments dir unreadable.
+	require.NoError(t, os.Chmod(deploymentsDir, 0o000))
+
+	t.Cleanup(func() {
+		_ = os.Chmod(deploymentsDir, 0o750)
+	})
+
+	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to list deployment directories")
+}
+
+// TestValidateStructuralMirror_UnreadableConfigs tests error when config dirs unreadable.
+func TestValidateStructuralMirror_UnreadableConfigs(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	deploymentsDir := filepath.Join(tmpDir, "deployments")
+	configsDir := filepath.Join(tmpDir, "configs")
+
+	require.NoError(t, os.MkdirAll(deploymentsDir, 0o750))
+	require.NoError(t, os.MkdirAll(configsDir, 0o750))
+
+	// Make configs dir unreadable.
+	require.NoError(t, os.Chmod(configsDir, 0o000))
+
+	t.Cleanup(func() {
+		_ = os.Chmod(configsDir, 0o750)
+	})
+
+	_, err := ValidateStructuralMirror(deploymentsDir, configsDir)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to list config directories")
 }

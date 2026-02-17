@@ -5,6 +5,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClassifyFileType(t *testing.T) {
@@ -356,4 +359,53 @@ func createTestDir(t *testing.T, dir string, name string) {
 	if err := os.MkdirAll(path, 0o755); err != nil {
 		t.Fatalf("failed to create directory %s: %v", path, err)
 	}
+}
+
+// TestGenerateConfigsListing_Error tests error propagation from GenerateConfigsListing.
+func TestGenerateConfigsListing_Error(t *testing.T) {
+	t.Parallel()
+
+	_, err := GenerateConfigsListing("/nonexistent-configs-dir-xyz")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to generate configs listing")
+}
+
+// TestWriteListingFile_WriteError tests write failure in WriteListingFile.
+func TestWriteListingFile_WriteError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// Create a valid input dir with a file.
+	createTestFile(t, tmpDir, "test.yml", "content")
+
+	// Use a directory path that doesn't exist for output.
+	badOutput := filepath.Join("/nonexistent-dir-xyz", "output.json")
+	err := WriteListingFile(tmpDir, badOutput)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to write listing file")
+}
+
+// TestGenerateDirectoryListing_WalkError tests walk error in GenerateDirectoryListing.
+func TestGenerateDirectoryListing_WalkError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// Create a subdirectory then remove read permission.
+	subDir := filepath.Join(tmpDir, "restricted")
+	require.NoError(t, os.MkdirAll(subDir, 0o755))
+	createTestFile(t, subDir, "file.txt", "data")
+
+	// Remove read permission on subdirectory.
+	require.NoError(t, os.Chmod(subDir, 0o000))
+
+	t.Cleanup(func() {
+		// Restore permission for cleanup.
+		_ = os.Chmod(subDir, 0o755)
+	})
+
+	_, err := GenerateDirectoryListing(tmpDir)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to walk directory")
 }

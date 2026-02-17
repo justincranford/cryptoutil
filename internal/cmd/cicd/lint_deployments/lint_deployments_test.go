@@ -249,3 +249,115 @@ func TestValidateDeploymentStructure_UnknownType(t *testing.T) {
 	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "unknown structure type")
 }
+
+// TestValidateAllDeployments_ProductAndSuiteAndTemplate tests PRODUCT, SUITE, template paths.
+func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		setup     func(t *testing.T) string
+		wantCount int
+	}{
+		{
+			name: "product directory triggers PRODUCT validation",
+			setup: func(t *testing.T) string {
+				t.Helper()
+
+				tmpDir := t.TempDir()
+				productDir := filepath.Join(tmpDir, "identity")
+				require.NoError(t, os.MkdirAll(filepath.Join(productDir, "secrets"), 0o750))
+				require.NoError(t, os.WriteFile(
+					filepath.Join(productDir, "compose.yml"),
+					[]byte("name: identity\n"), 0o600))
+
+				return tmpDir
+			},
+			wantCount: 1,
+		},
+		{
+			name: "suite directory triggers SUITE validation",
+			setup: func(t *testing.T) string {
+				t.Helper()
+
+				tmpDir := t.TempDir()
+				suiteDir := filepath.Join(tmpDir, "cryptoutil")
+				require.NoError(t, os.MkdirAll(filepath.Join(suiteDir, "secrets"), 0o750))
+				require.NoError(t, os.WriteFile(
+					filepath.Join(suiteDir, "compose.yml"),
+					[]byte("name: cryptoutil\n"), 0o600))
+
+				return tmpDir
+			},
+			wantCount: 1,
+		},
+		{
+			name: "template directory triggers template validation",
+			setup: func(t *testing.T) string {
+				t.Helper()
+
+				tmpDir := t.TempDir()
+				templateDir := filepath.Join(tmpDir, "template")
+				require.NoError(t, os.MkdirAll(filepath.Join(templateDir, "secrets"), 0o750))
+				require.NoError(t, os.WriteFile(
+					filepath.Join(templateDir, "compose.yml"),
+					[]byte("name: template\n"), 0o600))
+
+				return tmpDir
+			},
+			wantCount: 1,
+		},
+		{
+			name: "empty root returns no results",
+			setup: func(t *testing.T) string {
+				t.Helper()
+
+				return t.TempDir()
+			},
+			wantCount: 0,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			root := tc.setup(t)
+			results, err := ValidateAllDeployments(root)
+			require.NoError(t, err)
+			assert.Len(t, results, tc.wantCount)
+		})
+	}
+}
+
+// TestValidateDeploymentStructure_ProductType tests PRODUCT type triggers product secrets.
+func TestValidateDeploymentStructure_ProductType(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o750))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), 0o600))
+
+	result, err := ValidateDeploymentStructure(tmpDir, "identity", "PRODUCT")
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Missing product secrets should cause invalid.
+	assert.False(t, result.Valid)
+}
+
+// TestValidateDeploymentStructure_SuiteType tests SUITE type triggers suite secrets.
+func TestValidateDeploymentStructure_SuiteType(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o750))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), 0o600))
+
+	result, err := ValidateDeploymentStructure(tmpDir, "cryptoutil", "SUITE")
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Missing suite secrets should cause invalid.
+	assert.False(t, result.Valid)
+}
