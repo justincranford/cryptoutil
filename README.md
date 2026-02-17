@@ -1,5 +1,7 @@
 # cryptoutil
 
+[![CICD - Lint Deployments](https://github.com/justincranford/cryptoutil/actions/workflows/cicd-lint-deployments.yml/badge.svg)](https://github.com/justincranford/cryptoutil/actions/workflows/cicd-lint-deployments.yml)
+
 ## Introduction
 
 **cryptoutil** is a production-ready suite of five cryptographic products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, and Zero-Trust principles:

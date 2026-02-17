@@ -2,6 +2,7 @@ name: CICD - Lint Deployments
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - 'deployments/**'
       - 'configs/**'
@@ -35,8 +36,8 @@ jobs:
       - name: Build cicd linter
         run: go build -o cicd cmd/cicd/main.go
 
-      - name: Validate deployment structures
-        run: ./cicd lint-deployments deployments/
+      - name: Run validate-all
+        run: ./cicd lint-deployments validate-all 2>&1 | tee validation-report.txt
 
       - name: Generate listings
         run: ./cicd lint-deployments generate-listings
@@ -55,7 +56,7 @@ jobs:
         run: |
           find configs/ -name '*.yml' -not -path 'configs/orphaned/*' -not -name 'configs_all_files.json' -type f | sort | while read -r f; do
             echo "=== Validating: $f ==="
-            ./cicd lint-deployments validate-config "$f" || true
+            ./cicd lint-deployments validate-config "$f"
           done
 
       - name: Upload validation report
@@ -63,5 +64,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deployment-lint-report
-          path: deployment-lint-report.txt
+          path: validation-report.txt
           retention-days: 7
