@@ -102,7 +102,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_leader_data:/var/lib/postgresql/data
+      - postgres_leader_data:/var/lib/postgresql
       - ../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
     secrets:
       - postgres_username.secret
@@ -156,7 +156,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_follower_data:/var/lib/postgresql/data
+      - postgres_follower_data:/var/lib/postgresql
       - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
       - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
     secrets:
