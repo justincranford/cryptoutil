@@ -3020,6 +3020,58 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 - Single-part deployment names (must be `PRODUCT-SERVICE` format)
 - Wrong product prefix in config file names
 
+#### 12.4.8 Config File Content Validation
+
+**Implementation**: `ValidateConfigFile()` in [internal/cmd/cicd/lint_deployments/validate_config.go](/internal/cmd/cicd/lint_deployments/validate_config.go)
+
+**Schema Reference**: See [CONFIG-SCHEMA.md](/docs/CONFIG-SCHEMA.md) for complete config file schema with all supported keys, types, and valid values.
+
+**Validation Rules**:
+
+1. **YAML Syntax**: File must parse as valid YAML
+2. **Bind Address Format**: Must be valid IPv4 (via `net.ParseIP`)
+3. **Port Range**: 1-65535 inclusive
+4. **Protocol**: Must be `https` (TLS required)
+5. **Admin Bind Policy**: `bind-private-address` MUST be `127.0.0.1`
+6. **Secret References**: `database-url` must use `file:///run/secrets/` or `sqlite://` (never inline `postgres://`)
+7. **OTLP Consistency**: When `otlp: true`, `otlp-service` and `otlp-endpoint` are required
+
+**CLI Usage**: `cicd lint-deployments validate-config <config-file.yml>`
+
+#### 12.4.9 Compose File Content Validation
+
+**Implementation**: `ValidateComposeFile()` in [internal/cmd/cicd/lint_deployments/validate_compose.go](/internal/cmd/cicd/lint_deployments/validate_compose.go)
+
+**Validation Rules**:
+
+1. **Port Conflicts**: No duplicate host port bindings across services
+2. **Health Checks**: All non-exempt services must have healthcheck configuration
+3. **Dependency Chains**: `depends_on` references must resolve to defined services
+4. **Secret References**: Referenced secrets must be defined in the `secrets:` section
+5. **Hardcoded Credentials**: Environment variables must not contain inline passwords
+6. **Bind Mount Security**: Host paths must use relative paths (no absolute paths)
+7. **Include Resolution**: Docker Compose `include` directives are resolved for cross-file validation
+
+**CLI Usage**: `cicd lint-deployments validate-compose <compose-file.yml>`
+
+#### 12.4.10 Structural Mirror Validation
+
+**Implementation**: `ValidateStructuralMirror()` in [internal/cmd/cicd/lint_deployments/validate_mirror.go](/internal/cmd/cicd/lint_deployments/validate_mirror.go)
+
+**Direction**: `deployments/` → `configs/` (one-way). Every deployment directory MUST have a `configs/` counterpart.
+
+**Mapping Rules**:
+
+- `PRODUCT-SERVICE` (e.g., `jose-ja`) → product name (e.g., `jose`)
+- `PRODUCT` (e.g., `cipher`) → same name
+- Explicit overrides: `pki`/`pki-ca` → `ca`, `sm`/`sm-kms` → `sm`
+
+**Exclusions**: Infrastructure deployments (`shared-postgres`, `shared-citus`, `shared-telemetry`, `compose`, `template`)
+
+**Orphan Handling**: Orphaned `configs/` directories produce warnings (not errors). Archived orphans go to `configs/orphaned/`.
+
+**CLI Usage**: `cicd lint-deployments validate-mirror [deployments-dir configs-dir]`
+
 ### 12.5 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry

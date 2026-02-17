@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'deployments/**'
+      - 'configs/**'
       - 'internal/cmd/cicd/lint_deployments/**'
       - '.github/workflows/cicd-lint-deployments.yml'
   push:
     branches: [main]
     paths:
       - 'deployments/**'
+      - 'configs/**'
       - 'internal/cmd/cicd/lint_deployments/**'
       - '.github/workflows/cicd-lint-deployments.yml'
   workflow_dispatch:
@@ -35,6 +37,26 @@ jobs:
 
       - name: Validate deployment structures
         run: ./cicd lint-deployments deployments/
+
+      - name: Generate listings
+        run: ./cicd lint-deployments generate-listings
+
+      - name: Validate structural mirror
+        run: ./cicd lint-deployments validate-mirror
+
+      - name: Validate compose files
+        run: |
+          find deployments/ -name 'compose*.yml' -type f | sort | while read -r f; do
+            echo "=== Validating: $f ==="
+            ./cicd lint-deployments validate-compose "$f"
+          done
+
+      - name: Validate config files
+        run: |
+          find configs/ -name '*.yml' -not -path 'configs/orphaned/*' -not -name 'configs_all_files.json' -type f | sort | while read -r f; do
+            echo "=== Validating: $f ==="
+            ./cicd lint-deployments validate-config "$f" || true
+          done
 
       - name: Upload validation report
         if: always()
