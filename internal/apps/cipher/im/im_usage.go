@@ -62,7 +62,7 @@ Options:
 
 Examples:
   learn im init
-  learn im init --config configs/learn/im/config.yml`
+  learn im init --config configs/cipher/im/im.yml`
 
 	// IMUsageHealth is the usage message for the health subcommand.
 	IMUsageHealth = `Usage: cipher im health [options]

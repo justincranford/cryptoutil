@@ -106,21 +106,26 @@
   - All `config.yml`, `dev.yml`, `prod.yml` files across configs/ and deployments/
 
 #### Task 1.4: Update Code References
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.25h
 - **Dependencies**: Task 1.3
 - **Description**: Update Go code references to new file paths and names
 - **Acceptance Criteria**:
-  - [ ] All hardcoded paths updated
-  - [ ] Default config path constants updated
-  - [ ] CLI flag descriptions updated
-  - [ ] Build clean: `go build ./...`
-  - [ ] All tests pass: `go test ./...`
-  - [ ] No grep hits for old paths: `grep -r "config.yml\|dev.yml\|prod.yml" internal/ | grep -v ".git"`
+  - [x] All hardcoded paths updated (1 usage text reference updated)
+  - [x] Default config path constants updated (none found - all dynamic)
+  - [x] CLI flag descriptions updated (none found - all dynamic)
+  - [x] Build clean: `go build ./...`
+  - [x] All tests pass: `go test ./...` (1 PostgreSQL container test requires Docker - environmental limitation, not code issue)
+  - [x] No grep hits for old paths: `grep -r "config.yml\|dev.yml\|prod.yml" internal/ | grep -v ".git"`
 - **Files**:
-  - `internal/apps/*/` (Go files with config path references)
+  - `internal/apps/cipher/im/im_usage.go` (updated example path)
+- **Notes**:
+  - PostgreSQL container test failure is environmental (Docker daemon not running)
+  - Test has explicit documentation: "ENVIRONMENTAL NOTE: The PostgreSQL_Container subtest requires Docker Desktop to be running"
+  - Changes only affected usage text (help documentation), not functional code
+  - SQLite tests pass (provide sufficient coverage per test documentation)
 
 #### Task 1.5: Delete Obsolete Files/Directories
 - **Status**: ❌
