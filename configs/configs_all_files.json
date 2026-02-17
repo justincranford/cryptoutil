@@ -1,60 +1,234 @@
 {
-  "ca/ca-config-schema.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/ca-server.yml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/code-signing.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/database-server.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/device.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/document-signing.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/ev-code-signing.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/intermediate-ca.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/internal-tls.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/kernel-code-signing.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/kubernetes-workload.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/load-balancer.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/message-queue-server.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/mtls-client.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/ocsp-responder.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/root-ca.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/smartcard-logon.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/smime-encryption.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/smime-signing.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/ssh-host.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/ssh-user.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/timestamp.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/tls-client.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/tls-server.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/vpn-client.yaml": {"type":"config","status":"OPTIONAL"},
-  "ca/profiles/vpn-server.yaml": {"type":"config","status":"OPTIONAL"},
-  "cipher/config.yml": {"type":"config","status":"OPTIONAL"},
-  "cipher/im/config-pg-1.yml": {"type":"config","status":"OPTIONAL"},
-  "cipher/im/config-pg-2.yml": {"type":"config","status":"OPTIONAL"},
-  "cipher/im/config-sqlite.yml": {"type":"config","status":"OPTIONAL"},
-  "cipher/im/config.yml": {"type":"config","status":"OPTIONAL"},
-  "cryptoutil/config.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/authz-docker.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/authz.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/development.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/idp-docker.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/idp.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/policies/adaptive_auth.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/policies/risk_scoring.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/policies/step_up.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/production.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/profiles/authz-idp.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/profiles/authz-only.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/profiles/ci.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/profiles/demo.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/profiles/full-stack.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/rs-docker.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/rs.yml": {"type":"config","status":"OPTIONAL"},
-  "identity/test.yml": {"type":"config","status":"OPTIONAL"},
-  "jose/jose-server.yml": {"type":"config","status":"OPTIONAL"},
-  "orphaned/README.md": {"type":"doc","status":"OPTIONAL"},
-  "orphaned/observability/grafana/adaptive-auth-dashboard.json": {"type":"json","status":"OPTIONAL"},
-  "orphaned/observability/prometheus/adaptive-auth-alerts.yml": {"type":"config","status":"OPTIONAL"},
-  "orphaned/template/config-pg-1.yml": {"type":"config","status":"OPTIONAL"},
-  "orphaned/template/config-pg-2.yml": {"type":"config","status":"OPTIONAL"},
-  "orphaned/template/config-sqlite.yml": {"type":"config","status":"OPTIONAL"},
-  "orphaned/test/config.yml": {"type":"config","status":"OPTIONAL"},
-  "orphaned/test/dast-simple-unseal-secret-value-1.secret": {"type":"secret","status":"REQUIRED"}
+  "ca/ca-config-schema.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/ca-server.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/code-signing.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/database-server.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/device.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/document-signing.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/ev-code-signing.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/intermediate-ca.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/internal-tls.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/kernel-code-signing.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/kubernetes-workload.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/load-balancer.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/message-queue-server.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/mtls-client.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/ocsp-responder.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/root-ca.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/smartcard-logon.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/smime-encryption.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/smime-signing.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/ssh-host.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/ssh-user.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/timestamp.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/tls-client.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/tls-server.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/vpn-client.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "ca/profiles/vpn-server.yaml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "cipher/config.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "cipher/im/config-pg-1.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "cipher/im/config-pg-2.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "cipher/im/config-sqlite.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "cipher/im/config.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "cryptoutil/config.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/authz-docker.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/authz.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/development.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/idp-docker.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/idp.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/policies/adaptive_auth.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/policies/risk_scoring.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/policies/step_up.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/production.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/profiles/authz-idp.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/profiles/authz-only.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/profiles/ci.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/profiles/demo.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/profiles/full-stack.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/rs-docker.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/rs.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "identity/test.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "jose/jose-server.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "orphaned/README.md": {
+    "status": "OPTIONAL",
+    "type": "doc"
+  },
+  "orphaned/observability/grafana/adaptive-auth-dashboard.json": {
+    "status": "OPTIONAL",
+    "type": "json"
+  },
+  "orphaned/observability/prometheus/adaptive-auth-alerts.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "orphaned/template/config-pg-1.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "orphaned/template/config-pg-2.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "orphaned/template/config-sqlite.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "orphaned/test/config.yml": {
+    "status": "OPTIONAL",
+    "type": "config"
+  },
+  "orphaned/test/dast-simple-unseal-secret-value-1.secret": {
+    "status": "REQUIRED",
+    "type": "secret"
+  }
 }

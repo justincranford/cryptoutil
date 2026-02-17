@@ -484,20 +484,20 @@ volumes:
     name: cryptoutil_grafana_volume
 secrets:
   postgres_url.secret:
-    file: ../kms/secrets/postgres_url.secret
+    file: ../sm-kms/secrets/postgres_url.secret
   # Unseal secrets (CRITICAL: shared across ALL cryptoutil instances for key hierarchy interoperability).
   unseal_1of5.secret:
-    file: ../kms/secrets/unseal_1of5.secret
+    file: ../sm-kms/secrets/unseal_1of5.secret
   unseal_2of5.secret:
-    file: ../kms/secrets/unseal_2of5.secret
+    file: ../sm-kms/secrets/unseal_2of5.secret
   unseal_3of5.secret:
-    file: ../kms/secrets/unseal_3of5.secret
+    file: ../sm-kms/secrets/unseal_3of5.secret
   unseal_4of5.secret:
-    file: ../kms/secrets/unseal_4of5.secret
+    file: ../sm-kms/secrets/unseal_4of5.secret
   unseal_5of5.secret:
-    file: ../kms/secrets/unseal_5of5.secret
+    file: ../sm-kms/secrets/unseal_5of5.secret
   # Hash service pepper secret (MANDATORY per OWASP Password Storage Cheat Sheet).
   # Version-specific pepper for PBKDF2/HKDF operations.
   # CRITICAL: Changing pepper requires version bump and re-hash all records.
   hash_pepper_v3.secret:
-    file: ../kms/secrets/hash_pepper_v3.secret
+    file: ../sm-kms/secrets/hash_pepper_v3.secret

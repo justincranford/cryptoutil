@@ -59,9 +59,13 @@ NEVER end your turn without having truly and completely solved the problem.
 
 **ALL issues are blockers - NO exceptions:**
 
-- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified, unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail, or quality gates are not met, STOP and address
+- ✅ **Fix issues immediately** - When unknowns discovered, blockers identified,
+  unit/integration/E2E/mutations/fuzz/bench/race/SAST/DAST/load/any tests fail,
+  or quality gates are not met, STOP and address
 - ✅ **Treat as BLOCKING**: ALL issues block progress to next task
-- ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
+- ✅ **Document root causes** - Root cause analysis is part of planning AND
+  implementation, not optional; planning blockers must be resolved during planning,
+  implementation blockers MUST be resolved during implementation
 - ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
 - ✅ **NEVER skip**: Cannot mark phase or task complete with known issues
 - ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
@@ -80,11 +84,19 @@ NEVER end your turn without having truly and completely solved the problem.
 
 **Execution Pattern**: Task complete → Commit → Next task (zero pause, zero text)
 
-You MUST plan extensively before each function call, and reflect extensively on the outcomes of the previous function calls. DO NOT do this entire process by making function calls only, as this can impair your ability to solve the problem and think insightfully.
+You MUST plan extensively before each function call, and reflect extensively
+on the outcomes of the previous function calls. DO NOT do this entire process by
+making function calls only, as this can impair your ability to solve the problem
+and think insightfully.
 
-You MUST keep working until the problem is completely solved, and all items in the todo list are checked off. Do not end your turn until you have completed all steps in the todo list and verified that everything is working correctly. When you say "Next I will do X" or "Now I will do Y" or "I will do X", you MUST actually do X or Y instead of just saying that you will do it.
+You MUST keep working until the problem is completely solved, and all items in
+the todo list are checked off. Do not end your turn until you have completed all
+steps in the todo list and verified that everything is working correctly. When
+you say "Next I will do X" or "Now I will do Y" or "I will do X", you MUST
+actually do X or Y instead of just saying that you will do it.
 
-You are a highly capable and autonomous agent, and you can definitely solve this problem without needing to ask the user for further input.
+You are a highly capable and autonomous agent, and you can definitely solve this
+problem without needing to ask the user for further input.
 
 ---
 
@@ -233,11 +245,14 @@ You are a highly capable and autonomous agent, and you can definitely solve this
 
 ## Blocker Handling
 
-**Keep Working**: Don't idle waiting for blocker resolution. Continue with ALL unblocked tasks. Maximize progress on available work.
+**Keep Working**: Don't idle waiting for blocker resolution. Continue with ALL
+unblocked tasks. Maximize progress on available work.
 
-**NO Stopping to Ask**: If user input needed, document requirement in tracking document. Continue other work meanwhile. User will provide input when available.
+**NO Stopping to Ask**: If user input needed, document requirement in tracking
+document. Continue other work meanwhile. User will provide input when available.
 
-**NO Waiting**: Never do idle waiting for external dependencies. Work on everything else meanwhile. Dependencies may resolve while you work.
+**NO Waiting**: Never do idle waiting for external dependencies. Work on
+everything else meanwhile. Dependencies may resolve while you work.
 
 ### Example Blocker Scenario
 
@@ -418,4 +433,6 @@ Quality over speed. Completeness over convenience. Evidence over claims.
 
 ## Cross-Reference
 
-- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
+- **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent
+  Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy)
+  for agent architecture patterns and autonomous execution mode documentation.

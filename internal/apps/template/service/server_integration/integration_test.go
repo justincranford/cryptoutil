@@ -46,7 +46,7 @@ func TestIntegration_TenantRegistration_CreateTenant(t *testing.T) {
 	userID := googleUuid.New()
 	tenantName := "TestTenant"
 
-	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, tenantName, true)
+	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, "test-user", "test@example.com", "hashed_password_123", tenantName, true)
 	require.NoError(t, err, "Creating tenant should succeed")
 
 	// Assertions
@@ -89,7 +89,7 @@ func TestIntegration_TenantRegistration_ClientJoinRequest(t *testing.T) {
 
 	// Step 1: Create tenant first
 	userID := googleUuid.New()
-	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, "TestTenant", true)
+	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, "test-user", "test@example.com", "hashed_password_123", "TestTenant", true)
 	require.NoError(t, err, "Creating tenant should succeed")
 
 	// Step 2: Register client with join request
@@ -135,7 +135,7 @@ func TestIntegration_JoinRequest_Approve(t *testing.T) {
 
 	// Step 1: Create tenant
 	userID := googleUuid.New()
-	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, "TestTenant", true)
+	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, "test-user", "test@example.com", "hashed_password_123", "TestTenant", true)
 	require.NoError(t, err, "Creating tenant should succeed")
 
 	// Step 2: Create client join request
@@ -191,7 +191,7 @@ func TestIntegration_JoinRequest_Reject(t *testing.T) {
 
 	// Step 1: Create tenant
 	userID := googleUuid.New()
-	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, "TestTenant", true)
+	tenant, err := registrationSvc.RegisterUserWithTenant(ctx, userID, "test-user", "test@example.com", "hashed_password_123", "TestTenant", true)
 	require.NoError(t, err, "Creating tenant should succeed")
 
 	// Step 2: Create client join request

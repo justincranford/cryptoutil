@@ -588,9 +588,9 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			}
 		}
 
-			if foundProducts < productsWithOneServiceCount {
-				result.Warnings = append(result.Warnings,
-					"Suite should include all 4 products (sm, pki, cipher, jose) via PRODUCT-level compose")
+		if foundProducts < productsWithOneServiceCount {
+			result.Warnings = append(result.Warnings,
+				"Suite should include all 4 products (sm, pki, cipher, jose) via PRODUCT-level compose")
 		}
 	}
 
