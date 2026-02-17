@@ -158,14 +158,14 @@ func TestGenerateDirectoryListing(t *testing.T) {
 
 		tmpDir := t.TempDir()
 		createTestFile(t, tmpDir, "compose.yml", "")
-		createTestFile(t, tmpDir, "deployments_all_files.json", "{}")
+		createTestFile(t, tmpDir, "deployments-all-files.json", "{}")
 
 		listing, err := GenerateDirectoryListing(tmpDir)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if _, ok := listing["deployments_all_files.json"]; ok {
+		if _, ok := listing["deployments-all-files.json"]; ok {
 			t.Error("generated listing file should be skipped")
 		}
 

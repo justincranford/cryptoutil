@@ -82,8 +82,8 @@ database-url: "file:///run/secrets/db_url"
 		[]byte("secret-value"), 0o600))
 
 	// Step 1: Generate listings.
-	deploymentsOutput := filepath.Join(deploymentsDir, "deployments_all_files.json")
-	configsOutput := filepath.Join(configsDir, "configs_all_files.json")
+	deploymentsOutput := filepath.Join(deploymentsDir, "deployments-all-files.json")
+	configsOutput := filepath.Join(configsDir, "configs-all-files.json")
 
 	err := WriteListingFile(deploymentsDir, deploymentsOutput)
 	require.NoError(t, err, "generate deployments listing")

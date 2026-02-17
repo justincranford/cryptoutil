@@ -76,8 +76,8 @@ func mainGenerateListings(args []string) int {
 		configsDir = args[1]
 	}
 
-	deploymentsOutput := filepath.Join(deploymentsDir, "deployments_all_files.json")
-	configsOutput := filepath.Join(configsDir, "configs_all_files.json")
+	deploymentsOutput := filepath.Join(deploymentsDir, "deployments-all-files.json")
+	configsOutput := filepath.Join(configsDir, "configs-all-files.json")
 
 	// Generate deployments listing.
 	if err := WriteListingFile(deploymentsDir, deploymentsOutput); err != nil {
