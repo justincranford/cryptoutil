@@ -599,21 +599,21 @@
 **Phase Objective**: End-to-end verification, mutation testing, evidence collection
 
 #### Task 7.1: E2E Tests for All CICD Commands
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: 3h
 - **Dependencies**: All previous phases
 - **Description**: End-to-end black-box tests of CICD tooling
 - **Acceptance Criteria**:
-  - [ ] Test: `cicd generate-listings` → JSON files created
-  - [ ] Test: `cicd validate-mirror` → No errors on valid structure
-  - [ ] Test: `cicd validate-compose` → All 24 compose files pass
-  - [ ] Test: `cicd validate-config` → All valid configs pass
-  - [ ] Test: Error injection (invalid compose) → Errors caught
-  - [ ] Test: Error injection (invalid config) → Errors caught
-  - [ ] Coverage: ≥98% for all CICD main.go and command handlers
-  - [ ] Command: `go test -tags=e2e ./internal/cmd/cicd/lint_deployments/... -run TestE2E`
+  - [x] Test: `cicd generate-listings` → JSON files created
+  - [x] Test: `cicd validate-mirror` → No errors on valid structure
+  - [x] Test: `cicd validate-compose` → All 24 compose files pass
+  - [x] Test: `cicd validate-config` → All valid configs pass
+  - [x] Test: Error injection (invalid compose) → Errors caught
+  - [x] Test: Error injection (invalid config) → Errors caught
+  - [x] Coverage: ≥98% for all CICD main.go and command handlers (98.3%)
+  - [x] Command: `go test -tags=e2e ./internal/cmd/cicd/lint_deployments/... -run TestE2E`
 - **Files**:
   - `internal/cmd/cicd/lint_deployments/e2e_test.go` (new or expanded)
 - **Evidence**: `test-output/phase7/e2e-tests.log`

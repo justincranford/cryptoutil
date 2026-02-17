@@ -3,6 +3,7 @@ package lint_deployments_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -91,12 +92,13 @@ func TestFormatResults(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		results  []ValidationResult
-		contains []string
+		name        string
+		results     []ValidationResult
+		contains    []string
+		notContains []string
 	}{
 		{
-			name: "valid result",
+			name: "valid result no optional sections",
 			results: []ValidationResult{
 				{
 					Path:  "/deploy/jose-ja",
@@ -104,7 +106,8 @@ func TestFormatResults(t *testing.T) {
 					Valid: true,
 				},
 			},
-			contains: []string{"✅ VALID", "jose-ja", "1 valid"},
+			contains:    []string{"✅ VALID", "jose-ja", "1 valid"},
+			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:", "WARN:"},
 		},
 		{
 			name: "invalid result with errors",
@@ -131,7 +134,8 @@ func TestFormatResults(t *testing.T) {
 					Warnings: []string{"Optional file missing"},
 				},
 			},
-			contains: []string{"✅ VALID", "WARN: Optional file missing"},
+			contains:    []string{"✅ VALID", "WARN: Optional file missing"},
+			notContains: []string{"Missing directories", "Missing files", "Missing secrets", "ERROR:"},
 		},
 		{
 			name: "mixed valid and invalid sorted correctly",
@@ -152,6 +156,17 @@ func TestFormatResults(t *testing.T) {
 
 			for _, expected := range tc.contains {
 				assert.Contains(t, output, expected, "output should contain: %s", expected)
+			}
+
+			for _, unexpected := range tc.notContains {
+				assert.NotContains(t, output, unexpected, "output should not contain: %s", unexpected)
+			}
+
+			// Verify sort order: invalid results should appear before valid ones.
+			if tc.name == "mixed valid and invalid sorted correctly" {
+				invalidIdx := strings.Index(output, "❌ INVALID")
+				validIdx := strings.Index(output, "✅ VALID")
+				assert.Greater(t, validIdx, invalidIdx, "invalid results should appear before valid results in output")
 			}
 		})
 	}

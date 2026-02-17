@@ -338,7 +338,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 func TestFormatMirrorResult(t *testing.T) {
 	t.Parallel()
 
-	t.Run("valid result", func(t *testing.T) {
+	t.Run("valid result with excluded", func(t *testing.T) {
 		t.Parallel()
 
 		result := &MirrorResult{
@@ -350,12 +350,14 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		if output == "" {
-			t.Error("expected non-empty output")
-		}
+		assert.Contains(t, output, "PASS")
+		assert.Contains(t, output, "Excluded (1)")
+		assert.Contains(t, output, "shared-postgres")
+		assert.NotContains(t, output, "Errors")
+		assert.NotContains(t, output, "Warnings")
 	})
 
-	t.Run("invalid result with missing mirrors", func(t *testing.T) {
+	t.Run("invalid result with all sections", func(t *testing.T) {
 		t.Parallel()
 
 		result := &MirrorResult{
@@ -369,12 +371,18 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		if output == "" {
-			t.Error("expected non-empty output")
-		}
+		assert.Contains(t, output, "FAIL")
+		assert.Contains(t, output, "Excluded (1)")
+		assert.Contains(t, output, "template")
+		assert.Contains(t, output, "Errors (1)")
+		assert.Contains(t, output, "some error")
+		assert.Contains(t, output, "Warnings (1)")
+		assert.Contains(t, output, "orphaned: orphan1")
+		assert.Contains(t, output, "missing=2")
+		assert.Contains(t, output, "orphans=1")
 	})
 
-	t.Run("empty result", func(t *testing.T) {
+	t.Run("empty result no optional sections", func(t *testing.T) {
 		t.Parallel()
 
 		result := &MirrorResult{
@@ -383,9 +391,10 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		output := FormatMirrorResult(result)
 
-		if output == "" {
-			t.Error("expected non-empty output for empty result")
-		}
+		assert.Contains(t, output, "PASS")
+		assert.NotContains(t, output, "Excluded")
+		assert.NotContains(t, output, "Errors")
+		assert.NotContains(t, output, "Warnings")
 	})
 }
 
@@ -413,6 +422,35 @@ func TestValidateStructuralMirror_ExcludedWithConfigs(t *testing.T) {
 	assert.True(t, result.Valid)
 	assert.Len(t, result.Excluded, 1, "shared-postgres should be excluded")
 	assert.Len(t, result.Orphans, 1, "orphaned config should be reported")
+}
+
+// TestValidateStructuralMirror_MatchedAndOrphaned verifies orphan detection correctly
+// distinguishes matched config dirs from unmatched ones.
+func TestValidateStructuralMirror_MatchedAndOrphaned(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	deploymentsDir := filepath.Join(tmpDir, "deployments")
+	configsDir := filepath.Join(tmpDir, "configs")
+
+	require.NoError(t, os.MkdirAll(deploymentsDir, 0o755))
+	require.NoError(t, os.MkdirAll(configsDir, 0o755))
+
+	// Create matched pair: cipher-im -> cipher.
+	require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "cipher-im"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "cipher"), 0o755))
+
+	// Create orphaned config (no matching deployment).
+	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "orphan-svc"), 0o755))
+
+	result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
+	require.NoError(t, err)
+
+	// cipher should NOT be in orphans (it matches cipher-im).
+	assert.NotContains(t, result.Orphans, "cipher", "matched config should not be orphaned")
+	// orphan-svc should be in orphans.
+	assert.Contains(t, result.Orphans, "orphan-svc", "unmatched config should be orphaned")
+	assert.Len(t, result.Orphans, 1, "only unmatched config should be orphaned")
 }
 
 // TestValidateStructuralMirror_UnreadableDeployments tests error when deployment dirs unreadable.
