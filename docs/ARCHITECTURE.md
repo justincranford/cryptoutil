@@ -2717,7 +2717,7 @@ healthcheck-secrets:
 
 **MANDATORY: Rigid Delegation Pattern** (enforced by linter):
 - **SUITE → PRODUCT → SERVICE**: ALL deployments MUST follow this delegation chain
-- **Rationale**: 
+- **Rationale**:
   1. Products can scale from 1 to N services without breaking suite-level deployment
   2. Suite can scale from 5 to N products without hardcoded service dependencies
   3. Enables independent testing at each level (service, product, suite)
@@ -2786,10 +2786,10 @@ secrets:
 **Port Assignments**: Product deployment uses offset +10000 (e.g., identity-authz: 18200 public, 19290 admin instead of 8200/9290).
 
 **Other Products**:
-- `deployments/sm/compose.yml` → includes `../sm-kms/` (single-service product, alias pattern)
-- `deployments/pki/compose.yml` → includes `../pki-ca/` (single-service product, alias pattern)
-- `deployments/cipher/compose.yml` → includes `../cipher-im/` (single-service product, alias pattern)
-- `deployments/jose/compose.yml` → includes `../jose-ja/` (single-service product, alias pattern)
+- `deployments/sm/compose.yml` → includes `../sm-kms/` (currently single service)
+- `deployments/pki/compose.yml` → includes `../pki-ca/` (currently single service)
+- `deployments/cipher/compose.yml` → includes `../cipher-im/` (currently single service)
+- `deployments/jose/compose.yml` → includes `../jose-ja/` (currently single service)
 
 ##### SERVICE-Level Deployment (Individual Services)
 

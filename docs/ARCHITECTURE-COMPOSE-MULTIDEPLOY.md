@@ -123,10 +123,10 @@ deployments/
 │       ├── cryptoutil-postgres_password.secret.never
 │       └── cryptoutil-postgres_database.secret.never
 │
-├── sm/                                            # PRODUCT-level (single-service product)
-│   ├── compose.yml → ../sm-kms/compose.yml        # Alias to SERVICE
+├── sm/                                            # PRODUCT-level (currently one service: kms)
+│   ├── compose.yml → ../sm-kms/compose.yml        # Includes sm-kms SERVICE
 │   └── secrets/
-│       ├── sm-hash_pepper.secret                  # PRODUCT pepper: only for sm-kms
+│       ├── sm-hash_pepper.secret                  # PRODUCT pepper: shared by all SM services (currently just sm-kms)
 │       ├── sm-unseal_1of5.secret.never            # Documents: unseal keys MUST NOT be shared
 │       ├── sm-unseal_2of5.secret.never
 │       ├── sm-unseal_3of5.secret.never
@@ -137,10 +137,10 @@ deployments/
 │       ├── sm-postgres_password.secret.never
 │       └── sm-postgres_database.secret.never
 │
-├── pki/                                           # PRODUCT-level (single-service product)
+├── pki/                                           # PRODUCT-level (currently one service: ca)
 │   ├── compose.yml → ../pki-ca/compose.yml
 │   └── secrets/
-│       ├── pki-hash_pepper.secret                 # PRODUCT pepper: only for pki-ca
+│       ├── pki-hash_pepper.secret                 # PRODUCT pepper: shared by all PKI services (currently just pki-ca)
 │       ├── pki-unseal_1of5.secret.never           # Documents: unseal keys MUST NOT be shared
 │       ├── pki-unseal_2of5.secret.never
 │       ├── pki-unseal_3of5.secret.never
@@ -165,10 +165,10 @@ deployments/
 │       ├── identity-postgres_password.secret.never
 │       └── identity-postgres_database.secret.never
 │
-├── cipher/                                        # PRODUCT-level (single-service product)
+├── cipher/                                        # PRODUCT-level (currently one service: im)
 │   ├── compose.yml → ../cipher-im/compose.yml
 │   └── secrets/
-│       ├── cipher-hash_pepper.secret              # PRODUCT pepper: only for cipher-im
+│       ├── cipher-hash_pepper.secret              # PRODUCT pepper: shared by all Cipher services (currently just cipher-im)
 │       ├── cipher-unseal_1of5.secret.never        # Documents: unseal keys MUST NOT be shared
 │       ├── cipher-unseal_2of5.secret.never
 │       ├── cipher-unseal_3of5.secret.never
@@ -179,10 +179,10 @@ deployments/
 │       ├── cipher-postgres_password.secret.never
 │       └── cipher-postgres_database.secret.never
 │
-├── jose/                                          # PRODUCT-level (single-service product)
+├── jose/                                          # PRODUCT-level (currently one service: ja)
 │   ├── compose.yml → ../jose-ja/compose.yml
 │   └── secrets/
-│       ├── jose-hash_pepper.secret                # PRODUCT pepper: only for jose-ja
+│       ├── jose-hash_pepper.secret                # PRODUCT pepper: shared by all JOSE services (currently just jose-ja)
 │       ├── jose-unseal_1of5.secret.never          # Documents: unseal keys MUST NOT be shared
 │       ├── jose-unseal_2of5.secret.never
 │       ├── jose-unseal_3of5.secret.never
@@ -713,7 +713,7 @@ Suite compose.yml includes all product compose files:
 ```yaml
 # deployments/cryptoutil/compose.yml
 include:
-  - path: ../sm/compose.yml      # or ../sm-kms/compose.yml for single-service products
+  - path: ../sm/compose.yml      # PRODUCT-level (currently includes sm-kms)
   - path: ../pki/compose.yml     # or ../pki-ca/compose.yml
   - path: ../identity/compose.yml
   - path: ../cipher/compose.yml  # or ../cipher-im/compose.yml
@@ -736,6 +736,10 @@ To avoid secret name conflicts in multi-level composition:
 | PostgreSQL user | `{PRODUCT}-{SERVICE}-postgres_username.secret` | `jose-ja-postgres_username.secret` |
 | PostgreSQL pass | `{PRODUCT}-{SERVICE}-postgres_password.secret` | `identity-authz-postgres_password.secret` |
 | PostgreSQL DB | `{PRODUCT}-{SERVICE}-postgres_database.secret` | `pki-ca-postgres_database.secret` |
+| Browser username | `{PRODUCT}-{SERVICE}-browser_username.secret` | `cipher-im-browser_username.secret` |
+| Browser password | `{PRODUCT}-{SERVICE}-browser_password.secret` | `cipher-im-browser_password.secret` |
+| Service username | `{PRODUCT}-{SERVICE}-service_username.secret` | `jose-ja-service_username.secret` |
+| Service password | `{PRODUCT}-{SERVICE}-service_password.secret` | `pki-ca-service_password.secret` |
 
 ### 5.2 Layered Pepper Strategy
 
@@ -757,6 +761,8 @@ To avoid secret name conflicts in multi-level composition:
 **Other Secrets (NEVER shared)**:
 - Unseal keys: ALWAYS `{PRODUCT}-{SERVICE}-unseal_{N}of5.secret` (unique per service)
 - PostgreSQL credentials: ALWAYS `{PRODUCT}-{SERVICE}-postgres_*.secret` (unique per service)
+- Browser credentials: ALWAYS `{PRODUCT}-{SERVICE}-browser_username.secret` and `{PRODUCT}-{SERVICE}-browser_password.secret` (unique per service)
+- Service credentials: ALWAYS `{PRODUCT}-{SERVICE}-service_username.secret` and `{PRODUCT}-{SERVICE}-service_password.secret` (unique per service)
 - **Level suffixes** (see ARCHITECTURE.md Section 12.3.3): `-SERVICEONLY`, `-PRODUCTONLY`, `-SUITEONLY` used in filename hints only
 
 ## 6. Migration Path

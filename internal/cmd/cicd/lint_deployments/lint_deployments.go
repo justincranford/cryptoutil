@@ -17,8 +17,9 @@ const (
 	DeploymentTypeTemplate       = "template"
 )
 
-// Single-service product count (sm, pki, cipher, jose).
-const singleServiceProductCount = 4
+// Product count for products that currently have one service (sm, pki, cipher, jose).
+// Note: These products may have multiple services in the future.
+const productsWithOneServiceCount = 4
 
 // DeploymentStructure defines expected directory structure for each deployment type.
 type DeploymentStructure struct {
@@ -587,9 +588,9 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 			}
 		}
 
-		if foundProducts < singleServiceProductCount {
-			result.Warnings = append(result.Warnings,
-				"Suite should include all 4 single-service products via PRODUCT-level compose")
+			if foundProducts < productsWithOneServiceCount {
+				result.Warnings = append(result.Warnings,
+					"Suite should include all 4 products (sm, pki, cipher, jose) via PRODUCT-level compose")
 		}
 	}
 
@@ -620,8 +621,10 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 // checkDatabaseIsolation validates that each service has unique database credentials.
 // CRITICAL: ALL services MUST have isolated database storage (unique db/username/password).
 func checkDatabaseIsolation(deploymentsList []string, deploymentsRoot string) []string {
-	serviceNames := []string{"sm-kms", "pki-ca", "cipher-im", "jose-ja",
-		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa"}
+	serviceNames := []string{
+		"sm-kms", "pki-ca", "cipher-im", "jose-ja",
+		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
+	}
 
 	databaseNames := make(map[string][]string)
 	usernames := make(map[string][]string)

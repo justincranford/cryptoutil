@@ -13,19 +13,23 @@ func GetExpectedConfigsContents() map[string]string {
 
 	// Config directories (allowed but not strictly required at this time)
 	// Future: add more specific validation once config patterns stabilize
-	contents["ca/"] = OptionalFileStatus
-	contents["cipher/"] = OptionalFileStatus
-	contents["cipher/im/"] = OptionalFileStatus
-	contents["cryptoutil/"] = OptionalFileStatus
-	contents["identity/"] = OptionalFileStatus
+	contents["cryptoutil/"] = OptionalFileStatus // suite: cryptoutil
+	contents["cipher/"] = OptionalFileStatus // product: cipher
+	contents["cipher/im/"] = OptionalFileStatus // service: cipher-im
+	contents["identity/"] = OptionalFileStatus // product: identity
+	contents["identity/authz"] = OptionalFileStatus // service: identity-authz
+	contents["identity/idp"] = OptionalFileStatus // service: identity-idp
+	contents["identity/rp"] = OptionalFileStatus // service: identity-rp
+	contents["identity/rs"] = OptionalFileStatus // service: identity-rs
+	contents["identity/spa"] = OptionalFileStatus // service: identity-spa
 	contents["identity/policies/"] = OptionalFileStatus
 	contents["identity/profiles/"] = OptionalFileStatus
-	contents["jose/"] = OptionalFileStatus
-	contents["jose/ja/"] = OptionalFileStatus
-	contents["pki/"] = OptionalFileStatus
-	contents["pki/ca/"] = OptionalFileStatus
-	contents["sm/"] = OptionalFileStatus
-	contents["sm/kms/"] = OptionalFileStatus
+	contents["jose/"] = OptionalFileStatus // product: jose
+	contents["jose/ja/"] = OptionalFileStatus // service: jose-ja
+	contents["pki/"] = OptionalFileStatus // product: pki
+	contents["pki/ca/"] = OptionalFileStatus // service: pki-ca
+	contents["sm/"] = OptionalFileStatus // product: sm
+	contents["sm/kms/"] = OptionalFileStatus // service: sm-kms
 
 	// Future: add specific required files once config patterns are established
 	// For now, configs/ validation is minimal to allow experimentation

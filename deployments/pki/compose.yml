@@ -3,17 +3,17 @@
 #
 # Usage: cd deployments/pki && docker compose up
 #
-# For single-service products, PRODUCT-level is an alias to SERVICE-level.
+# Currently pki product has one service (pki-ca), but may have more PKI services in the future.
 # This compose file includes the pki-ca SERVICE compose file.
 
 include:
   - path: ../pki-ca/compose.yml
 
-# PRODUCT-level secrets (alias to SERVICE-level for single-service products)
+# PRODUCT-level secrets (shared by all services in PKI product)
 # See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
 #
-# For single-service products like pki (only has ca service), the PRODUCT
-# pepper is an alias/duplicate of the SERVICE pepper for consistency.
+# Currently pki product has only ca service, but additional PKI services may be added.
+# The PRODUCT pepper would then be shared by all services within the pki product.
 
 secrets:
   pki-hash_pepper.secret:

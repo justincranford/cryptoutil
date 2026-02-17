@@ -19,11 +19,11 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 
 	// PRODUCT-level deployments (aggregation of services within product)
 	product = []string{
-		"cipher",   // Single-service product (alias to cipher-im)
-		"identity", // Multi-service product (5 identity services)
-		"jose",     // Single-service product (alias to jose-ja)
-		"pki",      // Single-service product (alias to pki-ca)
-		"sm",       // Single-service product (alias to sm-kms)
+		"cipher",   // Multi-service product (1 cipher service at this time, more later)
+		"identity", // Multi-service product (5 identity services, more later)
+		"jose",     // Multi-service product (1 jose service at this time, more later)
+		"pki",      // Multi-service product (1 pki service at this time, more later)
+		"sm",       // Multi-service product (1 sm service at this time, more later)
 	}
 
 	// PRODUCT-SERVICE level deployments (individual services)
@@ -42,8 +42,8 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 	// Infrastructure deployments (shared resources)
 	infrastructure = []string{
 		"compose",          // Main infrastructure compose
-		"shared-citus",     // CitusDB infrastructure
-		"shared-postgres",  // PostgreSQL infrastructure
+		"shared-citus",     // CitusDB cluster infrastructure
+		"shared-postgres",  // PostgreSQL leader/follower infrastructure
 		"shared-telemetry", // Telemetry infrastructure
 	}
 
@@ -83,7 +83,7 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["cryptoutil/secrets/cryptoutil-postgres_database.secret.never"] = RequiredFileStatus
 	contents["cryptoutil/secrets/cryptoutil-postgres_url.secret.never"] = RequiredFileStatus
 
-	// PRODUCT Level - cipher (single-service product, alias to cipher-im)
+	// PRODUCT Level - cipher (currently single service: cipher-im)
 	contents["cipher/compose.yml"] = RequiredFileStatus
 	contents["cipher/secrets/cipher-hash_pepper.secret"] = RequiredFileStatus
 	contents["cipher/secrets/cipher-unseal_1of5.secret.never"] = RequiredFileStatus
@@ -109,7 +109,7 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["identity/secrets/identity-postgres_database.secret.never"] = RequiredFileStatus
 	contents["identity/secrets/identity-postgres_url.secret.never"] = RequiredFileStatus
 
-	// PRODUCT Level - jose (single-service product, alias to jose-ja)
+	// PRODUCT Level - jose (currently single service: jose-ja)
 	contents["jose/compose.yml"] = RequiredFileStatus
 	contents["jose/secrets/jose-hash_pepper.secret"] = RequiredFileStatus
 	contents["jose/secrets/jose-unseal_1of5.secret.never"] = RequiredFileStatus
@@ -122,7 +122,7 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["jose/secrets/jose-postgres_database.secret.never"] = RequiredFileStatus
 	contents["jose/secrets/jose-postgres_url.secret.never"] = RequiredFileStatus
 
-	// PRODUCT Level - pki (single-service product, alias to pki-ca)
+	// PRODUCT Level - pki (currently single service: pki-ca)
 	contents["pki/compose.yml"] = RequiredFileStatus
 	contents["pki/secrets/pki-hash_pepper.secret"] = RequiredFileStatus
 	contents["pki/secrets/pki-unseal_1of5.secret.never"] = RequiredFileStatus
@@ -135,7 +135,7 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["pki/secrets/pki-postgres_database.secret.never"] = RequiredFileStatus
 	contents["pki/secrets/pki-postgres_url.secret.never"] = RequiredFileStatus
 
-	// PRODUCT Level - sm (single-service product, alias to sm-kms)
+	// PRODUCT Level - sm (currently single service: sm-kms)
 	contents["sm/compose.yml"] = RequiredFileStatus
 	contents["sm/secrets/sm-hash_pepper.secret"] = RequiredFileStatus
 	contents["sm/secrets/sm-unseal_1of5.secret.never"] = RequiredFileStatus

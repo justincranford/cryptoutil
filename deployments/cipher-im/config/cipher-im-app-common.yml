@@ -1,2 +1,11 @@
 server:
   port: 8080
+
+# Authentication credentials (Docker secrets)
+# Browser credentials for web UI access
+browser-username-file: /run/secrets/browser_username.secret
+browser-password-file: /run/secrets/browser_password.secret
+
+# Service credentials for headless/API access
+service-username-file: /run/secrets/service_username.secret
+service-password-file: /run/secrets/service_password.secret

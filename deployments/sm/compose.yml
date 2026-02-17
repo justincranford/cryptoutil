@@ -3,17 +3,17 @@
 #
 # Usage: cd deployments/sm && docker compose up
 #
-# For single-service products, PRODUCT-level is an alias to SERVICE-level.
+# Currently sm product has one service (sm-kms), but may have more SM services in the future.
 # This compose file includes the sm-kms SERVICE compose file.
 
 include:
   - path: ../sm-kms/compose.yml
 
-# PRODUCT-level secrets (alias to SERVICE-level for single-service products)
+# PRODUCT-level secrets (shared by all services in SM product)
 # See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
 #
-# For single-service products like sm (only has kms service), the PRODUCT
-# pepper is an alias/duplicate of the SERVICE pepper for consistency.
+# Currently sm product has only kms service, but additional SM services may be added.
+# The PRODUCT pepper would then be shared by all services within the sm product.
 
 secrets:
   sm-hash_pepper.secret:
