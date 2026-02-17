@@ -19,6 +19,12 @@
 - **ALWAYS prefer lean documentation** - Append to existing docs (DETAILED.md, plan.md, tasks.md) instead of creating new analysis files
 - **NEVER create verbose analysis files** - No ANALYSIS.md, COMPLETION-ANALYSIS.md, SESSION-*.md files
 
+## Documentation Propagation
+
+**ARCHITECTURE.md is the single source of truth**. Instruction files contain compressed summaries with `See [ARCHITECTURE.md Section X.Y]` cross-references. When ARCHITECTURE.md sections change, corresponding instruction file sections MUST be updated.
+
+See [ARCHITECTURE.md Section 12.7 Documentation Propagation Strategy](docs/ARCHITECTURE.md#127-documentation-propagation-strategy) for chunk-based propagation mapping.
+
 ## Instruction Files Reference
 
 **Note**: Maintain as a single concise table. DO NOT split into category subsections.
