@@ -1373,6 +1373,18 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 - Resource-based ACLs (browser)
 - Consent tracking at scope + resource granularity
 
+### 6.10 Secrets Detection Strategy
+
+**Purpose**: Detect inline secrets in deployment compose files to enforce Docker secrets usage.
+
+**Detection Approach**: Length-based threshold (≥32 bytes raw, ≥43 characters base64-encoded) identifies high-entropy inline values in environment variables matching secret-pattern names (PASSWORD, SECRET, TOKEN, KEY, API_KEY). No entropy calculation is used - it produces too many false positives on non-secret configuration values.
+
+**Safe References** (excluded from detection): Docker secret paths (`/run/secrets/`), short development defaults (< threshold), empty values, variable references (`${VAR}`).
+
+**Trade-offs**: Length threshold catches most real secrets (UUIDs, tokens, hashes) while allowing short developer passwords (`admin`, `dev123`). Infrastructure deployments (Grafana, OTLP collector) are excluded since they intentionally use inline dev credentials.
+
+**Cross-References**: Implementation in [validate_secrets.go](/internal/cmd/cicd/lint_deployments/validate_secrets.go). Deployment secrets management in [Section 12.6](#126-secrets-management-in-deployments).
+
 ---
 
 ## 7. Data Architecture
@@ -1831,11 +1843,14 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 
 ### 9.7 CI/CD Workflow Architecture
 
+**NEVER DEFER Principle**: CI/CD workflow integration is non-negotiable. Every validator, quality gate, and enforcement tool MUST have a corresponding GitHub Actions workflow from the moment it is implemented. Deferring CI/CD integration to "later phases" is explicitly forbidden - it creates drift between local validation and CI enforcement.
+
 **Workflow Categories**:
 
 - **CI**: ci-quality (lint/format/build), ci-test (unit tests), ci-coverage (≥95%/98%), ci-benchmark, ci-mutation (≥95%/98%), ci-race (concurrency)
 - **Security**: ci-sast (gosec), ci-gitleaks (secret detection), ci-dast (Nuclei/ZAP)
 - **Integration**: ci-e2e (Docker Compose), ci-load (Gatling)
+- **Deployment**: cicd-lint-deployments (8 validators on deployments/ and configs/)
 
 **Quality Gates** (MANDATORY before merge):
 
@@ -2364,6 +2379,10 @@ Here are local convenience commands to run the workflows locally for Development
 `go run ./cmd/workflow -workflows=e2e`       → end-to-end tests; BOTH `/service/**` AND `/browser/**` paths
 `go run ./cmd/workflow -workflows=load`      → load testing
 `go run ./cmd/workflow -workflows=ci`        → full CI workflow
+
+**Mutation Testing Scope**: ALL `cmd/cicd/` packages (including `lint_deployments/`) require ≥98% mutation testing efficacy. This includes test infrastructure, CLI wiring, and validator implementations. Mutation testing validates test quality, not just test coverage.
+
+**Deployment Validation CI/CD**: The `cicd-lint-deployments` workflow runs `validate-all` on every push/PR affecting `deployments/**`, `configs/**`, or validator source code. Validation failures block merges. CI/CD integration is NEVER deferred - all validators must have workflow coverage from the moment they are implemented.
 
 #### 11.2.6 File Size Limits
 
@@ -3171,13 +3190,107 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 **Cross-References**: Each validator is implemented in `internal/cmd/cicd/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
 
-### 12.5 Environment Strategy
+### 12.5 Config File Architecture
+
+**Purpose**: Centralized configuration management for all services with a consistent directory hierarchy mirroring the deployment structure.
+
+**Schema Strategy**: Config file schema is HARDCODED in Go (`validate_schema.go`) with comprehensive code comments. No external schema files (e.g., JSON Schema, CONFIG-SCHEMA.md) are maintained. The validator source code is the single source of truth for schema rules.
+
+**Directory Structure**:
+
+```
+configs/
+├── ca/                          # PKI product (maps to pki-ca service)
+│   ├── ca-server.yml            # CA-specific nested config
+│   ├── ca-config-schema.yaml    # CA certificate schema
+│   └── profiles/                # X.509 certificate profiles
+│       ├── tls-server.yaml
+│       └── root-ca.yaml
+├── cipher/
+│   ├── cipher.yml               # Product-level config
+│   └── im/                      # Service-level configs
+│       ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
+│       ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
+│       └── config-sqlite.yml    # SQLite development (flat kebab-case)
+├── identity/
+│   ├── development.yml          # Environment-specific
+│   ├── production.yml           # Environment-specific
+│   ├── test.yml                 # Environment-specific
+│   ├── policies/                # Shared authentication policies
+│   │   ├── adaptive-auth.yml
+│   │   └── step-up.yml
+│   ├── profiles/                # Deployment profiles
+│   │   ├── full-stack.yml
+│   │   └── ci.yml
+│   └── authz/                   # Per-service configs
+│       └── authz.yml
+├── jose/
+│   └── jose-server.yml
+├── cryptoutil/
+│   └── cryptoutil.yml           # Suite-level config
+└── orphaned/                    # Archived configs (no active deployment)
+    └── template/                # Orphaned template configs
+```
+
+**File Types**:
+
+| Type | Pattern | Schema | Example |
+|------|---------|--------|---------|
+| Service template config | `config-*.yml` | Flat kebab-case, validated by `ValidateSchema` | `config-pg-1.yml` |
+| Domain-specific config | `{service}.yml` | Nested YAML, service-specific | `ca-server.yml`, `authz.yml` |
+| Environment config | `{env}.yml` | Product-level deployment settings | `development.yml`, `production.yml` |
+| Certificate profile | `profiles/*.yaml` | X.509 certificate definitions | `tls-server.yaml` |
+| Auth policy | `policies/*.yml` | Authentication/authorization rules | `adaptive-auth.yml` |
+
+**Cross-References**: Schema validation rules in [validate_schema.go](/internal/cmd/cicd/lint_deployments/validate_schema.go). Config naming in [Section 12.4.5](#1245-config-file-naming-strategy).
+
+### 12.6 Secrets Management in Deployments
+
+**Purpose**: Enforce Docker secrets usage for all credentials in compose files, preventing inline secret exposure in version-controlled YAML.
+
+**Docker Secrets Pattern**: All secret-bearing environment variables (PASSWORD, SECRET, TOKEN, KEY, API_KEY) MUST reference Docker secrets via `/run/secrets/<name>` or `file:///run/secrets/<name>`. Inline values are violations.
+
+**File Permissions**: All `.secret` files MUST have 440 (r--r-----) permissions. Never commit actual secret values to version control.
+
+**Detection Strategy**: Length-based threshold (≥32 bytes / ≥43 base64 chars) identifies high-entropy inline values. Safe references (`/run/secrets/`, Docker secret names, short dev defaults) are excluded. No entropy calculation (too many false positives). Infrastructure deployments (Grafana, OTLP collector) are excluded from secrets validation since they use intentional inline dev credentials.
+
+**Cross-References**: Secrets coordination strategy in [Section 12.3.3](#1233-secrets-coordination-strategy). Validator implementation in [validate_secrets.go](/internal/cmd/cicd/lint_deployments/validate_secrets.go).
+
+### 12.7 Documentation Propagation Strategy
+
+**Purpose**: Keep instruction files (`.github/instructions/`) synchronized with ARCHITECTURE.md using chunk-based verbatim copying of semantic units.
+
+**Propagation Model**: ARCHITECTURE.md is the single source of truth. Instruction files contain compressed summaries with `See [ARCHITECTURE.md Section X.Y]` cross-references. When ARCHITECTURE.md sections change, corresponding instruction file sections MUST be updated.
+
+**Mapping**:
+
+| ARCHITECTURE.md Section | Instruction File |
+|------------------------|------------------|
+| 12.4 Deployment Structure Validation | 04-01.deployment.instructions.md |
+| 12.5 Config File Architecture | 04-01.deployment.instructions.md |
+| 12.6 Secrets Management | 02-05.security.instructions.md |
+| 6.X Secrets Detection | 02-05.security.instructions.md |
+| 9.7 CI/CD Workflow Architecture | 04-01.deployment.instructions.md |
+
+**Semantic Units**: Propagation copies complete sections (not individual sentences). Each section is a self-contained semantic unit with purpose, rules, and cross-references.
+
+### 12.8 Validator Error Aggregation Pattern
+
+**Purpose**: All validators run to completion (never short-circuit) and aggregate errors for a single unified report.
+
+**Execution Model**: Sequential execution of all 8 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
+
+**Rationale**: Sequential execution (not parallel) ensures deterministic output ordering and simplifies debugging. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles.
+
+**Exit Code**: `validate-all` returns exit code 0 if all validators pass, exit code 1 if any validator fails. CI/CD workflows use this to block merges on validation failures.
+
+### 12.9 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
 **Testing**: test-containers (PostgreSQL), dynamic ports, ephemeral instances
 **Production**: PostgreSQL (cloud), static ports, full telemetry, TLS required
 
-### 12.6 Release Management
+### 12.10 Release Management
 
 **Versioning**: Semantic versioning (major.minor.patch)
 **Release Process**: Tag creation, CHANGELOG generation, artifact publishing

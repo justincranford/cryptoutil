@@ -1,6 +1,6 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 21 of 56 tasks complete (38%)
+**Status**: 22 of 56 tasks complete (39%)
 **Last Updated**: 2026-02-17 (Phase 3 complete)
 **Created**: 2026-02-17
 
@@ -538,15 +538,15 @@
 **TASK 4.5 REMOVED**: No cross-reference validation tool (per quizme-v3 Q7 - user wants NO tool bloat)
 
 #### Task 4.1: Write ARCHITECTURE.md Section 12.4 (Deployment Validation) [UPDATED per quizme-v3 Q6]
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.25h
 - **Dependencies**: Task 3.13
 - **Description**: Document deployment validation architecture with 8-validator reference table (Decision 9:A minimal depth, quizme-v3 Q6:C moderate table)
 - **Acceptance Criteria**:
-  - [ ] **Brief overview**: 1-2 paragraphs on deployment validation purpose and strategy (per Decision 9:A)
-  - [ ] **8-validator reference table**: 1 paragraph each (per Q6:C) - name, purpose, 2-3 key rules
+  - [x] **Brief overview**: 1-2 paragraphs on deployment validation purpose and strategy (per Decision 9:A)
+  - [x] **8-validator reference table**: 1 paragraph each (per Q6:C) - name, purpose, 2-3 key rules
     - ValidateNaming: Kebab-case enforcement, directory/file/service names
     - ValidateKebabCase: Expanded scope, service-name fields, docker-compose entries
     - ValidateSchema: HARDCODED schema (Decision 10:E), required fields, value types, bind addresses
@@ -555,11 +555,11 @@
     - ValidateTelemetry: OTLP endpoint consistency
     - ValidateAdmin: 127.0.0.1:9090 bind policy
     - ValidateSecrets: Length threshold >=32/43 (Decision 15:E)
-  - [ ] **ASCII diagram**: Validation flow (validators -> sequential execution -> aggregated errors per Decision 11:E)
-  - [ ] **Cross-references**: Point to code comments for detailed rules (aligns with Decision 9:A minimal docs philosophy)
-  - [ ] Linting clean, no broken markdown links
+  - [x] **ASCII diagram**: Validation flow (validators -> sequential execution -> aggregated errors per Decision 11:E)
+  - [x] **Cross-references**: Point to code comments for detailed rules (aligns with Decision 9:A minimal docs philosophy)
+  - [x] Linting clean, no broken markdown links
 - **Files**:
-  - `docs/ARCHITECTURE.md` (Section 12.4 added)
+  - `docs/ARCHITECTURE.md` (Section 12.4.11 added)
 
 #### Task 4.2: Write ARCHITECTURE.md Section 12.5 (Config File Architecture)
 - **Status**: ❌
