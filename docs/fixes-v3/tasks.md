@@ -1,6 +1,6 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 22 of 56 tasks complete (39%)
+**Status**: 24 of 56 tasks complete (43%)
 **Last Updated**: 2026-02-17 (Phase 3 complete)
 **Created**: 2026-02-17
 
@@ -562,41 +562,41 @@
   - `docs/ARCHITECTURE.md` (Section 12.4.11 added)
 
 #### Task 4.2: Write ARCHITECTURE.md Section 12.5 (Config File Architecture)
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.25h
 - **Dependencies**: Task 4.1
 - **Description**: Document config file architecture including schema strategy (Decision 10:E hardcoded schema)
 - **Acceptance Criteria**:
-  - [ ] **Brief overview**: Config file organization (SERVICE/PRODUCT/SUITE hierarchy per Decision 3)
-  - [ ] **Schema strategy**: HARDCODED in Go (Decision 10:E per Q1), comprehensive code comments, NO CONFIG-SCHEMA.md
-  - [ ] **File naming**: service.yml, development.yml, production.yml, test.yml conventions
-  - [ ] **Shared files**: policies/, profiles/ directories, environment-specific YAMLs at PRODUCT level
-  - [ ] **ASCII diagram**: Config directory structure (per Decision 16:B)
-  - [ ] Cross-references: ValidateSchema.go for detailed schema rules
-  - [ ] Linting clean
+  - [x] **Brief overview**: Config file organization (SERVICE/PRODUCT/SUITE hierarchy per Decision 3)
+  - [x] **Schema strategy**: HARDCODED in Go (Decision 10:E per Q1), comprehensive code comments, NO CONFIG-SCHEMA.md
+  - [x] **File naming**: service.yml, development.yml, production.yml, test.yml conventions
+  - [x] **Shared files**: policies/, profiles/ directories, environment-specific YAMLs at PRODUCT level
+  - [x] **ASCII diagram**: Config directory structure (per Decision 16:B)
+  - [x] Cross-references: ValidateSchema.go for detailed schema rules
+  - [x] Linting clean
 - **Files**:
   - `docs/ARCHITECTURE.md` (Section 12.5 added)
 
 #### Task 4.3: Write ARCHITECTURE.md Sections 12.6, 11.2.5, 9.7, 12.7, 6.X, 12.8 [UPDATED per quizme-v3]
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.5h
 - **Dependencies**: Task 4.2
 - **Description**: Document secrets management, mutation scope, CI/CD architecture, propagation strategy, secrets detection, error aggregation
 - **Acceptance Criteria**:
-  - [ ] **Section 12.6 (Secrets Management)**: Docker secrets patterns, pepper strategy, file permissions (440), NO inline env vars
-  - [ ] **Section 11.2.5 (Mutation Testing Scope)**: ALL cmd/cicd/ ≥98% including test infrastructure and CLI wiring (per Q8, Decision 17:B)
-  - [ ] **Section 9.7 (CI/CD Workflow Architecture)**: NEVER DEFER principle as non-negotiable (per Q9, Decision 19:E), GitHub Actions enforcement
-  - [ ] **Section 12.7 (Documentation Propagation Strategy)**: Chunk-based verbatim copying (Decision 13:E), semantic units (sections preferred per Q5), explicit mapping table (per Q2)
-  - [ ] **Section 6.X (Secrets Detection Strategy)**: Length threshold >=32 bytes/43 chars (per Q3, Decision 15:E), NO entropy, trade-offs documented
-  - [ ] **Section 12.8 (Validator Error Aggregation Pattern)**: Sequential execution with aggregated error reporting (per Q4 research, Decision 11:E)
-  - [ ] All sections: Brief overview (Decision 9:A), ASCII diagrams where appropriate (Decision 16:B)
-  - [ ] Linting clean, no broken cross-references
+  - [x] **Section 12.6 (Secrets Management)**: Docker secrets patterns, pepper strategy, file permissions (440), NO inline env vars
+  - [x] **Section 11.2.5 (Mutation Testing Scope)**: ALL cmd/cicd/ ≥98% including test infrastructure and CLI wiring (per Q8, Decision 17:B)
+  - [x] **Section 9.7 (CI/CD Workflow Architecture)**: NEVER DEFER principle as non-negotiable (per Q9, Decision 19:E), GitHub Actions enforcement
+  - [x] **Section 12.7 (Documentation Propagation Strategy)**: Chunk-based verbatim copying (Decision 13:E), semantic units (sections preferred per Q5), explicit mapping table (per Q2)
+  - [x] **Section 6.X (Secrets Detection Strategy)**: Length threshold >=32 bytes/43 chars (per Q3, Decision 15:E), NO entropy, trade-offs documented
+  - [x] **Section 12.8 (Validator Error Aggregation Pattern)**: Sequential execution with aggregated error reporting (per Q4 research, Decision 11:E)
+  - [x] All sections: Brief overview (Decision 9:A), ASCII diagrams where appropriate (Decision 16:B)
+  - [x] Linting clean, no broken cross-references
 - **Files**:
-  - `docs/ARCHITECTURE.md` (Sections 12.6, 11.2.5, 9.7, 12.7, 6.X, 12.8 added)
+  - `docs/ARCHITECTURE.md` (Sections 12.6, 11.2.5, 9.7, 12.7, 6.10, 12.8 added)
 
 ---
 
