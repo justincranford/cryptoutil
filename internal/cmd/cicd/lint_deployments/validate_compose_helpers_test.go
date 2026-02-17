@@ -44,12 +44,12 @@ func TestExtractDependencies(t *testing.T) {
 		{name: "nil depends_on", svc: composeService{}, expected: nil},
 		{
 			name:     "list format",
-			svc:      composeService{DependsOn: []interface{}{"svc1", "svc2"}},
+			svc:      composeService{DependsOn: []any{"svc1", "svc2"}},
 			expected: []string{"svc1", "svc2"},
 		},
 		{
 			name:     "map format",
-			svc:      composeService{DependsOn: map[string]interface{}{"svc1": map[string]interface{}{"condition": "service_started"}}},
+			svc:      composeService{DependsOn: map[string]any{"svc1": map[string]any{"condition": "service_started"}}},
 			expected: []string{"svc1"},
 		},
 	}
@@ -69,12 +69,12 @@ func TestExtractSecretName(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		input    interface{}
+		input    any
 		expected string
 	}{
 		{name: "string", input: "my_secret.secret", expected: "my_secret.secret"},
-		{name: "map with source", input: map[string]interface{}{"source": "my_secret.secret"}, expected: "my_secret.secret"},
-		{name: "map without source", input: map[string]interface{}{"target": "/run/secrets/foo"}, expected: ""},
+		{name: "map with source", input: map[string]any{"source": "my_secret.secret"}, expected: "my_secret.secret"},
+		{name: "map without source", input: map[string]any{"target": "/run/secrets/foo"}, expected: ""},
 		{name: "nil", input: nil, expected: ""},
 		{name: "integer", input: 42, expected: ""},
 	}
@@ -98,12 +98,12 @@ func TestExtractEnvironmentVars(t *testing.T) {
 		{name: "nil", svc: composeService{}, expected: map[string]string{}},
 		{
 			name:     "map format",
-			svc:      composeService{Environment: map[string]interface{}{"KEY1": "value1", "KEY2": nil}},
+			svc:      composeService{Environment: map[string]any{"KEY1": "value1", "KEY2": nil}},
 			expected: map[string]string{"KEY1": "value1", "KEY2": ""},
 		},
 		{
 			name:     "list format",
-			svc:      composeService{Environment: []interface{}{"KEY1=value1", "KEY2=value2", "NOVALUE"}},
+			svc:      composeService{Environment: []any{"KEY1=value1", "KEY2=value2", "NOVALUE"}},
 			expected: map[string]string{"KEY1": "value1", "KEY2": "value2", "NOVALUE": ""},
 		},
 	}
@@ -129,9 +129,9 @@ func TestIsExemptFromHealthcheck(t *testing.T) {
 	}{
 		{name: "builder prefix", svcName: "builder-myapp", svc: composeService{}, expected: true},
 		{name: "healthcheck prefix", svcName: "healthcheck-secrets", svc: composeService{}, expected: true},
-		{name: "echo entrypoint", svcName: "init", svc: composeService{Entrypoint: []interface{}{"sh", "-c", "echo done"}}, expected: true},
+		{name: "echo entrypoint", svcName: "init", svc: composeService{Entrypoint: []any{"sh", "-c", "echo done"}}, expected: true},
 		{name: "regular service", svcName: "myapp", svc: composeService{}, expected: false},
-		{name: "non-echo entrypoint", svcName: "myapp", svc: composeService{Entrypoint: []interface{}{"app", "start"}}, expected: false},
+		{name: "non-echo entrypoint", svcName: "myapp", svc: composeService{Entrypoint: []any{"app", "start"}}, expected: false},
 	}
 
 	for _, tc := range tests {

@@ -45,7 +45,7 @@ func ValidateConfigFile(configPath string) (*ConfigValidationResult, error) {
 		return result, nil
 	}
 
-	var config map[string]interface{}
+	var config map[string]any
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		result.Valid = false
 		result.Errors = append(result.Errors, fmt.Sprintf("YAML parse error: %s", err))
@@ -70,7 +70,7 @@ func ValidateConfigFile(configPath string) (*ConfigValidationResult, error) {
 }
 
 // validateBindAddresses checks that bind address values are valid IPv4 addresses.
-func validateBindAddresses(config map[string]interface{}, result *ConfigValidationResult) {
+func validateBindAddresses(config map[string]any, result *ConfigValidationResult) {
 	addressKeys := []string{"bind-public-address", "bind-private-address"}
 
 	for _, key := range addressKeys {
@@ -97,7 +97,7 @@ func validateBindAddresses(config map[string]interface{}, result *ConfigValidati
 }
 
 // validatePorts checks that port values are within valid range 1-65535.
-func validatePorts(config map[string]interface{}, result *ConfigValidationResult) {
+func validatePorts(config map[string]any, result *ConfigValidationResult) {
 	portKeys := []string{"bind-public-port", "bind-private-port"}
 
 	for _, key := range portKeys {
@@ -124,7 +124,7 @@ func validatePorts(config map[string]interface{}, result *ConfigValidationResult
 }
 
 // validateProtocols checks that protocol values are "https".
-func validateProtocols(config map[string]interface{}, result *ConfigValidationResult) {
+func validateProtocols(config map[string]any, result *ConfigValidationResult) {
 	protocolKeys := []string{"bind-public-protocol", "bind-private-protocol"}
 
 	for _, key := range protocolKeys {
@@ -151,7 +151,7 @@ func validateProtocols(config map[string]interface{}, result *ConfigValidationRe
 }
 
 // validateAdminBindPolicy enforces that bind-private-address is always 127.0.0.1.
-func validateAdminBindPolicy(config map[string]interface{}, result *ConfigValidationResult) {
+func validateAdminBindPolicy(config map[string]any, result *ConfigValidationResult) {
 	val, ok := config["bind-private-address"]
 	if !ok {
 		return
@@ -171,7 +171,7 @@ func validateAdminBindPolicy(config map[string]interface{}, result *ConfigValida
 }
 
 // validateConfigSecretRefs checks that database URLs use Docker secret file references.
-func validateConfigSecretRefs(config map[string]interface{}, result *ConfigValidationResult) {
+func validateConfigSecretRefs(config map[string]any, result *ConfigValidationResult) {
 	val, ok := config["database-url"]
 	if !ok {
 		return
@@ -207,7 +207,7 @@ func validateConfigSecretRefs(config map[string]interface{}, result *ConfigValid
 }
 
 // validateOTLPConfig checks OTLP telemetry settings for consistency.
-func validateOTLPConfig(config map[string]interface{}, result *ConfigValidationResult) {
+func validateOTLPConfig(config map[string]any, result *ConfigValidationResult) {
 	otlpEnabled, ok := config["otlp"]
 	if !ok {
 		return
@@ -238,7 +238,7 @@ func validateOTLPConfig(config map[string]interface{}, result *ConfigValidationR
 
 // toInt converts a YAML value to an integer.
 // YAML parsers may return int, int64, or float64 for numeric values.
-func toInt(val interface{}) (int, bool) {
+func toInt(val any) (int, bool) {
 	switch v := val.(type) {
 	case int:
 		return v, true

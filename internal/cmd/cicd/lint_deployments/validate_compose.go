@@ -24,8 +24,8 @@ type composeFile struct {
 	Include  []composeInclude          `yaml:"include"`
 	Services map[string]composeService `yaml:"services"`
 	Secrets  map[string]composeSecret  `yaml:"secrets"`
-	Networks map[string]interface{}    `yaml:"networks"`
-	Volumes  map[string]interface{}    `yaml:"volumes"`
+	Networks map[string]any    `yaml:"networks"`
+	Volumes  map[string]any    `yaml:"volumes"`
 }
 
 // composeInclude represents an include directive.
@@ -36,25 +36,25 @@ type composeInclude struct {
 // composeService represents a service in a compose file.
 type composeService struct {
 	Image       string              `yaml:"image"`
-	Build       interface{}         `yaml:"build"`
+	Build       any         `yaml:"build"`
 	Ports       []string            `yaml:"ports"`
 	Volumes     []string            `yaml:"volumes"`
-	Environment interface{}         `yaml:"environment"`
-	Secrets     []interface{}       `yaml:"secrets"`
-	DependsOn   interface{}         `yaml:"depends_on"`
+	Environment any         `yaml:"environment"`
+	Secrets     []any       `yaml:"secrets"`
+	DependsOn   any         `yaml:"depends_on"`
 	Healthcheck *composeHealthcheck `yaml:"healthcheck"`
-	Networks    interface{}         `yaml:"networks"`
-	Command     interface{}         `yaml:"command"`
-	Deploy      interface{}         `yaml:"deploy"`
+	Networks    any         `yaml:"networks"`
+	Command     any         `yaml:"command"`
+	Deploy      any         `yaml:"deploy"`
 	Profiles    []string            `yaml:"profiles"`
 	WorkingDir  string              `yaml:"working_dir"`
-	Entrypoint  interface{}         `yaml:"entrypoint"`
+	Entrypoint  any         `yaml:"entrypoint"`
 	ShmSize     string              `yaml:"shm_size"`
 }
 
 // composeHealthcheck represents a healthcheck configuration.
 type composeHealthcheck struct {
-	Test        interface{} `yaml:"test"`
+	Test        any `yaml:"test"`
 	Interval    string      `yaml:"interval"`
 	Timeout     string      `yaml:"timeout"`
 	Retries     int         `yaml:"retries"`
@@ -268,13 +268,13 @@ func extractDependencies(svc *composeService) []string {
 	var deps []string
 
 	switch v := svc.DependsOn.(type) {
-	case []interface{}:
+	case []any:
 		for _, item := range v {
 			if s, ok := item.(string); ok {
 				deps = append(deps, s)
 			}
 		}
-	case map[string]interface{}:
+	case map[string]any:
 		for dep := range v {
 			deps = append(deps, dep)
 		}
@@ -316,11 +316,11 @@ func validateSecretReferences(compose *composeFile, result *ComposeValidationRes
 }
 
 // extractSecretName extracts the secret name from a secret reference.
-func extractSecretName(secretRef interface{}) string {
+func extractSecretName(secretRef any) string {
 	switch v := secretRef.(type) {
 	case string:
 		return v
-	case map[string]interface{}:
+	case map[string]any:
 		if source, ok := v["source"]; ok {
 			if s, ok := source.(string); ok {
 				return s
@@ -361,7 +361,7 @@ func extractEnvironmentVars(svc *composeService) map[string]string {
 	}
 
 	switch v := svc.Environment.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for key, val := range v {
 			if val != nil {
 				envVars[key] = fmt.Sprintf("%v", val)
@@ -369,7 +369,7 @@ func extractEnvironmentVars(svc *composeService) map[string]string {
 				envVars[key] = ""
 			}
 		}
-	case []interface{}:
+	case []any:
 		for _, item := range v {
 			if s, ok := item.(string); ok {
 				parts := strings.SplitN(s, "=", 2)

@@ -269,7 +269,7 @@ func TestToInt(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		input   interface{}
+		input   any
 		wantVal int
 		wantOK  bool
 	}{

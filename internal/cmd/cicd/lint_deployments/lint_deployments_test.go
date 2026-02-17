@@ -11,7 +11,7 @@ import (
 	. "cryptoutil/internal/cmd/cicd/lint_deployments"
 )
 
-// createRequiredSecrets creates all 10 required secret files in the secrets directory.
+// createRequiredSecrets creates all 14 required secret files in the secrets directory.
 func createRequiredSecrets(t *testing.T, baseDir string) {
 	t.Helper()
 
@@ -21,6 +21,8 @@ func createRequiredSecrets(t *testing.T, baseDir string) {
 		"unseal_4of5.secret", "unseal_5of5.secret", "hash_pepper_v3.secret",
 		"postgres_url.secret", "postgres_username.secret",
 		"postgres_password.secret", "postgres_database.secret",
+		"browser_username.secret", "browser_password.secret",
+		"service_username.secret", "service_password.secret",
 	}
 
 	for _, secret := range requiredSecrets {
