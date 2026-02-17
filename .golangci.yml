@@ -104,6 +104,9 @@ linters:
       # Exclude nilerr from validate_ports.go (error captured in result.Errors; callers check result.Valid).
       - path: "internal/cmd/cicd/lint_deployments/validate_ports\\.go$"
         linters: [nilerr]
+      # Exclude nilerr from validate_telemetry.go (error captured in result.Errors; callers check result.Valid).
+      - path: "internal/cmd/cicd/lint_deployments/validate_telemetry\\.go$"
+        linters: [nilerr]
       # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
       - path: "internal/jose/server/handlers\\.go$"
         linters: [wrapcheck]

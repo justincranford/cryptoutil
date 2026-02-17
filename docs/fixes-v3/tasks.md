@@ -1,6 +1,6 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 12 of 56 tasks complete (20%)
+**Status**: 13 of 56 tasks complete (23%)
 **Last Updated**: 2026-02-17 (Phase 3 in progress)
 **Created**: 2026-02-17
 
@@ -347,22 +347,22 @@
   - `internal/cmd/cicd/lint_deployments/validate_template_pattern_test.go`
 
 #### Task 3.5: Implement ValidatePorts
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 1.5h
 - **Dependencies**: Task 3.4
 - **Description**: Validate port offsets follow SERVICE/PRODUCT/SUITE pattern (Decision 6:B - consolidated from lint-ports)
 - **Acceptance Criteria**:
-  - [ ] SERVICE level: Public 8000-8999, Admin 9090
-  - [ ] PRODUCT level: Public 18000-18999, Admin 9090
-  - [ ] SUITE level: Public 28000-28999, Admin 9090
-  - [ ] Validates docker-compose.yml port mappings
-  - [ ] Validates config YAML port values
-  - [ ] Detects port conflicts (multiple services on same host port)
+  - [x] SERVICE level: Public 8000-8999, Admin 9090
+  - [x] PRODUCT level: Public 18000-18999, Admin 9090
+  - [x] SUITE level: Public 28000-28999, Admin 9090
+  - [x] Validates docker-compose.yml port mappings
+  - [x] Validates config YAML port values
+  - [x] Detects port conflicts (multiple services on same host port)
   - [x] Unit tests 100% coverage
-  - [ ] Integration tests with valid + conflicting ports
-  - [ ] Legacy lint-ports code migrated (Decision 6:B)
+  - [x] Integration tests with valid + conflicting ports
+  - [x] Legacy lint-ports code migrated (Decision 6:B)
 - **Files**:
   - `internal/cmd/cicd/lint_deployments/validate_ports.go`
   - `internal/cmd/cicd/lint_deployments/validate_ports_test.go`
