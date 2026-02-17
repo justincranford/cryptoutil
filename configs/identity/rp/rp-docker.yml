@@ -1,0 +1,26 @@
+# Relying Party (RP) Configuration for Docker Deployment
+
+rp:
+  name: rp-server
+  bind_address: 0.0.0.0  # Listen on all interfaces for container access
+  port: 8120
+  tls_enabled: false
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 0.0.0.0
+  admin_port: 9090
+
+# OAuth 2.1 Provider settings
+authz_server_url: "${AUTHZ_URL}"  # OAuth 2.1 Authorization Server URL
+client_id: "${CLIENT_ID}"  # OAuth 2.1 Client ID
+client_secret: "file:///run/secrets/client_secret"  # From Docker secret
+redirect_uri: "${REDIRECT_URI}"  # OAuth 2.1 Redirect URI
+spa_origin: "${SPA_ORIGIN}"  # SPA origin for CORS
+session_secret: "file:///run/secrets/session_secret"  # From Docker secret
+
+telemetry:
+  enabled: true
+  otlp_endpoint: "${OTLP_ENDPOINT}"
+  service_name: rp-server

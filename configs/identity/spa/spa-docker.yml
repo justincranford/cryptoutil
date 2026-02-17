@@ -1,0 +1,27 @@
+# Single Page Application (SPA) Configuration for Docker Deployment
+
+spa:
+  name: spa-server
+  bind_address: 0.0.0.0  # Listen on all interfaces for container access
+  port: 8130
+  tls_enabled: false
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 0.0.0.0
+  admin_port: 9090
+
+# SPA-specific settings
+static_files_path: /app/static  # Container path
+index_file: index.html
+rp_origin: "${RP_ORIGIN}"  # Relying Party (BFF) origin for API proxying
+cache_control_max_age: 3600  # 1 hour
+enable_gzip: true
+enable_brotli: true
+csp_directives: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'"
+
+telemetry:
+  enabled: true
+  otlp_endpoint: "${OTLP_ENDPOINT}"
+  service_name: spa-server
