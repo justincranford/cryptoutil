@@ -49,11 +49,12 @@
   "identity/rs.yml": {"type":"config","status":"OPTIONAL"},
   "identity/test.yml": {"type":"config","status":"OPTIONAL"},
   "jose/jose-server.yml": {"type":"config","status":"OPTIONAL"},
-  "observability/grafana/adaptive-auth-dashboard.json": {"type":"json","status":"OPTIONAL"},
-  "observability/prometheus/adaptive-auth-alerts.yml": {"type":"config","status":"OPTIONAL"},
-  "template/config-pg-1.yml": {"type":"config","status":"OPTIONAL"},
-  "template/config-pg-2.yml": {"type":"config","status":"OPTIONAL"},
-  "template/config-sqlite.yml": {"type":"config","status":"OPTIONAL"},
-  "test/config.yml": {"type":"config","status":"OPTIONAL"},
-  "test/dast-simple-unseal-secret-value-1.secret": {"type":"secret","status":"REQUIRED"}
+  "orphaned/README.md": {"type":"doc","status":"OPTIONAL"},
+  "orphaned/observability/grafana/adaptive-auth-dashboard.json": {"type":"json","status":"OPTIONAL"},
+  "orphaned/observability/prometheus/adaptive-auth-alerts.yml": {"type":"config","status":"OPTIONAL"},
+  "orphaned/template/config-pg-1.yml": {"type":"config","status":"OPTIONAL"},
+  "orphaned/template/config-pg-2.yml": {"type":"config","status":"OPTIONAL"},
+  "orphaned/template/config-sqlite.yml": {"type":"config","status":"OPTIONAL"},
+  "orphaned/test/config.yml": {"type":"config","status":"OPTIONAL"},
+  "orphaned/test/dast-simple-unseal-secret-value-1.secret": {"type":"secret","status":"REQUIRED"}
 }
