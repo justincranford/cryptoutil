@@ -34,6 +34,8 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, args[2:]...))
 	case "validate-all":
 		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, args[2:]...))
+	case "check-chunk-verification":
+		return CheckChunkVerification(stdout, stderr)
 	case "help", "--help", "-h":
 		printUsage(stdout)
 
@@ -59,6 +61,8 @@ Commands:
   validate-all [deployments-dir configs-dir]
                             Run all 8 validators sequentially with aggregated reporting
                             Defaults: deployments/ configs/
+
+  check-chunk-verification  Verify ARCHITECTURE.md chunks propagated to instruction files
 
   help, --help, -h          Show this help message
 

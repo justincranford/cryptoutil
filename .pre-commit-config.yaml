@@ -253,6 +253,16 @@ repos:
         require_serial: true
         stages: [pre-commit]
 
+      - id: cicd-check-chunk-verification
+        name: Verify ARCHITECTURE.md chunks in instruction files
+        entry: go
+        args: [run, cmd/cicd/main.go, check-chunk-verification]
+        language: system
+        files: '(\.github/instructions/.*\.md$|\.github/copilot-instructions\.md$|docs/ARCHITECTURE\.md$)'
+        pass_filenames: false
+        require_serial: true
+        stages: [pre-commit]
+
       - id: cicd-format-go-only
         name: Run custom CI/CD format checks
         entry: go
