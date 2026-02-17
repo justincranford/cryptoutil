@@ -98,6 +98,9 @@ linters:
       # Exclude nilerr from validate_kebab_case.go (error captured in result.Errors; callers check result.Valid).
       - path: "internal/cmd/cicd/lint_deployments/validate_kebab_case\\.go$"
         linters: [nilerr]
+      # Exclude nilerr from validate_template_pattern.go (error captured in result.Errors; callers check result.Valid).
+      - path: "internal/cmd/cicd/lint_deployments/validate_template_pattern\\.go$"
+        linters: [nilerr]
       # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
       - path: "internal/jose/server/handlers\\.go$"
         linters: [wrapcheck]
