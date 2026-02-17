@@ -23,6 +23,8 @@ func Main(args []string) int {
 			return mainValidateMirror(args[1:])
 		case "validate-compose":
 			return mainValidateCompose(args[1:])
+		case "validate-config":
+			return mainValidateConfig(args[1:])
 		}
 	}
 
@@ -116,6 +118,32 @@ func mainValidateMirror(args []string) int {
 	fmt.Print(FormatMirrorResult(result))
 
 	if !result.Valid {
+		return 1
+	}
+
+	return 0
+}
+
+// mainValidateConfig handles the validate-config subcommand.
+func mainValidateConfig(args []string) int {
+	if len(args) == 0 {
+		_, _ = fmt.Fprintf(os.Stderr, "ERROR: validate-config requires a config file path\n")
+
+		return 1
+	}
+
+	configPath := args[0]
+
+	configResult, err := ValidateConfigFile(configPath)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "ERROR: Config validation failed: %v\n", err)
+
+		return 1
+	}
+
+	fmt.Print(FormatConfigValidationResult(configResult))
+
+	if !configResult.Valid {
 		return 1
 	}
 

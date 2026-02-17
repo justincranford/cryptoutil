@@ -30,6 +30,8 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilLintDeployments.Main([]string{"validate-mirror"})
 	case "validate-compose":
 		return cryptoutilLintDeployments.Main(append([]string{"validate-compose"}, args[2:]...))
+	case "validate-config":
+		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, args[2:]...))
 	case "help", "--help", "-h":
 		printUsage(stdout)
 

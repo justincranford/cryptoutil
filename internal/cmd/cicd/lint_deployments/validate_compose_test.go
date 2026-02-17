@@ -306,11 +306,11 @@ services:
 
 // containsSubstring checks if any string in slice contains the given substring.
 func containsSubstring(slice []string, substr string) bool {
-for _, s := range slice {
-if strings.Contains(s, substr) {
-return true
-}
-}
+	for _, s := range slice {
+		if strings.Contains(s, substr) {
+			return true
+		}
+	}
 
-return false
+	return false
 }
