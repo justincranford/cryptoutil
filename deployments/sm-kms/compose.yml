@@ -46,23 +46,23 @@ services:
 
     secrets:
 
-      - unseal_1of5.secret
+      - unseal-1of5.secret
 
-      - unseal_2of5.secret
+      - unseal-2of5.secret
 
-      - unseal_3of5.secret
+      - unseal-3of5.secret
 
-      - unseal_4of5.secret
+      - unseal-4of5.secret
 
-      - unseal_5of5.secret
+      - unseal-5of5.secret
 
-      - postgres_url.secret
+      - postgres-url.secret
 
-      - postgres_username.secret
+      - postgres-username.secret
 
-      - postgres_password.secret
+      - postgres-password.secret
 
-      - postgres_database.secret
+      - postgres-database.secret
 
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
 
@@ -114,11 +114,11 @@ services:
 
     environment:
 
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
 
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
 
-      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
 
     shm_size: 256mb
 
@@ -132,11 +132,11 @@ services:
 
     secrets:
 
-      - postgres_username.secret
+      - postgres-username.secret
 
-      - postgres_password.secret
+      - postgres-password.secret
 
-      - postgres_database.secret
+      - postgres-database.secret
 
     depends_on:
 
@@ -146,7 +146,7 @@ services:
 
     healthcheck:
 
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
 
       start_period: 5s
 
@@ -202,15 +202,15 @@ services:
 
       # for shared encryption/decryption. NEVER use instance-specific secrets.
 
-      - unseal_1of5.secret
+      - unseal-1of5.secret
 
-      - unseal_2of5.secret
+      - unseal-2of5.secret
 
-      - unseal_3of5.secret
+      - unseal-3of5.secret
 
-      - unseal_4of5.secret
+      - unseal-4of5.secret
 
-      - unseal_5of5.secret
+      - unseal-5of5.secret
 
     depends_on:
 
@@ -272,7 +272,7 @@ services:
 
     image: cryptoutil:dev
 
-    command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
 
     working_dir: /tmp
 
@@ -292,19 +292,19 @@ services:
 
       # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets.
 
-      - unseal_1of5.secret
+      - unseal-1of5.secret
 
-      - unseal_2of5.secret
+      - unseal-2of5.secret
 
-      - unseal_3of5.secret
+      - unseal-3of5.secret
 
-      - unseal_4of5.secret
+      - unseal-4of5.secret
 
-      - unseal_5of5.secret
+      - unseal-5of5.secret
 
       # PostgreSQL connection URL.
 
-      - postgres_url.secret
+      - postgres-url.secret
 
     depends_on:
 
@@ -366,7 +366,7 @@ services:
 
     image: cryptoutil:dev
 
-    command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
 
     working_dir: /tmp
 
@@ -386,19 +386,19 @@ services:
 
       # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets.
 
-      - unseal_1of5.secret
+      - unseal-1of5.secret
 
-      - unseal_2of5.secret
+      - unseal-2of5.secret
 
-      - unseal_3of5.secret
+      - unseal-3of5.secret
 
-      - unseal_4of5.secret
+      - unseal-4of5.secret
 
-      - unseal_5of5.secret
+      - unseal-5of5.secret
 
       # PostgreSQL connection URL (shared with instance 1).
 
-      - postgres_url.secret
+      - postgres-url.secret
 
     depends_on:
 
@@ -479,20 +479,20 @@ volumes:
 secrets:
 
   # PostgreSQL URL secret (KMS-specific, not in shared-postgres)
-  postgres_url.secret:
-    file: ./secrets/postgres_url.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
 
   # Browser authentication credentials (web UI access)
-  browser_username.secret:
-    file: ./secrets/browser_username.secret
-  browser_password.secret:
-    file: ./secrets/browser_password.secret
+  browser-username.secret:
+    file: ./secrets/browser-username.secret
+  browser-password.secret:
+    file: ./secrets/browser-password.secret
 
   # Service authentication credentials (headless/API access)
-  service_username.secret:
-    file: ./secrets/service_username.secret
-  service_password.secret:
-    file: ./secrets/service_password.secret
+  service-username.secret:
+    file: ./secrets/service-username.secret
+  service-password.secret:
+    file: ./secrets/service-password.secret
 
   # Unseal secrets (MUST be identical across all KMS instances).
 
@@ -502,22 +502,22 @@ secrets:
 
   # NEVER create instance-specific secrets - breaks cryptographic interoperability.
 
-  unseal_1of5.secret:
+  unseal-1of5.secret:
 
-    file: ./secrets/unseal_1of5.secret # pragma: allowlist secret
+    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
 
-  unseal_2of5.secret:
+  unseal-2of5.secret:
 
-    file: ./secrets/unseal_2of5.secret
+    file: ./secrets/unseal-2of5.secret
 
-  unseal_3of5.secret:
+  unseal-3of5.secret:
 
-    file: ./secrets/unseal_3of5.secret
+    file: ./secrets/unseal-3of5.secret
 
-  unseal_4of5.secret:
+  unseal-4of5.secret:
 
-    file: ./secrets/unseal_4of5.secret
+    file: ./secrets/unseal-4of5.secret
 
-  unseal_5of5.secret:
+  unseal-5of5.secret:
 
-    file: ./secrets/unseal_5of5.secret
+    file: ./secrets/unseal-5of5.secret

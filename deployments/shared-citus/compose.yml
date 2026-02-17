@@ -24,10 +24,10 @@ services:
     container_name: cryptoutil-citus-coordinator
     hostname: citus-coordinator
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      PGUSER_FILE: /run/secrets/postgres-username.secret
+      PGPASSWORD_FILE: /run/secrets/postgres-password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
     command:
       - postgres
@@ -46,10 +46,10 @@ services:
       - citus_coordinator_data:/var/lib/postgresql/data
       - ../shared-postgres/init-citus.sql:/docker-entrypoint-initdb.d/01-init-citus.sql:ro
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
+      - postgres-username.secret
+      - postgres-password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -71,20 +71,20 @@ services:
     container_name: cryptoutil-citus-worker-1
     hostname: citus-worker-1
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      PGUSER_FILE: /run/secrets/postgres-username.secret
+      PGPASSWORD_FILE: /run/secrets/postgres-password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
     command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
     shm_size: 512mb
     volumes:
       - citus_worker_1_data:/var/lib/postgresql/data
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
+      - postgres-username.secret
+      - postgres-password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -106,20 +106,20 @@ services:
     container_name: cryptoutil-citus-worker-2
     hostname: citus-worker-2
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      PGUSER_FILE: /run/secrets/postgres-username.secret
+      PGPASSWORD_FILE: /run/secrets/postgres-password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
     command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=512MB"]
     shm_size: 512mb
     volumes:
       - citus_worker_2_data:/var/lib/postgresql/data
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
+      - postgres-username.secret
+      - postgres-password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -140,8 +140,8 @@ services:
     image: citusdata/citus:13.0-pg17
     container_name: cryptoutil-citus-setup
     environment:
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      PGUSER_FILE: /run/secrets/postgres-username.secret
+      PGPASSWORD_FILE: /run/secrets/postgres-password.secret
       PGHOST: citus-coordinator
       PGDATABASE: postgres
     command:
@@ -154,8 +154,8 @@ services:
         psql -c "SELECT * FROM citus_get_active_worker_nodes();"
         echo "Citus cluster setup complete"
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
+      - postgres-username.secret
+      - postgres-password.secret
     depends_on:
       citus-coordinator:
         condition: service_healthy
@@ -180,9 +180,9 @@ networks:
     driver: bridge
 
 secrets:
-  postgres_username.secret:
-    file: ./secrets/postgres_username.secret
-  postgres_password.secret:
-    file: ./secrets/postgres_password.secret
-  postgres_database.secret:
-    file: ./secrets/postgres_database.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

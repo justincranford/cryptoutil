@@ -77,16 +77,16 @@ services:
   healthcheck-secrets:
     image: alpine:latest
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
-      - hash_pepper_v3.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+      - hash-pepper_v3.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - e2e-network
@@ -110,23 +110,23 @@ services:
     profiles: ["postgres"]
     image: postgres:18
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
       start_period: 5s
       interval: 5s
       timeout: 3s
@@ -158,11 +158,11 @@ services:
       - ../kms/config/common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     environment:
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
     healthcheck:
@@ -191,7 +191,7 @@ services:
       - "--config=/app/config/common.yml"
       - "--config=/app/otel/otel.yml"
       - "-u"
-      - "file:///run/secrets/postgres_url.secret"
+      - "file:///run/secrets/postgres-url.secret"
     working_dir: /tmp
     ports:
       - "8081:8080"  # Public API (host:container)
@@ -201,12 +201,12 @@ services:
       - ../kms/config/common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
     environment:
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
     healthcheck:
@@ -237,7 +237,7 @@ services:
       - "--config=/app/config/common.yml"
       - "--config=/app/otel/otel.yml"
       - "-u"
-      - "file:///run/secrets/postgres_url.secret"
+      - "file:///run/secrets/postgres-url.secret"
     working_dir: /tmp
     ports:
       - "8082:8080"  # Public API (host:container)
@@ -247,12 +247,12 @@ services:
       - ../kms/config/common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
     environment:
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
     healthcheck:
@@ -291,11 +291,11 @@ services:
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
       - ../ca/ca-crls:/app/crls  # CRL distribution point
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     environment:
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
     healthcheck:
@@ -361,23 +361,23 @@ services:
   identity-postgres-e2e:
     image: postgres:18
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
     shm_size: 256mb
     ports:
       - "5433:5432"
     volumes:
       - identity_postgres_data:/var/lib/postgresql
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
       start_period: 5s
       interval: 5s
       timeout: 3s
@@ -436,7 +436,7 @@ services:
       - "start"
       - "--config=/app/config/idp-e2e.yml"
       - "-u"
-      - "file:///run/secrets/postgres_url.secret"
+      - "file:///run/secrets/postgres-url.secret"
     working_dir: /tmp
     ports:
       - "8110:8110"  # OIDC identity provider endpoints (config uses 8110)
@@ -445,7 +445,7 @@ services:
       - ../identity/config/idp-e2e.yml:/app/config/idp-e2e.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - postgres_url.secret
+      - postgres-url.secret
     environment:
       - OTLP_GRPC_ENDPOINT=opentelemetry-collector-contrib:4317
     healthcheck:
@@ -483,21 +483,21 @@ volumes:
   grafana_data:
     name: cryptoutil_grafana_volume
 secrets:
-  postgres_url.secret:
-    file: ../sm-kms/secrets/postgres_url.secret
+  postgres-url.secret:
+    file: ../sm-kms/secrets/postgres-url.secret
   # Unseal secrets (CRITICAL: shared across ALL cryptoutil instances for key hierarchy interoperability).
-  unseal_1of5.secret:
-    file: ../sm-kms/secrets/unseal_1of5.secret
-  unseal_2of5.secret:
-    file: ../sm-kms/secrets/unseal_2of5.secret
-  unseal_3of5.secret:
-    file: ../sm-kms/secrets/unseal_3of5.secret
-  unseal_4of5.secret:
-    file: ../sm-kms/secrets/unseal_4of5.secret
-  unseal_5of5.secret:
-    file: ../sm-kms/secrets/unseal_5of5.secret
+  unseal-1of5.secret:
+    file: ../sm-kms/secrets/unseal-1of5.secret
+  unseal-2of5.secret:
+    file: ../sm-kms/secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ../sm-kms/secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ../sm-kms/secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ../sm-kms/secrets/unseal-5of5.secret
   # Hash service pepper secret (MANDATORY per OWASP Password Storage Cheat Sheet).
   # Version-specific pepper for PBKDF2/HKDF operations.
   # CRITICAL: Changing pepper requires version bump and re-hash all records.
-  hash_pepper_v3.secret:
-    file: ../sm-kms/secrets/hash_pepper_v3.secret
+  hash-pepper_v3.secret:
+    file: ../sm-kms/secrets/hash-pepper_v3.secret

@@ -30,6 +30,7 @@
   "cipher/im/config-pg-2.yml": {"type":"config","status":"OPTIONAL"},
   "cipher/im/config-sqlite.yml": {"type":"config","status":"OPTIONAL"},
   "cipher/im/im.yml": {"type":"config","status":"OPTIONAL"},
+  "configs-all-files.json": {"type":"json","status":"OPTIONAL"},
   "cryptoutil/cryptoutil.yml": {"type":"config","status":"OPTIONAL"},
   "identity/authz/authz-docker.yml": {"type":"config","status":"OPTIONAL"},
   "identity/authz/authz.yml": {"type":"config","status":"OPTIONAL"},

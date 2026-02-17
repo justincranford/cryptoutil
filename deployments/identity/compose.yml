@@ -21,22 +21,22 @@ include:
 # PRODUCT-level secrets (shared by all 5 identity services)
 # See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
 #
-# When this PRODUCT compose file is used, the identity-hash_pepper.secret
-# overrides SERVICE-level hash_pepper secrets for all 5 identity services.
+# When this PRODUCT compose file is used, the identity-hash-pepper.secret
+# overrides SERVICE-level hash-pepper secrets for all 5 identity services.
 #
 # This enables shared SSO/federation within the identity product boundary.
 
 secrets:
   # Unseal secrets (CRITICAL: shared across ALL cryptoutil instances for key hierarchy interoperability).
-  unseal_1of5.secret:
-    file: ./secrets/unseal_1of5.secret
-  unseal_2of5.secret:
-    file: ./secrets/unseal_2of5.secret
-  unseal_3of5.secret:
-    file: ./secrets/unseal_3of5.secret
-  unseal_4of5.secret:
-    file: ./secrets/unseal_4of5.secret
-  unseal_5of5.secret:
-    file: ./secrets/unseal_5of5.secret
-  identity-hash_pepper.secret:
-    file: ./secrets/identity-hash_pepper.secret
+  unseal-1of5.secret:
+    file: ./secrets/unseal-1of5.secret
+  unseal-2of5.secret:
+    file: ./secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ./secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ./secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ./secrets/unseal-5of5.secret
+  identity-hash-pepper.secret:
+    file: ./secrets/identity-hash-pepper.secret

@@ -16,5 +16,5 @@ include:
 # The PRODUCT pepper would then be shared by all services within the cipher product.
 
 secrets:
-  cipher-hash_pepper.secret:
-    file: ./secrets/cipher-hash_pepper.secret
+  cipher-hash-pepper.secret:
+    file: ./secrets/cipher-hash-pepper.secret

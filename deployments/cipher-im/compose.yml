@@ -33,13 +33,13 @@ services:
     container_name: cipher-im-postgres
     hostname: cipher-im-postgres
     secrets:
-      - postgres_database.secret
-      - postgres_username.secret
-      - postgres_password.secret
+      - postgres-database.secret
+      - postgres-username.secret
+      - postgres-password.secret
     environment:
-      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
     ports:
       - "5432:5432"
     volumes:
@@ -167,13 +167,13 @@ services:
     container_name: cipher-im-pg-1
     hostname: cipher-im-pg-1
     secrets:
-      - postgres_url.secret
+      - postgres-url.secret
     ports:
       - "8071:8070"  # Public HTTPS API ONLY - external access (mapped to different host port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
-      - "--database-url=file:///run/secrets/postgres_url.secret"
+      - "--database-url=file:///run/secrets/postgres-url.secret"
       - "--config=/etc/cipher-im/config-pg-1.yml"
     volumes:
       - ../../configs/cipher/im/config-pg-1.yml:/etc/cipher-im/config-pg-1.yml:ro
@@ -215,13 +215,13 @@ services:
     container_name: cipher-im-pg-2
     hostname: cipher-im-pg-2
     secrets:
-      - postgres_url.secret
+      - postgres-url.secret
     ports:
       - "8072:8070"  # Public HTTPS API ONLY - external access (mapped to different host port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
-      - "--database-url=file:///run/secrets/postgres_url.secret"
+      - "--database-url=file:///run/secrets/postgres-url.secret"
       - "--config=/etc/cipher-im/config-pg-2.yml"
     volumes:
       - ../../configs/cipher/im/config-pg-2.yml:/etc/cipher-im/config-pg-2.yml:ro
@@ -258,26 +258,26 @@ services:
           cpus: '0.25'
 
 secrets:
-  postgres_database.secret:
-    file: ./secrets/postgres_database.secret
-  postgres_username.secret:
-    file: ./secrets/postgres_username.secret
-  postgres_password.secret:
-    file: ./secrets/postgres_password.secret
-  postgres_url.secret:
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-url.secret:
 
   # Browser authentication credentials (web UI access)
-  browser_username.secret:
-    file: ./secrets/browser_username.secret
-  browser_password.secret:
-    file: ./secrets/browser_password.secret
+  browser-username.secret:
+    file: ./secrets/browser-username.secret
+  browser-password.secret:
+    file: ./secrets/browser-password.secret
 
   # Service authentication credentials (headless/API access)
-  service_username.secret:
-    file: ./secrets/service_username.secret
-  service_password.secret:
-    file: ./secrets/service_password.secret
-    file: ./secrets/postgres_url.secret
+  service-username.secret:
+    file: ./secrets/service-username.secret
+  service-password.secret:
+    file: ./secrets/service-password.secret
+    file: ./secrets/postgres-url.secret
 
 networks:
   cipher-im-network:

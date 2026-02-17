@@ -16,5 +16,5 @@ include:
 # The PRODUCT pepper would then be shared by all services within the sm product.
 
 secrets:
-  sm-hash_pepper.secret:
-    file: ./secrets/sm-hash_pepper.secret
+  sm-hash-pepper.secret:
+    file: ./secrets/sm-hash-pepper.secret

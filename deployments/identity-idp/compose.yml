@@ -56,11 +56,11 @@ services:
     container_name: identity-idp-sqlite
     hostname: identity-idp-sqlite
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     ports:
       - "8300:8000"  # Public HTTPS API ONLY - external access (8300 = base port)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
@@ -105,21 +105,21 @@ services:
     container_name: identity-idp-pg-1
     hostname: identity-idp-pg-1
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     ports:
       - "8301:8000"  # Public HTTPS API ONLY - external access (8301)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
-      - "--database-url=file:///run/secrets/postgres_url.secret"
+      - "--database-url=file:///run/secrets/postgres-url.secret"
       - "--config=/etc/identity-idp/config-pg-1.yml"
     volumes:
       - ../../configs/identity/idp-pg-1.yml:/etc/identity-idp/config-pg-1.yml:ro
@@ -163,21 +163,21 @@ services:
     container_name: identity-idp-pg-2
     hostname: identity-idp-pg-2
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     ports:
       - "8302:8000"  # Public HTTPS API ONLY - external access (8302)
       # Admin API (9090) NOT exposed - internal 127.0.0.1 only
     command:
       - "server"
-      - "--database-url=file:///run/secrets/postgres_url.secret"
+      - "--database-url=file:///run/secrets/postgres-url.secret"
       - "--config=/etc/identity-idp/config-pg-2.yml"
     volumes:
       - ../../configs/identity/idp-pg-2.yml:/etc/identity-idp/config-pg-2.yml:ro
@@ -216,30 +216,30 @@ services:
           cpus: '0.25'
 
 secrets:
-  unseal_1of5.secret:
-    file: ./secrets/unseal_1of5.secret
-  unseal_2of5.secret:
-    file: ./secrets/unseal_2of5.secret
-  unseal_3of5.secret:
-    file: ./secrets/unseal_3of5.secret
-  unseal_4of5.secret:
-    file: ./secrets/unseal_4of5.secret
-  unseal_5of5.secret:
-    file: ./secrets/unseal_5of5.secret
-  postgres_url.secret:
+  unseal-1of5.secret:
+    file: ./secrets/unseal-1of5.secret
+  unseal-2of5.secret:
+    file: ./secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ./secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ./secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ./secrets/unseal-5of5.secret
+  postgres-url.secret:
 
   # Browser authentication credentials (web UI access)
-  browser_username.secret:
-    file: ./secrets/browser_username.secret
-  browser_password.secret:
-    file: ./secrets/browser_password.secret
+  browser-username.secret:
+    file: ./secrets/browser-username.secret
+  browser-password.secret:
+    file: ./secrets/browser-password.secret
 
   # Service authentication credentials (headless/API access)
-  service_username.secret:
-    file: ./secrets/service_username.secret
-  service_password.secret:
-    file: ./secrets/service_password.secret
-    file: ./secrets/postgres_url.secret
+  service-username.secret:
+    file: ./secrets/service-username.secret
+  service-password.secret:
+    file: ./secrets/service-password.secret
+    file: ./secrets/postgres-url.secret
 
 networks:
   identity-network:

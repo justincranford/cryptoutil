@@ -79,7 +79,7 @@ services:
       - unseal_3of5.secret
       - unseal_4of5.secret
       - unseal_5of5.secret
-      - hash_pepper_v3.secret
+      - hash-pepper_v3.secret
       - postgres_url.secret
       - postgres_username.secret
       - postgres_password.secret

@@ -85,13 +85,13 @@ networks:
 
 secrets:
   # Browser authentication credentials (web UI access)
-  browser_username.secret:
-    file: ./secrets/browser_username.secret
-  browser_password.secret:
-    file: ./secrets/browser_password.secret
+  browser-username.secret:
+    file: ./secrets/browser-username.secret
+  browser-password.secret:
+    file: ./secrets/browser-password.secret
 
   # Service authentication credentials (headless/API access)
-  service_username.secret:
-    file: ./secrets/service_username.secret
-  service_password.secret:
-    file: ./secrets/service_password.secret
+  service-username.secret:
+    file: ./secrets/service-username.secret
+  service-password.secret:
+    file: ./secrets/service-password.secret

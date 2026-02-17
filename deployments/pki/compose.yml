@@ -16,5 +16,5 @@ include:
 # The PRODUCT pepper would then be shared by all services within the pki product.
 
 secrets:
-  pki-hash_pepper.secret:
-    file: ./secrets/pki-hash_pepper.secret
+  pki-hash-pepper.secret:
+    file: ./secrets/pki-hash-pepper.secret

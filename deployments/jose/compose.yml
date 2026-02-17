@@ -16,5 +16,5 @@ include:
 # The PRODUCT pepper would then be shared by all services within the jose product.
 
 secrets:
-  jose-hash_pepper.secret:
-    file: ./secrets/jose-hash_pepper.secret
+  jose-hash-pepper.secret:
+    file: ./secrets/jose-hash-pepper.secret

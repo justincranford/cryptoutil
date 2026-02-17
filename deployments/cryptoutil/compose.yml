@@ -26,12 +26,12 @@ include:
 # SUITE-level secrets (shared by ALL 9 services)
 # See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
 #
-# When this SUITE compose file is used, the cryptoutil-hash_pepper.secret
-# overrides PRODUCT and SERVICE level hash_pepper secrets via Docker Compose
+# When this SUITE compose file is used, the cryptoutil-hash-pepper.secret
+# overrides PRODUCT and SERVICE level hash-pepper secrets via Docker Compose
 # merging rules (parent > child).
 #
 # This enables cross-product SSO and unified identity federation.
 
 secrets:
-  cryptoutil-hash_pepper.secret:
-    file: ./secrets/cryptoutil-hash_pepper.secret
+  cryptoutil-hash-pepper.secret:
+    file: ./secrets/cryptoutil-hash-pepper.secret

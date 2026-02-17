@@ -75,8 +75,8 @@ services:
     container_name: cryptoutil-postgres-leader
     hostname: postgres-leader
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
       POSTGRES_INITDB_ARGS: "-c max_connections=500 -c shared_buffers=512MB"
     command:
       - postgres
@@ -105,10 +105,10 @@ services:
       - postgres_leader_data:/var/lib/postgresql
       - ../shared-postgres/init-leader-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
+      - postgres-username.secret
+      - postgres-password.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
       start_period: 30s
       interval: 10s
       timeout: 5s
@@ -132,10 +132,10 @@ services:
     container_name: cryptoutil-postgres-follower
     hostname: postgres-follower
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      PGUSER_FILE: /run/secrets/postgres_username.secret
-      PGPASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      PGUSER_FILE: /run/secrets/postgres-username.secret
+      PGPASSWORD_FILE: /run/secrets/postgres-password.secret
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
       POSTGRES_INITDB_ARGS: "-c max_connections=200 -c shared_buffers=1GB"
     command:
@@ -160,13 +160,13 @@ services:
       - ../shared-postgres/init-follower-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
       - ../shared-postgres/setup-logical-replication.sh:/docker-entrypoint-initdb.d/02-setup-replication.sh:ro
     secrets:
-      - postgres_username.secret
-      - postgres_password.secret
+      - postgres-username.secret
+      - postgres-password.secret
     depends_on:
       postgres-leader:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d postgres"]
       start_period: 60s
       interval: 10s
       timeout: 5s
@@ -193,9 +193,9 @@ volumes:
     name: cryptoutil_postgres_follower_volume
 
 secrets:
-  postgres_username.secret:
-    file: ./secrets/postgres_username.secret
-  postgres_password.secret:
-    file: ./secrets/postgres_password.secret
-  postgres_database.secret:
-    file: ./secrets/postgres_database.secret
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret

@@ -17,20 +17,20 @@ tls-key-file: /app/tls_public_server_private_key.pem
 unseal-mode: "3-of-5"
 
 unseal-files:
-  - /run/secrets/unseal_1of5.secret
-  - /run/secrets/unseal_2of5.secret
-  - /run/secrets/unseal_3of5.secret
-  - /run/secrets/unseal_4of5.secret
-  - /run/secrets/unseal_5of5.secret
+  - /run/secrets/unseal-1of5.secret
+  - /run/secrets/unseal-2of5.secret
+  - /run/secrets/unseal-3of5.secret
+  - /run/secrets/unseal-4of5.secret
+  - /run/secrets/unseal-5of5.secret
 
 # Authentication credentials (Docker secrets)
 # Browser credentials for web UI access
-browser-username-file: /run/secrets/browser_username.secret
-browser-password-file: /run/secrets/browser_password.secret
+browser-username-file: /run/secrets/browser-username.secret
+browser-password-file: /run/secrets/browser-password.secret
 
 # Service credentials for headless/API access
-service-username-file: /run/secrets/service_username.secret
-service-password-file: /run/secrets/service_password.secret
+service-username-file: /run/secrets/service-username.secret
+service-password-file: /run/secrets/service-password.secret
 
 # Allow all IPs for development/testing
 allowed-ips:
