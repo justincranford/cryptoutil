@@ -70,38 +70,38 @@
   - `test-output/phase1/task-1.1-inventory.md` (analysis output)
 
 #### Task 1.2: Restructure identity/ into SERVICE Subdirectories
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 3h
-- **Actual**: [Fill when complete]
+- **Actual**: 1h
 - **Dependencies**: Task 1.1
 - **Description**: Create identity/authz/, identity/idp/, identity/rp/, identity/rs/, identity/spa/ subdirectories. Move service-specific files, preserve shared files at identity/ level.
 - **Acceptance Criteria**:
-  - [ ] 5 new SERVICE subdirectories created (authz, idp, rp, rs, spa)
-  - [ ] Service-specific files moved to appropriate subdirectories
-  - [ ] Shared files remain at identity/ level (policies/, profiles/, *development.yml, *production.yml, *test.yml)
-  - [ ] Git mv used (preserves history)
-  - [ ] Zero broken references (verified by build test)
-  - [ ] Tests pass: `go test ./internal/apps/identity/...`
+  - [x] 5 new SERVICE subdirectories created (authz, idp, rp, rs, spa)
+  - [x] Service-specific files moved to appropriate subdirectories
+  - [x] Shared files remain at identity/ level (policies/, profiles/, *development.yml, *production.yml, *test.yml)
+  - [x] Git mv used (preserves history)
+  - [x] Zero broken references (verified by build test)
+  - [x] Tests pass: `go test ./internal/apps/identity/...`
 - **Files**:
   - `configs/identity/authz/`, `configs/identity/idp/`, etc. (new directories)
   - `deployments/identity/authz/`, `deployments/identity/idp/`, etc. (new directories)
 
 #### Task 1.3: Rename Files for Consistency
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.5h
 - **Dependencies**: Task 1.2
 - **Description**: Standardize config file names (config.yml → service.yml, dev.yml → development.yml, prod.yml → production.yml)
 - **Acceptance Criteria**:
-  - [ ] All config.yml renamed to service.yml
-  - [ ] All dev.yml renamed to development.yml
-  - [ ] All prod.yml renamed to production.yml
-  - [ ] Git mv used (preserves history)
-  - [ ] Integration tests updated with new file names
-  - [ ] Docker Compose files updated with new paths
-  - [ ] **VERIFICATION STEP**: Confirm shared files still exist (policies/, profiles/, *development.yml at identity/ level)
+  - [x] All config.yml renamed to service.yml
+  - [x] All dev.yml renamed to development.yml
+  - [x] All prod.yml renamed to production.yml
+  - [x] Git mv used (preserves history)
+  - [x] Integration tests updated with new file names
+  - [x] Docker Compose files updated with new paths
+  - [x] **VERIFICATION STEP**: Confirm shared files still exist (policies/, profiles/, *development.yml at identity/ level)
 - **Files**:
   - All `config.yml`, `dev.yml`, `prod.yml` files across configs/ and deployments/
 
