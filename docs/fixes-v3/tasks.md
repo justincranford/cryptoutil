@@ -269,20 +269,20 @@
 **Phase Objective**: Implement 8 comprehensive validators with ≥98% coverage/mutation per Decision 17:B (ALL cmd/cicd/ code)
 
 #### Task 3.1: Implement ValidateNaming
-- **Status**: ❌
+- **Status**: ✅ COMPLETE
 - **Owner**: LLM Agent
 - **Estimated**: 2.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 1.5h
 - **Dependencies**: Task 2.3
 - **Description**: Validate all deployment/config names follow kebab-case convention
 - **Acceptance Criteria**:
-  - [ ] Validates directory names (SERVICE, PRODUCT, SUITE levels)
-  - [ ] Validates file names (*.yml, *.yaml, docker-compose.yml)
-  - [ ] Validates compose service names (must be kebab-case)
-  - [ ] Error messages: Moderate verbosity (Decision 14:B)
-  - [ ] Example: `ERROR: [ValidateNaming] Service directory 'PkiCA' violates kebab-case - rename to 'pki-ca' (file: deployments/PkiCA)`
-  - [ ] Unit tests ≥98% coverage
-  - [ ] Integration tests with valid + invalid fixtures
+  - [x] Validates directory names (SERVICE, PRODUCT, SUITE levels)
+  - [x] Validates file names (*.yml, *.yaml, docker-compose.yml)
+  - [x] Validates compose service names (must be kebab-case)
+  - [x] Error messages: Moderate verbosity (Decision 14:B)
+  - [x] Example: `ERROR: [ValidateNaming] Service directory 'PkiCA' violates kebab-case - rename to 'pki-ca' (file: deployments/PkiCA)`
+  - [x] Unit tests 100% coverage (all functions)
+  - [x] Integration tests with valid + invalid fixtures
 - **Files**:
   - `internal/cmd/cicd/lint_deployments/validate_naming.go`
   - `internal/cmd/cicd/lint_deployments/validate_naming_test.go`
