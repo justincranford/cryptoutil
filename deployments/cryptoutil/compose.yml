@@ -6,20 +6,21 @@
 # This compose file includes all PRODUCT-level compose files to deploy
 # the complete cryptoutil suite (all 9 services).
 #
-# Single-service products (sm, pki, cipher, jose) reference SERVICE-level
-# compose directly since PRODUCT == SERVICE for these.
+# MANDATORY: Suite MUST delegate to PRODUCT-level, which delegates to SERVICE-level.
+# This rigid delegation pattern (SUITE → PRODUCT → SERVICE) ensures scalability:
+#   1) Products can scale from 1 to N services
+#   2) Suite can scale from 5 to N products
 #
-# Multi-service products (identity) reference PRODUCT-level compose which
-# aggregates all services within that product.
+# All includes reference PRODUCT-level compose files, which in turn include
+# SERVICE-level compose files. Single-service products (sm, pki, cipher, jose)
+# have PRODUCT-level compose files that include their single SERVICE.
 
 include:
-  # Single-service products (PRODUCT == SERVICE)
-  - path: ../sm-kms/compose.yml     # sm product (kms service)
-  - path: ../pki-ca/compose.yml     # pki product (ca service)
-  - path: ../cipher-im/compose.yml  # cipher product (im service)
-  - path: ../jose-ja/compose.yml    # jose product (ja service)
-
-  # Multi-service products (PRODUCT aggregates multiple SERVICEs)
+  # All products reference PRODUCT-level compose (rigid delegation)
+  - path: ../sm/compose.yml         # sm product (kms service)
+  - path: ../pki/compose.yml        # pki product (ca service)
+  - path: ../cipher/compose.yml     # cipher product (im service)
+  - path: ../jose/compose.yml       # jose product (ja service)
   - path: ../identity/compose.yml   # identity product (authz, idp, rp, rs, spa services)
 
 # SUITE-level secrets (shared by ALL 9 services)

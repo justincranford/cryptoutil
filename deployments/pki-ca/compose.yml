@@ -279,6 +279,18 @@ secrets:
   postgres_database.secret:
     file: ./secrets/postgres_database.secret
   postgres_url.secret:
+
+  # Browser authentication credentials (web UI access)
+  browser_username.secret:
+    file: ./secrets/browser_username.secret
+  browser_password.secret:
+    file: ./secrets/browser_password.secret
+
+  # Service authentication credentials (headless/API access)
+  service_username.secret:
+    file: ./secrets/service_username.secret
+  service_password.secret:
+    file: ./secrets/service_password.secret
     file: ./secrets/postgres_url.secret
 
   # Unseal secrets (MUST be identical across all CA instances).

@@ -3,7 +3,7 @@
 
 # OTLP telemetry - connects to otel-collector sidecar.
 otlp-enabled: true
-otlp-endpoint: "grpc://opentelemetry-collector-contrib:4317"
+otlp-endpoint: "opentelemetry-collector-contrib:4317"
 otlp-service: "jose-e2e"
 otlp-hostname: "jose-e2e"
 
