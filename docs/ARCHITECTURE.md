@@ -1396,6 +1396,33 @@ db.Where("user_id = ?", userID).Find(&messages)
 db.Where("tenant_id = ? AND user_id = ?", tenantID, userID).Find(&messages)
 ```
 
+### 7.1.1 Database Isolation for Microservices
+
+**MANDATORY: Each Service MUST Have Isolated Database Storage**
+
+**Rationale**: Microservice architecture principles require independent data stores to ensure:
+1. Service autonomy and independent scaling
+2. Failure isolation (one service's DB issues don't affect others)
+3. Technology flexibility (each service can choose optimal storage)
+4. Clear ownership boundaries and access control
+
+**Requirements** (enforced by linter):
+- **Unique Database Name**: Each of 9 services MUST have unique `postgres_database.secret`
+  - Example: `authz_db`, `idp_db`, `rp_db`, `rs_db`, `spa_db` (NOT shared `identity_db`)
+- **Unique Username**: Each service MUST have unique `postgres_username.secret`
+  - Example: `authz_user`, `idp_user`, `rp_user`, `rs_user`, `spa_user`
+- **Unique Password**: Each service MUST have unique `postgres_password.secret`
+- **Unique Connection URL**: Each service MUST have unique `postgres_url.secret`
+
+**Linter Enforcement** (`cicd lint-deployments`):
+- Scans ALL 9 service directories for database credential secrets
+- ERRORS on duplicate database names or usernames across services
+- Validates credentials are isolated regardless of deployment level (SUITE/PRODUCT/SERVICE)
+
+**Exception**: Leader-follower PostgreSQL replication where logical schemas are replicated but services maintain separate schema namespaces within the same physical server.
+
+**Cross-Service Communication**: Services needing data from other services MUST use REST APIs, NEVER direct database access.
+
 ### 7.2 Multi-Tenancy Architecture & Strategy
 
 #### 7.2.1 Authentication Realms
@@ -2688,6 +2715,18 @@ healthcheck-secrets:
 
 **Implementation Status**: Implemented and validated (2026-02-16)
 
+**MANDATORY: Rigid Delegation Pattern** (enforced by linter):
+- **SUITE → PRODUCT → SERVICE**: ALL deployments MUST follow this delegation chain
+- **Rationale**: 
+  1. Products can scale from 1 to N services without breaking suite-level deployment
+  2. Suite can scale from 5 to N products without hardcoded service dependencies
+  3. Enables independent testing at each level (service, product, suite)
+
+**Linter Enforcement** (`cicd lint-deployments`):
+- Suite compose MUST include product-level (e.g., `../sm/compose.yml`), NOT service-level (e.g., `../sm-kms/compose.yml`)
+- Product compose MUST include service-level (e.g., `../sm-kms/compose.yml`)
+- Violations are ERRORS that block CI/CD
+
 **Three-Tier Hierarchy**:
 
 | Level | Directory | Scope | Services | Use Cases |
@@ -2881,16 +2920,18 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `compose.demo.yml`, `otel-collector-config.yaml`, `README.md`
-- Required secrets: 10 files (5 unseal, 1 hash pepper, 4 PostgreSQL)
+- Required secrets: 14 files (5 unseal, 1 hash pepper, 4 PostgreSQL, 4 auth credentials)
   - `unseal_1of5.secret` through `unseal_5of5.secret`
   - `hash_pepper_v3.secret`
   - `postgres_url.secret`, `postgres_username.secret`, `postgres_password.secret`, `postgres_database.secret`
+  - `browser_username.secret`, `browser_password.secret` (web UI auth)
+  - `service_username.secret`, `service_password.secret` (headless/API auth)
 
 **template** (deployment template for new services):
 - Required directories: `secrets/`
 - Required files: `compose.yml`
 - Optional files: `compose.demo.yml`, `Dockerfile`, `README.md`
-- Required secrets: Same 10 files as PRODUCT-SERVICE
+- Required secrets: Same 14 files as PRODUCT-SERVICE
 
 **infrastructure** (shared-postgres, shared-citus, shared-telemetry, compose):
 - Required directories: none
@@ -2904,9 +2945,33 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 
 **File Requirements**: compose.yml is MANDATORY for all types; Dockerfile MANDATORY only for PRODUCT-SERVICE.
 
-**Secret Validation**: For PRODUCT-SERVICE and template types, all 10 required secrets MUST exist in `secrets/` directory.
+**Secret Validation**: For PRODUCT-SERVICE and template types, all 14 required secrets MUST exist in `secrets/` directory.
 
 **Error Reporting**: Linter identifies missing directories, missing files, and missing secrets with actionable error messages.
+
+**Rigid Delegation Pattern** (NEW - enforced 2026-02-16):
+- **SUITE Compose**: MUST include PRODUCT-level paths (e.g., `../sm/compose.yml`), NEVER service-level (e.g., `../sm-kms/compose.yml`)
+- **PRODUCT Compose**: MUST include SERVICE-level paths (e.g., `../sm-kms/compose.yml`)
+- **Validation Function**: `checkDelegationPattern()` in lint_deployments.go
+- **Failure Mode**: Violations are ERRORS that block CI/CD
+
+**Database Isolation** (NEW - enforced 2026-02-16):
+- Each of 9 services MUST have unique `postgres_database.secret` value
+- Each of 9 services MUST have unique `postgres_username.secret` value
+- Duplicate database names or usernames across services are ERRORS
+- **Validation Function**: `checkDatabaseIsolation()` in lint_deployments.go
+- **Cross-Service Check**: Runs after all deployments validated to detect sharing violations
+
+**Authentication Credentials** (NEW - enforced 2026-02-16):
+- Each service MUST have 4 credential files: `browser_username.secret`, `browser_password.secret`, `service_username.secret`, `service_password.secret`
+- **Validation Function**: `checkBrowserServiceCredentials()` in lint_deployments.go
+- **Rationale**: No hardcoded credentials in config files (E2E testing requires Docker secrets)
+
+**OTLP Protocol Override** (NEW - enforced 2026-02-16):
+- Config files SHOULD NOT specify protocol in `otlp-endpoint` (no `grpc://` or `http://` prefixes)
+- Use hostname:port format (e.g., `opentelemetry-collector-contrib:4317`)
+- **Validation Function**: `checkOTLPProtocolOverride()` in lint_deployments.go
+- **Failure Mode**: Violations are WARNINGS (non-blocking)
 
 #### 12.4.3 CI/CD Integration
 
