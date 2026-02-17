@@ -16,13 +16,13 @@
 **B)** Option C from original Q2: Delete CONFIG-SCHEMA.md, generate schema from Go struct tags (complex reflection logic)
 **C)** Option D from original Q2: Embed CONFIG-SCHEMA.md, parse at init (moderate: documentation + code, adds parsing dependency)
 **D)** Option E from original Q2: Delete CONFIG-SCHEMA.md, hardcode schema in Go (simplest: eliminates doc-code drift, aligns with Q1:A minimal docs philosophy)
-**E)** 
+**E)**
 
-**Answer**: 
+**Answer**: E; I did answer it!!! HARDCODE!
 
 **Rationale**: Task 3.3 (ValidateSchema) waits on this decision. Option D balances human-readable docs with embedded verification. Option E aligns with minimal documentation philosophy (Decision 9:A) and synthesized research (Decision 18:E) but loses standalone schema reference.
 
-**Impact**: 
+**Impact**:
 - Option D: Task 3.3 parses embedded markdown, CONFIG-SCHEMA.md remains in repo for reference
 - Option E: Task 3.3 uses hardcoded Go maps, CONFIG-SCHEMA.md deleted, schema documented in code comments only
 
@@ -43,9 +43,9 @@
 **B)** Add more instruction files to receive chunks (broader propagation: e.g., Section 12.5 also to 02-03.observability.instructions.md for telemetry configs)
 **C)** Reduce instruction files (minimal propagation: each section to ONE file only to avoid duplication)
 **D)** Task 5.2 tool auto-detects relevant instruction files per chunk (keyword-based matching, flexible but may miss relationships)
-**E)** 
+**E)**
 
-**Answer**: 
+**Answer**: A
 
 **Rationale**: Explicit mapping (Option A) provides clarity for Phase 5 implementation. Auto-detection (Option D) is flexible but may propagate incorrectly. Broader propagation (Option B) increases coverage but creates duplication. Minimal propagation (Option C) reduces duplication but may miss cross-cutting concerns.
 
@@ -63,9 +63,9 @@
 **B)** Entropy + length filter (entropy >4.5 AND length >32 chars, excludes most UUIDs which are 36 chars but includes API keys)
 **C)** Entropy + UUID pattern exclusion (if entropy >4.5 but matches 8-4-4-4-12 hex format, skip; catches UUIDs specifically)
 **D)** Entropy + pattern exclusion hybrid (entropy >4.5 AND NOT UUID format AND NOT base64 pattern; comprehensive exclusions)
-**E)** 
+**E)** Too complex. Binary length 32-bytes / 43-char base64 threshold only, no entropy calculation (simplifies logic but may miss short secrets or non-base64 secrets)
 
-**Answer**: 
+**Answer**: E
 
 **Rationale**: Option A maximizes sensitivity but generates noise. Option B (length filter) misses short secrets. Option C (UUID exclusion) addresses most common false positive. Option D (hybrid) is most precise but adds complexity.
 
@@ -83,9 +83,9 @@
 **B)** Aggregate all errors (run all 8 validators even if some fail, report combined results; slower but shows all issues at once)
 **C)** Configurable (--fail-fast vs --aggregate flag; user chooses per invocation)
 **D)** Smart aggregation (run all, but group related errors by validator; moderate verbosity per Decision 14:B)
-**E)** 
+**E)** Do your research. Look at cicd main. I think it aggregates errors from each validator. Find out how it does it for existing validators, and clarify it in plan.md and tasks.md, and if necessary in ARCHITECTURE.md.
 
-**Answer**: 
+**Answer**: E
 
 **Rationale**: Option A (fail-fast) minimizes runtime but frustrates developers (iterative fix-run cycles). Option B (aggregate all) aligns with Decision 14:B moderate verbosity and shows complete picture. Option C (configurable) is flexible. Option D (smart grouping) balances speed with completeness.
 
@@ -103,9 +103,9 @@
 **B)** Paragraph-level (each <p> = 1 chunk; fine-grained, harder to manage, precise duplication)
 **C)** Code block / diagram only (each ```...``` or ASCII art = 1 chunk; mixed granularity, propagates examples but not prose)
 **D)** Custom markers (<!-- CHUNK:validator-overview -->...<!-- /CHUNK -->; explicit boundaries, requires marking ARCHITECTURE.md)
-**E)** 
+**E)** Semantic units; sections preferred as long as it is not massive, otherwise flexible but subjective, requires judgment on "massive" sections. Also, capture this definition in ARCHITECTURE.md to guide future propagation.
 
-**Answer**: 
+**Answer**: E
 
 **Rationale**: Option A (subsection) has clear boundaries (## markdown headers) and reduces chunk management overhead. Option B (paragraph) provides fine-grained control but complex tracking. Option C (code/diagram) propagates only concrete examples. Option D (custom markers) is most explicit but requires upfront work to mark ARCHITECTURE.md.
 
@@ -123,9 +123,9 @@
 **B)** Minimal table (1 line per validator: name + purpose only; e.g., "ValidateNaming: Ensures kebab-case naming")
 **C)** Moderate table (1 paragraph per validator: name + purpose + key rules; ~3-5 lines each, 8 validators × 4 lines = 32 lines total)
 **D)** Comprehensive table (detailed reference: all validation rules, examples, error messages; conflicts with Decision 9:A minimal depth)
-**E)** 
+**E)**
 
-**Answer**: 
+**Answer**: C; ARCHITECURE.md is single source of truth, but we can keep it concise. Extreme detail is overkill, but a brief reference for each validator helps discoverability, and implementation in validators will elaborate on details. Capture this balance in ARCHITECTURE.md to guide future additions.
 
 **Rationale**: Option A (no table) is most minimal but reduces discoverability. Option B (1 line) provides quick reference while staying minimal. Option C (1 paragraph) balances detail with brevity. Option D (comprehensive) conflicts with minimal documentation philosophy.
 
@@ -143,9 +143,9 @@
 **B)** Merge into single tool (combined "check-doc-consistency" validates both ARCHITECTURE.md + instruction files; unified, reduces code duplication)
 **C)** Merge + add bidirectional validation (single tool also checks instruction files reference valid ARCHITECTURE.md sections; comprehensive)
 **D)** Keep separate but add shared validation library (modular tools sharing common logic; best of both worlds)
-**E)** 
+**E)**
 
-**Answer**: 
+**Answer**: A; I don't want a tool at all. Too much tool and doc bloat!
 
 **Rationale**: Option A (separate) is modular but may duplicate validation logic. Option B (merge) simplifies tooling but creates larger single-purpose tool. Option C (merge + bidirectional) is most comprehensive but increases tool complexity. Option D (shared library) balances modularity with code reuse.
 
@@ -163,9 +163,9 @@
 **B)** ALL code in cmd/cicd/ (validator logic + test infrastructure + CLI code; comprehensive but tests infrastructure tests, which is overkill)
 **C)** Tiered approach (validator logic ≥98%, test helpers ≥90%, CLI main.go exempted; balanced but introduces tier complexity)
 **D)** Case-by-case per validator (flexible decision per validator based on complexity; inconsistent, hard to enforce)
-**E)** 
+**E)**
 
-**Answer**: 
+**Answer**: B; clarify this in ARCHITECTURE.md to guide future validators. We want to ensure the entire validator package is robust, including test infrastructure, to maintain high quality and confidence. Quality is paramount!
 
 **Rationale**: Option A focuses mutation testing on CRITICAL production code (validators). Option B is comprehensive but mutation tests test code, which is low-value. Option C (tiered) balances rigor with pragmatism. Option D (case-by-case) is flexible but inconsistent.
 
@@ -183,9 +183,9 @@
 **B)** Defer to v4 iteration (focus v3 on core validators, add CI/CD enforcement after manual testing proves validators work)
 **C)** Add to Phase 6 as Post-Implementation task (validate CI/CD after E2E demo, ensures all pieces work before automation)
 **D)** Skip CI/CD workflow entirely (rely on pre-commit hooks only; trust + documentation)
-**E)** 
+**E)** NEVER DEFER!!!!! CI/CD is critical for "most awesome" standard. We need to build the habit and infrastructure now. Capture this in ARCHITECTURE.md as a non-negotiable requirement for all work.
 
-**Answer**: 
+**Answer**: E
 
 **Rationale**: Option A (add now) maximizes rigor and catches bypassed pre-commit hooks. Option B (defer v4) reduces v3 scope but loses enforcement until v4. Option C (Phase 6) ensures validators work before automating. Option D (skip) insufficient for "most awesome" standard.
 
@@ -203,9 +203,9 @@
 **B)** Per phase (every phase completion = 1 commit; coarse-grained rollback, 6 commits total, simpler history)
 **C)** Per logical unit (group related tasks into semantic commits; flexible but requires judgment, ~15-20 commits)
 **D)** Continuous (commit after every file change; extreme granularity, hundreds of commits, hard to navigate history)
-**E)** 
+**E)**
 
-**Answer**: 
+**Answer**: C preferred, fallback to B if too burdensome.
 
 **Rationale**: Option A (per task) aligns with evidence-based completion (commit = proof task done) and enables bisecting. Option B (per phase) is simpler but loses task-level rollback. Option C (logical units) is flexible but inconsistent. Option D (continuous) is overkill.
 
@@ -229,4 +229,3 @@
 | 10 | Git commit granularity | P3 | ❌ NO (policy enforcement) |
 
 **Note**: Only Q1 (CONFIG-SCHEMA.md) is a BLOCKING question. Others enhance rigor but implementation can proceed with reasonable defaults if unanswered.
-
