@@ -3137,6 +3137,40 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 
 **CLI Usage**: `cicd lint-deployments validate-mirror [deployments-dir configs-dir]`
 
+#### 12.4.11 Validation Pipeline Architecture
+
+**Execution Model**: All 8 validators run sequentially with aggregated error reporting. Each validator produces a `ValidationResult` with pass/fail status, error list, and timing metrics. The `validate-all` orchestrator collects all results and prints a unified summary.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  validate-all orchestrator               │
+│                                                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
+│  │ naming   │→ │kebab-case│→ │  schema  │→ │template │ │
+│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
+│  │  ports   │→ │telemetry │→ │  admin   │→ │ secrets │ │
+│  └──────────┘  └──────────┘  └──────────┘  └─────────┘ │
+│                                                         │
+│  Result: N passed / M failed (Xms)                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+**8-Validator Reference**:
+
+| # | Validator | Scope | Purpose | Key Rules |
+|---|-----------|-------|---------|-----------|
+| 1 | **ValidateNaming** | `deployments/`, `configs/` | Enforce kebab-case directory and file naming | All directories/files must be lowercase kebab-case; template directory skipped (intentional uppercase placeholders). |
+| 2 | **ValidateKebabCase** | `configs/` YAML files | Enforce kebab-case in YAML keys and compose service names | Top-level YAML keys must use kebab-case; `x-` extension keys and `services` map entries validated. |
+| 3 | **ValidateSchema** | `configs/` `config-*.yml` files | Validate service template config files against hardcoded schema | Required keys (`bind-public-protocol`, `bind-public-address`, `bind-public-port`, etc.); protocol must be `https`; addresses must be valid IP/hostname. |
+| 4 | **ValidateTemplatePattern** | `deployments/template/` | Validate template directory naming, structure, and placeholder values | compose.yml must use `PRODUCT-SERVICE` placeholders; required directories/files present; secrets follow template naming. |
+| 5 | **ValidatePorts** | `deployments/` compose files | Validate port assignments per deployment type | SERVICE: 8000-8999, PRODUCT: 18000-18999, SUITE: 28000-28999; admin always 9090; no port conflicts. |
+| 6 | **ValidateTelemetry** | `configs/` YAML files | Validate OTLP endpoint consistency | OTLP endpoint required in service configs; hostname:port format (no protocol prefix); consistent collector naming. |
+| 7 | **ValidateAdmin** | `deployments/` compose files | Validate admin endpoint bind policy | Admin port must bind to `127.0.0.1:9090` (never `0.0.0.0`); ensures admin API never exposed outside container. |
+| 8 | **ValidateSecrets** | `deployments/` compose files | Detect inline secrets in environment variables | Secret-pattern env vars (PASSWORD, SECRET, TOKEN, KEY, API_KEY) must use Docker secrets (`/run/secrets/`); length threshold ≥32/43 chars for non-reference values. Infrastructure deployments excluded. |
+
+**Cross-References**: Each validator is implemented in `internal/cmd/cicd/lint_deployments/validate_<name>.go` with comprehensive table-driven tests in `validate_<name>_test.go`. See code comments for detailed validation rules (per Decision 9:A minimal docs, comprehensive code comments).
+
 ### 12.5 Environment Strategy
 
 **Development**: SQLite in-memory, port 0, auto-generated TLS, disabled telemetry
