@@ -123,11 +123,27 @@ func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
 	result.addResult(validatorNameKebabCase, configsDir, kr.Valid, FormatKebabCaseValidationResult(kr), dur)
 }
 
+// isServiceTemplateConfig returns true if the file matches the service template
+// config naming pattern (config-*.yml). Only these files use the flat kebab-case
+// format validated by ValidateSchema. Other configs (e.g., ca-server.yml,
+// identity profiles, policies) use nested YAML with domain-specific schemas.
+func isServiceTemplateConfig(path string) bool {
+	base := filepath.Base(path)
+
+	return strings.HasPrefix(base, "config-") && (strings.HasSuffix(base, ".yml") || strings.HasSuffix(base, ".yaml"))
+}
+
 // runSchemaValidation discovers config YAML files and runs ValidateSchema on each.
+// Only validates service template config files (config-*.yml) which use the flat
+// kebab-case format. Other configs have domain-specific schemas.
 func runSchemaValidation(configsDir string, result *AllValidationResult) {
 	configFiles := discoverConfigFiles(configsDir)
 
 	for _, cf := range configFiles {
+		if !isServiceTemplateConfig(cf) {
+			continue
+		}
+
 		start := time.Now()
 		sr, _ := ValidateSchema(cf)
 		dur := time.Since(start)
@@ -187,8 +203,15 @@ func runAdminValidation(deployments []deploymentEntry, result *AllValidationResu
 }
 
 // runSecretsValidation runs ValidateSecrets on each deployment directory.
+// runSecretsValidation runs ValidateSecrets on each non-infrastructure deployment.
+// Infrastructure deployments (compose, shared-telemetry) are skipped because they
+// intentionally use inline credentials for local dev services (e.g., Grafana).
 func runSecretsValidation(deployments []deploymentEntry, result *AllValidationResult) {
 	for _, d := range deployments {
+		if d.level == DeploymentTypeInfrastructure {
+			continue
+		}
+
 		start := time.Now()
 		sr, _ := ValidateSecrets(d.path)
 		dur := time.Since(start)

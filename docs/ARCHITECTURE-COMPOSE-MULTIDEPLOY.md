@@ -471,9 +471,9 @@ configs/
 │   ├── production.yml                         # Production environment
 │   ├── test.yml                               # Test environment
 │   ├── policies/
-│   │   ├── adaptive_auth.yml                  # Adaptive authentication policy
-│   │   ├── risk_scoring.yml                   # Risk scoring policy
-│   │   └── step_up.yml                        # Step-up authentication policy
+│   │   ├── adaptive-auth.yml                  # Adaptive authentication policy
+│   │   ├── risk-scoring.yml                   # Risk scoring policy
+│   │   └── step-up.yml                        # Step-up authentication policy
 │   └── profiles/
 │       ├── authz-idp.yml                      # Combined authz+idp
 │       ├── authz-only.yml                     # Authorization only
@@ -570,7 +570,7 @@ cors-allowed-origins:
 
 3. **Use ./configs/ profiles** for environment variations
    - development.yml, production.yml, test.yml
-   - Policy-specific: adaptive_auth.yml, step_up.yml
+   - Policy-specific: adaptive-auth.yml, step-up.yml
    - Profile-specific: demo.yml, ci.yml, full-stack.yml
 
 4. **Use ./deployments/{SERVICE}/config/** for instance differentiation

@@ -38,8 +38,8 @@ func TestRunSchemaValidation_ErrorPath(t *testing.T) {
 
 	dir := t.TempDir()
 
-	// Create an unreadable YAML file.
-	unreadable := filepath.Join(dir, "bad.yml")
+	// Create an unreadable YAML file matching service template config pattern.
+	unreadable := filepath.Join(dir, "config-bad.yml")
 	require.NoError(t, os.WriteFile(unreadable, []byte("key: val"), 0o600))
 	require.NoError(t, os.Chmod(unreadable, 0o000))
 
@@ -146,4 +146,33 @@ func TestRunSecretsValidation_ErrorPath(t *testing.T) {
 
 	require.Len(t, result.Results, 1)
 	assert.Equal(t, validatorNameSecrets, result.Results[0].Name)
+}
+
+func TestIsServiceTemplateConfig(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		path     string
+		expected bool
+	}{
+		{name: "config-pg-1.yml", path: "configs/cipher/im/config-pg-1.yml", expected: true},
+		{name: "config-sqlite.yml", path: "configs/cipher/im/config-sqlite.yml", expected: true},
+		{name: "config-pg-2.yaml", path: "/tmp/config-pg-2.yaml", expected: true},
+		{name: "jose-server.yml", path: "configs/jose/jose-server.yml", expected: false},
+		{name: "ca-config-schema.yaml", path: "configs/ca/ca-config-schema.yaml", expected: false},
+		{name: "adaptive-auth.yml", path: "configs/identity/policies/adaptive-auth.yml", expected: false},
+		{name: "authz-docker.yml", path: "configs/identity/authz/authz-docker.yml", expected: false},
+		{name: "compose.yml", path: "deployments/compose/compose.yml", expected: false},
+		{name: "random.yml", path: "/tmp/random.yml", expected: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := isServiceTemplateConfig(tc.path)
+			assert.Equal(t, tc.expected, got)
+		})
+	}
 }
