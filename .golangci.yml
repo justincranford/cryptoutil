@@ -92,6 +92,9 @@ linters:
       # Exclude nilerr from issuer service (intentional pattern).
       - path: "internal/identity/issuer/service\\.go$"
         linters: [nilerr]
+      # Exclude nilerr from validate_naming.go (error captured in result.Errors; callers check result.Valid).
+      - path: "internal/cmd/cicd/lint_deployments/validate_naming\\.go$"
+        linters: [nilerr]
       # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
       - path: "internal/jose/server/handlers\\.go$"
         linters: [wrapcheck]

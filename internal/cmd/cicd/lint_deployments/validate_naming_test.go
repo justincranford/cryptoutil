@@ -58,7 +58,7 @@ content := `services:
   AnotherService:
     image: postgres
 `
-require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(content), 0o644))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "docker-compose.yml"), []byte(content), 0o600))
 
 result, err := ValidateNaming(dir)
 require.NoError(t, err)
@@ -131,6 +131,21 @@ assert.True(t, len(result.Errors) > 0)
 assert.Contains(t, result.Errors[0], "does not exist")
 }
 
+func TestValidateNaming_PathIsFile(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+filePath := filepath.Join(dir, "somefile.txt")
+require.NoError(t, os.WriteFile(filePath, []byte("content"), 0o600))
+
+result, err := ValidateNaming(filePath)
+require.NoError(t, err)
+require.NotNil(t, result)
+assert.False(t, result.Valid)
+assert.True(t, len(result.Errors) > 0)
+assert.Contains(t, result.Errors[0], "not a directory")
+}
+
 func TestValidateNaming_ComposeFileReadError(t *testing.T) {
 t.Parallel()
 
@@ -150,8 +165,8 @@ func TestValidateNaming_InvalidFileNames(t *testing.T) {
 t.Parallel()
 
 dir := t.TempDir()
-require.NoError(t, os.WriteFile(filepath.Join(dir, "MyConfig.yml"), []byte("key: value"), 0o644))
-require.NoError(t, os.WriteFile(filepath.Join(dir, "my_config.yaml"), []byte("key: value"), 0o644))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "MyConfig.yml"), []byte("key: value"), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "my_config.yaml"), []byte("key: value"), 0o600))
 
 result, err := ValidateNaming(dir)
 require.NoError(t, err)
@@ -170,7 +185,7 @@ content := `services:
   another-service-123:
     image: postgres
 `
-require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), 0o644))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), 0o600))
 
 result, err := ValidateNaming(dir)
 require.NoError(t, err)
@@ -213,4 +228,153 @@ t.Parallel()
 assert.Equal(t, "hello-world", toKebabCase("hello  world"))
 assert.Equal(t, "hello", toKebabCase("__hello__"))
 assert.Equal(t, "hello-world", toKebabCase("___hello___world___"))
+}
+
+func TestValidateNaming_WalkErrorPermission(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+subDir := filepath.Join(dir, "sub-dir")
+require.NoError(t, os.MkdirAll(subDir, 0o755))
+require.NoError(t, os.WriteFile(filepath.Join(subDir, "test.yml"), []byte("key: value"), 0o600))
+
+// Remove read permission from subdirectory to trigger walk error.
+require.NoError(t, os.Chmod(subDir, 0o000))
+
+t.Cleanup(func() {
+	// Restore permissions for cleanup.
+	_ = os.Chmod(subDir, 0o755)
+})
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+// Walk error should be recorded.
+assert.False(t, result.Valid)
+assert.True(t, len(result.Errors) > 0)
+assert.Contains(t, result.Errors[0], "error accessing path")
+}
+
+func TestValidateNaming_ComposeInvalidYAML(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+invalidYAML := []byte("services:\n  - invalid: [yaml: {broken")
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), invalidYAML, 0o600))
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+// Invalid YAML produces warning, not error.
+assert.True(t, len(result.Warnings) > 0)
+assert.Contains(t, result.Warnings[0], "Failed to parse")
+}
+
+func TestValidateNaming_NonYAMLFilesIgnored(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+// Non-YAML files should be ignored regardless of name.
+require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("# readme"), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "config.json"), []byte("{}"), 0o600))
+require.NoError(t, os.WriteFile(filepath.Join(dir, "Makefile"), []byte("all:"), 0o600))
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+assert.True(t, result.Valid)
+assert.Empty(t, result.Errors)
+}
+
+func TestValidateNaming_MixedValidInvalidDirs(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "valid-name"), 0o755))
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "Invalid_Name"), 0o755))
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "another-valid"), 0o755))
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+assert.False(t, result.Valid)
+assert.Equal(t, 1, len(result.Errors))
+assert.Contains(t, result.Errors[0], "Invalid_Name")
+}
+
+func TestValidateNaming_NestedDirectories(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+// Create deeply nested structure with valid kebab-case.
+nested := filepath.Join(dir, "level-one", "level-two", "level-three")
+require.NoError(t, os.MkdirAll(nested, 0o755))
+require.NoError(t, os.WriteFile(filepath.Join(nested, "config.yml"), []byte("key: value"), 0o600))
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+assert.True(t, result.Valid)
+assert.Empty(t, result.Errors)
+}
+
+func TestValidateNaming_EmptyDirectory(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+assert.True(t, result.Valid)
+assert.Empty(t, result.Errors)
+}
+
+func TestValidateNaming_ComposeWithEmptyServices(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+content := "services:\n"
+require.NoError(t, os.WriteFile(filepath.Join(dir, "compose.yml"), []byte(content), 0o600))
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+assert.True(t, result.Valid)
+assert.Empty(t, result.Errors)
+}
+
+func TestValidateNaming_UPPERCASEDir(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+require.NoError(t, os.MkdirAll(filepath.Join(dir, "UPPER"), 0o755))
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+assert.False(t, result.Valid)
+assert.Contains(t, result.Errors[0], "UPPER")
+assert.Contains(t, result.Errors[0], "kebab-case")
+}
+
+func TestValidateNaming_ComposeReadableFileError(t *testing.T) {
+t.Parallel()
+
+dir := t.TempDir()
+composePath := filepath.Join(dir, "compose.yml")
+require.NoError(t, os.WriteFile(composePath, []byte("services:\n  web: {}\n"), 0o600))
+
+// Make file unreadable to trigger os.ReadFile error in validateComposeServiceNames.
+require.NoError(t, os.Chmod(composePath, 0o000))
+
+t.Cleanup(func() {
+	_ = os.Chmod(composePath, 0o600)
+})
+
+result, err := ValidateNaming(dir)
+require.NoError(t, err)
+require.NotNil(t, result)
+// Should have warning about failed read.
+assert.True(t, len(result.Warnings) > 0 || len(result.Errors) > 0)
 }
