@@ -728,7 +728,6 @@ permissions:
 
 **Elite Agents**: github-actions-expert.agent.md | devops-expert.agent.md | platform-sre-kubernetes.agent.md (Gist examples from 2025-12-24 research)
 
-
 ---
 
 ## Cross-Reference

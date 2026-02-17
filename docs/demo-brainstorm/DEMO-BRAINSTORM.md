@@ -17,7 +17,7 @@ This directory archives demo files that were removed from active deployments but
 **Archived**: 2026-02-16
 **Original Location**: `deployments/sm-kms/compose.demo.yml`
 
-**Purpose**: 
+**Purpose**:
 - Demonstrated SQLite-based single-instance deployment
 - Showed minimal configuration for local development
 - Provided working example of sm-kms service setup
@@ -66,4 +66,3 @@ This directory should be reviewed periodically to:
 - Update documentation
 - Validate that archived files still provide value
 - Extract patterns for permanent documentation
-

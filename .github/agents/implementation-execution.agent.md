@@ -895,7 +895,6 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 - ✅ **ALWAYS extract lessons immediately**: From lessons.md to permanent homes before ending session
 - ✅ **ALWAYS commit the 5 docs**: With detailed audit trail listing all task completions
 
-
 ---
 
 ## Cross-Reference

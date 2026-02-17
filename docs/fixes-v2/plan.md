@@ -88,6 +88,7 @@ User discovered multiple issues:
 ## Phases
 
 ### Phase 0.5: Demo Files Archiving (2h) [Status: ☐ TODO]
+
 **Objective**: Archive demo files under docs/demo-brainstorm/ (preserving for future)
 - Create directory structure
 - Move sm-kms/compose.demo.yml
@@ -95,6 +96,7 @@ User discovered multiple issues:
 - **Success**: No demo files in deployments/, preserved in docs/
 
 ### Phase 1: Structural Cleanup (3h) [Status: ☐ TODO]
+
 **Objective**: Delete redundant files, create missing template configs
 - Task 1.1: Delete 2 .gitkeep files
 - Task 1.2: Delete 2 duplicate otel configs (keep shared-telemetry)
@@ -102,6 +104,7 @@ User discovered multiple issues:
 - **Success**: No .gitkeep with content, single otel config, template complete
 
 ### Phase 2: Compose Validation Enhancement (3h) [Status: ☐ TODO]
+
 **Objective**: Add docker compose config validation to pre-commit
 - Update .pre-commit-config.yaml with schema validation
 - Test with all compose files
@@ -109,6 +112,7 @@ User discovered multiple issues:
 - **Success**: Pre-commit prevents invalid compose commits
 
 ### Phase 3: CICD Foundation (10h) [Status: ✅ COMPLETE - 3.5h actual]
+
 **Objective**: Create listing files and structural mirror validation
 - Task 3.1: Generate JSON listing files with metadata (4h)
 - Task 3.2: Implement ValidateStructuralMirror (4h)
@@ -116,6 +120,7 @@ User discovered multiple issues:
 - **Success**: JSON listings exist, mirror validation correct, ≥95% coverage
 
 ### Phase 4: CICD Comprehensive Refactoring (28h) [Status: ☐ TODO]
+
 **Objective**: Rigorous validation for compose and config files
 - Task 4.0: Define config file schema (3h) **[NEW]**
 - Task 4.1: Implement comprehensive ValidateComposeFiles (10h)
@@ -141,6 +146,7 @@ User discovered multiple issues:
 5. Secret reference validation
 
 ### Phase 5: Config Directory Restructuring (6h) [Status: ☐ TODO]
+
 **Objective**: Mirror configs/ to match deployments/ structure
 - Task 5.1: Audit current configs/ structure (1h)
 - Task 5.2: Identify orphans (configs without deployments) (1h)
@@ -149,6 +155,7 @@ User discovered multiple issues:
 - **Success**: Exact mirror for valid configs, orphans preserved, validation passes
 
 ### Phase 6: Documentation & Integration (3h) [Status: ☐ TODO]
+
 **Objective**: Update docs and integrate into workflows
 - Update ARCHITECTURE.md with schema
 - Update instructions files
@@ -156,6 +163,7 @@ User discovered multiple issues:
 - **Success**: Docs accurate, CI/CD enforces validations
 
 ### Phase 7: Comprehensive Testing & Quality Gates (5h) [Status: ☐ TODO]
+
 **Objective**: End-to-end verification and mutation testing
 - E2E tests for all CICD commands
 - Mutation testing (≥95% minimum)
