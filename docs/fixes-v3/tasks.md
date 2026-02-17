@@ -166,8 +166,8 @@
   - [x] All tests pass: `go test ./...` (PostgreSQL container requires Docker - environmental)
   - [x] Race detector clean: Completed in Phase 6 cross-cutting verification
   - [x] No linting errors: Completed in Phase 3+ (0 issues)
-  - [ ] Docker Compose builds: DEFERRED (Docker not running)
-  - [ ] Docker Compose starts: DEFERRED (Docker not running)
+  - [ ] Docker Compose builds: PARTIAL (PostgreSQL volume mounts fixed, E2E configs need creation)
+  - [ ] Docker Compose starts: BLOCKED (E2E configs are empty directories)
   - [x] Git history preserved (verified via `git log --follow`)
   - [x] Evidence logged: test-output/phase1/task-1.6-verification.log
 - **Files**:
@@ -762,9 +762,9 @@
 ### Deployment
 - [x] Config files validated (100% pass rate) - 65/65 validators PASS, 32/32 config files PASS
 - [x] CI/CD workflow passing (GitHub Actions cicd-lint-deployments per Decision 19:E per Q9) - workflow simulated locally, all steps pass
-- [ ] Docker build clean: `docker compose -f deployments/compose/compose.yml build` - DEFERRED (Docker not running)
-- [ ] Docker Compose health checks pass - DEFERRED (Docker not running)
-- [ ] E2E tests pass in Docker environment - DEFERRED (Docker not running)
+- [ ] Docker build clean: `docker compose -f deployments/compose/compose.yml build` - PARTIAL (build succeeded, PostgreSQL volume mounts fixed for v18+, E2E configs missing)
+- [ ] Docker Compose health checks pass - BLOCKED (E2E config files are directories, need authz-e2e.yml, idp-e2e.yml as YAML files)
+- [ ] E2E tests pass in Docker environment - BLOCKED (depends on health checks passing)
 - [x] DB migrations work forward+backward (if applicable) - N/A for validators
 
 ---
