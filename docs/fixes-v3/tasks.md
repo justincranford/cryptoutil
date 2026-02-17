@@ -1,6 +1,6 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 13 of 56 tasks complete (23%)
+**Status**: 14 of 56 tasks complete (25%)
 **Last Updated**: 2026-02-17 (Phase 3 in progress)
 **Created**: 2026-02-17
 
@@ -368,19 +368,19 @@
   - `internal/cmd/cicd/lint_deployments/validate_ports_test.go`
 
 #### Task 3.6: Implement ValidateTelemetry
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: 1h
 - **Dependencies**: Task 3.5
 - **Description**: Validate OTLP endpoints consistent across all configs
 - **Acceptance Criteria**:
-  - [ ] Validates observability.otlp.endpoint field present
-  - [ ] Validates OTLP protocol (grpc or http)
-  - [ ] Validates endpoint format (host:port)
-  - [ ] Checks consistency: All services use same otel-collector endpoint
+  - [x] Validates observability.otlp.endpoint field present
+  - [x] Validates OTLP protocol (grpc or http)
+  - [x] Validates endpoint format (host:port)
+  - [x] Checks consistency: All services use same otel-collector endpoint
   - [x] Unit tests 100% coverage
-  - [ ] Integration tests with matching + mismatched endpoints
+  - [x] Integration tests with matching + mismatched endpoints
 - **Files**:
   - `internal/cmd/cicd/lint_deployments/validate_telemetry.go`
   - `internal/cmd/cicd/lint_deployments/validate_telemetry_test.go`

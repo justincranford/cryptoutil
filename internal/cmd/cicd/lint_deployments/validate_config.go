@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -237,7 +238,8 @@ func validateOTLPConfig(config map[string]any, result *ConfigValidationResult) {
 }
 
 // toInt converts a YAML value to an integer.
-// YAML parsers may return int, int64, or float64 for numeric values.
+// YAML parsers may return int, int64, float64, or string values.
+// String values (e.g., from extractHostPort) are converted via strconv.Atoi.
 func toInt(val any) (int, bool) {
 	switch v := val.(type) {
 	case int:
@@ -246,6 +248,13 @@ func toInt(val any) (int, bool) {
 		return int(v), true
 	case float64:
 		return int(v), true
+	case string:
+		n, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, false
+		}
+
+		return n, true
 	default:
 		return 0, false
 	}
