@@ -111,26 +111,66 @@ You are in **continuous autonomous execution mode**. This means:
 
 ### Docker Desktop Requirement - CRITICAL
 
-**BEFORE running ANY workflow tests, verify Docker is running:**
+**MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
 
-```powershell
-# Check Docker status
+**Cross-Platform Verification**:
+
+```bash
+# Check if Docker is running (all platforms)
 docker ps
 
-# If failed, start Docker Desktop
+# Expected: list of containers or empty table
+# Error: "Cannot connect to the Docker daemon" = Docker not running
+```
+
+**Platform-Specific Startup**:
+
+**Windows**:
+```powershell
+# Start Docker Desktop
 Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
 
-# Wait 30-60 seconds for Docker to initialize
+# Wait for initialization (30-60 seconds)
 Start-Sleep -Seconds 45
 
 # Verify Docker is ready
 docker ps
 ```
 
-**Why Critical**: All workflow testing infrastructure requires Docker for:
-- PostgreSQL test-containers (unit/integration tests)
-- Docker Compose orchestration (E2E tests)
-- cmd/workflow uses act internally (requires Docker containers)
+**macOS**:
+```bash
+# Start Docker Desktop
+open -a Docker
+
+# Wait for initialization (30-60 seconds)
+sleep 45
+
+# Verify Docker is ready
+docker ps
+```
+
+**Linux**:
+```bash
+# Start Docker service (systemd)
+sudo systemctl start docker
+
+# Enable Docker to start on boot
+sudo systemctl enable docker
+
+# Verify Docker is ready
+docker ps
+
+# Alternative: Docker Desktop for Linux (if installed)
+systemctl --user start docker-desktop
+```
+
+**Why Critical**: All workflow testing infrastructure, E2E tests, and Docker Compose operations require Docker daemon. Without Docker running:
+- `docker ps` fails with "Cannot connect to the Docker daemon" error
+- `docker compose up` fails with pipe/socket errors
+- E2E tests skip with environmental warnings
+- Integration test containers cannot start
+
+See [ARCHITECTURE.md Section 13.5.4 Docker Desktop Startup](../../docs/ARCHITECTURE.md#1354-docker-desktop-startup---critical) for comprehensive documentation.
 
 ### 1. Local Workflow Execution (MANDATORY METHOD)
 

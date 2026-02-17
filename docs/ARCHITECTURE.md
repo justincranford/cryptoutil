@@ -2361,7 +2361,8 @@ func BenchmarkAESEncrypt(b *testing.B) {
 #### 11.2.5 CI/CD
 
 ***Docker Desktop** MUST be running locally, because workflows are run locally by `act` in containers.
-If not running, start it via command line.
+
+See [Section 13.5.4 Docker Desktop Startup](#1354-docker-desktop-startup---critical) for cross-platform startup instructions (Windows, macOS, Linux).
 
 Here are local convenience commands to run the workflows locally for Development and Testing.
 
@@ -3363,6 +3364,69 @@ configs/
 - Format: `### YYYY-MM-DD: Title`
 - NEVER create standalone session docs
 - DELETE completed tasks immediately from todos-*.md
+
+#### 13.5.4 Docker Desktop Startup - CRITICAL
+
+**MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
+
+**Cross-Platform Verification**:
+
+```bash
+# Check if Docker is running (all platforms)
+docker ps
+
+# Expected: list of containers or empty table
+# Error: "Cannot connect to the Docker daemon" = Docker not running
+```
+
+**Platform-Specific Startup**:
+
+**Windows**:
+```powershell
+# Start Docker Desktop
+Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+
+# Wait for initialization (30-60 seconds)
+Start-Sleep -Seconds 45
+
+# Verify Docker is ready
+docker ps
+```
+
+**macOS**:
+```bash
+# Start Docker Desktop
+open -a Docker
+
+# Wait for initialization (30-60 seconds)
+sleep 45
+
+# Verify Docker is ready
+docker ps
+```
+
+**Linux**:
+```bash
+# Start Docker service (systemd)
+sudo systemctl start docker
+
+# Enable Docker to start on boot
+sudo systemctl enable docker
+
+# Verify Docker is ready
+docker ps
+
+# Alternative: Docker Desktop for Linux (if installed)
+systemctl --user start docker-desktop
+```
+
+**Why Critical**: All workflow testing infrastructure, E2E tests, and Docker Compose operations require Docker daemon. Without Docker running:
+- `docker ps` fails with "Cannot connect to the Docker daemon" error
+- `docker compose up` fails with pipe/socket errors
+- E2E tests skip with environmental warnings
+- Integration test containers cannot start
+
+See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that require Docker.
 
 ---
 
