@@ -27,6 +27,10 @@ const maxPort = 65535
 // mandatoryAdminBindAddress is the only acceptable admin bind address.
 const mandatoryAdminBindAddress = "127.0.0.1"
 
+// statusPass and statusFail are shared status labels for validation output formatting.
+const statusPass = "PASS"
+const statusFail = "FAIL"
+
 // mandatoryProtocol is the only acceptable protocol.
 const mandatoryProtocol = "https"
 
@@ -264,9 +268,9 @@ func toInt(val any) (int, bool) {
 func FormatConfigValidationResult(result *ConfigValidationResult) string {
 	var sb strings.Builder
 
-	status := "PASS"
+	status := statusPass
 	if !result.Valid {
-		status = "FAIL"
+		status = statusFail
 	}
 
 	sb.WriteString(fmt.Sprintf("[%s] %s\n", status, result.Path))

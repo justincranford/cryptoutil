@@ -1,6 +1,6 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 14 of 56 tasks complete (25%)
+**Status**: 15 of 56 tasks complete (27%)
 **Last Updated**: 2026-02-17 (Phase 3 in progress)
 **Created**: 2026-02-17
 
@@ -386,21 +386,23 @@
   - `internal/cmd/cicd/lint_deployments/validate_telemetry_test.go`
 
 #### Task 3.7: Implement ValidateAdmin
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2h
-- **Actual**: [Fill when complete]
+- **Actual**: 1.5h
 - **Dependencies**: Task 3.6
 - **Description**: Validate admin bind policy (127.0.0.1:9090 inside containers)
 - **Acceptance Criteria**:
-  - [ ] Validates server-settings.bind-private-address = "127.0.0.1" (inside containers)
-  - [ ] Validates server-settings.bind-private-port = 9090
-  - [ ] Validates admin endpoints NOT exposed in docker-compose.yml ports section
+  - [x] Validates server-settings.bind-private-address = "127.0.0.1" (inside containers)
+  - [x] Validates server-settings.bind-private-port = 9090
+  - [x] Validates admin endpoints NOT exposed in docker-compose.yml ports section
   - [x] Unit tests 100% coverage
-  - [ ] Integration tests with correct + incorrect bind addresses
+  - [x] Integration tests with correct + incorrect bind addresses
 - **Files**:
   - `internal/cmd/cicd/lint_deployments/validate_admin.go`
   - `internal/cmd/cicd/lint_deployments/validate_admin_test.go`
+  - `internal/cmd/cicd/lint_deployments/validate_config.go` (toInt string fix)
+  - `.golangci.yml` (nilerr exclusion)
 
 #### Task 3.8: Implement ValidateSecrets [UPDATED per quizme-v3 Q3]
 - **Status**: ❌

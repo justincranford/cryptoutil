@@ -110,6 +110,9 @@ linters:
       # Exclude nilerr from validate_admin.go (error captured in result.Errors; callers check result.Valid).
       - path: "internal/cmd/cicd/lint_deployments/validate_admin\\.go$"
         linters: [nilerr]
+      # Exclude nilerr from validate_secrets.go (error captured in result.Errors; callers check result.Valid).
+      - path: "internal/cmd/cicd/lint_deployments/validate_secrets\\.go$"
+        linters: [nilerr]
       # Exclude wrapcheck from jose server handlers (Fiber HTTP response helpers).
       - path: "internal/jose/server/handlers\\.go$"
         linters: [wrapcheck]
