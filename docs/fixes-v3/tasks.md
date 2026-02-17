@@ -1,7 +1,7 @@
 # Tasks - Configs/Deployments/CICD Rigor & Consistency v3
 
-**Status**: 24 of 56 tasks complete (43%)
-**Last Updated**: 2026-02-17 (Phase 3 complete)
+**Status**: 26 of 56 tasks complete (46%)
+**Last Updated**: 2026-02-17 (Phase 5 in progress)
 **Created**: 2026-02-17
 
 ## Quality Mandate - MANDATORY
@@ -607,14 +607,14 @@
 **TASK 5.4 REMOVED**: No instruction file consistency tool (per quizme-v3 Q7 - user wants NO tool bloat)
 
 #### Task 5.1: Identify ARCHITECTURE.md Chunks for Propagation [UPDATED per quizme-v3 Q2+Q5]
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.25h
 - **Dependencies**: Task 4.3
 - **Description**: Identify chunks from ARCHITECTURE.md for propagation using explicit mapping table (Decision 13:E per Q2) and semantic unit boundaries (per Q5)
 - **Acceptance Criteria**:
-  - [ ] **Use explicit mapping table** (per Q2):
+  - [x] **Use explicit mapping table** (per Q2):
     - Section 12.4 (Deployment Validation) → 04-01.deployment.instructions.md
     - Section 12.5 (Config File Architecture) → 02-01.architecture.instructions.md, 03-04.data-infrastructure.instructions.md
     - Section 12.6 (Secrets Management) → 02-05.security.instructions.md, 04-01.deployment.instructions.md
@@ -623,28 +623,28 @@
     - Section 12.7 (Documentation Propagation Strategy) → copilot-instructions.md
     - Section 6.X (Secrets Detection Strategy) → 02-05.security.instructions.md
     - Section 12.8 (Validator Error Aggregation) → 03-01.coding.instructions.md
-  - [ ] **Semantic unit boundaries** (per Q5): Sections/subsections (e.g., "12.4.1 ValidateNaming" = 1 chunk), split if "massive" (>500 lines)
-  - [ ] List of chunks created: test-output/phase5/task-5.1-chunks.txt (chunk boundaries, destination files)
-  - [ ] No orphaned chunks (all ARCHITECTURE.md sections in 12.4-12.8 mapped)
+  - [x] **Semantic unit boundaries** (per Q5): Sections/subsections (e.g., "12.4.1 ValidateNaming" = 1 chunk), split if "massive" (>500 lines)
+  - [x] List of chunks created: test-output/phase5/task-5.1-chunks.txt (chunk boundaries, destination files)
+  - [x] No orphaned chunks (all ARCHITECTURE.md sections in 12.4-12.8 mapped)
 - **Files**:
   - `test-output/phase5/task-5.1-chunks.txt` (chunk mapping list)
 
 #### Task 5.2: Copy Chunks to Instruction Files [UPDATED per quizme-v3 Q2+Q5]
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 2.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.5h
 - **Dependencies**: Task 5.1
 - **Description**: Copy identified chunks VERBATIM from ARCHITECTURE.md to instruction files (Decision 13:E)
 - **Acceptance Criteria**:
-  - [ ] **Verbatim copying**: No paraphrasing, exact text copied (ensures consistency)
-  - [ ] **Chunk boundaries**: Use markdown section headers (## or ###) as boundaries
-  - [ ] **Destination files**: Follow mapping table from Task 5.1
-  - [ ] **Formatting**: Preserve markdown formatting (headers, lists, code blocks, diagrams)
-  - [ ] **Cross-references**: Update links to point back to ARCHITECTURE.md (single source of truth)
-  - [ ] All instruction files updated: 02-01.architecture, 02-05.security, 03-01.coding, 03-02.testing, 03-04.data-infrastructure, 04-01.deployment, copilot-instructions.md
-  - [ ] No broken markdown links (verified by markdown linter)
-  - [ ] Evidence: git diff shows chunks added to instruction files
+  - [x] **Verbatim copying**: No paraphrasing, exact text copied (ensures consistency)
+  - [x] **Chunk boundaries**: Use markdown section headers (## or ###) as boundaries
+  - [x] **Destination files**: Follow mapping table from Task 5.1
+  - [x] **Formatting**: Preserve markdown formatting (headers, lists, code blocks, diagrams)
+  - [x] **Cross-references**: Update links to point back to ARCHITECTURE.md (single source of truth)
+  - [x] All instruction files updated: 02-01.architecture, 02-05.security, 03-01.coding, 03-02.testing, 03-04.data-infrastructure, 04-01.deployment, copilot-instructions.md
+  - [x] No broken markdown links (verified by markdown linter)
+  - [x] Evidence: git diff shows chunks added to instruction files
 - **Files**:
   - `.github/instructions/02-01.architecture.instructions.md`, `.github/instructions/02-05.security.instructions.md`, etc. (chunks added)
 
