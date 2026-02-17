@@ -24,7 +24,7 @@
 
 **E)**
 
-**Answer**:
+**Answer**: A
 
 **Rationale**: Affects documentation depth, maintenance burden, implementation guidance clarity
 
@@ -46,7 +46,7 @@
 
 **D)** Embed CONFIG-SCHEMA.md as string, parse once at init (balanced, compiled-in doc)
 
-**E)**
+**E)** WTF is CONFIG-SCHEMA.md. Only code matters. Delete CONFIG-SCHEMA.md and hardcode schema in Go (simplest, eliminates doc-code drift risk).
 
 **Answer**:
 
@@ -70,9 +70,9 @@
 
 **D)** Validate only staged files (minimal, misses cross-file consistency)
 
-**E)**
+**E)** B; this is how all cicd linters work. It is optimized to do this efficiently. We can also optimize validator performance if needed.
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: Developer experience vs implementation complexity trade-off
 
@@ -96,7 +96,7 @@
 
 **E)**
 
-**Answer**:
+**Answer**: C
 
 **Rationale**: Defines rigor level for template compliance
 
@@ -118,9 +118,9 @@
 
 **D)** Checklist-based: Pre-defined list of patterns to verify in each file (systematic, maintainable)
 
-**E)**
+**E)** Chunk-based, ARCHITECTURE.md chunks are intended to be copied verbatim into instruction files, custom agents, etc. ARCHITECTURE.md is the single source of trust, and copied-based propagation ensures consistency. If clarification is necessary, add note to ARCHITECTURE.md. We can verify that each chunk is present in the instruction files. This is a direct way to verify propagation.
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: Balance between thoroughness and practicality
 
@@ -144,7 +144,7 @@
 
 **E)**
 
-**Answer**:
+**Answer**: B
 
 **Rationale**: Developer debugging experience vs implementation complexity
 
@@ -168,7 +168,7 @@
 
 **E)**
 
-**Answer**:
+**Answer**: C
 
 **Rationale**: Security rigor vs false positive tolerance
 
@@ -192,7 +192,7 @@
 
 **E)**
 
-**Answer**:
+**Answer**: B
 
 **Rationale**: Documentation clarity vs maintenance burden
 
@@ -216,7 +216,7 @@
 
 **E)**
 
-**Answer**:
+**Answer**: A
 
 **Rationale**: Quality rigor vs practical implementation trade-offs
 
@@ -238,9 +238,9 @@
 
 **D)** Reference-based: Plan.md references test-output/phase0-research/ for details (clearest separation)
 
-**E)**
+**E)** Research must be completed as part of creating the plan.md and tasks.md. If this is unclear in .github/agents/implementation-planning.agent.md (and .github/agents/implementation-execution.agent.md), then update the agent instructions to do the research as part of creating the plan.md and tasks.md. This ensures that all research findings are captured in the plan.md and tasks.md, which are the primary documentation for the implementation. The test-output/phase0-research/ can be used for raw data and notes, but the synthesized findings should be in the plan.md.
 
-**Answer**:
+**Answer**: E
 
 **Rationale**: Clarifies agent Phase 0 pattern interpretation
 
