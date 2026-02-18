@@ -1,109 +1,153 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# GENERIC Service Template Docker Compose Configuration
+# identity-rs Docker Compose Configuration
 #
-# This is the TEMPLATE file for ANY cryptoutil service deployment.
-# Replace identity, rs, 8400 placeholders with actual values.
+# SERVICE-level deployment for Identity Resource Server.
+# Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
-# The service-template is an INTERNAL LIBRARY providing reusable infrastructure:
-#   - Two HTTPS servers (public + admin)
-#   - PostgreSQL/SQLite dual-database support with GORM
-#   - OpenTelemetry integration
-#   - Session management, multi-tenancy, barrier encryption
-#
-# Example substitutions:
-#   - identity: cipher, jose, pki, sm, identity
-#   - rs: im, ja, ca, kms, authz, idp, rs, rp, spa
-#   - 8400: Service base port (8000, 8100, 8200, 8300, 8400, 8500, 8600, 8700, 8800)
-#
-# E2E Testing Strategy:
-# ---------------------
-# The service-template is tested through concrete implementations:
-#   docker compose -f ../identity/compose.yml up -d
-#   go test -tags=e2e ./internal/apps/identity/rs/e2e/...
-#
-# Recommended reference implementation: cipher-im (migration priority FIRST)
-#
-# Services:
-#   - identity-rs-sqlite: https://localhost:8400 (public) - Standalone SQLite
-#   - identity-rs-pg-1: https://localhost:8400+1 (public) - Shared PostgreSQL
-#   - identity-rs-pg-2: https://localhost:8400+2 (public) - Shared PostgreSQL
-#   - postgres: localhost:5432 (PostgreSQL 18 - use postgres-leader from include)
-#   - otel-collector: (internal only, no host ports - from telemetry include)
-#
-# Health Checks:
-#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
+# Port allocation (SERVICE level: 8400-8499):
+#   - identity-rs-app-sqlite-1:    8400 (SQLite, dev/demo/ci)
+#   - identity-rs-app-postgres-1:  8401 (PostgreSQL instance 1) [--profile postgres]
+#   - identity-rs-app-postgres-2:  8402 (PostgreSQL instance 2) [--profile postgres]
+#   - identity-rs-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
-#   docker compose up -d                        # Start all services
-#   docker compose ps                           # Check status
-#   docker compose logs -f identity-rs-sqlite      # View SQLite instance logs
-#   docker compose down                         # Stop and remove
-#   docker compose down -v                      # Stop and remove volumes
-
-name: identity-rs
-
+#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode
+#   docker compose -f compose.yml --profile ci up -d           # CI mode
+#   docker compose -f compose.yml logs -f                      # View logs
+#   docker compose -f compose.yml down -v                      # Stop and clean up
+#
+# Health Checks:
+#   - Public health endpoint: https://localhost:8400/browser/api/v1/health
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
+#
 include:
   - path: ../shared-telemetry/compose.yml
-  - path: ../shared-postgres/compose.yml
 
 services:
-  # identity-rs - SQLite Standalone Instance
-  # Replace identity-rs with actual service name (e.g., cipher-im, jose-ja)
-  # Replace 8400 with service base port (e.g., 8700, 8800)
-  identity-rs-sqlite:
-    image: identity-rs:local
-    container_name: identity-rs-sqlite
-    hostname: identity-rs-sqlite
+  healthcheck-secrets:
+    image: alpine:latest
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
-    ports:
-      - "8400:8000"  # Public HTTPS API ONLY - external access (8400 = base port)
-      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
-    command:
-      - "server"
-      - "--database-url=file::memory:?cache=shared"
-      - "--config=/etc/identity-rs/config-sqlite.yml"
-    volumes:
-      - ../../configs/identity/rs-sqlite.yml:/etc/identity-rs/config-sqlite.yml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_started
+      - hash-pepper-v3.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
-      - identity-network
-      - telemetry-network
-    restart: unless-stopped
-    labels:
-      com.cryptoutil.service: "identity-rs"
-      com.cryptoutil.backend: "sqlite"
-      com.cryptoutil.instance: "1"
-      com.cryptoutil.environment: "development"
+      - identity-rs-network
+
+  builder-identity-rs:
+    image: cryptoutil:dev
+    build:
+      context: ../..
+      dockerfile: deployments/identity-rs/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2026-02-17T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+
+  identity-rs-db-postgres-1:
+    profiles: ["postgres"]
+    image: postgres:18
+    container_name: identity-rs-postgres
+    hostname: identity-rs-postgres
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    secrets:
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - identity-rs-network
     deploy:
       resources:
         limits:
           memory: 512M
-          cpus: '0.5'
         reservations:
           memory: 256M
-          cpus: '0.25'
 
-  # identity-rs - PostgreSQL Instance 1
-  identity-rs-pg-1:
-    image: identity-rs:local
-    container_name: identity-rs-pg-1
-    hostname: identity-rs-pg-1
+  identity-rs-app-sqlite-1:
+    profiles: ["dev", "demo", "ci"]
+    image: cryptoutil:dev
+    command: ["--config=/app/config/identity-rs-app-sqlite-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "8400:8080"
+    volumes:
+      - ./config/identity-rs-app-sqlite-1.yml:/app/config/identity-rs-app-sqlite-1.yml:ro
+      - ./config/identity-rs-app-common.yml:/app/config/identity-rs-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-identity-rs:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - identity-rs-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  identity-rs-app-postgres-1:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["--config=/app/config/identity-rs-app-postgresql-1.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    working_dir: /tmp
+    ports:
+      - "8401:8080"
+    volumes:
+      - ./config/identity-rs-app-postgresql-1.yml:/app/config/identity-rs-app-postgresql-1.yml:ro
+      - ./config/identity-rs-app-common.yml:/app/config/identity-rs-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -111,57 +155,44 @@ services:
       - unseal-4of5.secret
       - unseal-5of5.secret
       - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    ports:
-      - "8401:8000"  # Public HTTPS API ONLY - external access (8401)
-      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
-    command:
-      - "server"
-      - "--database-url=file:///run/secrets/postgres-url.secret"
-      - "--config=/etc/identity-rs/config-pg-1.yml"
-    volumes:
-      - ../../configs/identity/rs-pg-1.yml:/etc/identity-rs/config-pg-1.yml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
     depends_on:
-      postgres-leader:
-        condition: service_healthy
-      identity-rs-sqlite:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-identity-rs:
+        condition: service_completed_successfully
+      identity-rs-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
-      - identity-network
-      - postgres-network
+      - identity-rs-network
       - telemetry-network
-    restart: unless-stopped
-    labels:
-      com.cryptoutil.service: "identity-rs"
-      com.cryptoutil.backend: "postgresql"
-      com.cryptoutil.instance: "1"
-      com.cryptoutil.environment: "development"
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
           memory: 256M
-          cpus: '0.25'
+        reservations:
+          memory: 128M
 
-  # identity-rs - PostgreSQL Instance 2
-  identity-rs-pg-2:
-    image: identity-rs:local
-    container_name: identity-rs-pg-2
-    hostname: identity-rs-pg-2
+  identity-rs-app-postgres-2:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["--config=/app/config/identity-rs-app-postgresql-2.yml", "--config=/app/config/identity-rs-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    working_dir: /tmp
+    ports:
+      - "8402:8080"
+    volumes:
+      - ./config/identity-rs-app-postgresql-2.yml:/app/config/identity-rs-app-postgresql-2.yml:ro
+      - ./config/identity-rs-app-common.yml:/app/config/identity-rs-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
       - unseal-2of5.secret
@@ -169,55 +200,56 @@ services:
       - unseal-4of5.secret
       - unseal-5of5.secret
       - postgres-url.secret
-      - postgres-username.secret
-      - postgres-password.secret
-      - postgres-database.secret
-    ports:
-      - "8402:8000"  # Public HTTPS API ONLY - external access (8402)
-      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
-    command:
-      - "server"
-      - "--database-url=file:///run/secrets/postgres-url.secret"
-      - "--config=/etc/identity-rs/config-pg-2.yml"
-    volumes:
-      - ../../configs/identity/rs-pg-2.yml:/etc/identity-rs/config-pg-2.yml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
     depends_on:
-      postgres-leader:
-        condition: service_healthy
-      identity-rs-pg-1:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-identity-rs:
+        condition: service_completed_successfully
+      identity-rs-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+      identity-rs-app-postgres-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
-      - identity-network
-      - postgres-network
+      - identity-rs-network
       - telemetry-network
-    restart: unless-stopped
-    labels:
-      com.cryptoutil.service: "identity-rs"
-      com.cryptoutil.backend: "postgresql"
-      com.cryptoutil.instance: "2"
-      com.cryptoutil.environment: "development"
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
           memory: 256M
-          cpus: '0.25'
+        reservations:
+          memory: 128M
+
+networks:
+  identity-rs-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    name: identity-rs-postgres-volume
 
 secrets:
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
   unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret
+    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:
     file: ./secrets/unseal-2of5.secret
   unseal-3of5.secret:
@@ -226,29 +258,3 @@ secrets:
     file: ./secrets/unseal-4of5.secret
   unseal-5of5.secret:
     file: ./secrets/unseal-5of5.secret
-  postgres-url.secret:
-
-  # Browser authentication credentials (web UI access)
-  browser-username.secret:
-    file: ./secrets/browser-username.secret
-  browser-password.secret:
-    file: ./secrets/browser-password.secret
-
-  # Service authentication credentials (headless/API access)
-  service-username.secret:
-    file: ./secrets/service-username.secret
-  service-password.secret:
-    file: ./secrets/service-password.secret
-    file: ./secrets/postgres-url.secret
-
-networks:
-  identity-network:
-    driver: bridge
-    name: identity-network
-  postgres-network:
-    driver: bridge
-  telemetry-network:
-    driver: bridge
-
-# Note: Volumes are defined in ../shared-postgres/compose.yml (included above)
-# No local volumes needed for this template
