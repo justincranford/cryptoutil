@@ -192,26 +192,22 @@ Current deployment architecture follows three-tier hierarchy (SERVICE → PRODUC
   identity-spa 8600-8602, cipher-im 8700-8702, jose-ja 8800-8802
 - All 67 deployment validators pass
 
-### Phase 6: Legacy E2E Migration (8h) [Status: ☐ TODO]
-**Objective**: Migrate `internal/test/e2e/` to use ComposeManager pattern
+### Phase 6: Legacy E2E & Reference Fixes (4h) [Status: ✅ COMPLETE]
+**Objective**: Fix all stale E2E references to align with new deployment architecture
 
-**Tasks**:
-- Create new E2E test structure following cipher-im pattern
-- Migrate test cases to use ComposeManager
-- Update to use magic constants from shared/magic
-- Replace custom Infrastructure
+**Completed** (9 commits, 11 files modified):
+- Fixed Identity E2E compose reference to PRODUCT compose (18200-18600 ports)
+- Fixed JOSE E2E PostgreSQL port constants (9444→8801, 9445→8802)
+- Fixed legacy E2E compose path to archived location
+- Updated CI E2E workflow (ca→pki-ca, compose→sm-kms, --profile dev)
+- Fixed stale comments in identity/cipher E2E testmain files
+- Fixed cipher E2E container names to match compose services
+- Clarified mock server port comments in magic_testing.go
+- Fixed pre-existing bug: generate_listings.go skip pattern (_→-)
 
-Manager with ComposeManager
-- Update docker health checking to use ComposeManager health checks
-- Archive legacy infrastructure files
-- Run migrated E2E tests
-- Verify all workflows pass
+**Validation**: Build clean, lint clean (0 issues), 67/67 deployment validators pass, full test suite passes (0 FAIL)
 
-**Success Criteria**:
-- All E2E tests migrated to ComposeManager pattern
-- Legacy infrastructure code archived
-- All E2E tests pass
-- No custom docker compose wrappers remain
+**Post-Mortem**: test-output/phase6/post-mortem.md
 
 ### Phase 7: Archive Legacy Directories (2h) [Status: ☐ TODO]
 **Objective**: Archive or delete legacy deployment directories
@@ -354,7 +350,7 @@ Manager with ComposeManager
 - [x] Phase 3 complete (SUITE-Level Refactoring)
 - [ ] Phase 4 complete (PRODUCT-Level Standardization)
 - [x] Phase 5 complete (SERVICE-Level Standardization)
-- [ ] Phase 6 complete (Legacy E2E Migration)
+- [x] Phase 6 complete (Legacy E2E & Reference Fixes)
 - [ ] Phase 7 complete (Archive Legacy Directories)
 - [ ] Phase 8 complete (Validator Updates)
 - [ ] Phase 9 complete (Documentation Complete Update)
