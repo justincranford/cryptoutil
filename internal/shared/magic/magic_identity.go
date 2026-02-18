@@ -129,25 +129,26 @@ const (
 )
 
 // E2E Test Configuration for identity services.
+// Uses PRODUCT-level compose (deployments/identity/compose.yml) with PRODUCT ports (18XXX).
 const (
-	// IdentityE2EComposeFile is the path to the identity docker compose file (relative from e2e test directory).
-	// Path: internal/apps/identity/e2e → ../../../../deployments/identity/compose.e2e.yml.
-	IdentityE2EComposeFile = "../../../../deployments/identity/compose.e2e.yml"
+	// IdentityE2EComposeFile is the path to the identity PRODUCT docker compose file (relative from e2e test directory).
+	// Path: internal/apps/identity/e2e → ../../../../deployments/identity/compose.yml.
+	IdentityE2EComposeFile = "../../../../deployments/identity/compose.yml"
 
-	// IdentityE2EAuthzContainer is the identity-authz container name.
-	IdentityE2EAuthzContainer = "identity-authz-e2e"
+	// IdentityE2EAuthzContainer is the identity-authz service name in PRODUCT compose.
+	IdentityE2EAuthzContainer = "identity-authz-app-sqlite-1"
 
-	// IdentityE2EIDPContainer is the identity-idp container name.
-	IdentityE2EIDPContainer = "identity-idp-e2e"
+	// IdentityE2EIDPContainer is the identity-idp service name in PRODUCT compose.
+	IdentityE2EIDPContainer = "identity-idp-app-sqlite-1"
 
-	// IdentityE2ERSContainer is the identity-rs container name.
-	IdentityE2ERSContainer = "identity-rs-e2e"
+	// IdentityE2ERSContainer is the identity-rs service name in PRODUCT compose.
+	IdentityE2ERSContainer = "identity-rs-app-sqlite-1"
 
-	// IdentityE2ERPContainer is the identity-rp container name.
-	IdentityE2ERPContainer = "identity-rp-e2e"
+	// IdentityE2ERPContainer is the identity-rp service name in PRODUCT compose.
+	IdentityE2ERPContainer = "identity-rp-app-sqlite-1"
 
-	// IdentityE2ESPAContainer is the identity-spa container name.
-	IdentityE2ESPAContainer = "identity-spa-e2e"
+	// IdentityE2ESPAContainer is the identity-spa service name in PRODUCT compose.
+	IdentityE2ESPAContainer = "identity-spa-app-sqlite-1"
 
 	// IdentityE2EHealthTimeout is the timeout for health checks during E2E tests.
 	// Must account for cascade dependencies: authz (30s) → idp (30s) → rs (30s) → rp (30s) → spa (30s) = 150s worst case.
@@ -157,21 +158,21 @@ const (
 	// IdentityE2EHealthPollInterval is the interval between health check attempts.
 	IdentityE2EHealthPollInterval = 2 * time.Second
 
-	// IdentityE2EAuthzPublicPort is the identity-authz E2E public HTTPS port.
-	IdentityE2EAuthzPublicPort = 8200
+	// IdentityE2EAuthzPublicPort is the identity-authz PRODUCT-level public HTTPS port.
+	IdentityE2EAuthzPublicPort = 18200
 
-	// IdentityE2EIDPPublicPort is the identity-idp E2E public HTTPS port.
-	// Uses 8301 to avoid conflict with authz (8200) when running together in E2E.
-	IdentityE2EIDPPublicPort = 8301
+	// IdentityE2EIDPPublicPort is the identity-idp PRODUCT-level public HTTPS port.
+	IdentityE2EIDPPublicPort = 18300
 
-	// IdentityE2ERSPublicPort is the identity-rs E2E public HTTPS port.
-	IdentityE2ERSPublicPort = 8400
+	// IdentityE2ERSPublicPort is the identity-rs PRODUCT-level public HTTPS port.
+	IdentityE2ERSPublicPort = 18400
 
-	// IdentityE2ERPPublicPort is the identity-rp E2E public HTTPS port.
-	IdentityE2ERPPublicPort = 8500
+	// IdentityE2ERPPublicPort is the identity-rp PRODUCT-level public HTTPS port.
+	IdentityE2ERPPublicPort = 18500
 
-	// IdentityE2ESPAPublicPort is the identity-spa E2E public HTTPS port.
-	IdentityE2ESPAPublicPort = 8600
+	// IdentityE2ESPAPublicPort is the identity-spa PRODUCT-level public HTTPS port.
+	IdentityE2ESPAPublicPort = 18600
+
 	// IdentityE2EHealthEndpoint is the public health check endpoint.
 	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).
 	IdentityE2EHealthEndpoint = "/service/api/v1/health"
