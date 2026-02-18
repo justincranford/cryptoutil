@@ -1,291 +1,266 @@
+# $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
+#
 # Cipher-IM Docker Compose Configuration
 #
-# Complete stack: 3x cipher-im (1 SQLite, 2 PostgreSQL) + PostgreSQL 18.1 + OpenTelemetry + Grafana
-# Follows KMS compose patterns for production-like multi-instance deployment.
+# SERVICE-level deployment for Cipher Instant Messenger.
+# Supports 3 instances: 1 SQLite + 2 PostgreSQL.
+#
+# Port allocation (SERVICE level: 8700-8799):
+#   - cipher-im-app-sqlite-1:    8700 (SQLite, dev/demo/ci)
+#   - cipher-im-app-postgres-1:  8701 (PostgreSQL instance 1) [--profile postgres]
+#   - cipher-im-app-postgres-2:  8702 (PostgreSQL instance 2) [--profile postgres]
+#   - cipher-im-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
-#   docker compose up -d                    # Start all services
-#   docker compose ps                       # Check status
-#   docker compose logs -f cipher-im-sqlite # View SQLite instance logs
-#   docker compose logs -f cipher-im-pg-1   # View PostgreSQL instance 1 logs
-#   docker compose logs -f cipher-im-pg-2   # View PostgreSQL instance 2 logs
-#   docker compose down                     # Stop and remove
-#   docker compose down -v                  # Stop and remove volumes
-#
-# Services:
-#   - cipher-im-sqlite: https://localhost:8070 (public) - Standalone SQLite
-#   - cipher-im-pg-1: https://localhost:8071 (public) - Shared PostgreSQL
-#   - cipher-im-pg-2: https://localhost:8072 (public) - Shared PostgreSQL
-#   - postgres: localhost:5432 (PostgreSQL 18.1)
-#   - otel-collector: (internal only, no host ports)
-#   - grafana: http://localhost:3000 (admin/admin)
+#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode
+#   docker compose -f compose.yml --profile ci up -d           # CI mode
+#   docker compose -f compose.yml logs -f                      # View logs
+#   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public health endpoint: https://localhost:8070/health (external clients)
-#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal container only)
-
-name: cipher-im
+#   - Public health endpoint: https://localhost:8700/browser/api/v1/health
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
+#
+include:
+  - path: ../shared-telemetry/compose.yml
 
 services:
-  # PostgreSQL 18.1 Database (shared by cipher-im-pg-1 and cipher-im-pg-2)
-  postgres:
-    image: postgres:18.1-alpine
-    container_name: cipher-im-postgres
-    hostname: cipher-im-postgres
+  # Healthcheck for Docker secrets availability.
+  healthcheck-secrets:
+    image: alpine:latest
     secrets:
-      - postgres-database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - hash-pepper-v3.secret
+      - postgres-url.secret
       - postgres-username.secret
       - postgres-password.secret
-    environment:
-      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
-      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cipher_user -d cipher_im"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      - postgres-database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - cipher-im-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
-        reservations:
-          memory: 128M
-          cpus: '0.25'
 
-  # OpenTelemetry Collector
-  # Note: No healthcheck - otel-collector-contrib image is minimal (no curl/wget).
-  # Services depend on it with service_started (not service_healthy) which is sufficient.
-  opentelemetry-collector-contrib:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: cipher-im-otel-collector
-    hostname: cipher-im-otel-collector
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    networks:
-      - cipher-im-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.25'
-        reservations:
-          memory: 128M
-          cpus: '0.1'
-
-  # Grafana OTEL LGTM Stack
-  grafana-otel-lgtm:
-    image: grafana/otel-lgtm:latest
-    container_name: cipher-im-grafana
-    hostname: cipher-im-grafana
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin  # pragma: allowlist secret
-      GF_USERS_ALLOW_SIGN_UP: "false"
-    ports:
-      - "3000:3000"    # Grafana UI
-      - "14317:4317"   # OTLP gRPC
-      - "14318:4318"   # OTLP HTTP
-    volumes:
-      - grafana_data:/var/lib/grafana
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-      start_period: 15s
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - cipher-im-network
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
-
-  # Cipher-IM Service - SQLite Standalone Instance
-  cipher-im-sqlite:
+  # Build cipher-im image from source.
+  builder-cipher-im:
+    image: cryptoutil:dev
     build:
       context: ../..
       dockerfile: deployments/cipher-im/Dockerfile
       args:
-        GO_VERSION: 1.25.5
-        ALPINE_VERSION: 3.19
-    image: cipher-im:local
-    container_name: cipher-im-sqlite
-    hostname: cipher-im-sqlite
-    ports:
-      - "8070:8070"  # Public HTTPS API ONLY - external access
-      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
-    command:
-      - "server"
-      - "--database-url=file::memory:?cache=shared"
-      - "--config=/etc/cipher-im/config-sqlite.yml"
-    volumes:
-      - ../../configs/cipher/im/config-sqlite.yml:/etc/cipher-im/config-sqlite.yml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2026-02-17T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
     depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_started
-    networks:
-      - cipher-im-network
-    restart: unless-stopped
-    labels:
-      com.cryptoutil.service: "cipher-im"
-      com.cryptoutil.backend: "sqlite"
-      com.cryptoutil.instance: "1"
-      com.cryptoutil.environment: "development"
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
+      healthcheck-secrets:
+        condition: service_completed_successfully
 
-  # Cipher-IM Service - PostgreSQL Instance 1
-  cipher-im-pg-1:
-    image: cipher-im:local  # Reuse built image from cipher-im-sqlite
-    container_name: cipher-im-pg-1
-    hostname: cipher-im-pg-1
+  # PostgreSQL database for cipher-im persistence.
+  cipher-im-db-postgres-1:
+    profiles: ["postgres"]
+    image: postgres:18
+    container_name: cipher-im-postgres
+    hostname: cipher-im-postgres
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
     secrets:
-      - postgres-url.secret
-    ports:
-      - "8071:8070"  # Public HTTPS API ONLY - external access (mapped to different host port)
-      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
-    command:
-      - "server"
-      - "--database-url=file:///run/secrets/postgres-url.secret"
-      - "--config=/etc/cipher-im/config-pg-1.yml"
-    volumes:
-      - ../../configs/cipher/im/config-pg-1.yml:/etc/cipher-im/config-pg-1.yml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
-      postgres:
-        condition: service_healthy
-      cipher-im-sqlite:
-        condition: service_healthy  # Wait for first instance to complete schema init
-      opentelemetry-collector-contrib:
-        condition: service_started
+      healthcheck-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - cipher-im-network
-    restart: unless-stopped
-    labels:
-      com.cryptoutil.service: "cipher-im"
-      com.cryptoutil.backend: "postgresql"
-      com.cryptoutil.instance: "1"
-      com.cryptoutil.environment: "development"
     deploy:
       resources:
         limits:
           memory: 512M
-          cpus: '0.5'
         reservations:
           memory: 256M
-          cpus: '0.25'
 
-  # Cipher-IM Service - PostgreSQL Instance 2
-  cipher-im-pg-2:
-    image: cipher-im:local  # Reuse built image from cipher-im-sqlite
-    container_name: cipher-im-pg-2
-    hostname: cipher-im-pg-2
+  # cipher-im server with SQLite backend (dev/demo/ci mode).
+  cipher-im-app-sqlite-1:
+    profiles: ["dev", "demo", "ci"]
+    image: cryptoutil:dev
+    command: ["server", "--config=/app/config/cipher-im-app-sqlite-1.yml", "--config=/app/config/cipher-im-app-common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "8700:8080"  # HTTPS public
+    volumes:
+      - ./config/cipher-im-app-sqlite-1.yml:/app/config/cipher-im-app-sqlite-1.yml:ro
+      - ./config/cipher-im-app-common.yml:/app/config/cipher-im-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - postgres-url.secret
-    ports:
-      - "8072:8070"  # Public HTTPS API ONLY - external access (mapped to different host port)
-      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
-    command:
-      - "server"
-      - "--database-url=file:///run/secrets/postgres-url.secret"
-      - "--config=/etc/cipher-im/config-pg-2.yml"
-    volumes:
-      - ../../configs/cipher/im/config-pg-2.yml:/etc/cipher-im/config-pg-2.yml:ro
-    healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
-      postgres:
-        condition: service_healthy
-      cipher-im-pg-1:
-        condition: service_healthy  # Wait for first PostgreSQL instance
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cipher-im:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - cipher-im-network
-    restart: unless-stopped
-    labels:
-      com.cryptoutil.service: "cipher-im"
-      com.cryptoutil.backend: "postgresql"
-      com.cryptoutil.instance: "2"
-      com.cryptoutil.environment: "development"
+      - telemetry-network
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
           memory: 256M
-          cpus: '0.25'
+        reservations:
+          memory: 128M
 
-secrets:
-  postgres-database.secret:
-    file: ./secrets/postgres-database.secret
-  postgres-username.secret:
-    file: ./secrets/postgres-username.secret
-  postgres-password.secret:
-    file: ./secrets/postgres-password.secret
-  postgres-url.secret:
+  # cipher-im server with PostgreSQL backend (instance 1).
+  cipher-im-app-postgres-1:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["server", "--config=/app/config/cipher-im-app-postgresql-1.yml", "--config=/app/config/cipher-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    working_dir: /tmp
+    ports:
+      - "8701:8080"  # HTTPS public
+    volumes:
+      - ./config/cipher-im-app-postgresql-1.yml:/app/config/cipher-im-app-postgresql-1.yml:ro
+      - ./config/cipher-im-app-common.yml:/app/config/cipher-im-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cipher-im:
+        condition: service_completed_successfully
+      cipher-im-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cipher-im-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
-  # Browser authentication credentials (web UI access)
-  browser-username.secret:
-    file: ./secrets/browser-username.secret
-  browser-password.secret:
-    file: ./secrets/browser-password.secret
-
-  # Service authentication credentials (headless/API access)
-  service-username.secret:
-    file: ./secrets/service-username.secret
-  service-password.secret:
-    file: ./secrets/service-password.secret
-    file: ./secrets/postgres-url.secret
+  # cipher-im server with PostgreSQL backend (instance 2 - shared DB with instance 1).
+  cipher-im-app-postgres-2:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["server", "--config=/app/config/cipher-im-app-postgresql-2.yml", "--config=/app/config/cipher-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    working_dir: /tmp
+    ports:
+      - "8702:8080"  # HTTPS public
+    volumes:
+      - ./config/cipher-im-app-postgresql-2.yml:/app/config/cipher-im-app-postgresql-2.yml:ro
+      - ./config/cipher-im-app-common.yml:/app/config/cipher-im-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-cipher-im:
+        condition: service_completed_successfully
+      cipher-im-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+      cipher-im-app-postgres-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cipher-im-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
 
 networks:
   cipher-im-network:
     driver: bridge
-    name: cipher-im-network
 
 volumes:
-  postgres_data:
-    name: cipher-im-postgres-data
-  grafana_data:
-    name: cipher-im-grafana-data
+  postgres-data:
+    name: cipher-im-postgres-volume
+
+secrets:
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
+  unseal-1of5.secret:
+    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
+  unseal-2of5.secret:
+    file: ./secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ./secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ./secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ./secrets/unseal-5of5.secret
