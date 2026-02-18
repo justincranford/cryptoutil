@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 9 of 99 tasks complete (9.1%) - Phase 1 COMPLETE, Phase 2 COMPLETE
+**Status**: 10 of 99 tasks complete (10.1%) - Phase 1 COMPLETE, Phase 2 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -211,21 +211,22 @@
 
 #### Task 3.2: Replace cryptoutil-suite/compose.yml with Template
 
-- **Status**: ☐
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.3h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.1h
 - **Dependencies**: Task 3.1
 - **Description**: Replace includes-only pattern with explicit service definitions from template
 - **Acceptance Criteria**:
-  - [ ] Backup current cryptoutil-suite/compose.yml to test-output/phase3/compose.yml.backup
-  - [ ] Copy deployments/template/compose-cryptoutil.yml to deployments/cryptoutil-suite/compose.yml
-  - [ ] Update header comments to reflect SUITE-level purpose
-  - [ ] Verify file structure matches template (services, networks, volumes, secrets sections)
-  - [ ] Commit with message: "refactor(deploy): replace cryptoutil-suite compose with explicit services from template"
+  - [x] Backup current cryptoutil-suite/compose.yml to test-output/phase3/compose.yml.backup
+  - [x] Copy deployments/template/compose-cryptoutil.yml to deployments/cryptoutil-suite/compose.yml
+  - [x] Update header comments to reflect SUITE-level purpose
+  - [x] Verify file structure matches template (services, networks, volumes, secrets sections)
+  - [x] Commit with message: "refactor(deploy): replace cryptoutil-suite compose with explicit services from template"
 - **Files**:
   - `deployments/cryptoutil-suite/compose.yml` (replaced)
   - `test-output/phase3/compose.yml.backup`
+- **Evidence**: Replaced includes-only with 1300+ line explicit services file, updated header to reflect SUITE-level with 28XXX port range
 
 #### Task 3.3: Update All Service Port Mappings to 28XXX Range
 
