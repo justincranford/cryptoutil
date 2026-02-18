@@ -149,12 +149,22 @@ jobs:
         export E2E_DEBUG=1
 
         # Run the tests and capture output
-        if go test -tags=e2e -v -timeout=30m ./internal/test/e2e/ 2>&1; then
-          echo "✅ E2E tests completed successfully"
+        # Test cipher-im E2E
+        if go test -tags=e2e -v -timeout=30m ./internal/apps/cipher/im/e2e/... 2>&1; then
+          echo "✅ cipher-im E2E tests completed successfully"
         else
-          echo "❌ E2E tests failed"
+          echo "❌ cipher-im E2E tests failed"
           exit 1
         fi
+
+        # Test identity E2E
+        if go test -tags=e2e -v -timeout=30m ./internal/apps/identity/e2e/... 2>&1; then
+          echo "✅ identity E2E tests completed successfully"
+        else
+          echo "❌ identity E2E tests failed"
+          exit 1
+        fi
+
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
