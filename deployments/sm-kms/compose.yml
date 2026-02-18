@@ -1,523 +1,266 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
-
 #
-
-# KMS Docker Compose Configuration
-
+# SM-KMS Docker Compose Configuration
 #
-
-# This compose file provides the KMS (Key Management System) services.
-
-# It includes shared telemetry services from deploymen../shared-telemetry/compose.yml.
-
+# SERVICE-level deployment for SM Key Management Service.
+# Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
-
+# Port allocation (SERVICE level: 8000-8099):
+#   - sm-kms-app-sqlite-1:    8000 (SQLite, dev/demo/ci)
+#   - sm-kms-app-postgres-1:  8001 (PostgreSQL instance 1) [--profile postgres]
+#   - sm-kms-app-postgres-2:  8002 (PostgreSQL instance 2) [--profile postgres]
+#   - sm-kms-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
+#
 # Usage:
-
-#   docker compose -f compose.yml up -d
-
+#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode
+#   docker compose -f compose.yml --profile ci up -d           # CI mode
+#   docker compose -f compose.yml logs -f                      # View logs
+#   docker compose -f compose.yml down -v                      # Stop and clean up
 #
-
-# Profiles:
-
-#   - dev: Development mode (default) - SQLite backend, minimal services
-
-#   - demo: Demo mode with seeded data, SQLite backend
-
-#   - ci: CI mode for testing, SQLite backend
-
-#   - postgres: PostgreSQL backend with multiple instances
-
+# Health Checks:
+#   - Public health endpoint: https://localhost:8000/browser/api/v1/health
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
-
 include:
   - path: ../shared-telemetry/compose.yml
-  - path: ../shared-postgres/compose.yml
-
-
 
 services:
-
   # Healthcheck for Docker secrets availability.
-
   healthcheck-secrets:
-
     image: alpine:latest
-
     secrets:
-
       - unseal-1of5.secret
-
       - unseal-2of5.secret
-
       - unseal-3of5.secret
-
       - unseal-4of5.secret
-
       - unseal-5of5.secret
-
+      - hash-pepper-v3.secret
       - postgres-url.secret
-
       - postgres-username.secret
-
       - postgres-password.secret
-
       - postgres-database.secret
-
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
-
     networks:
+      - sm-kms-network
 
-      - kms-network
-
-
-
-  # Build cryptoutil image from source.
-
-  builder-cryptoutil:
-
+  # Build sm-kms image from source.
+  builder-sm-kms:
     image: cryptoutil:dev
-
     build:
-
-      context: ../../..
-
+      context: ../..
       dockerfile: deployments/sm-kms/Dockerfile
-
       args:
-
         APP_VERSION: "dev"
-
         VCS_REF: "local"
-
-        BUILD_DATE: "2025-11-30T00:00:00Z"
-
+        BUILD_DATE: "2026-02-17T00:00:00Z"
     entrypoint: ["sh", "-c"]
-
     command: ["echo 'Build completed successfully'"]
-
     depends_on:
-
       healthcheck-secrets:
-
         condition: service_completed_successfully
 
-
-
-  # PostgreSQL database for KMS persistence.
-
-  # See https://hub.docker.com/_/postgres#how-to-use-this-image
-
+  # PostgreSQL database for sm-kms persistence.
   sm-kms-db-postgres-1:
-
+    profiles: ["postgres"]
     image: postgres:18
-
+    container_name: sm-kms-postgres
+    hostname: sm-kms-postgres
     environment:
-
       POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
-
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
-
       POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
-
     shm_size: 256mb
-
     ports:
-
       - "5432:5432"
-
     volumes:
-
-      - postgres_data:/var/lib/postgresql
-
+      - postgres-data:/var/lib/postgresql
     secrets:
-
       - postgres-username.secret
-
       - postgres-password.secret
-
       - postgres-database.secret
-
     depends_on:
-
       healthcheck-secrets:
-
         condition: service_completed_successfully
-
     healthcheck:
-
       test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
-
       start_period: 5s
-
       interval: 5s
-
       timeout: 3s
-
       retries: 5
-
     networks:
-
-      - kms-network
-
+      - sm-kms-network
     deploy:
-
       resources:
-
         limits:
-
           memory: 512M
-
         reservations:
-
           memory: 256M
 
-
-
-  # KMS server with SQLite backend (dev/demo/ci mode).
-
-  kms-sqlite-1:
-
+  # sm-kms server with SQLite backend (dev/demo/ci mode).
+  sm-kms-app-sqlite-1:
+    profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-
     command: ["server", "start", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml"]
-
     working_dir: /tmp
-
     ports:
-
-      - "8080:8080"  # HTTPS public
-
+      - "8000:8080"  # HTTPS public
     volumes:
-
       - ./config/sm-kms-app-sqlite-1.yml:/app/config/sm-kms-app-sqlite-1.yml:ro
-
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
-
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-
     secrets:
-
-      # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets
-
-      # for shared encryption/decryption. NEVER use instance-specific secrets.
-
       - unseal-1of5.secret
-
       - unseal-2of5.secret
-
       - unseal-3of5.secret
-
       - unseal-4of5.secret
-
       - unseal-5of5.secret
-
     depends_on:
-
       healthcheck-secrets:
-
         condition: service_completed_successfully
-
-      builder-cryptoutil:
-
+      builder-sm-kms:
         condition: service_completed_successfully
-
       opentelemetry-collector-contrib:
-
         condition: service_started
-
       healthcheck-opentelemetry-collector-contrib:
-
         condition: service_completed_successfully
-
     healthcheck:
-
-      # Use wget (available in Alpine), not curl.
-
-      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers.
-
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-
       start_period: 60s
-
       interval: 5s
-
       timeout: 5s
-
       retries: 10
-
     networks:
-
-      - kms-network
-
+      - sm-kms-network
       - telemetry-network
-
     deploy:
-
       resources:
-
         limits:
-
           memory: 256M
-
         reservations:
-
           memory: 128M
 
-
-
-  # KMS server with PostgreSQL backend (instance 1).
-
-  kms-postgres-1:
-
+  # sm-kms server with PostgreSQL backend (instance 1).
+  sm-kms-app-postgres-1:
+    profiles: ["postgres"]
     image: cryptoutil:dev
-
     command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-1.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
-
     working_dir: /tmp
-
     ports:
-
-      - "8081:8080"  # HTTPS public
-
+      - "8001:8080"  # HTTPS public
     volumes:
-
       - ./config/sm-kms-app-postgresql-1.yml:/app/config/sm-kms-app-postgresql-1.yml:ro
-
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
-
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-
     secrets:
-
-      # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets.
-
       - unseal-1of5.secret
-
       - unseal-2of5.secret
-
       - unseal-3of5.secret
-
       - unseal-4of5.secret
-
       - unseal-5of5.secret
-
-      # PostgreSQL connection URL.
-
       - postgres-url.secret
-
     depends_on:
-
       healthcheck-secrets:
-
         condition: service_completed_successfully
-
-      builder-cryptoutil:
-
+      builder-sm-kms:
         condition: service_completed_successfully
-
       sm-kms-db-postgres-1:
-
         condition: service_healthy
-
       opentelemetry-collector-contrib:
-
         condition: service_started
-
       healthcheck-opentelemetry-collector-contrib:
-
         condition: service_completed_successfully
-
     healthcheck:
-
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-
       start_period: 60s
-
       interval: 5s
-
       timeout: 5s
-
       retries: 5
-
     networks:
-
-      - kms-network
-
+      - sm-kms-network
       - telemetry-network
-
     deploy:
-
       resources:
-
         limits:
-
           memory: 256M
-
         reservations:
-
           memory: 128M
 
-
-
-  # KMS server with PostgreSQL backend (instance 2 - shared DB with instance 1).
-
-  sm-kms-postgres-2:
-
+  # sm-kms server with PostgreSQL backend (instance 2 - shared DB with instance 1).
+  sm-kms-app-postgres-2:
+    profiles: ["postgres"]
     image: cryptoutil:dev
-
     command: ["server", "start", "--config=/app/config/sm-kms-app-postgresql-2.yml", "--config=/app/config/sm-kms-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
-
     working_dir: /tmp
-
     ports:
-
-      - "8082:8080"  # HTTPS public
-
+      - "8002:8080"  # HTTPS public
     volumes:
-
       - ./config/sm-kms-app-postgresql-2.yml:/app/config/sm-kms-app-postgresql-2.yml:ro
-
       - ./config/sm-kms-app-common.yml:/app/config/sm-kms-app-common.yml:ro
-
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-
     secrets:
-
-      # CRITICAL: ALL KMS instances MUST use the SAME unseal secrets.
-
       - unseal-1of5.secret
-
       - unseal-2of5.secret
-
       - unseal-3of5.secret
-
       - unseal-4of5.secret
-
       - unseal-5of5.secret
-
-      # PostgreSQL connection URL (shared with instance 1).
-
       - postgres-url.secret
-
     depends_on:
-
       healthcheck-secrets:
-
         condition: service_completed_successfully
-
-      builder-cryptoutil:
-
+      builder-sm-kms:
         condition: service_completed_successfully
-
       sm-kms-db-postgres-1:
-
         condition: service_healthy
-
       opentelemetry-collector-contrib:
-
         condition: service_started
-
       healthcheck-opentelemetry-collector-contrib:
-
         condition: service_completed_successfully
-
-      # Wait for instance 1 to initialize shared database.
-
-      kms-postgres-1:
-
+      sm-kms-app-postgres-1:
         condition: service_healthy
-
     healthcheck:
-
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
-
       start_period: 60s
-
       interval: 5s
-
       timeout: 5s
-
       retries: 5
-
     networks:
-
-      - kms-network
-
+      - sm-kms-network
       - telemetry-network
-
     deploy:
-
       resources:
-
         limits:
-
           memory: 256M
-
         reservations:
-
           memory: 128M
-
-
 
 networks:
-
-  kms-network:
-
+  sm-kms-network:
     driver: bridge
 
-
-
 volumes:
-
-  postgres_data:
-
-    name: kms-postgres-volume
-
-
+  postgres-data:
+    name: sm-kms-postgres-volume
 
 secrets:
-
-  # PostgreSQL URL secret (KMS-specific, not in shared-postgres)
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
-
-  # Browser authentication credentials (web UI access)
-  browser-username.secret:
-    file: ./secrets/browser-username.secret
-  browser-password.secret:
-    file: ./secrets/browser-password.secret
-
-  # Service authentication credentials (headless/API access)
-  service-username.secret:
-    file: ./secrets/service-username.secret
-  service-password.secret:
-    file: ./secrets/service-password.secret
-
-  # Unseal secrets (MUST be identical across all KMS instances).
-
-  # CRITICAL: ALL cryptoutil instances MUST use the SAME unseal secrets
-
-  # to enable shared encryption/decryption of data in the database.
-
-  # NEVER create instance-specific secrets - breaks cryptographic interoperability.
-
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
   unseal-1of5.secret:
-
     file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
-
   unseal-2of5.secret:
-
     file: ./secrets/unseal-2of5.secret
-
   unseal-3of5.secret:
-
     file: ./secrets/unseal-3of5.secret
-
   unseal-4of5.secret:
-
     file: ./secrets/unseal-4of5.secret
-
   unseal-5of5.secret:
-
     file: ./secrets/unseal-5of5.secret
