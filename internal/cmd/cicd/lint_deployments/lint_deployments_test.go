@@ -283,7 +283,7 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-				suiteDir := filepath.Join(tmpDir, "cryptoutil")
+					suiteDir := filepath.Join(tmpDir, "cryptoutil-suite")
 				require.NoError(t, os.MkdirAll(filepath.Join(suiteDir, "secrets"), 0o750))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(suiteDir, "compose.yml"),
@@ -356,7 +356,7 @@ func TestValidateDeploymentStructure_SuiteType(t *testing.T) {
 	require.NoError(t, os.MkdirAll(filepath.Join(tmpDir, "secrets"), 0o750))
 	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "compose.yml"), []byte("n: t\n"), 0o600))
 
-	result, err := ValidateDeploymentStructure(tmpDir, "cryptoutil", "SUITE")
+	result, err := ValidateDeploymentStructure(tmpDir, "cryptoutil-suite", "SUITE")
 	require.NoError(t, err)
 	require.NotNil(t, result)
 

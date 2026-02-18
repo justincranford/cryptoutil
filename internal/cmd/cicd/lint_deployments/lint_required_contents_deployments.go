@@ -14,7 +14,7 @@ const (
 func GetDeploymentDirectories() (suite []string, product []string, productService []string, infrastructure []string, template []string) {
 	// SUITE-level deployment (all 9 services)
 	suite = []string{
-		"cryptoutil",
+		"cryptoutil-suite",
 	}
 
 	// PRODUCT-level deployments (aggregation of services within product)
@@ -41,7 +41,6 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 
 	// Infrastructure deployments (shared resources)
 	infrastructure = []string{
-		"compose",          // Main infrastructure compose
 		"shared-citus",     // CitusDB cluster infrastructure
 		"shared-postgres",  // PostgreSQL leader/follower infrastructure
 		"shared-telemetry", // Telemetry infrastructure
@@ -68,20 +67,21 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 func GetExpectedDeploymentsContents() map[string]string {
 	contents := make(map[string]string)
 
-	// SUITE Level (cryptoutil) - ALL 9 services
-	// Required: compose.yml, hash_pepper only
+	// SUITE Level (cryptoutil-suite) - ALL 9 services
+	// Required: compose.yml, Dockerfile, hash_pepper only
 	// Forbidden (via .never): unseal keys, postgres secrets (MUST be service-specific)
-	contents["cryptoutil/compose.yml"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-hash_pepper.secret"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-postgres_username.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-postgres_password.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-postgres_database.secret.never"] = RequiredFileStatus
-	contents["cryptoutil/secrets/cryptoutil-postgres_url.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/compose.yml"] = RequiredFileStatus
+	contents["cryptoutil-suite/Dockerfile"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-hash_pepper.secret"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-unseal_1of5.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-unseal_2of5.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-unseal_3of5.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-unseal_4of5.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-unseal_5of5.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-postgres_username.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-postgres_password.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-postgres_database.secret.never"] = RequiredFileStatus
+	contents["cryptoutil-suite/secrets/cryptoutil-postgres_url.secret.never"] = RequiredFileStatus
 
 	// PRODUCT Level - cipher (currently single service: cipher-im)
 	contents["cipher/compose.yml"] = RequiredFileStatus
@@ -168,7 +168,6 @@ func GetExpectedDeploymentsContents() map[string]string {
 	addProductServiceFiles(&contents, "sm-kms")
 
 	// Infrastructure deployments
-	addInfrastructureFiles(&contents, "compose")
 	addInfrastructureFiles(&contents, "shared-citus")
 	addInfrastructureFiles(&contents, "shared-postgres")
 	addInfrastructureFiles(&contents, "shared-telemetry")

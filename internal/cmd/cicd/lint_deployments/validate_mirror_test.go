@@ -158,7 +158,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, deploymentsDir, "shared-postgres")
 		createTestDir(t, deploymentsDir, "shared-citus")
 		createTestDir(t, deploymentsDir, "shared-telemetry")
-		createTestDir(t, deploymentsDir, "compose")
+createTestDir(t, deploymentsDir, "archived")
 		createTestDir(t, deploymentsDir, "template")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)

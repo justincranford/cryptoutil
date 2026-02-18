@@ -44,9 +44,9 @@ func TestGetDeploymentDirectories(t *testing.T) {
 
 	suite, product, productService, infrastructure, template := GetDeploymentDirectories()
 
-	// Suite should contain exactly cryptoutil.
+	// Suite should contain exactly cryptoutil-suite.
 	require.Len(t, suite, 1)
-	assert.Equal(t, "cryptoutil", suite[0])
+	assert.Equal(t, "cryptoutil-suite", suite[0])
 
 	// Products should include all 5 products.
 	expectedProducts := []string{"identity", "sm", "pki", "cipher", "jose"}

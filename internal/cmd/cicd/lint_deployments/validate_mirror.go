@@ -23,7 +23,7 @@ var excludedDeployments = map[string]bool{
 	"shared-postgres":  true,
 	"shared-citus":     true,
 	"shared-telemetry": true,
-	"compose":          true,
+	"archived":         true,
 	"template":         true,
 }
 
@@ -129,7 +129,7 @@ var deploymentToConfigMapping = map[string]string{
 //   - Uses explicit mapping table for known naming differences.
 //   - PRODUCT-SERVICE (e.g., "jose-ja") -> product name (e.g., "jose").
 //   - PRODUCT (e.g., "cipher") -> same name (e.g., "cipher").
-//   - SUITE (e.g., "cryptoutil") -> "cryptoutil".
+//   - SUITE (e.g., "cryptoutil-suite") -> "cryptoutil".
 func mapDeploymentToConfig(deployDir string) string {
 	// Check explicit mapping first.
 	if mapped, ok := deploymentToConfigMapping[deployDir]; ok {

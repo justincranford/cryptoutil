@@ -263,7 +263,7 @@ func classifyDeployment(name string) string {
 		return DeploymentTypeProductService
 	case productNames[name]:
 		return DeploymentTypeProduct
-	case name == "cryptoutil":
+	case name == "cryptoutil-suite":
 		return DeploymentTypeSuite
 	case name == "template":
 		return DeploymentTypeTemplate

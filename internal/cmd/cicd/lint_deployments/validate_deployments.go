@@ -44,11 +44,11 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// SUITE-level deployment
-	suitePath := filepath.Join(deploymentsRoot, "cryptoutil")
+	suitePath := filepath.Join(deploymentsRoot, "cryptoutil-suite")
 	if _, err := os.Stat(suitePath); err == nil {
-		result, err := ValidateDeploymentStructure(suitePath, "cryptoutil", DeploymentTypeSuite)
+		result, err := ValidateDeploymentStructure(suitePath, "cryptoutil-suite", DeploymentTypeSuite)
 		if err != nil {
-			return nil, fmt.Errorf("failed to validate cryptoutil: %w", err)
+			return nil, fmt.Errorf("failed to validate cryptoutil-suite: %w", err)
 		}
 
 		results = append(results, *result)
@@ -65,7 +65,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// Infrastructure deployments
-	infraNames := []string{"shared-postgres", "shared-citus", "shared-telemetry", "compose"}
+	infraNames := []string{"shared-postgres", "shared-citus", "shared-telemetry"}
 	for _, infra := range infraNames {
 		infraPath := filepath.Join(deploymentsRoot, infra)
 		if _, err := os.Stat(infraPath); err == nil {

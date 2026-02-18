@@ -78,7 +78,7 @@ func TestValidatePorts_SuiteLevelValid(t *testing.T) {
 	compose := "services:\n  sm-kms-sqlite:\n    ports:\n      - \"28000:8080\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cryptoutil", DeploymentTypeSuite)
+	result, err := ValidatePorts(dir, "cryptoutil-suite", DeploymentTypeSuite)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -90,7 +90,7 @@ func TestValidatePorts_SuiteLevelOutOfRange(t *testing.T) {
 	compose := "services:\n  sm-kms-sqlite:\n    ports:\n      - \"8000:8080\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cryptoutil", DeploymentTypeSuite)
+	result, err := ValidatePorts(dir, "cryptoutil-suite", DeploymentTypeSuite)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.False(t, result.Valid)

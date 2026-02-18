@@ -32,12 +32,12 @@ func TestClassifyDeployment(t *testing.T) {
 		{name: "product pki", input: "pki", expected: DeploymentTypeProduct},
 		{name: "product cipher", input: "cipher", expected: DeploymentTypeProduct},
 		{name: "product jose", input: "jose", expected: DeploymentTypeProduct},
-		{name: "suite cryptoutil", input: "cryptoutil", expected: DeploymentTypeSuite},
+			{name: "suite cryptoutil-suite", input: "cryptoutil-suite", expected: DeploymentTypeSuite},
 		{name: "template", input: "template", expected: DeploymentTypeTemplate},
 		{name: "infrastructure shared-postgres", input: "shared-postgres", expected: DeploymentTypeInfrastructure},
 		{name: "infrastructure shared-citus", input: "shared-citus", expected: DeploymentTypeInfrastructure},
 		{name: "infrastructure shared-telemetry", input: "shared-telemetry", expected: DeploymentTypeInfrastructure},
-		{name: "infrastructure compose", input: "compose", expected: DeploymentTypeInfrastructure},
+
 		{name: "unknown dir", input: "random-dir", expected: DeploymentTypeInfrastructure},
 	}
 
@@ -60,7 +60,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, "jose-ja"), 0o755))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, "identity"), 0o755))
-		require.NoError(t, os.MkdirAll(filepath.Join(dir, "cryptoutil"), 0o755))
+			require.NoError(t, os.MkdirAll(filepath.Join(dir, "cryptoutil-suite"), 0o755))
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, "shared-postgres"), 0o755))
 		require.NoError(t, os.WriteFile(filepath.Join(dir, "README.md"), []byte("readme"), 0o600))
 
@@ -74,7 +74,7 @@ func TestDiscoverDeploymentDirs(t *testing.T) {
 
 		assert.Equal(t, DeploymentTypeProductService, nameMap["jose-ja"])
 		assert.Equal(t, DeploymentTypeProduct, nameMap["identity"])
-		assert.Equal(t, DeploymentTypeSuite, nameMap["cryptoutil"])
+			assert.Equal(t, DeploymentTypeSuite, nameMap["cryptoutil-suite"])
 		assert.Equal(t, DeploymentTypeInfrastructure, nameMap["shared-postgres"])
 	})
 
