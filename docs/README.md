@@ -504,7 +504,7 @@ This system is well-suited for:
 1. **Start the KMS server with Docker Compose:**
 
    ```bash
-   cd deployments/kms
+   cd deployments/sm-kms
    docker compose --profile dev up -d
    ```
 

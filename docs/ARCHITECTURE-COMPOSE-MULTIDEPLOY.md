@@ -78,7 +78,7 @@ SUITE compose.yml
 Each level can be deployed independently:
 - `cd deployments/sm-kms && docker compose up` — single service
 - `cd deployments/identity && docker compose up` — all identity services
-- `cd deployments/cryptoutil && docker compose up` — all 9 services
+- `cd deployments/cryptoutil-suite && docker compose up` — all 9 services
 
 ### 2.5 Compose `extends` for Templates
 
@@ -336,7 +336,7 @@ deployments/
 
 2. **PRODUCT-level deployment**: All services within a product share `{PRODUCT}-hash_pepper.secret` from the PRODUCT directory's `secrets/` folder. The PRODUCT compose.yml defines this secret and it overrides the SERVICE-level secrets via Docker Compose merging rules.
 
-3. **SUITE-level deployment**: All 9 services across all 5 products share `cryptoutil-hash_pepper.secret` from `deployments/cryptoutil/secrets/`. The SUITE compose.yml defines this secret at the top level, overriding both PRODUCT and SERVICE secrets.
+3. **SUITE-level deployment**: All 9 services across all 5 products share `cryptoutil-hash_pepper.secret` from `deployments/cryptoutil-suite/secrets/`. The SUITE compose.yml defines this secret at the top level, overriding both PRODUCT and SERVICE secrets.
 
 4. **Secret precedence**: SUITE > PRODUCT > SERVICE (compose merging gives precedence to the parent that includes children).
 
@@ -711,7 +711,7 @@ include:
 Suite compose.yml includes all product compose files:
 
 ```yaml
-# deployments/cryptoutil/compose.yml
+# deployments/cryptoutil-suite/compose.yml
 include:
   - path: ../sm/compose.yml      # PRODUCT-level (currently includes sm-kms)
   - path: ../pki/compose.yml     # or ../pki-ca/compose.yml
@@ -783,7 +783,7 @@ Rename secret files to include `{PRODUCT}-{SERVICE}-` prefix:
 Create layered pepper secrets:
 - SERVICE-level: Each service has `{PRODUCT}-{SERVICE}-hash_pepper.secret` in its own `secrets/` directory
 - PRODUCT-level: Create `deployments/{PRODUCT}/secrets/{PRODUCT}-hash_pepper.secret` for multi-service products
-- SUITE-level: Create `deployments/cryptoutil/secrets/cryptoutil-hash_pepper.secret` for full deployment
+- SUITE-level: Create `deployments/cryptoutil-suite/secrets/cryptoutil-hash_pepper.secret` for full deployment
 - Update compose.yml files to reference appropriate pepper based on deployment level
 
 ### Phase 4: Product-Level Composition
@@ -796,8 +796,8 @@ Create product directories with aggregation compose files:
 ### Phase 5: Suite-Level Composition
 
 Create suite directory with full aggregation:
-- `deployments/cryptoutil/compose.yml` includes all products
-- Test: `cd deployments/cryptoutil && docker compose up`
+- `deployments/cryptoutil-suite/compose.yml` includes all products
+- Test: `cd deployments/cryptoutil-suite && docker compose up`
 
 ## 7. Experimental Evidence
 

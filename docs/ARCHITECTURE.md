@@ -2602,7 +2602,7 @@ healthcheck:
 |--------|----------|-------|---------|
 | `-SERVICEONLY.secret` | `deployments/PRODUCT-SERVICE/secrets/` | Single service only | `unseal_1of5-SERVICEONLY.secret` |
 | `-PRODUCTONLY.secret` | `deployments/PRODUCT/secrets/` | Product services only | `postgres_url-PRODUCTONLY.secret` |
-| `-SUITEONLY.secret` | `deployments/cryptoutil/secrets/` | Suite-wide only | `admin_api_key-SUITEONLY.secret` |
+| `-SUITEONLY.secret` | `deployments/cryptoutil-suite/secrets/` | Suite-wide only | `admin_api_key-SUITEONLY.secret` |
 | `-SHARED.secret` | Any level | Shared across multiple levels | `hash_pepper_v3-SHARED.secret` |
 
 **Rules**:
@@ -2616,7 +2616,7 @@ healthcheck:
 
 ##### SUITE-Level Deployment (cryptoutil)
 
-**Location**: `deployments/cryptoutil/secrets/` (template pattern applied)
+**Location**: `deployments/cryptoutil-suite/secrets/` (template pattern applied)
 
 **Consistency Requirements**:
 
@@ -2753,11 +2753,11 @@ healthcheck-secrets:
 |-------|-----------|-------|----------|-----------|
 | **SERVICE** | `deployments/{PRODUCT}-{SERVICE}/` | Single service | 1 | Development, testing, isolated deployment |
 | **PRODUCT** | `deployments/{PRODUCT}/` | Product services | 1-5 | Product-level testing, SSO within product |
-| **SUITE** | `deployments/cryptoutil/` | All services | 9 | Full integration, cross-product federation |
+| **SUITE** | `deployments/cryptoutil-suite/` | All services | 9 | Full integration, cross-product federation |
 
 ##### SUITE-Level Deployment (cryptoutil)
 
-**Location**: `deployments/cryptoutil/compose.yml`
+**Location**: `deployments/cryptoutil-suite/compose.yml`
 
 **Composition Pattern**: Includes all PRODUCT-level composes via Docker Compose `include` directive.
 
@@ -2884,7 +2884,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 ✅ Forbidden: unseal_*.secret MUST NOT exist (documented by .never files)
 ```
 
-**SUITE Deployment Validation** (`cicd lint-deployments deployments/cryptoutil`):
+**SUITE Deployment Validation** (`cicd lint-deployments deployments/cryptoutil-suite`):
 
 ```
 ✅ Required: compose.yml exists
