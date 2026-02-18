@@ -1,0 +1,37 @@
+# SUITE-level deployment - All 9 services across 5 products
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 4.3
+#
+# Usage: cd deployments/cryptoutil && docker compose up
+#
+# This compose file includes all PRODUCT-level compose files to deploy
+# the complete cryptoutil suite (all 9 services).
+#
+# MANDATORY: Suite MUST delegate to PRODUCT-level, which delegates to SERVICE-level.
+# This rigid delegation pattern (SUITE → PRODUCT → SERVICE) ensures scalability:
+#   1) Products can scale from 1 to N services
+#   2) Suite can scale from 5 to N products
+#
+# All includes reference PRODUCT-level compose files, which in turn include
+# SERVICE-level compose files. Single-service products (sm, pki, cipher, jose)
+# have PRODUCT-level compose files that include their single SERVICE.
+
+include:
+  # All products reference PRODUCT-level compose (rigid delegation)
+  - path: ../sm/compose.yml         # sm product (kms service)
+  - path: ../pki/compose.yml        # pki product (ca service)
+  - path: ../cipher/compose.yml     # cipher product (im service)
+  - path: ../jose/compose.yml       # jose product (ja service)
+  - path: ../identity/compose.yml   # identity product (authz, idp, rp, rs, spa services)
+
+# SUITE-level secrets (shared by ALL 9 services)
+# See: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md Section 5.2 "Layered Pepper Strategy"
+#
+# When this SUITE compose file is used, the cryptoutil-hash-pepper.secret
+# overrides PRODUCT and SERVICE level hash-pepper secrets via Docker Compose
+# merging rules (parent > child).
+#
+# This enables cross-product SSO and unified identity federation.
+
+secrets:
+  cryptoutil-hash-pepper.secret:
+    file: ./secrets/cryptoutil-hash-pepper.secret
