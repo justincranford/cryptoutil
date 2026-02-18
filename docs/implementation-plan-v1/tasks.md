@@ -801,8 +801,105 @@
   - [x] Update plan.md Phase 6 section
   - [x] No new blockers or tasks identified
   - [x] Commit with comprehensive message
-**Phase 7**: Archive Legacy Directories (5 tasks estimated)
+**Phase 7**: Archive Legacy Directories (8 tasks)
 **Phase 8**: Validator Updates (8 tasks estimated)
+
+### Phase 7: Archive Legacy Directories
+
+#### Task 7.1: Move Shared Dockerfile to cryptoutil-suite
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Phase 6 complete
+- **Description**: Move `deployments/cryptoutil/Dockerfile` to `deployments/cryptoutil-suite/Dockerfile`
+- **Acceptance Criteria**:
+  - [ ] Dockerfile moved to cryptoutil-suite/
+  - [ ] File contents unchanged
+  - [ ] Commit with evidence
+
+#### Task 7.2: Update PRODUCT Compose Dockerfile References
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Task 7.1
+- **Description**: Update all PRODUCT compose files (sm, pki, cipher, jose, identity) to reference `deployments/cryptoutil-suite/Dockerfile`
+- **Files**: deployments/sm/compose.yml, deployments/pki/compose.yml, deployments/cipher/compose.yml, deployments/jose/compose.yml, deployments/identity/compose.yml, deployments/cryptoutil-suite/compose.yml, deployments/template/compose-cryptoutil.yml
+- **Acceptance Criteria**:
+  - [ ] All 7 compose files updated
+  - [ ] docker compose config validates for each
+  - [ ] Commit with evidence
+
+#### Task 7.3: Fix CI Quality Workflow Dockerfile References
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Task 7.1
+- **Description**: Fix ci-quality.yml references from `deployments/kms/Dockerfile` to correct paths
+- **Files**: .github/workflows/ci-quality.yml
+- **Acceptance Criteria**:
+  - [ ] References updated to active Dockerfile paths
+  - [ ] YAML validates
+  - [ ] Commit with evidence
+
+#### Task 7.4: Archive deployments/kms/ Directory
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Task 7.3
+- **Description**: Move `deployments/kms/` to `deployments/archived/kms-legacy/`
+- **Acceptance Criteria**:
+  - [ ] Directory moved to archived
+  - [ ] No remaining references to deployments/kms/ in code
+  - [ ] README.md updated in archived/
+  - [ ] Commit with evidence
+
+#### Task 7.5: Archive deployments/cryptoutil/ Directory
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Tasks 7.1-7.2
+- **Description**: Move `deployments/cryptoutil/` to `deployments/archived/cryptoutil-legacy/` after Dockerfile moved out
+- **Acceptance Criteria**:
+  - [ ] Directory moved to archived (compose.yml, secrets/)
+  - [ ] No remaining active references to deployments/cryptoutil/
+  - [ ] README.md updated in archived/
+  - [ ] Commit with evidence
+
+#### Task 7.6: Update Documentation References
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Tasks 7.4-7.5
+- **Description**: Update docs that reference legacy directories (ARCHITECTURE.md, ARCHITECTURE-COMPOSE-MULTIDEPLOY.md, README.md)
+- **Acceptance Criteria**:
+  - [ ] All doc references updated or marked as legacy
+  - [ ] No broken references
+  - [ ] Commit with evidence
+
+#### Task 7.7: Validation
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Dependencies**: Tasks 7.1-7.6
+- **Description**: Full validation suite
+- **Acceptance Criteria**:
+  - [ ] go build ./... passes
+  - [ ] golangci-lint run --fix ./... clean
+  - [ ] go run ./cmd/cicd lint-deployments validate-all passes
+  - [ ] go test ./... passes
+  - [ ] Commit with evidence
+
+#### Task 7.8: Phase 7 Post-Mortem
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Task 7.7
+- **Description**: Phase 7 completion analysis
+- **Acceptance Criteria**:
+  - [ ] Post-mortem written to test-output/phase7/
+  - [ ] Update plan.md Phase 7 section
+  - [ ] Identify new tasks if any
+  - [ ] Commit with comprehensive message
 **Phase 9**: Documentation Complete Update (10 tasks estimated)
 **Phase 10**: CI/CD Workflow Updates (7 tasks estimated)
 **Phase 11**: Integration Testing (9 tasks estimated)

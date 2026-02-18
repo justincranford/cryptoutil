@@ -2,7 +2,7 @@
 # Cryptoutil Suite Dockerfile
 # Use BuildKit syntax to enable cache mounts (fast rebuilds)
 # To build with cache mounts set DOCKER_BUILDKIT=1
-# Example: DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/cryptoutil/Dockerfile.cryptoutil .
+# Example: DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/cryptoutil-suite/Dockerfile .
 #
 #############################################################################################
 ARG APP_VERSION=UNSET
@@ -39,7 +39,7 @@ RUN set -e; \
     fi; \
     if [ -n "$errors" ]; then \
         printf "%b" "$errors" >&2; \
-        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t cryptoutil -f deployments/cryptoutil/Dockerfile.cryptoutil ." >&2; \
+        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t cryptoutil -f deployments/cryptoutil-suite/Dockerfile ." >&2; \
         exit 1; \
     fi
 

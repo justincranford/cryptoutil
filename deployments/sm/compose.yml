@@ -52,7 +52,7 @@ services:
     image: cryptoutil:dev
     build:
       context: ../..
-      dockerfile: deployments/cryptoutil/Dockerfile
+      dockerfile: deployments/cryptoutil-suite/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
