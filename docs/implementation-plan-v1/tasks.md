@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 60 of 99 tasks complete (60.6%) - Phase 1 COMPLETE, Phase 2 COMPLETE, Phase 3 COMPLETE, Phase 4 COMPLETE, Phase 5 COMPLETE, Phase 6 COMPLETE, Phase 7 COMPLETE, Phase 8 COMPLETE
+**Status**: 70 of 96 tasks complete (72.9%) - Phase 1 COMPLETE, Phase 2 COMPLETE, Phase 3 COMPLETE, Phase 4 COMPLETE, Phase 5 COMPLETE, Phase 6 COMPLETE, Phase 7 COMPLETE, Phase 8 COMPLETE, Phase 9 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -1080,26 +1080,253 @@
   - [x] Section titles match
 
 ### Task 9.9: Run Chunk Verification & Final Validation
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Description**: Run check-chunk-verification, grep for any remaining stale references, build and lint.
 - **Acceptance Criteria**:
-  - [ ] `go run ./cmd/cicd check-chunk-verification` passes
-  - [ ] No stale `deployments/compose/` or `deployments/kms/` references outside archived/implementation-plan
-  - [ ] `go build ./...` passes
-  - [ ] `golangci-lint run` passes
+  - [x] `go run ./cmd/cicd check-chunk-verification` passes (9/9 PASS)
+  - [x] No stale `deployments/compose/` or `deployments/kms/` references outside archived/implementation-plan
+  - [x] `go build ./...` passes
+  - [x] `golangci-lint run` passes (0 issues)
+- **Commit**: d61ddaa8
 
 ### Task 9.10: Phase 9 Post-Mortem
+- **Status**: ✅ Complete
+- **Description**: Write post-mortem, update plan.md, update tasks.md counter.
+- **Acceptance Criteria**:
+  - [x] Post-mortem written (Phase 9 resolved 22+ stale refs across 19 files, updated ARCHITECTURE-INDEX.md line numbers)
+  - [x] plan.md Phase 9 marked COMPLETE
+  - [x] tasks.md counter updated (70/96)
+  - [x] Phase 10-13 tasks defined
+  - [x] Commit with comprehensive message
+
+---
+
+## Phase 10: CI/CD Workflow Verification
+
+**Objective**: Verify all CI/CD workflows, actions, and docker compose integrations work correctly after Phase 9 updates.
+
+**Note**: Phase 9 already updated all 10 workflow files, 3 action files, and all documentation. Phase 10 focuses on verification and any remaining gaps.
+
+### Task 10.1: Verify Workflow YAML Syntax
+- **Status**: ❌ Not Started
+- **Description**: Validate all CI/CD workflow YAML files have correct syntax. Check for any malformed paths, broken references, or syntax errors introduced during Phase 9 updates.
+- **Acceptance Criteria**:
+  - [ ] All `.github/workflows/*.yml` files pass YAML syntax validation
+  - [ ] All `.github/actions/*/action.yml` files pass YAML syntax validation
+  - [ ] No broken path references in workflow files
+
+### Task 10.2: Verify Docker Compose Action Defaults
+- **Status**: ❌ Not Started
+- **Description**: Verify docker-compose-up, docker-compose-down, docker-compose-build actions have correct default compose-file paths pointing to cryptoutil-suite.
+- **Acceptance Criteria**:
+  - [ ] docker-compose-up action default verified
+  - [ ] docker-compose-down action default verified
+  - [ ] docker-compose-build action default verified
+  - [ ] All three actions reference `./deployments/cryptoutil-suite/compose.yml`
+
+### Task 10.3: Verify E2E Workflow Service Paths
+- **Status**: ❌ Not Started
+- **Description**: Verify ci-e2e.yml references correct SERVICE-level deployment paths for sm-kms, pki-ca, jose-ja. Ensure health check URLs and cleanup commands use correct paths.
+- **Acceptance Criteria**:
+  - [ ] ci-e2e.yml uses `deployments/sm-kms/compose.yml` for KMS
+  - [ ] ci-e2e.yml uses `deployments/pki-ca/compose.yml` for CA
+  - [ ] ci-e2e.yml uses `deployments/jose/compose.yml` for JOSE (PRODUCT-level)
+  - [ ] Health check URLs are correct
+  - [ ] Cleanup/down commands reference correct paths
+
+### Task 10.4: Push and Verify Remote
+- **Status**: ❌ Not Started
+- **Description**: Push all commits from Phases 8-10 to remote. Verify no push errors.
+- **Acceptance Criteria**:
+  - [ ] `git push` succeeds
+  - [ ] All Phase 8-10 commits visible in remote
+  - [ ] No force-push needed
+
+### Task 10.5: Phase 10 Post-Mortem
 - **Status**: ❌ Not Started
 - **Description**: Write post-mortem, update plan.md, update tasks.md counter.
 - **Acceptance Criteria**:
   - [ ] Post-mortem written
-  - [ ] plan.md Phase 9 marked COMPLETE
+  - [ ] plan.md Phase 10 marked COMPLETE
   - [ ] tasks.md counter updated
   - [ ] Commit with comprehensive message
 
-**Phase 10**: CI/CD Workflow Updates (7 tasks estimated)
-**Phase 11**: Integration Testing (9 tasks estimated)
-**Phase 12**: Quality Gates & Final Validation (8 tasks estimated)
-**Phase 13**: Archive & Wrap-Up (4 tasks estimated)
+---
 
-**Total**: 99 tasks across 13 phases (estimated)
+## Phase 11: Integration Testing
+
+**Objective**: Verify deployment compose files actually work by testing docker compose up/down for key deployments.
+
+### Task 11.1: Test sm-kms SERVICE Deployment
+- **Status**: ❌ Not Started
+- **Description**: Run `docker compose -f deployments/sm-kms/compose.yml --profile dev up -d`, verify services start, check health endpoints, then tear down.
+- **Acceptance Criteria**:
+  - [ ] `docker compose up -d` succeeds
+  - [ ] Health checks pass (livez, readyz)
+  - [ ] `docker compose down -v` succeeds
+
+### Task 11.2: Test pki-ca SERVICE Deployment
+- **Status**: ❌ Not Started
+- **Description**: Run pki-ca compose deployment, verify services start, check health endpoints.
+- **Acceptance Criteria**:
+  - [ ] `docker compose up -d` succeeds
+  - [ ] Health checks pass
+  - [ ] `docker compose down -v` succeeds
+
+### Task 11.3: Test jose-ja SERVICE Deployment
+- **Status**: ❌ Not Started
+- **Description**: Run jose-ja compose deployment, verify services start.
+- **Acceptance Criteria**:
+  - [ ] `docker compose up -d` succeeds
+  - [ ] Health checks pass
+  - [ ] `docker compose down -v` succeeds
+
+### Task 11.4: Test PRODUCT-Level Deployments (sm, pki, jose)
+- **Status**: ❌ Not Started
+- **Description**: Test PRODUCT-level compose files that aggregate SERVICE deployments.
+- **Acceptance Criteria**:
+  - [ ] `deployments/sm/compose.yml` starts successfully
+  - [ ] `deployments/pki/compose.yml` starts successfully
+  - [ ] `deployments/jose/compose.yml` starts successfully
+  - [ ] All tear down cleanly
+
+### Task 11.5: Test cryptoutil-suite SUITE Deployment
+- **Status**: ❌ Not Started
+- **Description**: Test SUITE-level compose that aggregates all products.
+- **Acceptance Criteria**:
+  - [ ] `deployments/cryptoutil-suite/compose.yml` starts successfully
+  - [ ] All services reachable
+  - [ ] Tear down clean
+
+### Task 11.6: Test Infrastructure Deployments
+- **Status**: ❌ Not Started
+- **Description**: Test shared-postgres, shared-citus, shared-telemetry infrastructure deployments.
+- **Acceptance Criteria**:
+  - [ ] shared-postgres starts and health check passes
+  - [ ] shared-telemetry starts and endpoints reachable
+  - [ ] All tear down cleanly
+
+### Task 11.7: Run Full Test Suite
+- **Status**: ❌ Not Started
+- **Description**: Run `go test ./...` to confirm no regressions from all phases.
+- **Acceptance Criteria**:
+  - [ ] All tests pass (0 failures)
+  - [ ] No new skipped tests
+
+### Task 11.8: Validate All 65 Deployment Validators
+- **Status**: ❌ Not Started
+- **Description**: Run `go run ./cmd/cicd lint-deployments validate-all` and verify 65/65 pass.
+- **Acceptance Criteria**:
+  - [ ] validate-all reports 65/65 PASS
+  - [ ] No new validator failures
+
+### Task 11.9: Phase 11 Post-Mortem
+- **Status**: ❌ Not Started
+- **Description**: Write post-mortem, update plan.md, update tasks.md counter.
+- **Acceptance Criteria**:
+  - [ ] Post-mortem written
+  - [ ] plan.md Phase 11 marked COMPLETE
+  - [ ] tasks.md counter updated
+  - [ ] Commit with comprehensive message
+
+---
+
+## Phase 12: Quality Gates & Final Validation
+
+**Objective**: Ensure all quality gates pass comprehensively.
+
+### Task 12.1: Build Verification
+- **Status**: ❌ Not Started
+- **Description**: Clean build verification with `go build ./...`.
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` passes with zero errors
+
+### Task 12.2: Lint Verification
+- **Status**: ❌ Not Started
+- **Description**: Full lint pass with `golangci-lint run ./...`.
+- **Acceptance Criteria**:
+  - [ ] `golangci-lint run ./...` reports 0 issues
+
+### Task 12.3: Coverage Analysis
+- **Status**: ❌ Not Started
+- **Description**: Run coverage analysis on deployment-related packages.
+- **Acceptance Criteria**:
+  - [ ] lint_deployments ≥98%
+  - [ ] lint_ports ≥95%
+  - [ ] Coverage evidence saved to test-output/
+
+### Task 12.4: Mutation Testing
+- **Status**: ❌ Not Started
+- **Description**: Run gremlins mutation testing on lint_deployments and lint_ports packages.
+- **Acceptance Criteria**:
+  - [ ] lint_deployments mutation score ≥85%
+  - [ ] lint_ports mutation score ≥85%
+  - [ ] Evidence saved to test-output/
+
+### Task 12.5: Race Detector
+- **Status**: ❌ Not Started
+- **Description**: Run race detector on deployment-related packages.
+- **Acceptance Criteria**:
+  - [ ] `go test -race ./internal/cmd/cicd/lint_deployments/...` passes
+  - [ ] `go test -race ./internal/apps/cicd/lint_ports/...` passes
+
+### Task 12.6: Chunk Verification Final Pass
+- **Status**: ❌ Not Started
+- **Description**: Run check-chunk-verification one final time.
+- **Acceptance Criteria**:
+  - [ ] 9/9 chunks PASS
+
+### Task 12.7: Full Validator Pass
+- **Status**: ❌ Not Started
+- **Description**: Final run of all deployment validators.
+- **Acceptance Criteria**:
+  - [ ] 65/65 validators PASS
+
+### Task 12.8: Phase 12 Post-Mortem
+- **Status**: ❌ Not Started
+- **Description**: Write post-mortem, update plan.md, update tasks.md counter.
+- **Acceptance Criteria**:
+  - [ ] Post-mortem written
+  - [ ] plan.md Phase 12 marked COMPLETE
+  - [ ] tasks.md counter updated
+  - [ ] Commit with comprehensive message
+
+---
+
+## Phase 13: Archive & Wrap-Up
+
+**Objective**: Final cleanup, evidence archival, and completion.
+
+### Task 13.1: Final Evidence Collection
+- **Status**: ❌ Not Started
+- **Description**: Collect all test evidence into test-output/ directory.
+- **Acceptance Criteria**:
+  - [ ] Coverage reports saved
+  - [ ] Validator reports saved
+  - [ ] Mutation reports saved (if run)
+
+### Task 13.2: Update Plan with Actuals
+- **Status**: ❌ Not Started
+- **Description**: Update plan.md with actual times vs estimates for each phase.
+- **Acceptance Criteria**:
+  - [ ] All phase statuses marked COMPLETE
+  - [ ] Actual durations recorded
+  - [ ] Final task count accurate
+
+### Task 13.3: Final Commit and Push
+- **Status**: ❌ Not Started
+- **Description**: Final commit with comprehensive message and push.
+- **Acceptance Criteria**:
+  - [ ] All changes committed
+  - [ ] Pushed to remote
+  - [ ] Clean git status
+
+### Task 13.4: Phase 13 Post-Mortem (Final)
+- **Status**: ❌ Not Started
+- **Description**: Write final project post-mortem.
+- **Acceptance Criteria**:
+  - [ ] Final post-mortem written
+  - [ ] Lessons documented
+  - [ ] All phases complete
+
+**Total**: 99 tasks across 13 phases (Phase 1-9: 70 tasks, Phase 10: 5 tasks, Phase 11: 9 tasks, Phase 12: 8 tasks, Phase 13: 4 tasks = 96 actual, approximate match to original 99 estimate)
