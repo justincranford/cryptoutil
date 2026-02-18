@@ -222,13 +222,15 @@ const (
 	TestServiceStartupDelaySeconds = 3
 	// TestHTTPHealthTimeoutSeconds - HTTP health check timeout.
 	TestHTTPHealthTimeoutSeconds = 5
-	// TestAuthZServerPort - Authorization server port for E2E tests.
+	// TestAuthZServerPort - Mock authorization server port for standalone E2E tests.
+	// NOTE: Used by internal/apps/identity/test/e2e/mock_services.go for in-process mock servers.
+	// These are NOT deployment ports. Ideally should use port 0 for dynamic allocation.
 	TestAuthZServerPort = 8080
-	// TestIDPServerPort - Identity provider server port for E2E tests.
+	// TestIDPServerPort - Mock identity provider server port for standalone E2E tests.
 	TestIDPServerPort = 8081
-	// TestResourceServerPort - Resource server port for E2E tests.
+	// TestResourceServerPort - Mock resource server port for standalone E2E tests.
 	TestResourceServerPort = 8082
-	// TestSPARPServerPort - SPA relying party server port for E2E tests.
+	// TestSPARPServerPort - Mock SPA relying party server port for standalone E2E tests.
 	TestSPARPServerPort = 8083
 )
 
