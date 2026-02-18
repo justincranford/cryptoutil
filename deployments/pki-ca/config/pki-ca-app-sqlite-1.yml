@@ -8,7 +8,7 @@
 service-name: "ca-sqlite"
 
 # Public API port
-bind-public-port: 8050
+bind-public-port: 8080
 
 # Database backend (SQLite in-memory for dev/demo/ci)
 database:
@@ -17,8 +17,8 @@ database:
 
 # CORS origins (specific to this instance)
 cors-origins:
-  - "https://localhost:8050"
-  - "https://127.0.0.1:8050"
+  - "https://localhost:8100"
+  - "https://127.0.0.1:8100"
 
 # OTLP telemetry service name (unique per instance)
 otlp-service-name: "ca-sqlite"

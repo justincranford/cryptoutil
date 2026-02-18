@@ -3,9 +3,9 @@
 
 # CORS configuration - HTTPS origins only (from default config)
 cors-origins:
-  - "https://localhost:8081"
-  - "https://127.0.0.1:8081"
-  - "https://[::1]:8081"
+  - "https://localhost:8001"
+  - "https://127.0.0.1:8001"
+  - "https://[::1]:8001"
 
 otlp-service: kms-postgresql-1
 otlp-hostname: kms-postgresql-1

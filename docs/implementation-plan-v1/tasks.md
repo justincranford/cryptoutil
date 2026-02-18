@@ -520,7 +520,121 @@
   - [x] Identify blockers or new tasks (none found)
   - [x] Commit with comprehensive message
 
-**Phase 5**: SERVICE-Level Verification (8 tasks estimated)
+### Phase 5: SERVICE-Level Standardization
+
+**Phase Objective**: Rewrite all 9 SERVICE-level compose files to follow template pattern with correct ports, naming, and structure
+**Estimated Duration**: 4h
+
+#### Task 5.1: Fix Config Port Standardization
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Dependencies**: Phase 4 complete
+- **Description**: Standardize all service config files to use port 8080 (architecture standard container port)
+- **Acceptance Criteria**:
+  - [ ] pki-ca configs: bind-public-port 8050 → 8080 (4 config files)
+  - [ ] jose-ja configs: bind-public-port 8060 → 8080 (4 config files)
+  - [ ] identity-idp configs: port 8081 → 8080 (4 config files)
+  - [ ] identity-rs configs: port 8082 → 8080 (4 config files)
+  - [ ] sm-kms, cipher-im, identity-authz, identity-rp, identity-spa already 8080 (verify)
+  - [ ] All CORS origins updated to match new port 8080
+  - [ ] Commit with evidence
+
+#### Task 5.2: Rewrite sm-kms SERVICE Compose
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.4h
+- **Dependencies**: Task 5.1
+- **Description**: Rewrite sm-kms compose from template with host ports 8000-8002, container 8080
+- **Acceptance Criteria**:
+  - [ ] Service names: sm-kms-app-sqlite-1, sm-kms-app-postgres-1, sm-kms-app-postgres-2
+  - [ ] Host ports: 8000:8080, 8001:8080, 8002:8080
+  - [ ] Include shared-telemetry
+  - [ ] Configs from ./config/
+  - [ ] Secrets from ./secrets/
+  - [ ] docker compose config validates
+  - [ ] Commit with evidence
+
+#### Task 5.3: Rewrite pki-ca SERVICE Compose
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.4h
+- **Dependencies**: Task 5.1
+- **Description**: Rewrite pki-ca compose from template with host ports 8100-8102, container 8080
+- **Acceptance Criteria**:
+  - [ ] Service names: pki-ca-app-sqlite-1, pki-ca-app-postgres-1, pki-ca-app-postgres-2
+  - [ ] Host ports: 8100:8080, 8101:8080, 8102:8080
+  - [ ] Include shared-telemetry
+  - [ ] docker compose config validates
+  - [ ] Commit with evidence
+
+#### Task 5.4: Rewrite cipher-im SERVICE Compose
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.4h
+- **Dependencies**: Task 5.1
+- **Description**: Rewrite cipher-im compose from template (remove inline otel/grafana), host ports 8700-8702
+- **Acceptance Criteria**:
+  - [ ] Service names: cipher-im-app-sqlite-1, cipher-im-app-postgres-1, cipher-im-app-postgres-2
+  - [ ] Host ports: 8700:8080, 8701:8080, 8702:8080
+  - [ ] Include shared-telemetry (replace inline otel-collector and grafana)
+  - [ ] docker compose config validates
+  - [ ] Commit with evidence
+
+#### Task 5.5: Rewrite jose-ja SERVICE Compose
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.4h
+- **Dependencies**: Task 5.1
+- **Description**: Rewrite jose-ja compose from template with host ports 8800-8802, container 8080
+- **Acceptance Criteria**:
+  - [ ] Service names: jose-ja-app-sqlite-1, jose-ja-app-postgres-1, jose-ja-app-postgres-2
+  - [ ] Host ports: 8800:8080, 8801:8080, 8802:8080
+  - [ ] Include shared-telemetry
+  - [ ] docker compose config validates
+  - [ ] Commit with evidence
+
+#### Task 5.6: Rewrite 5 Identity SERVICE Compose Files
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 1.0h
+- **Dependencies**: Task 5.1
+- **Description**: Rewrite identity-authz/idp/rs/rp/spa compose files from template
+- **Acceptance Criteria**:
+  - [ ] identity-authz: ports 8200-8202, service names -app-sqlite-1/-app-postgres-1/-app-postgres-2
+  - [ ] identity-idp: ports 8300-8302
+  - [ ] identity-rs: ports 8400-8402
+  - [ ] identity-rp: ports 8500-8502
+  - [ ] identity-spa: ports 8600-8602
+  - [ ] All include shared-telemetry
+  - [ ] All configs from ./config/, secrets from ./secrets/
+  - [ ] docker compose config validates for all 5
+  - [ ] Commit with evidence
+
+#### Task 5.7: Full Validation
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Tasks 5.2-5.6
+- **Description**: Run comprehensive validation for all 9 SERVICE compose files
+- **Acceptance Criteria**:
+  - [ ] docker compose config for each of 9 SERVICE deployments
+  - [ ] go run ./cmd/cicd lint-deployments validate-all passes (all validators)
+  - [ ] Evidence saved to test-output/phase5/
+  - [ ] Commit with evidence
+
+#### Task 5.8: Phase 5 Post-Mortem
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Task 5.7
+- **Description**: Phase 5 completion analysis
+- **Acceptance Criteria**:
+  - [ ] Post-mortem written to test-output/phase5/
+  - [ ] Update plan.md Phase 5 section
+  - [ ] Identify blockers or new tasks
+  - [ ] Commit with comprehensive message
+
 **Phase 6**: Legacy E2E Migration (12 tasks estimated)
 **Phase 7**: Archive Legacy Directories (5 tasks estimated)
 **Phase 8**: Validator Updates (8 tasks estimated)

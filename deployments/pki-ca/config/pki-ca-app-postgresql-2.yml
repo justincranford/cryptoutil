@@ -7,8 +7,8 @@
 # Service name for telemetry
 service-name: "ca-postgres-2"
 
-# Public API port (mapped externally as 8445)
-bind-public-port: 8050
+# Public API port (mapped externally as 8102)
+bind-public-port: 8080
 
 # Database backend (PostgreSQL - URL passed via --database-url flag)
 database:
@@ -17,8 +17,8 @@ database:
 
 # CORS origins (specific to this instance)
 cors-origins:
-  - "https://localhost:8445"
-  - "https://127.0.0.1:8445"
+  - "https://localhost:8102"
+  - "https://127.0.0.1:8102"
 
 # OTLP telemetry service name (unique per instance)
 otlp-service-name: "ca-postgres-2"

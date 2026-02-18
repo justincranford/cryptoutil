@@ -3,9 +3,9 @@
 
 # CORS configuration - HTTPS origins only (from default config)
 cors-origins:
-  - "https://localhost:8080"
-  - "https://127.0.0.1:8080"
-  - "https://[::1]:8080"
+  - "https://localhost:8000"
+  - "https://127.0.0.1:8000"
+  - "https://[::1]:8000"
 
 otlp-service: kms-sqlite-1
 otlp-hostname: kms-sqlite-1
