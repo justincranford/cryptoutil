@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 8 of 92 tasks complete (8.7%) - Phase 1 COMPLETE, Phase 2 COMPLETE
+**Status**: 8 of 99 tasks complete (8.1%) - Phase 1 COMPLETE, Phase 2 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -186,11 +186,204 @@
 
 ---
 
-### Phases 3-13: High-Level Task Outlines
+### Phase 3: SUITE-Level Refactoring
+
+**Phase Objective**: Refactor cryptoutil-suite/compose.yml to use explicit service definitions with 28XXX ports per SUITE-level architecture requirements
+
+#### Task 3.1: Analyze Template File for Port Mapping Plan
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 2 complete
+- **Description**: Analyze deployments/template/compose-cryptoutil.yml to identify all port mappings requiring updates from 8XXX → 28XXX
+- **Acceptance Criteria**:
+  - [ ] Count total port mappings in template (9 services × 3 instances each = 27 services)
+  - [ ] Document current port ranges per service (sm-kms: 8000-8002, pki-ca: 8100-8102, etc.)
+  - [ ] Calculate target SUITE-level ports (sm-kms: 28000-28002, pki-ca: 28100-28102, etc.)
+  - [ ] Create port mapping table in `test-output/phase3/port-mapping-plan.txt`
+  - [ ] Verify no conflicts with existing deployments
+- **Files**:
+  - `test-output/phase3/port-mapping-plan.txt`
+
+#### Task 3.2: Replace cryptoutil-suite/compose.yml with Template
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.1
+- **Description**: Replace includes-only pattern with explicit service definitions from template
+- **Acceptance Criteria**:
+  - [ ] Backup current cryptoutil-suite/compose.yml to test-output/phase3/compose.yml.backup
+  - [ ] Copy deployments/template/compose-cryptoutil.yml to deployments/cryptoutil-suite/compose.yml
+  - [ ] Update header comments to reflect SUITE-level purpose
+  - [ ] Verify file structure matches template (services, networks, volumes, secrets sections)
+  - [ ] Commit with message: "refactor(deploy): replace cryptoutil-suite compose with explicit services from template"
+- **Files**:
+  - `deployments/cryptoutil-suite/compose.yml` (replaced)
+  - `test-output/phase3/compose.yml.backup`
+
+#### Task 3.3: Update All Service Port Mappings to 28XXX Range
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.2
+- **Description**: Update all 27 port mappings (9 services × 3 instances) from 8XXX → 28XXX
+- **Acceptance Criteria**:
+  - [ ] Update sm-kms-app-sqlite-1: 8000 → 28000
+  - [ ] Update sm-kms-app-postgres-1: 8001 → 28001
+  - [ ] Update sm-kms-app-postgres-2: 8002 → 28002
+  - [ ] Update pki-ca-app-sqlite-1: 8100 → 28100
+  - [ ] Update pki-ca-app-postgres-1: 8101 → 28101
+  - [ ] Update pki-ca-app-postgres-2: 8102 → 28102
+  - [ ] Update identity-authz-app-sqlite-1: 8200 → 28200
+  - [ ] Update identity-authz-app-postgres-1: 8201 → 28201
+  - [ ] Update identity-authz-app-postgres-2: 8202 → 28202
+  - [ ] Update identity-idp-app-sqlite-1: 8300 → 28300
+  - [ ] Update identity-idp-app-postgres-1: 8301 → 28301
+  - [ ] Update identity-idp-app-postgres-2: 8302 → 28302
+  - [ ] Update identity-rs-app-sqlite-1: 8400 → 28400
+  - [ ] Update identity-rs-app-postgres-1: 8401 → 28401
+  - [ ] Update identity-rs-app-postgres-2: 8402 → 28402
+  - [ ] Update identity-rp-app-sqlite-1: 8500 → 28500
+  - [ ] Update identity-rp-app-postgres-1: 8501 → 28501
+  - [ ] Update identity-rp-app-postgres-2: 8502 → 28502
+  - [ ] Update identity-spa-app-sqlite-1: 8600 → 28600
+  - [ ] Update identity-spa-app-postgres-1: 8601 → 28601
+  - [ ] Update identity-spa-app-postgres-2: 8602 → 28602
+  - [ ] Update cipher-im-app-sqlite-1: 8700 → 28700
+  - [ ] Update cipher-im-app-postgres-1: 8701 → 28701
+  - [ ] Update cipher-im-app-postgres-2: 8702 → 28702
+  - [ ] Update jose-ja-app-sqlite-1: 8800 → 28800
+  - [ ] Update jose-ja-app-postgres-1: 8801 → 28801
+  - [ ] Update jose-ja-app-postgres-2: 8802 → 28802
+  - [ ] Verify all port mappings follow pattern: "28XXX:8000" (container port remains 8000)
+  - [ ] Document changes in `test-output/phase3/port-updates.txt`
+  - [ ] Commit with message: "refactor(deploy): update all cryptoutil-suite ports to 28XXX range (SUITE-level offset)"
+- **Files**:
+  - `deployments/cryptoutil-suite/compose.yml` (27 port mappings updated)
+  - `test-output/phase3/port-updates.txt`
+
+#### Task 3.4: Validate Port Updates with Linter
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.3
+- **Description**: Run port validator to confirm all ports in 28XXX range
+- **Acceptance Criteria**:
+  - [ ] Run: `go run ./cmd/cicd lint-deployments validate-all`
+  - [ ] Verify ValidatePorts passes for deployments/cryptoutil-suite/
+  - [ ] Verify all 67 validators still pass (no regressions)
+  - [ ] Document validation results in `test-output/phase3/port-validation.txt`
+  - [ ] If failures: fix issues and re-validate until all pass
+- **Files**:
+  - `test-output/phase3/port-validation.txt`
+
+#### Task 3.5: Update Volume Path References
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.3
+- **Description**: Update all volume mount paths from ../PRODUCT-SERVICE/config/ to correct relative paths
+- **Acceptance Criteria**:
+  - [ ] Verify all volume paths use correct relative references (e.g., `../sm-kms/config/...`)
+  - [ ] Verify telemetry config paths (../shared-telemetry/otel/cryptoutil-otel.yml)
+  - [ ] Test one volume mount to confirm file exists at specified path
+  - [ ] Document any path corrections in `test-output/phase3/volume-paths.txt`
+  - [ ] Commit if changes needed: "fix(deploy): correct volume mount paths in cryptoutil-suite"
+- **Files**:
+  - `test-output/phase3/volume-paths.txt`
+
+#### Task 3.6: Update Secrets Configuration
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.2
+- **Description**: Verify secrets configuration matches SUITE-level requirements
+- **Acceptance Criteria**:
+  - [ ] Verify cryptoutil-suite/secrets/ directory has all required secrets
+  - [ ] Verify compose.yml secrets section references correct secret files
+  - [ ] Verify SUITE-level hash pepper override pattern documented
+  - [ ] Test secret file permissions (440 r--r-----)
+  - [ ] Document secrets inventory in `test-output/phase3/secrets-inventory.txt`
+- **Files**:
+  - `test-output/phase3/secrets-inventory.txt`
+
+#### Task 3.7: Test SUITE Deployment Startup
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 3.4, 3.5, 3.6
+- **Description**: Test SUITE-level deployment with docker compose up
+- **Acceptance Criteria**:
+  - [ ] Ensure Docker Desktop running
+  - [ ] Run: `cd deployments/cryptoutil-suite && docker compose config` (verify syntax)
+  - [ ] Run: `docker compose --profile dev up -d` (start SQLite instances only)
+  - [ ] Wait for all services healthy (up to 120 seconds)
+  - [ ] Verify all 9 services started successfully
+  - [ ] Verify health endpoints respond on 28XXX ports
+  - [ ] Test one health endpoint: `curl https://localhost:28000/browser/api/v1/health` (sm-kms)
+  - [ ] Run: `docker compose logs --tail=20` (capture startup logs)
+  - [ ] Run: `docker compose down -v` (cleanup)
+  - [ ] Document test results in `test-output/phase3/deployment-test.txt`
+  - [ ] If failures: diagnose, fix, re-test until all pass
+- **Files**:
+  - `test-output/phase3/deployment-test.txt`
+
+#### Task 3.8: Verify Port Validator Handles SUITE-Level
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 3.4
+- **Description**: Confirm port validator correctly detects cryptoutil-suite as SUITE-level deployment
+- **Acceptance Criteria**:
+  - [ ] Review internal/cmd/cicd/lint_deployments/validate_ports.go for SUITE detection logic
+  - [ ] Verify DeploymentTypeSuite constant exists and equals "SUITE"
+  - [ ] Verify getDeploymentLevel() returns "SUITE" for "cryptoutil-suite" directory
+  - [ ] Verify suitePortMin = 28000, suitePortMax = 28999
+  - [ ] Run unit tests: `go test ./internal/cmd/cicd/lint_deployments/... -run TestValidatePorts_Suite`
+  - [ ] Document validator behavior in `test-output/phase3/validator-analysis.txt`
+  - [ ] If logic missing: implement and test (becomes blocker)
+- **Files**:
+  - `test-output/phase3/validator-analysis.txt`
+
+#### Task 3.9: Phase 3 Post-Mortem
+
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Tasks 3.1-3.8
+- **Description**: Post-mortem analysis for Phase 3
+- **Acceptance Criteria**:
+  - [ ] Create `test-output/phase3/phase3-summary.txt` with: tasks complete, evidence files, discoveries, blockers, next phase
+  - [ ] Update plan.md Phase 3 section with completion notes, actual time, deferred work
+  - [ ] Identify any new phases/tasks to insert or append
+  - [ ] Mark Phase 3 complete in plan.md success criteria
+  - [ ] Commit with comprehensive message listing all Phase 3 changes
+- **Files**:
+  - `test-output/phase3/phase3-summary.txt`
+
+---
+
+### Phases 4-13: High-Level Task Outlines
 
 **Note**: Detailed tasks will be created as each phase is reached (dynamic work discovery pattern).
 
-**Phase 3**: SUITE-Level Refactoring (9 tasks estimated)
 **Phase 4**: PRODUCT-Level Standardization (7 tasks estimated)
 **Phase 5**: SERVICE-Level Verification (8 tasks estimated)
 **Phase 6**: Legacy E2E Migration (12 tasks estimated)
