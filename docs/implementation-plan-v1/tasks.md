@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 52 of 99 tasks complete (52.5%) - Phase 1 COMPLETE, Phase 2 COMPLETE, Phase 3 COMPLETE, Phase 4 COMPLETE, Phase 5 COMPLETE, Phase 6 COMPLETE, Phase 7 COMPLETE
+**Status**: 60 of 99 tasks complete (60.6%) - Phase 1 COMPLETE, Phase 2 COMPLETE, Phase 3 COMPLETE, Phase 4 COMPLETE, Phase 5 COMPLETE, Phase 6 COMPLETE, Phase 7 COMPLETE, Phase 8 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -805,108 +805,108 @@
 ### Phase 8: Validator Updates
 
 #### Task 8.1: Fix SUITE Path in validate_deployments.go
-- **Status**: ❌ Not Started
+- **Status**: ✅ (commit 68edcff8)
 - **Owner**: LLM Agent
 - **Estimated**: 0.3h
 - **Dependencies**: Phase 7 complete
 - **Description**: Update `ValidateAllDeployments()` - change SUITE path from `"cryptoutil"` to `"cryptoutil-suite"`, remove `"compose"` from infraNames (archived in Phase 5)
 - **Files**: internal/cmd/cicd/lint_deployments/validate_deployments.go
 - **Acceptance Criteria**:
-  - [ ] SUITE path updated to `"cryptoutil-suite"`
-  - [ ] `"compose"` removed from infrastructure names
-  - [ ] go build passes
-  - [ ] Commit with evidence
+  - [x] SUITE path updated to `"cryptoutil-suite"`
+  - [x] `"compose"` removed from infrastructure names
+  - [x] go build passes
+  - [x] Commit with evidence
 
 #### Task 8.2: Fix SUITE Classification in validate_all.go
-- **Status**: ❌ Not Started
+- **Status**: ✅ (commit 68edcff8)
 - **Owner**: LLM Agent
 - **Estimated**: 0.2h
 - **Dependencies**: Task 8.1
 - **Description**: Update `classifyDeployment()` to recognize `"cryptoutil-suite"` as SUITE type instead of `"cryptoutil"`
 - **Files**: internal/cmd/cicd/lint_deployments/validate_all.go
 - **Acceptance Criteria**:
-  - [ ] `classifyDeployment("cryptoutil-suite")` returns DeploymentTypeSuite
-  - [ ] go build passes
-  - [ ] Commit with evidence
+  - [x] `classifyDeployment("cryptoutil-suite")` returns DeploymentTypeSuite
+  - [x] go build passes
+  - [x] Commit with evidence
 
 #### Task 8.3: Fix Required Contents Listings
-- **Status**: ❌ Not Started
+- **Status**: ✅ (commit 68edcff8)
 - **Owner**: LLM Agent
 - **Estimated**: 0.3h
 - **Dependencies**: Task 8.1
 - **Description**: Update `GetDeploymentDirectories()` and `GetExpectedDeploymentsContents()` - SUITE `"cryptoutil"` → `"cryptoutil-suite"`, remove `"compose"` from infrastructure, update all content paths (`cryptoutil/` → `cryptoutil-suite/`), add Dockerfile to SUITE required files
 - **Files**: internal/cmd/cicd/lint_deployments/lint_required_contents_deployments.go
 - **Acceptance Criteria**:
-  - [ ] Directory listing returns `"cryptoutil-suite"`
-  - [ ] Content paths use `"cryptoutil-suite/"` prefix
-  - [ ] `"compose"` removed from infrastructure
-  - [ ] Dockerfile added to SUITE contents
-  - [ ] go build passes
-  - [ ] Commit with evidence
+  - [x] Directory listing returns `"cryptoutil-suite"`
+  - [x] Content paths use `"cryptoutil-suite/"` prefix
+  - [x] `"compose"` removed from infrastructure
+  - [x] Dockerfile added to SUITE contents
+  - [x] go build passes
+  - [x] Commit with evidence
 
 #### Task 8.4: Fix Mirror Validator
-- **Status**: ❌ Not Started
+- **Status**: ✅ (commit 68edcff8)
 - **Owner**: LLM Agent
 - **Estimated**: 0.2h
 - **Dependencies**: Task 8.1
 - **Description**: Remove `"compose"` from `excludedDeployments` in validate_mirror.go, update SUITE comment, add `"cryptoutil-suite"` to excluded if needed (SUITE has no separate configs counterpart - uses `configs/cryptoutil`)
 - **Files**: internal/cmd/cicd/lint_deployments/validate_mirror.go
 - **Acceptance Criteria**:
-  - [ ] `"compose"` removed from excluded deployments
-  - [ ] Mirror validation handles cryptoutil-suite correctly
-  - [ ] go build passes
-  - [ ] Commit with evidence
+  - [x] `"compose"` removed from excluded deployments
+  - [x] Mirror validation handles cryptoutil-suite correctly
+  - [x] go build passes
+  - [x] Commit with evidence
 
 #### Task 8.5: Fix SUITE Structure Definition
-- **Status**: ❌ Not Started
+- **Status**: ✅ (commit 68edcff8)
 - **Owner**: LLM Agent
 - **Estimated**: 0.2h
 - **Dependencies**: Task 8.1
 - **Description**: Update SUITE description in `GetExpectedStructures()` to mention `cryptoutil-suite`, add Dockerfile to RequiredFiles
 - **Files**: internal/cmd/cicd/lint_deployments/lint_deployments.go
 - **Acceptance Criteria**:
-  - [ ] SUITE structure description updated
-  - [ ] Dockerfile added to SUITE RequiredFiles
-  - [ ] go build passes
-  - [ ] Commit with evidence
+  - [x] SUITE structure description updated
+  - [x] Dockerfile added to SUITE RequiredFiles
+  - [x] go build passes
+  - [x] Commit with evidence
 
 #### Task 8.6: Update All Test Files
-- **Status**: ❌ Not Started
+- **Status**: ✅ (commit 68edcff8)
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Dependencies**: Tasks 8.1-8.5
 - **Description**: Update test files: `validate_all_test.go` (classifyDeployment, discoverDeploymentDirs), `lint_deployments_test.go` (SUITE dir name), `lint_required_contents_test.go` (directory listings), `validate_mirror_test.go` (compose excluded), `validate_ports_test.go` (SUITE deployment name)
 - **Files**: internal/cmd/cicd/lint_deployments/*_test.go
 - **Acceptance Criteria**:
-  - [ ] All test references use `"cryptoutil-suite"` for SUITE
-  - [ ] `"compose"` removed from infrastructure test data
-  - [ ] All tests pass
-  - [ ] Commit with evidence
+  - [x] All test references use `"cryptoutil-suite"` for SUITE
+  - [x] `"compose"` removed from infrastructure test data
+  - [x] All tests pass
+  - [x] Commit with evidence
 
 #### Task 8.7: Validation & Coverage
-- **Status**: ❌ Not Started
+- **Status**: ✅ (commit 6f5d1d75)
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
 - **Dependencies**: Tasks 8.1-8.6
 - **Description**: Full validation: build, lint, validate-all, tests, coverage ≥98%
 - **Acceptance Criteria**:
-  - [ ] go build ./... passes
-  - [ ] golangci-lint run --fix ./... clean
-  - [ ] go run ./cmd/cicd lint-deployments validate-all passes (with SUITE validation actually running)
-  - [ ] go test ./internal/cmd/cicd/lint_deployments/ -cover shows ≥98%
-  - [ ] go test ./... passes
-  - [ ] Commit with evidence
+  - [x] go build ./... passes
+  - [x] golangci-lint run --fix ./... clean
+  - [x] go run ./cmd/cicd lint-deployments validate-all passes (with SUITE validation actually running)
+  - [x] go test ./internal/cmd/cicd/lint_deployments/ -cover shows ≥98%
+  - [x] go test ./... passes
+  - [x] Commit with evidence
 
 #### Task 8.8: Phase 8 Post-Mortem
-- **Status**: ❌ Not Started
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.2h
 - **Dependencies**: Task 8.7
 - **Description**: Phase 8 completion analysis
 - **Acceptance Criteria**:
-  - [ ] Post-mortem written to test-output/phase8/post-mortem.md
-  - [ ] Update plan.md Phase 8 section
-  - [ ] Commit with comprehensive message
+  - [x] Post-mortem written to test-output/phase8/post-mortem.md
+  - [x] Update plan.md Phase 8 section
+  - [x] Commit with comprehensive message
 
 ---
 
