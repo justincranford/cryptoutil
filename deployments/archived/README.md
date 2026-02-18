@@ -8,9 +8,9 @@ This directory contains deprecated deployment configurations that have been arch
 
 **Original Location**: `deployments/compose/`
 
-**Reason for Archival**: 
+**Reason for Archival**:
 - Breaks SUITE→PRODUCT→SERVICE hierarchical pattern
-- Used by legacy E2E tests in `internal/test/e2e/` 
+- Used by legacy E2E tests in `internal/test/e2e/`
 - Does NOT use service-template ComposeManager pattern
 - Custom infrastructure duplicates template functionality
 
@@ -59,4 +59,3 @@ This directory contains deprecated deployment configurations that have been arch
 - `deployments/cryptoutil-suite/Dockerfile` (shared build Dockerfile)
 
 **DO NOT DELETE**: Contains reference secrets and the delegation compose pattern.
-

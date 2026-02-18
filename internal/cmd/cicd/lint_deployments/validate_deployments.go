@@ -341,4 +341,3 @@ func checkOTLPProtocolOverride(basePath string, deploymentName string, structTyp
 		}
 	}
 }
-

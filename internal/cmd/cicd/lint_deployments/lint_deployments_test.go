@@ -283,7 +283,7 @@ func TestValidateAllDeployments_ProductAndSuiteAndTemplate(t *testing.T) {
 				t.Helper()
 
 				tmpDir := t.TempDir()
-					suiteDir := filepath.Join(tmpDir, "cryptoutil-suite")
+				suiteDir := filepath.Join(tmpDir, "cryptoutil-suite")
 				require.NoError(t, os.MkdirAll(filepath.Join(suiteDir, "secrets"), 0o750))
 				require.NoError(t, os.WriteFile(
 					filepath.Join(suiteDir, "compose.yml"),
