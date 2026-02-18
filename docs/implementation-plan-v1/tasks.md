@@ -643,7 +643,149 @@
   - [x] No blockers identified, no new tasks needed
   - [x] Commit with comprehensive message
 
-**Phase 6**: Legacy E2E Migration (12 tasks estimated)
+**Phase 6**: Legacy E2E Migration (12 tasks)
+
+---
+
+### Phase 6: Legacy E2E & Reference Fixes
+
+**Phase Objective**: Fix broken E2E compose references, port constants, and CI workflow paths
+**Estimated Duration**: 3h
+
+#### Task 6.1: Fix Identity E2E Compose Reference
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Phase 5
+- **Description**: Fix IdentityE2EComposeFile to point to existing compose file (compose.e2e.yml was deleted in b3f443b9)
+- **Acceptance Criteria**:
+  - [ ] Update IdentityE2EComposeFile in magic_identity.go to point to deployments/identity/compose.yml
+  - [ ] Update identity E2E port constants to match PRODUCT-level ports (18200, 18300, 18400, 18500, 18600)
+  - [ ] go vet -tags=e2e ./internal/apps/identity/e2e/ passes
+  - [ ] Commit with evidence
+
+#### Task 6.2: Fix JOSE E2E Port Constants
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Phase 5
+- **Description**: Fix JoseJAE2EPostgreSQL ports (9444→8801, 9445→8802) to match SERVICE compose
+- **Acceptance Criteria**:
+  - [ ] JoseJAE2EPostgreSQL1PublicPort updated to 8801
+  - [ ] JoseJAE2EPostgreSQL2PublicPort updated to 8802
+  - [ ] go build ./... passes
+  - [ ] Commit with evidence
+
+#### Task 6.3: Fix Legacy E2E Compose Path
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Dependencies**: Phase 5
+- **Description**: Update internal/test/e2e/docker_utils.go compose path (deployments/compose/compose.yml no longer exists)
+- **Acceptance Criteria**:
+  - [ ] Assess compose path options (SUITE vs archived vs new E2E compose)
+  - [ ] Implement chosen approach
+  - [ ] go vet -tags=e2e ./internal/test/e2e/ passes
+  - [ ] Commit with evidence
+
+#### Task 6.4: Update CI E2E Workflow
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Tasks 6.1-6.3
+- **Description**: Fix ci-e2e.yml references (deployments/ca→pki-ca, etc.)
+- **Acceptance Criteria**:
+  - [ ] All compose file paths in ci-e2e.yml corrected
+  - [ ] Workflow uses correct deployment directory names
+  - [ ] Commit with evidence
+
+#### Task 6.5: Fix Stale E2E Comments
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Tasks 6.1-6.4
+- **Description**: Fix stale comments in cipher-im E2E (8070→8700 etc.) and identity E2E (8100→correct)
+- **Acceptance Criteria**:
+  - [ ] All E2E code comments match actual port values
+  - [ ] Commit with evidence
+
+#### Task 6.6: Fix Identity E2E Container Names
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Task 6.1
+- **Description**: Identity E2E container names (identity-authz-e2e) may not match PRODUCT compose service names
+- **Acceptance Criteria**:
+  - [ ] Verify identity E2E container names match PRODUCT compose service names
+  - [ ] Update magic constants if needed
+  - [ ] Commit with evidence
+
+#### Task 6.7: Fix magic_testing.go E2E Port Constants
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Tasks 6.1-6.3
+- **Description**: TestAuthZServerPort=8080, TestIDPServerPort=8081 etc. are stale
+- **Acceptance Criteria**:
+  - [ ] Verify if constants are used anywhere or can be removed
+  - [ ] Update or document as needed
+  - [ ] Commit with evidence
+
+#### Task 6.8: Build Validation
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Tasks 6.1-6.7
+- **Description**: Full build and vet with E2E tags
+- **Acceptance Criteria**:
+  - [ ] go build ./... passes
+  - [ ] go vet ./... passes
+  - [ ] go vet -tags=e2e ./... passes
+  - [ ] Commit with evidence
+
+#### Task 6.9: Lint Validation
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Task 6.8
+- **Description**: Full lint pass
+- **Acceptance Criteria**:
+  - [ ] golangci-lint run --fix ./... clean
+  - [ ] golangci-lint run ./... clean
+  - [ ] Commit if changes
+
+#### Task 6.10: Deployment Validator Validation
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Task 6.8
+- **Description**: All 67 deployment validators still pass
+- **Acceptance Criteria**:
+  - [ ] go run ./cmd/cicd lint-deployments validate-all passes (67/67)
+  - [ ] Evidence saved
+
+#### Task 6.11: Full Test Suite
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Dependencies**: Task 6.9
+- **Description**: Run full test suite (non-E2E) to verify no regressions
+- **Acceptance Criteria**:
+  - [ ] go test ./... passes (non-E2E tests)
+  - [ ] No regressions from E2E constant changes
+  - [ ] Commit with evidence
+
+#### Task 6.12: Phase 6 Post-Mortem
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.2h
+- **Dependencies**: Tasks 6.8-6.11
+- **Description**: Phase 6 completion analysis
+- **Acceptance Criteria**:
+  - [ ] Post-mortem written to test-output/phase6/
+  - [ ] Update plan.md Phase 6 section
+  - [ ] Identify blockers or new tasks
+  - [ ] Commit with comprehensive message
 **Phase 7**: Archive Legacy Directories (5 tasks estimated)
 **Phase 8**: Validator Updates (8 tasks estimated)
 **Phase 9**: Documentation Complete Update (10 tasks estimated)
