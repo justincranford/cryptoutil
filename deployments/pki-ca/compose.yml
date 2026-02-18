@@ -1,22 +1,27 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# CA Docker Compose Configuration
+# PKI-CA Docker Compose Configuration
 #
-# This compose file provides the CA (Certificate Authority) services.
-# It includes shared telemetry services from deploymen../shared-telemetry/compose.yml.
+# SERVICE-level deployment for PKI Certificate Authority.
+# Supports 3 instances: 1 SQLite + 2 PostgreSQL.
+#
+# Port allocation (SERVICE level: 8100-8199):
+#   - pki-ca-app-sqlite-1:    8100 (SQLite, dev/demo/ci)
+#   - pki-ca-app-postgres-1:  8101 (PostgreSQL instance 1) [--profile postgres]
+#   - pki-ca-app-postgres-2:  8102 (PostgreSQL instance 2) [--profile postgres]
+#   - pki-ca-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
-#   docker compose -f compose.yml up -d                        # Default (dev profile)
-#   docker compose -f compose.yml --profile dev up -d          # Development mode - SQLite
-#   docker compose -f compose.yml --profile demo up -d         # Demo mode with seeded data
-#   docker compose -f compose.yml --profile ci up -d           # CI mode for testing
-#   docker compose -f compose.yml --profile postgres up -d     # PostgreSQL backend
+#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode
+#   docker compose -f compose.yml --profile ci up -d           # CI mode
+#   docker compose -f compose.yml logs -f                      # View logs
+#   docker compose -f compose.yml down -v                      # Stop and clean up
 #
-# Profiles:
-#   - dev: Development mode (default) - SQLite backend, minimal services
-#   - demo: Demo mode with seeded data, SQLite backend
-#   - ci: CI mode for testing, SQLite backend
-#   - postgres: PostgreSQL backend with multiple instances
+# Health Checks:
+#   - Public health endpoint: https://localhost:8100/browser/api/v1/health
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
   - path: ../shared-telemetry/compose.yml
@@ -31,16 +36,17 @@ services:
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
+      - hash-pepper-v3.secret
       - postgres-url.secret
       - postgres-username.secret
       - postgres-password.secret
       - postgres-database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
-      - ca-network
+      - pki-ca-network
 
-  # Build cryptoutil image from source.
-  builder-cryptoutil:
+  # Build pki-ca image from source.
+  builder-pki-ca:
     image: cryptoutil:dev
     build:
       context: ../..
@@ -48,18 +54,19 @@ services:
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
-        BUILD_DATE: "2025-12-12T00:00:00Z"
+        BUILD_DATE: "2026-02-17T00:00:00Z"
     entrypoint: ["sh", "-c"]
     command: ["echo 'Build completed successfully'"]
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
 
-  # PostgreSQL database for CA persistence.
-  # See https://hub.docker.com/_/postgres#how-to-use-this-image
-  postgres:
+  # PostgreSQL database for pki-ca persistence.
+  pki-ca-db-postgres-1:
     profiles: ["postgres"]
     image: postgres:18
+    container_name: pki-ca-postgres
+    hostname: pki-ca-postgres
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
@@ -68,7 +75,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql
     secrets:
       - postgres-username.secret
       - postgres-password.secret
@@ -83,7 +90,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - ca-network
+      - pki-ca-network
     deploy:
       resources:
         limits:
@@ -91,29 +98,20 @@ services:
         reservations:
           memory: 256M
 
-  # CA server with SQLite backend (dev/demo/ci mode).
-  ca-sqlite:
+  # pki-ca server with SQLite backend (dev/demo/ci mode).
+  pki-ca-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command:
-      [
-        "ca",
-        "start",
-        "--config=/app/config/pki-ca-app-sqlite-1.yml",
-        "--config=/app/config/pki-ca-app-common.yml",
-        "--config=/app/otel/otel.yml",
-      ]
+    command: ["ca", "start", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "8050:8050"  # HTTPS public
+      - "8100:8080"  # HTTPS public
     volumes:
       - ./config/pki-ca-app-sqlite-1.yml:/app/config/pki-ca-app-sqlite-1.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./ca-crls:/app/crls  # CRL distribution point
+      - ./ca-crls:/app/crls
     secrets:
-      # CRITICAL: ALL CA instances MUST use the SAME unseal secrets
-      # for shared encryption/decryption. NEVER use instance-specific secrets.
       - unseal-1of5.secret
       - unseal-2of5.secret
       - unseal-3of5.secret
@@ -122,21 +120,20 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      builder-cryptoutil:
+      builder-pki-ca:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
-      # Use wget (available in Alpine), not curl.
-      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers.
-      # Admin health endpoint (provided by service-template).
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
-      - ca-network
+      - pki-ca-network
       - telemetry-network
     deploy:
       resources:
@@ -145,55 +142,45 @@ services:
         reservations:
           memory: 128M
 
-  # CA server with PostgreSQL backend (instance 1).
-  ca-postgres-1:
+  # pki-ca server with PostgreSQL backend (instance 1).
+  pki-ca-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command:
-      [
-        "ca",
-        "start",
-        "--config=/app/config/pki-ca-app-postgresql-1.yml",
-        "--config=/app/config/pki-ca-app-common.yml",
-        "--config=/app/otel/otel.yml",
-        "-u",
-        "file:///run/secrets/postgres-url.secret",
-      ]
+    command: ["ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8444:8050"  # HTTPS public
+      - "8101:8080"  # HTTPS public
     volumes:
       - ./config/pki-ca-app-postgresql-1.yml:/app/config/pki-ca-app-postgresql-1.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./ca-crls:/app/crls  # CRL distribution point
+      - ./ca-crls:/app/crls
     secrets:
-      # CRITICAL: ALL CA instances MUST use the SAME unseal secrets.
       - unseal-1of5.secret
       - unseal-2of5.secret
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
-      # PostgreSQL connection URL.
       - postgres-url.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      builder-cryptoutil:
+      builder-pki-ca:
         condition: service_completed_successfully
-      postgres:
+      pki-ca-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
-      # Admin health endpoint (provided by service-template).
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - ca-network
+      - pki-ca-network
       - telemetry-network
     deploy:
       resources:
@@ -202,58 +189,47 @@ services:
         reservations:
           memory: 128M
 
-  # CA server with PostgreSQL backend (instance 2 - shared DB with instance 1).
-  ca-postgres-2:
+  # pki-ca server with PostgreSQL backend (instance 2 - shared DB with instance 1).
+  pki-ca-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command:
-      [
-        "ca",
-        "start",
-        "--config=/app/config/pki-ca-app-postgresql-2.yml",
-        "--config=/app/config/pki-ca-app-common.yml",
-        "--config=/app/otel/otel.yml",
-        "-u",
-        "file:///run/secrets/postgres-url.secret",
-      ]
+    command: ["ca", "start", "--config=/app/config/pki-ca-app-postgresql-2.yml", "--config=/app/config/pki-ca-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "8445:8050"  # HTTPS public
+      - "8102:8080"  # HTTPS public
     volumes:
       - ./config/pki-ca-app-postgresql-2.yml:/app/config/pki-ca-app-postgresql-2.yml:ro
       - ./config/pki-ca-app-common.yml:/app/config/pki-ca-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
-      - ./ca-crls:/app/crls  # CRL distribution point
+      - ./ca-crls:/app/crls
     secrets:
-      # CRITICAL: ALL CA instances MUST use the SAME unseal secrets.
       - unseal-1of5.secret
       - unseal-2of5.secret
       - unseal-3of5.secret
       - unseal-4of5.secret
       - unseal-5of5.secret
-      # PostgreSQL connection URL (shared with instance 1).
       - postgres-url.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      builder-cryptoutil:
+      builder-pki-ca:
         condition: service_completed_successfully
-      postgres:
+      pki-ca-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
-      # Wait for instance 1 to initialize shared database.
-      ca-postgres-1:
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+      pki-ca-app-postgres-1:
         condition: service_healthy
     healthcheck:
-      # Admin health endpoint (provided by service-template).
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - ca-network
+      - pki-ca-network
       - telemetry-network
     deploy:
       resources:
@@ -263,15 +239,14 @@ services:
           memory: 128M
 
 networks:
-  ca-network:
+  pki-ca-network:
     driver: bridge
 
 volumes:
-  postgres_data:
-    name: ca-postgres-volume
+  postgres-data:
+    name: pki-ca-postgres-volume
 
 secrets:
-  # PostgreSQL secrets.
   postgres-username.secret:
     file: ./secrets/postgres-username.secret
   postgres-password.secret:
@@ -279,24 +254,9 @@ secrets:
   postgres-database.secret:
     file: ./secrets/postgres-database.secret
   postgres-url.secret:
-
-  # Browser authentication credentials (web UI access)
-  browser-username.secret:
-    file: ./secrets/browser-username.secret
-  browser-password.secret:
-    file: ./secrets/browser-password.secret
-
-  # Service authentication credentials (headless/API access)
-  service-username.secret:
-    file: ./secrets/service-username.secret
-  service-password.secret:
-    file: ./secrets/service-password.secret
     file: ./secrets/postgres-url.secret
-
-  # Unseal secrets (MUST be identical across all CA instances).
-  # CRITICAL: ALL cryptoutil instances MUST use the SAME unseal secrets
-  # to enable shared encryption/decryption of data in the database.
-  # NEVER create instance-specific secrets - breaks cryptographic interoperability.
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
   unseal-1of5.secret:
     file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:
