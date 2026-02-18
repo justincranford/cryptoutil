@@ -2165,7 +2165,128 @@ func TestE2E_SendMessage(t *testing.T) {
 - Health check polling
 - TLS-enabled HTTP client for secure testing
 
-#### 10.4.2 E2E Test Scope
+#### 10.4.2 Docker Compose Health Check Patterns
+
+**Three Healthcheck Use Cases**:
+
+Docker Compose health checking supports three distinct patterns. The `docker compose up --wait` flag ONLY works with containers that have native `HEALTHCHECK` instructions in their Dockerfile. Many third-party containers (e.g., `otel/opentelemetry-collector-contrib`) lack native healthchecks, requiring alternative approaches.
+
+##### Use Case 1: Job-Only Healthchecks
+
+**Pattern**: Standalone job that must exit successfully (ExitCode=0)
+
+**Examples**: `healthcheck-secrets`, `builder-cryptoutil`
+
+**Usage**:
+```go
+services := []e2e.ServiceAndJob{
+    {Service: "", Job: "healthcheck-secrets"},
+}
+err := composeManager.WaitForServicesHealthy(ctx, services)
+```
+
+**Docker Compose Pattern**:
+```yaml
+healthcheck-secrets:
+  image: alpine:latest
+  command:
+    - sh
+    - -c
+    - |
+      for secret in unseal_1 unseal_2 unseal_3 unseal_4 unseal_5 hash_pepper_v3 postgres_url; do
+        test -f /run/secrets/$${secret}.secret || exit 1;
+      done
+      echo 'All secrets validated'
+  secrets:
+    - unseal_1.secret
+    - unseal_2.secret
+    - unseal_3.secret
+```
+
+##### Use Case 2: Service-Only Healthchecks
+
+**Pattern**: Services with native HEALTHCHECK instructions in their container image or Dockerfile
+
+**Examples**: `cryptoutil-sqlite`, `cryptoutil-postgres-1`, `postgres`, `grafana-otel-lgtm`
+
+**Usage**:
+```go
+services := []e2e.ServiceAndJob{
+    {Service: "cryptoutil-sqlite", Job: ""},
+    {Service: "postgres", Job: ""},
+}
+err := composeManager.WaitForServicesHealthy(ctx, services)
+```
+
+**Docker Compose Pattern**:
+```yaml
+cryptoutil-sqlite:
+  image: cryptoutil:latest
+  healthcheck:
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null",
+           "https://127.0.0.1:8080/admin/api/v1/livez"]
+    interval: 10s
+    timeout: 5s
+    retries: 3
+    start_period: 20s
+```
+
+##### Use Case 3: Service with Healthcheck Job
+
+**Pattern**: Services without native healthchecks use external sidecar job for health verification
+
+**Example**: `opentelemetry-collector-contrib` with `healthcheck-opentelemetry-collector-contrib`
+
+**Usage**:
+```go
+services := []e2e.ServiceAndJob{
+    {Service: "opentelemetry-collector-contrib", Job: "healthcheck-opentelemetry-collector-contrib"},
+}
+err := composeManager.WaitForServicesHealthy(ctx, services)
+```
+
+**Docker Compose Pattern**:
+```yaml
+opentelemetry-collector-contrib:
+  image: otel/opentelemetry-collector-contrib:latest
+  # No native HEALTHCHECK in container image
+  
+healthcheck-opentelemetry-collector-contrib:
+  image: alpine:latest
+  command:
+    - sh
+    - -c
+    - |
+      apk add --no-cache wget
+      for i in $(seq 1 30); do
+        if wget --quiet --tries=1 --spider --timeout=2 http://opentelemetry-collector-contrib:13133/ 2>/dev/null; then
+          echo "OpenTelemetry Collector is ready"
+          exit 0
+        fi
+        sleep 2
+      done
+      exit 1
+  depends_on:
+    opentelemetry-collector-contrib:
+      condition: service_started
+```
+
+**ServiceAndJob Struct**:
+
+```go
+// Three use cases:
+// 1. Job-only: ServiceAndJob{Service: "", Job: "job-name"}
+// 2. Service-only: ServiceAndJob{Service: "service-name", Job: ""}
+// 3. Service with job: ServiceAndJob{Service: "service-name", Job: "job-name"}
+type ServiceAndJob struct {
+    Service string // Service name (empty for standalone jobs)
+    Job     string // Healthcheck job name (empty if service has native healthcheck)
+}
+```
+
+**Implementation**: See `internal/apps/template/testing/e2e/docker_health.go` for parseDockerComposePsOutput(), determineServiceHealthStatus(), WaitForServicesHealthy().
+
+#### 10.4.3 E2E Test Scope
 
 - MUST test BOTH `/service/**` and `/browser/**` paths
 - Verify middleware behavior (IP allowlist, CSRF, CORS)
@@ -2571,15 +2692,40 @@ services:
 
 ##### Health Checks
 
+**Three Healthcheck Patterns** (see Section 10.4.2 for details):
+
+1. **Service-only** (native HEALTHCHECK):
 ```yaml
-healthcheck:
-  test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null",
-         "https://127.0.0.1:9090/admin/api/v1/livez"]
-  start_period: 60s
-  interval: 5s
+cryptoutil-service:
+  healthcheck:
+    test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null",
+           "https://127.0.0.1:9090/admin/api/v1/livez"]
+    start_period: 60s
+    interval: 5s
 ```
 
-**Use wget (Alpine), 127.0.0.1 (not localhost), port 9090.**
+2. **Job-only** (validation job, ExitCode=0 required):
+```yaml
+healthcheck-secrets:
+  image: alpine:latest
+  command: ["sh", "-c", "test -f /run/secrets/unseal_1.secret || exit 1"]
+```
+
+3. **Service with healthcheck job** (external sidecar):
+```yaml
+otel-collector:
+  image: otel/opentelemetry-collector-contrib:latest
+  # No native healthcheck
+
+healthcheck-otel-collector:
+  image: alpine:latest
+  command: ["sh", "-c", "wget --spider http://otel-collector:13133/"]
+  depends_on:
+    otel-collector:
+      condition: service_started
+```
+
+**Use wget (Alpine), 127.0.0.1 (not localhost), port 9090 for services. Job-only and service-with-job patterns validate availability before services start.**
 
 #### 12.3.2 Kubernetes Deployment
 

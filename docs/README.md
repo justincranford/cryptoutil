@@ -723,8 +723,15 @@ docker compose -f ./deployments/cryptoutil-suite/compose.yml up -d
 docker compose -f ./deployments/pki-ca/compose.yml up -d
 docker compose -f ./deployments/jose-ja/compose.yml up -d
 
-# Run E2E tests
-go test -tags=e2e -v -timeout=30m ./internal/test/e2e/
+# Run service-specific E2E tests (new pattern - uses service template)
+# Example: cipher-im service
+cd internal/apps/cipher/im
+go test -tags=e2e -v -timeout=30m ./...
+
+# Legacy E2E tests archived (see internal/test/archived/ARCHIVE.md)
+# New E2E tests use service template pattern with:
+# - internal/apps/template/service/testing/e2e/ (service-level helpers)
+# - internal/apps/template/testing/e2e/ (Docker Compose orchestration)
 
 # Cleanup
 docker compose -f ./deployments/cryptoutil-suite/compose.yml down -v
