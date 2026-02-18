@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 12 of 99 tasks complete (12.1%) - Phase 1 COMPLETE, Phase 2 COMPLETE
+**Status**: 13 of 99 tasks complete (13.1%) - Phase 1 COMPLETE, Phase 2 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -267,7 +267,7 @@
   - [x] Verify all port mappings follow pattern: "28XXX:8000" (container port remains 8000)
   - [x] Document changes in `test-output/phase3/port-updates.txt`
   - [x] Commit with message: "refactor(deploy): update all cryptoutil-suite ports to 28XXX range (SUITE-level offset)"
-- **Evidence**: 
+- **Evidence**:
   - Used sed batch update: 27 substitutions (8000→28000, 8001→28001, ..., 8802→28802)
   - Verified all ports: `test-output/phase3/updated-ports.txt` (27 ports in 28XXX range)
   - Summary: `test-output/phase3/port-updates.txt` (before/after comparison, verification checklist)
@@ -301,18 +301,26 @@
 
 #### Task 3.5: Update Volume Path References
 
-- **Status**: ☐
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 0.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.05h
 - **Dependencies**: Task 3.3
 - **Description**: Update all volume mount paths from ../PRODUCT-SERVICE/config/ to correct relative paths
 - **Acceptance Criteria**:
-  - [ ] Verify all volume paths use correct relative references (e.g., `../sm-kms/config/...`)
-  - [ ] Verify telemetry config paths (../shared-telemetry/otel/cryptoutil-otel.yml)
-  - [ ] Test one volume mount to confirm file exists at specified path
-  - [ ] Document any path corrections in `test-output/phase3/volume-paths.txt`
-  - [ ] Commit if changes needed: "fix(deploy): correct volume mount paths in cryptoutil-suite"
+  - [x] Verify all volume paths use correct relative references (e.g., `../sm-kms/config/...`)
+  - [x] Verify telemetry config paths (../shared-telemetry/otel/cryptoutil-otel.yml)
+  - [x] Test one volume mount to confirm file exists at specified path
+  - [x] Document any path corrections in `test-output/phase3/volume-paths.txt`
+  - [x] Commit if changes needed: "fix(deploy): correct volume mount paths in cryptoutil-suite"
+- **Evidence**:
+  - Verified all 81 volume mounts (27 services × 3 files each)
+  - Core services: sm-kms, pki-ca, jose-ja, cipher-im (12 service configs + 12 common + 12 telemetry = 36 mounts)
+  - Identity services: authz, idp, rs, rp, spa (15 service configs + 15 common + 15 telemetry = 45 mounts)
+  - All paths use correct relative references from deployments/cryptoutil-suite/
+  - Tested sample path: ../pki-ca/config/pki-ca-app-sqlite-1.yml (exists, 613 bytes)
+  - No path corrections needed - all paths already correct
+  - Documentation: test-output/phase3/volume-paths.txt (comprehensive verification)
 - **Files**:
   - `test-output/phase3/volume-paths.txt`
 
