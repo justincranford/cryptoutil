@@ -1072,12 +1072,12 @@
   - [x] No stale `deployments/compose/` references in any workflow
 
 ### Task 9.8: Update ARCHITECTURE-INDEX.md
-- **Status**: ❌ Not Started
+- **Status**: ✅ Complete
 - **Description**: Verify line number references in ARCHITECTURE-INDEX.md still match ARCHITECTURE.md. Update if any sections shifted.
 - **Files**: docs/ARCHITECTURE-INDEX.md
 - **Acceptance Criteria**:
-  - [ ] All line number ranges accurate
-  - [ ] Section titles match
+  - [x] All line number ranges accurate (all 14 sections + appendices + quick reference updated)
+  - [x] Section titles match
 
 ### Task 9.9: Run Chunk Verification & Final Validation
 - **Status**: ❌ Not Started

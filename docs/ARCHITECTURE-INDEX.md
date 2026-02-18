@@ -20,7 +20,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ## Semantic Topic Index
 
-### 1. Executive Summary (Lines 67-179)
+### 1. Executive Summary (Lines 69-180)
 
 **Topics**: Vision, cryptographic standards, API architecture, security features, core principles, success metrics
 
@@ -32,7 +32,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 2. Strategic Vision & Principles (Lines 180-365)
+### 2. Strategic Vision & Principles (Lines 182-366)
 
 **Topics**: Agent orchestration, architecture strategy, design strategy, implementation strategy, quality strategy
 
@@ -45,7 +45,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 3. Product Suite Architecture (Lines 366-563)
+### 3. Product Suite Architecture (Lines 368-666)
 
 **Topics**: Product overview, service catalog (PKI, JOSE, Cipher, SM, Identity), product-service relationships, port assignments
 
@@ -57,7 +57,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 4. System Architecture (Lines 564-828)
+### 4. System Architecture (Lines 668-932)
 
 **Topics**: System context, container architecture, layered architecture, dependency injection, Go project structure, CLI patterns
 
@@ -69,7 +69,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 5. Service Architecture (Lines 829-993)
+### 5. Service Architecture (Lines 934-1097)
 
 **Topics**: Service template, builder pattern, dual HTTPS endpoints, dual API paths, health checks
 
@@ -82,7 +82,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 6. Security Architecture (Lines 994-1272)
+### 6. Security Architecture (Lines 1099-1388)
 
 **Topics**: FIPS 140-3 compliance, SDLC security, product security, cryptographic architecture, PKI, JOSE, KMS, MFA, auth/authz
 
@@ -99,7 +99,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 7. Data Architecture (Lines 1273-1388)
+### 7. Data Architecture (Lines 1390-1531)
 
 **Topics**: Database schema, multi-tenancy, dual database strategy, migrations, data security
 
@@ -112,7 +112,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 8. API Architecture (Lines 1389-1502)
+### 8. API Architecture (Lines 1533-1645)
 
 **Topics**: OpenAPI-first, REST conventions, API versioning, error handling, API security
 
@@ -125,7 +125,7 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 9. Infrastructure Architecture (Lines 1503-1783)
+### 9. Infrastructure Architecture (Lines 1647-1929)
 
 **Topics**: CLI patterns, configuration, observability, telemetry, containers, orchestration, CI/CD, pre-commit hooks
 
@@ -142,91 +142,95 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ---
 
-### 10. Testing Architecture (Lines 1784-2131)
+### 10. Testing Architecture (Lines 1931-2277)
 
 **Topics**: Testing strategy, unit/integration/E2E/mutation/load/fuzz/benchmark/race/SAST/DAST/workflow testing
 
 **Subsections**:
-- 10.1 Testing Strategy Overview (1786-1800): Pyramid, coverage targets, mutation targets
-- 10.2 Unit Testing Strategy (1801-1903): Table-driven, t.Parallel(), Fiber app.Test(), TestMain
-- 10.3 Integration Testing Strategy (1904-1967): Test containers, database, real dependencies
-- 10.4 E2E Testing Strategy (1968-2026): Docker Compose, health checks, dual paths
-- 10.5 Mutation Testing Strategy (2027-2050): gremlins, 95% production, 98% infrastructure
-- 10.6 Load Testing Strategy (2051-2062): Gatling, concurrent users, response times
-- 10.7 Fuzz Testing Strategy (2063-2071): go test -fuzz, 15s minimum
-- 10.8 Benchmark Testing Strategy (2072-2088): crypto operations, performance baselines
-- 10.9 Race Detection Strategy (2089-2096): go test -race, concurrency safety
-- 10.10 SAST Strategy (2097-2108): gosec, golangci-lint, pre-commit hooks
-- 10.11 DAST Strategy (2109-2123): Nuclei scanning, E2E environment
-- 10.12 Workflow Testing Strategy (2124-2131): GitHub Actions, matrix testing
+- 10.1 Testing Strategy Overview (1933-1946): Pyramid, coverage targets, mutation targets
+- 10.2 Unit Testing Strategy (1948-2049): Table-driven, t.Parallel(), Fiber app.Test(), TestMain
+- 10.3 Integration Testing Strategy (2051-2113): Test containers, database, real dependencies
+- 10.4 E2E Testing Strategy (2115-2172): Docker Compose, health checks, dual paths
+- 10.5 Mutation Testing Strategy (2174-2196): gremlins, 95% production, 98% infrastructure
+- 10.6 Load Testing Strategy (2198-2208): Gatling, concurrent users, response times
+- 10.7 Fuzz Testing Strategy (2210-2217): go test -fuzz, 15s minimum
+- 10.8 Benchmark Testing Strategy (2219-2234): crypto operations, performance baselines
+- 10.9 Race Detection Strategy (2236-2242): go test -race, concurrency safety
+- 10.10 SAST Strategy (2244-2254): gosec, golangci-lint, pre-commit hooks
+- 10.11 DAST Strategy (2256-2269): Nuclei scanning, E2E environment
+- 10.12 Workflow Testing Strategy (2271-2277): GitHub Actions, matrix testing
 
 ---
 
-### 11. Quality Architecture (Lines 2132-2357)
+### 11. Quality Architecture (Lines 2279-2508)
 
 **Topics**: Maximum quality strategy, quality gates, code quality standards, documentation standards, review processes
 
 **Subsections**:
-- 11.1 Maximum Quality Strategy - MANDATORY (2134-2187): ALL issues are blockers, NO exceptions
-- 11.2 Quality Gates (2188-2287): Per-action, per-phase, overall project quality gates
-- 11.3 Code Quality Standards (2288-2317): File size limits, linting, complexity, maintainability
-- 11.4 Documentation Standards (2318-2338): README, architecture, instructions, inline comments
-- 11.5 Review Processes (2339-2357): Pre-commit hooks, PR reviews, evidence-based validation
+- 11.1 Maximum Quality Strategy - MANDATORY (2281-2302): ALL issues are blockers, NO exceptions
+- 11.2 Quality Gates (2335-2440): Per-action, per-phase, overall project quality gates
+- 11.3 Code Quality Standards (2440-2468): File size limits, linting, complexity, maintainability
+- 11.4 Documentation Standards (2470-2491): README, architecture, instructions, inline comments
+- 11.5 Review Processes (2491-2508): Pre-commit hooks, PR reviews, evidence-based validation
 
 ---
 
-### 12. Deployment Architecture (Lines 2463-3036)
+### 12. Deployment Architecture (Lines 2510-3300)
 
-**Topics**: CI/CD automation, build pipeline, deployment patterns, multi-level deployment hierarchy, deployment structure validation, environment strategy, release management
+**Topics**: CI/CD automation, build pipeline, deployment patterns, multi-level deployment hierarchy, deployment structure validation, config file architecture, secrets management, environment strategy, release management
 
 **Subsections**:
-- 12.1 CI/CD Automation Strategy (2465-2470): GitHub Actions, automated quality gates
-- 12.2 Build Pipeline (2471-2494): Build, test, coverage, mutation, SAST, DAST
-- 12.3 Deployment Patterns (2495-2847): Docker Compose, Docker secrets, health checks, multi-stage Dockerfile, secrets coordination, multi-level hierarchy
-  - 12.3.4 Multi-Level Deployment Hierarchy (2685-2847): SUITE/PRODUCT/SERVICE tiers, layered pepper strategy, port offset strategy, linter validation
-- 12.4 Deployment Structure Validation (2848-3022): Automated validation, deployment types (SUITE/PRODUCT/PRODUCT-SERVICE), validation rules, CI/CD integration
-- 12.5 Environment Strategy (3023-3028): Dev, CI/CD, Docker, production
-- 12.6 Release Management (3029-3036): Semantic versioning, changelog
+- 12.1 CI/CD Automation Strategy (2512-2516): GitHub Actions, automated quality gates
+- 12.2 Build Pipeline (2518-2540): Build, test, coverage, mutation, SAST, DAST
+- 12.3 Deployment Patterns (2542-2905): Docker Compose, Docker secrets, health checks, multi-stage Dockerfile, secrets coordination, multi-level hierarchy
+  - 12.3.4 Multi-Level Deployment Hierarchy (2732-2905): SUITE/PRODUCT/SERVICE tiers, layered pepper strategy, port offset strategy, linter validation
+- 12.4 Deployment Structure Validation (2907-3192): Automated validation, deployment types (SUITE/PRODUCT/PRODUCT-SERVICE), validation rules, CI/CD integration
+- 12.5 Config File Architecture (3194-3246): Service template configs, domain configs, environment configs
+- 12.6 Secrets Management in Deployments (3248-3258): Docker secrets enforcement
+- 12.7 Documentation Propagation Strategy (3260-3276): Chunk-based propagation mapping
+- 12.8 Validator Error Aggregation Pattern (3278-3286): Sequential execution, aggregated errors
+- 12.9 Environment Strategy (3288-3292): Dev, CI/CD, Docker, production
+- 12.10 Release Management (3294-3300): Semantic versioning, changelog
 
 **Cross-References**:
 - [ARCHITECTURE-COMPOSE-MULTIDEPLOY.md](/docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md) - Comprehensive multi-level deployment hierarchy documentation
 
 ---
 
-### 13. Development Practices (Lines 3037-3104)
+### 13. Development Practices (Lines 3302-3431)
 
 **Topics**: Coding standards, version control, branching strategy, code review, development workflow
 
 **Subsections**:
-- 13.1 Coding Standards (3039-3043): Go 1.25.5, CGO ban, import aliases, file size limits
-- 13.2 Version Control (3044-3067): Conventional commits, incremental commits, pre-commit hooks
-- 13.3 Branching Strategy (3068-3073): Main branch, feature branches, release branches
-- 13.4 Code Review (3074-3079): PR descriptions, review checklist, evidence-based approval
-- 13.5 Development Workflow (3080-3104): Local dev, testing, linting, git flow
+- 13.1 Coding Standards (3304-3307): Go 1.25.5, CGO ban, import aliases, file size limits
+- 13.2 Version Control (3309-3331): Conventional commits, incremental commits, pre-commit hooks
+- 13.3 Branching Strategy (3333-3337): Main branch, feature branches, release branches
+- 13.4 Code Review (3339-3343): PR descriptions, review checklist, evidence-based approval
+- 13.5 Development Workflow (3345-3431): Local dev, testing, linting, git flow, Docker Desktop startup
 
 ---
 
-### 14. Operational Excellence (Lines 3105-3138)
+### 14. Operational Excellence (Lines 3433-3466)
 
 **Topics**: Monitoring, incident management, performance, capacity planning, disaster recovery
 
 **Subsections**:
-- 14.1 Monitoring & Alerting (3107-3113): Prometheus, Grafana, OTLP
-- 14.2 Incident Management (3114-3119): Incident response, post-mortems
-- 14.3 Performance Management (3120-3125): Benchmarking, optimization
-- 14.4 Capacity Planning (3126-3131): Resource scaling, load testing
-- 14.5 Disaster Recovery (3132-3138): Backup, restore, failover
+- 14.1 Monitoring & Alerting (3435-3440): Prometheus, Grafana, OTLP
+- 14.2 Incident Management (3442-3446): Incident response, post-mortems
+- 14.3 Performance Management (3448-3452): Benchmarking, optimization
+- 14.4 Capacity Planning (3454-3458): Resource scaling, load testing
+- 14.5 Disaster Recovery (3460-3466): Backup, restore, failover
 
 ---
 
-### Appendices (Lines 3140-3356)
+### Appendices (Lines 3468-3683)
 
 **Topics**: Decision records, reference tables, compliance matrix
 
 **Subsections**:
-- Appendix A: Decision Records (3140-3170): ADRs, architectural decisions
-- Appendix B: Reference Tables (3171-3304): Service catalog, port assignments, file size limits, coverage targets
-- Appendix C: Compliance Matrix (3305-3356): FIPS 140-3, CA/BF Baseline, OAuth 2.1, OIDC 1.0, WebAuthn, NIST SP 800-63B
+- Appendix A: Decision Records (3468-3497): ADRs, architectural decisions
+- Appendix B: Reference Tables (3499-3631): Service catalog, port assignments, file size limits, coverage targets
+- Appendix C: Compliance Matrix (3633-3667): FIPS 140-3, CA/BF Baseline, OAuth 2.1, OIDC 1.0, WebAuthn, NIST SP 800-63B
 
 ---
 
@@ -234,41 +238,41 @@ Get-Content docs\ARCHITECTURE.md | Select-Object -Skip 66 -First 113
 
 ### Security Topics
 
-- FIPS 140-3: Lines 996-1004, 1052-1064
-- Cryptographic Architecture: Lines 1050-1143
-- PKI: Lines 1144-1166
-- JOSE: Lines 1167-1188
-- KMS: Lines 1189-1210
-- MFA: Lines 1211-1233
-- Auth/Authz: Lines 1234-1272
-- Data Security: Lines 1375-1388
+- FIPS 140-3: Lines 1101-1108, 1157-1168
+- Cryptographic Architecture: Lines 1155-1248
+- PKI: Lines 1249-1292
+- JOSE: Lines 1272-1315
+- KMS: Lines 1294-1338
+- MFA: Lines 1316-1374
+- Auth/Authz: Lines 1339-1388
+- Data Security: Lines 1519-1531
 
 ### Testing Topics
 
-- Testing Strategy: Lines 1786-2131
-- Unit Testing: Lines 1801-1903
-- Integration Testing: Lines 1904-1967
-- E2E Testing: Lines 1968-2026
-- Mutation Testing: Lines 2027-2050
-- Quality Gates: Lines 2188-2287
+- Testing Strategy: Lines 1931-2277
+- Unit Testing: Lines 1948-2049
+- Integration Testing: Lines 2051-2115
+- E2E Testing: Lines 2117-2175
+- Mutation Testing: Lines 2177-2200
+- Quality Gates: Lines 2335-2440
 
 ### Architecture Topics
 
-- Service Template: Lines 831-854
-- Service Builder: Lines 855-910
-- Dual HTTPS: Lines 911-932
-- Dual API Paths: Lines 933-958
-- Health Checks: Lines 959-993
+- Service Template: Lines 936-958
+- Service Builder: Lines 960-1014
+- Dual HTTPS: Lines 1016-1036
+- Dual API Paths: Lines 1038-1062
+- Health Checks: Lines 1064-1097
 
 ### Configuration Topics
 
-- Configuration Strategy: Lines 1525-1592
-- Docker Secrets: Lines 1542-1561
-- CLI Patterns: Lines 1505-1524
+- Configuration Strategy: Lines 1647-1740
+- Docker Secrets: Lines 2591-2730
+- CLI Patterns: Lines 1647-1680
 
 ### Quality Topics
 
-- Maximum Quality Strategy: Lines 2134-2187
-- Quality Gates: Lines 2188-2287
-- Code Quality: Lines 2288-2317
-- Documentation: Lines 2318-2338
+- Maximum Quality Strategy: Lines 2281-2333
+- Quality Gates: Lines 2335-2440
+- Code Quality: Lines 2440-2468
+- Documentation: Lines 2470-2508
