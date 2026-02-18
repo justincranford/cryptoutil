@@ -24,9 +24,9 @@ var (
 	composeManager   *cryptoutilAppsTemplateTestingE2e.ComposeManager
 
 	// Three cipher-im instances with different backends (actual container names).
-	sqliteContainer    = cryptoutilSharedMagic.CipherE2ESQLiteContainer      // "cipher-im-sqlite"
-	postgres1Container = cryptoutilSharedMagic.CipherE2EPostgreSQL1Container // "cipher-im-pg-1"
-	postgres2Container = cryptoutilSharedMagic.CipherE2EPostgreSQL2Container // "cipher-im-pg-2"
+	sqliteContainer    = cryptoutilSharedMagic.CipherE2ESQLiteContainer      // "cipher-im-app-sqlite-1"
+	postgres1Container = cryptoutilSharedMagic.CipherE2EPostgreSQL1Container // "cipher-im-app-postgres-1"
+	postgres2Container = cryptoutilSharedMagic.CipherE2EPostgreSQL2Container // "cipher-im-app-postgres-2"
 
 	// Service URLs (mapped from container ports to host ports).
 	sqlitePublicURL    = fmt.Sprintf("https://127.0.0.1:%d", cryptoutilSharedMagic.CipherE2ESQLitePublicPort)      // "https://127.0.0.1:8700"

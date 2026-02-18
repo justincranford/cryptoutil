@@ -137,17 +137,17 @@ const (
 	// Levels: e2e→im(1)→cipher(2)→apps(3)→internal(4)→cryptoutil(5), then deployments/cipher.
 	CipherE2EComposeFile = "../../../../../deployments/cipher-im/compose.yml"
 
-	// CipherE2ESQLiteContainer is the SQLite instance container name.
-	CipherE2ESQLiteContainer = "cipher-im-sqlite"
+	// CipherE2ESQLiteContainer is the SQLite instance service name in compose.
+	CipherE2ESQLiteContainer = "cipher-im-app-sqlite-1"
 
-	// CipherE2EPostgreSQL1Container is the PostgreSQL instance 1 container name.
-	CipherE2EPostgreSQL1Container = "cipher-im-pg-1"
+	// CipherE2EPostgreSQL1Container is the PostgreSQL instance 1 service name in compose.
+	CipherE2EPostgreSQL1Container = "cipher-im-app-postgres-1"
 
-	// CipherE2EPostgreSQL2Container is the PostgreSQL instance 2 container name.
-	CipherE2EPostgreSQL2Container = "cipher-im-pg-2"
+	// CipherE2EPostgreSQL2Container is the PostgreSQL instance 2 service name in compose.
+	CipherE2EPostgreSQL2Container = "cipher-im-app-postgres-2"
 
-	// CipherE2EOtelCollectorContainer is the OpenTelemetry Collector container name.
-	CipherE2EOtelCollectorContainer = "cipher-im-otel-collector"
+	// CipherE2EOtelCollectorContainer is the OpenTelemetry Collector service name in compose.
+	CipherE2EOtelCollectorContainer = "opentelemetry-collector-contrib"
 
 	// CipherE2EGrafanaContainer is the Grafana LGTM container name.
 	CipherE2EGrafanaContainer = "cipher-im-grafana"
