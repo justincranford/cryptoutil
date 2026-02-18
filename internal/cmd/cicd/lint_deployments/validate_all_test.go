@@ -298,7 +298,7 @@ func TestValidateAll_RealDeployments(t *testing.T) {
 		t.Skip("configs/ directory not found (not running from project root)")
 	}
 
-	start := time.Now()
+	start := time.Now().UTC()
 
 	result := ValidateAll(deploymentsDir, configsDir)
 	elapsed := time.Since(start)

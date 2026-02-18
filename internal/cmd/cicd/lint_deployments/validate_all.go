@@ -68,7 +68,7 @@ type deploymentEntry struct {
 // It continues on failure, collecting ALL results before returning.
 // See: Decision 11:E (sequential + aggregated error reporting).
 func ValidateAll(deploymentsDir, configsDir string) *AllValidationResult {
-	start := time.Now()
+	start := time.Now().UTC()
 	result := &AllValidationResult{}
 
 	// 1. Naming validation on deployments/ and configs/.
@@ -106,7 +106,7 @@ func ValidateAll(deploymentsDir, configsDir string) *AllValidationResult {
 // runNamingValidation runs ValidateNaming on both deployments and configs directories.
 func runNamingValidation(deploymentsDir, configsDir string, result *AllValidationResult) {
 	for _, dir := range []string{deploymentsDir, configsDir} {
-		start := time.Now()
+		start := time.Now().UTC()
 		nr, _ := ValidateNaming(dir)
 		dur := time.Since(start)
 
@@ -116,7 +116,7 @@ func runNamingValidation(deploymentsDir, configsDir string, result *AllValidatio
 
 // runKebabCaseValidation runs ValidateKebabCase on the configs directory.
 func runKebabCaseValidation(configsDir string, result *AllValidationResult) {
-	start := time.Now()
+	start := time.Now().UTC()
 	kr, _ := ValidateKebabCase(configsDir)
 	dur := time.Since(start)
 
@@ -144,7 +144,7 @@ func runSchemaValidation(configsDir string, result *AllValidationResult) {
 			continue
 		}
 
-		start := time.Now()
+		start := time.Now().UTC()
 		sr, _ := ValidateSchema(cf)
 		dur := time.Since(start)
 
@@ -160,7 +160,7 @@ func runTemplatePatternValidation(deploymentsDir string, result *AllValidationRe
 		return
 	}
 
-	start := time.Now()
+	start := time.Now().UTC()
 	tr, _ := ValidateTemplatePattern(templatePath)
 	dur := time.Since(start)
 
@@ -174,7 +174,7 @@ func runPortsValidation(deployments []deploymentEntry, result *AllValidationResu
 			continue
 		}
 
-		start := time.Now()
+		start := time.Now().UTC()
 		pr, _ := ValidatePorts(d.path, d.name, d.level)
 		dur := time.Since(start)
 
@@ -184,7 +184,7 @@ func runPortsValidation(deployments []deploymentEntry, result *AllValidationResu
 
 // runTelemetryValidation runs ValidateTelemetry on the configs directory.
 func runTelemetryValidation(configsDir string, result *AllValidationResult) {
-	start := time.Now()
+	start := time.Now().UTC()
 	tr, _ := ValidateTelemetry(configsDir)
 	dur := time.Since(start)
 
@@ -194,7 +194,7 @@ func runTelemetryValidation(configsDir string, result *AllValidationResult) {
 // runAdminValidation runs ValidateAdmin on each deployment directory.
 func runAdminValidation(deployments []deploymentEntry, result *AllValidationResult) {
 	for _, d := range deployments {
-		start := time.Now()
+		start := time.Now().UTC()
 		ar, _ := ValidateAdmin(d.path)
 		dur := time.Since(start)
 
@@ -212,7 +212,7 @@ func runSecretsValidation(deployments []deploymentEntry, result *AllValidationRe
 			continue
 		}
 
-		start := time.Now()
+		start := time.Now().UTC()
 		sr, _ := ValidateSecrets(d.path)
 		dur := time.Since(start)
 

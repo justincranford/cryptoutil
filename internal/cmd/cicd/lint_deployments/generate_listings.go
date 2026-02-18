@@ -95,7 +95,7 @@ func GenerateDirectoryListing(baseDir string) (DirectoryListing, error) {
 		}
 
 		// Skip generated listing files to avoid self-reference.
-		if strings.HasSuffix(path, "_all_files.json") {
+		if strings.HasSuffix(path, "-all-files.json") {
 			return nil
 		}
 
