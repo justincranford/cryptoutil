@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 3 of 92 tasks complete (3.3%)
+**Status**: 3 of 92 tasks complete (3.3%) - Phase 1 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -31,9 +31,10 @@
 
 ## Task Checklist
 
-### Phase 1: Discovery & Analysis
+### Phase 1: Discovery & Analysis ✅ COMPLETE
 
 **Phase Objective**: Comprehensive analysis of current deployment structure and E2E test patterns
+**Duration**: 1h actual vs 4h estimated (75% efficiency)
 
 #### Task 1.1: Inventory Deployment Files
 - **Status**: ✅
@@ -93,4 +94,108 @@
   - `test-output/phase1/port-validation.txt`
 
 (Tasks continue through 13 phases...)
+
+
+### Phase 2: Create New Directory Structure
+
+**Phase Objective**: Create new deployment directories with correct naming
+
+#### Task 2.1: Create cryptoutil-suite Directory
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Phase 1 complete
+- **Description**: Create deployments/cryptoutil-suite/ directory structure
+- **Acceptance Criteria**:
+  - [ ] Create directory: `mkdir -p deployments/cryptoutil-suite`
+  - [ ] Copy compose.yml from deployments/cryptoutil/
+  - [ ] Copy secrets directory structure
+  - [ ] Verify directory created with correct permissions
+  - [ ] Run: `ls -la deployments/cryptoutil-suite/`
+- **Files**:
+  - `deployments/cryptoutil-suite/` (directory)
+  - `deployments/cryptoutil-suite/compose.yml` (copied)
+
+#### Task 2.2: Create cryptoutil-product Directories
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 2.1
+- **Description**: Create PRODUCT-level deployment example directories
+- **Acceptance Criteria**:
+  - [ ] Create directory: `mkdir -p deployments/cryptoutil-product`
+  - [ ] Create subdirectories for each product (cipher, identity, jose, pki, sm)
+  - [ ] Verify structure matches SUITE/PRODUCT/SERVICE hierarchy
+  - [ ] Run: `tree deployments/cryptoutil-product/`
+- **Files**:
+  - `deployments/cryptoutil-product/` (directory structure)
+
+#### Task 2.3: Create cryptoutil-service Directories
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 2.2
+- **Description**: Create SERVICE-level deployment example directories
+- **Acceptance Criteria**:
+  - [ ] Create directory: `mkdir -p deployments/cryptoutil-service`
+  - [ ] Create subdirectories for each service (cipher-im, identity-*, etc.)
+  - [ ] Verify structure matches hierarchy
+  - [ ] Run: `tree deployments/cryptoutil-service/`
+- **Files**:
+  - `deployments/cryptoutil-service/` (directory structure)
+
+#### Task 2.4: Validate New Structure
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 2.3
+- **Description**: Run linting and validation on new directories
+- **Acceptance Criteria**:
+  - [ ] Run: `go run ./cmd/cicd lint-deployments deployments/cryptoutil-suite`
+  - [ ] Run: `go run ./cmd/cicd lint-deployments deployments/cryptoutil-product`
+  - [ ] Run: `go run ./cmd/cicd lint-deployments deployments/cryptoutil-service`
+  - [ ] Document any violations
+  - [ ] Output saved to `test-output/phase2/validation.txt`
+- **Files**:
+  - `test-output/phase2/validation.txt`
+
+#### Task 2.5: Phase 2 Post-Mortem
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 0.5h
+- **Actual**: [Fill when complete]
+- **Dependencies**: Task 2.4
+- **Description**: Document Phase 2 completion and discoveries
+- **Acceptance Criteria**:
+  - [ ] Create phase2-summary.txt
+  - [ ] Document any issues discovered
+  - [ ] Identify work for Phase 3
+  - [ ] Update plan.md with Phase 2 actuals
+  - [ ] Mark Phase 2 complete
+- **Files**:
+  - `test-output/phase2/phase2-summary.txt`
+
+---
+
+### Phases 3-13: High-Level Task Outlines
+
+**Note**: Detailed tasks will be created as each phase is reached (dynamic work discovery pattern).
+
+**Phase 3**: SUITE-Level Refactoring (9 tasks estimated)
+**Phase 4**: PRODUCT-Level Standardization (7 tasks estimated)
+**Phase 5**: SERVICE-Level Verification (8 tasks estimated)
+**Phase 6**: Legacy E2E Migration (12 tasks estimated)
+**Phase 7**: Archive Legacy Directories (5 tasks estimated)
+**Phase 8**: Validator Updates (8 tasks estimated)
+**Phase 9**: Documentation Complete Update (10 tasks estimated)
+**Phase 10**: CI/CD Workflow Updates (7 tasks estimated)
+**Phase 11**: Integration Testing (9 tasks estimated)
+**Phase 12**: Quality Gates & Final Validation (8 tasks estimated)
+**Phase 13**: Archive & Wrap-Up (4 tasks estimated)
+
+**Total**: 92 tasks across 13 phases (estimated)
 
