@@ -39,3 +39,24 @@ This directory contains deprecated deployment configurations that have been arch
 
 **Note**: Directory was empty so `git mv` was not possible; directory was simply removed.
 
+### cryptoutil-legacy/ (Archived: 2026-02-17)
+
+**Original Location**: `deployments/cryptoutil/`
+
+**Reason for Archival**:
+- Contained the delegation-based SUITE compose (SUITE → PRODUCT → SERVICE via `include:`)
+- Replaced by `deployments/cryptoutil-suite/` which defines all services directly
+- Shared Dockerfile moved to `deployments/cryptoutil-suite/Dockerfile`
+- Secrets patterns migrated to `deployments/cryptoutil-suite/secrets/`
+
+**Contents**:
+- `compose.yml` - Delegation-based suite compose (includes PRODUCT composes)
+- `Dockerfile` - Original shared Dockerfile (copied to cryptoutil-suite/)
+- `secrets/` - Suite-level secrets (hash-pepper, unseal keys, postgres credentials)
+
+**Replaced By**:
+- `deployments/cryptoutil-suite/` (SUITE-level deployment)
+- `deployments/cryptoutil-suite/Dockerfile` (shared build Dockerfile)
+
+**DO NOT DELETE**: Contains reference secrets and the delegation compose pattern.
+
