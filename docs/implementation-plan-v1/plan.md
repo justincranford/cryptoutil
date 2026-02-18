@@ -222,7 +222,7 @@ Manager with ComposeManager
 
 **Tasks**:
 - Archive `deployments/compose/` directory
-- Archive or delete original `deployments/cryptoutil/` 
+- Archive or delete original `deployments/cryptoutil/`
 - Update all references to point to new directories
 - Update CI/CD workflows
 - Run full validator suite

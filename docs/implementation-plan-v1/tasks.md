@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 10 of 99 tasks complete (10.1%) - Phase 1 COMPLETE, Phase 2 COMPLETE
+**Status**: 11 of 99 tasks complete (11.1%) - Phase 1 COMPLETE, Phase 2 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -230,43 +230,48 @@
 
 #### Task 3.3: Update All Service Port Mappings to 28XXX Range
 
-- **Status**: ☐
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
-- **Actual**: [Fill when complete]
+- **Actual**: 0.05h (sed batch update + verification)
 - **Dependencies**: Task 3.2
 - **Description**: Update all 27 port mappings (9 services × 3 instances) from 8XXX → 28XXX
 - **Acceptance Criteria**:
-  - [ ] Update sm-kms-app-sqlite-1: 8000 → 28000
-  - [ ] Update sm-kms-app-postgres-1: 8001 → 28001
-  - [ ] Update sm-kms-app-postgres-2: 8002 → 28002
-  - [ ] Update pki-ca-app-sqlite-1: 8100 → 28100
-  - [ ] Update pki-ca-app-postgres-1: 8101 → 28101
-  - [ ] Update pki-ca-app-postgres-2: 8102 → 28102
-  - [ ] Update identity-authz-app-sqlite-1: 8200 → 28200
-  - [ ] Update identity-authz-app-postgres-1: 8201 → 28201
-  - [ ] Update identity-authz-app-postgres-2: 8202 → 28202
-  - [ ] Update identity-idp-app-sqlite-1: 8300 → 28300
-  - [ ] Update identity-idp-app-postgres-1: 8301 → 28301
-  - [ ] Update identity-idp-app-postgres-2: 8302 → 28302
-  - [ ] Update identity-rs-app-sqlite-1: 8400 → 28400
-  - [ ] Update identity-rs-app-postgres-1: 8401 → 28401
-  - [ ] Update identity-rs-app-postgres-2: 8402 → 28402
-  - [ ] Update identity-rp-app-sqlite-1: 8500 → 28500
-  - [ ] Update identity-rp-app-postgres-1: 8501 → 28501
-  - [ ] Update identity-rp-app-postgres-2: 8502 → 28502
-  - [ ] Update identity-spa-app-sqlite-1: 8600 → 28600
-  - [ ] Update identity-spa-app-postgres-1: 8601 → 28601
-  - [ ] Update identity-spa-app-postgres-2: 8602 → 28602
-  - [ ] Update cipher-im-app-sqlite-1: 8700 → 28700
-  - [ ] Update cipher-im-app-postgres-1: 8701 → 28701
-  - [ ] Update cipher-im-app-postgres-2: 8702 → 28702
-  - [ ] Update jose-ja-app-sqlite-1: 8800 → 28800
-  - [ ] Update jose-ja-app-postgres-1: 8801 → 28801
-  - [ ] Update jose-ja-app-postgres-2: 8802 → 28802
-  - [ ] Verify all port mappings follow pattern: "28XXX:8000" (container port remains 8000)
-  - [ ] Document changes in `test-output/phase3/port-updates.txt`
-  - [ ] Commit with message: "refactor(deploy): update all cryptoutil-suite ports to 28XXX range (SUITE-level offset)"
+  - [x] Update sm-kms-app-sqlite-1: 8000 → 28000
+  - [x] Update sm-kms-app-postgres-1: 8001 → 28001
+  - [x] Update sm-kms-app-postgres-2: 8002 → 28002
+  - [x] Update pki-ca-app-sqlite-1: 8100 → 28100
+  - [x] Update pki-ca-app-postgres-1: 8101 → 28101
+  - [x] Update pki-ca-app-postgres-2: 8102 → 28102
+  - [x] Update identity-authz-app-sqlite-1: 8200 → 28200
+  - [x] Update identity-authz-app-postgres-1: 8201 → 28201
+  - [x] Update identity-authz-app-postgres-2: 8202 → 28202
+  - [x] Update identity-idp-app-sqlite-1: 8300 → 28300
+  - [x] Update identity-idp-app-postgres-1: 8301 → 28301
+  - [x] Update identity-idp-app-postgres-2: 8302 → 28302
+  - [x] Update identity-rs-app-sqlite-1: 8400 → 28400
+  - [x] Update identity-rs-app-postgres-1: 8401 → 28401
+  - [x] Update identity-rs-app-postgres-2: 8402 → 28402
+  - [x] Update identity-rp-app-sqlite-1: 8500 → 28500
+  - [x] Update identity-rp-app-postgres-1: 8501 → 28501
+  - [x] Update identity-rp-app-postgres-2: 8502 → 28502
+  - [x] Update identity-spa-app-sqlite-1: 8600 → 28600
+  - [x] Update identity-spa-app-postgres-1: 8601 → 28601
+  - [x] Update identity-spa-app-postgres-2: 8602 → 28602
+  - [x] Update cipher-im-app-sqlite-1: 8700 → 28700
+  - [x] Update cipher-im-app-postgres-1: 8701 → 28701
+  - [x] Update cipher-im-app-postgres-2: 8702 → 28702
+  - [x] Update jose-ja-app-sqlite-1: 8800 → 28800
+  - [x] Update jose-ja-app-postgres-1: 8801 → 28801
+  - [x] Update jose-ja-app-postgres-2: 8802 → 28802
+  - [x] Verify all port mappings follow pattern: "28XXX:8000" (container port remains 8000)
+  - [x] Document changes in `test-output/phase3/port-updates.txt`
+  - [x] Commit with message: "refactor(deploy): update all cryptoutil-suite ports to 28XXX range (SUITE-level offset)"
+- **Evidence**: 
+  - Used sed batch update: 27 substitutions (8000→28000, 8001→28001, ..., 8802→28802)
+  - Verified all ports: `test-output/phase3/updated-ports.txt` (27 ports in 28XXX range)
+  - Summary: `test-output/phase3/port-updates.txt` (before/after comparison, verification checklist)
+  - 100% complete: All services (sm-kms, pki-ca, identity-*, cipher-im, jose-ja) updated
 - **Files**:
   - `deployments/cryptoutil-suite/compose.yml` (27 port mappings updated)
   - `test-output/phase3/port-updates.txt`
@@ -399,4 +404,3 @@
 **Phase 13**: Archive & Wrap-Up (4 tasks estimated)
 
 **Total**: 92 tasks across 13 phases (estimated)
-
