@@ -1007,7 +1007,96 @@
   - [x] Update plan.md Phase 7 section
   - [x] No new tasks identified
   - [x] Commit with comprehensive message
-**Phase 9**: Documentation Complete Update (10 tasks estimated)
+---
+
+## Phase 9: Documentation Complete Update
+
+### Task 9.1: Update ARCHITECTURE.md Section 12.3.4
+- **Status**: ✅ Complete
+- **Description**: Verify and update deployment hierarchy section. Confirm `cryptoutil-suite` naming is consistent, update any stale `deployments/compose/` or `deployments/cryptoutil/` references, update deployment counts (20 deployments: 9 SERVICE, 5 PRODUCT, 1 SUITE, 1 template, 4 infrastructure).
+- **Files**: docs/ARCHITECTURE.md
+- **Acceptance Criteria**:
+  - [x] No `deployments/compose/` references (except archived context)
+  - [x] No `deployments/cryptoutil/` references (except archived context)
+  - [x] All SUITE references say `cryptoutil-suite`
+  - [x] Deployment counts accurate (19 total: 9 SERVICE, 5 PRODUCT, 1 SUITE, 1 template, 3 infrastructure)
+
+### Task 9.2: Update ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
+- **Status**: ✅ Complete
+- **Description**: Fix 2 stale `deployments/compose/` references at lines 427, 430. Update infrastructure deployment section.
+- **Files**: docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
+- **Acceptance Criteria**:
+  - [x] No stale `deployments/compose/` references
+  - [x] Infrastructure deployment section updated to archived/compose-legacy
+
+### Task 9.3: Update README.md
+- **Status**: ✅ Complete
+- **Description**: Fix 6 stale `deployments/compose/` references. Update deployment examples to use service-level or suite-level paths.
+- **Files**: docs/README.md
+- **Acceptance Criteria**:
+  - [x] All deployment paths use correct hierarchy (SERVICE/PRODUCT/SUITE)
+  - [x] docker compose commands reference valid compose files
+  - [x] Quick start examples work with current structure
+
+### Task 9.4: Update DEV-SETUP.md
+- **Status**: ✅ Complete
+- **Description**: Fix 2 stale `deployments/compose/` references at lines 679, 825. Update developer setup instructions.
+- **Files**: docs/DEV-SETUP.md
+- **Acceptance Criteria**:
+  - [x] No stale deployment path references
+  - [x] Developer setup examples use correct paths
+
+### Task 9.5: Update Copilot Instructions
+- **Status**: ✅ Complete
+- **Description**: Fix 1 stale `deployments/compose/` reference in 04-01.deployment.instructions.md. Update DAST example paths.
+- **Files**: .github/instructions/04-01.deployment.instructions.md
+- **Acceptance Criteria**:
+  - [x] No stale deployment path references
+  - [x] DAST example uses valid compose path
+
+### Task 9.6: Update GitHub Actions (actions/)
+- **Status**: ✅ Complete
+- **Description**: Fix 3 stale default paths in docker-compose-up, docker-compose-down, docker-compose-build actions. Update defaults to use SUITE-level path.
+- **Files**: .github/actions/docker-compose-{up,down,build}/action.yml
+- **Acceptance Criteria**:
+  - [x] Default compose-file paths updated to SUITE-level
+  - [x] Actions still work with overridden paths
+
+### Task 9.7: Update CI/CD Workflows
+- **Status**: ✅ Complete
+- **Description**: Fix 16 stale `deployments/compose/` references across 9 workflow files. Update comments and active code (ci-load.yml, ci-dast.yml).
+- **Files**: .github/workflows/ci-{benchmark,coverage,dast,fuzz,gitleaks,load,mutation,quality,race,sast}.yml
+- **Acceptance Criteria**:
+  - [x] All comment examples updated
+  - [x] Active code paths updated (ci-load.yml, ci-dast.yml)
+  - [x] No stale `deployments/compose/` references in any workflow
+
+### Task 9.8: Update ARCHITECTURE-INDEX.md
+- **Status**: ❌ Not Started
+- **Description**: Verify line number references in ARCHITECTURE-INDEX.md still match ARCHITECTURE.md. Update if any sections shifted.
+- **Files**: docs/ARCHITECTURE-INDEX.md
+- **Acceptance Criteria**:
+  - [ ] All line number ranges accurate
+  - [ ] Section titles match
+
+### Task 9.9: Run Chunk Verification & Final Validation
+- **Status**: ❌ Not Started
+- **Description**: Run check-chunk-verification, grep for any remaining stale references, build and lint.
+- **Acceptance Criteria**:
+  - [ ] `go run ./cmd/cicd check-chunk-verification` passes
+  - [ ] No stale `deployments/compose/` or `deployments/kms/` references outside archived/implementation-plan
+  - [ ] `go build ./...` passes
+  - [ ] `golangci-lint run` passes
+
+### Task 9.10: Phase 9 Post-Mortem
+- **Status**: ❌ Not Started
+- **Description**: Write post-mortem, update plan.md, update tasks.md counter.
+- **Acceptance Criteria**:
+  - [ ] Post-mortem written
+  - [ ] plan.md Phase 9 marked COMPLETE
+  - [ ] tasks.md counter updated
+  - [ ] Commit with comprehensive message
+
 **Phase 10**: CI/CD Workflow Updates (7 tasks estimated)
 **Phase 11**: Integration Testing (9 tasks estimated)
 **Phase 12**: Quality Gates & Final Validation (8 tasks estimated)

@@ -13,7 +13,7 @@ name: CI - Race Condition Detection
 # MUST use relative paths to support both GitHub Actions Ubuntu runners
 # and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
-# Example: Use './deployments/compose/compose.yml'
+# Example: Use './deployments/cryptoutil-suite/compose.yml'
 
 on:
   push:

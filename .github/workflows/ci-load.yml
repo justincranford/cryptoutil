@@ -12,7 +12,7 @@ name: CI - Load Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
-# Example: Use './deployments/compose/compose.yml'
+# Example: Use './deployments/cryptoutil-suite/compose.yml'
 
 on:
   push:
@@ -276,11 +276,9 @@ jobs:
         mkdir -p ./load-reports/service-logs
 
         # Collect logs from all cryptoutil services
-        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./load-reports/service-logs/cryptoutil-sqlite.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./load-reports/service-logs/cryptoutil-postgres-1.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./load-reports/service-logs/cryptoutil-postgres-2.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
+        docker compose -f ./deployments/cryptoutil-suite/compose.yml logs sm-kms > ./load-reports/service-logs/sm-kms.log 2>&1 || true
+        docker compose -f ./deployments/cryptoutil-suite/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
+        docker compose -f ./deployments/cryptoutil-suite/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
 
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)

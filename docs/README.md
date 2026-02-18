@@ -252,8 +252,8 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 Before running nuclei scans, ensure the cryptoutil services are running:
 
 ```sh
-# Navigate to compose directory
-cd deployments/compose
+# Navigate to suite deployment directory
+cd deployments/cryptoutil-suite
 
 # Clean shutdown with volume removal
 docker compose down -v
@@ -399,17 +399,17 @@ curl -k https://localhost:8080/ui/swagger/doc.json
 curl -k https://localhost:9090/admin/v1/livez  # Admin health endpoint
 
 # Check Docker containers
-docker compose -f ./deployments/compose/compose.yml ps
+docker compose -f ./deployments/cryptoutil-suite/compose.yml ps
 
 # View service logs
-docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite
+docker compose -f ./deployments/cryptoutil-suite/compose.yml logs sm-kms
 ```
 
 **Clean restart:**
 
 ```sh
 # Complete cleanup and restart
-cd deployments/compose
+cd deployments/cryptoutil-suite
 docker compose down -v
 docker compose up -d
 
@@ -716,18 +716,18 @@ Comprehensive E2E testing validates complete workflows across all services (KMS,
 **Running E2E Tests**:
 
 ```powershell
-# Deploy all services
-docker compose -f ./deployments/compose/compose.yml up -d
-docker compose -f ./deployments/ca/compose.yml up -d
+# Deploy all services (SUITE-level)
+docker compose -f ./deployments/cryptoutil-suite/compose.yml up -d
+
+# Or deploy individual services (SERVICE-level)
+docker compose -f ./deployments/pki-ca/compose.yml up -d
 docker compose -f ./deployments/jose-ja/compose.yml up -d
 
 # Run E2E tests
 go test -tags=e2e -v -timeout=30m ./internal/test/e2e/
 
 # Cleanup
-docker compose -f ./deployments/compose/compose.yml down -v
-docker compose -f ./deployments/ca/compose.yml down -v
-docker compose -f ./deployments/jose-ja/compose.yml down -v
+docker compose -f ./deployments/cryptoutil-suite/compose.yml down -v
 ```
 
 **Detailed Documentation**: See [E2E-TESTING.md](./E2E-TESTING.md) for:

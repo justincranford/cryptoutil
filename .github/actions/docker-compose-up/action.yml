@@ -7,7 +7,7 @@ inputs:
   compose-file:
     description: 'Path to the docker-compose file'
     required: false
-    default: './deployments/compose/compose.yml'
+    default: './deployments/cryptoutil-suite/compose.yml'
   profiles:
     description: 'Comma-separated list of Docker Compose profiles to activate (e.g., "postgres")'
     required: false

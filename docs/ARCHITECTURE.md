@@ -2893,7 +2893,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 ✅ Forbidden: unseal_*.secret MUST NOT exist (documented by .never files)
 ```
 
-**Enforcement**: Linter validates ALL 20 deployments (9 SERVICE, 5 PRODUCT, 1 SUITE, 1 template, 4 infrastructure).
+**Enforcement**: Linter validates ALL 19 deployments (9 SERVICE, 5 PRODUCT, 1 SUITE, 1 template, 3 infrastructure).
 
 **Implementation**: [internal/cmd/cicd/lint_deployments/lint_deployments.go](/internal/cmd/cicd/lint_deployments/) with `validateProductSecrets()` and `validateSuiteSecrets()` functions.
 
@@ -2953,7 +2953,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
 - Optional files: `compose.demo.yml`, `Dockerfile`, `README.md`
 - Required secrets: Same 14 files as PRODUCT-SERVICE
 
-**infrastructure** (shared-postgres, shared-citus, shared-telemetry, compose):
+**infrastructure** (shared-postgres, shared-citus, shared-telemetry):
 - Required directories: none
 - Required files: `compose.yml`
 - Optional files: `init-db.sql`, `init-citus.sql`, `README.md`

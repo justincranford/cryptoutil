@@ -424,18 +424,18 @@ server:
   port: 8080
 ```
 
-**Infrastructure Deployment** (`deployments/compose/`):
+**Archived Infrastructure** (`deployments/archived/compose-legacy/`):
 
 ```
-deployments/compose/
-└── compose.yml                                # E2E testing infrastructure
+deployments/archived/compose-legacy/
+└── compose.yml                                # Legacy E2E testing infrastructure (archived)
 ```
 
-**Purpose**: Standalone E2E testing compose that:
-- Includes `../shared-postgres/compose.yml` and `../shared-telemetry/compose.yml`
-- Overrides otel-collector to expose ports for host-based E2E tests
-- Provides service names matching test expectations (`cryptoutil-sqlite`, `cryptoutil-postgres-1`, `cryptoutil-postgres-2`)
-- NOT referenced by other deployments (standalone E2E infrastructure)
+**Purpose**: Previously standalone E2E testing compose that:
+- Included `../shared-postgres/compose.yml` and `../shared-telemetry/compose.yml`
+- Overrode otel-collector to expose ports for host-based E2E tests
+- Provided service names matching test expectations (`cryptoutil-sqlite`, `cryptoutil-postgres-1`, `cryptoutil-postgres-2`)
+- **ARCHIVED**: Replaced by SERVICE/PRODUCT/SUITE-level deployments per three-tier hierarchy
 
 ### 2.7 Standalone Configuration Directory (./configs/)
 

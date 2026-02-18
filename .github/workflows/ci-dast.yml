@@ -13,7 +13,7 @@ name: CI - DAST Security Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
-# Example: Use './deployments/compose/compose.yml'
+# Example: Use './deployments/cryptoutil-suite/compose.yml'
 #
 # IMPORTANT: Test locally with act (NO TIMEOUT - workflows take 3-25 minutes):
 #   RECOMMENDED: Use the automated Go utility (handles timeouts, monitoring, and analysis):
@@ -851,7 +851,7 @@ jobs:
         [ -n "${APP_PID:-}" ] && { kill "$APP_PID" 2>/dev/null || true; sleep 1; kill -9 "$APP_PID" 2>/dev/null || true; }
 
         # Stop and remove containers
-        docker compose -f ./deployments/compose/compose.yml down -v --remove-orphans || true
+        docker compose -f ./deployments/cryptoutil-suite/compose.yml down -v --remove-orphans || true
 
         # Clean up any leftover containers/networks
         docker system prune -f || true

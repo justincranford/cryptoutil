@@ -675,8 +675,8 @@ go run ./cmd/cryptoutil/main.go --dev
 ### Development with PostgreSQL
 
 ```bash
-# Start PostgreSQL with Docker Compose
-cd deployments/compose
+# Start PostgreSQL with Docker Compose (SERVICE-level)
+cd deployments/sm-kms
 docker compose up -d postgres
 
 # Run with PostgreSQL config
@@ -821,8 +821,8 @@ See [test/load/README.md](../test/load/README.md) for detailed Gatling documenta
 ### Manual Nuclei Scanning
 
 ```bash
-# Start services first
-cd deployments/compose
+# Start services first (SUITE-level for full deployment)
+cd deployments/cryptoutil-suite
 docker compose up -d
 
 # Wait for services to be ready (30-60 seconds)
