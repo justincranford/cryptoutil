@@ -63,16 +63,16 @@ services:
   healthcheck-secrets:
     image: alpine:latest
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
       - hash-pepper_v3.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
       - cryptoutil-network
@@ -101,7 +101,7 @@ services:
   pki-ca-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["pki-ca", "start", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki", "ca", "start", "--config=/app/config/pki-ca-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28100:8000"  # HTTPS public
@@ -110,11 +110,11 @@ services:
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -141,7 +141,7 @@ services:
   pki-ca-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki-ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki", "ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28101:8000"
@@ -150,15 +150,15 @@ services:
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -188,7 +188,7 @@ services:
   pki-ca-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["pki-ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["pki", "ca", "start", "--config=/app/config/pki-ca-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28102:8000"
@@ -197,15 +197,15 @@ services:
       - ../pki-ca/config/pki-ca-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -239,7 +239,7 @@ services:
   jose-ja-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["jose-ja", "start", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["jose", "ja", "start", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28800:8000"
@@ -248,11 +248,11 @@ services:
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -279,7 +279,7 @@ services:
   jose-ja-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["jose-ja", "start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["jose", "ja", "start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28801:8000"
@@ -288,15 +288,15 @@ services:
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -326,7 +326,7 @@ services:
   jose-ja-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["jose-ja", "start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["jose", "ja", "start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28802:8000"
@@ -335,15 +335,15 @@ services:
       - ../jose-ja/config/jose-ja-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -377,7 +377,7 @@ services:
   cipher-im-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["cipher-im", "start", "--config=/app/config/cipher-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28700:8000"
@@ -386,11 +386,11 @@ services:
       - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -417,7 +417,7 @@ services:
   cipher-im-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["cipher-im", "start", "--config=/app/config/cipher-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28701:8000"
@@ -426,15 +426,15 @@ services:
       - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -464,7 +464,7 @@ services:
   cipher-im-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["cipher-im", "start", "--config=/app/config/cipher-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28702:8000"
@@ -473,15 +473,15 @@ services:
       - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -515,7 +515,7 @@ services:
   sm-kms-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["sm-kms", "start", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "kms", "start", "--config=/app/config/sm-kms-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28000:8000"
@@ -524,11 +524,11 @@ services:
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -555,7 +555,7 @@ services:
   sm-kms-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["sm-kms", "start", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "kms", "start", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28001:8000"
@@ -564,15 +564,15 @@ services:
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -602,7 +602,7 @@ services:
   sm-kms-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["sm-kms", "start", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "kms", "start", "--config=/app/config/sm-kms-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28002:8000"
@@ -611,15 +611,15 @@ services:
       - ../sm-kms/config/sm-kms-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -653,7 +653,7 @@ services:
   identity-authz-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity-authz", "start", "--config=/app/config/identity-authz-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "authz", "start", "--config=/app/config/identity-authz-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28200:8000"
@@ -662,11 +662,11 @@ services:
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -693,7 +693,7 @@ services:
   identity-authz-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-authz", "start", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "authz", "start", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28201:8000"
@@ -702,15 +702,15 @@ services:
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -740,7 +740,7 @@ services:
   identity-authz-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-authz", "start", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "authz", "start", "--config=/app/config/identity-authz-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28202:8000"
@@ -749,15 +749,15 @@ services:
       - ../identity-authz/config/identity-authz-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -791,7 +791,7 @@ services:
   identity-idp-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity-idp", "start", "--config=/app/config/identity-idp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "idp", "start", "--config=/app/config/identity-idp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28300:8000"
@@ -800,11 +800,11 @@ services:
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -831,7 +831,7 @@ services:
   identity-idp-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-idp", "start", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "idp", "start", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28301:8000"
@@ -840,15 +840,15 @@ services:
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -878,7 +878,7 @@ services:
   identity-idp-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-idp", "start", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "idp", "start", "--config=/app/config/identity-idp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28302:8000"
@@ -887,15 +887,15 @@ services:
       - ../identity-idp/config/identity-idp-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -929,7 +929,7 @@ services:
   identity-rs-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity-rs", "start", "--config=/app/config/identity-rs-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rs", "start", "--config=/app/config/identity-rs-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28400:8000"
@@ -938,11 +938,11 @@ services:
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -969,7 +969,7 @@ services:
   identity-rs-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-rs", "start", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rs", "start", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28401:8000"
@@ -978,15 +978,15 @@ services:
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1016,7 +1016,7 @@ services:
   identity-rs-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-rs", "start", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rs", "start", "--config=/app/config/identity-rs-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28402:8000"
@@ -1025,15 +1025,15 @@ services:
       - ../identity-rs/config/identity-rs-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1067,7 +1067,7 @@ services:
   identity-rp-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity-rp", "start", "--config=/app/config/identity-rp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rp", "start", "--config=/app/config/identity-rp-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28500:8000"
@@ -1076,11 +1076,11 @@ services:
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1107,7 +1107,7 @@ services:
   identity-rp-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-rp", "start", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rp", "start", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28501:8000"
@@ -1116,15 +1116,15 @@ services:
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1154,7 +1154,7 @@ services:
   identity-rp-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-rp", "start", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "rp", "start", "--config=/app/config/identity-rp-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28502:8000"
@@ -1163,15 +1163,15 @@ services:
       - ../identity-rp/config/identity-rp-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1205,7 +1205,7 @@ services:
   identity-spa-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["identity-spa", "start", "--config=/app/config/identity-spa-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "spa", "start", "--config=/app/config/identity-spa-sqlite.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28600:8000"
@@ -1214,11 +1214,11 @@ services:
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1245,7 +1245,7 @@ services:
   identity-spa-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-spa", "start", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "spa", "start", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28601:8000"
@@ -1254,15 +1254,15 @@ services:
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1292,7 +1292,7 @@ services:
   identity-spa-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["identity-spa", "start", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["identity", "spa", "start", "--config=/app/config/identity-spa-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28602:8000"
@@ -1301,15 +1301,15 @@ services:
       - ../identity-spa/config/identity-spa-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
-      - unseal_1of5.secret
-      - unseal_2of5.secret
-      - unseal_3of5.secret
-      - unseal_4of5.secret
-      - unseal_5of5.secret
-      - postgres_url.secret
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
@@ -1349,36 +1349,21 @@ networks:
     driver: bridge
 
 # ========================================================================
-# Volumes
-# ========================================================================
-
-volumes:
-  postgres_leader_data:
-  postgres_follower_data:
-  citus_coordinator_data:
-  citus_worker_1_data:
-  citus_worker_2_data:
-
-# ========================================================================
 # Secrets
 # ========================================================================
 
 secrets:
-  unseal_1of5.secret:
-    file: ./secrets/unseal_1of5.secret
-  unseal_2of5.secret:
-    file: ./secrets/unseal_2of5.secret
-  unseal_3of5.secret:
-    file: ./secrets/unseal_3of5.secret
-  unseal_4of5.secret:
-    file: ./secrets/unseal_4of5.secret
-  unseal_5of5.secret:
-    file: ./secrets/unseal_5of5.secret
-  postgres_url.secret:
-    file: ./secrets/postgres_url.secret
-  postgres_username.secret:
-    file: ./secrets/postgres_username.secret
-  postgres_password.secret:
-    file: ./secrets/postgres_password.secret
-  postgres_database.secret:
-    file: ./secrets/postgres_database.secret
+  hash-pepper_v3.secret:
+    file: ./secrets/cryptoutil-hash-pepper.secret
+  unseal-1of5.secret:
+    file: ./secrets/unseal-1of5.secret
+  unseal-2of5.secret:
+    file: ./secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ./secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ./secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ./secrets/unseal-5of5.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
