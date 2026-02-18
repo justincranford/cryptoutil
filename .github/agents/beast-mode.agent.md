@@ -368,21 +368,43 @@ git log --oneline -20
 **Quality Checks (MANDATORY before every commit):**
 
 ```bash
-go build ./...                          # Must be clean
-golangci-lint run --fix                  # Auto-fix then verify clean
-go test ./... -shuffle=on                # All tests pass, zero skips
+# MANDATORY Pre-Commit Quality Gates
+go build ./...                            # Must be clean
+golangci-lint run --fix                   # Auto-fix then verify clean
+go test ./... -shuffle=on                 # All tests pass (unit + integration), zero skips
+go run ./cmd/cicd lint-deployments validate-all  # Deployment validation (when deployments/configs changed)
+```
+
+**Additional Quality Gates (Context-Dependent):**
+
+```bash
+# When E2E code/tests changed (MANDATORY)
+go run ./cmd/workflow -workflows=e2e      # End-to-end tests (requires Docker Desktop running)
+
+# RECOMMENDED Pre-Push Quality Gates
+gremlins unleash --tags=!integration      # Mutation testing (when explicitly requested)
+govulncheck ./...                         # Vulnerability scan
+go test -race -count=3 ./...              # Race detection
 ```
 
 **Coverage Targets:**
 - ≥95% production code, ≥98% infrastructure/utility code
-- Mutation testing: ONLY if user explicitly requests
+- Mutation testing: ≥95% (when applicable)
 
 **Before marking task complete:**
 - Build clean (`go build ./...`)
 - Linting clean (`golangci-lint run`)
 - Tests pass (100%, zero skips, `go test ./... -shuffle=on`)
+- Integration tests pass (included in go test ./...)
+- Deployment validators pass (`cicd lint-deployments validate-all` - when deployments/ or configs/ changed)
+- E2E tests pass (`go run ./cmd/workflow -workflows=e2e` - when E2E code/tests changed, requires Docker Desktop)
 - Coverage maintained
 - Git commit with conventional commit message
+
+**Context-Specific Requirements:**
+- **E2E Changes**: Docker Desktop must be running; E2E workflow must pass
+- **Deployment/Config Changes**: All 65 deployment validators must pass
+- **Security-Sensitive Changes**: SAST/DAST scans may be required
 
 ---
 

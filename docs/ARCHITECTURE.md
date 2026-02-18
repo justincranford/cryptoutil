@@ -2250,7 +2250,7 @@ err := composeManager.WaitForServicesHealthy(ctx, services)
 opentelemetry-collector-contrib:
   image: otel/opentelemetry-collector-contrib:latest
   # No native HEALTHCHECK in container image
-  
+
 healthcheck-opentelemetry-collector-contrib:
   image: alpine:latest
   command:
@@ -2284,7 +2284,7 @@ type ServiceAndJob struct {
 }
 ```
 
-**Implementation**: See `internal/apps/template/testing/e2e/docker_health.go` for parseDockerComposePsOutput(), determineServiceHealthStatus(), WaitForServicesHealthy().
+**Implementation**: See `internal/apps/template/service/testing/e2e_infra/docker_health.go` for parseDockerComposePsOutput(), determineServiceHealthStatus(), WaitForServicesHealthy().
 
 #### 10.4.3 E2E Test Scope
 

@@ -2,17 +2,17 @@
 
 ## E2E Legacy Framework (e2e-legacy/)
 
-**Archived**: 2025-12-24  
-**Reason**: Migrated to service template pattern  
-**Replacement**: `internal/apps/template/service/testing/e2e/` (service-level) + `internal/apps/template/testing/e2e/` (Docker Compose orchestration)
+**Archived**: 2025-12-24
+**Reason**: Migrated to service template pattern
+**Replacement**: `internal/apps/template/service/testing/e2e/` (service-level) + `internal/apps/template/service/testing/e2e_infra/` (Docker Compose orchestration)
 
 ### Migration Summary
 
 **Fully Migrated**:
-- `docker_health.go` → `internal/apps/template/testing/e2e/docker_health.go` (3-use-case health checking with ServiceAndJob struct)
+- `docker_health.go` → `internal/apps/template/service/testing/e2e_infra/docker_health.go` (3-use-case health checking with ServiceAndJob struct)
 
 **Partially Migrated**:
-- `docker_utils.go` → Simplified as `internal/apps/template/testing/e2e/compose.go` (ComposeManager, lighter design)
+- `docker_utils.go` → Simplified as `internal/apps/template/service/testing/e2e_infra/compose_manager.go` (ComposeManager, lighter design)
 - `http_utils.go` → Similar functionality in `internal/apps/template/service/testing/e2e/http_helpers.go`
 
 **Not Migrated (Intentionally Archived)**:
@@ -25,12 +25,12 @@
 
 ### Design Improvements
 
-**Old Framework**: Elaborate infrastructure with Logger, Asserter, InfrastructureManager, testify/suite  
+**Old Framework**: Elaborate infrastructure with Logger, Asserter, InfrastructureManager, testify/suite
 **New Framework**: Simpler TestMain pattern, testing.T.Log(), direct ComposeManager usage
 
 **Two Directory Strategy**:
 1. `internal/apps/template/service/testing/e2e/` - Service-level testing helpers (in-process, no Docker)
-2. `internal/apps/template/testing/e2e/` - Docker Compose orchestration (docker_health.go, compose.go)
+2. `internal/apps/template/service/testing/e2e_infra/` - Docker Compose orchestration (docker_health.go, compose_manager.go)
 
 ### References
 

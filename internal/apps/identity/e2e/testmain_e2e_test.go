@@ -11,7 +11,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsTemplateTestingE2e "cryptoutil/internal/apps/template/testing/e2e"
+	cryptoutilAppsTemplateTestingE2eInfra "cryptoutil/internal/apps/template/service/testing/e2e_infra"
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -19,7 +19,7 @@ import (
 // Shared test resources (initialized once per package).
 var (
 	sharedHTTPClient *http.Client
-	composeManager   *cryptoutilAppsTemplateTestingE2e.ComposeManager
+	composeManager   *cryptoutilAppsTemplateTestingE2eInfra.ComposeManager
 
 	// Five identity service instances (actual container names).
 	authzContainer = cryptoutilSharedMagic.IdentityE2EAuthzContainer // "identity-authz-app-sqlite-1"
@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Initialize compose manager with reusable helper.
-	composeManager = cryptoutilAppsTemplateTestingE2e.NewComposeManager(cryptoutilSharedMagic.IdentityE2EComposeFile)
+	composeManager = cryptoutilAppsTemplateTestingE2eInfra.NewComposeManager(cryptoutilSharedMagic.IdentityE2EComposeFile)
 	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
 
 	// Step 1: Start docker compose stack.

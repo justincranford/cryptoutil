@@ -72,7 +72,7 @@
   - [x] Output saved to `test-output/phase1/e2e-patterns.txt`
 - **Files**:
   - `test-output/phase1/e2e-patterns.txt`
-  - Analysis of `internal/apps/template/testing/e2e/compose.go`
+  - Analysis of `internal/apps/template/service/testing/e2e_infra/compose_manager.go`
   - Analysis of `internal/apps/cipher/im/e2e/testmain_e2e_test.go`
   - Analysis of `internal/apps/identity/e2e/testmain_e2e_test.go`
 
