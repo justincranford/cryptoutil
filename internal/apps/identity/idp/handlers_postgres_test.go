@@ -18,7 +18,7 @@ import (
 
 // TestPostgreSQLIntegration validates PostgreSQL-specific features: connection pooling, concurrent operations, transaction isolation.
 // Uses real PostgreSQL container (not in-memory SQLite) to validate production behavior.
-// Prerequisites: PostgreSQL container running at localhost:5433 (via docker compose -f deployments/compose/postgres-test.yml up -d).
+// Prerequisites: PostgreSQL container running at localhost:5433 (via docker compose -f deployments/shared-postgres/compose.yml up -d).
 // Note: This test validates PostgreSQL features without creating separate databases (simplified approach).
 func TestPostgreSQLIntegration(t *testing.T) {
 	t.Parallel()

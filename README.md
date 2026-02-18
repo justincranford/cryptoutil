@@ -250,7 +250,7 @@ For comprehensive usage, see [Unified CLI Guide](docs/02-identityV2/historical/u
 
 ```sh
 # Start full stack: PostgreSQL, cryptoutil, and observability
-cd deployments/compose
+cd deployments/cryptoutil-suite
 docker compose up -d
 
 # View logs
@@ -311,10 +311,10 @@ go generate ./...
 
 # Run with PostgreSQL
 docker compose up -d postgres
-go run main.go --config=./deployments/compose/cryptoutil/postgresql.yml
+go run main.go --config=./configs/sm/config-pg-1.yml
 
 # Or run with SQLite (development mode)
-go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
+go run main.go --dev --config=./configs/sm/config-sqlite-1.yml
 ```
 
 ### API Access
