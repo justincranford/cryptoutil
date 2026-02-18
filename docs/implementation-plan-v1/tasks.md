@@ -424,7 +424,101 @@
 
 **Note**: Detailed tasks will be created as each phase is reached (dynamic work discovery pattern).
 
-**Phase 4**: PRODUCT-Level Standardization (7 tasks estimated)
+### Phase 4: PRODUCT-Level Standardization
+
+**Phase Objective**: Convert PRODUCT compose files from includes-only to explicit template-based services with 18XXX ports
+**Estimated Duration**: 4h
+
+#### Task 4.1: Generate SM PRODUCT Compose (18000-18002)
+- **Status**: ✅
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Phase 3 complete
+- **Description**: Replace sm/compose.yml includes-only with template-based compose using 18XXX ports
+- **Acceptance Criteria**:
+  - [ ] Copy PRODUCT template, substitute PRODUCT=sm, SERVICE1=kms, XXXX=18000
+  - [ ] Fix secret names (underscores→hyphens), command format, volumes
+  - [ ] Run: `cd deployments/sm && docker compose config` (verify syntax)
+  - [ ] Run linter: `go run ./cmd/cicd lint-deployments validate-all`
+  - [ ] Commit changes
+
+#### Task 4.2: Generate PKI PRODUCT Compose (18100-18102)
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Task 4.1
+- **Description**: Replace pki/compose.yml with template-based compose using 18XXX ports
+- **Acceptance Criteria**:
+  - [ ] Copy PRODUCT template, substitute PRODUCT=pki, SERVICE1=ca, XXXX=18100
+  - [ ] Fix secret names, command format, volumes
+  - [ ] Run: `cd deployments/pki && docker compose config`
+  - [ ] Run linter
+  - [ ] Commit changes
+
+#### Task 4.3: Generate Cipher PRODUCT Compose (18700-18702)
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Task 4.1
+- **Description**: Replace cipher/compose.yml with template-based compose using 18XXX ports
+- **Acceptance Criteria**:
+  - [ ] Copy PRODUCT template, substitute PRODUCT=cipher, SERVICE1=im, XXXX=18700
+  - [ ] Fix secret names, command format, volumes
+  - [ ] Run: `cd deployments/cipher && docker compose config`
+  - [ ] Run linter
+  - [ ] Commit changes
+
+#### Task 4.4: Generate JOSE PRODUCT Compose (18800-18802)
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Task 4.1
+- **Description**: Replace jose/compose.yml with template-based compose using 18XXX ports
+- **Acceptance Criteria**:
+  - [ ] Copy PRODUCT template, substitute PRODUCT=jose, SERVICE1=ja, XXXX=18800
+  - [ ] Fix secret names, command format, volumes
+  - [ ] Run: `cd deployments/jose && docker compose config`
+  - [ ] Run linter
+  - [ ] Commit changes
+
+#### Task 4.5: Generate Identity PRODUCT Compose (18200-18602)
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Dependencies**: Task 4.1
+- **Description**: Replace identity/compose.yml with template-based compose for 5 services with 18XXX ports
+- **Acceptance Criteria**:
+  - [ ] Generate 5-service compose from PRODUCT template with: authz=18200, idp=18300, rs=18400, rp=18500, spa=18600
+  - [ ] Fix secret names, command format, volumes for all 15 app services
+  - [ ] Run: `cd deployments/identity && docker compose config`
+  - [ ] Run linter
+  - [ ] Commit changes
+
+#### Task 4.6: Validate All PRODUCT Deployments
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Tasks 4.1-4.5
+- **Description**: Run full validation across all 5 PRODUCT compose files
+- **Acceptance Criteria**:
+  - [ ] All 67+ deployment validators pass
+  - [ ] Docker compose config passes for all 5 products
+  - [ ] Port ranges confirmed: 18XXX for all services
+  - [ ] Evidence saved to test-output/phase4/
+  - [ ] Commit validation evidence
+
+#### Task 4.7: Phase 4 Post-Mortem
+- **Status**: ☐
+- **Owner**: LLM Agent
+- **Estimated**: 0.3h
+- **Dependencies**: Tasks 4.1-4.6
+- **Description**: Phase 4 completion analysis
+- **Acceptance Criteria**:
+  - [ ] Create test-output/phase4/phase4-summary.txt
+  - [ ] Update plan.md Phase 4 section
+  - [ ] Identify blockers or new tasks
+  - [ ] Commit with comprehensive message
+
 **Phase 5**: SERVICE-Level Verification (8 tasks estimated)
 **Phase 6**: Legacy E2E Migration (12 tasks estimated)
 **Phase 7**: Archive Legacy Directories (5 tasks estimated)
@@ -435,4 +529,4 @@
 **Phase 12**: Quality Gates & Final Validation (8 tasks estimated)
 **Phase 13**: Archive & Wrap-Up (4 tasks estimated)
 
-**Total**: 92 tasks across 13 phases (estimated)
+**Total**: 99 tasks across 13 phases (estimated)
