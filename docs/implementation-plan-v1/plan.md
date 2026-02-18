@@ -209,22 +209,20 @@ Current deployment architecture follows three-tier hierarchy (SERVICE → PRODUC
 
 **Post-Mortem**: test-output/phase6/post-mortem.md
 
-### Phase 7: Archive Legacy Directories (2h) [Status: ☐ TODO]
+### Phase 7: Archive Legacy Directories (2h) [Status: ✅ COMPLETE]
 **Objective**: Archive or delete legacy deployment directories
 
-**Tasks**:
-- Archive `deployments/compose/` directory
-- Archive or delete original `deployments/cryptoutil/`
-- Update all references to point to new directories
-- Update CI/CD workflows
-- Run full validator suite
-- Verify no broken references
+**Completed** (6 commits, 13 files modified):
+- Moved shared Dockerfile from cryptoutil/ to cryptoutil-suite/
+- Updated 7 compose files (5 PRODUCT + suite + template) to new Dockerfile location
+- Fixed ci-quality.yml references (kms/ → cryptoutil-suite/)
+- Removed empty deployments/kms/ directory (legacy name)
+- Archived deployments/cryptoutil/ to archived/cryptoutil-legacy/
+- Updated ARCHITECTURE.md, MULTIDEPLOY.md, README.md references
 
-**Success Criteria**:
-- Legacy directories archived or deleted
-- No broken references in code
-- All workflows updated
-- All validators pass
+**Validation**: Build clean, lint 0 issues, 63/63 validators pass, full test suite passes
+
+**Post-Mortem**: test-output/phase7/post-mortem.md
 
 ### Phase 8: Validator Updates (4h) [Status: ☐ TODO]
 **Objective**: Update deployment validators for new structure
@@ -351,7 +349,7 @@ Current deployment architecture follows three-tier hierarchy (SERVICE → PRODUC
 - [ ] Phase 4 complete (PRODUCT-Level Standardization)
 - [x] Phase 5 complete (SERVICE-Level Standardization)
 - [x] Phase 6 complete (Legacy E2E & Reference Fixes)
-- [ ] Phase 7 complete (Archive Legacy Directories)
+- [x] Phase 7 complete (Archive Legacy Directories)
 - [ ] Phase 8 complete (Validator Updates)
 - [ ] Phase 9 complete (Documentation Complete Update)
 - [ ] Phase 10 complete (CI/CD Workflow Updates)
