@@ -82,10 +82,13 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 
 // getComposeFilePath returns the compose file path appropriate for the current OS.
 // getComposeFilePath returns the absolute path to the docker-compose file.
+// NOTE: Legacy E2E compose was archived during PRODUCT-SERVICE restructuring.
+// The archived compose at deployments/archived/compose-legacy/ has stale config paths
+// and needs updating before the legacy E2E tests can run again.
 func getComposeFilePath() string {
-	// Navigate up from internal/test/e2e/ to project root, then to deployments/compose/compose.yml
+	// Navigate up from internal/test/e2e/ to project root, then to archived compose location.
 	projectRoot := filepath.Join("..", "..", "..")
-	composePath := filepath.Join(projectRoot, "deployments", "compose", "compose.yml")
+	composePath := filepath.Join(projectRoot, "deployments", "archived", "compose-legacy", "compose.yml")
 
 	// Convert to absolute path to ensure it works regardless of working directory
 	absPath, err := filepath.Abs(composePath)

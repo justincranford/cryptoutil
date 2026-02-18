@@ -49,9 +49,11 @@ const (
 )
 
 // Docker Compose relative file paths from project root.
+// NOTE: Legacy E2E compose was archived during PRODUCT-SERVICE restructuring.
+// See deployments/archived/compose-legacy/ for the original monolithic compose.
 const (
-	// DockerComposeRelativeFilePathWindows - Docker Compose relative file path for Windows from project root.
-	DockerComposeRelativeFilePathWindows = ".\\deployments\\compose\\compose.yml"
-	// DockerComposeRelativeFilePathLinux - Docker Compose relative file path for Linux/Mac from project root.
-	DockerComposeRelativeFilePathLinux = "./deployments/compose/compose.yml"
+	// DockerComposeRelativeFilePathWindows - Docker Compose relative file path for Windows from project root (archived).
+	DockerComposeRelativeFilePathWindows = ".\\deployments\\archived\\compose-legacy\\compose.yml"
+	// DockerComposeRelativeFilePathLinux - Docker Compose relative file path for Linux/Mac from project root (archived).
+	DockerComposeRelativeFilePathLinux = "./deployments/archived/compose-legacy/compose.yml"
 )
