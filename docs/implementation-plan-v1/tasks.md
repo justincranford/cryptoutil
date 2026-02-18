@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 4 of 92 tasks complete (4.3%) - Phase 1 COMPLETE, Phase 2 in progress
+**Status**: 5 of 92 tasks complete (5.4%) - Phase 1 COMPLETE, Phase 2 in progress
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -117,35 +117,36 @@
   - `deployments/cryptoutil-suite/` (directory)
   - `deployments/cryptoutil-suite/compose.yml` (copied)
 
-#### Task 2.2: Create cryptoutil-product Directories
-- **Status**: ❌
+#### Task 2.2: Verify Existing Hierarchy Structure
+- **Status**: ✅
 - **Owner**: LLM Agent
-- **Estimated**: 0.5h
-- **Actual**: [Fill when complete]
+- **Estimated**: 0.3h
+- **Actual**: 0.1h
 - **Dependencies**: Task 2.1
-- **Description**: Create PRODUCT-level deployment example directories
+- **Description**: Verify existing PRODUCT and SERVICE directories follow hierarchy correctly
 - **Acceptance Criteria**:
-  - [ ] Create directory: `mkdir -p deployments/cryptoutil-product`
-  - [ ] Create subdirectories for each product (cipher, identity, jose, pki, sm)
-  - [ ] Verify structure matches SUITE/PRODUCT/SERVICE hierarchy
-  - [ ] Run: `tree deployments/cryptoutil-product/`
+  - [x] Verify 5 PRODUCT directories exist: cipher, identity, jose, pki, sm
+  - [x] Verify 9 SERVICE directories exist: cipher-im, identity-*, jose-ja, pki-ca, sm-kms
+  - [x] Document structure in `test-output/phase2/structure-verification.txt`
+  - [x] Identify any structural issues
 - **Files**:
-  - `deployments/cryptoutil-product/` (directory structure)
+  - `test-output/phase2/structure-verification.txt`
 
-#### Task 2.3: Create cryptoutil-service Directories
+#### Task 2.3: Archive Legacy Compose Directory
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 0.5h
+- **Estimated**: 0.2h
 - **Actual**: [Fill when complete]
 - **Dependencies**: Task 2.2
-- **Description**: Create SERVICE-level deployment example directories
+- **Description**: Archive deployments/compose/ (legacy E2E that breaks hierarchy)
 - **Acceptance Criteria**:
-  - [ ] Create directory: `mkdir -p deployments/cryptoutil-service`
-  - [ ] Create subdirectories for each service (cipher-im, identity-*, etc.)
-  - [ ] Verify structure matches hierarchy
-  - [ ] Run: `tree deployments/cryptoutil-service/`
+  - [ ] Create archive directory: `mkdir -p deployments/archived/`
+  - [ ] Move: `git mv deployments/compose deployments/archived/compose-legacy`
+  - [ ] Document archival reason in `deployments/archived/README.md`
+  - [ ] Verify no broken references remain
 - **Files**:
-  - `deployments/cryptoutil-service/` (directory structure)
+  - `deployments/archived/compose-legacy/` (moved)
+  - `deployments/archived/README.md` (created)
 
 #### Task 2.4: Validate New Structure
 - **Status**: ❌
