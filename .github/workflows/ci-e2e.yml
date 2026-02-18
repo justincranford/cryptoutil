@@ -12,7 +12,7 @@ name: CI - End-to-End Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
-# Example: Use './deployments/compose/compose.yml'
+# Example: Use './deployments/sm-kms/compose.yml'
 
 on:
   push:
@@ -98,7 +98,7 @@ jobs:
         echo "🚀 Deploying CA services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ./deployments/ca/compose.yml up -d
+        docker compose -f ./deployments/pki-ca/compose.yml --profile dev up -d
         echo "⏱️ Waiting for CA services to be healthy..."
         sleep 45
         echo "✅ CA services deployed"
@@ -112,7 +112,7 @@ jobs:
         echo "🚀 Deploying JOSE services..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        docker compose -f ./deployments/jose/compose.yml up -d
+        docker compose -f ./deployments/jose/compose.yml --profile dev up -d
         echo "⏱️ Waiting for JOSE services to be healthy..."
         sleep 35
         echo "✅ JOSE services deployed"
@@ -125,7 +125,7 @@ jobs:
       run: |
         echo "🔍 Verifying CA services..."
         curl -k https://localhost:9090/admin/api/v1/livez || echo "CA SQLite not ready"
-        docker compose -f ./deployments/ca/compose.yml ps
+        docker compose -f ./deployments/pki-ca/compose.yml ps
 
     - name: Verify JOSE services
       run: |
@@ -141,7 +141,7 @@ jobs:
 
         # Stop CA and JOSE services to free ports for E2E tests
         echo "🛑 Stopping CA and JOSE services to free ports..."
-        docker compose -f ./deployments/ca/compose.yml down -v || true
+        docker compose -f ./deployments/pki-ca/compose.yml down -v || true
         docker compose -f ./deployments/jose/compose.yml down -v || true
         sleep 5
 
@@ -169,18 +169,16 @@ jobs:
         mkdir -p ./workflow-reports/e2e
 
         # Collect logs from all cryptoutil services
-        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./workflow-reports/e2e/cryptoutil-sqlite.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./workflow-reports/e2e/cryptoutil-postgres-1.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./workflow-reports/e2e/cryptoutil-postgres-2.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs postgres > ./workflow-reports/e2e/postgres.log 2>&1 || true
-        docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
+          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-sqlite-1 > ./workflow-reports/e2e/sm-kms-sqlite.log 2>&1 || true
+          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-1 > ./workflow-reports/e2e/sm-kms-postgres-1.log 2>&1 || true
+          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-app-postgres-2 > ./workflow-reports/e2e/sm-kms-postgres-2.log 2>&1 || true
+          docker compose -f ./deployments/sm-kms/compose.yml logs sm-kms-db-postgres-1 > ./workflow-reports/e2e/sm-kms-db-postgres.log 2>&1 || true
+          docker compose -f ./deployments/sm-kms/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
 
         # Collect CA service logs
-        docker compose -f ./deployments/ca/compose.yml logs ca-sqlite > ./workflow-reports/e2e/ca-sqlite.log 2>&1 || true
-
+          docker compose -f ./deployments/pki-ca/compose.yml logs pki-ca-app-sqlite-1 > ./workflow-reports/e2e/pki-ca-sqlite.log 2>&1 || true
         # Collect JOSE service logs
-        docker compose -f ./deployments/jose/compose.yml logs jose-ja > ./workflow-reports/e2e/jose-ja.log 2>&1 || true
-
+          docker compose -f ./deployments/jose/compose.yml logs jose-ja-app-sqlite-1 > ./workflow-reports/e2e/jose-ja.log 2>&1 || true
         echo "✅ Service logs collected"
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
@@ -211,7 +209,7 @@ jobs:
       if: always()
       run: |
         echo "🛑 Stopping all services..."
-        docker compose -f ./deployments/compose/compose.yml down -v --remove-orphans || true
-        docker compose -f ./deployments/ca/compose.yml down -v --remove-orphans || true
-        docker compose -f ./deployments/jose/compose.yml down -v --remove-orphans || true
-        echo "✅ All services stopped"
+          docker compose -f ./deployments/sm-kms/compose.yml down -v --remove-orphans || true
+          docker compose -f ./deployments/pki-ca/compose.yml down -v --remove-orphans || true
+          docker compose -f ./deployments/jose/compose.yml down -v --remove-orphans || true
+          echo "✅ All services stopped"
