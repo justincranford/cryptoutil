@@ -59,11 +59,11 @@ const (
 	// JoseJAE2ESQLitePublicPort is the public port for SQLite E2E tests.
 	JoseJAE2ESQLitePublicPort = 8800
 
-	// JoseJAE2EPostgreSQL1PublicPort is the public port for first PostgreSQL E2E tests.
-	JoseJAE2EPostgreSQL1PublicPort = 9444
+	// JoseJAE2EPostgreSQL1PublicPort is the public port for first PostgreSQL E2E tests (SERVICE-level).
+	JoseJAE2EPostgreSQL1PublicPort = 8801
 
-	// JoseJAE2EPostgreSQL2PublicPort is the public port for second PostgreSQL E2E tests.
-	JoseJAE2EPostgreSQL2PublicPort = 9445
+	// JoseJAE2EPostgreSQL2PublicPort is the public port for second PostgreSQL E2E tests (SERVICE-level).
+	JoseJAE2EPostgreSQL2PublicPort = 8802
 
 	// JoseJAE2EGrafanaPort is the Grafana port for E2E tests.
 	JoseJAE2EGrafanaPort = 3000

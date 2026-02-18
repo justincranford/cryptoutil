@@ -1,6 +1,6 @@
 # Tasks - Deployment Architecture Refactoring
 
-**Status**: 32 of 99 tasks complete (32.3%) - Phase 1 COMPLETE, Phase 2 COMPLETE, Phase 3 COMPLETE, Phase 4 COMPLETE, Phase 5 COMPLETE
+**Status**: 33 of 99 tasks complete (33.3%) - Phase 1 COMPLETE, Phase 2 COMPLETE, Phase 3 COMPLETE, Phase 4 COMPLETE, Phase 5 COMPLETE
 **Last Updated**: 2026-02-17
 **Created**: 2026-02-17
 
@@ -653,16 +653,18 @@
 **Estimated Duration**: 3h
 
 #### Task 6.1: Fix Identity E2E Compose Reference
-- **Status**: ☐
+- **Status**: ✅
+- **Actual**: 0.2h
+- **Commit**: 89c13013
 - **Owner**: LLM Agent
 - **Estimated**: 0.3h
 - **Dependencies**: Phase 5
 - **Description**: Fix IdentityE2EComposeFile to point to existing compose file (compose.e2e.yml was deleted in b3f443b9)
 - **Acceptance Criteria**:
-  - [ ] Update IdentityE2EComposeFile in magic_identity.go to point to deployments/identity/compose.yml
-  - [ ] Update identity E2E port constants to match PRODUCT-level ports (18200, 18300, 18400, 18500, 18600)
-  - [ ] go vet -tags=e2e ./internal/apps/identity/e2e/ passes
-  - [ ] Commit with evidence
+  - [x] Update IdentityE2EComposeFile in magic_identity.go to point to deployments/identity/compose.yml
+  - [x] Update identity E2E port constants to match PRODUCT-level ports (18200, 18300, 18400, 18500, 18600)
+  - [x] go vet -tags=e2e ./internal/apps/identity/e2e/ passes
+  - [x] Commit with evidence
 
 #### Task 6.2: Fix JOSE E2E Port Constants
 - **Status**: ☐
