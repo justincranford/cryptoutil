@@ -1,76 +1,232 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# JOSE Authority Server Docker Compose Configuration
+# JOSE-JA Docker Compose Configuration
 #
-# This compose file provides the JOSE (JSON Object Signing and Encryption) server.
-# It provides a REST API for JWK management, JWS signing/verification,
-# JWE encryption/decryption, and JWT creation/verification.
+# SERVICE-level deployment for JOSE JWK Authority.
+# Supports 3 instances: 1 SQLite + 2 PostgreSQL.
+#
+# Port allocation (SERVICE level: 8800-8899):
+#   - jose-ja-app-sqlite-1:    8800 (SQLite, dev/demo/ci)
+#   - jose-ja-app-postgres-1:  8801 (PostgreSQL instance 1) [--profile postgres]
+#   - jose-ja-app-postgres-2:  8802 (PostgreSQL instance 2) [--profile postgres]
+#   - jose-ja-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
-#   docker compose -f compose.yml up -d                # Start JOSE server
-#   docker compose -f compose.yml logs -f jose-ja  # Follow logs
-#   docker compose -f compose.yml down -v              # Stop and clean up
+#   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
+#   docker compose -f compose.yml --profile postgres up -d     # All instances
+#   docker compose -f compose.yml --profile demo up -d         # Demo mode
+#   docker compose -f compose.yml --profile ci up -d           # CI mode
+#   docker compose -f compose.yml logs -f                      # View logs
+#   docker compose -f compose.yml down -v                      # Stop and clean up
 #
-# API Endpoints (HTTPS on port 8060):
-#   /jose/v1/jwk/generate - Generate new JWK
-#   /jose/v1/jwk/{kid}    - Get/Delete JWK by Key ID
-#   /jose/v1/jwk          - List all JWKs
-#   /jose/v1/jwks         - Get JWKS (public keys)
-#   /jose/v1/jws/sign     - Sign payload
-#   /jose/v1/jws/verify   - Verify JWS
-#   /jose/v1/jwe/encrypt  - Encrypt payload
-#   /jose/v1/jwe/decrypt  - Decrypt JWE
-#   /jose/v1/jwt/create   - Create JWT
-#   /jose/v1/jwt/verify   - Verify JWT
-#
-# Demo credentials:
-#   API Key: demo-api-key-insecure (X-API-Key header)
+# Health Checks:
+#   - Public health endpoint: https://localhost:8800/browser/api/v1/health
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
 include:
   - path: ../shared-telemetry/compose.yml
 
 services:
-  # Build JOSE server image from source.
-  builder-jose:
-    image: jose-ja:dev
+  # Healthcheck for Docker secrets availability.
+  healthcheck-secrets:
+    image: alpine:latest
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - hash-pepper-v3.secret
+      - postgres-url.secret
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    networks:
+      - jose-ja-network
+
+  # Build jose-ja image from source.
+  builder-jose-ja:
+    image: cryptoutil:dev
     build:
       context: ../..
       dockerfile: deployments/jose-ja/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
-        BUILD_DATE: "2025-12-01T00:00:00Z"
+        BUILD_DATE: "2026-02-17T00:00:00Z"
     entrypoint: ["sh", "-c"]
     command: ["echo 'Build completed successfully'"]
-
-  # JOSE Authority Server.
-  jose-ja:
-    image: jose-ja:dev
-    container_name: jose-ja
-    hostname: jose-ja
-    command:
-      - start
-      - --config=/etc/jose/jose.yml
-    ports:
-      - "8060:8060"  # Public API (HTTPS)
-      # Admin API (9090) NOT exposed - internal 127.0.0.1 only
-    volumes:
-      - ./config/jose-ja-app-common.yml:/etc/jose/jose.yml:ro
     depends_on:
-      builder-jose:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+
+  # PostgreSQL database for jose-ja persistence.
+  jose-ja-db-postgres-1:
+    profiles: ["postgres"]
+    image: postgres:18
+    container_name: jose-ja-postgres
+    hostname: jose-ja-postgres
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres-database.secret
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    secrets:
+      - postgres-username.secret
+      - postgres-password.secret
+      - postgres-database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres-username.secret) -d $(cat /run/secrets/postgres-database.secret)"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - jose-ja-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # jose-ja server with SQLite backend (dev/demo/ci mode).
+  jose-ja-app-sqlite-1:
+    profiles: ["dev", "demo", "ci"]
+    image: cryptoutil:dev
+    command: ["start", "--config=/app/config/jose-ja-app-sqlite-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml"]
+    working_dir: /tmp
+    ports:
+      - "8800:8080"  # HTTPS public
+    volumes:
+      - ./config/jose-ja-app-sqlite-1.yml:/app/config/jose-ja-app-sqlite-1.yml:ro
+      - ./config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-jose-ja:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "wget", "--no-check-certificate", "--quiet",
-             "--tries=1", "--spider",
-             "https://127.0.0.1:9090/admin/api/v1/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
-      interval: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - jose-ja-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # jose-ja server with PostgreSQL backend (instance 1).
+  jose-ja-app-postgres-1:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["start", "--config=/app/config/jose-ja-app-postgresql-1.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    working_dir: /tmp
+    ports:
+      - "8801:8080"  # HTTPS public
+    volumes:
+      - ./config/jose-ja-app-postgresql-1.yml:/app/config/jose-ja-app-postgresql-1.yml:ro
+      - ./config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-jose-ja:
+        condition: service_completed_successfully
+      jose-ja-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - jose-network
+      - jose-ja-network
+      - telemetry-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # jose-ja server with PostgreSQL backend (instance 2 - shared DB with instance 1).
+  jose-ja-app-postgres-2:
+    profiles: ["postgres"]
+    image: cryptoutil:dev
+    command: ["start", "--config=/app/config/jose-ja-app-postgresql-2.yml", "--config=/app/config/jose-ja-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    working_dir: /tmp
+    ports:
+      - "8802:8080"  # HTTPS public
+    volumes:
+      - ./config/jose-ja-app-postgresql-2.yml:/app/config/jose-ja-app-postgresql-2.yml:ro
+      - ./config/jose-ja-app-common.yml:/app/config/jose-ja-app-common.yml:ro
+      - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
+    secrets:
+      - unseal-1of5.secret
+      - unseal-2of5.secret
+      - unseal-3of5.secret
+      - unseal-4of5.secret
+      - unseal-5of5.secret
+      - postgres-url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      builder-jose-ja:
+        condition: service_completed_successfully
+      jose-ja-db-postgres-1:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+      jose-ja-app-postgres-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+      start_period: 60s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jose-ja-network
       - telemetry-network
     deploy:
       resources:
@@ -80,18 +236,31 @@ services:
           memory: 128M
 
 networks:
-  jose-network:
+  jose-ja-network:
     driver: bridge
 
-secrets:
-  # Browser authentication credentials (web UI access)
-  browser-username.secret:
-    file: ./secrets/browser-username.secret
-  browser-password.secret:
-    file: ./secrets/browser-password.secret
+volumes:
+  postgres-data:
+    name: jose-ja-postgres-volume
 
-  # Service authentication credentials (headless/API access)
-  service-username.secret:
-    file: ./secrets/service-username.secret
-  service-password.secret:
-    file: ./secrets/service-password.secret
+secrets:
+  postgres-username.secret:
+    file: ./secrets/postgres-username.secret
+  postgres-password.secret:
+    file: ./secrets/postgres-password.secret
+  postgres-database.secret:
+    file: ./secrets/postgres-database.secret
+  postgres-url.secret:
+    file: ./secrets/postgres-url.secret
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
+  unseal-1of5.secret:
+    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
+  unseal-2of5.secret:
+    file: ./secrets/unseal-2of5.secret
+  unseal-3of5.secret:
+    file: ./secrets/unseal-3of5.secret
+  unseal-4of5.secret:
+    file: ./secrets/unseal-4of5.secret
+  unseal-5of5.secret:
+    file: ./secrets/unseal-5of5.secret
