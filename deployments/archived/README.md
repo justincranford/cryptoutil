@@ -27,3 +27,15 @@ This directory contains deprecated deployment configurations that have been arch
 
 **DO NOT DELETE**: May be needed for reference during E2E migration (Phase 6)
 
+### kms-legacy/ (Removed: 2026-02-17)
+
+**Original Location**: `deployments/kms/`
+
+**Reason for Removal**:
+- Empty directory (contained only an empty `config/` subdirectory)
+- Legacy name predating the `PRODUCT-SERVICE` naming convention
+- Replaced by `deployments/sm-kms/` (SERVICE-level) and `deployments/sm/` (PRODUCT-level)
+- CI workflow references updated to use `deployments/cryptoutil-suite/Dockerfile`
+
+**Note**: Directory was empty so `git mv` was not possible; directory was simply removed.
+
