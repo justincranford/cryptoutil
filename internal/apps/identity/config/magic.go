@@ -5,17 +5,17 @@
 package config
 
 // Default ports.
-// Port ranges per user specification:
-// - identity-authz: 8100-8109 (shares with idp)
-// - identity-idp: 8100-8109 (shares with authz)
-// - identity-rs: 8110-8119
+// Port ranges per service catalog (architecture.md):
+// - identity-authz: 8200-8299
+// - identity-idp: 8300-8399
+// - identity-rs: 8400-8499
 // All admin ports: 9090.
 const (
-	defaultAuthZPort      = 8100 // Default AuthZ server port.
+	defaultAuthZPort      = 8200 // Default AuthZ server port.
 	defaultAuthZAdminPort = 9090 // Default AuthZ admin port.
-	defaultIDPPort        = 8100 // Default IDP server port (shares with authz).
+	defaultIDPPort        = 8300 // Default IDP server port.
 	defaultIDPAdminPort   = 9090 // Default IDP admin port.
-	defaultRSPort         = 8110 // Default RS server port.
+	defaultRSPort         = 8400 // Default RS server port.
 	defaultRSAdminPort    = 9090 // Default RS admin port.
 )
 

@@ -28,7 +28,7 @@ type IdentitySPAServerSettings struct {
 	IndexFile string
 
 	// RPOrigin is the Relying Party (BFF) origin for API proxying configuration.
-	// Example: "https://localhost:8120".
+	// Example: "https://localhost:8500".
 	RPOrigin string
 
 	// CacheControlMaxAge is the max-age for Cache-Control header in seconds.

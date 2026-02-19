@@ -73,10 +73,10 @@ func TestValidateIdentityAuthzSettings_IssuerFormat(t *testing.T) {
 		issuer    string
 		wantError bool
 	}{
-		{"valid_https", "https://localhost:8100", false},
-		{"valid_http", "http://localhost:8100", false},
-		{"invalid_no_scheme", "localhost:8100", true},
-		{"invalid_ftp_scheme", "ftp://localhost:8100", true},
+			{"valid_https", "https://localhost:8200", false},
+			{"valid_http", "http://localhost:8200", false},
+			{"invalid_no_scheme", "localhost:8200", true},
+			{"invalid_ftp_scheme", "ftp://localhost:8200", true},
 		{"empty_issuer", "", true},
 	}
 

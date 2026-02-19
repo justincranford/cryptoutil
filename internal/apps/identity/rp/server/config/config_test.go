@@ -43,10 +43,10 @@ func TestDefaultTestConfig(t *testing.T) {
 func TestNewTestConfig_ProductionMode(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8120, false)
+	cfg := NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 8500, false)
 
 	require.NotNil(t, cfg, "config should not be nil")
-	require.Equal(t, uint16(8120), cfg.BindPublicPort, "bind port should be 8120")
+	require.Equal(t, uint16(8500), cfg.BindPublicPort, "bind port should be 8500")
 	require.False(t, cfg.DevMode, "dev mode should be disabled")
 }
 

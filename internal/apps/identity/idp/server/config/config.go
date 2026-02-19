@@ -36,7 +36,7 @@ type IdentityIDPServerSettings struct {
 
 // Identity-IDP specific default values.
 const (
-	defaultIDPAuthzServerURL     = "https://localhost:8100" // Default authorization server URL.
+	defaultIDPAuthzServerURL     = "https://localhost:8200" // Default authorization server URL.
 	defaultLoginPagePath         = ""                       // Use built-in login page.
 	defaultConsentPagePath       = ""                       // Use built-in consent page.
 	defaultEnableMFAEnrollment   = false                    // Disable MFA enrollment by default.
@@ -142,7 +142,7 @@ func Parse(args []string, exitIfHelp bool) (*IdentityIDPServerSettings, error) {
 
 	// Override template defaults with identity-idp specific values.
 	// NOTE: Only override public port if not explicitly set in config.
-	// The config file may specify a different port (e.g., 8101 for E2E to avoid conflict with authz on 8100).
+	// The config file may specify a different port (e.g., 8301 for E2E to avoid conflict with authz on 8300).
 	if baseSettings.BindPublicPort == 0 {
 		settings.BindPublicPort = cryptoutilSharedMagic.IdentityIDPServicePort
 	}

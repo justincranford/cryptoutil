@@ -34,7 +34,7 @@ type IdentityAuthzServerSettings struct {
 
 // Identity-Authz specific default values.
 const (
-	defaultIssuer               = "https://localhost:8100" // Default issuer URL.
+	defaultIssuer               = "https://localhost:8200" // Default issuer URL.
 	defaultTokenLifetime        = 3600                     // 1 hour access token lifetime.
 	defaultRefreshTokenLifetime = 86400                    // 24 hour refresh token lifetime.
 	defaultAuthorizationCodeTTL = 600                      // 10 minute authorization code TTL.

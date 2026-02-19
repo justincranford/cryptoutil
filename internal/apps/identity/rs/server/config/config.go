@@ -38,7 +38,7 @@ type IdentityRSServerSettings struct {
 
 // Identity-RS specific default values.
 const (
-	defaultRSAuthzServerURL   = "https://localhost:8100" // Default authorization server URL.
+	defaultRSAuthzServerURL   = "https://localhost:8200" // Default authorization server URL.
 	defaultJWKSEndpoint       = "/.well-known/jwks.json" // Standard JWKS endpoint path.
 	defaultIntrospectionURL   = ""                       // No introspection by default.
 	defaultAllowBearerToken   = true                     // Allow Bearer tokens by default.

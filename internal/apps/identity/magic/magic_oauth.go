@@ -135,15 +135,15 @@ const (
 )
 
 // Default server ports.
-// Port ranges per user specification:
-// - identity-authz: 8100-8109 (shares with idp)
-// - identity-idp: 8100-8109 (shares with authz)
-// - identity-rs: 8110-8119
-// - identity-rp: 8120-8129
-// - identity-spa: 8130-8139.
+// Port ranges per service catalog (architecture.md):
+// - identity-authz: 8200-8299
+// - identity-idp: 8300-8399
+// - identity-rs: 8400-8499
+// - identity-rp: 8500-8599
+// - identity-spa: 8600-8699.
 const (
-	DefaultAuthZPort = 8100 // Default OAuth 2.1 authorization server port.
-	DefaultIDPPort   = 8100 // Default OIDC identity provider server port (shares with authz).
-	DefaultRSPort    = 8110 // Default resource server port.
-	DefaultSPARPPort = 8120 // Default SPA relying party server port.
+	DefaultAuthZPort = 8200 // Default OAuth 2.1 authorization server port.
+	DefaultIDPPort   = 8300 // Default OIDC identity provider server port.
+	DefaultRSPort    = 8400 // Default resource server port.
+	DefaultSPARPPort = 8500 // Default SPA relying party demo server port.
 )

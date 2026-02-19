@@ -89,43 +89,42 @@ const (
 )
 
 // Identity service port and OTLP constants.
-// Port ranges per user specification:
-// - identity-authz: 8100-8109 (shares with idp)
-// - identity-idp: 8100-8109 (shares with authz)
-// - identity-rs: 8110-8119
-// - identity-rp: 8120-8129
-// - identity-spa: 8130-8139.
+// Port ranges per service catalog (architecture.md):
+// - identity-authz: 8200-8299
+// - identity-idp: 8300-8399
+// - identity-rs: 8400-8499
+// - identity-rp: 8500-8599
+// - identity-spa: 8600-8699.
 const (
 	// OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
 	OTLPServiceIdentityAuthz = "identity-authz"
 
 	// IdentityAuthzServicePort is the default public port for identity-authz service.
-	IdentityAuthzServicePort = uint16(8100)
+	IdentityAuthzServicePort = uint16(8200)
 
 	// OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
 	OTLPServiceIdentityIDP = "identity-idp"
 
 	// IdentityIDPServicePort is the default public port for identity-idp service.
-	// Same as authz (8100) per specification - both share 8100-8109 range.
-	IdentityIDPServicePort = uint16(8100)
+	IdentityIDPServicePort = uint16(8300)
 
 	// OTLPServiceIdentityRS is the OTLP service name for identity-rs.
 	OTLPServiceIdentityRS = "identity-rs"
 
 	// IdentityRSServicePort is the default public port for identity-rs service.
-	IdentityRSServicePort = uint16(8110)
+	IdentityRSServicePort = uint16(8400)
 
 	// OTLPServiceIdentityRP is the OTLP service name for identity-rp.
 	OTLPServiceIdentityRP = "identity-rp"
 
 	// IdentityRPServicePort is the default public port for identity-rp service.
-	IdentityRPServicePort = uint16(8120)
+	IdentityRPServicePort = uint16(8500)
 
 	// OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
 	OTLPServiceIdentitySPA = "identity-spa"
 
 	// IdentitySPAServicePort is the default public port for identity-spa service.
-	IdentitySPAServicePort = uint16(8130)
+	IdentitySPAServicePort = uint16(8600)
 )
 
 // E2E Test Configuration for identity services.
