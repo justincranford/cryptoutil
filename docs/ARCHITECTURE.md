@@ -153,8 +153,8 @@ This document is structured to serve multiple audiences:
 
 - **Test Coverage**: ≥95% production code, ≥98% infrastructure/utility code
 - **Mutation Testing**: ≥95% efficacy production, ≥98% infrastructure/utility
-- **Linting**: Zero golangci-lint violations across all code
-- **Build**: Clean `go build ./...` with no errors or warnings
+- **Linting**: Zero golangci-lint violations across all code (`golangci-lint run` and `golangci-lint run --build-tags e2e,integration`)
+- **Build**: Clean `go build ./...` and `go build -tags e2e,integration ./...` with no errors or warnings
 
 #### Performance
 
@@ -316,7 +316,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - **Conventional Commits**: `<type>[scope]: <description>` format mandatory
 - **Commit Strategy**: Incremental commits (NOT amend) preserve history for bisect
 - **Restore from Clean**: When fixing regressions, restore known-good baseline first
-- **Quality Gates**: Build clean, linting clean, tests pass before commit
+- **Quality Gates**: Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`), linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`), tests pass before commit
 
 #### Continuous Execution
 
@@ -1854,8 +1854,8 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 
 **Quality Gates** (MANDATORY before merge):
 
-- Build clean: go build ./...
-- Linting clean: golangci-lint run
+- Build clean: `go build ./...` and `go build -tags e2e,integration ./...`
+- Linting clean: `golangci-lint run` and `golangci-lint run --build-tags e2e,integration`
 - Tests pass: 100%, zero skips
 - Coverage: ≥95% production, ≥98% infrastructure/utility
 - Mutation: ≥95% production, ≥98% infrastructure/utility
@@ -2457,8 +2457,10 @@ func BenchmarkAESEncrypt(b *testing.B) {
 
 #### 11.2.1 MANDATORY Pre-Commit Quality Gates
 
-`golangci-lint run --fix` → zero warnings
-`go build ./...` → clean build
+`go build ./...` → clean build (all non-tagged files)
+`go build -tags e2e,integration ./...` → clean build (all build-tagged files)
+`golangci-lint run --fix` → zero warnings (all non-tagged files)
+`golangci-lint run --build-tags e2e,integration --fix` → zero warnings (all build-tagged files)
 `go test -cover -shuffle=on ./...` → MANDATORY 100% tests pass, and ≥98% coverage per package
 
 #### 11.2.2 RECOMMENDED Pre-Commit Quality Gates

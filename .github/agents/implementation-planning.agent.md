@@ -446,8 +446,8 @@ EOF
 
 **Per-Action Quality Gates**:
 - ✅ All tests pass (`go test ./...`) - 100% passing, zero skips
-- ✅ Build clean (`go build ./...`) - zero errors
-- ✅ Linting clean (`golangci-lint run`) - zero warnings
+- ✅ Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`) - zero errors
+- ✅ Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`) - zero warnings
 - ✅ No new TODOs without tracking in tasks.md
 
 **Coverage Targets (from copilot instructions)**:
@@ -581,7 +581,7 @@ EOF
   - [ ] All methods implemented
   - [ ] Unit tests ≥95% coverage
   - [ ] Integration tests pass
-  - [ ] No linting errors: `golangci-lint run ./internal/service/...`
+  - [ ] No linting errors: `golangci-lint run --build-tags e2e,integration ./internal/service/...`
 - **Files**:
   - `internal/service/impl.go`
   - `internal/service/impl_test.go`
@@ -599,7 +599,7 @@ EOF
 - [ ] Race detector clean: `go test -race ./...`
 
 ### Code Quality
-- [ ] Linting passes: `golangci-lint run ./...`
+- [ ] Linting passes: `golangci-lint run ./...` and `golangci-lint run --build-tags e2e,integration ./...`
 - [ ] No new TODOs without tracking
 - [ ] No security vulnerabilities
 - [ ] Formatting clean: `gofumpt -s -w ./`
@@ -640,7 +640,7 @@ EOF
 
 **Before ANY action (create/update/review), verify environment health:**
 
-1. **Build Health**: `go build ./...` (NO errors, confirms project compiles)
+1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors, confirms project compiles)
 2. **Module Cache**: `go list -m all` (verify dependencies resolved)
 3. **Go Version**: `go version` (verify 1.25.5+)
 4. **Working Directory**: Confirm you're in project root (c:\Dev\Projects\cryptoutil)

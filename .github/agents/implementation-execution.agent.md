@@ -501,17 +501,19 @@ QUALITY GATES (PER TASK - MANDATORY)
 You MUST verify these conditions BEFORE marking any task complete:
 
 1. git status → clean OR committed
-2. golangci-lint run --fix ./... → zero warnings
-
-3. go test ./... → 100% pass, zero skips
-4. Coverage:
+2. go build ./... → clean build (all non-tagged files)
+   go build -tags e2e,integration ./... → clean build (all build-tagged files)
+3. golangci-lint run --fix ./... → zero warnings
+   golangci-lint run --build-tags e2e,integration ./... → zero warnings (build-tagged files)
+4. go test ./... → 100% pass, zero skips
+5. Coverage:
    - ≥95% production code
    - ≥98% infrastructure/utility code
-5. Mutation testing (when applicable):
+6. Mutation testing (when applicable):
    - ≥85% production
    - ≥98% infrastructure
-6. Objective evidence exists
-7. Conventional git commit exists with evidence
+7. Objective evidence exists
+8. Conventional git commit exists with evidence
 
 If any gate fails:
 

@@ -88,7 +88,7 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 		cancel()
 
 		if err == nil && resp.StatusCode == http.StatusOK {
-				_ = resp.Body.Close()
+			_ = resp.Body.Close()
 
 			return
 		}
