@@ -7,7 +7,6 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
 	json "encoding/json"
 	http "net/http"
 	"net/http/httptest"
@@ -489,16 +488,3 @@ func TestPublicServerBase_AccessorMethods(t *testing.T) {
 }
 
 // createTestHTTPClient creates an HTTP client that trusts the test CA.
-func createTestHTTPClient(t *testing.T, tlsMaterial *cryptoutilAppsTemplateServiceConfig.TLSMaterial) *http.Client {
-	t.Helper()
-
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				RootCAs:    tlsMaterial.RootCAPool,
-				MinVersion: tls.VersionTLS12,
-			},
-		},
-		Timeout: 5 * time.Second,
-	}
-}

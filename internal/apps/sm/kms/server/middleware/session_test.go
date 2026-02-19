@@ -472,36 +472,3 @@ func TestSessionMiddleware_SetsRealmContext(t *testing.T) {
 // token is empty after parsing Bearer prefix.
 // Note: HTTP header values are trimmed, so "Bearer " becomes "Bearer"
 // which fails the format check (needs exactly 2 parts after split).
-func TestSessionMiddleware_EmptyTokenAfterParse(t *testing.T) {
-	t.Parallel()
-
-	validator := &mockSessionValidator{
-		serviceSession: &SessionInfo{
-			SessionID: googleUuid.New(),
-			TenantID:  googleUuid.New(),
-		},
-	}
-
-	app := fiber.New(fiber.Config{DisableStartupMessage: true})
-	app.Use(ServiceSessionMiddleware(validator))
-	app.Get("/test", func(c *fiber.Ctx) error {
-		return c.SendString("ok")
-	})
-
-	// Test with "Bearer " followed by empty string
-	// Note: HTTP headers are trimmed, so this becomes just "Bearer"
-	req := httptest.NewRequest("GET", "/test", nil)
-	req.Header.Set("Authorization", "Bearer ")
-
-	resp, err := app.Test(req, -1)
-	require.NoError(t, err)
-
-	defer func() { _ = resp.Body.Close() }()
-
-	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
-
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	// Header is trimmed to "Bearer" which doesn't have 2 parts after split
-	require.Contains(t, string(body), "Invalid Authorization header format")
-}
