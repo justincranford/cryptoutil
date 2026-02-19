@@ -196,7 +196,7 @@ var ValidCommands = map[string]bool{
 	"format-go":      true,
 	"format-go-test": true,
 	"lint-compose":   true,
-	"lint-go":         true,
+	"lint-go":        true,
 	"lint-go-mod":    true,
 	"lint-go-test":   true,
 	"lint-golangci":  true,

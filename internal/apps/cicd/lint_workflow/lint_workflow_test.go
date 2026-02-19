@@ -687,9 +687,12 @@ func TestCheckActionVersionsConcurrently_NonExemptedVersion(t *testing.T) {
 	}
 
 	outdated, exempted, errors := checkActionVersionsConcurrently(logger, actionDetails, exceptions)
-	require.Empty(t, outdated)
-	require.Empty(t, exempted)
-	require.Empty(t, errors)
+	require.Empty(t, outdated, "Should have no outdated actions")
+	require.Empty(t, exempted, "Should not be exempted (version mismatch)")
+	// Version mismatch with exception triggers a stale-exception warning.
+	require.Len(t, errors, 1, "Should have 1 stale-exception warning")
+	require.Contains(t, errors[0], "actions/checkout@v4")
+	require.Contains(t, errors[0], "v3")
 }
 
 func TestIsWorkflowFile_LongPaths(t *testing.T) {

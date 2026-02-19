@@ -33,7 +33,7 @@ func TestFormat_WithFiles(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		".go": {testFile},
+		"go": {testFile},
 	}
 
 	err = Format(logger, filesByExtension)
@@ -56,7 +56,7 @@ func TestFormat_ErrorPath(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		".go": {testFile},
+		"go": {testFile},
 	}
 
 	err = Format(logger, filesByExtension)
@@ -115,7 +115,7 @@ func TestEnforceAny_NoModifications(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		".go": {testFile},
+		"go": {testFile},
 	}
 
 	err = enforceAny(logger, filesByExtension)
@@ -155,7 +155,7 @@ func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
-		".go": {"/nonexistent/path/to/file.go"},
+		"go": {"/nonexistent/path/to/file.go"},
 	}
 
 	err := enforceAny(logger, filesByExtension)
@@ -367,7 +367,7 @@ func TestFilterGoFiles_NoGoFiles(t *testing.T) {
 
 	filesByExtension := map[string][]string{
 		".txt": {"file1.txt", "file2.txt"},
-		".md":  {"README.md"},
+		"md":  {"README.md"},
 	}
 
 	goFiles := filterGoFiles(filesByExtension)
@@ -379,7 +379,7 @@ func TestFilterGoFiles_WithGoFiles(t *testing.T) {
 	t.Parallel()
 
 	filesByExtension := map[string][]string{
-		".go":  {"file1.go", "file2.go"},
+		"go":  {"file1.go", "file2.go"},
 		".txt": {"file.txt"},
 	}
 

@@ -23,9 +23,14 @@ type cryptoViolation struct {
 
 // checkCryptoRand verifies that code uses crypto/rand, not math/rand for security operations.
 func checkCryptoRand(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return checkCryptoRandInDir(logger, ".")
+}
+
+// checkCryptoRandInDir checks for math/rand usage in rootDir.
+func checkCryptoRandInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	logger.Log("Checking crypto/rand vs math/rand usage...")
 
-	violations, err := findMathRandViolations()
+	violations, err := findMathRandViolationsInDir(rootDir)
 	if err != nil {
 		return fmt.Errorf("failed to check math/rand usage: %w", err)
 	}
@@ -51,11 +56,11 @@ var mathRandUsagePatterns = []*regexp.Regexp{
 	regexp.MustCompile(`\brand\.NewSource\b`),
 }
 
-// findMathRandViolations scans Go files for math/rand usage.
-func findMathRandViolations() ([]cryptoViolation, error) {
+// findMathRandViolationsInDir scans Go files in rootDir for math/rand usage.
+func findMathRandViolationsInDir(rootDir string) ([]cryptoViolation, error) {
 	var violations []cryptoViolation
 
-	err := filepath.WalkDir(".", func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(rootDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -100,7 +105,7 @@ func findMathRandViolations() ([]cryptoViolation, error) {
 		return nil
 	})
 	if err != nil {
-		return violations, fmt.Errorf("failed to walk directory for math/rand check: %w", err)
+		return violations, fmt.Errorf("failed to walk directory %s for math/rand check: %w", rootDir, err)
 	}
 
 	return violations, nil
@@ -212,9 +217,14 @@ func checkFileForMathRand(filePath string) ([]cryptoViolation, error) {
 
 // checkInsecureSkipVerify verifies that code doesn't disable TLS certificate verification.
 func checkInsecureSkipVerify(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return checkInsecureSkipVerifyInDir(logger, ".")
+}
+
+// checkInsecureSkipVerifyInDir checks for InsecureSkipVerify usage in rootDir.
+func checkInsecureSkipVerifyInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	logger.Log("Checking for InsecureSkipVerify usage...")
 
-	violations, err := findInsecureSkipVerifyViolations()
+	violations, err := findInsecureSkipVerifyViolationsInDir(rootDir)
 	if err != nil {
 		return fmt.Errorf("failed to check InsecureSkipVerify: %w", err)
 	}
@@ -233,11 +243,11 @@ func checkInsecureSkipVerify(logger *cryptoutilCmdCicdCommon.Logger) error {
 // insecureSkipVerifyPattern matches InsecureSkipVerify set to true in Go code.
 var insecureSkipVerifyPattern = regexp.MustCompile(`InsecureSkipVerify\s*:\s*true`)
 
-// findInsecureSkipVerifyViolations scans Go files for disabling TLS verification.
-func findInsecureSkipVerifyViolations() ([]cryptoViolation, error) {
+// findInsecureSkipVerifyViolationsInDir scans Go files in rootDir for disabling TLS verification.
+func findInsecureSkipVerifyViolationsInDir(rootDir string) ([]cryptoViolation, error) {
 	var violations []cryptoViolation
 
-	err := filepath.WalkDir(".", func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(rootDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -282,7 +292,7 @@ func findInsecureSkipVerifyViolations() ([]cryptoViolation, error) {
 		return nil
 	})
 	if err != nil {
-		return violations, fmt.Errorf("failed to walk directory for InsecureSkipVerify check: %w", err)
+		return violations, fmt.Errorf("failed to walk directory %s for InsecureSkipVerify check: %w", rootDir, err)
 	}
 
 	return violations, nil

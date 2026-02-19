@@ -18,8 +18,8 @@ import (
 	cryptoutilCmdCicdLintCompose "cryptoutil/internal/apps/cicd/lint_compose"
 	cryptoutilCmdCicdLintGo "cryptoutil/internal/apps/cicd/lint_go"
 	cryptoutilCmdCicdLintGoMod "cryptoutil/internal/apps/cicd/lint_go_mod"
-	cryptoutilCmdCicdLintGotest "cryptoutil/internal/apps/cicd/lint_gotest"
 	cryptoutilCmdCicdLintGolangci "cryptoutil/internal/apps/cicd/lint_golangci"
+	cryptoutilCmdCicdLintGotest "cryptoutil/internal/apps/cicd/lint_gotest"
 	cryptoutilCmdCicdLintPorts "cryptoutil/internal/apps/cicd/lint_ports"
 	cryptoutilCmdCicdLintText "cryptoutil/internal/apps/cicd/lint_text"
 	cryptoutilCmdCicdLintWorkflow "cryptoutil/internal/apps/cicd/lint_workflow"
@@ -28,16 +28,16 @@ import (
 )
 
 const (
-	cmdLintText       = "lint-text"       // [Linter] Text file linters (UTF-8 encoding).
-	cmdLintGo         = "lint-go"         // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
-	cmdLintGoTest     = "lint-go-test"    // [Linter] Go test file linters (test patterns).
-	cmdLintCompose    = "lint-compose"    // [Linter] Docker Compose file linters (admin port exposure).
-	cmdLintPorts      = "lint-ports"      // [Linter] Port assignment validation (standardized ports).
-	cmdLintWorkflow   = "lint-workflow"   // [Linter] Workflow file linters (GitHub Actions).
-	cmdLintGoMod      = "lint-go-mod"     // [Linter] Go module linters (dependency updates).
-	cmdLintGolangci   = "lint-golangci"   // [Linter] golangci-lint config validation (v2 compatibility).
-	cmdFormatGo       = "format-go"       // [Formatter] Go file formatters (any, copyloopvar).
-	cmdFormatGoTest   = "format-go-test"  // [Formatter] Go test file formatters (t.Helper).
+	cmdLintText     = "lint-text"      // [Linter] Text file linters (UTF-8 encoding).
+	cmdLintGo       = "lint-go"        // [Linter] Go package linters (circular dependencies, CGO-free SQLite).
+	cmdLintGoTest   = "lint-go-test"   // [Linter] Go test file linters (test patterns).
+	cmdLintCompose  = "lint-compose"   // [Linter] Docker Compose file linters (admin port exposure).
+	cmdLintPorts    = "lint-ports"     // [Linter] Port assignment validation (standardized ports).
+	cmdLintWorkflow = "lint-workflow"  // [Linter] Workflow file linters (GitHub Actions).
+	cmdLintGoMod    = "lint-go-mod"    // [Linter] Go module linters (dependency updates).
+	cmdLintGolangci = "lint-golangci"  // [Linter] golangci-lint config validation (v2 compatibility).
+	cmdFormatGo     = "format-go"      // [Formatter] Go file formatters (any, copyloopvar).
+	cmdFormatGoTest = "format-go-test" // [Formatter] Go test file formatters (t.Helper).
 )
 
 // Cicd executes the specified CI/CD check commands.

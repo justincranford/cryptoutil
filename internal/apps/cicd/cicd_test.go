@@ -342,3 +342,21 @@ func TestValidateCommands_OnlyFlags(t *testing.T) {
 	require.Nil(t, actualCommands, "Expected nil actual commands")
 	require.Contains(t, err.Error(), "Usage: cicd <command>", "Error should contain usage info")
 }
+
+// TestCicd_ErrorPath verifies that Cicd returns exit code 1 when run returns an error.
+func TestCicd_ErrorPath(t *testing.T) {
+	t.Parallel()
+
+	// invalid-command is not in ValidCommands so run() returns an error.
+	exitCode := Cicd([]string{"cicd", "invalid-command"}, nil, os.Stdout, os.Stderr)
+	require.Equal(t, 1, exitCode, "Expected exit code 1 when run returns error")
+}
+
+// TestCicd_SuccessPath verifies that Cicd returns exit code 0 on success.
+func TestCicd_SuccessPath(t *testing.T) {
+	t.Parallel()
+
+	// lint-workflow runs successfully from the project root.
+	exitCode := Cicd([]string{"cicd", "lint-workflow"}, nil, os.Stdout, os.Stderr)
+	require.Equal(t, 0, exitCode, "Expected exit code 0 for lint-workflow")
+}

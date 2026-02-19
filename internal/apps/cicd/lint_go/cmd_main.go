@@ -15,19 +15,24 @@ const mainGoFilename = "main.go"
 // checkCmdMainPattern checks that all main.go files under cmd/ follow the ARCHITECTURE.md 4.4.3 pattern.
 // Required pattern: func main() { os.Exit(cryptoutilApps<SOMETHING>.<SOMETHING>(os.Args, os.Stdin, os.Stdout, os.Stderr)) }.
 func checkCmdMainPattern(logger *cryptoutilCmdCicdCommon.Logger) error {
-	errors := []string{}
-
 	rootDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to get working directory: %w", err)
 	}
 
+	return checkCmdMainPatternInDir(logger, rootDir)
+}
+
+// checkCmdMainPatternInDir checks all main.go files under rootDir/cmd/ follow the required pattern.
+func checkCmdMainPatternInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
+	errors := []string{}
+
 	cmdDir := filepath.Join(rootDir, "cmd")
-	if _, err := os.Stat(cmdDir); os.IsNotExist(err) {
+	if _, statErr := os.Stat(cmdDir); os.IsNotExist(statErr) {
 		return nil // No cmd directory, skip check
 	}
 
-	err = filepath.Walk(cmdDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(cmdDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

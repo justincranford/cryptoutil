@@ -34,6 +34,10 @@ type WorkflowActionExceptions struct {
 	Exceptions map[string]WorkflowActionException `json:"exceptions"`
 }
 
+// disallowedVersionsBranchPinning lists branch names that should not be used as action versions.
+// Actions pinned to branches are not deterministic and fail security best practices.
+var disallowedVersionsBranchPinning = []string{"main", "master", "latest", "develop", "dev", "trunk"}
+
 // lintGitHubWorkflows validates GitHub workflow files for outdated actions and other issues.
 // It returns an error if validation fails or outdated actions are found.
 func lintGitHubWorkflows(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error {
@@ -198,6 +202,15 @@ func validateAndParseWorkflowFile(workflowFile string) (map[string]WorkflowActio
 			actionName := match[1]
 			version := match[2]
 
+			// Validate version is not a branch name.
+			for _, disallowed := range disallowedVersionsBranchPinning {
+				if strings.EqualFold(version, disallowed) {
+					validationErrors = append(validationErrors, fmt.Sprintf("action %s uses branch '%s' - pin to a specific release version", actionName, version))
+
+					break
+				}
+			}
+
 			key := actionName + "@" + version
 			actionDetails[key] = WorkflowActionDetails{
 				Name:           actionName,
@@ -221,6 +234,10 @@ func checkActionVersionsConcurrently(_ *cryptoutilCmdCicdCommon.Logger, actionDe
 
 				continue
 			}
+
+			// Exception exists but for a different version - flag as warning.
+			errors = append(errors, fmt.Sprintf("%s@%s: exception specifies version '%s' - exception may be stale",
+				action.Name, action.CurrentVersion, exception.Version))
 		}
 
 		// In a full implementation, we would check the latest version from GitHub.

@@ -670,8 +670,8 @@ jobs:
     - name: Nuclei - Vulnerability Scan (${{ steps.nuclei_config.outputs.description }})
       if: ${{ steps.diagnostic_connectivity.outputs.NUCLEI_REACHABLE == 'true' }}
       id: nuclei_scan
-      # https://github.com/projectdiscovery/nuclei-action (main branch, no versioned releases)
-      uses: projectdiscovery/nuclei-action@main
+      # https://github.com/projectdiscovery/nuclei-action
+      uses: projectdiscovery/nuclei-action@v3.1.0
       continue-on-error: true  # Continue even if nuclei finds vulnerabilities (exit code 1) or has errors
       with:
         target: ${{ env.NUCLEI_PUBLIC_TARGET_URL }}

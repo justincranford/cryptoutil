@@ -25,11 +25,16 @@ var CoveragePatterns = []string{
 // Scans ALL directories including test-output/ per user decision.
 // Returns error if files were found and deleted (to trigger CI awareness).
 func checkLeftoverCoverage(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return checkLeftoverCoverageInDir(logger, ".")
+}
+
+// checkLeftoverCoverageInDir detects and auto-deletes leftover coverage files in rootDir.
+func checkLeftoverCoverageInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 	logger.Log("Checking for leftover coverage files...")
 
 	var deletedFiles []string
 
-	err := filepath.Walk(".", func(path string, info os.FileInfo, walkErr error) error {
+	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
