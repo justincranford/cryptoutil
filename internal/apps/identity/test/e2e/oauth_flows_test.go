@@ -7,18 +7,18 @@ package e2e
 import (
 	"context"
 	crand "crypto/rand"
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -33,10 +33,10 @@ func TestAuthorizationCodeFlow(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for authorization code flow...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -120,10 +120,10 @@ func TestClientCredentialsFlow(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for client credentials flow...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -187,10 +187,10 @@ func TestTokenIntrospection(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for token introspection...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -264,10 +264,10 @@ func TestTokenRefresh(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for token refresh...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {
@@ -334,10 +334,10 @@ func TestPKCEFlow(t *testing.T) {
 	// Start services
 	t.Log("📦 Starting identity services for PKCE flow...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling1x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling1x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling1x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling1x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling1x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling1x,
 	}))
 
 	defer func() {

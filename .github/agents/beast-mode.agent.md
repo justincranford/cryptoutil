@@ -121,7 +121,7 @@ problem without needing to ask the user for further input.
 
 **Before starting work:**
 
-1. **Build Health**: `go build ./...`
+1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...`
 2. **Go Version**: `go version` (1.25.5+)
 3. **Docker**: `docker ps` (if needed)
 
@@ -136,7 +136,9 @@ problem without needing to ask the user for further input.
 ### Build & Code Quality
 
 - [ ] `go build ./...` exits 0 (clean build)
+- [ ] `go build -tags e2e,integration ./...` exits 0 (build-tagged files clean)
 - [ ] `golangci-lint run --fix` exits 0 (zero linting errors)
+- [ ] `golangci-lint run --build-tags e2e,integration` exits 0 (build-tagged files lint-clean)
 - [ ] No new TODO/FIXME comments added vs baseline
 
 ### Workspace Cleanliness
@@ -370,7 +372,9 @@ git log --oneline -20
 ```bash
 # MANDATORY Pre-Commit Quality Gates
 go build ./...                            # Must be clean
+go build -tags e2e,integration ./...      # Build-tagged files must be clean
 golangci-lint run --fix                   # Auto-fix then verify clean
+golangci-lint run --build-tags e2e,integration  # Build-tagged files lint-clean
 go test ./... -shuffle=on                 # All tests pass (unit + integration), zero skips
 go run ./cmd/cicd lint-deployments validate-all  # Deployment validation (when deployments/configs changed)
 ```
@@ -392,8 +396,8 @@ go test -race -count=3 ./...              # Race detection
 - Mutation testing: ≥95% (when applicable)
 
 **Before marking task complete:**
-- Build clean (`go build ./...`)
-- Linting clean (`golangci-lint run`)
+- Build clean (`go build ./...` AND `go build -tags e2e,integration ./...`)
+- Linting clean (`golangci-lint run` AND `golangci-lint run --build-tags e2e,integration`)
 - Tests pass (100%, zero skips, `go test ./... -shuffle=on`)
 - Integration tests pass (included in go test ./...)
 - Deployment validators pass (`cicd lint-deployments validate-all` - when deployments/ or configs/ changed)

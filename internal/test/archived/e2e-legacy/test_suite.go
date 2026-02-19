@@ -11,8 +11,8 @@ import (
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilClient "cryptoutil/internal/apps/sm/kms/client"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilKmsClient "cryptoutil/internal/apps/sm/kms/client"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -118,8 +118,8 @@ func (suite *E2ETestSuite) TestInfrastructureHealth() {
 
 	suite.withTestStepRecovery("Infrastructure health check failed: %v", func() string { return "All infrastructure services are healthy" }, func() {
 		suite.assertions.AssertDockerServicesHealthy()
-		suite.assertions.AssertHTTPReady(suite.fixture.ctx, suite.fixture.GetServiceURL("grafana")+"/api/health", cryptoutilMagic.TestTimeoutCryptoutilReady)
-		suite.assertions.AssertHTTPReady(suite.fixture.ctx, suite.fixture.GetServiceURL("otel"), cryptoutilMagic.TestTimeoutCryptoutilReady)
+		suite.assertions.AssertHTTPReady(suite.fixture.ctx, suite.fixture.GetServiceURL("grafana")+"/api/health", cryptoutilSharedMagic.TestTimeoutCryptoutilReady)
+		suite.assertions.AssertHTTPReady(suite.fixture.ctx, suite.fixture.GetServiceURL("otel"), cryptoutilSharedMagic.TestTimeoutCryptoutilReady)
 	})
 }
 
@@ -199,14 +199,14 @@ func (suite *E2ETestSuite) testCreateEncryptionKey(client *cryptoutilOpenapiClie
 		instanceKeyName := fmt.Sprintf("e2e-test-encrypt-key-%s", instanceName)
 		instanceKeyDescription := fmt.Sprintf("E2E integration test encryption key for %s", instanceName)
 
-		encryptionAlgorithm := cryptoutilMagic.TestJwkJweAlgorithm // JWE algorithm for encryption
+		encryptionAlgorithm := cryptoutilSharedMagic.TestJwkJweAlgorithm // JWE algorithm for encryption
 
-		elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
+		elasticKeyCreate := cryptoutilKmsClient.RequireCreateElasticKeyRequest(
 			suite.T(), &instanceKeyName, &instanceKeyDescription,
-			&encryptionAlgorithm, &cryptoutilMagic.StringProviderInternal, &cryptoutilMagic.TestElasticKeyImportAllowed, &cryptoutilMagic.TestElasticKeyVersioningAllowed,
+			&encryptionAlgorithm, &cryptoutilSharedMagic.StringProviderInternal, &cryptoutilSharedMagic.TestElasticKeyImportAllowed, &cryptoutilSharedMagic.TestElasticKeyVersioningAllowed,
 		)
 
-		elasticKey = cryptoutilClient.RequireCreateElasticKeyResponse(suite.fixture.ctx, suite.T(), client, elasticKeyCreate)
+		elasticKey = cryptoutilKmsClient.RequireCreateElasticKeyResponse(suite.fixture.ctx, suite.T(), client, elasticKeyCreate)
 		require.NotNil(suite.T(), elasticKey.ElasticKeyID)
 	})
 
@@ -224,14 +224,14 @@ func (suite *E2ETestSuite) testCreateSigningKey(client *cryptoutilOpenapiClient.
 		instanceKeyName := fmt.Sprintf("e2e-test-sign-key-%s", instanceName)
 		instanceKeyDescription := fmt.Sprintf("E2E integration test signing key for %s", instanceName)
 
-		signingAlgorithm := cryptoutilMagic.TestJwkJwsAlgorithm // JWS algorithm for signing
+		signingAlgorithm := cryptoutilSharedMagic.TestJwkJwsAlgorithm // JWS algorithm for signing
 
-		elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
+		elasticKeyCreate := cryptoutilKmsClient.RequireCreateElasticKeyRequest(
 			suite.T(), &instanceKeyName, &instanceKeyDescription,
-			&signingAlgorithm, &cryptoutilMagic.StringProviderInternal, &cryptoutilMagic.TestElasticKeyImportAllowed, &cryptoutilMagic.TestElasticKeyVersioningAllowed,
+			&signingAlgorithm, &cryptoutilSharedMagic.StringProviderInternal, &cryptoutilSharedMagic.TestElasticKeyImportAllowed, &cryptoutilSharedMagic.TestElasticKeyVersioningAllowed,
 		)
 
-		elasticKey = cryptoutilClient.RequireCreateElasticKeyResponse(suite.fixture.ctx, suite.T(), client, elasticKeyCreate)
+		elasticKey = cryptoutilKmsClient.RequireCreateElasticKeyResponse(suite.fixture.ctx, suite.T(), client, elasticKeyCreate)
 		require.NotNil(suite.T(), elasticKey.ElasticKeyID)
 	})
 
@@ -248,8 +248,8 @@ func (suite *E2ETestSuite) testGenerateMaterialKey(client *cryptoutilOpenapiClie
 		// Update the success message with the actual key ID
 		// Note: This is a limitation of the current design - we can't dynamically update the success message
 		// For now, we'll use a generic message
-		keyGenerate := cryptoutilClient.RequireMaterialKeyGenerateRequest(suite.T())
-		materialKey := cryptoutilClient.RequireMaterialKeyGenerateResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, keyGenerate)
+		keyGenerate := cryptoutilKmsClient.RequireMaterialKeyGenerateRequest(suite.T())
+		materialKey := cryptoutilKmsClient.RequireMaterialKeyGenerateResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, keyGenerate)
 		require.NotNil(suite.T(), materialKey.MaterialKeyID)
 	})
 }
@@ -260,14 +260,14 @@ func (suite *E2ETestSuite) testEncryptDecryptCycle(client *cryptoutilOpenapiClie
 
 	suite.withTestStepRecovery("Encrypt/decrypt cycle failed: %v", func() string { return "Encrypt/decrypt cycle completed successfully" }, func() {
 		// Encrypt
-		encryptRequest := cryptoutilClient.RequireEncryptRequest(suite.T(), &cryptoutilMagic.TestCleartext)
-		encryptedText := cryptoutilClient.RequireEncryptResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, nil, encryptRequest)
+		encryptRequest := cryptoutilKmsClient.RequireEncryptRequest(suite.T(), &cryptoutilSharedMagic.TestCleartext)
+		encryptedText := cryptoutilKmsClient.RequireEncryptResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, nil, encryptRequest)
 		require.NotEmpty(suite.T(), *encryptedText)
 
 		// Decrypt
-		decryptRequest := cryptoutilClient.RequireDecryptRequest(suite.T(), encryptedText)
-		decryptedText := cryptoutilClient.RequireDecryptResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, decryptRequest)
-		require.Equal(suite.T(), cryptoutilMagic.TestCleartext, *decryptedText)
+		decryptRequest := cryptoutilKmsClient.RequireDecryptRequest(suite.T(), encryptedText)
+		decryptedText := cryptoutilKmsClient.RequireDecryptResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, decryptRequest)
+		require.Equal(suite.T(), cryptoutilSharedMagic.TestCleartext, *decryptedText)
 	})
 }
 
@@ -277,13 +277,13 @@ func (suite *E2ETestSuite) testSignVerifyCycle(client *cryptoutilOpenapiClient.C
 
 	suite.withTestStepRecovery("Sign/verify cycle failed: %v", func() string { return "Sign/verify cycle completed successfully" }, func() {
 		// Sign
-		signRequest := cryptoutilClient.RequireSignRequest(suite.T(), &cryptoutilMagic.TestCleartext)
-		signedText := cryptoutilClient.RequireSignResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, nil, signRequest)
+		signRequest := cryptoutilKmsClient.RequireSignRequest(suite.T(), &cryptoutilSharedMagic.TestCleartext)
+		signedText := cryptoutilKmsClient.RequireSignResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, nil, signRequest)
 		require.NotEmpty(suite.T(), *signedText)
 
 		// Verify
-		verifyRequest := cryptoutilClient.RequireVerifyRequest(suite.T(), signedText)
-		verifyResponse := cryptoutilClient.RequireVerifyResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, verifyRequest)
+		verifyRequest := cryptoutilKmsClient.RequireVerifyRequest(suite.T(), signedText)
+		verifyResponse := cryptoutilKmsClient.RequireVerifyResponse(suite.fixture.ctx, suite.T(), client, elasticKey.ElasticKeyID, verifyRequest)
 		// For successful verification, API returns 204 No Content with empty body
 		require.Equal(suite.T(), "", *verifyResponse)
 	})
@@ -316,9 +316,9 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 
 	// Generate summary report
 	report := strings.Builder{}
-	report.WriteString("\n" + strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
+	report.WriteString("\n" + strings.Repeat("=", cryptoutilSharedMagic.TestReportWidth) + "\n")
 	report.WriteString("🎯 E2E TEST EXECUTION SUMMARY REPORT\n")
-	report.WriteString(strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n\n")
+	report.WriteString(strings.Repeat("=", cryptoutilSharedMagic.TestReportWidth) + "\n\n")
 
 	report.WriteString(fmt.Sprintf("📅 Execution Date: %s\n", suite.summary.StartTime.Format("2006-01-02 15:04:05")))
 	report.WriteString(fmt.Sprintf("⏱️  Total Duration: %v\n", totalDuration.Round(time.Millisecond)))
@@ -328,14 +328,14 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 	report.WriteString(fmt.Sprintf("⏭️  Skipped: %d\n", suite.summary.SkippedSteps))
 
 	if suite.summary.FailedSteps > 0 {
-		report.WriteString(fmt.Sprintf("📈 Success Rate: %.1f%%\n", float64(suite.summary.PassedSteps)/float64(suite.summary.TotalSteps)*cryptoutilMagic.PercentageBasis100))
+		report.WriteString(fmt.Sprintf("📈 Success Rate: %.1f%%\n", float64(suite.summary.PassedSteps)/float64(suite.summary.TotalSteps)*cryptoutilSharedMagic.PercentageBasis100))
 	} else {
 		report.WriteString("📈 Success Rate: 100.0%\n")
 	}
 
-	report.WriteString("\n" + strings.Repeat("-", cryptoutilMagic.TestReportWidth) + "\n")
+	report.WriteString("\n" + strings.Repeat("-", cryptoutilSharedMagic.TestReportWidth) + "\n")
 	report.WriteString("📋 DETAILED STEP BREAKDOWN\n")
-	report.WriteString(strings.Repeat("-", cryptoutilMagic.TestReportWidth) + "\n")
+	report.WriteString(strings.Repeat("-", cryptoutilSharedMagic.TestReportWidth) + "\n")
 
 	for i, step := range suite.summary.Steps {
 		statusEmoji := GetStatusEmoji(step.Status)
@@ -344,7 +344,7 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 			i+1, statusEmoji, step.Name, step.Duration.Round(time.Millisecond), step.Description))
 	}
 
-	report.WriteString("\n" + strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
+	report.WriteString("\n" + strings.Repeat("=", cryptoutilSharedMagic.TestReportWidth) + "\n")
 
 	if suite.summary.FailedSteps > 0 {
 		report.WriteString("⚠️  EXECUTION STATUS: PARTIAL SUCCESS\n")
@@ -352,7 +352,7 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 		report.WriteString("🎉 EXECUTION STATUS: FULL SUCCESS\n")
 	}
 
-	report.WriteString(strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
+	report.WriteString(strings.Repeat("=", cryptoutilSharedMagic.TestReportWidth) + "\n")
 
 	// Log the report to both console and file
 	LogSummaryReport(suite.fixture.logger, report.String())

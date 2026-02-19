@@ -8,16 +8,16 @@ package e2e
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -48,10 +48,10 @@ type TestableMockServices struct {
 // NewTestableMockServices creates a new testable mock services instance.
 func NewTestableMockServices() *TestableMockServices {
 	return &TestableMockServices{
-		authZPort:  cryptoutilMagic.TestAuthZServerPort,
-		idpPort:    cryptoutilMagic.TestIDPServerPort,
-		rsPort:     cryptoutilMagic.TestResourceServerPort,
-		spaRPPort:  cryptoutilMagic.TestSPARPServerPort,
+		authZPort:  cryptoutilSharedMagic.TestAuthZServerPort,
+		idpPort:    cryptoutilSharedMagic.TestIDPServerPort,
+		rsPort:     cryptoutilSharedMagic.TestResourceServerPort,
+		spaRPPort:  cryptoutilSharedMagic.TestSPARPServerPort,
 		shutdownCh: make(chan struct{}),
 	}
 }
@@ -211,7 +211,7 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 		}
 
 		// Generate authorization code and get state
-		code := generateRandomString(cryptoutilMagic.TestRandomStringLength16)
+		code := generateRandomString(cryptoutilSharedMagic.TestRandomStringLength16)
 		state := r.URL.Query().Get("state")
 
 		// Build redirect URL with authorization code and state
@@ -224,11 +224,11 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 	mux.HandleFunc("/oauth2/v1/token", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate token exchange
 		response := map[string]any{
-			"access_token":  generateRandomString(cryptoutilMagic.TestRandomStringLength32),
+			"access_token":  generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
 			"token_type":    "Bearer",
 			"expires_in":    tokenExpirySeconds,
-			"id_token":      generateRandomString(cryptoutilMagic.TestRandomStringLength64),
-			"refresh_token": generateRandomString(cryptoutilMagic.TestRandomStringLength32),
+			"id_token":      generateRandomString(cryptoutilSharedMagic.TestRandomStringLength64),
+			"refresh_token": generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -266,7 +266,7 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 	mux.HandleFunc("/authorize", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate OAuth 2.1 authorization code flow
 		response := map[string]any{
-			"code":  generateRandomString(cryptoutilMagic.TestRandomStringLength16),
+			"code":  generateRandomString(cryptoutilSharedMagic.TestRandomStringLength16),
 			"state": r.URL.Query().Get("state"),
 		}
 
@@ -283,11 +283,11 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 	mux.HandleFunc("/token", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate token exchange
 		response := map[string]any{
-			"access_token":  generateRandomString(cryptoutilMagic.TestRandomStringLength32),
+			"access_token":  generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
 			"token_type":    "Bearer",
 			"expires_in":    tokenExpirySeconds,
-			"id_token":      generateRandomString(cryptoutilMagic.TestRandomStringLength64),
-			"refresh_token": generateRandomString(cryptoutilMagic.TestRandomStringLength32),
+			"id_token":      generateRandomString(cryptoutilSharedMagic.TestRandomStringLength64),
+			"refresh_token": generateRandomString(cryptoutilSharedMagic.TestRandomStringLength32),
 		}
 
 		w.Header().Set("Content-Type", "application/json")

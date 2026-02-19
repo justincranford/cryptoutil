@@ -8,36 +8,21 @@ package apis
 import (
 	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
+	json "encoding/json"
 	"fmt"
-	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
-	"os"
-	"strings"
 	"testing"
-	"time"
 
-	"github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	postgresDriver "gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	// Use modernc SQLite driver (CGO-free).
 	_ "modernc.org/sqlite"
@@ -48,7 +33,7 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 	t.Parallel()
 
 	// Create tenant.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
@@ -57,18 +42,19 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 	// Create join requests.
 	userID1 := googleUuid.New()
 	userID2 := googleUuid.New()
-	jr1 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	jr1 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID1,
 		Status:   "pending",
 	}
-	jr2 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	jr2 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID2,
 		Status:   "pending",
 	}
+
 	require.NoError(t, testDB.Create(jr1).Error)
 	require.NoError(t, testDB.Create(jr2).Error)
 
@@ -77,7 +63,8 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 	addAuthHeader(req)
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -85,7 +72,8 @@ func TestIntegration_ListJoinRequests(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	require.Contains(t, result, "requests")
 
-	requests := result["requests"].([]any)
+	requests, ok := result["requests"].([]any)
+	require.True(t, ok, "requests field should be type []any")
 	require.GreaterOrEqual(t, len(requests), 2, "Should have at least 2 join requests")
 }
 
@@ -95,7 +83,7 @@ func TestIntegration_ProcessJoinRequest_Approve(t *testing.T) {
 	ctx := context.Background()
 
 	// Create tenant.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
@@ -103,7 +91,7 @@ func TestIntegration_ProcessJoinRequest_Approve(t *testing.T) {
 
 	// Create join request.
 	userID := googleUuid.New()
-	jr := &cryptoutilTemplateDomain.TenantJoinRequest{
+	jr := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID,
@@ -123,12 +111,13 @@ func TestIntegration_ProcessJoinRequest_Approve(t *testing.T) {
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Verify status updated.
-	var updated cryptoutilTemplateDomain.TenantJoinRequest
+	var updated cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 	require.NoError(t, testDB.WithContext(ctx).First(&updated, "id = ?", jr.ID).Error)
 	require.Equal(t, "approved", updated.Status)
 }
@@ -139,7 +128,7 @@ func TestIntegration_ProcessJoinRequest_Reject(t *testing.T) {
 	ctx := context.Background()
 
 	// Create tenant.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
@@ -147,7 +136,7 @@ func TestIntegration_ProcessJoinRequest_Reject(t *testing.T) {
 
 	// Create join request.
 	userID := googleUuid.New()
-	jr := &cryptoutilTemplateDomain.TenantJoinRequest{
+	jr := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID,
@@ -167,12 +156,13 @@ func TestIntegration_ProcessJoinRequest_Reject(t *testing.T) {
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Verify status updated.
-	var updated cryptoutilTemplateDomain.TenantJoinRequest
+	var updated cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 	require.NoError(t, testDB.WithContext(ctx).First(&updated, "id = ?", jr.ID).Error)
 	require.Equal(t, "rejected", updated.Status)
 }
@@ -184,7 +174,7 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 	ctx := context.Background()
 
 	// Create tenant.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
@@ -194,7 +184,7 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 
 	// Create first join request.
 	userID1 := googleUuid.New()
-	jr1 := &cryptoutilTemplateDomain.TenantJoinRequest{
+	jr1 := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		UserID:   &userID1,
@@ -217,13 +207,14 @@ func TestIntegration_DuplicateUsername_SameTenant(t *testing.T) {
 
 	resp, err := testRegistrationApp.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	// Should still succeed (duplicate check happens during approval).
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Verify two join requests exist.
-	var joinRequests []cryptoutilTemplateDomain.TenantJoinRequest
+	var joinRequests []cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 	require.NoError(t, testDB.WithContext(ctx).Where("tenant_id = ?", tenant.ID).Find(&joinRequests).Error)
 	require.GreaterOrEqual(t, len(joinRequests), 2, "Should have at least 2 join requests (duplicate checking deferred to approval)")
 }
@@ -236,14 +227,14 @@ func TestIntegration_PostgreSQL(t *testing.T) {
 	ctx := context.Background()
 
 	// Start PostgreSQL container.
-	container, err := postgres.RunContainer(ctx,
-		testcontainers.WithImage("postgres:16-alpine"),
+	container, err := postgres.Run(ctx, "postgres:16-alpine",
 		postgres.WithDatabase(fmt.Sprintf("test_%s", googleUuid.NewString())),
 		postgres.WithUsername(fmt.Sprintf("user_%s", googleUuid.NewString())),
 		postgres.WithPassword("password"),
 	)
 	require.NoError(t, err)
-	defer container.Terminate(ctx)
+
+	defer func() { _ = container.Terminate(ctx) }()
 
 	connStr, err := container.ConnectionString(ctx)
 	require.NoError(t, err)
@@ -253,27 +244,27 @@ func TestIntegration_PostgreSQL(t *testing.T) {
 
 	// Run migrations.
 	require.NoError(t, db.AutoMigrate(
-		&cryptoutilTemplateRepository.Tenant{},
-		&cryptoutilTemplateRepository.TenantRealm{},
-		&cryptoutilTemplateRepository.User{},
-		&cryptoutilTemplateDomain.TenantJoinRequest{},
+		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
+		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.User{},
+		&cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{},
 	))
 
 	// Create repositories and service.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(db)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(db)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(db)
-	_ = cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(db)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(db)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(db)
+	_ = cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(db, tenantRepo, userRepo, joinRequestRepo)
 
 	// Create tenant via service.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
 	require.NoError(t, db.Create(tenant).Error)
 
 	// Verify tenant exists.
-	var retrieved cryptoutilTemplateRepository.Tenant
+	var retrieved cryptoutilAppsTemplateServiceServerRepository.Tenant
 	require.NoError(t, db.First(&retrieved, "id = ?", tenant.ID).Error)
 	require.Equal(t, tenant.Name, retrieved.Name)
 
@@ -289,6 +280,7 @@ func TestIntegration_RegisterUser_InvalidJSON(t *testing.T) {
 
 	resp, err := testRegistrationApp.Test(req, -1)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)

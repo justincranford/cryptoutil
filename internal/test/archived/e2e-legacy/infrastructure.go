@@ -7,13 +7,13 @@ package test
 import (
 	"context"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // InfrastructureManager handles Docker Compose operations and service management.
@@ -52,7 +52,7 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 
 // WaitForDockerServicesHealthy waits for Docker services to report healthy status.
 func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Context) error {
-	giveUpTime := time.Now().UTC().Add(cryptoutilMagic.TestTimeoutDockerHealth)
+	giveUpTime := time.Now().UTC().Add(cryptoutilSharedMagic.TestTimeoutDockerHealth)
 	checkCount := 0
 
 	for {
@@ -64,13 +64,13 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 
 		if time.Now().UTC().After(giveUpTime) {
 			// Before giving up, show container logs for failed services
-			Log(im.logger, "❌ Docker services not healthy after %v, showing recent container logs...", cryptoutilMagic.TestTimeoutDockerHealth)
+			Log(im.logger, "❌ Docker services not healthy after %v, showing recent container logs...", cryptoutilSharedMagic.TestTimeoutDockerHealth)
 
 			if err := im.showFailedContainerLogs(ctx); err != nil {
 				Log(im.logger, "⚠️ Failed to show container logs: %v", err)
 			}
 
-			return fmt.Errorf("docker services not healthy after %v", cryptoutilMagic.TestTimeoutDockerHealth)
+			return fmt.Errorf("docker services not healthy after %v", cryptoutilSharedMagic.TestTimeoutDockerHealth)
 		}
 
 		checkCount++
@@ -88,8 +88,8 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 		}
 
 		Log(im.logger, "⏳ Waiting %v before next health check... (%d unhealthy: %v)",
-			cryptoutilMagic.TestTimeoutServiceRetry, len(unhealthyServices), unhealthyServices)
-		time.Sleep(cryptoutilMagic.TestTimeoutServiceRetry)
+			cryptoutilSharedMagic.TestTimeoutServiceRetry, len(unhealthyServices), unhealthyServices)
+		time.Sleep(cryptoutilSharedMagic.TestTimeoutServiceRetry)
 	}
 }
 
@@ -141,7 +141,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 			jobData, exists := serviceMap[jobName]
 
 			if exists {
-				if state, ok := jobData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
+				if state, ok := jobData["State"].(string); ok && state == cryptoutilSharedMagic.DockerServiceStateExited {
 					Log(im.logger, "✅ Standalone job %s is in exited state", jobName)
 
 					var exitCode int
@@ -163,7 +163,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 						Log(im.logger, "❌ Standalone job %s exited with non-zero code: %d", jobName, exitCode)
 					}
 				} else {
-					if state == cryptoutilMagic.DockerServiceStateRunning {
+					if state == cryptoutilSharedMagic.DockerServiceStateRunning {
 						Log(im.logger, "❌ Standalone job %s should not be running continuously", jobName)
 					} else {
 						Log(im.logger, "❌ Standalone job %s in unexpected state: %s", jobName, state)
@@ -178,7 +178,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 			jobData, exists := serviceMap[jobName]
 
 			if exists {
-				if state, ok := jobData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
+				if state, ok := jobData["State"].(string); ok && state == cryptoutilSharedMagic.DockerServiceStateExited {
 					Log(im.logger, "✅ Healthcheck job %s for service %s is in exited state", jobName, service.Service)
 
 					var exitCode int
@@ -200,7 +200,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 						Log(im.logger, "❌ Healthcheck job %s exited with non-zero code: %d", jobName, exitCode)
 					}
 				} else {
-					if state == cryptoutilMagic.DockerServiceStateRunning {
+					if state == cryptoutilSharedMagic.DockerServiceStateRunning {
 						Log(im.logger, "❌ Healthcheck job %s should not be running continuously", jobName)
 					} else {
 						Log(im.logger, "❌ Healthcheck job %s in unexpected state: %s", jobName, state)
@@ -232,9 +232,9 @@ func (im *InfrastructureManager) WaitForServicesReachable(ctx context.Context) e
 	// Grafana excluded - requires --profile with-grafana (optional for E2E tests)
 
 	// Wait for OTEL collector
-	if err := im.waitForHTTPReady(ctx, cryptoutilMagic.URLPrefixLocalhostHTTP+
-		fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortOtelCollectorHealth)+"/",
-		cryptoutilMagic.TestTimeoutCryptoutilReady); err != nil {
+	if err := im.waitForHTTPReady(ctx, cryptoutilSharedMagic.URLPrefixLocalhostHTTP+
+		fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortOtelCollectorHealth)+"/",
+		cryptoutilSharedMagic.TestTimeoutCryptoutilReady); err != nil {
 		return fmt.Errorf("otel collector not ready: %w", err)
 	}
 
@@ -261,7 +261,7 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 			return fmt.Errorf("public port %d not reachable: %w", port, err)
 		}
 
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("public port %d returned status %d", port, resp.StatusCode)
@@ -296,17 +296,16 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 
 		resp, err := client.Do(req)
 		if err == nil && resp.StatusCode == http.StatusOK {
-			resp.Body.Close()
-			Log(im.logger, "✅ Service ready at %s", url)
+			_ = resp.Body.Close()
 
 			return nil
 		}
 
 		if resp != nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 		}
 
-		time.Sleep(cryptoutilMagic.TestTimeoutHTTPRetryInterval)
+		time.Sleep(cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval)
 	}
 }
 

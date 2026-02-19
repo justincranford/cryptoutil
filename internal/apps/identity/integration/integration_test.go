@@ -15,27 +15,23 @@ package integration
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"encoding/json"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"fmt"
-	"io"
 	"log/slog"
-	"net/http"
-	"net/url"
+	http "net/http"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	cryptoutilIdentityPKCE "cryptoutil/internal/apps/identity/authz/pkce"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
@@ -193,7 +189,7 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 
 	// TEMPORARY: Use legacy JWS issuer without key rotation for integration tests.
 	// TODO: Implement proper key rotation testing infrastructure.
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(crand.Reader, 2048)
 	testify.NoError(t, err, "Failed to generate RSA key")
 
 	jwsIssuer, err := cryptoutilIdentityIssuer.NewJWSIssuerLegacy(
@@ -353,7 +349,7 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 	now := time.Now().UTC()
 
 	// Generate password hash using the same crypto package used by authentication
-	passwordHash, err := cryptoutilDigests.HashLowEntropyNonDeterministic(testPassword)
+	passwordHash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(testPassword)
 	testify.NoError(t, err, "Failed to hash test password")
 
 	testUser := &cryptoutilIdentityDomain.User{
@@ -376,7 +372,7 @@ func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIden
 
 	// Hash the client secret using PBKDF2-HMAC-SHA256 (same as production).
 	// Integration test uses same hashing as production to validate authentication flow.
-	hashedClientSecret, err := cryptoutilDigests.HashLowEntropyNonDeterministic(testClientSecret)
+	hashedClientSecret, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(testClientSecret)
 	testify.NoError(t, err, "Failed to hash client secret")
 
 	testClient := &cryptoutilIdentityDomain.Client{
@@ -454,6 +450,11 @@ func TestHealthCheckEndpoints(t *testing.T) {
 			testify.Equal(t, http.StatusOK, resp.StatusCode, "Health check should return 200 OK")
 		})
 	}
+}
+
+// boolPtr returns a pointer to the given bool value.
+func boolPtr(b bool) *bool {
+	return &b
 }
 
 // TestOAuth2AuthorizationCodeFlow tests the complete OAuth 2.0 authorization code flow.

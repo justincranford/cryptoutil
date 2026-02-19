@@ -7,12 +7,12 @@ package test
 import (
 	"context"
 	"crypto/x509"
-	"net/http"
+	http "net/http"
 	"testing"
 	"time"
 
-	cryptoutilClient "cryptoutil/internal/apps/sm/kms/client"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilKmsClient "cryptoutil/internal/apps/sm/kms/client"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -36,7 +36,7 @@ func NewServiceAssertions(t *testing.T, logger *Logger) *ServiceAssertions {
 // AssertCryptoutilHealth checks that a cryptoutil instance is healthy.
 func (a *ServiceAssertions) AssertCryptoutilHealth(baseURL string, rootCAsPool *x509.CertPool) {
 	Log(a.logger, "💚 Testing health check for %s", baseURL)
-	err := cryptoutilClient.CheckHealthz(&baseURL, rootCAsPool)
+	err := cryptoutilKmsClient.CheckHealthz(&baseURL, rootCAsPool)
 	require.NoError(a.t, err, "Health check failed for %s", baseURL)
 	Log(a.logger, "✅ Health check passed for %s", baseURL)
 }
@@ -45,16 +45,16 @@ func (a *ServiceAssertions) AssertCryptoutilHealth(baseURL string, rootCAsPool *
 func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL string, rootCAsPool *x509.CertPool) {
 	Log(a.logger, "⏳ Waiting for cryptoutil ready at %s", baseURL)
 
-	giveUpTime := time.Now().UTC().Add(cryptoutilMagic.TestTimeoutCryptoutilReady)
+	giveUpTime := time.Now().UTC().Add(cryptoutilSharedMagic.TestTimeoutCryptoutilReady)
 	checkCount := 0
 
 	for {
-		require.False(a.t, time.Now().UTC().After(giveUpTime), "Cryptoutil service not ready after %v: %s", cryptoutilMagic.TestTimeoutCryptoutilReady, baseURL)
+		require.False(a.t, time.Now().UTC().After(giveUpTime), "Cryptoutil service not ready after %v: %s", cryptoutilSharedMagic.TestTimeoutCryptoutilReady, baseURL)
 
 		checkCount++
 		Log(a.logger, "🔍 Cryptoutil readiness check #%d for %s", checkCount, baseURL)
 
-		client := cryptoutilClient.RequireClientWithResponses(a.t, &baseURL, rootCAsPool)
+		client := cryptoutilKmsClient.RequireClientWithResponses(a.t, &baseURL, rootCAsPool)
 
 		_, err := client.GetElastickeysWithResponse(ctx, nil)
 		if err == nil {
@@ -64,8 +64,8 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 		}
 
 		Log(a.logger, "⏳ Cryptoutil at %s not ready yet (attempt %d), waiting %v...",
-			baseURL, checkCount, cryptoutilMagic.TestTimeoutServiceRetry)
-		time.Sleep(cryptoutilMagic.TestTimeoutServiceRetry)
+			baseURL, checkCount, cryptoutilSharedMagic.TestTimeoutServiceRetry)
+		time.Sleep(cryptoutilSharedMagic.TestTimeoutServiceRetry)
 	}
 }
 
@@ -74,12 +74,12 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 	Log(a.logger, "⏳ Waiting for HTTP endpoint ready: %s", url)
 
 	giveUpTime := time.Now().UTC().Add(timeout)
-	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.TestTimeoutHTTPClient}
 
 	for {
 		require.False(a.t, time.Now().UTC().After(giveUpTime), "Service not ready after %v: %s", timeout, url)
 
-		req, cancel := context.WithTimeout(ctx, cryptoutilMagic.TimeoutHTTPHealthRequest)
+		req, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.TimeoutHTTPHealthRequest)
 		httpReq, err := http.NewRequestWithContext(req, http.MethodGet, url, nil)
 		require.NoError(a.t, err, "Failed to create request to %s", url)
 
@@ -88,17 +88,16 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 		cancel()
 
 		if err == nil && resp.StatusCode == http.StatusOK {
-			resp.Body.Close()
-			Log(a.logger, "✅ HTTP service ready at %s", url)
+				_ = resp.Body.Close()
 
 			return
 		}
 
 		if resp != nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 		}
 
-		time.Sleep(cryptoutilMagic.TestTimeoutHTTPRetryInterval)
+		time.Sleep(cryptoutilSharedMagic.TestTimeoutHTTPRetryInterval)
 	}
 }
 
@@ -107,14 +106,14 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 	Log(a.logger, "📊 Verifying telemetry flow")
 
 	// Check Grafana health
-	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
+	client := &http.Client{Timeout: cryptoutilSharedMagic.TestTimeoutHTTPClient}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", nil)
 	require.NoError(a.t, err, "Failed to create Grafana health request")
 
 	grafanaResp, err := client.Do(req)
 	require.NoError(a.t, err, "Failed to connect to Grafana")
 
-	defer grafanaResp.Body.Close()
+	defer func() { _ = grafanaResp.Body.Close() }()
 
 	require.Equal(a.t, http.StatusOK, grafanaResp.StatusCode, "Grafana health check failed")
 
@@ -127,7 +126,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 	otelResp, err := client.Do(req)
 	require.NoError(a.t, err, "Failed to connect to OTEL collector health")
 
-	defer otelResp.Body.Close()
+	defer func() { _ = otelResp.Body.Close() }()
 
 	require.Equal(a.t, http.StatusOK, otelResp.StatusCode, "OTEL collector health check failed")
 

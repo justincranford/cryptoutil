@@ -8,45 +8,42 @@ package apis
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
-	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 
 	// Use modernc SQLite driver (CGO-free).
 	_ "modernc.org/sqlite"
 )
 
+const testIntegrationPassword = "SecurePass123!"
+
 var (
 	testDB                   *gorm.DB
-	testRegistrationSvc      *cryptoutilTemplateBusinessLogic.TenantRegistrationService
-	testSessionManager       *cryptoutilTemplateBusinessLogic.SessionManagerService
+	testRegistrationSvc      *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
+	testSessionManager       *cryptoutilAppsTemplateServiceServerBusinesslogic.SessionManagerService
 	testRegistrationApp      *fiber.App
 	testJoinRequestMgmtApp   *fiber.App
 	testTenantID             googleUuid.UUID
@@ -62,12 +59,12 @@ type mockSessionValidatorIntegration struct {
 	userID   string
 }
 
-func (m *mockSessionValidatorIntegration) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.BrowserSession, error) {
+func (m *mockSessionValidatorIntegration) ValidateBrowserSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.BrowserSession, error) {
 	// Return a mock session with predefined tenant_id and user_id.
 	// Note: BrowserSession embeds Session (which has TenantID/RealmID as UUID)
 	// and adds UserID as *string.
-	return &cryptoutilTemplateRepository.BrowserSession{
-		Session: cryptoutilTemplateRepository.Session{
+	return &cryptoutilAppsTemplateServiceServerRepository.BrowserSession{
+		Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 			TenantID: m.tenantID,
 			RealmID:  m.realmID,
 		},
@@ -75,12 +72,12 @@ func (m *mockSessionValidatorIntegration) ValidateBrowserSession(ctx context.Con
 	}, nil
 }
 
-func (m *mockSessionValidatorIntegration) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilTemplateRepository.ServiceSession, error) {
+func (m *mockSessionValidatorIntegration) ValidateServiceSession(ctx context.Context, token string) (*cryptoutilAppsTemplateServiceServerRepository.ServiceSession, error) {
 	// Return a mock session with predefined tenant_id.
 	// Note: ServiceSession embeds Session (which has TenantID/RealmID as UUID)
 	// and adds ClientID as *string.
-	return &cryptoutilTemplateRepository.ServiceSession{
-		Session: cryptoutilTemplateRepository.Session{
+	return &cryptoutilAppsTemplateServiceServerRepository.ServiceSession{
+		Session: cryptoutilAppsTemplateServiceServerRepository.Session{
 			TenantID: m.tenantID,
 			RealmID:  m.realmID,
 		},
@@ -160,25 +157,25 @@ func TestMain(m *testing.M) {
 
 	// Run migrations including session tables.
 	if err := testDB.AutoMigrate(
-		&cryptoutilTemplateRepository.Tenant{},
-		&cryptoutilTemplateRepository.TenantRealm{},
-		&cryptoutilTemplateRepository.User{},
-		&cryptoutilTemplateDomain.TenantJoinRequest{},
-		&cryptoutilTemplateRepository.BrowserSession{},
-		&cryptoutilTemplateRepository.ServiceSession{},
-		&cryptoutilTemplateRepository.BrowserSessionJWK{},
-		&cryptoutilTemplateRepository.ServiceSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.Tenant{},
+		&cryptoutilAppsTemplateServiceServerRepository.TenantRealm{},
+		&cryptoutilAppsTemplateServiceServerRepository.User{},
+		&cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSession{},
+		&cryptoutilAppsTemplateServiceServerRepository.BrowserSessionJWK{},
+		&cryptoutilAppsTemplateServiceServerRepository.ServiceSessionJWK{},
 	); err != nil {
 		panic(fmt.Sprintf("failed to migrate: %v", err))
 	}
 
 	// Create repositories.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(testDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(testDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(testDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(testDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(testDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(testDB)
 
 	// Create service.
-	testRegistrationSvc = cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
+	testRegistrationSvc = cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
 		testDB,
 		tenantRepo,
 		userRepo,
@@ -191,7 +188,8 @@ func TestMain(m *testing.M) {
 	ctx := context.Background()
 
 	// Create telemetry service (minimal - no OTLP export).
-	testConfig := cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true)
+	testConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
+
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, testConfig)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create telemetry service: %v", err))
@@ -199,20 +197,20 @@ func TestMain(m *testing.M) {
 	defer telemetryService.Shutdown()
 
 	// Create JWK generation service.
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create JWK generation service: %v", err))
 	}
 	defer jwkGenService.Shutdown()
 
 	// Create barrier repository and service for session encryption.
-	barrierRepo, err := cryptoutilTemplateBarrier.NewGormRepository(testDB)
+	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(testDB)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create barrier repository: %v", err))
 	}
 
 	// Generate unseal JWK for testing.
-	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, unsealJWK, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgA256KW)
 	if err != nil {
 		panic(fmt.Sprintf("failed to generate unseal JWK: %v", err))
 	}
@@ -224,7 +222,7 @@ func TestMain(m *testing.M) {
 	defer unsealService.Shutdown()
 
 	// Create barrier service.
-	barrierService, err := cryptoutilTemplateBarrier.NewService(
+	barrierService, err := cryptoutilAppsTemplateServiceServerBarrier.NewService(
 		ctx,
 		telemetryService,
 		jwkGenService,
@@ -236,7 +234,7 @@ func TestMain(m *testing.M) {
 	}
 
 	// Create session manager.
-	testSessionManager, err = cryptoutilTemplateBusinessLogic.NewSessionManagerService(
+	testSessionManager, err = cryptoutilAppsTemplateServiceServerBusinesslogic.NewSessionManagerService(
 		ctx,
 		testDB,
 		telemetryService,
@@ -261,6 +259,7 @@ func TestMain(m *testing.M) {
 					"error": appErr.Summary,
 				})
 			}
+
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": err.Error(),
 			})
@@ -275,6 +274,7 @@ func TestMain(m *testing.M) {
 	authMiddleware := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", testTenantID)
 		c.Locals("user_id", testUserID)
+
 		return c.Next()
 	}
 	testJoinRequestMgmtApp.Use(authMiddleware)
@@ -302,7 +302,7 @@ func TestIntegration_RegisterUser_CreateTenant(t *testing.T) {
 	t.Parallel()
 
 	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:8])
-	password := "SecurePass123!"
+	password := testIntegrationPassword
 	tenantName := fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8])
 
 	reqBody := RegisterUserRequest{
@@ -319,7 +319,8 @@ func TestIntegration_RegisterUser_CreateTenant(t *testing.T) {
 
 	resp, err := testRegistrationApp.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusCreated, resp.StatusCode)
 
@@ -337,14 +338,14 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 	ctx := context.Background()
 
 	// Create tenant first.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   googleUuid.New(),
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
 	require.NoError(t, testDB.Create(tenant).Error)
 
 	// Create realm.
-	realm := &cryptoutilTemplateRepository.TenantRealm{
+	realm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
 		ID:       googleUuid.New(),
 		TenantID: tenant.ID,
 		RealmID:  googleUuid.New(),
@@ -356,7 +357,7 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 
 	// Register user to join existing tenant.
 	username := fmt.Sprintf("user_%s", googleUuid.NewString()[:8])
-	password := "SecurePass123!"
+	password := testIntegrationPassword
 
 	reqBody := RegisterUserRequest{
 		Username:     username,
@@ -372,11 +373,13 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 
 	resp, err := testRegistrationApp.Test(req, -1)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+
+	defer func() { _ = resp.Body.Close() }()
 
 	// Read response body for debugging.
 	bodyBytes, readErr := io.ReadAll(resp.Body)
 	require.NoError(t, readErr)
+
 	if resp.StatusCode != http.StatusOK {
 		t.Logf("Response status: %d, body: %s", resp.StatusCode, string(bodyBytes))
 	}
@@ -389,7 +392,7 @@ func TestIntegration_RegisterUser_JoinExistingTenant(t *testing.T) {
 	require.Contains(t, result["message"], "pending")
 
 	// Verify join request created.
-	var joinRequests []cryptoutilTemplateDomain.TenantJoinRequest
+	var joinRequests []cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest
 	require.NoError(t, testDB.WithContext(ctx).Where("tenant_id = ?", tenant.ID).Find(&joinRequests).Error)
 	require.GreaterOrEqual(t, len(joinRequests), 1)
 	require.Equal(t, "pending", joinRequests[0].Status)
@@ -426,7 +429,7 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		reqBody := RegisterUserRequest{
 			Username:     fmt.Sprintf("%s_%d", username, i),
-			Password:     "SecurePass123!",
+			Password:     testIntegrationPassword,
 			Email:        fmt.Sprintf("%s_%d@example.com", username, i),
 			TenantName:   fmt.Sprintf("tenant_%d", i),
 			CreateTenant: true,
@@ -439,7 +442,8 @@ func TestIntegration_RateLimiting_ExceedsLimit(t *testing.T) {
 
 		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
-		resp.Body.Close()
+
+		_ = resp.Body.Close()
 
 		if i < 3 {
 			require.Equal(t, http.StatusCreated, resp.StatusCode, "Request %d should succeed", i+1)

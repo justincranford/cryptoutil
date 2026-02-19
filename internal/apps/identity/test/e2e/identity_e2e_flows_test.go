@@ -9,21 +9,14 @@ package e2e
 import (
 	"context"
 	crand "crypto/rand"
-	"crypto/sha256"
-	"crypto/tls"
+	sha256 "crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"net/http"
+	http "net/http"
 	"net/url"
-	"os"
 	"strings"
-	"testing"
-	"time"
-
-	"github.com/stretchr/testify/require"
 )
 
 func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, clientAuth ClientAuthMethod) (*TokenResponse, error) {

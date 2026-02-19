@@ -72,7 +72,7 @@ You MUST keep working until the problem is completely solved, and all items in t
 
 **Before starting implementation, verify environment health:**
 
-1. **Build Health**: `go build ./...` (NO errors)
+1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors)
 2. **Module Cache**: `go list -m all` (dependencies resolved)
 3. **Go Version**: `go version` (verify 1.25.5+)
 4. **Docker**: `docker ps` (if tasks require Docker)

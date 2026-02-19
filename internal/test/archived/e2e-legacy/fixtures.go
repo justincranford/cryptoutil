@@ -9,17 +9,17 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	cryptoutilCAClient "cryptoutil/api/ca/client"
+	cryptoutilApiCaClient "cryptoutil/api/ca/client"
 	cryptoutilOpenapiClient "cryptoutil/api/client"
-	cryptoutilJOSEClient "cryptoutil/api/jose/client"
-	cryptoutilClient "cryptoutil/internal/apps/sm/kms/client"
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilApiJoseClient "cryptoutil/api/jose/client"
+	cryptoutilKmsClient "cryptoutil/internal/apps/sm/kms/client"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -52,8 +52,8 @@ type TestFixture struct {
 	sqliteClient    *cryptoutilOpenapiClient.ClientWithResponses
 	postgres1Client *cryptoutilOpenapiClient.ClientWithResponses
 	postgres2Client *cryptoutilOpenapiClient.ClientWithResponses
-	caClient        *cryptoutilCAClient.ClientWithResponses
-	joseClient      *cryptoutilJOSEClient.ClientWithResponses
+	caClient        *cryptoutilApiCaClient.ClientWithResponses
+	joseClient      *cryptoutilApiJoseClient.ClientWithResponses
 	authzClient     *http.Client
 	idpClient       *http.Client
 
@@ -73,11 +73,11 @@ func NewTestFixture(t *testing.T) *TestFixture {
 
 	// Ensure the directory exists
 	logDir := filepath.Dir(logFileName)
-	if err := os.MkdirAll(logDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
+	if err := os.MkdirAll(logDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		t.Fatalf("Failed to create log directory %s: %v", logDir, err)
 	}
 
-	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilMagic.FilePermOwnerReadWriteGroupRead)
+	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead)
 	if err != nil {
 		t.Fatalf("Failed to create log file %s: %v", logFileName, err)
 	}
@@ -121,15 +121,15 @@ func (f *TestFixture) Teardown() {
 
 // initializeServiceURLs sets up all service URLs.
 func (f *TestFixture) initializeServiceURLs() {
-	f.sqliteURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose0) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
-	f.postgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
-	f.postgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose2) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
-	f.caURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCAServer)     // CA E2E service uses standardized port
-	f.joseURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortJOSEServer) // JOSE E2E service uses standardized port
-	f.authzURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.IdentityE2EAuthzPublicPort) // Identity AuthZ uses standardized port
-	f.idpURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.IdentityE2EIDPPublicPort)     // Identity IdP uses standardized port
-	f.grafanaURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)
-	f.otelURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortOtelCollectorHealth)
+	f.sqliteURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortCryptoutilCompose0) + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath
+	f.postgres1URL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortCryptoutilCompose1) + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath
+	f.postgres2URL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortCryptoutilCompose2) + cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath
+	f.caURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortCAServer)     // CA E2E service uses standardized port
+	f.joseURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortJOSEServer) // JOSE E2E service uses standardized port
+	f.authzURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.IdentityE2EAuthzPublicPort) // Identity AuthZ uses standardized port
+	f.idpURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSharedMagic.IdentityE2EIDPPublicPort)     // Identity IdP uses standardized port
+	f.grafanaURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortGrafana)
+	f.otelURL = cryptoutilSharedMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilSharedMagic.DefaultPublicPortOtelCollectorHealth)
 }
 
 // loadTestCertificates configures TLS settings for tests.
@@ -157,7 +157,7 @@ func (f *TestFixture) setupInfrastructure() {
 
 	// Wait for services to be ready
 	Log(f.logger, "⏳ Waiting for Docker Compose services to initialize...")
-	time.Sleep(cryptoutilMagic.TestTimeoutDockerComposeInit)
+	time.Sleep(cryptoutilSharedMagic.TestTimeoutDockerComposeInit)
 
 	if err := f.infraMgr.WaitForDockerServicesHealthy(f.ctx); err != nil {
 		// Capture container logs before failing
@@ -184,9 +184,9 @@ func (f *TestFixture) setupInfrastructure() {
 
 // InitializeAPIClients creates API clients for all services.
 func (f *TestFixture) InitializeAPIClients() {
-	f.sqliteClient = cryptoutilClient.RequireClientWithResponses(f.t, &f.sqliteURL, f.rootCAsPool)
-	f.postgres1Client = cryptoutilClient.RequireClientWithResponses(f.t, &f.postgres1URL, f.rootCAsPool)
-	f.postgres2Client = cryptoutilClient.RequireClientWithResponses(f.t, &f.postgres2URL, f.rootCAsPool)
+	f.sqliteClient = cryptoutilKmsClient.RequireClientWithResponses(f.t, &f.sqliteURL, f.rootCAsPool)
+	f.postgres1Client = cryptoutilKmsClient.RequireClientWithResponses(f.t, &f.postgres1URL, f.rootCAsPool)
+	f.postgres2Client = cryptoutilKmsClient.RequireClientWithResponses(f.t, &f.postgres2URL, f.rootCAsPool)
 
 	// Initialize CA client
 	f.caClient = f.requireCAClientWithResponses(&f.caURL, f.rootCAsPool)
@@ -202,7 +202,7 @@ func (f *TestFixture) InitializeAPIClients() {
 }
 
 // requireCAClientWithResponses creates a CA API client with TLS configuration.
-func (f *TestFixture) requireCAClientWithResponses(baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilCAClient.ClientWithResponses {
+func (f *TestFixture) requireCAClientWithResponses(baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilApiCaClient.ClientWithResponses {
 	f.t.Helper()
 
 	tlsConfig := &tls.Config{
@@ -222,7 +222,7 @@ func (f *TestFixture) requireCAClientWithResponses(baseURL *string, rootCAsPool 
 		},
 	}
 
-	caClient, err := cryptoutilCAClient.NewClientWithResponses(*baseURL, cryptoutilCAClient.WithHTTPClient(httpClient))
+	caClient, err := cryptoutilApiCaClient.NewClientWithResponses(*baseURL, cryptoutilApiCaClient.WithHTTPClient(httpClient))
 	require.NoError(f.t, err)
 	require.NotNil(f.t, caClient)
 
@@ -230,7 +230,7 @@ func (f *TestFixture) requireCAClientWithResponses(baseURL *string, rootCAsPool 
 }
 
 // requireJOSEClientWithResponses creates a JOSE API client with TLS configuration.
-func (f *TestFixture) requireJOSEClientWithResponses(baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilJOSEClient.ClientWithResponses {
+func (f *TestFixture) requireJOSEClientWithResponses(baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilApiJoseClient.ClientWithResponses {
 	f.t.Helper()
 
 	tlsConfig := &tls.Config{
@@ -250,7 +250,7 @@ func (f *TestFixture) requireJOSEClientWithResponses(baseURL *string, rootCAsPoo
 		},
 	}
 
-	joseClient, err := cryptoutilJOSEClient.NewClientWithResponses(*baseURL, cryptoutilJOSEClient.WithHTTPClient(httpClient))
+	joseClient, err := cryptoutilApiJoseClient.NewClientWithResponses(*baseURL, cryptoutilApiJoseClient.WithHTTPClient(httpClient))
 	require.NoError(f.t, err)
 	require.NotNil(f.t, joseClient)
 
@@ -280,12 +280,12 @@ func (f *TestFixture) requireHTTPClient(rootCAsPool *x509.CertPool) *http.Client
 }
 
 // GetCAClient returns the CA API client.
-func (f *TestFixture) GetCAClient() *cryptoutilCAClient.ClientWithResponses {
+func (f *TestFixture) GetCAClient() *cryptoutilApiCaClient.ClientWithResponses {
 	return f.caClient
 }
 
 // GetJOSEClient returns the JOSE API client.
-func (f *TestFixture) GetJOSEClient() *cryptoutilJOSEClient.ClientWithResponses {
+func (f *TestFixture) GetJOSEClient() *cryptoutilApiJoseClient.ClientWithResponses {
 	return f.joseClient
 }
 
@@ -302,11 +302,11 @@ func (f *TestFixture) GetIdPClient() *http.Client {
 // GetClient returns the API client for the specified instance.
 func (f *TestFixture) GetClient(instanceName string) *cryptoutilOpenapiClient.ClientWithResponses {
 	switch instanceName {
-	case cryptoutilMagic.TestDatabaseSQLite:
+	case cryptoutilSharedMagic.TestDatabaseSQLite:
 		return f.sqliteClient
-	case cryptoutilMagic.TestDatabasePostgres1:
+	case cryptoutilSharedMagic.TestDatabasePostgres1:
 		return f.postgres1Client
-	case cryptoutilMagic.TestDatabasePostgres2:
+	case cryptoutilSharedMagic.TestDatabasePostgres2:
 		return f.postgres2Client
 	default:
 		require.Fail(f.t, "Unknown instance name", "Instance %s not found", instanceName)
@@ -318,11 +318,11 @@ func (f *TestFixture) GetClient(instanceName string) *cryptoutilOpenapiClient.Cl
 // GetServiceURL returns the service URL for the specified instance.
 func (f *TestFixture) GetServiceURL(instanceName string) string {
 	switch instanceName {
-	case cryptoutilMagic.TestDatabaseSQLite:
+	case cryptoutilSharedMagic.TestDatabaseSQLite:
 		return f.sqliteURL
-	case cryptoutilMagic.TestDatabasePostgres1:
+	case cryptoutilSharedMagic.TestDatabasePostgres1:
 		return f.postgres1URL
-	case cryptoutilMagic.TestDatabasePostgres2:
+	case cryptoutilSharedMagic.TestDatabasePostgres2:
 		return f.postgres2URL
 	case "ca":
 		return f.caURL

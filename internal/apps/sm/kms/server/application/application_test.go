@@ -17,14 +17,13 @@ import (
 	"io"
 	"log"
 	http "net/http"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilKmsClient "cryptoutil/internal/apps/sm/kms/client"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
@@ -64,6 +63,7 @@ func TestMain(m *testing.M) {
 
 func TestHttpGetTraceHead(t *testing.T) {
 	t.Parallel()
+
 	testCases := []struct {
 		name           string
 		method         string
@@ -115,6 +115,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 
 func TestSecurityHeaders(t *testing.T) {
 	t.Parallel()
+
 	testCases := []struct {
 		name              string
 		url               string

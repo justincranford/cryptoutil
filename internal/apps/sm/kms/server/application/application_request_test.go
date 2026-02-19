@@ -10,22 +10,13 @@ package application
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	json "encoding/json"
-	"fmt"
-	"io"
-	"log"
 	http "net/http"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilKmsClient "cryptoutil/internal/apps/sm/kms/client"
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"
 
 	"github.com/stretchr/testify/require"
@@ -83,6 +74,7 @@ func TestSendServerListenerReadinessCheck(t *testing.T) {
 
 func TestRequestLoggerMiddleware(t *testing.T) {
 	t.Parallel()
+
 	testCases := []struct {
 		name           string
 		method         string

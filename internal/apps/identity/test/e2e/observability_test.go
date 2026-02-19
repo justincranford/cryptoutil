@@ -6,10 +6,10 @@ package e2e
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"strings"
 	"testing"
 	"time"

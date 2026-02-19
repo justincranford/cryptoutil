@@ -18,6 +18,7 @@ import (
 // TestOrmTransaction_AddElasticKey_InvalidUUID tests validation error for invalid elastic key ID.
 func TestOrmTransaction_AddElasticKey_InvalidUUID(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key with zero UUID (invalid).
 		tenantID := googleUuid.New()
@@ -48,6 +49,7 @@ func TestOrmTransaction_AddElasticKey_InvalidUUID(t *testing.T) {
 // TestOrmTransaction_UpdateElasticKey_InvalidUUID tests validation error for invalid elastic key ID.
 func TestOrmTransaction_UpdateElasticKey_InvalidUUID(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create elastic key with zero UUID (invalid).
 		tenantID := googleUuid.New()
@@ -78,6 +80,7 @@ func TestOrmTransaction_UpdateElasticKey_InvalidUUID(t *testing.T) {
 // TestOrmTransaction_UpdateElasticKeyStatus_InvalidUUID tests validation error for invalid elastic key ID.
 func TestOrmTransaction_UpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Try to update status with zero UUID (invalid).
 		updateErr := tx.UpdateElasticKeyStatus(googleUuid.UUID{}, cryptoutilKmsServer.Inactive)
@@ -92,6 +95,7 @@ func TestOrmTransaction_UpdateElasticKeyStatus_InvalidUUID(t *testing.T) {
 // TestOrmTransaction_GetElasticKey_InvalidUUID tests validation error for invalid elastic key ID.
 func TestOrmTransaction_GetElasticKey_InvalidUUID(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Try to get elastic key with nil UUID.
 		tenantID := googleUuid.New()
@@ -107,6 +111,7 @@ func TestOrmTransaction_GetElasticKey_InvalidUUID(t *testing.T) {
 // TestOrmTransaction_AddElasticKeyMaterialKey_InvalidElasticKeyUUID tests validation error.
 func TestOrmTransaction_AddElasticKeyMaterialKey_InvalidElasticKeyUUID(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create material key with zero elastic key UUID (invalid).
 		materialKey := &MaterialKey{
@@ -129,6 +134,7 @@ func TestOrmTransaction_AddElasticKeyMaterialKey_InvalidElasticKeyUUID(t *testin
 // TestOrmTransaction_AddElasticKeyMaterialKey_InvalidMaterialKeyUUID tests validation error.
 func TestOrmTransaction_AddElasticKeyMaterialKey_InvalidMaterialKeyUUID(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create material key with zero material key UUID (invalid).
 		materialKey := &MaterialKey{
@@ -151,6 +157,7 @@ func TestOrmTransaction_AddElasticKeyMaterialKey_InvalidMaterialKeyUUID(t *testi
 // TestOrmTransaction_GetMaterialKeysForElasticKey_InvalidUUID tests validation error.
 func TestOrmTransaction_GetMaterialKeysForElasticKey_InvalidUUID(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(tx *OrmTransaction) error {
 		// Try to get material keys with nil elastic key UUID.
 		_, getErr := tx.GetMaterialKeysForElasticKey(nil, &GetElasticKeyMaterialKeysFilters{})

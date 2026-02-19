@@ -20,6 +20,7 @@ const testEncryptedData = "encrypted-data"
 // TestRootKey_GettersSetters tests all getter and setter methods.
 func TestRootKey_GettersSetters(t *testing.T) {
 	t.Parallel()
+
 	entity := &RootKey{}
 
 	// Test UUID.
@@ -40,6 +41,7 @@ func TestRootKey_GettersSetters(t *testing.T) {
 // TestIntermediateKey_GettersSetters tests all getter and setter methods.
 func TestIntermediateKey_GettersSetters(t *testing.T) {
 	t.Parallel()
+
 	entity := &IntermediateKey{}
 
 	// Test UUID.
@@ -60,6 +62,7 @@ func TestIntermediateKey_GettersSetters(t *testing.T) {
 // TestContentKey_GettersSetters tests all getter and setter methods.
 func TestContentKey_GettersSetters(t *testing.T) {
 	t.Parallel()
+
 	entity := &ContentKey{}
 
 	// Test UUID.

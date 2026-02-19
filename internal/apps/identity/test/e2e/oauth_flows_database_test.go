@@ -7,7 +7,7 @@ package e2e
 import (
 	"context"
 	crand "crypto/rand"
-	"crypto/sha256"
+	sha256 "crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"io"

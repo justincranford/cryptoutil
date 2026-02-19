@@ -8,21 +8,21 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net/http"
+	http "net/http"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CreateHTTPClient creates an HTTP client with standard test configuration.
 func CreateHTTPClient() *http.Client {
-	return &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
+	return &http.Client{Timeout: cryptoutilSharedMagic.TestTimeoutHTTPClient}
 }
 
 // CreateInsecureHTTPClient creates an HTTP client that skips TLS verification (for self-signed certificates).
 func CreateInsecureHTTPClient() *http.Client {
 	return &http.Client{
-		Timeout: cryptoutilMagic.DockerHTTPClientTimeoutSeconds * time.Second,
+		Timeout: cryptoutilSharedMagic.DockerHTTPClientTimeoutSeconds * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint:gosec // G402: E2E testing with self-signed certs
 		},

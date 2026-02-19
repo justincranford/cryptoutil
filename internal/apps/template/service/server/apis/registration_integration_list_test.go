@@ -6,38 +6,25 @@
 package apis
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	http "net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
-	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	postgresDriver "gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	cryptoutilConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilTemplateBarrier "cryptoutil/internal/apps/template/service/server/barrier"
-	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateDomain "cryptoutil/internal/apps/template/service/server/domain"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 
 	// Use modernc SQLite driver (CGO-free).
 	_ "modernc.org/sqlite"
@@ -54,21 +41,22 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run migrations on empty DB
-	require.NoError(t, emptyDB.AutoMigrate(&cryptoutilTemplateDomain.TenantJoinRequest{}))
+	require.NoError(t, emptyDB.AutoMigrate(&cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{}))
 
 	// Create repositories with empty DB
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(emptyDB)
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(emptyDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(emptyDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(emptyDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(emptyDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(emptyDB)
 
 	// Create service with empty DB
-	svc := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(emptyDB, tenantRepo, userRepo, joinRequestRepo)
+	svc := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(emptyDB, tenantRepo, userRepo, joinRequestRepo)
 
 	// Create isolated Fiber app with auth middleware
 	app := fiber.New()
 	testTenantID := googleUuid.New()
 	authMiddleware := func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", testTenantID)
+
 		return c.Next()
 	}
 	app.Use(authMiddleware)
@@ -88,6 +76,7 @@ func TestIntegration_ListJoinRequests_NoRequests(t *testing.T) {
 
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -109,7 +98,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	// Use testTenantID since the auth middleware sets tenant_id from this global.
 	// Create tenant if it doesn't exist (FirstOrCreate handles both cases).
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   testTenantID,
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
@@ -117,7 +106,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	// Create join request with unique ID.
 	userID := googleUuid.New()
-	joinReq := &cryptoutilTemplateDomain.TenantJoinRequest{
+	joinReq := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:       googleUuid.New(),
 		TenantID: testTenantID,
 		UserID:   &userID,
@@ -127,7 +116,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	// Verify join request was created in database.
 	var dbCount int64
-	require.NoError(t, testDB.Model(&cryptoutilTemplateDomain.TenantJoinRequest{}).Count(&dbCount).Error)
+	require.NoError(t, testDB.Model(&cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{}).Count(&dbCount).Error)
 	t.Logf("Total join requests in DB: %d", dbCount)
 
 	req := httptest.NewRequest(http.MethodGet, "/admin/api/v1/join-requests", nil)
@@ -135,6 +124,7 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -154,18 +144,23 @@ func TestIntegration_ListJoinRequests_WithData(t *testing.T) {
 
 	// Find our specific request in the list
 	foundOurRequest := false
+
 	for _, reqItem := range requests {
 		reqMap, ok := reqItem.(map[string]any)
 		if !ok {
 			continue
 		}
+
 		if reqMap["id"] == joinReq.ID.String() {
 			foundOurRequest = true
+
 			require.Equal(t, "pending", reqMap["status"])
 			require.Equal(t, tenant.ID.String(), reqMap["tenant_id"])
+
 			break
 		}
 	}
+
 	require.True(t, foundOurRequest, "Our join request should be in the list")
 }
 
@@ -176,7 +171,7 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 	ctx := context.Background()
 
 	// Create or find existing tenant using the same tenant ID from auth middleware.
-	tenant := &cryptoutilTemplateRepository.Tenant{
+	tenant := &cryptoutilAppsTemplateServiceServerRepository.Tenant{
 		ID:   testTenantID,
 		Name: fmt.Sprintf("tenant_%s", googleUuid.NewString()[:8]),
 	}
@@ -189,7 +184,7 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 	processedBy := googleUuid.New()
 	processedAt := time.Now().UTC()
 
-	joinReq := &cryptoutilTemplateDomain.TenantJoinRequest{
+	joinReq := &cryptoutilAppsTemplateServiceServerDomain.TenantJoinRequest{
 		ID:          googleUuid.New(),
 		TenantID:    testTenantID,
 		UserID:      &userID,
@@ -206,11 +201,13 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var result map[string]any
+
 	bodyBytes, _ := io.ReadAll(resp.Body)
 	require.NoError(t, json.Unmarshal(bodyBytes, &result))
 	require.Contains(t, result, "requests")
@@ -221,13 +218,16 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 
 	// Find our specific request and verify optional fields are included.
 	foundOurRequest := false
+
 	for _, reqItem := range requests {
 		reqMap, ok := reqItem.(map[string]any)
 		if !ok {
 			continue
 		}
+
 		if reqMap["id"] == joinReq.ID.String() {
 			foundOurRequest = true
+
 			require.Equal(t, "approved", reqMap["status"])
 
 			// Verify optional fields are present in response.
@@ -243,6 +243,7 @@ func TestIntegration_ListJoinRequests_AllOptionalFields(t *testing.T) {
 			break
 		}
 	}
+
 	require.True(t, foundOurRequest, "Our join request with all optional fields should be in the list")
 }
 
@@ -257,6 +258,7 @@ func TestIntegration_ProcessJoinRequest_InvalidID(t *testing.T) {
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -278,6 +280,7 @@ func TestIntegration_ProcessJoinRequest_InvalidJSON(t *testing.T) {
 
 	resp, err := testJoinRequestMgmtApp.Test(req, -1)
 	require.NoError(t, err)
+
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -328,6 +331,7 @@ func TestIntegration_JoinRequestManagement_Unauthenticated(t *testing.T) {
 
 			resp, err := testJoinRequestMgmtApp.Test(req, -1)
 			require.NoError(t, err)
+
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
 			// Verify 401 Unauthorized response
@@ -356,6 +360,7 @@ func TestRegistrationRoutes_MethodNotAllowed(t *testing.T) {
 
 			resp, err := testRegistrationApp.Test(req, -1)
 			require.NoError(t, err)
+
 			defer func() { require.NoError(t, resp.Body.Close()) }()
 
 			require.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)

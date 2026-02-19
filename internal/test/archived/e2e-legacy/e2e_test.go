@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -111,11 +111,11 @@ func (suite *SummaryTestSuite) completeStep(status, result string) {
 	suite.summary.TotalSteps++
 
 	switch status {
-	case cryptoutilMagic.TestStatusPass:
+	case cryptoutilSharedMagic.TestStatusPass:
 		suite.summary.PassedSteps++
-	case cryptoutilMagic.TestStatusFail:
+	case cryptoutilSharedMagic.TestStatusFail:
 		suite.summary.FailedSteps++
-	case cryptoutilMagic.TestStatusSkip:
+	case cryptoutilSharedMagic.TestStatusSkip:
 		suite.summary.SkippedSteps++
 	}
 

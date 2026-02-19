@@ -16,6 +16,7 @@ import (
 // TestMFAFlows tests multi-factor authentication scenarios.
 func TestMFAFlows(t *testing.T) {
 	t.Parallel()
+
 	suite := NewE2ETestSuite()
 	ctx := context.Background()
 
@@ -76,6 +77,7 @@ func (s *E2ETestSuite) testMFAChain(ctx context.Context, methods []UserAuthMetho
 // TestStepUpAuthentication tests step-up authentication scenarios.
 func TestStepUpAuthentication(t *testing.T) {
 	t.Parallel()
+
 	suite := NewE2ETestSuite()
 	ctx := context.Background()
 
@@ -115,6 +117,7 @@ func (s *E2ETestSuite) testStepUpAuth(ctx context.Context, riskLevel RiskLevel, 
 // TestRiskBasedAuthentication tests risk-based authentication scenarios.
 func TestRiskBasedAuthentication(t *testing.T) {
 	t.Parallel()
+
 	suite := NewE2ETestSuite()
 	ctx := context.Background()
 
@@ -171,6 +174,7 @@ func (s *E2ETestSuite) testRiskBasedAuth(ctx context.Context, authCtx AuthContex
 // TestClientMFAChains tests client-side MFA authentication chains.
 func TestClientMFAChains(t *testing.T) {
 	t.Parallel()
+
 	suite := NewE2ETestSuite()
 	ctx := context.Background()
 

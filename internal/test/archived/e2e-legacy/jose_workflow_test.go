@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	cryptoutilJOSEClient "cryptoutil/api/jose/client"
+	cryptoutilApiJoseClient "cryptoutil/api/jose/client"
 )
 
 // TestJOSEWorkflow runs JOSE E2E test.
@@ -53,9 +53,9 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	defer suite.fixture.Teardown()
 
 	// 2. Generate JWK (ES384) via GenerateJWKWithResponse
-	algorithm := cryptoutilJOSEClient.JWKGenerateRequestAlgorithm("ES384")
-	use := cryptoutilJOSEClient.JWKGenerateRequestUse("sig")
-	genReq := cryptoutilJOSEClient.JWKGenerateRequest{
+	algorithm := cryptoutilApiJoseClient.JWKGenerateRequestAlgorithm("ES384")
+	use := cryptoutilApiJoseClient.JWKGenerateRequestUse("sig")
+	genReq := cryptoutilApiJoseClient.JWKGenerateRequest{
 		Algorithm: algorithm,
 		Use:       &use,
 	}
@@ -75,7 +75,7 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	)
 
 	// 4. Sign JWT via SignJWSWithResponse
-	signReq := cryptoutilJOSEClient.JWSSignRequest{
+	signReq := cryptoutilApiJoseClient.JWSSignRequest{
 		Kid:     kid,
 		Payload: claims,
 	}
@@ -86,7 +86,7 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	require.NotEmpty(t, jws, "Generated JWS should not be empty")
 
 	// 5. Verify JWT signature via VerifyJWSWithResponse
-	verifyReq := cryptoutilJOSEClient.JWSVerifyRequest{JWS: jws}
+	verifyReq := cryptoutilApiJoseClient.JWSVerifyRequest{JWS: jws}
 	verifyResp, err := suite.fixture.GetJOSEClient().VerifyJWSWithResponse(ctx, verifyReq)
 	require.NoError(t, err, "Failed to verify JWS")
 	require.NotNil(t, verifyResp.JSON200, "Verify JWS response should be 200 OK")
@@ -95,7 +95,7 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	// 6. Test invalid signature rejection (tamper JWS, expect verification failure)
 	// Tamper with JWS by changing last character
 	tamperedJWS := jws[:len(jws)-1] + "X"
-	tamperedVerifyReq := cryptoutilJOSEClient.JWSVerifyRequest{JWS: tamperedJWS}
+	tamperedVerifyReq := cryptoutilApiJoseClient.JWSVerifyRequest{JWS: tamperedJWS}
 	tamperedVerifyResp, err := suite.fixture.GetJOSEClient().VerifyJWSWithResponse(ctx, tamperedVerifyReq)
 	require.NoError(t, err, "Verify request should not error (HTTP layer)")
 	// Expect either 400 Bad Request or 200 with Valid=false
@@ -111,7 +111,7 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 		`{"sub":"user-456","name":"Expired User","email":"expired@example.com","iat":%d,"exp":%d,"aud":"test-audience","iss":"jose-e2e-test"}`,
 		iat, expiredExp,
 	)
-	expiredSignReq := cryptoutilJOSEClient.JWSSignRequest{
+	expiredSignReq := cryptoutilApiJoseClient.JWSSignRequest{
 		Kid:     kid,
 		Payload: expiredClaims,
 	}
@@ -120,7 +120,7 @@ func (suite *JOSEWorkflowSuite) TestSignVerifyWorkflow() {
 	require.NotNil(t, expiredSignResp.JSON200, "Sign expired JWS response should be 200 OK")
 	expiredJWS := expiredSignResp.JSON200.JWS
 
-	expiredVerifyReq := cryptoutilJOSEClient.JWSVerifyRequest{JWS: expiredJWS}
+	expiredVerifyReq := cryptoutilApiJoseClient.JWSVerifyRequest{JWS: expiredJWS}
 	expiredVerifyResp, err := suite.fixture.GetJOSEClient().VerifyJWSWithResponse(ctx, expiredVerifyReq)
 	require.NoError(t, err, "Verify request should not error (HTTP layer)")
 	// Expect either 400 Bad Request or 200 with Valid=false for expired token

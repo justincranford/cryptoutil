@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // DockerContainer represents a Docker container.
@@ -95,10 +95,10 @@ func getComposeFilePath() string {
 	if err != nil {
 		// Fallback to relative path if absolute path fails
 		if runtime.GOOS == "windows" {
-			return cryptoutilMagic.DockerComposeRelativeFilePathWindows
+			return cryptoutilSharedMagic.DockerComposeRelativeFilePathWindows
 		}
 
-		return cryptoutilMagic.DockerComposeRelativeFilePathLinux
+		return cryptoutilSharedMagic.DockerComposeRelativeFilePathLinux
 	}
 
 	return absPath
@@ -158,7 +158,7 @@ func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir s
 	Log(logger, "📦 Capturing container logs...")
 
 	// Create output directory if it doesn't exist
-	if err := os.MkdirAll(outputDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
+	if err := os.MkdirAll(outputDir, cryptoutilSharedMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
@@ -183,10 +183,11 @@ func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir s
 		return fmt.Errorf("failed to create zip file: %w", err)
 	}
 
-	defer zipFile.Close()
+	defer func() { _ = zipFile.Close() }()
 
 	zipWriter := zip.NewWriter(zipFile)
-	defer zipWriter.Close()
+
+	defer func() { _ = zipWriter.Close() }()
 
 	// Capture logs for each container
 	for _, container := range containers {

@@ -12,30 +12,32 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTemplateBusinessLogic "cryptoutil/internal/apps/template/service/server/businesslogic"
-	cryptoutilTemplateRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
+	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 )
 
 // TestIntegration_TenantRegistration_CreateTenant tests creating a new tenant.
 func TestIntegration_TenantRegistration_CreateTenant(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilTemplateRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilTemplateRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()
 	require.NoError(t, err, "Failed to get sql.DB")
-	defer sqlDB.Close()
+
+	defer func() { _ = sqlDB.Close() }()
 
 	// Create repositories.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(gormDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(gormDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(gormDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(gormDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(gormDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(gormDB)
 
 	// Create registration service.
-	registrationSvc := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
+	registrationSvc := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
 		gormDB,
 		tenantRepo,
 		userRepo,
@@ -64,23 +66,25 @@ func TestIntegration_TenantRegistration_CreateTenant(t *testing.T) {
 // TestIntegration_TenantRegistration_ClientJoinRequest tests client join request creation.
 func TestIntegration_TenantRegistration_ClientJoinRequest(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilTemplateRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilTemplateRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()
 	require.NoError(t, err, "Failed to get sql.DB")
-	defer sqlDB.Close()
+
+	defer func() { _ = sqlDB.Close() }()
 
 	// Create repositories.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(gormDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(gormDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(gormDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(gormDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(gormDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(gormDB)
 
 	// Create registration service.
-	registrationSvc := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
+	registrationSvc := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
 		gormDB,
 		tenantRepo,
 		userRepo,
@@ -110,23 +114,25 @@ func TestIntegration_TenantRegistration_ClientJoinRequest(t *testing.T) {
 // TestIntegration_JoinRequest_Approve tests approving a join request.
 func TestIntegration_JoinRequest_Approve(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilTemplateRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilTemplateRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()
 	require.NoError(t, err, "Failed to get sql.DB")
-	defer sqlDB.Close()
+
+	defer func() { _ = sqlDB.Close() }()
 
 	// Create repositories.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(gormDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(gormDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(gormDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(gormDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(gormDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(gormDB)
 
 	// Create registration service.
-	registrationSvc := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
+	registrationSvc := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
 		gormDB,
 		tenantRepo,
 		userRepo,
@@ -166,23 +172,25 @@ func TestIntegration_JoinRequest_Approve(t *testing.T) {
 // TestIntegration_JoinRequest_Reject tests rejecting a join request.
 func TestIntegration_JoinRequest_Reject(t *testing.T) {
 	t.Parallel()
+
 	ctx := context.Background()
 
 	// Create in-memory SQLite database with migrations.
-	gormDB, err := cryptoutilTemplateRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilTemplateRepository.MigrationsFS)
+	gormDB, err := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(ctx, "file::memory:?cache=shared", cryptoutilAppsTemplateServiceServerRepository.MigrationsFS)
 	require.NoError(t, err, "Failed to initialize in-memory database")
 
 	sqlDB, err := gormDB.DB()
 	require.NoError(t, err, "Failed to get sql.DB")
-	defer sqlDB.Close()
+
+	defer func() { _ = sqlDB.Close() }()
 
 	// Create repositories.
-	tenantRepo := cryptoutilTemplateRepository.NewTenantRepository(gormDB)
-	userRepo := cryptoutilTemplateRepository.NewUserRepository(gormDB)
-	joinRequestRepo := cryptoutilTemplateRepository.NewTenantJoinRequestRepository(gormDB)
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(gormDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(gormDB)
+	joinRequestRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(gormDB)
 
 	// Create registration service.
-	registrationSvc := cryptoutilTemplateBusinessLogic.NewTenantRegistrationService(
+	registrationSvc := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
 		gormDB,
 		tenantRepo,
 		userRepo,

@@ -136,6 +136,7 @@ func TestToAppErr_ForeignKeyViolation(t *testing.T) {
 // TestToAppErr_GenericError tests toAppErr handling of generic errors (fallback to HTTP 500).
 func TestToAppErr_GenericError(t *testing.T) {
 	t.Parallel()
+
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 		// Create a generic error (not a database-specific error).
 		genericErr := fmt.Errorf("generic unexpected error")

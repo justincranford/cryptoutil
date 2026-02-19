@@ -15,29 +15,16 @@ package integration
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
-	"log/slog"
-	"net/http"
+	http "net/http"
 	"net/url"
-	"os"
 	"strings"
-	"sync"
 	"testing"
-	"time"
 
 	cryptoutilIdentityPKCE "cryptoutil/internal/apps/identity/authz/pkce"
-	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
-	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
-	cryptoutilDigests "cryptoutil/internal/shared/crypto/digests"
 
-	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"
 )
 

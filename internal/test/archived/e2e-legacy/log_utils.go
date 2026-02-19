@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Logger provides structured logging for E2E tests.
@@ -147,12 +147,12 @@ func CompleteStep(summary *TestSummary, logger *Logger, status, result string) {
 // GetStatusEmoji returns the appropriate emoji for a test status.
 func GetStatusEmoji(status string) string {
 	switch status {
-	case cryptoutilMagic.TestStatusFail:
-		return cryptoutilMagic.TestStatusEmojiFail
-	case cryptoutilMagic.TestStatusSkip:
-		return cryptoutilMagic.TestStatusEmojiSkip
+	case cryptoutilSharedMagic.TestStatusFail:
+		return cryptoutilSharedMagic.TestStatusEmojiFail
+	case cryptoutilSharedMagic.TestStatusSkip:
+		return cryptoutilSharedMagic.TestStatusEmojiSkip
 	default:
-		return cryptoutilMagic.TestStatusEmojiPass
+		return cryptoutilSharedMagic.TestStatusEmojiPass
 	}
 }
 

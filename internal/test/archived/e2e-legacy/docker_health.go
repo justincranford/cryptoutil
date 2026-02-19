@@ -5,11 +5,11 @@
 package test
 
 import (
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"strings"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ServiceAndJob represents a service and its optional healthcheck job.
@@ -34,13 +34,13 @@ type ServiceAndJob struct {
 //     Example: opentelemetry-collector-contrib with healthcheck-opentelemetry-collector-contrib
 var (
 	dockerComposeServicesForHealthCheck = []ServiceAndJob{
-		{Job: cryptoutilMagic.DockerJobHealthcheckSecrets},
-		{Job: cryptoutilMagic.DockerJobBuilderCryptoutil},
-		{Service: cryptoutilMagic.DockerServiceOtelCollector, Job: cryptoutilMagic.DockerJobHealthcheckOtelCollectorContrib},
-		{Service: cryptoutilMagic.DockerServiceCryptoutilSqlite},
-		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres1},
-		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
-		{Service: cryptoutilMagic.DockerServicePostgres},
+		{Job: cryptoutilSharedMagic.DockerJobHealthcheckSecrets},
+		{Job: cryptoutilSharedMagic.DockerJobBuilderCryptoutil},
+		{Service: cryptoutilSharedMagic.DockerServiceOtelCollector, Job: cryptoutilSharedMagic.DockerJobHealthcheckOtelCollectorContrib},
+		{Service: cryptoutilSharedMagic.DockerServiceCryptoutilSqlite},
+		{Service: cryptoutilSharedMagic.DockerServiceCryptoutilPostgres1},
+		{Service: cryptoutilSharedMagic.DockerServiceCryptoutilPostgres2},
+		{Service: cryptoutilSharedMagic.DockerServicePostgres},
 		// grafana-otel-lgtm excluded - requires --profile with-grafana (optional for E2E tests)
 	}
 )
@@ -73,7 +73,7 @@ func parseDockerComposePsOutput(output []byte) (map[string]map[string]any, error
 		if name, ok := service["Name"].(string); ok {
 			if strings.Contains(name, "compose-") { // Example: compose-cryptoutil-sqlite-1
 				parts := strings.Split(name, "-")
-				if len(parts) >= cryptoutilMagic.DockerServiceNamePartsMin {
+				if len(parts) >= cryptoutilSharedMagic.DockerServiceNamePartsMin {
 					serviceName := strings.Join(parts[1:len(parts)-1], "-") // Example: cryptoutil-sqlite
 					serviceMap[serviceName] = service
 				}
@@ -135,7 +135,7 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 		// Check health based on the use case
 		if service.Job != "" {
 			// Use case 1 or 3: Check if job exited successfully
-			if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
+			if state, ok := serviceData["State"].(string); ok && state == cryptoutilSharedMagic.DockerServiceStateExited {
 				var exitCode int
 				if exitCodeFloat, ok := serviceData["ExitCode"].(float64); ok {
 					exitCode = int(exitCodeFloat)
@@ -155,10 +155,10 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 			// Use case 2: Regular service - check health or running state
 			if health, ok := serviceData["Health"].(string); ok && health != "" {
 				// Services with native health checks
-				healthStatus[healthKey] = health == cryptoutilMagic.DockerServiceHealthHealthy
+				healthStatus[healthKey] = health == cryptoutilSharedMagic.DockerServiceHealthHealthy
 			} else {
 				// Services without health checks: check if running
-				if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
+				if state, ok := serviceData["State"].(string); ok && state == cryptoutilSharedMagic.DockerServiceStateRunning {
 					healthStatus[healthKey] = true
 				} else {
 					healthStatus[healthKey] = false

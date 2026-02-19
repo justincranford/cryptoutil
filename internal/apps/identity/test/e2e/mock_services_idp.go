@@ -8,17 +8,17 @@ package e2e
 
 import (
 	"context"
-	"crypto/rand"
+	crand "crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"log"
-	"net/http"
+	http "net/http"
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
@@ -78,7 +78,7 @@ func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
 		response := map[string]any{
 			"success":    true,
 			"user_id":    "test_user",
-			"session_id": generateRandomString(cryptoutilMagic.TestRandomStringLength16),
+			"session_id": generateRandomString(cryptoutilSharedMagic.TestRandomStringLength16),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -307,7 +307,7 @@ func (tms *TestableMockServices) waitForServicesReady(ctx context.Context) error
 
 func generateRandomString(length int) string {
 	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
+	if _, err := crand.Read(bytes); err != nil {
 		log.Printf("Failed to generate random string: %v", err)
 		// Fallback to a simple pattern for testing.
 		for i := range bytes {

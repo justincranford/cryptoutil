@@ -8,15 +8,12 @@ package e2e
 
 import (
 	"context"
-	crand "crypto/rand"
-	"crypto/sha256"
 	"crypto/tls"
-	"encoding/base64"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
+	http "net/http"
 	"net/url"
 	"os"
 	"strings"

@@ -76,6 +76,7 @@ func (suite *KMSWorkflowSuite) TestEncryptDecryptWorkflow() {
 
 	// Step 3: Generate material key (oct/256 via A256GCM/A256KW elastic key)
 	suite.T().Log("Generating material key (oct/256 via A256GCM/A256KW elastic key)...")
+
 	materialKeyReq := cryptoutilOpenapiModel.MaterialKeyGenerate{}
 	genResp, err := suite.fixture.sqliteClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(ctx, *elasticKeyID, materialKeyReq)
 	suite.Require().NoError(err)

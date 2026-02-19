@@ -6,14 +6,14 @@ package e2e
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
 	"testing"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -35,10 +35,10 @@ func TestOAuthFlowFailover(t *testing.T) {
 	// Start 2x2x2x2 deployment (2 instances per service)
 	t.Log("📦 Starting 2x2x2x2 deployment for failover testing...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling2x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling2x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling2x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling2x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling2x,
 	}))
 
 	defer func() {
@@ -89,10 +89,10 @@ func TestResourceServerFailover(t *testing.T) {
 	// Start 2x2x2x2 deployment
 	t.Log("📦 Starting 2x2x2x2 deployment for resource server failover...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling2x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling2x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling2x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling2x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling2x,
 	}))
 
 	defer func() {
@@ -147,10 +147,10 @@ func TestIdentityProviderFailover(t *testing.T) {
 	// Start 2x2x2x2 deployment
 	t.Log("📦 Starting 2x2x2x2 deployment for IdP failover...")
 	require.NoError(t, startCompose(ctx, defaultProfile, map[string]int{
-		"identity-authz": cryptoutilMagic.IdentityScaling2x,
-		"identity-idp":   cryptoutilMagic.IdentityScaling2x,
-		"identity-rs":    cryptoutilMagic.IdentityScaling2x,
-		"identity-spa":   cryptoutilMagic.IdentityScaling2x,
+		"identity-authz": cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-idp":   cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-rs":    cryptoutilSharedMagic.IdentityScaling2x,
+		"identity-spa":   cryptoutilSharedMagic.IdentityScaling2x,
 	}))
 
 	defer func() {
