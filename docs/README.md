@@ -730,7 +730,7 @@ go test -tags=e2e -v -timeout=30m ./...
 
 # Legacy E2E tests archived (see internal/test/archived/ARCHIVE.md)
 # New E2E tests use service template pattern with:
-# - internal/apps/template/service/testing/e2e/ (service-level helpers)
+# - internal/apps/template/service/testing/e2e_helpers/ (service-level helpers)
 # - internal/apps/template/service/testing/e2e_infra/ (Docker Compose orchestration)
 
 # Cleanup

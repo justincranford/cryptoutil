@@ -463,8 +463,14 @@ EOF
 **Per-Phase Quality Gates**:
 - ✅ Unit + integration tests complete before moving to next phase
 - ✅ E2E tests pass (BOTH /service/** and /browser/** paths)
+- ✅ Deployment validators pass (`go run ./cmd/cicd lint-deployments validate-all` - when deployments/ or configs/ changed)
 - ✅ Docker Compose health checks pass
 - ✅ Race detector clean (`go test -race -count=2 ./...`)
+
+**Context-Specific Requirements**:
+- **E2E Changes**: Docker Desktop must be running; E2E workflow must pass (`go run ./cmd/workflow -workflows=e2e`)
+- **Deployment/Config Changes**: All 65 deployment validators must pass
+- **Security-Sensitive Changes**: SAST/DAST scans may be required
 
 **Overall Project Quality Gates**:
 - ✅ All phases complete with evidence

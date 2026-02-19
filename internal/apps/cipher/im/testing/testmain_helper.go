@@ -19,7 +19,7 @@ import (
 	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
 	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
@@ -81,7 +81,7 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 
 	// Create CipherImServerSettings with test settings.
 	cfg := &cryptoutilAppsCipherImServerConfig.CipherImServerSettings{
-		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceTestingE2e.NewTestServerSettingsWithService("cipher-im-test"),
+		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceTestingE2eHelpers.NewTestServerSettingsWithService("cipher-im-test"),
 	}
 	cfg.DatabaseURL = dsn // Set database URL for NewFromConfig
 

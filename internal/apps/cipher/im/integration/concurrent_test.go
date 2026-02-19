@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsCipherImClient "cryptoutil/internal/apps/cipher/im/client"
-	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 )
 
 // TestConcurrent_MultipleUsersSimultaneousSends tests concurrent message sending scenarios.
@@ -118,13 +118,13 @@ func TestConcurrent_MultipleUsersSimultaneousSends(t *testing.T) {
 }
 
 // createTestUsersAPI creates N test users via API calls using the reusable helper.
-func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*cryptoutilAppsTemplateServiceTestingE2e.TestUser {
+func createTestUsersAPI(t *testing.T, client *http.Client, baseURL string, numUsers int) []*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser {
 	t.Helper()
 
-	users := make([]*cryptoutilAppsTemplateServiceTestingE2e.TestUser, numUsers)
+	users := make([]*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser, numUsers)
 
 	for i := 0; i < numUsers; i++ {
-		users[i] = cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserService(t, client, baseURL)
+		users[i] = cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserService(t, client, baseURL)
 	}
 
 	return users
@@ -149,8 +149,8 @@ func getMessagesAPI(t *testing.T, client *http.Client, baseURL string, _ googleU
 }
 
 // selectRecipients selects N random recipients (excluding sender).
-func selectRecipients(users []*cryptoutilAppsTemplateServiceTestingE2e.TestUser, senderID googleUuid.UUID, count int) []*cryptoutilAppsTemplateServiceTestingE2e.TestUser {
-	recipients := make([]*cryptoutilAppsTemplateServiceTestingE2e.TestUser, 0, count)
+func selectRecipients(users []*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser, senderID googleUuid.UUID, count int) []*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser {
+	recipients := make([]*cryptoutilAppsTemplateServiceTestingE2eHelpers.TestUser, 0, count)
 
 	for _, user := range users {
 		if user.ID != senderID && len(recipients) < count {

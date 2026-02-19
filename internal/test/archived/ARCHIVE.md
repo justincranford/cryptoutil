@@ -4,7 +4,7 @@
 
 **Archived**: 2025-12-24
 **Reason**: Migrated to service template pattern
-**Replacement**: `internal/apps/template/service/testing/e2e/` (service-level) + `internal/apps/template/service/testing/e2e_infra/` (Docker Compose orchestration)
+**Replacement**: `internal/apps/template/service/testing/e2e_helpers/` (service-level) + `internal/apps/template/service/testing/e2e_infra/` (Docker Compose orchestration)
 
 ### Migration Summary
 
@@ -13,7 +13,7 @@
 
 **Partially Migrated**:
 - `docker_utils.go` → Simplified as `internal/apps/template/service/testing/e2e_infra/compose_manager.go` (ComposeManager, lighter design)
-- `http_utils.go` → Similar functionality in `internal/apps/template/service/testing/e2e/http_helpers.go`
+- `http_utils.go` → Similar functionality in `internal/apps/template/service/testing/e2e_helpers/http_helpers.go`
 
 **Not Migrated (Intentionally Archived)**:
 - `log_utils.go` - Elaborate dual-output logging replaced by simpler testing.T.Log()
@@ -29,7 +29,7 @@
 **New Framework**: Simpler TestMain pattern, testing.T.Log(), direct ComposeManager usage
 
 **Two Directory Strategy**:
-1. `internal/apps/template/service/testing/e2e/` - Service-level testing helpers (in-process, no Docker)
+1. `internal/apps/template/service/testing/e2e_helpers/` - Service-level testing helpers (in-process, no Docker)
 2. `internal/apps/template/service/testing/e2e_infra/` - Docker Compose orchestration (docker_health.go, compose_manager.go)
 
 ### References

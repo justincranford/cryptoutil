@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	cryptoutilAppsCipherImClient "cryptoutil/internal/apps/cipher/im/client"
-	cryptoutilAppsTemplateServiceTestingE2e "cryptoutil/internal/apps/template/service/testing/e2e"
+	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 
 	"github.com/stretchr/testify/require"
 )
@@ -18,8 +18,8 @@ func TestE2E_BrowserFullEncryptionFlow(t *testing.T) {
 	t.Parallel()
 
 	// Register users via browser endpoints.
-	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends encrypted message to user2 via browser endpoint.
 	plaintext := "Hello " + user2.Username + ", this is a browser message from " + user1.Username + "!"
@@ -51,9 +51,9 @@ func TestE2E_BrowserMultiReceiverEncryption(t *testing.T) {
 	t.Parallel()
 
 	// Register users via browser endpoints.
-	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user3 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user3 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends to both user2 and user3 via browser endpoint.
 	plaintext := "Group message from " + user1.Username + " to multiple recipients!"
@@ -87,8 +87,8 @@ func TestE2E_BrowserMessageDeletion(t *testing.T) {
 	t.Parallel()
 
 	// Register users via browser endpoints.
-	user1 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
-	user2 := cryptoutilAppsTemplateServiceTestingE2e.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user1 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
+	user2 := cryptoutilAppsTemplateServiceTestingE2eHelpers.RegisterTestUserBrowser(t, sharedHTTPClient, publicBaseURL)
 
 	// user1 sends message to user2 via browser endpoint.
 	plaintext := testMessageDeletion
