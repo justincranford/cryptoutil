@@ -179,28 +179,30 @@ const (
 	UsageCICD = `Usage: cicd <command> [command...]
 
 	Commands:
-	  lint-text      - [Linter] Enforce UTF-8 encoding without BOM for text files
-	  lint-go        - [Linter] Check for circular dependencies in Go packages
-	  lint-compose   - [Linter] Detect admin port 9090 exposure in Docker Compose files
-	  lint-ports     - [Linter] Enforce standardized port assignments (no legacy ports)
-	  format-go      - [Formatter] Auto-fix Go files (any -> any, loop var copies)
-	  lint-go-test   - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
-	  format-go-test - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
-	  lint-workflow  - [Linter] Validate GitHub Actions workflow naming and versions
-	  lint-go-mod    - [Linter] Check direct Go dependencies for updates`
+	  format-go       - [Formatter] Auto-fix Go files (any -> any, loop var copies)
+	  format-go-test  - [Formatter] Auto-fix Go test files (add t.Helper() to helpers)
+	  lint-compose    - [Linter] Detect admin port 9090 exposure in Docker Compose files
+	  lint-go         - [Linter] Check for circular dependencies in Go packages
+	  lint-go-mod     - [Linter] Check direct Go dependencies for updates
+	  lint-go-test    - [Linter] Enforce test patterns (UUIDv7 usage, testify assertions)
+	  lint-golangci   - [Linter] Validate golangci-lint config files for v2 compatibility
+	  lint-ports      - [Linter] Enforce standardized port assignments (no legacy ports)
+	  lint-text       - [Linter] Enforce UTF-8 encoding without BOM for text files
+	  lint-workflow   - [Linter] Validate GitHub Actions workflow naming and versions`
 )
 
 // ValidCommands defines the set of valid cicd commands.
 var ValidCommands = map[string]bool{
-	"lint-text":      true,
-	"lint-go":        true,
-	"lint-compose":   true,
-	"lint-ports":     true,
 	"format-go":      true,
-	"lint-go-test":   true,
 	"format-go-test": true,
-	"lint-workflow":  true,
+	"lint-compose":   true,
+	"lint-go":         true,
 	"lint-go-mod":    true,
+	"lint-go-test":   true,
+	"lint-golangci":  true,
+	"lint-ports":     true,
+	"lint-text":      true,
+	"lint-workflow":  true,
 }
 
 // Regex patterns for test enforcement.
@@ -220,16 +222,18 @@ var (
 var (
 	// CICDSelfExclusionPatterns - Self-exclusion patterns for each cicd command.
 	// CRITICAL: Each command excludes its own subdirectory to prevent self-modification.
-	// Keys match command names: lint-text, lint-go, lint-compose, format-go, lint-go-test, format-go-test, lint-workflow, lint-go-mod.
+	// Keys match command names: lint-text, lint-go, lint-compose, format-go, lint-go-test, format-go-test, lint-golangci, lint-ports, lint-workflow, lint-go-mod.
 	CICDSelfExclusionPatterns = map[string]string{
-		"lint-text":      `internal[/\\]apps[/\\]cicd[/\\]lint_text[/\\].*\.go$`,
-		"lint-go":        `internal[/\\]apps[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
-		"lint-compose":   `internal[/\\]apps[/\\]cicd[/\\]lint_compose[/\\].*\.go$`,
 		"format-go":      `internal[/\\]apps[/\\]cicd[/\\]format_go[/\\].*\.go$`,
-		"lint-go-test":   `internal[/\\]apps[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,
 		"format-go-test": `internal[/\\]apps[/\\]cicd[/\\]format_gotest[/\\].*\.go$`,
-		"lint-workflow":  `internal[/\\]apps[/\\]cicd[/\\]lint_workflow[/\\].*\.go$`,
+		"lint-compose":   `internal[/\\]apps[/\\]cicd[/\\]lint_compose[/\\].*\.go$`,
+		"lint-go":        `internal[/\\]apps[/\\]cicd[/\\]lint_go[/\\].*\.go$`,
 		"lint-go-mod":    `internal[/\\]apps[/\\]cicd[/\\]lint_go_mod[/\\].*\.go$`,
+		"lint-go-test":   `internal[/\\]apps[/\\]cicd[/\\]lint_gotest[/\\].*\.go$`,
+		"lint-golangci":  `internal[/\\]apps[/\\]cicd[/\\]lint_golangci[/\\].*\.go$`,
+		"lint-ports":     `internal[/\\]apps[/\\]cicd[/\\]lint_ports[/\\].*\.go$`,
+		"lint-text":      `internal[/\\]apps[/\\]cicd[/\\]lint_text[/\\].*\.go$`,
+		"lint-workflow":  `internal[/\\]apps[/\\]cicd[/\\]lint_workflow[/\\].*\.go$`,
 	}
 
 	// GeneratedFileExcludePatterns - File patterns for generated files that should be excluded from linting.

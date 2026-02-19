@@ -80,8 +80,24 @@ func TestRun_AllCommands_HappyPath(t *testing.T) {
 			commands: []string{"lint-text", "lint-go"},
 		},
 		{
+			name:     "lint-compose command",
+			commands: []string{"lint-compose"},
+		},
+		{
+			name:     "lint-ports command",
+			commands: []string{"lint-ports"},
+		},
+		{
+			name:     "lint-golangci command",
+			commands: []string{"lint-golangci"},
+		},
+		{
+			name:     "multiple commands together (subset)",
+			commands: []string{"lint-text", "lint-go"},
+		},
+		{
 			name:     "all commands together",
-			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod"},
+			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod", "lint-compose", "lint-ports", "lint-golangci"},
 		},
 	}
 
@@ -120,7 +136,7 @@ func TestValidateCommands_HappyPath(t *testing.T) {
 		},
 		{
 			name:     "all commands once each",
-			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod"},
+			commands: []string{"lint-text", "lint-go", "format-go", "lint-go-test", "format-go-test", "lint-workflow", "lint-go-mod", "lint-compose", "lint-ports", "lint-golangci"},
 		},
 	}
 
