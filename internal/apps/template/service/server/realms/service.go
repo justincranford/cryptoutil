@@ -10,6 +10,7 @@ import (
 
 	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -92,10 +93,8 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 		return nil, fmt.Errorf("password cannot be empty")
 	}
 
-	const minPasswordLength = 8
-
-	if len(password) < minPasswordLength {
-		return nil, fmt.Errorf("password must be at least %d characters", minPasswordLength)
+		if len(password) < cryptoutilSharedMagic.DefaultPasswordMinLengthChars {
+			return nil, fmt.Errorf("password must be at least %d characters", cryptoutilSharedMagic.DefaultPasswordMinLengthChars)
 	}
 
 	// Hash password with PBKDF2-HMAC-SHA256 (LowEntropyRandom, FIPS-approved).

@@ -14,6 +14,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Profile represents a subject profile configuration.
@@ -212,16 +214,13 @@ func (p *Profile) Validate() error {
 
 	// Validate country codes.
 	for _, country := range p.Constraints.ValidCountries {
-		if len(country) != countryCodeLength {
+		if len(country) != cryptoutilSharedMagic.ISO3166Alpha2CountryCodeLength {
 			return fmt.Errorf("invalid country code: %s (must be 2 characters)", country)
 		}
 	}
 
 	return nil
 }
-
-// countryCodeLength defines the ISO 3166-1 alpha-2 country code length.
-const countryCodeLength = 2
 
 // Resolve resolves a certificate request against this profile.
 func (p *Profile) Resolve(req *Request) (*ResolvedSubject, error) {

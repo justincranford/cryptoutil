@@ -14,6 +14,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
@@ -235,7 +236,7 @@ func SendAuthenticatedRequest(client *http.Client, method, url, token string, bo
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix+token)
 
 	resp, err := client.Do(req)
 	if err != nil {

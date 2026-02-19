@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -18,23 +20,11 @@ type ConfigValidationResult struct {
 	Warnings []string
 }
 
-// minPort is the minimum valid port number.
-const minPort = 1
-
-// maxPort is the maximum valid port number.
-const maxPort = 65535
-
-// mandatoryAdminBindAddress is the only acceptable admin bind address.
-const mandatoryAdminBindAddress = "127.0.0.1"
-
 // statusPass and statusFail are shared status labels for validation output formatting.
 const (
 	statusPass = "PASS"
 	statusFail = "FAIL"
 )
-
-// mandatoryProtocol is the only acceptable protocol.
-const mandatoryProtocol = "https"
 
 // ValidateConfigFile validates the content of a single config YAML file.
 // It checks YAML syntax, format validation, policy enforcement, and secret references.
@@ -122,9 +112,9 @@ func validatePorts(config map[string]any, result *ConfigValidationResult) {
 			continue
 		}
 
-		if port < minPort || port > maxPort {
-			result.Errors = append(result.Errors,
-				fmt.Sprintf("'%s' must be between %d and %d, got %d", key, minPort, maxPort, port))
+			if port < cryptoutilSharedMagic.MinPortNumber || port > int(cryptoutilSharedMagic.MaxPortNumber) {
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("'%s' must be between %d and %d, got %d", key, cryptoutilSharedMagic.MinPortNumber, int(cryptoutilSharedMagic.MaxPortNumber), port))
 			result.Valid = false
 		}
 	}
@@ -149,9 +139,9 @@ func validateProtocols(config map[string]any, result *ConfigValidationResult) {
 			continue
 		}
 
-		if strVal != mandatoryProtocol {
-			result.Errors = append(result.Errors,
-				fmt.Sprintf("'%s' must be %q, got %q", key, mandatoryProtocol, strVal))
+			if strVal != cryptoutilSharedMagic.ProtocolHTTPS {
+				result.Errors = append(result.Errors,
+					fmt.Sprintf("'%s' must be %q, got %q", key, cryptoutilSharedMagic.ProtocolHTTPS, strVal))
 			result.Valid = false
 		}
 	}
@@ -169,10 +159,10 @@ func validateAdminBindPolicy(config map[string]any, result *ConfigValidationResu
 		return // Type error already caught by validateBindAddresses.
 	}
 
-	if strVal != mandatoryAdminBindAddress {
+	if strVal != cryptoutilSharedMagic.IPv4Loopback {
 		result.Errors = append(result.Errors,
 			fmt.Sprintf("POLICY VIOLATION: 'bind-private-address' MUST be %q, got %q (admin must never be exposed)",
-				mandatoryAdminBindAddress, strVal))
+				cryptoutilSharedMagic.IPv4Loopback, strVal))
 		result.Valid = false
 	}
 }

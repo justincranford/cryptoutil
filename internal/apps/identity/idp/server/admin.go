@@ -54,14 +54,12 @@ func NewAdminHTTPServer(
 	}
 
 	// Create Fiber app with minimal configuration.
-	const defaultTimeout = 30
-
 	server.app = fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		AppName:               "Identity IdP Admin API",
-		ReadTimeout:           defaultTimeout * time.Second,
-		WriteTimeout:          defaultTimeout * time.Second,
-		IdleTimeout:           defaultTimeout * time.Second,
+		ReadTimeout:           cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
+		WriteTimeout:          cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
+		IdleTimeout:           cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
 	})
 
 	// Register admin routes.
@@ -152,10 +150,8 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	})
 
 	// Trigger async shutdown.
-	const shutdownDelay = 200
-
 	go func() {
-		time.Sleep(shutdownDelay * time.Millisecond)
+		time.Sleep(cryptoutilSharedMagic.DefaultIdentityServerShutdownDelay)
 
 		_ = s.Shutdown(context.Background())
 	}()

@@ -276,7 +276,7 @@ func (d *DemoScript) listKeyPools(ctx context.Context, token string) error {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix+token)
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := d.httpClient.Do(req)
@@ -340,7 +340,7 @@ func (d *DemoScript) performEncryption(ctx context.Context, token string) (strin
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
@@ -411,7 +411,7 @@ func (d *DemoScript) performDecryption(ctx context.Context, token string, cipher
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix+token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 

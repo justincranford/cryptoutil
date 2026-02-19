@@ -6,5 +6,10 @@ package magic
 
 // HTTP header constants.
 const (
-	AuthorizationBearer = "Bearer"
+        // AuthorizationBearer - HTTP Bearer authentication scheme name (without trailing space).
+        AuthorizationBearer = "Bearer"
+
+        // AuthorizationBearerPrefix - HTTP Authorization Bearer scheme prefix (with trailing space).
+        // Use this when constructing or parsing "Authorization: Bearer <token>" headers.
+        AuthorizationBearerPrefix = "Bearer "
 )

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	googleUuid "github.com/google/uuid"
@@ -70,16 +72,14 @@ func JWTMiddleware(secret string) fiber.Handler {
 		}
 
 		// Extract token from "Bearer <token>" format.
-		const bearerPrefix = "Bearer "
-		if !strings.HasPrefix(authHeader, bearerPrefix) {
-			//nolint:wrapcheck // Fiber framework error, wrapping not needed.
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "invalid authorization header format (expected: Bearer <token>)",
-			})
-		}
+				if !strings.HasPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
+					//nolint:wrapcheck // Fiber framework error, wrapping not needed.
+					return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+						"error": "invalid authorization header format (expected: Bearer <token>)",
+					})
+				}
 
-		tokenString := strings.TrimPrefix(authHeader, bearerPrefix)
-
+				tokenString := strings.TrimPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix)
 		// Parse and validate token.
 		claims := &Claims{}
 

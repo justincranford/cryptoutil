@@ -6,11 +6,13 @@ import (
 "path/filepath"
 "strings"
 
+cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 "gopkg.in/yaml.v3"
 )
 
 // adminPort is the mandatory admin port for all services.
-const adminPort = 9090
+const adminPort = int(cryptoutilSharedMagic.DefaultPrivatePortCryptoutil)
 
 // AdminValidationResult holds results from ValidateAdmin.
 type AdminValidationResult struct {
@@ -150,10 +152,10 @@ if !ok {
 return
 }
 
-if strVal != mandatoryAdminBindAddress {
-result.Errors = append(result.Errors,
-fmt.Sprintf("[ValidateAdmin] '%s': bind-private-address is %q, MUST be %q",
-filepath.Base(configPath), strVal, mandatoryAdminBindAddress))
+	if strVal != cryptoutilSharedMagic.IPv4Loopback {
+		result.Errors = append(result.Errors,
+			fmt.Sprintf("[ValidateAdmin] '%s': bind-private-address is %q, MUST be %q",
+				filepath.Base(configPath), strVal, cryptoutilSharedMagic.IPv4Loopback))
 result.Valid = false
 }
 }

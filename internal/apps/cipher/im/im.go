@@ -15,16 +15,16 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
 	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
 	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	helpCommand      = "help"
-	helpFlag         = "--help"
-	helpShortFlag    = "-h"
+	helpCommand       = "help"
+	helpFlag          = "--help"
+	helpShortFlag     = "-h"
 	sqliteInMemoryURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
 )
 
@@ -33,18 +33,18 @@ const (
 func Im(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
 		cryptoutilTemplateCli.ServiceConfig{
-			ServiceID:        "cipher-im",
-			ProductName:      "cipher",
-			ServiceName:      "im",
+			ServiceID:         "cipher-im",
+			ProductName:       "cipher",
+			ServiceName:       "im",
 			DefaultPublicPort: uint16(cryptoutilSharedMagic.CipherServicePort),
-			UsageMain:        IMUsageMain,
-			UsageServer:      IMUsageServer,
-			UsageClient:      IMUsageClient,
-			UsageInit:        IMUsageInit,
-			UsageHealth:      IMUsageHealth,
-			UsageLivez:       IMUsageLivez,
-			UsageReadyz:      IMUsageReadyz,
-			UsageShutdown:    IMUsageShutdown,
+			UsageMain:         IMUsageMain,
+			UsageServer:       IMUsageServer,
+			UsageClient:       IMUsageClient,
+			UsageInit:         IMUsageInit,
+			UsageHealth:       IMUsageHealth,
+			UsageLivez:        IMUsageLivez,
+			UsageReadyz:       IMUsageReadyz,
+			UsageShutdown:     IMUsageShutdown,
 		},
 		args, stdout, stderr,
 		imServiceServerStart,

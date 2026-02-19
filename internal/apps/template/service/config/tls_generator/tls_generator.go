@@ -264,9 +264,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	duration := time.Duration(validityDays) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
 	// Generate 3-tier CA hierarchy (Root → Intermediate → Server CA keys).
-	const caTiers = 3
-
-	caKeyPairs := make([]*cryptoutilSharedCryptoKeygen.KeyPair, caTiers-1) // Root CA and Intermediate CA (2 CAs).
+	caKeyPairs := make([]*cryptoutilSharedCryptoKeygen.KeyPair, cryptoutilSharedMagic.DefaultTLSAutoCAChainTiers-1) // Root CA and Intermediate CA (2 CAs).
 
 	var err error
 

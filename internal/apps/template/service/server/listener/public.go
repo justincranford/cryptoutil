@@ -16,6 +16,7 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicHTTPServer implements the PublicServer interface for business logic APIs and UIs.
@@ -64,8 +65,6 @@ func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateSe
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}
 
-	const defaultTimeout = 30
-
 	server := &PublicHTTPServer{
 		settings:    settings,
 		tlsMaterial: tlsMaterial,
@@ -74,9 +73,9 @@ func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateSe
 	server.app = fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		AppName:               "Public API",
-		ReadTimeout:           defaultTimeout * time.Second,
-		WriteTimeout:          defaultTimeout * time.Second,
-		IdleTimeout:           defaultTimeout * time.Second,
+		ReadTimeout:           cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
+		WriteTimeout:          cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
+		IdleTimeout:           cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
 	})
 
 	// Register public routes (placeholder - to be implemented by services).
@@ -201,9 +200,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		// Context cancelled - trigger graceful shutdown.
-		const shutdownTimeout = 5 * time.Second
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
 		defer cancel()
 
 		_ = s.Shutdown(shutdownCtx)

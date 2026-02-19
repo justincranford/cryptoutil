@@ -15,6 +15,7 @@ import (
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -455,7 +456,7 @@ func TestHandleListMaterialJWKs_Success(t *testing.T) {
 	}
 
 	elasticRepo.On("Get", mock.Anything, tenantID, kid).Return(elasticJWK, nil)
-	materialRepo.On("ListByElasticJWK", mock.Anything, elasticID, 0, defaultLimit).Return(materials, int64(1), nil)
+	materialRepo.On("ListByElasticJWK", mock.Anything, elasticID, 0, cryptoutilSharedMagic.DefaultAPIListLimit).Return(materials, int64(1), nil)
 
 	app.Get("/elastic-jwks/:kid/materials", func(c *fiber.Ctx) error {
 		c.Locals("tenant_id", tenantID)

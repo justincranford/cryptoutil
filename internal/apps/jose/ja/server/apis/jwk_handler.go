@@ -12,6 +12,7 @@ import (
 	cryptoutilAppsJoseJaRepository "cryptoutil/internal/apps/jose/ja/repository"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -83,8 +84,7 @@ type ListResponse struct {
 	Total int64 `json:"total"`
 }
 
-// defaultLimit is the default pagination limit.
-const defaultLimit = 100
+
 
 // HandleCreateElasticJWK creates a new elastic JWK container.
 // CRITICAL: tenant_id for data scoping only - realms are authn-only, NOT data scope.
@@ -232,7 +232,7 @@ func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 
 		// Parse pagination parameters.
 		offset := c.QueryInt("offset", 0)
-		limit := c.QueryInt("limit", defaultLimit)
+limit := c.QueryInt("limit", cryptoutilSharedMagic.DefaultAPIListLimit)
 
 		ctx := c.Context()
 

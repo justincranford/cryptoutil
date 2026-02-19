@@ -18,6 +18,7 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
@@ -63,14 +64,12 @@ func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateSer
 	}
 
 	// Create Fiber app with minimal configuration.
-	const defaultTimeout = 30
-
 	server.app = fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		AppName:               "Admin API",
-		ReadTimeout:           defaultTimeout * time.Second,
-		WriteTimeout:          defaultTimeout * time.Second,
-		IdleTimeout:           defaultTimeout * time.Second,
+		ReadTimeout:           cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
+		WriteTimeout:          cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
+		IdleTimeout:           cryptoutilSharedMagic.DefaultHTTPServerTimeoutSeconds * time.Second,
 	})
 
 	// Register admin routes.
@@ -165,14 +164,10 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	// Trigger shutdown in background to avoid blocking response.
 	go func() {
 		// Wait for response to be sent.
-		const shutdownDelay = 100 * time.Millisecond
+			time.Sleep(cryptoutilSharedMagic.DefaultAdminServerShutdownDelay)
 
-		time.Sleep(shutdownDelay)
-
-		// Shutdown server gracefully.
-		const shutdownTimeout = 5 * time.Second
-
-		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+			// Shutdown server gracefully.
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
 		defer cancel()
 
 		_ = s.Shutdown(ctx)
@@ -250,9 +245,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		// Context cancelled - trigger graceful shutdown.
-		const shutdownTimeout = 5 * time.Second
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
 		defer cancel()
 
 		_ = s.Shutdown(shutdownCtx)

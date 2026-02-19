@@ -77,12 +77,12 @@ func TestValidateIdentityIDPSettings_AuthzURLFormat(t *testing.T) {
 		devMode   bool
 		wantError bool
 	}{
-			{"valid_https", "https://localhost:8200", false, false},
-			{"valid_http", "http://localhost:8200", false, false},
-			{"empty_prod_mode", "", false, true},
-			{"empty_dev_mode", "", true, false}, // Empty allowed in dev mode.
-			{"invalid_no_scheme", "localhost:8200", true, true},
-			{"invalid_ftp_scheme", "ftp://localhost:8200", true, true},
+		{"valid_https", "https://localhost:8200", false, false},
+		{"valid_http", "http://localhost:8200", false, false},
+		{"empty_prod_mode", "", false, true},
+		{"empty_dev_mode", "", true, false}, // Empty allowed in dev mode.
+		{"invalid_no_scheme", "localhost:8200", true, true},
+		{"invalid_ftp_scheme", "ftp://localhost:8200", true, true},
 	}
 
 	for _, tt := range tests {

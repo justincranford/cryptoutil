@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	http "net/http"
-	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 
@@ -15,10 +14,8 @@ import (
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerService "cryptoutil/internal/apps/template/service/server/service"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
-
-// AuthZ server check timeout.
-const authzCheckTimeout = 5 * time.Second
 
 // PublicServer implements the identity-rp public server by embedding PublicServerBase.
 type PublicServer struct {
@@ -126,12 +123,12 @@ func (s *PublicServer) handleReadyz(c *fiber.Ctx) error {
 // checkAuthZServer verifies OAuth 2.1 provider connectivity.
 // This checks the /livez endpoint on the authorization server.
 func (s *PublicServer) checkAuthZServer() error {
-	ctx, cancel := context.WithTimeout(context.Background(), authzCheckTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.AuthorizationCheckTimeout)
 	defer cancel()
 
 	// Create HTTP client with TLS (skip verify for dev mode).
 	client := &http.Client{
-		Timeout: authzCheckTimeout,
+		Timeout: cryptoutilSharedMagic.AuthorizationCheckTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion:         tls.VersionTLS12,

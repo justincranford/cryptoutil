@@ -27,3 +27,9 @@ const (
 	AlgorithmHS384 = "HS384" // HMAC with SHA-384.
 	AlgorithmHS512 = "HS512" // HMAC with SHA-512.
 )
+// ECDSA signature component sizes.
+const (
+        // JWSES256ComponentSizeBytes - ES256 (ECDSA P-256) signature R and S component size in bytes.
+        // P-256 uses 256-bit field elements: 256 bits / 8 bytes per bit = 32 bytes per component.
+        JWSES256ComponentSizeBytes = 32
+)

@@ -3,6 +3,8 @@
 // Package lint_ports provides port validation for cryptoutil services.
 package lint_ports
 
+import cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 // ServicePortConfig defines the expected port configuration for a service.
 type ServicePortConfig struct {
 	Name          string   // Service name (e.g., "cipher-im", "jose-ja").
@@ -13,10 +15,10 @@ type ServicePortConfig struct {
 }
 
 // StandardAdminPort is the universal admin port for all services.
-const StandardAdminPort uint16 = 9090
+const StandardAdminPort = cryptoutilSharedMagic.DefaultPrivatePortCryptoutil
 
 // StandardHealthPath is the expected health check path for all services.
-const StandardHealthPath = "/admin/api/v1/livez"
+const StandardHealthPath = cryptoutilSharedMagic.DefaultPrivateAdminAPIContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
 
 // LineSeparatorLength defines the length of line separators in output.
 const LineSeparatorLength = 60

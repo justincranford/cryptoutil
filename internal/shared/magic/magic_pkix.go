@@ -66,3 +66,16 @@ const (
 	// StringPEMTypeSecretKey - Secret key PEM type.
 	StringPEMTypeSecretKey = "SECRET KEY" // pragma: allowlist secret
 )
+// PKI certificate generation constants.
+const (
+        // ISO3166Alpha2CountryCodeLength - ISO 3166-1 alpha-2 country code length (2 characters).
+        ISO3166Alpha2CountryCodeLength = 2
+
+        // PKICASerialNumberBits - Default serial number bit length for CA-issued certificates.
+        // CA/Browser Forum Baseline Requirements: minimum 64 bits, recommended 128 bits of entropy.
+        PKICASerialNumberBits = 128
+
+        // DefaultTLSAutoCAChainTiers - Default number of CA chain tiers for auto-generated TLS certificates.
+        // Tier layout: Root CA + Intermediate CA + End Entity certificate = 3 tiers.
+        DefaultTLSAutoCAChainTiers = 3
+)

@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"gorm.io/gorm"
 )
 
@@ -312,8 +314,7 @@ func ValidateTenantID(tenantID string) error {
 	}
 
 	// UUIDs are 36 characters with hyphens.
-	const uuidLength = 36
-	if len(tenantID) != uuidLength {
+	if len(tenantID) != cryptoutilSharedMagic.UUIDStringLength {
 		return fmt.Errorf("tenant ID must be a valid UUID (36 characters), got %d", len(tenantID))
 	}
 

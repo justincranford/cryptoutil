@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"strings"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	fiber "github.com/gofiber/fiber/v2"
 )
 
@@ -207,11 +209,11 @@ func (m *ServiceAuthMiddleware) authenticateJWT(c *fiber.Ctx) (*ServiceAuthInfo,
 
 	// Extract token from Authorization header.
 	authHeader := c.Get("Authorization")
-	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+	if authHeader == "" || !strings.HasPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
 		return nil, errors.New("no bearer token")
 	}
 
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	tokenString := strings.TrimPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix)
 	if tokenString == "" {
 		return nil, errors.New("empty bearer token")
 	}
@@ -367,7 +369,7 @@ func (m *ServiceAuthMiddleware) authenticateClientCredentials(c *fiber.Ctx) (*Se
 	// For client credentials, we expect a bearer token from the token endpoint.
 	// This token should be validated via introspection.
 	authHeader := c.Get("Authorization")
-	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+	if authHeader == "" || !strings.HasPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
 		return nil, errors.New("no bearer token for client credentials")
 	}
 

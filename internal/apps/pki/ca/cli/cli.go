@@ -20,6 +20,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CommandOptions holds common options for CA CLI commands.
@@ -444,12 +446,9 @@ const (
 	defaultEndEntityValidityDays    = 365  // 1 year.
 )
 
-// Serial number generation constants.
-const serialNumberBits = 128
-
 // generateSerialNumber generates a random serial number.
 func generateSerialNumber() (*big.Int, error) {
-	serialNumber := make([]byte, serialNumberBits/8)
+	serialNumber := make([]byte, cryptoutilSharedMagic.PKICASerialNumberBits/8)
 
 	_, err := crand.Read(serialNumber)
 	if err != nil {

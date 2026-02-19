@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PublicServerBase provides reusable public server infrastructure.
@@ -147,9 +147,7 @@ func (s *PublicServerBase) Start(ctx context.Context) error {
 
 	select {
 	case <-serverCtx.Done():
-		const shutdownTimeout = 5
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
 		defer cancel()
 
 		_ = s.Shutdown(shutdownCtx)

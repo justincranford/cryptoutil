@@ -327,15 +327,13 @@ func verifyJWTSignature(signingInput string, signature []byte, algorithm string,
 		}
 
 		// ECDSA signature for ES256 is r || s, each 32 bytes.
-		const es256ComponentSize = 32
-
-		if len(signature) != es256ComponentSize*2 {
+		if len(signature) != cryptoutilIdentityMagic.JWSES256ComponentSizeBytes*2 {
 			return fmt.Errorf("invalid ECDSA signature length: %d", len(signature))
 		}
 
-		r := new(big.Int).SetBytes(signature[:es256ComponentSize])
-		s := new(big.Int).SetBytes(signature[es256ComponentSize:])
+		r := new(big.Int).SetBytes(signature[:cryptoutilIdentityMagic.JWSES256ComponentSizeBytes])
 
+		s := new(big.Int).SetBytes(signature[cryptoutilIdentityMagic.JWSES256ComponentSizeBytes:])
 		if !ecdsa.Verify(ecPubKey, hash[:], r, s) {
 			return fmt.Errorf("ECDSA signature verification failed")
 		}
@@ -460,14 +458,12 @@ func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
 		}
 
 		// ECDSA signature for ES256 is r || s, each 32 bytes.
-		const es256ComponentSize = 32
-
-		signature := make([]byte, es256ComponentSize*2)
+		signature := make([]byte, cryptoutilIdentityMagic.JWSES256ComponentSizeBytes*2)
 		rBytes := r.Bytes()
 		sBytes := s.Bytes()
 
-		copy(signature[es256ComponentSize-len(rBytes):es256ComponentSize], rBytes)
-		copy(signature[es256ComponentSize*2-len(sBytes):], sBytes)
+		copy(signature[cryptoutilIdentityMagic.JWSES256ComponentSizeBytes-len(rBytes):cryptoutilIdentityMagic.JWSES256ComponentSizeBytes], rBytes)
+		copy(signature[cryptoutilIdentityMagic.JWSES256ComponentSizeBytes*2-len(sBytes):], sBytes)
 
 		return base64.RawURLEncoding.EncodeToString(signature), nil
 

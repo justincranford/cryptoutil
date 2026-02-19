@@ -12,6 +12,8 @@ import (
 	"io"
 	"sync"
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Framework represents a compliance framework or standard.
@@ -319,8 +321,7 @@ func (c *Checker) checkSerialNumber(cert *x509.Certificate) Requirement {
 	// BR requires at least 64 bits of entropy.
 	serialBits := cert.SerialNumber.BitLen()
 
-	const minSerialBits = 64
-	if serialBits < minSerialBits {
+	if serialBits < cryptoutilSharedMagic.MinSerialNumberBits {
 		status = StatusNonCompliant
 	}
 

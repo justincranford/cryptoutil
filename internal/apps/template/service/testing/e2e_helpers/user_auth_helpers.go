@@ -16,6 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 )
 
@@ -191,7 +192,7 @@ func SendAuthenticatedRequest(t *testing.T, client *http.Client, method, url, to
 		req.Header.Set("Content-Type", "application/json")
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix+token)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)

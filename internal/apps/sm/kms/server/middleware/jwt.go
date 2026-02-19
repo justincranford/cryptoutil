@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	fiber "github.com/gofiber/fiber/v2"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jwt"
@@ -168,11 +170,11 @@ func (v *JWTValidator) JWTMiddleware() fiber.Handler {
 		}
 
 		// Check Bearer prefix.
-		if !strings.HasPrefix(authHeader, "Bearer ") {
+		if !strings.HasPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
 			return v.unauthorizedError(c, "invalid_token", "Authorization header must use Bearer scheme")
 		}
 
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		tokenString := strings.TrimPrefix(authHeader, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix)
 		if tokenString == "" {
 			return v.unauthorizedError(c, "invalid_token", "Bearer token is empty")
 		}

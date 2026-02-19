@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cryptoutilAppsJoseJaDomain "cryptoutil/internal/apps/jose/ja/domain"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -41,7 +42,7 @@ func (h *JWKHandler) HandleListMaterialJWKs() fiber.Handler {
 
 		// Parse pagination parameters.
 		offset := c.QueryInt("offset", 0)
-		limit := c.QueryInt("limit", defaultLimit)
+limit := c.QueryInt("limit", cryptoutilSharedMagic.DefaultAPIListLimit)
 
 		ctx := c.Context()
 

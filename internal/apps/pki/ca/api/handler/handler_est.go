@@ -23,6 +23,7 @@ import (
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/pki/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
 	cryptoutilCAServiceTimestamp "cryptoutil/internal/apps/pki/ca/service/timestamp"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func (h *Handler) buildESTIssueRequest(
@@ -150,9 +151,7 @@ func (h *Handler) generateKeyPairFromCSR(csr *x509.CertificateRequest) (any, any
 	switch csr.PublicKeyAlgorithm {
 	case x509.RSA:
 		// Default to RSA-2048 for server-generated keys (FIPS 140-3 approved).
-		const rsaKeySize = 2048
-
-		privateKey, err := rsa.GenerateKey(crand.Reader, rsaKeySize)
+			privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize2048)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to generate RSA key: %w", err)
 		}
