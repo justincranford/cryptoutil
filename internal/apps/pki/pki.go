@@ -2,34 +2,38 @@
 //
 //
 
+// Package pki implements the pki product command router.
 package pki
 
 import (
-"fmt"
-"io"
+	"io"
 
-cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
+	cryptoutilAppsPkiCa "cryptoutil/internal/apps/pki/ca"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
 )
 
-// Pki is the entry point for the PKI product.
-// Routes to the CA (Certificate Authority) service.
+const (
+	usageText   = "Usage: pki <service> <subcommand> [options]\n\nAvailable services:\n  ca          Certificate Authority service\n\nUse \"pki <service> help\" for service-specific help.\nUse \"pki version\" for version information."
+	versionText = "pki product (cryptoutil)"
+)
+
+// Pki implements the pki product command router.
+// Supports Suite, Product, and Product-Service patterns.
+//
+// Call patterns:
+// - Suite: cryptoutil pki ca server
+// - Product: pki ca server
+// - Product-Service: pki-ca server (via main.go delegation).
 func Pki(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-// Default to "ca" service if no args provided
-if len(args) == 0 {
-args = []string{"ca"}
-}
-
-// For PKI product, only CA service is supported currently
-if args[0] != "ca" {
-_, _ = fmt.Fprintf(stderr, "Unknown PKI service: %s\n", args[0])
-_, _ = fmt.Fprintf(stderr, "Usage: pki [ca] [subcommand] [flags]\n")
-_, _ = fmt.Fprintln(stderr, "")
-_, _ = fmt.Fprintln(stderr, "Available services:")
-_, _ = fmt.Fprintln(stderr, "  ca    Certificate Authority service")
-
-return 1
-}
-
-// Route to CA service
-return cryptoutilAppsPkiCa.Ca(args[1:], stdin, stdout, stderr)
+	return cryptoutilTemplateCli.RouteProduct(
+		cryptoutilTemplateCli.ProductConfig{
+			ProductName: "pki",
+			UsageText:   usageText,
+			VersionText: versionText,
+		},
+		args, stdin, stdout, stderr,
+		[]cryptoutilTemplateCli.ServiceEntry{
+			{Name: "ca", Handler: cryptoutilAppsPkiCa.Ca},
+		},
+	)
 }

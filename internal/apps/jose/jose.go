@@ -5,19 +5,15 @@
 package jose
 
 import (
-	"fmt"
 	"io"
 
 	cryptoutilAppsJoseJa "cryptoutil/internal/apps/jose/ja"
+	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
 )
 
 const (
-	helpCommand      = "help"
-	helpFlag         = "--help"
-	helpShortFlag    = "-h"
-	versionCommand   = "version"
-	versionFlag      = "--version"
-	versionShortFlag = "-v"
+	usageText   = "Usage: jose <service> <subcommand> [options]\n\nAvailable services:\n  ja          JWK Authority service\n\nUse \"jose <service> help\" for service-specific help.\nUse \"jose version\" for version information."
+	versionText = "jose product (cryptoutil)"
 )
 
 // Jose implements the jose product command router.
@@ -28,51 +24,15 @@ const (
 // - Product: jose ja server
 // - Product-Service: jose-ja server (via main.go delegation).
 func Jose(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	if len(args) == 0 {
-		printUsage(stderr)
-
-		return 1
-	}
-
-	// Check for help flags.
-	if args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag {
-		printUsage(stderr)
-
-		return 0
-	}
-
-	// Check for version flags.
-	if args[0] == versionCommand || args[0] == versionFlag || args[0] == versionShortFlag {
-		printVersion(stdout)
-
-		return 0
-	}
-
-	// Route to service command.
-	switch args[0] {
-	case "ja":
-		return cryptoutilAppsJoseJa.Ja(args[1:], stdin, stdout, stderr)
-	default:
-		_, _ = fmt.Fprintf(stderr, "Unknown service: %s\n\n", args[0])
-		printUsage(stderr)
-
-		return 1
-	}
-}
-
-// printUsage prints the jose product usage information.
-func printUsage(stderr io.Writer) {
-	_, _ = fmt.Fprintln(stderr, `Usage: jose <service> <subcommand> [options]
-
-Available services:
-  ja          JWK Authority service
-
-Use "jose <service> help" for service-specific help.
-Use "jose version" for version information.`)
-}
-
-// printVersion prints the jose product version information.
-func printVersion(stdout io.Writer) {
-	// Version information should be injected from the calling binary.
-	_, _ = fmt.Fprintln(stdout, "jose product (cryptoutil)")
+	return cryptoutilTemplateCli.RouteProduct(
+		cryptoutilTemplateCli.ProductConfig{
+			ProductName: "jose",
+			UsageText:   usageText,
+			VersionText: versionText,
+		},
+		args, stdin, stdout, stderr,
+		[]cryptoutilTemplateCli.ServiceEntry{
+			{Name: "ja", Handler: cryptoutilAppsJoseJa.Ja},
+		},
+	)
 }
