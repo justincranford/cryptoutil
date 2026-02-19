@@ -41,7 +41,6 @@ func TestValidateAndParseWorkflowFile_BranchPinned_AllBranchNames(t *testing.T) 
 	branchNames := []string{"main", "master", "latest", "develop", "dev", "trunk", "MAIN", "MASTER"}
 
 	for _, branch := range branchNames {
-
 		t.Run(branch, func(t *testing.T) {
 			t.Parallel()
 
