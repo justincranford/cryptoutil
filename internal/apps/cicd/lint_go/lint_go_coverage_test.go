@@ -425,7 +425,6 @@ func TestCheckLeftoverCoverageInDir_RemoveError(t *testing.T) {
 	require.NoError(t, err, "Should not error when no file was successfully removed")
 }
 
-
 // TestCheckCmdMainPatternInDir_WalkError verifies that checkCmdMainPatternInDir
 // returns error when a cmd/ subdirectory is not accessible during the walk.
 func TestCheckCmdMainPatternInDir_WalkError(t *testing.T) {
@@ -490,5 +489,6 @@ func TestFindInsecureSkipVerifyViolationsInDir_WalkDirError(t *testing.T) {
 	require.Error(t, err, "Should error when a subdirectory cannot be accessed")
 	require.Nil(t, violations)
 }
+
 // Suppress unused import warning for fmt if no direct fmt call is made.
 var _ = fmt.Sprintf
