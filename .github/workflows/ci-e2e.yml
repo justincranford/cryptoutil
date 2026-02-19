@@ -93,7 +93,7 @@ jobs:
     - name: Build Docker images
       uses: ./.github/actions/docker-compose-build
 
-    # SERVICE_TEMPLATE_TODO: pki-ca not yet migrated to service-template pattern 
+    # SERVICE_TEMPLATE_TODO: pki-ca not yet migrated to service-template pattern
     # Migration status: cipher-im ✅, jose-ja ✅, sm-kms ✅ | pki-ca ❌, identity-* ❌
     # CA deployment needed for E2E test infrastructure (certificate dependencies)
     - name: Deploy CA services
@@ -170,7 +170,7 @@ jobs:
         #   echo "❌ identity E2E tests failed"
         #   exit 1
         # fi
-        
+
         echo "⚠️  Identity E2E tests SKIPPED - awaiting service-template migration (SERVICE_TEMPLATE_TODO marker)"
 
         END_TIME=$(date +%s)
