@@ -36,6 +36,8 @@ var registeredLinters = []struct {
 	{"crypto-rand", checkCryptoRand},
 	{"insecure-skip-verify", checkInsecureSkipVerify},
 	{"leftover-coverage", checkLeftoverCoverage},
+	{"magic-duplicates", checkMagicDuplicates},
+	{"magic-usage", checkMagicUsage},
 }
 
 // Lint runs all registered Go linters.

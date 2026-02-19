@@ -7,7 +7,6 @@ import (
 	"io"
 
 	cryptoutilLintDeployments "cryptoutil/internal/cmd/cicd/lint_deployments"
-	cryptoutilLintMagic "cryptoutil/internal/cmd/cicd/lint_magic"
 )
 
 // Cicd is the main entry point for the cicd command.
@@ -35,10 +34,6 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilLintDeployments.Main(append([]string{"validate-config"}, args[2:]...))
 	case "validate-all":
 		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, args[2:]...))
-	case "lint-magic":
-		return cryptoutilLintMagic.Main(args[2:])
-	case "validate-magic":
-		return cryptoutilLintMagic.Main(append([]string{"validate-all"}, args[2:]...))
 	case "check-chunk-verification":
 		return CheckChunkVerification(stdout, stderr)
 	case "help", "--help", "-h":
@@ -63,17 +58,9 @@ Commands:
   lint-deployments [dir]    Validate deployment directory structures
                             Default dir: deployments/
 
-  lint-magic [subcommand]   Validate internal/shared/magic package constants.
-                            Subcommands: validate-duplicates, validate-usage, validate-all
-                            Run 'cicd lint-magic help' for details.
-
   validate-all [deployments-dir configs-dir]
                             Run all 8 deployment validators sequentially with aggregated reporting
                             Defaults: deployments/ configs/
-
-  validate-magic [magic-dir [root-dir]]
-                            Run both magic validators (duplicate values + out-of-package usage)
-                            Defaults: internal/shared/magic .
 
   check-chunk-verification  Verify ARCHITECTURE.md chunks propagated to instruction files
 
@@ -84,9 +71,6 @@ Examples:
   cicd lint-deployments /tmp/test-deployments
   cicd validate-all
   cicd validate-all deployments configs
-  cicd lint-magic validate-duplicates
-  cicd lint-magic validate-usage
-  cicd validate-magic
 
 See: docs/ARCHITECTURE-TODO.md for architectural documentation (pending).
 `)

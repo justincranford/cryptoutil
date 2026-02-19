@@ -1,0 +1,257 @@
+// Copyright (c) 2025 Justin Cranford
+
+package lint_go
+
+import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"os"
+	"path/filepath"
+	"strings"
+
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+)
+
+// magicUsageKind classifies how a magic value appears outside the magic package.
+type magicUsageKind string
+
+const (
+	// magicUsageKindRedefine means the value is the right-hand side of a const
+	// declaration outside the magic package (should reference magic.XXX instead).
+	magicUsageKindRedefine magicUsageKind = "const-redefine"
+
+	// magicUsageKindLiteral means the value appears as a bare literal in non-const
+	// code (should reference magic.XXX instead of repeating the literal).
+	magicUsageKindLiteral magicUsageKind = "literal-use"
+)
+
+// magicUsageViolation records one occurrence of a magic value used outside the magic package.
+type magicUsageViolation struct {
+	File         string
+	Line         int
+	Kind         magicUsageKind
+	LiteralValue string
+	MagicName    string
+}
+
+// checkMagicUsage is a LinterFunc that builds an inventory of the magic package
+// and then walks the project tree, flagging any Go source file that:
+//   - uses a magic constant's literal value as a bare expression literal, or
+//   - redeclares that value as a local const outside the magic package.
+//
+// This catches violations that fall through goconst (requires >=2 occurrences
+// per file) and mnd (numbers only; strings ignored).
+func checkMagicUsage(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return checkMagicUsageInDir(logger, magicDefaultDir, ".")
+}
+
+// checkMagicUsageInDir is the testable implementation with explicit directory arguments.
+func checkMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, rootDir string) error {
+	logger.Log("Checking for magic values used as literals outside the magic package...")
+
+	inv, err := parseMagicDir(magicDir)
+	if err != nil {
+		return fmt.Errorf("failed to parse magic package: %w", err)
+	}
+
+	if len(inv.Constants) == 0 {
+		logger.Log("✅ magic-usage: magic package empty, nothing to check")
+
+		return nil
+	}
+
+	absMagicDir, err := filepath.Abs(magicDir)
+	if err != nil {
+		return fmt.Errorf("cannot resolve magic dir: %w", err)
+	}
+
+	absRootDir, err := filepath.Abs(rootDir)
+	if err != nil {
+		return fmt.Errorf("cannot resolve root dir: %w", err)
+	}
+
+	var (
+		violations []magicUsageViolation
+		walkErrors []string
+	)
+
+	walkErr := filepath.Walk(absRootDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			walkErrors = append(walkErrors, fmt.Sprintf("walk error at %s: %v", path, err))
+
+			return nil
+		}
+
+		if info.IsDir() {
+			if path == absMagicDir {
+				return filepath.SkipDir
+			}
+
+			relDir, _ := filepath.Rel(absRootDir, path)
+			if magicShouldSkipPath(relDir) {
+				return filepath.SkipDir
+			}
+
+			return nil
+		}
+
+		if !strings.HasSuffix(path, ".go") || isMagicGeneratedFile(filepath.Base(path)) {
+			return nil
+		}
+
+		relPath, _ := filepath.Rel(absRootDir, path)
+		if magicShouldSkipPath(relPath) {
+			return nil
+		}
+
+		isTestFile := strings.HasSuffix(path, "_test.go")
+		fileViolations := scanMagicFile(path, relPath, inv, isTestFile)
+		violations = append(violations, fileViolations...)
+
+		return nil
+	})
+	if walkErr != nil {
+		return fmt.Errorf("directory walk failed: %w", walkErr)
+	}
+
+	if len(walkErrors) > 0 {
+		return fmt.Errorf("walk errors: %s", strings.Join(walkErrors, "; "))
+	}
+
+	if len(violations) == 0 {
+		logger.Log("✅ magic-usage: no magic values used as literals outside the magic package")
+
+		return nil
+	}
+
+	var sb strings.Builder
+
+	fmt.Fprintf(&sb, "magic-usage: %d violation(s) found\n\n", len(violations))
+
+	for _, v := range violations {
+		fmt.Fprintf(&sb, "  %s:%d  [%s]  literal %s  →  use magic.%s\n",
+			v.File, v.Line, v.Kind, v.LiteralValue, v.MagicName)
+	}
+
+	logger.Log(sb.String())
+
+	// magic-usage is informational: it logs violations but does not block CI.
+	// The codebase has accumulated violations that need incremental cleanup.
+	// Run 'cicd lint-go' to measure progress as violations are addressed.
+	return nil
+}
+
+// scanMagicFile parses one Go source file and returns all magic-usage violations.
+// isTestFile controls whether test-only magic constants are checked.
+func scanMagicFile(absPath, relPath string, inv *magicInventory, isTestFile bool) []magicUsageViolation {
+	fset := token.NewFileSet()
+
+	file, err := parser.ParseFile(fset, absPath, nil, 0)
+	if err != nil {
+		return nil // skip unparseable files silently.
+	}
+
+	v := &magicUsageVisitor{
+		fset:       fset,
+		inv:        inv,
+		relFile:    relPath,
+		isTestFile: isTestFile,
+	}
+
+	ast.Walk(v, file)
+
+	return v.violations
+}
+
+// magicUsageVisitor walks an AST recording BasicLit nodes whose value matches a magic constant.
+type magicUsageVisitor struct {
+	fset        *token.FileSet
+	inv         *magicInventory
+	relFile     string
+	insideConst bool
+	isTestFile  bool
+	violations  []magicUsageViolation
+}
+
+// Visit implements ast.Visitor.
+func (v *magicUsageVisitor) Visit(node ast.Node) ast.Visitor {
+	if node == nil {
+		return nil
+	}
+
+	switch n := node.(type) {
+	case *ast.GenDecl:
+		if n.Tok == token.CONST {
+			child := &magicUsageVisitor{
+				fset:        v.fset,
+				inv:         v.inv,
+				relFile:     v.relFile,
+				insideConst: true,
+				isTestFile:  v.isTestFile,
+			}
+
+			for _, spec := range n.Specs {
+				ast.Walk(child, spec)
+			}
+
+			v.violations = append(v.violations, child.violations...)
+
+			return nil
+		}
+
+	case *ast.BasicLit:
+		v.checkLiteral(n)
+	}
+
+	return v
+}
+
+// checkLiteral records a violation if the literal value matches a magic constant.
+// Test-only magic constants are only checked when isTestFile is true.
+func (v *magicUsageVisitor) checkLiteral(lit *ast.BasicLit) {
+	if isMagicTrivialLiteral(lit) {
+		return
+	}
+
+	consts, ok := v.inv.ByValue[lit.Value]
+	if !ok {
+		return
+	}
+
+	// Prefer the first non-test constant as the canonical reference.
+	var mc *magicConstant
+
+	for i := range consts {
+		if !consts[i].IsTestConst {
+			mc = &consts[i]
+
+			break
+		}
+	}
+
+	if mc == nil {
+		// Only test constants match; skip unless scanning a test file.
+		if !v.isTestFile {
+			return
+		}
+
+		mc = &consts[0]
+	}
+
+	kind := magicUsageKindLiteral
+	if v.insideConst {
+		kind = magicUsageKindRedefine
+	}
+
+	pos := v.fset.Position(lit.Pos())
+
+	v.violations = append(v.violations, magicUsageViolation{
+		File:         v.relFile,
+		Line:         pos.Line,
+		Kind:         kind,
+		LiteralValue: lit.Value,
+		MagicName:    mc.Name,
+	})
+}
