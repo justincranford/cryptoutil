@@ -96,8 +96,17 @@ const (
 // - identity-rp: 8500-8599
 // - identity-spa: 8600-8699.
 const (
+	// IdentityProductName is the product name component of the Identity product.
+	IdentityProductName = "identity"
+
 	// OTLPServiceIdentityAuthz is the OTLP service name for identity-authz.
 	OTLPServiceIdentityAuthz = "identity-authz"
+
+	// IdentityAuthzServiceID is the canonical service identifier for identity-authz.
+	IdentityAuthzServiceID = OTLPServiceIdentityAuthz
+
+	// AuthzServiceName is the service name component of the identity-authz service.
+	AuthzServiceName = "authz"
 
 	// IdentityAuthzServicePort is the default public port for identity-authz service.
 	IdentityAuthzServicePort = uint16(8200)
@@ -105,11 +114,23 @@ const (
 	// OTLPServiceIdentityIDP is the OTLP service name for identity-idp.
 	OTLPServiceIdentityIDP = "identity-idp"
 
+	// IdentityIDPServiceID is the canonical service identifier for identity-idp.
+	IdentityIDPServiceID = OTLPServiceIdentityIDP
+
+	// IDPServiceName is the service name component of the identity-idp service.
+	IDPServiceName = "idp"
+
 	// IdentityIDPServicePort is the default public port for identity-idp service.
 	IdentityIDPServicePort = uint16(8300)
 
 	// OTLPServiceIdentityRS is the OTLP service name for identity-rs.
 	OTLPServiceIdentityRS = "identity-rs"
+
+	// IdentityRSServiceID is the canonical service identifier for identity-rs.
+	IdentityRSServiceID = OTLPServiceIdentityRS
+
+	// RSServiceName is the service name component of the identity-rs service.
+	RSServiceName = "rs"
 
 	// IdentityRSServicePort is the default public port for identity-rs service.
 	IdentityRSServicePort = uint16(8400)
@@ -117,11 +138,23 @@ const (
 	// OTLPServiceIdentityRP is the OTLP service name for identity-rp.
 	OTLPServiceIdentityRP = "identity-rp"
 
+	// IdentityRPServiceID is the canonical service identifier for identity-rp.
+	IdentityRPServiceID = OTLPServiceIdentityRP
+
+	// RPServiceName is the service name component of the identity-rp service.
+	RPServiceName = "rp"
+
 	// IdentityRPServicePort is the default public port for identity-rp service.
 	IdentityRPServicePort = uint16(8500)
 
 	// OTLPServiceIdentitySPA is the OTLP service name for identity-spa.
 	OTLPServiceIdentitySPA = "identity-spa"
+
+	// IdentitySPAServiceID is the canonical service identifier for identity-spa.
+	IdentitySPAServiceID = OTLPServiceIdentitySPA
+
+	// SPAServiceName is the service name component of the identity-spa service.
+	SPAServiceName = "spa"
 
 	// IdentitySPAServicePort is the default public port for identity-spa service.
 	IdentitySPAServicePort = uint16(8600)

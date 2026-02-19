@@ -56,8 +56,9 @@ var (
 	// JWKSCacheTTL is the default cache TTL for JWKS keys.
 	JWKSCacheTTL = JWKSCacheTTLMinutes * time.Minute
 )
+
 // Password policy constants.
 const (
-        // DefaultPasswordMinLengthChars - Default minimum password length in characters (shared baseline).
-        DefaultPasswordMinLengthChars = 8
+	// DefaultPasswordMinLengthChars - Default minimum password length in characters (shared baseline).
+	DefaultPasswordMinLengthChars = 8
 )

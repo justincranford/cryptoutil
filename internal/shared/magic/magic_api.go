@@ -40,12 +40,12 @@ var StringProviderInternal = "Internal"
 
 // HTTP authorization constants.
 const (
-        // HTTPAuthorizationBearerPrefix - HTTP Authorization Bearer scheme prefix (with trailing space).
-        HTTPAuthorizationBearerPrefix = "Bearer "
+	// HTTPAuthorizationBearerPrefix - HTTP Authorization Bearer scheme prefix (with trailing space).
+	HTTPAuthorizationBearerPrefix = "Bearer "
 
-        // DefaultAPIListLimit - Default pagination limit for list API endpoints.
-        DefaultAPIListLimit = 100
+	// DefaultAPIListLimit - Default pagination limit for list API endpoints.
+	DefaultAPIListLimit = 100
 
-        // AuthorizationCheckTimeout - Timeout for authorization service checks from relying party.
-        AuthorizationCheckTimeout = 5 * time.Second
+	// AuthorizationCheckTimeout - Timeout for authorization service checks from relying party.
+	AuthorizationCheckTimeout = 5 * time.Second
 )

@@ -47,7 +47,7 @@ func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
 	mux.HandleFunc("/oidc/v1/userinfo", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate OIDC UserInfo endpoint
 		auth := r.Header.Get("Authorization")
-				if !strings.HasPrefix(auth, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
+		if !strings.HasPrefix(auth, cryptoutilSharedMagic.HTTPAuthorizationBearerPrefix) {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 
 			return

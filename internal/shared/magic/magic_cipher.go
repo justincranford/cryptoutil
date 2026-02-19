@@ -11,6 +11,15 @@ const (
 	// OTLPServiceCipherIM is the OTLP service name for cipher-im telemetry.
 	OTLPServiceCipherIM = "cipher-im"
 
+	// CipherIMServiceID is the canonical service identifier for cipher-im.
+	CipherIMServiceID = OTLPServiceCipherIM
+
+	// CipherProductName is the product name component of the cipher product.
+	CipherProductName = "cipher"
+
+	// CipherIMServiceName is the service name component of the cipher-im service.
+	CipherIMServiceName = "im"
+
 	// CipherServicePort is the default public HTTPS server port for cipher-im.
 	CipherServicePort = 8700
 

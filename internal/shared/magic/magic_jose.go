@@ -8,6 +8,15 @@ const (
 	// OTLPServiceJoseJA is the OTLP service name for jose-ja telemetry.
 	OTLPServiceJoseJA = "jose-ja"
 
+	// JoseJAServiceID is the canonical service identifier for jose-ja.
+	JoseJAServiceID = OTLPServiceJoseJA
+
+	// JoseProductName is the product name component of the JOSE product.
+	JoseProductName = "jose"
+
+	// JoseJAServiceName is the service name component of the jose-ja service.
+	JoseJAServiceName = "ja"
+
 	// JoseJAServicePort is the default public API port for jose-ja service.
 	JoseJAServicePort = 8800
 

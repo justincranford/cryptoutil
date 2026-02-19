@@ -151,10 +151,10 @@ func (s *AdminServer) handleShutdown(c *fiber.Ctx) error {
 	// Trigger shutdown in background to avoid blocking response.
 	go func() {
 		// Wait for response to be sent.
-			time.Sleep(cryptoutilSharedMagic.DefaultAdminServerShutdownDelay)
+		time.Sleep(cryptoutilSharedMagic.DefaultAdminServerShutdownDelay)
 
-			// Shutdown server gracefully.
-			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
+		// Shutdown server gracefully.
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultServerShutdownTimeout)
 		defer cancel()
 
 		_ = s.Shutdown(ctx)

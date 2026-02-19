@@ -60,14 +60,14 @@ func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, de
 	// Call health endpoint.
 	statusCode, body, err := HTTPGet(url, cacertPath)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "\u274c Health check failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Health check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		_, _ = fmt.Fprintf(stdout, "\u2705 Service is healthy (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Service is healthy (HTTP %d)\n", statusCode)
 
 		if body != "" {
 			_, _ = fmt.Fprintln(stdout, body)
@@ -76,7 +76,7 @@ func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, de
 		return 0
 	}
 
-	_, _ = fmt.Fprintf(stderr, "\u274c Service is unhealthy (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Service is unhealthy (HTTP %d)\n", statusCode)
 
 	if body != "" {
 		_, _ = fmt.Fprintln(stderr, body)
@@ -129,14 +129,14 @@ func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int
 	// Call livez endpoint.
 	statusCode, body, err := HTTPGet(url, cacertPath)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "\u274c Liveness check failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Liveness check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		_, _ = fmt.Fprintf(stdout, "\u2705 Service is alive (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Service is alive (HTTP %d)\n", statusCode)
 
 		if body != "" {
 			_, _ = fmt.Fprintln(stdout, body)
@@ -145,7 +145,7 @@ func LivezCommand(args []string, stdout, stderr io.Writer, usageText string) int
 		return 0
 	}
 
-	_, _ = fmt.Fprintf(stderr, "\u274c Service is not alive (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Service is not alive (HTTP %d)\n", statusCode)
 
 	if body != "" {
 		_, _ = fmt.Fprintln(stderr, body)
@@ -198,14 +198,14 @@ func ReadyzCommand(args []string, stdout, stderr io.Writer, usageText string) in
 	// Call readyz endpoint.
 	statusCode, body, err := HTTPGet(url, cacertPath)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "\u274c Readiness check failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Readiness check failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK {
-		_, _ = fmt.Fprintf(stdout, "\u2705 Service is ready (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Service is ready (HTTP %d)\n", statusCode)
 
 		if body != "" {
 			_, _ = fmt.Fprintln(stdout, body)
@@ -214,7 +214,7 @@ func ReadyzCommand(args []string, stdout, stderr io.Writer, usageText string) in
 		return 0
 	}
 
-	_, _ = fmt.Fprintf(stderr, "\u274c Service is not ready (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Service is not ready (HTTP %d)\n", statusCode)
 
 	if body != "" {
 		_, _ = fmt.Fprintln(stderr, body)
@@ -267,14 +267,14 @@ func ShutdownCommand(args []string, stdout, stderr io.Writer, usageText string) 
 	// Call shutdown endpoint.
 	statusCode, body, err := HTTPPost(url, cacertPath)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "\u274c Shutdown request failed: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Shutdown request failed: %v\n", err)
 
 		return 1
 	}
 
 	// Display results.
 	if statusCode == http.StatusOK || statusCode == http.StatusAccepted {
-		_, _ = fmt.Fprintf(stdout, "\u2705 Shutdown initiated (HTTP %d)\n", statusCode)
+		_, _ = fmt.Fprintf(stdout, "✅ Shutdown initiated (HTTP %d)\n", statusCode)
 
 		if body != "" {
 			_, _ = fmt.Fprintln(stdout, body)
@@ -283,7 +283,7 @@ func ShutdownCommand(args []string, stdout, stderr io.Writer, usageText string) 
 		return 0
 	}
 
-	_, _ = fmt.Fprintf(stderr, "\u274c Shutdown request failed (HTTP %d)\n", statusCode)
+	_, _ = fmt.Fprintf(stderr, "❌ Shutdown request failed (HTTP %d)\n", statusCode)
 
 	if body != "" {
 		_, _ = fmt.Fprintln(stderr, body)

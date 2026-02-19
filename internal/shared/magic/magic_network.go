@@ -288,20 +288,21 @@ const (
 	// ServerStartupWait - Time to wait for server startup in tests.
 	ServerStartupWait = 200 * time.Millisecond
 )
+
 // Server timeout and shutdown constants.
 const (
-        // MinPortNumber - Minimum valid TCP/UDP port number.
-        MinPortNumber = 1
+	// MinPortNumber - Minimum valid TCP/UDP port number.
+	MinPortNumber = 1
 
-        // DefaultHTTPServerTimeoutSeconds - Default Fiber HTTP server read/write/idle timeout in seconds.
-        DefaultHTTPServerTimeoutSeconds = 30
+	// DefaultHTTPServerTimeoutSeconds - Default Fiber HTTP server read/write/idle timeout in seconds.
+	DefaultHTTPServerTimeoutSeconds = 30
 
-        // DefaultServerShutdownTimeout - Default graceful server shutdown timeout duration.
-        DefaultServerShutdownTimeout = 5 * time.Second
+	// DefaultServerShutdownTimeout - Default graceful server shutdown timeout duration.
+	DefaultServerShutdownTimeout = 5 * time.Second
 
-        // DefaultAdminServerShutdownDelay - Default delay before admin server initiates connection drain.
-        DefaultAdminServerShutdownDelay = 100 * time.Millisecond
+	// DefaultAdminServerShutdownDelay - Default delay before admin server initiates connection drain.
+	DefaultAdminServerShutdownDelay = 100 * time.Millisecond
 
-        // DefaultIdentityServerShutdownDelay - Default delay before identity service admin server initiates connection drain.
-        DefaultIdentityServerShutdownDelay = 200 * time.Millisecond
+	// DefaultIdentityServerShutdownDelay - Default delay before identity service admin server initiates connection drain.
+	DefaultIdentityServerShutdownDelay = 200 * time.Millisecond
 )

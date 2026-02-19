@@ -84,8 +84,6 @@ type ListResponse struct {
 	Total int64 `json:"total"`
 }
 
-
-
 // HandleCreateElasticJWK creates a new elastic JWK container.
 // CRITICAL: tenant_id for data scoping only - realms are authn-only, NOT data scope.
 func (h *JWKHandler) HandleCreateElasticJWK() fiber.Handler {
@@ -232,7 +230,7 @@ func (h *JWKHandler) HandleListElasticJWKs() fiber.Handler {
 
 		// Parse pagination parameters.
 		offset := c.QueryInt("offset", 0)
-limit := c.QueryInt("limit", cryptoutilSharedMagic.DefaultAPIListLimit)
+		limit := c.QueryInt("limit", cryptoutilSharedMagic.DefaultAPIListLimit)
 
 		ctx := c.Context()
 

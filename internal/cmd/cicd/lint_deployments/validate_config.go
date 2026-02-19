@@ -112,9 +112,9 @@ func validatePorts(config map[string]any, result *ConfigValidationResult) {
 			continue
 		}
 
-			if port < cryptoutilSharedMagic.MinPortNumber || port > int(cryptoutilSharedMagic.MaxPortNumber) {
-				result.Errors = append(result.Errors,
-					fmt.Sprintf("'%s' must be between %d and %d, got %d", key, cryptoutilSharedMagic.MinPortNumber, int(cryptoutilSharedMagic.MaxPortNumber), port))
+		if port < cryptoutilSharedMagic.MinPortNumber || port > int(cryptoutilSharedMagic.MaxPortNumber) {
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("'%s' must be between %d and %d, got %d", key, cryptoutilSharedMagic.MinPortNumber, int(cryptoutilSharedMagic.MaxPortNumber), port))
 			result.Valid = false
 		}
 	}
@@ -139,9 +139,9 @@ func validateProtocols(config map[string]any, result *ConfigValidationResult) {
 			continue
 		}
 
-			if strVal != cryptoutilSharedMagic.ProtocolHTTPS {
-				result.Errors = append(result.Errors,
-					fmt.Sprintf("'%s' must be %q, got %q", key, cryptoutilSharedMagic.ProtocolHTTPS, strVal))
+		if strVal != cryptoutilSharedMagic.ProtocolHTTPS {
+			result.Errors = append(result.Errors,
+				fmt.Sprintf("'%s' must be %q, got %q", key, cryptoutilSharedMagic.ProtocolHTTPS, strVal))
 			result.Valid = false
 		}
 	}

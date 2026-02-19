@@ -42,7 +42,7 @@ func (h *JWKHandler) HandleListMaterialJWKs() fiber.Handler {
 
 		// Parse pagination parameters.
 		offset := c.QueryInt("offset", 0)
-limit := c.QueryInt("limit", cryptoutilSharedMagic.DefaultAPIListLimit)
+		limit := c.QueryInt("limit", cryptoutilSharedMagic.DefaultAPIListLimit)
 
 		ctx := c.Context()
 

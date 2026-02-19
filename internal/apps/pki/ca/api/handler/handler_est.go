@@ -151,7 +151,7 @@ func (h *Handler) generateKeyPairFromCSR(csr *x509.CertificateRequest) (any, any
 	switch csr.PublicKeyAlgorithm {
 	case x509.RSA:
 		// Default to RSA-2048 for server-generated keys (FIPS 140-3 approved).
-			privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize2048)
+		privateKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSAKeySize2048)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to generate RSA key: %w", err)
 		}

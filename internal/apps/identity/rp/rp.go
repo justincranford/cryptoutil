@@ -22,20 +22,15 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const (
-	helpCommand   = "help"
-	helpFlag      = "--help"
-	helpShortFlag = "-h"
-)
 
 // Rp implements the Relying Party service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Rp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
 		cryptoutilTemplateCli.ServiceConfig{
-			ServiceID:         "identity-rp",
-			ProductName:       "identity",
-			ServiceName:       "rp",
+			ServiceID:         cryptoutilSharedMagic.IdentityRPServiceID,
+			ProductName:       cryptoutilSharedMagic.IdentityProductName,
+			ServiceName:       cryptoutilSharedMagic.RPServiceName,
 			DefaultPublicPort: cryptoutilSharedMagic.IdentityRPServicePort,
 			UsageMain:         RPUsageMain,
 			UsageServer:       RPUsageServer,
@@ -55,7 +50,7 @@ func Rp(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 
 // rpServerStart implements the server subcommand.
 func rpServerStart(args []string, stdout, stderr io.Writer) int {
-	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, RPUsageServer)
 
 		return 0
@@ -69,14 +64,14 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 
 	cfg, err := cryptoutilAppsIdentityRpServerConfig.Parse(argsWithSubcommand, true)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "\u274c Failed to parse configuration: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 
 		return 1
 	}
 
 	srv, err := cryptoutilAppsIdentityRpServer.NewFromConfig(ctx, cfg)
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "\u274c Failed to create server: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "❌ Failed to create server: %v\n", err)
 
 		return 1
 	}
@@ -89,7 +84,7 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 	errChan := make(chan error, 1)
 
 	go func() {
-		_, _ = fmt.Fprintf(stdout, "\U0001f680 Starting identity-rp service...\n")
+		_, _ = fmt.Fprintf(stdout, "🚀 Starting identity-rp service...\n")
 		_, _ = fmt.Fprintf(stdout, "   Public Server: https://%s:%d\n", cfg.BindPublicAddress, cfg.BindPublicPort)
 		_, _ = fmt.Fprintf(stdout, "   Admin Server:  https://%s:%d\n", cfg.BindPrivateAddress, cfg.BindPrivatePort)
 
@@ -103,15 +98,15 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 	select {
 	case err := <-errChan:
 		if err != nil {
-			_, _ = fmt.Fprintf(stderr, "\u274c Server error: %v\n", err)
+			_, _ = fmt.Fprintf(stderr, "❌ Server error: %v\n", err)
 
 			return 1
 		}
 	case sig := <-sigChan:
-		fmt.Printf("\n\u23f9\ufe0f  Received signal %v, shutting down gracefully...\n", sig)
+		fmt.Printf("\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
 	}
 
-	fmt.Println("\u2705 identity-rp service stopped")
+	fmt.Println("✅ identity-rp service stopped")
 
 	return 0
 }
@@ -119,13 +114,13 @@ func rpServerStart(args []string, stdout, stderr io.Writer) int {
 // rpClient implements the client subcommand.
 // CLI wrapper for client operations.
 func rpClient(args []string, _, stderr io.Writer) int {
-	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, RPUsageClient)
 
 		return 0
 	}
 
-	_, _ = fmt.Fprintln(stderr, "\u274c Client subcommand not yet implemented")
+	_, _ = fmt.Fprintln(stderr, "❌ Client subcommand not yet implemented")
 	_, _ = fmt.Fprintln(stderr, "   This will provide CLI tools for interacting with the Relying Party service")
 
 	return 1
@@ -134,13 +129,13 @@ func rpClient(args []string, _, stderr io.Writer) int {
 // rpServiceInit implements the init subcommand.
 // CLI wrapper for database and configuration initialization.
 func rpServiceInit(args []string, _, stderr io.Writer) int {
-	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
+	if cryptoutilTemplateCli.IsHelpRequest(args) {
 		_, _ = fmt.Fprintln(stderr, RPUsageInit)
 
 		return 0
 	}
 
-	_, _ = fmt.Fprintln(stderr, "\u274c Init subcommand not yet implemented")
+	_, _ = fmt.Fprintln(stderr, "❌ Init subcommand not yet implemented")
 	_, _ = fmt.Fprintln(stderr, "   This will initialize database schema and configuration")
 
 	return 1

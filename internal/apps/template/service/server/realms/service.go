@@ -93,8 +93,8 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 		return nil, fmt.Errorf("password cannot be empty")
 	}
 
-		if len(password) < cryptoutilSharedMagic.DefaultPasswordMinLengthChars {
-			return nil, fmt.Errorf("password must be at least %d characters", cryptoutilSharedMagic.DefaultPasswordMinLengthChars)
+	if len(password) < cryptoutilSharedMagic.DefaultPasswordMinLengthChars {
+		return nil, fmt.Errorf("password must be at least %d characters", cryptoutilSharedMagic.DefaultPasswordMinLengthChars)
 	}
 
 	// Hash password with PBKDF2-HMAC-SHA256 (LowEntropyRandom, FIPS-approved).
