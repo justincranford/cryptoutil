@@ -5,6 +5,7 @@ package format_go
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -64,6 +65,34 @@ func TestFormat_ErrorPath(t *testing.T) {
 	// Format may return error due to parse failure or succeed if file filtered out.
 	// We just verify it doesn't panic.
 	_ = err
+}
+
+func TestFormat_FormatterWalkError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	if runtime.GOOS == "windows" {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	// Create chmod 0000 subdir - copyloopvar.Fix walks rootDir="."
+	// and the walk callback receives OS error, causing Fix to return error,
+	// which covers lines 54-56 (registeredFormatters error append path).
+	require.NoError(t, os.MkdirAll("locked", 0o700))
+	require.NoError(t, os.Chmod("locked", 0o000))
+
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(tmpDir, "locked"), 0o700) })
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Format(logger, map[string][]string{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "completed with modifications")
 }
 
 const testGoContentInvalid = "package main\n\nfunc main() {\n\tthis is not valid go code\n}\n"

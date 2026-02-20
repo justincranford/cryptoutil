@@ -225,3 +225,83 @@ func genFunc() string { return "https" }
 	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	require.NoError(t, err)
 }
+
+func TestCheck_UsesMagicDefaultDir(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check() calls CheckMagicUsageInDir with MagicDefaultDir="internal/shared/magic".
+	// When run from the package test directory, that relative path does not exist,
+	// so Check() returns an error. This exercises the Check() code path.
+	err := Check(logger)
+	require.Error(t, err, "Check() should fail when MagicDefaultDir does not exist relative to CWD")
+	require.Contains(t, err.Error(), "failed to parse magic package")
+}
+
+func TestCheckMagicUsageInDir_MagicDirInsideRoot(t *testing.T) {
+	// Non-parallel: uses controlled directory structure.
+	rootDir := t.TempDir()
+
+	// Place magicDir INSIDE rootDir so the Walk visits and skips it.
+	magicDir := filepath.Join(rootDir, "magic")
+	require.NoError(t, os.MkdirAll(magicDir, 0o700))
+	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+
+	// Regular go file outside the magic dir.
+	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "app.go"), []byte("package app\n\nfunc f() { _ = 30 }\n"), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	// Should succeed - the magicDir is skipped by filepath.SkipDir.
+	require.NoError(t, err)
+}
+
+func TestCheckMagicUsageInDir_VendorDirSkipped(t *testing.T) {
+	t.Parallel()
+
+	magicDir, rootDir := setupMagicUsageDirs(t)
+	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+
+	// Create vendor subdirectory - MagicShouldSkipPath returns true for "vendor".
+	vendorDir := filepath.Join(rootDir, "vendor", "somepkg")
+	require.NoError(t, os.MkdirAll(vendorDir, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(vendorDir, "pkg.go"), []byte("package somepkg\n\nconst x = 30\n"), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	require.NoError(t, err)
+}
+
+func TestCheckMagicUsageInDir_WalkError(t *testing.T) {
+	// Non-parallel: modifies directory permissions.
+	magicDir, rootDir := setupMagicUsageDirs(t)
+	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+
+	// Create an unreadable subdirectory to trigger walk error accumulation.
+	badSubDir := filepath.Join(rootDir, "locked")
+	require.NoError(t, os.MkdirAll(badSubDir, 0o700))
+	require.NoError(t, os.Chmod(badSubDir, 0o000))
+	t.Cleanup(func() { _ = os.Chmod(badSubDir, 0o700) })
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	// Walk errors are accumulated and returned as an error.
+	require.Error(t, err, "Walk errors should be returned")
+	require.Contains(t, err.Error(), "walk errors")
+}
+
+func TestCheckMagicUsageInDir_UnparseableGoFile(t *testing.T) {
+	t.Parallel()
+
+	magicDir, rootDir := setupMagicUsageDirs(t)
+	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+
+	// Create a .go file with syntax errors - scanMagicFile returns nil silently.
+	require.NoError(t, os.WriteFile(filepath.Join(rootDir, "broken.go"), []byte("package INVALID {{{"), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
+	// The unparseable file is silently skipped.
+	require.NoError(t, err)
+}

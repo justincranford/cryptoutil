@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	
+
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -215,6 +215,73 @@ func TestCheckHealthPathsInCompose_CorrectPathStandardPort(t *testing.T) {
       interval: 30s
 `), 0o600)
 	require.NoError(t, err)
+
+	violations := CheckHealthPathsInCompose(composeFile)
+	require.Empty(t, violations)
+}
+
+func TestCheck_WithYamlFiles(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// Non-compose yml file (should be skipped, not a compose file).
+	configFile := filepath.Join(tmpDir, "config.yml")
+	require.NoError(t, os.WriteFile(configFile, []byte("key: value\n"), 0o600))
+
+	// Valid compose file with correct health path.
+	composeFile := filepath.Join(tmpDir, "compose.yml")
+	composeContent := `services:
+  myapp:
+    image: alpine:3.19
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+`
+	require.NoError(t, os.WriteFile(composeFile, []byte(composeContent), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"yml": {configFile, composeFile},
+	}
+
+	err := Check(logger, filesByExtension)
+	require.NoError(t, err)
+}
+
+func TestCheck_WithOtelRelatedFiles(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+
+	// Otel-related dockerfile (should be skipped).
+	otelDockerfile := filepath.Join(tmpDir, "otel-collector.dockerfile")
+	require.NoError(t, os.WriteFile(otelDockerfile, []byte("FROM alpine:3.19\nHEALTHCHECK ...\n"), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"dockerfile": {otelDockerfile},
+	}
+
+	err := Check(logger, filesByExtension)
+	require.NoError(t, err, "Otel-related files should be skipped")
+}
+
+func TestCheckHealthPathsInCompose_HealthcheckSectionExit(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	composeFile := filepath.Join(tmpDir, "compose.yml")
+
+	// Compose file where healthcheck section is followed by a non-indented top-level key.
+	// This triggers the inHealthcheck = false branch.
+	content := `services:
+  myapp:
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
+volumes:
+  data:
+`
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
 
 	violations := CheckHealthPathsInCompose(composeFile)
 	require.Empty(t, violations)

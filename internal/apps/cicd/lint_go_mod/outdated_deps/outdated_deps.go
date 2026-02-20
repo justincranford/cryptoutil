@@ -74,20 +74,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 		return fmt.Errorf("failed to read go.mod for direct dependencies: %w", err)
 	}
 
-	directDeps, err := getDirectDependencies(goModContent)
-	if err != nil {
-		logger.Log(fmt.Sprintf("Error parsing direct dependencies: %v", err))
-
-		return fmt.Errorf("failed to parse direct dependencies: %w", err)
-	}
+	directDeps := getDirectDependencies(goModContent)
 
 	// Use the extracted function for the core logic.
-	outdated, err := checkDependencyUpdates(string(output), directDeps)
-	if err != nil {
-		logger.Log(fmt.Sprintf("Error checking dependency updates: %v", err))
-
-		return fmt.Errorf("failed to check dependency updates: %w", err)
-	}
+	outdated := checkDependencyUpdates(string(output), directDeps)
 
 	// Save results to cache.
 	cache := cryptoutilSharedMagic.DepCache{
@@ -123,10 +113,10 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 // checkDependencyUpdates analyzes dependency update information and returns outdated dependencies.
 // It takes the go list output and direct dependencies map as inputs to enable testing with mock data.
 // Returns a slice of outdated dependency strings and an error if the check fails.
-func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) ([]string, error) {
+func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) []string {
 	// Optimize: avoid trim and split overhead for empty output.
 	if goListOutput == "" {
-		return []string{}, nil
+		return []string{}
 	}
 
 	lines := strings.Split(goListOutput, "\n")
@@ -155,7 +145,7 @@ func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) ([]
 
 	// If no outdated dependencies found, return early.
 	if len(allOutdated) == 0 {
-		return []string{}, nil
+		return []string{}
 	}
 
 	// For direct mode, only check dependencies that are explicitly listed in go.mod.
@@ -173,11 +163,11 @@ func checkDependencyUpdates(goListOutput string, directDeps map[string]bool) ([]
 		}
 	}
 
-	return outdated, nil
+	return outdated
 }
 
 // getDirectDependencies parses go.mod content and returns a map of direct dependencies.
-func getDirectDependencies(goModContent []byte) (map[string]bool, error) {
+func getDirectDependencies(goModContent []byte) map[string]bool {
 	directDeps := make(map[string]bool)
 
 	lines := strings.Split(string(goModContent), "\n")
@@ -226,7 +216,7 @@ func getDirectDependencies(goModContent []byte) (map[string]bool, error) {
 		}
 	}
 
-	return directDeps, nil
+	return directDeps
 }
 
 // checkAndUseDepCache checks if cached results can be used.

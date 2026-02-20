@@ -3,11 +3,12 @@
 package cgo_free_sqlite
 
 import (
-	"testing"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
@@ -395,3 +396,53 @@ func TestCheckCGOFreeSQLite_MissingRequired(t *testing.T) {
 	require.Contains(t, err.Error(), "CGO validation failed")
 }
 
+func TestCheck_NoGoMod(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Without go.mod in the current directory, CheckGoModForCGO("go.mod") fails.
+	// This covers the "failed to check go.mod" error branch in Check().
+	err = Check(logger)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to check go.mod")
+}
+
+func TestCheck_WalkError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	if runtime.GOOS == osWindows {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	// Write go.mod with required module so CheckGoModForCGO passes.
+	goModContent := "module testmod\n\ngo 1.21\n\nrequire (\n\tmodernc.org/sqlite v1.30.0\n)\n"
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+
+	// Create chmod 0000 subdir - filepath.Walk callback receives OS error when
+	// Walk tries to ReadDir the locked directory, covering the walk callback
+	// error path (lines 121-123) and the Check() error path (lines 38-40).
+	require.NoError(t, os.MkdirAll("locked", 0o700))
+	require.NoError(t, os.Chmod("locked", 0o000))
+
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(tmpDir, "locked"), 0o700) })
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Check(logger)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to check Go files")
+}

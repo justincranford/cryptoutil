@@ -267,3 +267,42 @@ secrets:
 	require.NoError(t, err)
 	require.Len(t, violations, 1, "should detect 1 inline credential (POSTGRES_USER)")
 }
+
+func TestCheck_FailedToOpenComposeFile(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Pass a compose file path that doesn't exist → CheckComposeFileSecrets fails
+	// → triggers the "Warning: failed to check" log in Check(), continues execution.
+	filesByExtension := map[string][]string{
+		"yml": {"/nonexistent/path/compose.yml"},
+	}
+
+	err := Check(logger, filesByExtension)
+	require.NoError(t, err, "Check() should succeed (with warning) when a compose file cannot be opened")
+}
+
+func TestCheckComposeFileSecrets_EnvironmentSectionExit(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	composeFile := filepath.Join(tmpDir, "compose.yml")
+
+	// Compose file where environment section is followed by a top-level key.
+	// This triggers the inEnvironmentSection = false branch when seeing networks:.
+	content := `services:
+  myapp:
+    image: alpine:3.19
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/pg_pass.secret
+networks:
+  default:
+    driver: bridge
+`
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+
+	violations, err := CheckComposeFileSecrets(composeFile)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}

@@ -128,3 +128,16 @@ const AlgorithmRSA = "RSA"
 	// magic-duplicates is informational: violations are logged but do not return an error.
 	require.NoError(t, err)
 }
+
+func TestCheck_UsesMagicDefaultDir(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check() calls CheckMagicDuplicatesInDir with MagicDefaultDir="internal/shared/magic".
+	// When run from the package test directory, that relative path does not exist,
+	// so Check() returns an error. This exercises the Check() code path.
+	err := Check(logger)
+	require.Error(t, err, "Check() should fail when MagicDefaultDir does not exist relative to CWD")
+	require.Contains(t, err.Error(), "failed to parse magic package")
+}

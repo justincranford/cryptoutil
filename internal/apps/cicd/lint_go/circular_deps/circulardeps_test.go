@@ -430,3 +430,34 @@ func TestSaveCircularDepCache_WriteFileError(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to write cache file")
 }
 
+func TestCheck_SaveCacheError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tempDir := t.TempDir()
+	require.NoError(t, os.Chdir(tempDir))
+
+	// Create go.mod so os.Stat("go.mod") succeeds.
+	goModContent := "module testmod\n\ngo 1.21\n"
+	require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+
+	// Create a valid package so go list succeeds.
+	require.NoError(t, os.MkdirAll("internal/pkg", 0o755))
+
+	pkgContent := "package pkg\n\nfunc Hello() string { return \"hello\" }\n"
+	require.NoError(t, os.WriteFile("internal/pkg/hello.go", []byte(pkgContent), 0o600))
+
+	// Create .cicd as a regular FILE (not dir) to make SaveCircularDepCache's
+	// os.MkdirAll fail when trying to create the cache directory.
+	require.NoError(t, os.WriteFile(".cicd", []byte("blocker"), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check should succeed (no circular deps) but log a warning about failed cache save.
+	// The SaveCircularDepCache error is only logged, not returned from Check().
+	err = Check(logger)
+	require.NoError(t, err)
+}

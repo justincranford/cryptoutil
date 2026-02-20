@@ -3,12 +3,12 @@
 package no_unaliased_cryptoutil_imports
 
 import (
-	"testing"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
@@ -17,8 +17,8 @@ import (
 
 // Test constants for repeated string literals.
 const (
-	osWindows       = "windows"
-	testCleanGoFile = "clean.go"
+	osWindows        = "windows"
+	testCleanGoFile  = "clean.go"
 	testCleanContent = "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
 )
 
@@ -242,4 +242,56 @@ func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
 	// Test - should get error from reading file.
 	_, err = FindUnaliasedCryptoutilImports()
 	require.Error(t, err)
+}
+
+func TestFindUnaliasedCryptoutilImports_VendorDirSkipped(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	// Create a vendor directory with a Go file that has unaliased cryptoutil imports.
+	vendorDir := filepath.Join(tmpDir, "vendor")
+	require.NoError(t, os.MkdirAll(vendorDir, 0o755))
+
+	vendorFile := filepath.Join(vendorDir, "pkg.go")
+	require.NoError(t, os.WriteFile(vendorFile, []byte("package vendor\nimport \"cryptoutil/internal/apps/foo\"\n"), 0o600))
+
+	// FindUnaliasedCryptoutilImports should skip vendor directory.
+	violations, findErr := FindUnaliasedCryptoutilImports()
+	require.NoError(t, findErr)
+	require.Empty(t, violations, "vendor directory should be skipped")
+}
+
+func TestCheck_WalkError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	if runtime.GOOS == osWindows {
+		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	// Create an unreadable file to cause a walk error.
+	require.NoError(t, os.WriteFile("bad.go", []byte("package main\n"), 0o600))
+	require.NoError(t, os.Chmod("bad.go", 0o000))
+
+	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "bad.go"), 0o600) }()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check() calls FindUnaliasedCryptoutilImports() which fails on unreadable file.
+	// This covers the "failed to check cryptoutil imports" error branch in Check().
+	err = Check(logger)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to check cryptoutil imports")
 }

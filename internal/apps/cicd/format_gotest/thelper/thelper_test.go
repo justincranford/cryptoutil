@@ -73,7 +73,7 @@ func TestFix_AddsTHelperToSetupFunc(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Write test file with setup helper missing t.Helper().
-	content := "package foo\n\nimport \"testing\"\n\nfunc setupSomething(t *testing.T) {\n\tt.Log(\"setup\")\n}\n"
+	content := testContentSetupMissingHelper
 	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), 0o600)
 	require.NoError(t, err)
 
@@ -267,3 +267,119 @@ func TestGetTestingParam_Extraction(t *testing.T) {
 		})
 	}
 }
+
+func TestHasTHelperCall_NonCallExprStmt(t *testing.T) {
+	t.Parallel()
+
+	// ExprStmt where X is not a *ast.CallExpr (e.g., a BasicLit expression).
+	// This covers the "continue" branch when exprStmt.X.(*ast.CallExpr) fails.
+	body := &ast.BlockStmt{
+		List: []ast.Stmt{
+			&ast.ExprStmt{X: &ast.BasicLit{Kind: 9, Value: "42"}},
+		},
+	}
+	funcDecl := &ast.FuncDecl{Body: body}
+	result := hasTHelperCall(funcDecl)
+	require.False(t, result)
+}
+
+func TestHasTHelperCall_NonSelectorCallExpr(t *testing.T) {
+	t.Parallel()
+
+	// ExprStmt where X is a CallExpr but Fun is not a *ast.SelectorExpr (it's an Ident).
+	// This covers the "continue" branch when callExpr.Fun.(*ast.SelectorExpr) fails.
+	body := &ast.BlockStmt{
+		List: []ast.Stmt{
+			&ast.ExprStmt{X: &ast.CallExpr{Fun: &ast.Ident{Name: "foo"}}},
+		},
+	}
+	funcDecl := &ast.FuncDecl{Body: body}
+	result := hasTHelperCall(funcDecl)
+	require.False(t, result)
+}
+
+func TestGetTestingParam_NilParams(t *testing.T) {
+	t.Parallel()
+
+	// FuncDecl with Type.Params == nil → getTestingParam returns "".
+	funcDecl := &ast.FuncDecl{
+		Type: &ast.FuncType{Params: nil},
+	}
+	result := getTestingParam(funcDecl)
+	require.Empty(t, result)
+}
+
+func TestGetTestingParam_StarExprNotSelector(t *testing.T) {
+	t.Parallel()
+
+	// Field type is *int (StarExpr but X is not SelectorExpr).
+	// This covers the "continue" when starExpr.X.(*ast.SelectorExpr) fails.
+	content := "package foo\nfunc setupDB(x *int) {}\n"
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "setup.go")
+	require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filePath, nil, 0)
+	require.NoError(t, err)
+
+	for _, decl := range node.Decls {
+		if funcDecl, ok := decl.(*ast.FuncDecl); ok {
+			result := getTestingParam(funcDecl)
+			require.Empty(t, result, "*int is not a testing type")
+
+			break
+		}
+	}
+}
+
+func TestGetTestingParam_SelectorNotTesting(t *testing.T) {
+	t.Parallel()
+
+	// Field type is *myPkg.MyType (SelectorExpr but X.Name is not "testing").
+	// This covers the "continue" when ident.Name != "testing".
+	content := "package foo\nimport \"myPkg\"\nfunc setupDB(x *myPkg.MyType) {}\n"
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "setup.go")
+	require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filePath, nil, 0)
+	require.NoError(t, err)
+
+	for _, decl := range node.Decls {
+		if funcDecl, ok := decl.(*ast.FuncDecl); ok {
+			result := getTestingParam(funcDecl)
+			require.Empty(t, result, "*myPkg.MyType is not a testing type")
+
+			break
+		}
+	}
+}
+
+func TestFix_ReadOnlyFile(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("Skipping read-only file test in short mode")
+	}
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	tmpDir := t.TempDir()
+
+	// Write a test file with helper function missing t.Helper().
+	testFile := filepath.Join(tmpDir, "setup_test.go")
+	content := testContentSetupMissingHelper
+	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
+
+	// Make the file read-only so that os.Create() fails when trying to write back.
+	require.NoError(t, os.Chmod(testFile, 0o444))
+
+	t.Cleanup(func() { _ = os.Chmod(testFile, 0o600) })
+
+	_, _, _, err := Fix(logger, tmpDir)
+	require.Error(t, err, "Should fail when test file is read-only")
+	require.Contains(t, err.Error(), "failed to process")
+}
+
+const testContentSetupMissingHelper = "package foo\n\nimport \"testing\"\n\nfunc setupSomething(t *testing.T) {\n\tt.Log(\"setup\")\n}\n"

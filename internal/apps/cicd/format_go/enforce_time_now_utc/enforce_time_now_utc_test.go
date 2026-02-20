@@ -325,3 +325,97 @@ func TestProcessGoFileForTimeNowUTC_UTCOnVariable(t *testing.T) {
 	require.NoError(t, err, "Should not error on file with t.UTC() on variable")
 	require.Equal(t, 0, replacements, "No replacements needed (already correct or not time.Now())")
 }
+
+func TestEnforce_EmptyFileMap(t *testing.T) {
+t.Parallel()
+
+logger := cryptoutilCmdCicdCommon.NewLogger("test-enforce-empty")
+// Empty map means no Go files -> returns nil immediately.
+err := Enforce(logger, map[string][]string{})
+require.NoError(t, err, "Empty file map should return nil without error")
+}
+
+func TestProcessGoFileForTimeNowUTC_SelfModificationPath(t *testing.T) {
+t.Parallel()
+
+// Create a file at a path containing "internal/cmd/cicd/format_go".
+// On Linux the C:/temp and R:/temp conditions are always true (not Windows paths),
+// so the self-modification check fires and returns 0, nil.
+tmpDir := t.TempDir()
+fakeFormatGoDir := filepath.Join(tmpDir, "internal", "cmd", "cicd", "format_go")
+require.NoError(t, os.MkdirAll(fakeFormatGoDir, 0o700))
+
+goFile := filepath.Join(fakeFormatGoDir, "dummy.go")
+require.NoError(t, os.WriteFile(goFile, []byte("package format_go\n\nimport \"time\"\n\nvar t = time.Now()\n"), 0o600))
+
+replacements, err := ProcessGoFileForTimeNowUTC(goFile)
+require.NoError(t, err)
+require.Equal(t, 0, replacements, "Self-modification path should be silently skipped")
+}
+
+func TestProcessGoFileForTimeNowUTC_InnerCallFuncNotSelector(t *testing.T) {
+t.Parallel()
+
+// gettime().UTC() - innerCall.Fun is *ast.Ident, not *ast.SelectorExpr -> returns true
+tmpDir := t.TempDir()
+goFile := filepath.Join(tmpDir, "a.go")
+content := `package foo
+
+import "time"
+
+func gettime() time.Time { return time.Now().UTC() }
+
+func f() { _ = gettime().UTC() }
+`
+require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+
+replacements, err := ProcessGoFileForTimeNowUTC(goFile)
+require.NoError(t, err)
+require.Equal(t, 0, replacements, "gettime().UTC() should not be modified")
+}
+
+func TestProcessGoFileForTimeNowUTC_InnerSelNotNow(t *testing.T) {
+t.Parallel()
+
+// time.Date(...).UTC() - innerSel.Sel.Name = "Date" != "Now" -> returns true
+tmpDir := t.TempDir()
+goFile := filepath.Join(tmpDir, "b.go")
+content := `package foo
+
+import "time"
+
+func f() { _ = time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC).UTC() }
+`
+require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+
+replacements, err := ProcessGoFileForTimeNowUTC(goFile)
+require.NoError(t, err)
+require.Equal(t, 0, replacements, "time.Date().UTC() should not be modified")
+}
+
+func TestProcessGoFileForTimeNowUTC_InnerIdentNotTime(t *testing.T) {
+t.Parallel()
+
+// myT.Now().UTC() - ident.Name = "myT" != "time" -> returns true in both passes
+tmpDir := t.TempDir()
+goFile := filepath.Join(tmpDir, "c.go")
+content := `package foo
+
+import "time"
+
+type fakeTimer struct{}
+
+func (f fakeTimer) Now() time.Time { return time.Now().UTC() }
+
+func g() {
+var ft fakeTimer
+_ = ft.Now().UTC()
+_ = ft.Now()
+}
+`
+require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+
+replacements, err := ProcessGoFileForTimeNowUTC(goFile)
+require.NoError(t, err)
+require.Equal(t, 0, replacements, "non-time.Now() calls should not be modified")
+}

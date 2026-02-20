@@ -223,3 +223,19 @@ func helper() {}
 	err = CheckInDir(logger, tmpDir)
 	require.NoError(t, err)
 }
+
+func TestCheck_DelegatesCheckInDir(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	err = Check(logger)
+	require.NoError(t, err) // no cmd/ dir in temp dir → no violations
+}

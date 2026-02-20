@@ -223,3 +223,56 @@ func TestFindInsecureSkipVerifyViolationsInDir_WalkDirError(t *testing.T) {
 	require.Error(t, err, "Should error when a subdirectory cannot be accessed")
 	require.Nil(t, violations)
 }
+
+func TestCheck_DelegatesCheckInDir(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check() delegates to CheckInDir(logger, ".").
+	// From a clean temp directory with no Go files, there are no violations.
+	err = Check(logger)
+	require.NoError(t, err)
+}
+
+func TestFindInsecureSkipVerifyViolationsInDir_VendorDirSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	vendorDir := filepath.Join(tmpDir, "vendor")
+	require.NoError(t, os.MkdirAll(vendorDir, 0o700))
+
+	vendorFile := filepath.Join(vendorDir, "bad.go")
+	content := []byte("package vendor\n\nfunc bad() bool { return true } // InsecureSkipVerify: true\n")
+	require.NoError(t, os.WriteFile(vendorFile, content, 0o600))
+
+	violations, err := FindInsecureSkipVerifyViolationsInDir(tmpDir)
+	require.NoError(t, err)
+	require.Empty(t, violations, "vendor/ directory should be skipped")
+}
+
+func TestFindInsecureSkipVerifyViolationsInDir_NonGoFileSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	txtFile := filepath.Join(tmpDir, "config.txt")
+	require.NoError(t, os.WriteFile(txtFile, []byte("InsecureSkipVerify: true\n"), 0o600))
+
+	violations, err := FindInsecureSkipVerifyViolationsInDir(tmpDir)
+	require.NoError(t, err)
+	require.Empty(t, violations, "non-.go file should be skipped")
+}
+
+func TestFindInsecureSkipVerifyViolationsInDir_NonExistentRoot(t *testing.T) {
+	t.Parallel()
+
+	_, err := FindInsecureSkipVerifyViolationsInDir("/nonexistent/path/that/does/not/exist")
+	require.Error(t, err, "Non-existent root should return an error")
+}

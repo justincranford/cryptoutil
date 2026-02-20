@@ -224,8 +224,7 @@ require (
 )
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
-	require.NoError(t, err)
+	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
 	require.True(t, directDeps["github.com/pkg/errors"])
 	require.True(t, directDeps["github.com/stretchr/testify"])
@@ -240,8 +239,7 @@ func TestCheckDependencyUpdates_OnlyEmptyLines(t *testing.T) {
 		"github.com/pkg/errors": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Empty(t, outdated)
 }
 
@@ -257,8 +255,7 @@ require github.com/stretchr/testify v1.8.0
 require github.com/indirect/dep v1.0.0 // indirect
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
-	require.NoError(t, err)
+	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
 	require.True(t, directDeps["github.com/pkg/errors"])
 	require.True(t, directDeps["github.com/stretchr/testify"])
@@ -276,8 +273,7 @@ github.com/pkg/errors v0.9.1 [v0.9.2]`
 		"github.com/pkg/errors": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Len(t, outdated, 1)
 	require.Contains(t, outdated[0], "github.com/pkg/errors")
 }
@@ -294,8 +290,7 @@ github.com/stretchr/testify v1.8.0 [v1.9.0]`
 		"github.com/stretchr/testify": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Len(t, outdated, 1, "Should only include lines with complete update markers")
 	require.Contains(t, outdated[0], "github.com/stretchr/testify")
 }
@@ -310,8 +305,7 @@ go 1.25.5
 replace example.com/old => example.com/new v1.0.0
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
-	require.NoError(t, err)
+	directDeps := getDirectDependencies(goModContent)
 	require.Empty(t, directDeps)
 }
 
@@ -334,8 +328,7 @@ github.com/indirect/dep v1.0.0 [v1.1.0]`
 		"github.com/dep5/pkg": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Len(t, outdated, 5, "Should find all direct outdated dependencies")
 }
 

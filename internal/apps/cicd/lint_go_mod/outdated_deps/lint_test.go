@@ -29,9 +29,8 @@ func TestLint_NoGoMod(t *testing.T) {
 func TestCheckDependencyUpdates_Empty(t *testing.T) {
 	t.Parallel()
 
-	outdated, err := checkDependencyUpdates("", map[string]bool{})
+	outdated := checkDependencyUpdates("", map[string]bool{})
 
-	require.NoError(t, err)
 	require.Empty(t, outdated)
 }
 
@@ -47,9 +46,8 @@ github.com/stretchr/testify v1.8.0`
 		"github.com/stretchr/testify": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 
-	require.NoError(t, err)
 	require.Empty(t, outdated)
 }
 
@@ -65,9 +63,8 @@ github.com/stretchr/testify v1.8.0`
 		"github.com/stretchr/testify": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 
-	require.NoError(t, err)
 	require.Len(t, outdated, 1)
 	require.Contains(t, outdated[0], "github.com/pkg/errors")
 }
@@ -84,9 +81,8 @@ github.com/indirect/dep v1.0.0 [v1.1.0]`
 		"github.com/pkg/errors": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 
-	require.NoError(t, err)
 	require.Len(t, outdated, 1)
 	require.Contains(t, outdated[0], "github.com/pkg/errors")
 }
@@ -105,9 +101,8 @@ require (
 )
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
+	directDeps := getDirectDependencies(goModContent)
 
-	require.NoError(t, err)
 	require.True(t, directDeps["github.com/pkg/errors"])
 	require.True(t, directDeps["github.com/stretchr/testify"])
 	require.False(t, directDeps["github.com/indirect/dep"])
@@ -123,9 +118,8 @@ go 1.25.5
 require github.com/pkg/errors v0.9.1
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
+	directDeps := getDirectDependencies(goModContent)
 
-	require.NoError(t, err)
 	require.True(t, directDeps["github.com/pkg/errors"])
 }
 
@@ -137,9 +131,8 @@ func TestGetDirectDependencies_Empty(t *testing.T) {
 go 1.25.5
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
+	directDeps := getDirectDependencies(goModContent)
 
-	require.NoError(t, err)
 	require.Empty(t, directDeps)
 }
 
@@ -226,8 +219,7 @@ github.com/pkg/errors v0.9.1`
 		"github.com/pkg/errors": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Empty(t, outdated, "Should skip lines with updates but no matching direct deps")
 }
 
@@ -243,8 +235,7 @@ github.com/stretchr/testify v1.8.0 [incomplete`
 		"github.com/stretchr/testify": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Empty(t, outdated, "Should skip lines without closing bracket")
 }
 
@@ -262,8 +253,7 @@ require (
 )
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
-	require.NoError(t, err)
+	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
 	require.True(t, directDeps["github.com/pkg/errors"])
 	require.True(t, directDeps["github.com/stretchr/testify"])
@@ -284,8 +274,7 @@ require (
 )
 `)
 
-	directDeps, err := getDirectDependencies(goModContent)
-	require.NoError(t, err)
+	directDeps := getDirectDependencies(goModContent)
 	require.Len(t, directDeps, 2)
 	require.True(t, directDeps["github.com/pkg/errors"])
 	require.True(t, directDeps["github.com/stretchr/testify"])
@@ -305,8 +294,7 @@ github.com/indirect/dep v1.0.0 [v1.1.0]`
 		"github.com/stretchr/testify": true,
 	}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Len(t, outdated, 2)
 	require.Contains(t, outdated[0], "github.com/pkg/errors")
 	require.Contains(t, outdated[1], "github.com/stretchr/testify")
@@ -320,8 +308,7 @@ github.com/pkg/errors v0.9.1 [v0.9.2]`
 
 	directDeps := map[string]bool{}
 
-	outdated, err := checkDependencyUpdates(goListOutput, directDeps)
-	require.NoError(t, err)
+	outdated := checkDependencyUpdates(goListOutput, directDeps)
 	require.Empty(t, outdated, "Should return empty when no direct dependencies specified")
 }
 
@@ -360,4 +347,17 @@ func TestCheckAndUseDepCache_ModeMismatch(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, used)
 	require.Equal(t, "cache mode mismatch", state)
+}
+
+func TestCheck_NoGoMod(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check() reads go.mod from ".". Package test directory has no go.mod,
+	// so Check() returns an error "failed to read go.mod". This covers the
+	// Check() code path.
+	err := Check(logger)
+	require.Error(t, err, "Check() should fail when no go.mod in current directory")
+	require.Contains(t, err.Error(), "failed to read go.mod")
 }

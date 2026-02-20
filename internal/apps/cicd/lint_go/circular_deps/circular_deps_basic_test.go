@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
@@ -200,4 +201,17 @@ func findProjectRoot() (string, error) {
 
 		dir = parent
 	}
+}
+
+func TestCheck_NoGoMod(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check() reads go.mod from ".". Package test directory has no go.mod,
+	// so Check() returns an error "failed to read go.mod". This covers the
+	// Check() error branching code path.
+	err := Check(logger)
+	require.Error(t, err, "Check() should fail when no go.mod in current directory")
+	require.Contains(t, err.Error(), "failed to read go.mod")
 }

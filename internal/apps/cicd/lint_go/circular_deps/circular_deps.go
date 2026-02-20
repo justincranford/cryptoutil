@@ -218,9 +218,7 @@ func CheckDependencies(goListOutput string) error {
 
 		for _, neighbor := range graph[node] {
 			if dfs(neighbor) {
-				if len(cycle) == 0 || cycle[0] != cycle[len(cycle)-1] {
-					cycle = append(cycle, node)
-				}
+				cycle = append(cycle, node)
 
 				return true
 			}

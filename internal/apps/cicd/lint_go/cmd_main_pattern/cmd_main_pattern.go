@@ -13,15 +13,14 @@ import (
 
 const mainGoFilename = "main.go"
 
+// mainPattern is the compiled regex for the required main.go pattern.
+// Uses MustCompile since the pattern is a constant that is always valid.
+var mainPattern = regexp.MustCompile(`func\s+main\(\)\s*\{\s*os\.Exit\(cryptoutil[A-Z][a-zA-Z0-9]*\.[A-Z][a-zA-Z0-9]*\(os\.Args,\s*os\.Stdin,\s*os\.Stdout,\s*os\.Stderr\)\)\s*\}`)
+
 // Check checks that all main.go files under cmd/ follow the ARCHITECTURE.md 4.4.3 pattern.
 // Required pattern: func main() { os.Exit(cryptoutilApps<SOMETHING>.<SOMETHING>(os.Args, os.Stdin, os.Stdout, os.Stderr)) }.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
-	rootDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get working directory: %w", err)
-	}
-
-	return CheckInDir(logger, rootDir)
+	return CheckInDir(logger, ".")
 }
 
 // CheckInDir checks all main.go files under rootDir/cmd/ follow the required pattern.
@@ -66,14 +65,7 @@ func CheckMainGoFile(filePath string) error {
 
 	// Required pattern: func main() { os.Exit(cryptoutilApps<Something>.<Something>(os.Args, os.Stdin, os.Stdout, os.Stderr)) }
 	// Allow whitespace variations but enforce one-liner with full os.Args
-	pattern := `func\s+main\(\)\s*\{\s*os\.Exit\(cryptoutil[A-Z][a-zA-Z0-9]*\.[A-Z][a-zA-Z0-9]*\(os\.Args,\s*os\.Stdin,\s*os\.Stdout,\s*os\.Stderr\)\)\s*\}`
-
-	matched, err := regexp.Match(pattern, content)
-	if err != nil {
-		return fmt.Errorf("regex error: %w", err)
-	}
-
-	if !matched {
+	if !mainPattern.Match(content) {
 		return fmt.Errorf("does not match required pattern: func main() { os.Exit(cryptoutilApps<Something>.<Something>(os.Args, os.Stdin, os.Stdout, os.Stderr)) }")
 	}
 

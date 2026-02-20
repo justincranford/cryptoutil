@@ -3,6 +3,9 @@
 package copyloopvar
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"testing"
@@ -402,4 +405,74 @@ func TestFixCopyLoopVarInFile_ReadOnlyFile(t *testing.T) {
 	require.False(t, changed, "Should return false when error occurs")
 	require.Greater(t, fixes, 0, "Should have detected fixes before write error")
 	require.Contains(t, err.Error(), "failed to create file")
+}
+
+func TestFix_WalkDirError(t *testing.T) {
+	// Non-parallel: modifies directory permissions.
+	tmpDir := t.TempDir()
+	// Create an unreadable subdirectory - Walk will call callback with OS error.
+	badSubDir := filepath.Join(tmpDir, "locked")
+	require.NoError(t, os.MkdirAll(badSubDir, 0o700))
+	require.NoError(t, os.Chmod(badSubDir, 0o000))
+	t.Cleanup(func() { _ = os.Chmod(badSubDir, 0o700) })
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	_, _, _, err := Fix(logger, tmpDir, "1.22")
+	require.Error(t, err, "Should fail when subdirectory is unreadable")
+	require.Contains(t, err.Error(), "failed to walk directory")
+}
+
+func TestFix_WithSyntaxErrorFile(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	// Create a .go file with syntax errors - FixInFile will fail to parse it.
+	goFile := filepath.Join(tmpDir, "bad_syntax.go")
+	require.NoError(t, os.WriteFile(goFile, []byte(testGoContentInvalid), 0o600))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	_, _, _, err := Fix(logger, tmpDir, "1.22")
+	require.Error(t, err, "Should fail when a .go file has syntax errors")
+	require.Contains(t, err.Error(), "failed to process")
+}
+
+func TestIsLoopVarCopy_MultipleAssignTargets(t *testing.T) {
+	t.Parallel()
+
+	// Parse a range where the first statement is a multi-assignment (a, b := v, v).
+	src := `package foo
+func f() {
+	for _, v := range []int{1} {
+		a, b := v, v
+		_ = a
+		_ = b
+	}
+}
+`
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "", src, 0)
+	require.NoError(t, err)
+
+	var (
+		rangeStmt *ast.RangeStmt
+		assign    *ast.AssignStmt
+	)
+
+	ast.Inspect(file, func(n ast.Node) bool {
+		if rs, ok := n.(*ast.RangeStmt); ok {
+			rangeStmt = rs
+			if len(rs.Body.List) > 0 {
+				if as, ok2 := rs.Body.List[0].(*ast.AssignStmt); ok2 {
+					assign = as
+				}
+			}
+		}
+
+		return true
+	})
+
+	require.NotNil(t, rangeStmt)
+	require.NotNil(t, assign)
+	// Multi-assign (a, b := v, v) should not be identified as a loop var copy.
+	require.False(t, IsLoopVarCopy(rangeStmt, assign), "Multi-assign should return false")
 }

@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCheckCryptoRand_Clean(t *testing.T) {
@@ -240,4 +240,102 @@ func TestFindMathRandViolationsInDir_WalkDirError(t *testing.T) {
 	violations, err := FindMathRandViolationsInDir(tmpDir)
 	require.Error(t, err, "Should error when a subdirectory cannot be accessed")
 	require.Nil(t, violations)
+}
+
+func TestCheck_DelegatesCheckInDir(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+
+	// Check() delegates to CheckInDir(logger, ".").
+	// From a clean temp directory with no Go files, there are no violations.
+	err = Check(logger)
+	require.NoError(t, err)
+}
+
+func TestFindMathRandViolationsInDir_VendorDirSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	vendorDir := filepath.Join(tmpDir, "vendor")
+	require.NoError(t, os.MkdirAll(vendorDir, 0o700))
+
+	vendorFile := filepath.Join(vendorDir, "uses_rand.go")
+	content := []byte("package vendor\nimport \"math/rand\"\nvar x = rand.Intn(10)\n")
+	require.NoError(t, os.WriteFile(vendorFile, content, 0o600))
+
+	violations, err := FindMathRandViolationsInDir(tmpDir)
+	require.NoError(t, err)
+	require.Empty(t, violations, "vendor/ should be skipped")
+}
+
+func TestFindMathRandViolationsInDir_NonGoFileSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	txtFile := filepath.Join(tmpDir, "notes.txt")
+	require.NoError(t, os.WriteFile(txtFile, []byte("math/rand usage notes\n"), 0o600))
+
+	violations, err := FindMathRandViolationsInDir(tmpDir)
+	require.NoError(t, err)
+	require.Empty(t, violations, "non-.go file should be skipped")
+}
+
+func TestFindMathRandViolationsInDir_NonExistentRoot(t *testing.T) {
+	t.Parallel()
+
+	_, err := FindMathRandViolationsInDir("/nonexistent/path/that/does/not/exist")
+	require.Error(t, err, "Non-existent root should return an error")
+}
+
+func TestCheckFileForMathRand_CrandAlias(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	goFile := filepath.Join(tmpDir, "crypto.go")
+	content := []byte("package foo\n\nimport (\n\tcrand \"math/rand\"\n)\n\nfunc seed() { crand.Seed(42) }\n")
+	require.NoError(t, os.WriteFile(goFile, content, 0o600))
+
+	violations, err := CheckFileForMathRand(goFile)
+	require.NoError(t, err)
+	require.Empty(t, violations, "crand alias should be accepted")
+}
+
+func TestFindMathRandViolationsInDir_FileReadError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	goFile := filepath.Join(tmpDir, "impl.go")
+	content := []byte("package foo\n\nimport \"math/rand\"\n\nvar x = rand.Intn(10)\n")
+	require.NoError(t, os.WriteFile(goFile, content, 0o600))
+	// Make file unreadable so CheckFileForMathRand fails to open it.
+	require.NoError(t, os.Chmod(goFile, 0o000))
+	t.Cleanup(func() { _ = os.Chmod(goFile, 0o600) })
+
+	_, err := FindMathRandViolationsInDir(tmpDir)
+	require.Error(t, err, "Should return error when .go file cannot be opened")
+}
+
+func TestCheckFileForMathRand_UsageNolintSkipped(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	goFile := filepath.Join(tmpDir, "rand_usage.go")
+	// Import "math/rand" without any nolint on import line (adds import violation).
+	// Usage line has //nolint:revive (not gosec/math/rand) so usage continue fires.
+	content := []byte("package foo\n\nimport \"math/rand\"\n\nvar x = rand.Intn(10) //nolint:revive\n")
+	require.NoError(t, os.WriteFile(goFile, content, 0o600))
+
+	violations, err := CheckFileForMathRand(goFile)
+	require.NoError(t, err)
+	// Should include violation for the import line but no usage violation.
+	require.Len(t, violations, 1, "Only import line should be flagged, not nolint usage line")
+	require.Contains(t, violations[0].Issue, "imports math/rand")
 }
