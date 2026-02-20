@@ -67,7 +67,7 @@ func TestHandleIntrospect_InvalidTokenFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -119,7 +119,7 @@ func TestHandleRevoke_InvalidTokenFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -173,7 +173,7 @@ func TestHandleIntrospect_UnknownToken(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -292,7 +292,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

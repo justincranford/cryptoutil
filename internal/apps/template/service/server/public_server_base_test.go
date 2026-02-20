@@ -119,7 +119,7 @@ func TestPublicServerBase_HandleServiceHealth_Healthy(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/service/api/v1/health", nil)
 
-	resp, err := server.App().Test(req)
+	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -153,7 +153,7 @@ func TestPublicServerBase_HandleServiceHealth_ShuttingDown(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/service/api/v1/health", nil)
 
-	resp, err := server.App().Test(req)
+	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -182,7 +182,7 @@ func TestPublicServerBase_HandleBrowserHealth_Healthy(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/browser/api/v1/health", nil)
 
-	resp, err := server.App().Test(req)
+	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -216,7 +216,7 @@ func TestPublicServerBase_HandleBrowserHealth_ShuttingDown(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/browser/api/v1/health", nil)
 
-	resp, err := server.App().Test(req)
+	resp, err := server.App().Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()

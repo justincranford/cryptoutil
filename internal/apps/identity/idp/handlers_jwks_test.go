@@ -41,7 +41,7 @@ func TestHandleJWKS_EmptySet(t *testing.T) {
 
 	// Make request to JWKS endpoint.
 	req := httptest.NewRequest("GET", "/.well-known/jwks.json", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request failed")
 
 	defer func() {
@@ -113,7 +113,7 @@ func TestHandleJWKS_ErrorScenarios(t *testing.T) {
 			service.RegisterRoutes(app)
 
 			req := httptest.NewRequest("GET", "/.well-known/jwks.json", nil)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() {

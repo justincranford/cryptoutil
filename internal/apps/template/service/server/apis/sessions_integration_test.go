@@ -71,7 +71,7 @@ func TestIssueSession_ServiceSessionSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/issue", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -108,7 +108,7 @@ func TestIssueSession_ServiceSessionError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/issue", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -137,7 +137,7 @@ func TestIssueSession_BrowserSessionSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/issue", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -172,7 +172,7 @@ func TestValidateSession_BrowserSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/validate", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -207,7 +207,7 @@ func TestValidateSession_BrowserError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/validate", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -241,7 +241,7 @@ func TestValidateSession_ServiceSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/validate", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -276,7 +276,7 @@ func TestValidateSession_ServiceError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/validate", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -320,7 +320,7 @@ func TestValidateSession_BrowserNullUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/validate", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -365,7 +365,7 @@ func TestValidateSession_ServiceNullClientID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/sessions/validate", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()

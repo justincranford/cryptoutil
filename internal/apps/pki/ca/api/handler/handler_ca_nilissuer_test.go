@@ -104,7 +104,7 @@ func TestListCertificates(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/certificates", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -142,7 +142,7 @@ func TestGetCertificate(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/certificates/SERIAL123", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -153,7 +153,7 @@ func TestGetCertificate(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/certificates/NONEXISTENT", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
@@ -164,7 +164,7 @@ func TestGetCertificate(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/certificates/", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 
 		require.NoError(t, resp.Body.Close())
@@ -201,7 +201,7 @@ func TestGetCertificateChain(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/certificates/CHAIN123/chain", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -212,7 +212,7 @@ func TestGetCertificateChain(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/certificates/NONEXISTENT/chain", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
@@ -253,7 +253,7 @@ func TestRevokeCertificate(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/certificates/REVOKE123/revoke", bytes.NewBufferString(revokeBody))
 		req.Header.Set("Content-Type", "application/json")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -265,7 +265,7 @@ func TestRevokeCertificate(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/certificates/NONEXISTENT/revoke", bytes.NewBufferString(revokeBody))
 		req.Header.Set("Content-Type", "application/json")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
@@ -303,7 +303,7 @@ func TestGetEnrollmentStatusHandler(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -315,7 +315,7 @@ func TestGetEnrollmentStatusHandler(t *testing.T) {
 
 		unknownID := googleUuid.New()
 		req := httptest.NewRequest(http.MethodGet, "/enroll/"+unknownID.String(), nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 

@@ -51,7 +51,7 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/users", nil)
 			req.Header.Set("Authorization", createBearerToken("valid-token"))
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			testify.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -82,7 +82,7 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 	req.Header.Set("Authorization", createBearerToken("valid-token"))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -129,7 +129,7 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 			req := httptest.NewRequest(http.MethodDelete, "/api/v1/protected/resource/123", nil)
 			req.Header.Set("Authorization", createBearerToken("valid-token"))
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			testify.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -164,7 +164,7 @@ func TestExpiredToken(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
 	req.Header.Set("Authorization", createBearerToken("expired-token"))
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -258,7 +258,7 @@ func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/metrics", nil)
 			req.Header.Set("Authorization", createBearerToken("valid-token"))
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			testify.NoError(t, err)
 
 			defer func() {

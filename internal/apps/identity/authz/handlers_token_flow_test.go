@@ -41,7 +41,7 @@ func TestHandleAuthorizationCodeGrant_MissingCodeVerifier(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -65,7 +65,7 @@ func TestHandleAuthorizationCodeGrant_InvalidCode(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -103,7 +103,7 @@ func TestHandleClientCredentialsGrant_ValidClient(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -126,7 +126,7 @@ func TestHandleRefreshTokenGrant_MissingRefreshToken(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/oauth2/v1/token", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

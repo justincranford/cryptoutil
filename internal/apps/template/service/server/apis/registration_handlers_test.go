@@ -51,7 +51,7 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -113,7 +113,7 @@ func TestHandleProcessJoinRequest_InvalidID(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/admin/join-requests/invalid-uuid", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -145,7 +145,7 @@ func TestHandleProcessJoinRequest_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/admin/join-requests/"+validID, bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -285,7 +285,7 @@ func TestHandleRegisterUser_TableDriven(t *testing.T) {
 			req := httptest.NewRequest("POST", "/register", bytes.NewReader([]byte(tt.requestBody)))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()

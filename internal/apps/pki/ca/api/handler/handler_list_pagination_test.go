@@ -83,7 +83,7 @@ func TestListCertificates_Pagination(t *testing.T) {
 			t.Parallel()
 
 			req := httptest.NewRequest(http.MethodGet, "/certificates"+tc.queryParams, nil)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
@@ -180,7 +180,7 @@ func TestListCertificates_Filtering(t *testing.T) {
 			t.Parallel()
 
 			req := httptest.NewRequest(http.MethodGet, "/certificates"+tc.queryParams, nil)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 

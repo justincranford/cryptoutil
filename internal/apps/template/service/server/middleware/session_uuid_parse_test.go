@@ -50,7 +50,7 @@ func TestSessionMiddleware_BrowserSession_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -97,7 +97,7 @@ func TestSessionMiddleware_ServiceSession_InvalidClientIDFormat(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()

@@ -102,7 +102,7 @@ func TestHandleAuthorizeGET_PKCE(t *testing.T) {
 
 			req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err, "Request should succeed")
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -187,7 +187,7 @@ func TestHandleAuthorizePOST_PKCE(t *testing.T) {
 			req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formBody.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err, "Request should succeed")
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -224,7 +224,7 @@ func TestHandleAuthorizeGET_ValidRequestCreatesAuthorizationRequest(t *testing.T
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {

@@ -101,7 +101,7 @@ func TestHandleOAuthMetadata(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodGet, "/.well-known/oauth-authorization-server", nil)
 
 			// Execute request.
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -211,7 +211,7 @@ func TestHandleOIDCDiscovery(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodGet, "/.well-known/openid-configuration", nil)
 
 			// Execute request.
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -287,7 +287,7 @@ func TestHandleJWKS(t *testing.T) {
 			req := httptest.NewRequest(fiber.MethodGet, "/oauth2/v1/jwks", nil)
 
 			// Execute request.
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

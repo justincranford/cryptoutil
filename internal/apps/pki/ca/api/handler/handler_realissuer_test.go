@@ -37,7 +37,7 @@ func TestListCAsNilIssuer(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/ca", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	// When issuer is nil, GetCAConfig returns nil, causing an internal server error.
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
@@ -63,7 +63,7 @@ func TestGetCANilIssuer(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/ca/test-ca", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	// When issuer is nil, GetCAConfig returns nil, causing an internal server error.
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
@@ -89,7 +89,7 @@ func TestEstCACertsNilIssuer(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/est/cacerts", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	// When issuer is nil, GetCAConfig returns nil, causing an internal server error.
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
@@ -118,7 +118,7 @@ func TestListCAsWithRealIssuer(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/ca", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -151,7 +151,7 @@ func TestGetCAWithRealIssuer(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/ca/test-ca", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -166,7 +166,7 @@ func TestGetCAWithRealIssuer(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/ca/unknown-ca", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
@@ -192,7 +192,7 @@ func TestEstCACertsWithRealIssuer(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/est/cacerts", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -260,7 +260,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewReader(reqBodyEscaped))
 		req.Header.Set("Content-Type", "application/json")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
@@ -273,7 +273,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		reqBody := `{"profile": "tls-server"}`
 		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
 		req.Header.Set("Content-Type", "application/json")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -286,7 +286,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		reqBody := `{"csr": "test-csr"}`
 		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
 		req.Header.Set("Content-Type", "application/json")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -301,7 +301,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
 		req.Header.Set("Content-Type", "application/json")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -314,7 +314,7 @@ func TestSubmitEnrollmentWithRealIssuer(t *testing.T) {
 		reqBody := `{"csr": "invalid-csr-data", "profile": "tls-server"}`
 		req := httptest.NewRequest(http.MethodPost, "/enrollments", bytes.NewBufferString(reqBody))
 		req.Header.Set("Content-Type", "application/json")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusUnprocessableEntity, resp.StatusCode)
 

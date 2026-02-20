@@ -85,7 +85,7 @@ func TestMTLSMiddleware_NoCertificate_NoTLSState(t *testing.T) {
 			})
 
 			req := httptest.NewRequest("GET", "/test", nil)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedStatusCode, resp.StatusCode)
 		})
@@ -258,7 +258,7 @@ func TestGetClientCertInfo_NoInfo(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 }

@@ -46,7 +46,7 @@ func TestHandleDeviceAuthorization_HappyPath(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -124,7 +124,7 @@ func TestHandleDeviceAuthorization_MissingClientID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -160,7 +160,7 @@ func TestHandleDeviceAuthorization_InvalidClientID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -197,7 +197,7 @@ func TestHandleDeviceAuthorization_OptionalScope(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()

@@ -62,7 +62,7 @@ func TestIdPContractHealth(t *testing.T) {
 
 	// Test GET /health endpoint.
 	req := httptest.NewRequest(http.MethodGet, "https://localhost:8081/health", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Failed to execute request")
 
 	defer func() {

@@ -43,7 +43,7 @@ func TestHandleLoginUserWithSession_UserWithoutTenantID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -129,7 +129,7 @@ func TestHandleLoginUserWithSession_BrowserSession_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -181,7 +181,7 @@ func TestHandleLoginUserWithSession_ServiceSession_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -231,7 +231,7 @@ func TestHandleLoginUserWithSession_SessionIssueError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()

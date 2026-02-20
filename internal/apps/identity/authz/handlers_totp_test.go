@@ -30,7 +30,7 @@ func TestHandleEnrollTOTP_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -60,7 +60,7 @@ func TestHandleEnrollTOTP_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -90,7 +90,7 @@ func TestHandleEnrollTOTP_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -121,7 +121,7 @@ func TestHandleEnrollTOTP_MissingIssuer(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -152,7 +152,7 @@ func TestHandleEnrollTOTP_MissingAccountName(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/enroll", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -175,7 +175,7 @@ func TestHandleVerifyTOTP_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -204,7 +204,7 @@ func TestHandleVerifyTOTP_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -233,7 +233,7 @@ func TestHandleVerifyTOTP_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -263,7 +263,7 @@ func TestHandleVerifyTOTP_MissingCode(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -285,7 +285,7 @@ func TestHandleCheckMFAStepUp_MissingUserIDQueryParam(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oidc/v1/mfa/totp/step-up", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -305,7 +305,7 @@ func TestHandleCheckMFAStepUp_InvalidUserIDFormat(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oidc/v1/mfa/totp/step-up?user_id=not-a-uuid", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

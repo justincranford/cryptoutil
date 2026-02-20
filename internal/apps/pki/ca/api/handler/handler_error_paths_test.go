@@ -73,7 +73,7 @@ func TestErrorResponsePaths(t *testing.T) {
 			})
 
 			req := httptest.NewRequest(http.MethodGet, "/test-error", nil)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
@@ -103,7 +103,7 @@ func TestGetEnrollmentStatus_NotFound(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/enrollment/"+randomID.String(), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 

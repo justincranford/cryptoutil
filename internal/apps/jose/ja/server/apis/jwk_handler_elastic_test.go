@@ -83,7 +83,7 @@ func TestHandleCreateElasticJWK_Success(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Send request.
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 
@@ -121,7 +121,7 @@ func TestHandleCreateElasticJWK_MissingTenantContext(t *testing.T) {
 	req := httptest.NewRequest("POST", "/jwk", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 }
@@ -151,7 +151,7 @@ func TestHandleCreateElasticJWK_InvalidAlgorithm(t *testing.T) {
 	req := httptest.NewRequest("POST", "/jwk", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 }
@@ -185,7 +185,7 @@ func TestHandleCreateElasticJWK_RepositoryError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/jwk", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 
@@ -224,7 +224,7 @@ func TestHandleGetElasticJWK_Success(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/jwk/"+kid.String(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -258,7 +258,7 @@ func TestHandleGetElasticJWK_NotFound(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/jwk/"+kid.String(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
@@ -309,7 +309,7 @@ func TestHandleListElasticJWKs_Success(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/jwks", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -349,7 +349,7 @@ func TestHandleDeleteElasticJWK_Success(t *testing.T) {
 
 	req := httptest.NewRequest("DELETE", "/jwk/"+kid.String(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNoContent, resp.StatusCode)
 
@@ -386,7 +386,7 @@ func TestHandleCreateMaterialJWK_Success(t *testing.T) {
 	}, handler.HandleCreateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -421,7 +421,7 @@ func TestHandleCreateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 	}, handler.HandleCreateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusConflict, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -465,7 +465,7 @@ func TestHandleListMaterialJWKs_Success(t *testing.T) {
 	}, handler.HandleListMaterialJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())

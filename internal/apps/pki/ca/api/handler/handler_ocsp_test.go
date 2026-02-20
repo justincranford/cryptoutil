@@ -32,7 +32,7 @@ func TestHandleOCSP_NoService(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/ocsp/12345", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// OCSP service not configured, should return 503.
@@ -63,7 +63,7 @@ func TestHandleOCSP_POST_NoService(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader(ocspReq))
 	req.Header.Set("Content-Type", "application/ocsp-request")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// OCSP service not configured, should return 503.
@@ -90,7 +90,7 @@ func TestHandleOCSP_GET_EmptySerialNumber(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/ocsp", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// Should return 503 (service not configured) or error.
@@ -170,7 +170,7 @@ func TestHandleOCSP_POST_MalformedRequest(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader([]byte("malformed-ocsp")))
 	req.Header.Set("Content-Type", "application/ocsp-request")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// Should return 503 (service not configured) before parsing.
@@ -198,7 +198,7 @@ func TestHandleOCSP_POST_EmptyBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader([]byte{}))
 	req.Header.Set("Content-Type", "application/ocsp-request")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// Should return 503 (service not configured) before checking empty body.

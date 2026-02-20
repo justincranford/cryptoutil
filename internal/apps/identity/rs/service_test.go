@@ -91,7 +91,7 @@ func TestPublicEndpoint(t *testing.T) {
 	app, _ := setupTestService(t)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/public/health", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -114,7 +114,7 @@ func TestProtectedEndpoint_NoToken(t *testing.T) {
 	app, _ := setupTestService(t)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -150,7 +150,7 @@ func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
 			req.Header.Set("Authorization", tc.header)
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			testify.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -179,7 +179,7 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
 	req.Header.Set("Authorization", createBearerToken("valid-token"))
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -216,7 +216,7 @@ func TestScopeEnforcement_ValidScope(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
 	req.Header.Set("Authorization", createBearerToken("valid-token"))
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

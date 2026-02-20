@@ -95,7 +95,7 @@ func TestTenantMiddleware(t *testing.T) {
 				req.Header.Set(TenantIDHeader, tc.tenantID)
 			}
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }()
@@ -146,7 +146,7 @@ func TestRequireTenantMiddleware(t *testing.T) {
 				req.Header.Set(TenantIDHeader, tc.tenantID)
 			}
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }()
@@ -269,7 +269,7 @@ func TestTenantMiddleware_ResponseBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header.Set(TenantIDHeader, "invalid")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

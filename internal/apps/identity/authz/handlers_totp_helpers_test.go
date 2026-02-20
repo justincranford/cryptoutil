@@ -134,7 +134,7 @@ func checkMFAStepUp(t *testing.T, app *fiber.App, userID googleUuid.UUID, expect
 
 	req := httptest.NewRequest("GET", "/oidc/v1/mfa/totp/step-up?user_id="+userID.String(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()

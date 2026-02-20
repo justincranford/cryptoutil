@@ -68,7 +68,7 @@ func TestRegisterRegistrationRoutes_RateLimiting(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		req := httptest.NewRequest("POST", "/browser/api/v1/auth/register", bytes.NewReader([]byte(`{}`)))
 		req.Header.Set("Content-Type", "application/json")
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 
 		lastStatus = resp.StatusCode

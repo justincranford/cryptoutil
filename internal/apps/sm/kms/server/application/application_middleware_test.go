@@ -111,7 +111,7 @@ func TestSwaggerUIBasicAuthMiddleware(t *testing.T) {
 				req.Header.Set("Authorization", tc.authHeader)
 			}
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }()

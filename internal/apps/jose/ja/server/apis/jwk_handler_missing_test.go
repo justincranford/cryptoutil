@@ -33,7 +33,7 @@ func TestHandleCreateMaterialJWK_ElasticJWKNotFound(t *testing.T) {
 	}, handler.HandleCreateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/nonexistent/materials", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -52,7 +52,7 @@ func TestHandleListMaterialJWKs_MissingContext(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials", handler.HandleListMaterialJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -73,7 +73,7 @@ func TestHandleListMaterialJWKs_InvalidTenantFormat(t *testing.T) {
 	}, handler.HandleListMaterialJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -97,7 +97,7 @@ func TestHandleListMaterialJWKs_ElasticJWKNotFound(t *testing.T) {
 	}, handler.HandleListMaterialJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/nonexistent/materials", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -116,7 +116,7 @@ func TestHandleGetActiveMaterialJWK_MissingContext(t *testing.T) {
 	app.Get("/elastic-jwks/:kid/materials/active", handler.HandleGetActiveMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials/active", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -137,7 +137,7 @@ func TestHandleGetActiveMaterialJWK_InvalidTenantFormat(t *testing.T) {
 	}, handler.HandleGetActiveMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid/materials/active", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -161,7 +161,7 @@ func TestHandleGetActiveMaterialJWK_ElasticJWKNotFound(t *testing.T) {
 	}, handler.HandleGetActiveMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/nonexistent/materials/active", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -180,7 +180,7 @@ func TestHandleRotateMaterialJWK_MissingContext(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials/rotate", handler.HandleRotateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials/rotate", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -201,7 +201,7 @@ func TestHandleRotateMaterialJWK_InvalidTenantFormat(t *testing.T) {
 	}, handler.HandleRotateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials/rotate", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -225,7 +225,7 @@ func TestHandleRotateMaterialJWK_ElasticJWKNotFound(t *testing.T) {
 	}, handler.HandleRotateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/nonexistent/materials/rotate", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())

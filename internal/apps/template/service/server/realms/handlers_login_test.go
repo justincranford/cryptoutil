@@ -35,7 +35,7 @@ func TestHandleLoginUser_InvalidCredentials(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -76,7 +76,7 @@ func TestHandleLoginUser_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -156,7 +156,7 @@ func TestHandleLoginUserWithSession_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -193,7 +193,7 @@ func TestHandleLoginUserWithSession_MissingFields(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -221,7 +221,7 @@ func TestHandleLoginUserWithSession_InvalidCredentials(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -254,7 +254,7 @@ func TestHandleLoginUserWithSession_InvalidSessionManager(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login/session", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()

@@ -53,7 +53,7 @@ func TestHandleGetActiveMaterialJWK_Success(t *testing.T) {
 	}, handler.HandleGetActiveMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/elastic-jwks/%s/materials/active", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -91,7 +91,7 @@ func TestHandleRotateMaterialJWK_Success(t *testing.T) {
 	}, handler.HandleRotateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials/rotate", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusCreated, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -126,7 +126,7 @@ func TestHandleRotateMaterialJWK_MaxMaterialsReached(t *testing.T) {
 	}, handler.HandleRotateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials/rotate", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusConflict, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -145,7 +145,7 @@ func TestHandleGetJWKS_Success(t *testing.T) {
 	app.Get("/.well-known/jwks.json", handler.HandleGetJWKS())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/.well-known/jwks.json", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -160,7 +160,7 @@ func TestHandleSign_NotImplemented(t *testing.T) {
 	app.Post("/sign", handler.HandleSign())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/sign", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -175,7 +175,7 @@ func TestHandleVerify_NotImplemented(t *testing.T) {
 	app.Post("/verify", handler.HandleVerify())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/verify", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -190,7 +190,7 @@ func TestHandleEncrypt_NotImplemented(t *testing.T) {
 	app.Post("/encrypt", handler.HandleEncrypt())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/encrypt", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -205,7 +205,7 @@ func TestHandleDecrypt_NotImplemented(t *testing.T) {
 	app.Post("/decrypt", handler.HandleDecrypt())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/decrypt", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotImplemented, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -229,7 +229,7 @@ func TestHandleDeleteElasticJWK_MissingKID(t *testing.T) {
 	}, handler.HandleDeleteElasticJWK())
 
 	req := httptest.NewRequest(fiber.MethodDelete, "/elastic-jwks/", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -260,7 +260,7 @@ func TestHandleDeleteElasticJWK_RepositoryDeleteError(t *testing.T) {
 	}, handler.HandleDeleteElasticJWK())
 
 	req := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/elastic-jwks/%s", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -295,7 +295,7 @@ func TestHandleCreateMaterialJWK_CreateRepositoryError(t *testing.T) {
 	}, handler.HandleCreateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -332,7 +332,7 @@ func TestHandleCreateMaterialJWK_IncrementCountError(t *testing.T) {
 	}, handler.HandleCreateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -366,7 +366,7 @@ func TestHandleListMaterialJWKs_RepositoryError(t *testing.T) {
 	}, handler.HandleListMaterialJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/elastic-jwks/%s/materials", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -400,7 +400,7 @@ func TestHandleGetActiveMaterialJWK_NoActiveMaterial(t *testing.T) {
 	}, handler.HandleGetActiveMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/elastic-jwks/%s/materials/active", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -436,7 +436,7 @@ func TestHandleRotateMaterialJWK_RotateRepositoryError(t *testing.T) {
 	}, handler.HandleRotateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, fmt.Sprintf("/elastic-jwks/%s/materials/rotate", kid), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())

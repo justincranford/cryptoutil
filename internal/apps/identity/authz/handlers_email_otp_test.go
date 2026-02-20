@@ -28,7 +28,7 @@ func TestHandleSendEmailOTP_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/send", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -57,7 +57,7 @@ func TestHandleSendEmailOTP_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/send", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -83,7 +83,7 @@ func TestHandleVerifyEmailOTP_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/email-otp/verify", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -112,7 +112,7 @@ func TestHandleVerifyEmailOTP_MissingUserIDHeader(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	// Missing X-User-ID header.
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -141,7 +141,7 @@ func TestHandleVerifyEmailOTP_InvalidUserIDHeader(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", "not-a-uuid")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -172,7 +172,7 @@ func TestHandleVerifyEmailOTP_InvalidOTP(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", userID.String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

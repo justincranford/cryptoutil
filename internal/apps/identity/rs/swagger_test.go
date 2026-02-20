@@ -44,7 +44,7 @@ func TestServeOpenAPISpec(t *testing.T) {
 			req := httptest.NewRequest("GET", "/swagger.json", nil)
 
 			// Execute request.
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err, "Request should execute without error")
 
 			defer func() {

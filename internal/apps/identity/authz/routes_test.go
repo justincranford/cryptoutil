@@ -34,7 +34,7 @@ func TestRegisterRoutes_HealthEndpoint(t *testing.T) {
 	service.RegisterRoutes(app)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Health check request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -99,7 +99,7 @@ func TestRegisterRoutes_OAuth2Endpoints(t *testing.T) {
 			t.Parallel()
 
 			req := httptest.NewRequest(tc.method, tc.path, nil)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err, "Request should succeed")
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -124,7 +124,7 @@ func TestRegisterRoutes_SwaggerEndpoint(t *testing.T) {
 	service.RegisterRoutes(app)
 
 	req := httptest.NewRequest(http.MethodGet, "/ui/swagger/doc.json", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Swagger request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

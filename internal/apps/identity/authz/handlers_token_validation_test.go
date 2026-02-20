@@ -111,7 +111,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 			// Execute request.
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -170,7 +170,7 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Execute request (will fail due to missing client authentication, but exercises handler code).
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

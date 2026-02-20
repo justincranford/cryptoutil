@@ -73,7 +73,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrDER))
 		req.Header.Set("Content-Type", "application/pkcs10")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -90,7 +90,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		csrBase64 := base64.StdEncoding.EncodeToString(csrDER)
 		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewBufferString(csrBase64))
 		req.Header.Set("Content-Type", "application/pkcs10")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -110,7 +110,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 		})
 		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrPEM))
 		req.Header.Set("Content-Type", "application/pkcs10")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -126,7 +126,7 @@ func TestEstSimpleEnrollWithRealIssuer(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewBufferString("invalid-csr-data"))
 		req.Header.Set("Content-Type", "application/pkcs10")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -168,7 +168,7 @@ func TestEstSimpleEnrollNoProfile(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", bytes.NewReader(csrDER))
 	req.Header.Set("Content-Type", "application/pkcs10")
-	resp, testErr := app.Test(req)
+	resp, testErr := app.Test(req, -1)
 	require.NoError(t, testErr)
 	require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 
@@ -224,7 +224,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", bytes.NewReader(csrDER))
 		req.Header.Set("Content-Type", "application/pkcs10")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -244,7 +244,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 		csrBase64 := base64.StdEncoding.EncodeToString(csrDER)
 		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", bytes.NewBufferString(csrBase64))
 		req.Header.Set("Content-Type", "application/pkcs10")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -259,7 +259,7 @@ func TestEstServerKeyGenWithRealIssuer(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", bytes.NewBufferString("invalid-csr-data"))
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -304,7 +304,7 @@ func TestTsaTimestampWithService(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/tsa/timestamp", bytes.NewReader([]byte{}))
 		req.Header.Set("Content-Type", "application/timestamp-query")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -316,7 +316,7 @@ func TestTsaTimestampWithService(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/tsa/timestamp", bytes.NewReader([]byte("not-valid-der")))
 		req.Header.Set("Content-Type", "application/timestamp-query")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -364,7 +364,7 @@ func TestGetCRLWithService(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/ca/wrong-ca/crl", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 
@@ -376,7 +376,7 @@ func TestGetCRLWithService(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/ca/test-ca/crl?format=der", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 		require.Equal(t, "application/pkix-crl", resp.Header.Get("Content-Type"))
@@ -394,7 +394,7 @@ func TestGetCRLWithService(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/ca/test-ca/crl?format=pem", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 		require.Equal(t, "application/x-pem-file", resp.Header.Get("Content-Type"))

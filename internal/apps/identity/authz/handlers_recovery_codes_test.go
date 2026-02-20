@@ -29,7 +29,7 @@ func TestHandleGenerateRecoveryCodes_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -57,7 +57,7 @@ func TestHandleGenerateRecoveryCodes_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -85,7 +85,7 @@ func TestHandleGenerateRecoveryCodes_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -107,7 +107,7 @@ func TestHandleGetRecoveryCodeCount_MissingUserIDQueryParam(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oidc/v1/mfa/recovery-codes/count", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -127,7 +127,7 @@ func TestHandleGetRecoveryCodeCount_InvalidUserIDFormat(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oidc/v1/mfa/recovery-codes/count?user_id=not-a-uuid", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -150,7 +150,7 @@ func TestHandleRegenerateRecoveryCodes_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -178,7 +178,7 @@ func TestHandleRegenerateRecoveryCodes_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -206,7 +206,7 @@ func TestHandleRegenerateRecoveryCodes_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/recovery-codes/regenerate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -229,7 +229,7 @@ func TestHandleVerifyRecoveryCode_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -257,7 +257,7 @@ func TestHandleVerifyRecoveryCode_MissingCode(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/verify-recovery-code", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -286,7 +286,7 @@ func TestHandleVerifyRecoveryCode_MissingUserID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	// X-User-ID header intentionally not set
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -315,7 +315,7 @@ func TestHandleVerifyRecoveryCode_InvalidUserIDFormat(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", "not-a-uuid")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

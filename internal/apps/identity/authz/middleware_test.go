@@ -32,7 +32,7 @@ func TestRegisterMiddleware_RecoverPanic(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/panic", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed despite panic")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -62,7 +62,7 @@ func TestRegisterMiddleware_RateLimiting(t *testing.T) {
 
 	for range requests {
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err, "Request should succeed")
 
 		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -95,7 +95,7 @@ func TestRegisterMiddleware_CORS(t *testing.T) {
 	req.Header.Set("Origin", "https://example.com")
 	req.Header.Set("Access-Control-Request-Method", "GET")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "CORS preflight should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -122,7 +122,7 @@ func TestRegisterMiddleware_Logging(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

@@ -95,7 +95,7 @@ func TestAuthErrorResponder_SendUnauthorized(t *testing.T) {
 			})
 
 			req := httptest.NewRequest("GET", "/test", nil)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }()
@@ -121,7 +121,7 @@ func TestAuthErrorResponder_SendForbidden(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -144,7 +144,7 @@ func TestAuthErrorResponder_SendBadRequest(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -167,7 +167,7 @@ func TestAuthErrorResponder_SendServerError(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -190,7 +190,7 @@ func TestAuthErrorResponder_MinimalDetail(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -218,7 +218,7 @@ func TestAuthErrorResponder_WithExtensions(t *testing.T) {
 	})
 
 	req := httptest.NewRequest("GET", "/test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

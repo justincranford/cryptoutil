@@ -32,7 +32,7 @@ func TestHandleRegisterUser_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -97,7 +97,7 @@ func TestHandleRegisterUser_MissingFields(t *testing.T) {
 			req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -157,7 +157,7 @@ func TestHandleRegisterUser_UsernameLengthValidation(t *testing.T) {
 			req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -196,7 +196,7 @@ func TestHandleRegisterUser_PasswordTooShort(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -233,7 +233,7 @@ func TestHandleRegisterUser_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -273,7 +273,7 @@ func TestHandleRegisterUser_DuplicateUsernameSQLite(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -313,7 +313,7 @@ func TestHandleRegisterUser_DuplicateUsernamePostgreSQL(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -353,7 +353,7 @@ func TestHandleRegisterUser_GenericError(t *testing.T) {
 	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -385,7 +385,7 @@ func TestHandleLoginUser_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest("POST", "/login", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -440,7 +440,7 @@ func TestHandleLoginUser_MissingFields(t *testing.T) {
 			req := httptest.NewRequest("POST", "/login", bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()

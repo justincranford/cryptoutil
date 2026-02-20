@@ -178,7 +178,7 @@ func TestHandleSendMessage_HappyPath(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", senderID.String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -204,7 +204,7 @@ func TestHandleSendMessage_InvalidJSON(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", googleUuid.New().String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -229,7 +229,7 @@ func TestHandleSendMessage_MissingSenderID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	// Missing X-User-ID header
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -249,7 +249,7 @@ func TestHandleReceiveMessages_HappyPath(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/messages/receive", nil)
 	req.Header.Set("X-User-ID", userID.String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -275,7 +275,7 @@ func TestHandleReceiveMessages_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/messages/receive", nil)
 	// Missing X-User-ID header
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -306,7 +306,7 @@ func TestHandleDeleteMessage_HappyPath(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete, "/messages/"+messageID.String(), nil)
 	req.Header.Set("X-User-ID", senderID.String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -324,7 +324,7 @@ func TestHandleDeleteMessage_InvalidMessageID(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete, "/messages/invalid-uuid", nil)
 	req.Header.Set("X-User-ID", googleUuid.New().String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -342,7 +342,7 @@ func TestHandleDeleteMessage_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete, "/messages/"+googleUuid.New().String(), nil)
 	// Missing X-User-ID header
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -369,7 +369,7 @@ func TestHandleSendMessage_EmptyMessage(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", googleUuid.New().String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -395,7 +395,7 @@ func TestHandleSendMessage_EmptyReceiverIDs(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", googleUuid.New().String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -421,7 +421,7 @@ func TestHandleSendMessage_InvalidReceiverID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-User-ID", googleUuid.New().String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -440,7 +440,7 @@ func TestHandleReceiveMessages_NoMessages(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/messages/rx", nil)
 	req.Header.Set("X-User-ID", googleUuid.New().String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

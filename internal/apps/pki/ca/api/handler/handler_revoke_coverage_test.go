@@ -89,7 +89,7 @@ func TestRevokeCertificate_ErrorPaths(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/certificates/"+tc.serialNumber+"/revoke", bytes.NewBufferString(tc.requestBody))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 
@@ -150,7 +150,7 @@ func TestRevokeCertificate_AllReasons(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/certificates/"+cert.SerialNumber+"/revoke", bytes.NewBufferString(requestBody))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, fiber.StatusOK, resp.StatusCode)
 

@@ -28,7 +28,7 @@ func TestServeOpenAPISpec_Success(t *testing.T) {
 	app.Get("/spec", handler)
 
 	req := httptest.NewRequest(http.MethodGet, "/spec", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -60,7 +60,7 @@ func TestServeOpenAPISpec_HandlerInvocation(t *testing.T) {
 	// Invoke handler multiple times.
 	for range 3 {
 		req := httptest.NewRequest(http.MethodGet, "/spec", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err, "Request should succeed")
 
 		defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

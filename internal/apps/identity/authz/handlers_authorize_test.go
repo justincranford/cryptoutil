@@ -40,7 +40,7 @@ func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -71,7 +71,7 @@ func TestHandleAuthorizeGET_MissingResponseType(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -102,7 +102,7 @@ func TestHandleAuthorizeGET_MissingRedirectURI(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -133,7 +133,7 @@ func TestHandleAuthorizePOST_MissingClientID(t *testing.T) {
 		}
 	}
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

@@ -106,7 +106,7 @@ func TestHandleReceiveMessages_CorruptedJWK(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/messages/receive", nil)
 	req.Header.Set("X-User-ID", receiverID.String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -151,7 +151,7 @@ func TestHandleReceiveMessages_NoJWKForRecipient(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/messages/receive", nil)
 	req.Header.Set("X-User-ID", receiverID.String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -194,7 +194,7 @@ func TestHandleDeleteMessage_ForbiddenNotOwner(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete, "/messages/"+messageID.String(), nil)
 	req.Header.Set("X-User-ID", otherUserID.String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -214,7 +214,7 @@ func TestHandleDeleteMessage_NotFound(t *testing.T) {
 	req := httptest.NewRequest(http.MethodDelete, "/messages/"+nonExistentID.String(), nil)
 	req.Header.Set("X-User-ID", googleUuid.New().String())
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

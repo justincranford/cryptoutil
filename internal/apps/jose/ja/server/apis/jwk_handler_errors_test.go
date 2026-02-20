@@ -63,7 +63,7 @@ func TestHandleGetElasticJWK_MissingContext(t *testing.T) {
 	app.Get("/elastic-jwks/:kid", handler.HandleGetElasticJWK())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -85,7 +85,7 @@ func TestHandleGetElasticJWK_InvalidTenantFormat(t *testing.T) {
 	}, handler.HandleGetElasticJWK())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks/test-kid", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -102,7 +102,7 @@ func TestHandleListElasticJWKs_MissingContext(t *testing.T) {
 	app.Get("/elastic-jwks", handler.HandleListElasticJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -123,7 +123,7 @@ func TestHandleListElasticJWKs_InvalidTenantFormat(t *testing.T) {
 	}, handler.HandleListElasticJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -147,7 +147,7 @@ func TestHandleListElasticJWKs_RepositoryError(t *testing.T) {
 	}, handler.HandleListElasticJWKs())
 
 	req := httptest.NewRequest(fiber.MethodGet, "/elastic-jwks", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -166,7 +166,7 @@ func TestHandleDeleteElasticJWK_MissingContext(t *testing.T) {
 	app.Delete("/elastic-jwks/:kid", handler.HandleDeleteElasticJWK())
 
 	req := httptest.NewRequest(fiber.MethodDelete, "/elastic-jwks/test-kid", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -187,7 +187,7 @@ func TestHandleDeleteElasticJWK_InvalidTenantFormat(t *testing.T) {
 	}, handler.HandleDeleteElasticJWK())
 
 	req := httptest.NewRequest(fiber.MethodDelete, "/elastic-jwks/test-kid", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -206,7 +206,7 @@ func TestHandleCreateElasticJWK_MissingContext(t *testing.T) {
 	reqBody := testCreateJWKBody
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks", strings.NewReader(reqBody))
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -229,7 +229,7 @@ func TestHandleCreateElasticJWK_InvalidTenantFormat(t *testing.T) {
 	reqBody := testCreateJWKBody
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks", strings.NewReader(reqBody))
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -246,7 +246,7 @@ func TestHandleCreateMaterialJWK_MissingContext(t *testing.T) {
 	app.Post("/elastic-jwks/:kid/materials", handler.HandleCreateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())
@@ -267,7 +267,7 @@ func TestHandleCreateMaterialJWK_InvalidTenantFormat(t *testing.T) {
 	}, handler.HandleCreateMaterialJWK())
 
 	req := httptest.NewRequest(fiber.MethodPost, "/elastic-jwks/test-kid/materials", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())

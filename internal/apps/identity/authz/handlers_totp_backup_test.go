@@ -30,7 +30,7 @@ func TestHandleGenerateTOTPBackupCodes_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -60,7 +60,7 @@ func TestHandleGenerateTOTPBackupCodes_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -90,7 +90,7 @@ func TestHandleGenerateTOTPBackupCodes_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/generate", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -113,7 +113,7 @@ func TestHandleVerifyTOTPBackupCode_InvalidBody(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader([]byte("{invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -143,7 +143,7 @@ func TestHandleVerifyTOTPBackupCode_MissingCode(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -172,7 +172,7 @@ func TestHandleVerifyTOTPBackupCode_MissingUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
@@ -201,7 +201,7 @@ func TestHandleVerifyTOTPBackupCode_InvalidUserIDFormat(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/totp/backup-codes/verify", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()

@@ -204,7 +204,7 @@ func TestIssueSession_ValidationErrors(t *testing.T) {
 			req := httptest.NewRequest("POST", "/session/issue", bytes.NewReader(reqBody))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -228,7 +228,7 @@ func TestValidateSession_InvalidJSON(t *testing.T) {
 	req := httptest.NewRequest("POST", "/session/validate", bytes.NewReader([]byte("invalid json")))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -271,7 +271,7 @@ func TestIssueSession_TableDriven(t *testing.T) {
 			req := httptest.NewRequest("POST", "/session/issue", bytes.NewReader([]byte(tt.requestBody)))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -318,7 +318,7 @@ func TestValidateSession_TableDriven(t *testing.T) {
 			req := httptest.NewRequest("POST", "/session/validate", bytes.NewReader([]byte(tt.requestBody)))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()

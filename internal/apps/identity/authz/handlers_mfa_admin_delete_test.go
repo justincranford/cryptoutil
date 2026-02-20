@@ -39,7 +39,7 @@ func TestHandleListMFAFactors_NoFactors(t *testing.T) {
 
 	req := httptest.NewRequest("GET", fmt.Sprintf("/oidc/v1/mfa/factors?user_id=%s", user.ID.String()), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -69,7 +69,7 @@ func TestHandleListMFAFactors_InvalidUserID(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oidc/v1/mfa/factors?user_id=not-a-uuid", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -132,7 +132,7 @@ func TestHandleDeleteMFAFactor_HappyPath(t *testing.T) {
 
 	req := httptest.NewRequest("DELETE", fmt.Sprintf("/oidc/v1/mfa/factors/%s?user_id=%s", factor.ID.String(), user.ID.String()), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -171,7 +171,7 @@ func TestHandleDeleteMFAFactor_FactorNotFound(t *testing.T) {
 	nonExistentID := googleUuid.Must(googleUuid.NewV7())
 	req := httptest.NewRequest("DELETE", fmt.Sprintf("/oidc/v1/mfa/factors/%s?user_id=%s", nonExistentID.String(), user.ID.String()), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -245,7 +245,7 @@ func TestHandleDeleteMFAFactor_Unauthorized(t *testing.T) {
 	// Attempt to delete factor using other user's ID.
 	req := httptest.NewRequest("DELETE", fmt.Sprintf("/oidc/v1/mfa/factors/%s?user_id=%s", factor.ID.String(), otherUser.ID.String()), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {

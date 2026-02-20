@@ -62,7 +62,7 @@ func TestGetEnrollmentStatus_WithCertificate(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -99,7 +99,7 @@ func TestGetEnrollmentStatus_IssuedNoCertificate(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	// Should still return 200 OK, just without certificate details.
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
@@ -137,7 +137,7 @@ func TestGetEnrollmentStatus_Pending(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/enroll/"+requestID.String(), nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -175,7 +175,7 @@ func TestGetCertificateChain_Success(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/certificates/"+serialNumber+"/chain", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -197,7 +197,7 @@ func TestGetCertificateChain_NotFound(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/certificates/NONEXISTENT/chain", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 

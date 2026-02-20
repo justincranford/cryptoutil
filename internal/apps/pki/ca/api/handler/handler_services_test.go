@@ -73,7 +73,7 @@ func TestHandleOCSPWithService(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader([]byte{}))
 		req.Header.Set("Content-Type", "application/ocsp-request")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
@@ -86,7 +86,7 @@ func TestHandleOCSPWithService(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader([]byte("not-valid-ocsp")))
 		req.Header.Set("Content-Type", "application/ocsp-request")
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		// Invalid request returns error status with OCSP content type.
 		require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
@@ -271,7 +271,7 @@ func TestEstCSRAttrsHandler(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/est/csrattrs?profile=server", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		// CSR attrs returns 200 or 204 based on implementation.
 		require.True(t, resp.StatusCode == fiber.StatusOK || resp.StatusCode == fiber.StatusNoContent)
@@ -284,7 +284,7 @@ func TestEstCSRAttrsHandler(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/est/csrattrs", nil)
-		resp, testErr := app.Test(req)
+		resp, testErr := app.Test(req, -1)
 		require.NoError(t, testErr)
 		// CSR attrs returns 200 or 204 based on implementation.
 		require.True(t, resp.StatusCode == fiber.StatusOK || resp.StatusCode == fiber.StatusNoContent)

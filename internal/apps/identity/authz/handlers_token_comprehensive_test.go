@@ -52,7 +52,7 @@ func TestHandleToken_AuthorizationCodeGrant_HappyPath(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -88,7 +88,7 @@ func TestHandleToken_ClientCredentialsGrant_HappyPath(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+basicAuth)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -145,7 +145,7 @@ func TestHandleToken_InvalidGrant_ExpiredCode(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -202,7 +202,7 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -237,7 +237,7 @@ func TestHandleToken_InvalidGrant_ClientIDMismatch(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -272,7 +272,7 @@ func TestHandleToken_InvalidGrant_PKCEValidationFailed(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

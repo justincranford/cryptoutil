@@ -46,7 +46,7 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -89,7 +89,7 @@ func TestHandlePAR_InvalidRedirectURI(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -136,7 +136,7 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()
@@ -179,7 +179,7 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }()

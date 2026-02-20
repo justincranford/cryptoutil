@@ -89,7 +89,7 @@ func TestHandleEnrollMFA_HappyPath(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -131,7 +131,7 @@ func TestHandleEnrollMFA_InvalidUserID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -169,7 +169,7 @@ func TestHandleEnrollMFA_UserNotFound(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -216,7 +216,7 @@ func TestHandleEnrollMFA_InvalidFactorType(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oidc/v1/mfa/enroll", bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {
@@ -290,7 +290,7 @@ func TestHandleListMFAFactors_HappyPath(t *testing.T) {
 
 	req := httptest.NewRequest("GET", fmt.Sprintf("/oidc/v1/mfa/factors?user_id=%s", user.ID.String()), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {

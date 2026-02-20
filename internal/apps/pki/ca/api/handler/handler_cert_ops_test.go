@@ -55,7 +55,7 @@ func TestEstEndpoints(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/est/csrattrs", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusNoContent, resp.StatusCode)
 
@@ -67,7 +67,7 @@ func TestEstEndpoints(t *testing.T) {
 
 		// With empty body, should return bad request (endpoint is implemented).
 		req := httptest.NewRequest(http.MethodPost, "/est/simpleenroll", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -79,7 +79,7 @@ func TestEstEndpoints(t *testing.T) {
 
 		// With empty body, should return bad request (endpoint is implemented).
 		req := httptest.NewRequest(http.MethodPost, "/est/simplereenroll", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -90,7 +90,7 @@ func TestEstEndpoints(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodPost, "/est/serverkeygen", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 
@@ -117,7 +117,7 @@ func TestTsaTimestamp(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodPost, "/tsa/timestamp", bytes.NewReader([]byte("timestamp request")))
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 
@@ -144,7 +144,7 @@ func TestHandleOCSP(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodPost, "/ocsp", bytes.NewReader([]byte("ocsp request")))
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 
@@ -171,7 +171,7 @@ func TestGetCRL(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/ca/test-ca/crl", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
 
@@ -209,7 +209,7 @@ func TestListProfiles(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/profiles", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -249,7 +249,7 @@ func TestGetProfile(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/profiles/tls-server", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -265,7 +265,7 @@ func TestGetProfile(t *testing.T) {
 		t.Parallel()
 
 		req := httptest.NewRequest(http.MethodGet, "/profiles/unknown-profile", nil)
-		resp, err := app.Test(req)
+		resp, err := app.Test(req, -1)
 		require.NoError(t, err)
 		require.Equal(t, fiber.StatusNotFound, resp.StatusCode)
 

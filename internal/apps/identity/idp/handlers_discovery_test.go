@@ -82,7 +82,7 @@ func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
 			// Set protocol via X-Forwarded-Proto header (standard proxy header).
 			req.Header.Set("X-Forwarded-Proto", tc.requestProtocol)
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 			require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -182,7 +182,7 @@ func TestDiscoveryHandler_HTTPSByDefault(t *testing.T) {
 	// Explicitly set X-Forwarded-Proto to test HTTPS default behavior.
 	req.Header.Set("X-Forwarded-Proto", "https")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 
@@ -230,7 +230,7 @@ func TestDiscoveryHandler_AllRequiredOIDCFieldsPresent(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "https://identity.example.com/.well-known/openid-configuration", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() {

@@ -53,7 +53,7 @@ func TestHandleAuthorizeGET_HappyPath(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -87,7 +87,7 @@ func TestHandleAuthorizeGET_InvalidClientID(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -124,7 +124,7 @@ func TestHandleAuthorizeGET_InvalidRedirectURI(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -163,7 +163,7 @@ func TestHandleAuthorizeGET_UnsupportedResponseType(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -200,7 +200,7 @@ func TestHandleAuthorizeGET_MissingCodeChallenge(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -239,7 +239,7 @@ func TestHandleAuthorizeGET_InvalidCodeChallengeMethod(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -279,7 +279,7 @@ func TestHandleAuthorizePOST_HappyPath(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -316,7 +316,7 @@ func TestHandleAuthorizePOST_MissingPKCE(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formData.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {

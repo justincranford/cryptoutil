@@ -37,7 +37,7 @@ func TestHandleIntrospect_MissingToken(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -64,7 +64,7 @@ func TestHandleIntrospect_MissingClient(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -89,7 +89,7 @@ func TestHandleRevoke_MissingToken(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -116,7 +116,7 @@ func TestHandleRevoke_MissingClient(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

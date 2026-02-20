@@ -39,7 +39,7 @@ func TestHandleToken_UnsupportedGrantType(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -68,7 +68,7 @@ func TestHandleToken_AuthorizationCodeGrant_MissingCode(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -97,7 +97,7 @@ func TestHandleToken_AuthorizationCodeGrant_MissingRedirectURI(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -124,7 +124,7 @@ func TestHandleToken_ClientCredentialsGrant_MissingClient(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -151,7 +151,7 @@ func TestHandleToken_RefreshTokenGrant_MissingRefreshToken(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup

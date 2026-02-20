@@ -96,7 +96,7 @@ func TestJWTMiddleware_AuthenticationErrors(t *testing.T) {
 				req.Header.Set("Authorization", authHeader)
 			}
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -126,7 +126,7 @@ func TestJWTMiddleware_ValidToken_Success(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
 	req.Header.Set("Authorization", "Bearer "+validToken)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusOK, resp.StatusCode)
 	require.Equal(t, userID, capturedUserID)
@@ -164,7 +164,7 @@ func TestJWTMiddleware_UnsupportedSigningMethod(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
 	req.Header.Set("Authorization", "Bearer "+tokenString)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
 

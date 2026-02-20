@@ -28,7 +28,7 @@ func TestEstCSRAttrs(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/est/csrattrs", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// Should return 204 No Content (no specific CSR attributes required).

@@ -93,7 +93,7 @@ func TestHandleListJoinRequests_WithDB(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/admin/join-requests", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -191,7 +191,7 @@ func TestHandleProcessJoinRequest_ApproveMessage(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/admin/join-requests/"+googleUuid.New().String(), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -225,7 +225,7 @@ func TestHandleProcessJoinRequest_RejectMessage(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/admin/join-requests/"+googleUuid.New().String(), bytes.NewReader(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -306,7 +306,7 @@ func TestHandleProcessJoinRequest_SuccessMessages(t *testing.T) {
 			req := httptest.NewRequest("PUT", "/admin/join-requests/"+joinRequest.ID.String(), bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
 
 			defer func() { require.NoError(t, resp.Body.Close()) }()

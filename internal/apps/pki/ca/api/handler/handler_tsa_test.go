@@ -36,7 +36,7 @@ func TestTsaTimestamp_NoService(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/timestamp", bytes.NewReader(tsReq))
 	req.Header.Set("Content-Type", "application/timestamp-query")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// TSA not configured, should return 503 Service Unavailable.
@@ -64,7 +64,7 @@ func TestTsaTimestamp_MalformedRequest(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/timestamp", bytes.NewReader([]byte("invalid-asn1-data")))
 	req.Header.Set("Content-Type", "application/timestamp-query")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// Should return 503 (no service configured) before parsing request.
@@ -92,7 +92,7 @@ func TestTsaTimestamp_EmptyBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/timestamp", bytes.NewReader([]byte{}))
 	req.Header.Set("Content-Type", "application/timestamp-query")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	// Should return 503 (no service configured) before checking empty body.

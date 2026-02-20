@@ -414,7 +414,7 @@ func TestOcspErrorResponse(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/ocsp-error", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 	require.Equal(t, "application/ocsp-response", resp.Header.Get("Content-Type"))
@@ -486,7 +486,7 @@ func TestErrorResponseHandler(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/error-test", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 	require.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 

@@ -65,7 +65,7 @@ func TestSessionMiddleware_MissingAuthHeader(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/test", nil)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -86,7 +86,7 @@ func TestSessionMiddleware_InvalidAuthHeaderFormat(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "InvalidFormat")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -111,7 +111,7 @@ func TestSessionMiddleware_EmptyToken(t *testing.T) {
 	// triggered due to HTTP library header trimming behavior.
 	req.Header.Set("Authorization", "Bearer ")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -136,7 +136,7 @@ func TestSessionMiddleware_BrowserSession_ValidationError(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -180,7 +180,7 @@ func TestSessionMiddleware_BrowserSession_Success(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -226,7 +226,7 @@ func TestSessionMiddleware_BrowserSession_NilUserID(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -252,7 +252,7 @@ func TestSessionMiddleware_ServiceSession_ValidationError(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -298,7 +298,7 @@ func TestSessionMiddleware_ServiceSession_Success(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -345,7 +345,7 @@ func TestSessionMiddleware_ServiceSession_NilClientID(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -379,7 +379,7 @@ func TestBrowserSessionMiddleware(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
@@ -410,7 +410,7 @@ func TestServiceSessionMiddleware(t *testing.T) {
 	req := httptest.NewRequest("GET", "/test", nil)
 	req.Header.Set("Authorization", "Bearer validtoken")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()

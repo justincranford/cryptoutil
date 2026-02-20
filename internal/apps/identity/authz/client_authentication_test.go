@@ -40,7 +40,7 @@ func TestClientAuthentication_BasicAuth_InvalidFormat(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic invalid-base64")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -74,7 +74,7 @@ func TestClientAuthentication_BasicAuth_InvalidClientID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+encoded)
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -104,7 +104,7 @@ func TestClientAuthentication_PostAuth_MissingClientID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {
@@ -135,7 +135,7 @@ func TestClientAuthentication_PostAuth_InvalidClientID(t *testing.T) {
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(reqBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() {

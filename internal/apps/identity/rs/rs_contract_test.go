@@ -44,7 +44,7 @@ func TestRSContractPublicHealth(t *testing.T) {
 
 	// Test GET /health endpoint (not /api/v1/public/health).
 	req := httptest.NewRequest(http.MethodGet, "https://localhost:8082/health", nil)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, -1)
 	require.NoError(t, err, "Failed to execute request")
 
 	defer func() {
