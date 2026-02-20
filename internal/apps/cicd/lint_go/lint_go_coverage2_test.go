@@ -10,10 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoCryptoRand "cryptoutil/internal/apps/cicd/lint_go/crypto_rand"
+	lintGoInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_go/insecure_skip_verify"
 )
 
-// TestCheckCryptoRandInDir_WalkError verifies that checkCryptoRandInDir
-// returns error when findMathRandViolationsInDir returns a walk error.
+// TestCheckCryptoRandInDir_WalkError verifies that lintGoCryptoRand.CheckInDir
+// returns error when lintGoCryptoRand.FindMathRandViolationsInDir returns a walk error.
 func TestCheckCryptoRandInDir_WalkError(t *testing.T) {
 	t.Parallel()
 
@@ -26,13 +28,13 @@ func TestCheckCryptoRandInDir_WalkError(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
 
-	err = checkCryptoRandInDir(logger, tmpDir)
+	err = lintGoCryptoRand.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should return error when walk fails")
 	require.Contains(t, err.Error(), "failed to check math/rand usage")
 }
 
-// TestCheckInsecureSkipVerifyInDir_WalkError verifies that checkInsecureSkipVerifyInDir
-// returns error when findInsecureSkipVerifyViolationsInDir returns a walk error.
+// TestCheckInsecureSkipVerifyInDir_WalkError verifies that lintGoInsecureSkipVerify.CheckInDir
+// returns error when lintGoInsecureSkipVerify.FindInsecureSkipVerifyViolationsInDir returns a walk error.
 func TestCheckInsecureSkipVerifyInDir_WalkError(t *testing.T) {
 	t.Parallel()
 
@@ -45,7 +47,7 @@ func TestCheckInsecureSkipVerifyInDir_WalkError(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
 
-	err = checkInsecureSkipVerifyInDir(logger, tmpDir)
+	err = lintGoInsecureSkipVerify.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should return error when walk fails")
 	require.Contains(t, err.Error(), "failed to check InsecureSkipVerify")
 }

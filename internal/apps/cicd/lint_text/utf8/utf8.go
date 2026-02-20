@@ -20,7 +20,7 @@ logger.Log("Enforcing file encoding (UTF-8 without BOM)")
 
 // Flatten all files from the map into a single slice.
 allFiles := flattenFileMap(filesByExtension)
-finalFiles := filterTextFiles(allFiles)
+finalFiles := FilterTextFiles(allFiles)
 
 if len(finalFiles) == 0 {
 logger.Log("UTF-8 enforcement completed (no files)")
@@ -52,7 +52,7 @@ logger.Log("UTF-8 enforcement completed")
 return nil
 }
 
-func filterTextFiles(allFiles []string) []string {
+func FilterTextFiles(allFiles []string) []string {
 // Apply command-specific filtering (self-exclusion and generated files).
 // Directory-level exclusions already applied by ListAllFiles.
 return cryptoutilCmdCicdCommon.FilterFilesForCommand(allFiles, "lint-text")
@@ -75,7 +75,7 @@ go func() {
 defer wg.Done()
 
 for filePath := range fileChan {
-if issues := checkFileEncoding(filePath); len(issues) > 0 {
+if issues := CheckFileEncoding(filePath); len(issues) > 0 {
 var violations []string
 for _, issue := range issues {
 violations = append(violations, fmt.Sprintf("%s: %s", filePath, issue))
@@ -115,7 +115,7 @@ violationsMutex.Unlock()
 return encodingViolations
 }
 
-func checkFileEncoding(filePath string) []string {
+func CheckFileEncoding(filePath string) []string {
 var issues []string
 
 file, err := os.Open(filePath)

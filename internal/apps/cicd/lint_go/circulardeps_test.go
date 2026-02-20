@@ -11,6 +11,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	lintGoCircularDeps "cryptoutil/internal/apps/cicd/lint_go/circular_deps"
 
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +23,7 @@ func TestCheckDependencies_MalformedJSON(t *testing.T) {
 invalid json line
 {"ImportPath": "example.com/pkg/b", "Imports": []}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to decode package info")
 }
@@ -35,7 +36,7 @@ func TestCheckDependencies_ComplexCycle(t *testing.T) {
 {"ImportPath": "example.com/pkg/c", "Imports": ["example.com/pkg/d"]}
 {"ImportPath": "example.com/pkg/d", "Imports": ["example.com/pkg/a"]}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "circular dependency")
 }
@@ -45,7 +46,7 @@ func TestCheckDependencies_SelfReference(t *testing.T) {
 
 	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": ["example.com/pkg/a"]}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "circular dependency")
 }
@@ -58,7 +59,7 @@ func TestCheckDependencies_MultipleDisconnectedGraphs(t *testing.T) {
 {"ImportPath": "example.com/pkg/c", "Imports": ["example.com/pkg/d"]}
 {"ImportPath": "example.com/pkg/d", "Imports": []}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.NoError(t, err)
 }
 
@@ -72,7 +73,7 @@ func TestCheckDependencies_MixedModulePrefixes(t *testing.T) {
 {"ImportPath": "example.com/pkg/b", "Imports": []}
 {"ImportPath": "other.org/different/pkg", "Imports": ["other.org/different/another"]}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.NoError(t, err, "Packages from different module prefixes should be handled")
 }
 
@@ -85,7 +86,7 @@ func TestGetModulePath_MultiplePackages(t *testing.T) {
 		"example.com/pkg/c": {},
 	}
 
-	result := getModulePath(packages)
+	result := lintGoCircularDeps.GetModulePath(packages)
 	require.Equal(t, "example.com", result)
 }
 
@@ -97,7 +98,7 @@ func TestGetModulePath_DifferentPrefixes(t *testing.T) {
 		"github.com/user/repo/pkg/b": {},
 	}
 
-	result := getModulePath(packages)
+	result := lintGoCircularDeps.GetModulePath(packages)
 	require.Equal(t, "github.com", result)
 }
 
@@ -126,11 +127,11 @@ func TestCheckCircularDeps_Integration(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
 	// First call: cache miss - performs actual check.
-	err = checkCircularDeps(logger)
+	err = lintGoCircularDeps.Check(logger)
 	require.NoError(t, err, "Project should have no circular dependencies")
 
 	// Second call: cache hit - uses cached result.
-	err = checkCircularDeps(logger)
+	err = lintGoCircularDeps.Check(logger)
 	require.NoError(t, err, "Cached result should indicate no circular dependencies")
 
 	// Clean up cache file.
@@ -168,7 +169,7 @@ func TestCheckCircularDeps_CachedWithCircularDeps(t *testing.T) {
 		CircularDeps:    []string{"pkg/a -> pkg/b -> pkg/a"},
 	}
 
-	err = saveCircularDepCache(cacheFile, cache)
+	err = lintGoCircularDeps.SaveCircularDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
 	defer func() {
@@ -178,7 +179,7 @@ func TestCheckCircularDeps_CachedWithCircularDeps(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
 	// Call should use cached result and return error.
-	err = checkCircularDeps(logger)
+	err = lintGoCircularDeps.Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "circular dependencies detected (cached)")
 }
@@ -216,7 +217,7 @@ func TestCheckCircularDeps_ExpiredCache(t *testing.T) {
 		CircularDeps:    []string{},
 	}
 
-	err = saveCircularDepCache(cacheFile, cache)
+	err = lintGoCircularDeps.SaveCircularDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
 	defer func() {
@@ -226,7 +227,7 @@ func TestCheckCircularDeps_ExpiredCache(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
 	// Call should detect expired cache and perform fresh check.
-	err = checkCircularDeps(logger)
+	err = lintGoCircularDeps.Check(logger)
 	require.NoError(t, err, "Fresh check should pass (project has no circular deps)")
 }
 
@@ -259,7 +260,7 @@ func TestCheckCircularDeps_GoModChanged(t *testing.T) {
 		CircularDeps:    []string{},
 	}
 
-	err = saveCircularDepCache(cacheFile, cache)
+	err = lintGoCircularDeps.SaveCircularDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
 	defer func() {
@@ -269,7 +270,7 @@ func TestCheckCircularDeps_GoModChanged(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
 	// Call should detect go.mod change and perform fresh check.
-	err = checkCircularDeps(logger)
+	err = lintGoCircularDeps.Check(logger)
 	require.NoError(t, err, "Fresh check should pass (project has no circular deps)")
 }
 
@@ -309,7 +310,7 @@ func main() { module.Do() }
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
 	// Call should fail because go list will fail on missing module.
-	err = checkCircularDeps(logger)
+	err = lintGoCircularDeps.Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to run go list")
 }
@@ -358,9 +359,9 @@ func B() { a.A() }
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-circulardeps")
 
 	// Call should detect circular dependencies during fresh check.
-	// Note: go list may fail with import cycle error before CheckDependencies runs,
+	// Note: go list may fail with import cycle error before lintGoCircularDeps.CheckDependencies runs,
 	// so we accept either "failed to run go list" or "circular dependency".
-	err = checkCircularDeps(logger)
+	err = lintGoCircularDeps.Check(logger)
 	require.Error(t, err)
 	// The Go toolchain detects import cycles at compile time, so go list fails.
 	require.True(t, strings.Contains(err.Error(), "failed to run go list") ||
@@ -390,7 +391,7 @@ func TestSaveCircularDepCache_DirectoryCreationError(t *testing.T) {
 
 	// Try to save cache to a path inside the file (impossible).
 	invalidPath := tempFile.Name() + "/cache.json"
-	err = saveCircularDepCache(invalidPath, cache)
+	err = lintGoCircularDeps.SaveCircularDepCache(invalidPath, cache)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to create output directory")
 }
@@ -425,7 +426,7 @@ func TestSaveCircularDepCache_WriteFileError(t *testing.T) {
 	}()
 
 	// Try to save - MkdirAll succeeds (dir exists) but WriteFile should fail.
-	err := saveCircularDepCache(cacheFile, cache)
+	err := lintGoCircularDeps.SaveCircularDepCache(cacheFile, cache)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to write cache file")
 }

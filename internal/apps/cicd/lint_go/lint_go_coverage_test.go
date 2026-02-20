@@ -11,18 +11,22 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoCryptoRand "cryptoutil/internal/apps/cicd/lint_go/crypto_rand"
+	lintGoInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_go/insecure_skip_verify"
+	lintGoLeftoverCoverage "cryptoutil/internal/apps/cicd/lint_go/leftover_coverage"
+	lintGoCmdMainPattern "cryptoutil/internal/apps/cicd/lint_go/cmd_main_pattern"
 )
 
-// TestCheckMainGoFile_ReadError verifies that checkMainGoFile returns error when file cannot be read.
+// TestCheckMainGoFile_ReadError verifies that lintGoCmdMainPattern.CheckMainGoFile returns error when file cannot be read.
 func TestCheckMainGoFile_ReadError(t *testing.T) {
 	t.Parallel()
 
-	err := checkMainGoFile("/nonexistent/path/main.go")
+	err := lintGoCmdMainPattern.CheckMainGoFile("/nonexistent/path/main.go")
 	require.Error(t, err, "Should return error for nonexistent file")
 	require.Contains(t, err.Error(), "failed to read file")
 }
 
-// TestCheckMainGoFile_PatternMismatch verifies that checkMainGoFile returns error when
+// TestCheckMainGoFile_PatternMismatch verifies that lintGoCmdMainPattern.CheckMainGoFile returns error when
 // the file does not match the required main() pattern.
 func TestCheckMainGoFile_PatternMismatch(t *testing.T) {
 	t.Parallel()
@@ -39,12 +43,12 @@ func main() {
 	err := os.WriteFile(mainFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkMainGoFile(mainFile)
+	err = lintGoCmdMainPattern.CheckMainGoFile(mainFile)
 	require.Error(t, err, "Should return error for non-matching pattern")
 	require.Contains(t, err.Error(), "does not match required pattern")
 }
 
-// TestCheckCmdMainPatternInDir_NoCmdDir verifies that checkCmdMainPatternInDir returns nil
+// TestCheckCmdMainPatternInDir_NoCmdDir verifies that lintGoCmdMainPattern.CheckInDir returns nil
 // when there is no cmd/ directory.
 func TestCheckCmdMainPatternInDir_NoCmdDir(t *testing.T) {
 	t.Parallel()
@@ -53,11 +57,11 @@ func TestCheckCmdMainPatternInDir_NoCmdDir(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// tmpDir has no cmd/ subdirectory.
-	err := checkCmdMainPatternInDir(logger, tmpDir)
+	err := lintGoCmdMainPattern.CheckInDir(logger, tmpDir)
 	require.NoError(t, err, "Should succeed when no cmd/ directory found")
 }
 
-// TestCheckCmdMainPatternInDir_WithViolation verifies that checkCmdMainPatternInDir
+// TestCheckCmdMainPatternInDir_WithViolation verifies that lintGoCmdMainPattern.CheckInDir
 // returns error when main.go does not match the required pattern.
 func TestCheckCmdMainPatternInDir_WithViolation(t *testing.T) {
 	t.Parallel()
@@ -81,12 +85,12 @@ func main() {
 	err = os.WriteFile(mainFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkCmdMainPatternInDir(logger, tmpDir)
+	err = lintGoCmdMainPattern.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should return error for non-matching main.go")
 	require.Contains(t, err.Error(), "cmd/ main() pattern violations")
 }
 
-// TestCheckCryptoRandInDir_WithViolation verifies that checkCryptoRandInDir returns
+// TestCheckCryptoRandInDir_WithViolation verifies that lintGoCryptoRand.CheckInDir returns
 // an error when a Go file uses math/rand.
 func TestCheckCryptoRandInDir_WithViolation(t *testing.T) {
 	t.Parallel()
@@ -107,12 +111,12 @@ func getNum() int {
 	err := os.WriteFile(violationFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkCryptoRandInDir(logger, tmpDir)
+	err = lintGoCryptoRand.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should return error when math/rand is used")
 	require.Contains(t, err.Error(), "math/rand violations")
 }
 
-// TestCheckCryptoRandInDir_Clean verifies that checkCryptoRandInDir returns nil
+// TestCheckCryptoRandInDir_Clean verifies that lintGoCryptoRand.CheckInDir returns nil
 // when no math/rand violations are found.
 func TestCheckCryptoRandInDir_Clean(t *testing.T) {
 	t.Parallel()
@@ -126,11 +130,11 @@ func TestCheckCryptoRandInDir_Clean(t *testing.T) {
 	err := os.WriteFile(cleanFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkCryptoRandInDir(logger, tmpDir)
+	err = lintGoCryptoRand.CheckInDir(logger, tmpDir)
 	require.NoError(t, err, "Should pass when no math/rand is used")
 }
 
-// TestCheckInsecureSkipVerifyInDir_WithViolation verifies that checkInsecureSkipVerifyInDir
+// TestCheckInsecureSkipVerifyInDir_WithViolation verifies that lintGoInsecureSkipVerify.CheckInDir
 // returns error when InsecureSkipVerify: true is found in production code.
 func TestCheckInsecureSkipVerifyInDir_WithViolation(t *testing.T) {
 	t.Parallel()
@@ -153,12 +157,12 @@ func getClient() *tls.Config {
 	err := os.WriteFile(violationFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkInsecureSkipVerifyInDir(logger, tmpDir)
+	err = lintGoInsecureSkipVerify.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should return error when InsecureSkipVerify: true is used")
 	require.Contains(t, err.Error(), "InsecureSkipVerify violations")
 }
 
-// TestCheckInsecureSkipVerifyInDir_Clean verifies that checkInsecureSkipVerifyInDir
+// TestCheckInsecureSkipVerifyInDir_Clean verifies that lintGoInsecureSkipVerify.CheckInDir
 // returns nil when no InsecureSkipVerify violations are found.
 func TestCheckInsecureSkipVerifyInDir_Clean(t *testing.T) {
 	t.Parallel()
@@ -172,7 +176,7 @@ func TestCheckInsecureSkipVerifyInDir_Clean(t *testing.T) {
 	err := os.WriteFile(cleanFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkInsecureSkipVerifyInDir(logger, tmpDir)
+	err = lintGoInsecureSkipVerify.CheckInDir(logger, tmpDir)
 	require.NoError(t, err, "Should pass when no InsecureSkipVerify usage found")
 }
 
@@ -194,7 +198,7 @@ func TestHelper() int {
 	err := os.WriteFile(testFile, content, 0o600)
 	require.NoError(t, err)
 
-	violations, err := findMathRandViolationsInDir(tmpDir)
+	violations, err := lintGoCryptoRand.FindMathRandViolationsInDir(tmpDir)
 	require.NoError(t, err)
 	require.Empty(t, violations, "Test files should be skipped for math/rand check")
 }
@@ -217,7 +221,7 @@ func get() int {
 	err := os.WriteFile(nolintFile, content, 0o600)
 	require.NoError(t, err)
 
-	violations, err := findMathRandViolationsInDir(tmpDir)
+	violations, err := lintGoCryptoRand.FindMathRandViolationsInDir(tmpDir)
 	require.NoError(t, err)
 	require.Empty(t, violations, "Files with nolint should be skipped")
 }
@@ -240,7 +244,7 @@ func TestHelper() *tls.Config {
 	err := os.WriteFile(testFile, content, 0o600)
 	require.NoError(t, err)
 
-	violations, err := findInsecureSkipVerifyViolationsInDir(tmpDir)
+	violations, err := lintGoInsecureSkipVerify.FindInsecureSkipVerifyViolationsInDir(tmpDir)
 	require.NoError(t, err)
 	require.Empty(t, violations, "Test files should be skipped for InsecureSkipVerify check")
 }
@@ -269,7 +273,7 @@ func get() int { return rand.Intn(100) }
 	err = os.WriteFile(violationFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkCryptoRandInDir(logger, tmpDir)
+	err = lintGoCryptoRand.CheckInDir(logger, tmpDir)
 	require.NoError(t, err, "testing/ directory should be excluded from math/rand check")
 }
 
@@ -296,7 +300,7 @@ func Helper() *tls.Config { return &tls.Config{InsecureSkipVerify: true} }
 	err = os.WriteFile(violationFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = checkInsecureSkipVerifyInDir(logger, tmpDir)
+	err = lintGoInsecureSkipVerify.CheckInDir(logger, tmpDir)
 	require.NoError(t, err, "testing/ directory should be excluded")
 }
 
@@ -313,7 +317,7 @@ func TestCheckLeftoverCoverageInDir_WithCoverageFiles(t *testing.T) {
 	err := os.WriteFile(covFile, []byte("mode: atomic\n"), 0o600)
 	require.NoError(t, err)
 
-	err = checkLeftoverCoverageInDir(logger, tmpDir)
+	err = lintGoLeftoverCoverage.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should return error when coverage files found")
 	require.Contains(t, err.Error(), "found and deleted")
 
@@ -334,7 +338,7 @@ func TestCheckLeftoverCoverageInDir_Clean(t *testing.T) {
 	err := os.WriteFile(goFile, []byte("package main\n"), 0o600)
 	require.NoError(t, err)
 
-	err = checkLeftoverCoverageInDir(logger, tmpDir)
+	err = lintGoLeftoverCoverage.CheckInDir(logger, tmpDir)
 	require.NoError(t, err, "Should pass when no coverage files exist")
 }
 
@@ -345,16 +349,16 @@ func TestMatchesCoveragePattern_ComplexWildcard(t *testing.T) {
 	t.Parallel()
 
 	// "mycoverage.html" matches *coverage*.html via filepath.Match (case-sensitive).
-	require.True(t, matchesCoveragePattern("mycoverage.html"),
+	require.True(t, lintGoLeftoverCoverage.MatchesCoveragePattern("mycoverage.html"),
 		"mycoverage.html should match *coverage*.html")
 
 	// "MYCOVERAGE.HTML" (uppercase) bypasses filepath.Match on Linux (case-sensitive)
 	// and is matched by the case-insensitive complex wildcard fallback.
-	require.True(t, matchesCoveragePattern("MYCOVERAGE.HTML"),
+	require.True(t, lintGoLeftoverCoverage.MatchesCoveragePattern("MYCOVERAGE.HTML"),
 		"MYCOVERAGE.HTML should match *coverage*.html via case-insensitive fallback")
 
 	// "notafile.go" should not match.
-	require.False(t, matchesCoveragePattern("notafile.go"),
+	require.False(t, lintGoLeftoverCoverage.MatchesCoveragePattern("notafile.go"),
 		"notafile.go should not match any coverage pattern")
 }
 
@@ -362,15 +366,15 @@ func TestMatchesCoveragePattern_ComplexWildcard(t *testing.T) {
 func TestMatchesCoveragePattern_CoverageOut(t *testing.T) {
 	t.Parallel()
 
-	require.True(t, matchesCoveragePattern("coverage.out"),
+	require.True(t, lintGoLeftoverCoverage.MatchesCoveragePattern("coverage.out"),
 		"coverage.out should match *.out pattern")
-	require.True(t, matchesCoveragePattern("profile.prof"),
+	require.True(t, lintGoLeftoverCoverage.MatchesCoveragePattern("profile.prof"),
 		"profile.prof should match *.prof pattern")
-	require.False(t, matchesCoveragePattern("main.go"),
+	require.False(t, lintGoLeftoverCoverage.MatchesCoveragePattern("main.go"),
 		"main.go should not match any coverage pattern")
 }
 
-// TestCheckLeftoverCoverageInDir_UnreadableSubdir verifies that checkLeftoverCoverageInDir
+// TestCheckLeftoverCoverageInDir_UnreadableSubdir verifies that lintGoLeftoverCoverage.CheckInDir
 // returns error when a subdirectory cannot be accessed during the walk.
 func TestCheckLeftoverCoverageInDir_UnreadableSubdir(t *testing.T) {
 	t.Parallel()
@@ -388,7 +392,7 @@ func TestCheckLeftoverCoverageInDir_UnreadableSubdir(t *testing.T) {
 		_ = os.Chmod(unaccessibleDir, 0o700)
 	})
 
-	err = checkLeftoverCoverageInDir(logger, tmpDir)
+	err = lintGoLeftoverCoverage.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should return error when subdirectory cannot be read")
 	require.Contains(t, err.Error(), "failed to walk")
 }
@@ -421,11 +425,11 @@ func TestCheckLeftoverCoverageInDir_RemoveError(t *testing.T) {
 	})
 
 	// With no successful deletions, deletedFiles is empty and function returns nil.
-	err = checkLeftoverCoverageInDir(logger, tmpDir)
+	err = lintGoLeftoverCoverage.CheckInDir(logger, tmpDir)
 	require.NoError(t, err, "Should not error when no file was successfully removed")
 }
 
-// TestCheckCmdMainPatternInDir_WalkError verifies that checkCmdMainPatternInDir
+// TestCheckCmdMainPatternInDir_WalkError verifies that lintGoCmdMainPattern.CheckInDir
 // returns error when a cmd/ subdirectory is not accessible during the walk.
 func TestCheckCmdMainPatternInDir_WalkError(t *testing.T) {
 	t.Parallel()
@@ -449,12 +453,12 @@ func TestCheckCmdMainPatternInDir_WalkError(t *testing.T) {
 
 	t.Cleanup(func() { _ = os.Chmod(cmdDir, 0o700) })
 
-	err = checkCmdMainPatternInDir(logger, tmpDir)
+	err = lintGoCmdMainPattern.CheckInDir(logger, tmpDir)
 	require.Error(t, err, "Should error when cmd subdirectory is not accessible")
 	require.Contains(t, err.Error(), "failed to walk cmd directory")
 }
 
-// TestFindMathRandViolationsInDir_WalkDirError verifies that findMathRandViolationsInDir
+// TestFindMathRandViolationsInDir_WalkDirError verifies that lintGoCryptoRand.FindMathRandViolationsInDir
 // returns error when a subdirectory is inaccessible during the walk.
 func TestFindMathRandViolationsInDir_WalkDirError(t *testing.T) {
 	t.Parallel()
@@ -468,7 +472,7 @@ func TestFindMathRandViolationsInDir_WalkDirError(t *testing.T) {
 
 	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
 
-	violations, err := findMathRandViolationsInDir(tmpDir)
+	violations, err := lintGoCryptoRand.FindMathRandViolationsInDir(tmpDir)
 	require.Error(t, err, "Should error when a subdirectory cannot be accessed")
 	require.Nil(t, violations)
 }
@@ -485,7 +489,7 @@ func TestFindInsecureSkipVerifyViolationsInDir_WalkDirError(t *testing.T) {
 
 	t.Cleanup(func() { _ = os.Chmod(badDir, 0o700) })
 
-	violations, err := findInsecureSkipVerifyViolationsInDir(tmpDir)
+	violations, err := lintGoInsecureSkipVerify.FindInsecureSkipVerifyViolationsInDir(tmpDir)
 	require.Error(t, err, "Should error when a subdirectory cannot be accessed")
 	require.Nil(t, violations)
 }

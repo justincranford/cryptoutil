@@ -11,6 +11,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	lintGoCircularDeps "cryptoutil/internal/apps/cicd/lint_go/circular_deps"
 
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +33,7 @@ func TestCheckDependencies_NoCycles(t *testing.T) {
 {"ImportPath": "example.com/pkg/b", "Imports": ["example.com/pkg/c"]}
 {"ImportPath": "example.com/pkg/c", "Imports": []}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.NoError(t, err, "Should not detect cycles in acyclic graph")
 }
 
@@ -44,7 +45,7 @@ func TestCheckDependencies_WithCycle(t *testing.T) {
 {"ImportPath": "example.com/pkg/b", "Imports": ["example.com/pkg/c"]}
 {"ImportPath": "example.com/pkg/c", "Imports": ["example.com/pkg/a"]}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.Error(t, err, "Should detect cycle")
 	require.Contains(t, err.Error(), "circular dependency", "Error should mention circular dependency")
 }
@@ -52,7 +53,7 @@ func TestCheckDependencies_WithCycle(t *testing.T) {
 func TestCheckDependencies_EmptyOutput(t *testing.T) {
 	t.Parallel()
 
-	err := CheckDependencies("")
+	err := lintGoCircularDeps.CheckDependencies("")
 	require.NoError(t, err, "Empty output should not cause error")
 }
 
@@ -61,7 +62,7 @@ func TestCheckDependencies_SinglePackage(t *testing.T) {
 
 	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": []}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.NoError(t, err, "Single package with no imports should not cause error")
 }
 
@@ -72,7 +73,7 @@ func TestCheckDependencies_ExternalDepsIgnored(t *testing.T) {
 	goListOutput := `{"ImportPath": "example.com/pkg/a", "Imports": ["github.com/external/pkg", "example.com/pkg/b"]}
 {"ImportPath": "example.com/pkg/b", "Imports": ["fmt", "github.com/another/pkg"]}`
 
-	err := CheckDependencies(goListOutput)
+	err := lintGoCircularDeps.CheckDependencies(goListOutput)
 	require.NoError(t, err, "External dependencies should be ignored")
 }
 
@@ -102,7 +103,7 @@ func TestGetModulePath(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := getModulePath(tc.packages)
+			result := lintGoCircularDeps.GetModulePath(tc.packages)
 			require.Equal(t, tc.expected, result)
 		})
 	}
@@ -112,7 +113,7 @@ func TestGetModulePath(t *testing.T) {
 func TestLoadCircularDepCache_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	cache, err := loadCircularDepCache("nonexistent-file-12345.json")
+	cache, err := lintGoCircularDeps.LoadCircularDepCache("nonexistent-file-12345.json")
 	require.Error(t, err)
 	require.Nil(t, cache)
 	require.Contains(t, err.Error(), "failed to read cache file")
@@ -127,7 +128,7 @@ func TestLoadCircularDepCache_InvalidJSON(t *testing.T) {
 	err := os.WriteFile(tmpFile, []byte("{invalid json}"), 0o600)
 	require.NoError(t, err)
 
-	cache, err := loadCircularDepCache(tmpFile)
+	cache, err := lintGoCircularDeps.LoadCircularDepCache(tmpFile)
 	require.Error(t, err)
 	require.Nil(t, cache)
 	require.Contains(t, err.Error(), "failed to unmarshal cache JSON")
@@ -148,7 +149,7 @@ func TestSaveLoadCircularDepCache_RoundTrip(t *testing.T) {
 	}
 
 	// Save cache.
-	err := saveCircularDepCache(tmpFile, original)
+	err := lintGoCircularDeps.SaveCircularDepCache(tmpFile, original)
 	require.NoError(t, err)
 
 	// Verify file exists.
@@ -156,7 +157,7 @@ func TestSaveLoadCircularDepCache_RoundTrip(t *testing.T) {
 	require.NoError(t, err)
 
 	// Load cache.
-	loaded, err := loadCircularDepCache(tmpFile)
+	loaded, err := lintGoCircularDeps.LoadCircularDepCache(tmpFile)
 	require.NoError(t, err)
 	require.NotNil(t, loaded)
 
@@ -181,7 +182,7 @@ func TestSaveCircularDepCache_CreateDirectory(t *testing.T) {
 		CircularDeps:    []string{},
 	}
 
-	err := saveCircularDepCache(cacheFile, cache)
+	err := lintGoCircularDeps.SaveCircularDepCache(cacheFile, cache)
 	require.NoError(t, err)
 
 	// Verify file and directory exist.

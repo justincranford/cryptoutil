@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_go
+// Package magic_usage verifies that magic constants are properly defined and used in magic files.
+package magic_usage
 
 import (
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
 )
 
 // magicUsageKind classifies how a magic value appears outside the magic package.
@@ -36,22 +38,22 @@ type magicUsageViolation struct {
 	MagicName    string
 }
 
-// checkMagicUsage is a LinterFunc that builds an inventory of the magic package
+// Check is a LinterFunc that builds an inventory of the magic package
 // and then walks the project tree, flagging any Go source file that:
 //   - uses a magic constant's literal value as a bare expression literal, or
 //   - redeclares that value as a local const outside the magic package.
 //
 // This catches violations that fall through goconst (requires >=2 occurrences
 // per file) and mnd (numbers only; strings ignored).
-func checkMagicUsage(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return checkMagicUsageInDir(logger, magicDefaultDir, ".")
+func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return CheckMagicUsageInDir(logger, lintGoCommon.MagicDefaultDir, ".")
 }
 
-// checkMagicUsageInDir is the testable implementation with explicit directory arguments.
-func checkMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, rootDir string) error {
+// CheckMagicUsageInDir is the testable implementation with explicit directory arguments.
+func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, rootDir string) error {
 	logger.Log("Checking for magic values used as literals outside the magic package...")
 
-	inv, err := parseMagicDir(magicDir)
+	inv, err := lintGoCommon.ParseMagicDir(magicDir)
 	if err != nil {
 		return fmt.Errorf("failed to parse magic package: %w", err)
 	}
@@ -90,19 +92,19 @@ func checkMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 			}
 
 			relDir, _ := filepath.Rel(absRootDir, path)
-			if magicShouldSkipPath(relDir) {
+			if lintGoCommon.MagicShouldSkipPath(relDir) {
 				return filepath.SkipDir
 			}
 
 			return nil
 		}
 
-		if !strings.HasSuffix(path, ".go") || isMagicGeneratedFile(filepath.Base(path)) {
+		if !strings.HasSuffix(path, ".go") || lintGoCommon.IsMagicGeneratedFile(filepath.Base(path)) {
 			return nil
 		}
 
 		relPath, _ := filepath.Rel(absRootDir, path)
-		if magicShouldSkipPath(relPath) {
+		if lintGoCommon.MagicShouldSkipPath(relPath) {
 			return nil
 		}
 
@@ -145,7 +147,7 @@ func checkMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 
 // scanMagicFile parses one Go source file and returns all magic-usage violations.
 // isTestFile controls whether test-only magic constants are checked.
-func scanMagicFile(absPath, relPath string, inv *magicInventory, isTestFile bool) []magicUsageViolation {
+func scanMagicFile(absPath, relPath string, inv *lintGoCommon.MagicInventory, isTestFile bool) []magicUsageViolation {
 	fset := token.NewFileSet()
 
 	file, err := parser.ParseFile(fset, absPath, nil, 0)
@@ -168,7 +170,7 @@ func scanMagicFile(absPath, relPath string, inv *magicInventory, isTestFile bool
 // magicUsageVisitor walks an AST recording BasicLit nodes whose value matches a magic constant.
 type magicUsageVisitor struct {
 	fset        *token.FileSet
-	inv         *magicInventory
+	inv         *lintGoCommon.MagicInventory
 	relFile     string
 	insideConst bool
 	isTestFile  bool
@@ -211,7 +213,7 @@ func (v *magicUsageVisitor) Visit(node ast.Node) ast.Visitor {
 // checkLiteral records a violation if the literal value matches a magic constant.
 // Test-only magic constants are only checked when isTestFile is true.
 func (v *magicUsageVisitor) checkLiteral(lit *ast.BasicLit) {
-	if isMagicTrivialLiteral(lit) {
+	if lintGoCommon.IsMagicTrivialLiteral(lit) {
 		return
 	}
 
@@ -221,7 +223,7 @@ func (v *magicUsageVisitor) checkLiteral(lit *ast.BasicLit) {
 	}
 
 	// Prefer the first non-test constant as the canonical reference.
-	var mc *magicConstant
+	var mc *lintGoCommon.MagicConstant
 
 	for i := range consts {
 		if !consts[i].IsTestConst {

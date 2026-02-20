@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoNoUnaliasedImports "cryptoutil/internal/apps/cicd/lint_go/no_unaliased_cryptoutil_imports"
+	lintGoNonFIPSAlgorithms "cryptoutil/internal/apps/cicd/lint_go/non_fips_algorithms"
 
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +40,7 @@ func main() {
 	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkGoFileForUnaliasedCryptoutilImports(cleanFile)
+	violations, err := lintGoNoUnaliasedImports.CheckGoFileForUnaliasedCryptoutilImports(cleanFile)
 	require.NoError(t, err)
 	require.Empty(t, violations, "Properly aliased imports should have no violations")
 }
@@ -60,7 +62,7 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_Unaliased(t *testing.T) {
 	err := os.WriteFile(unaliasedFile, []byte(content.String()), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkGoFileForUnaliasedCryptoutilImports(unaliasedFile)
+	violations, err := lintGoNoUnaliasedImports.CheckGoFileForUnaliasedCryptoutilImports(unaliasedFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, violations, "Unaliased cryptoutil import should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "unaliased cryptoutil import detected")
@@ -83,7 +85,7 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_SingleLineImport(t *testing.T)
 	err := os.WriteFile(singleLineFile, []byte(content.String()), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkGoFileForUnaliasedCryptoutilImports(singleLineFile)
+	violations, err := lintGoNoUnaliasedImports.CheckGoFileForUnaliasedCryptoutilImports(singleLineFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, violations, "Single-line unaliased import should be detected")
 }
@@ -91,7 +93,7 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_SingleLineImport(t *testing.T)
 func TestCheckGoFileForUnaliasedCryptoutilImports_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	violations, err := checkGoFileForUnaliasedCryptoutilImports("/nonexistent/path/file.go")
+	violations, err := lintGoNoUnaliasedImports.CheckGoFileForUnaliasedCryptoutilImports("/nonexistent/path/file.go")
 	require.Error(t, err)
 	require.Nil(t, violations)
 	require.Contains(t, err.Error(), "failed to open")
@@ -108,7 +110,7 @@ func TestPrintCryptoutilImportViolations(t *testing.T) {
 		"file2.go:10: unaliased cryptoutil import detected",
 	}
 
-	printCryptoutilImportViolations(violations)
+	lintGoNoUnaliasedImports.PrintCryptoutilImportViolations(violations)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -140,7 +142,7 @@ func TestFindUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
 
 	// Test - should have no violations.
-	violations, err := findUnaliasedCryptoutilImports()
+	violations, err := lintGoNoUnaliasedImports.FindUnaliasedCryptoutilImports()
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -170,7 +172,7 @@ func TestFindGoFiles_WithTempDir(t *testing.T) {
 	require.NoError(t, os.WriteFile("vendor/vendored.go", []byte("package vendor\n"), 0o600))
 
 	// Test - should find main.go and util.go, but NOT test files, vendor files.
-	files, err := findGoFiles()
+	files, err := lintGoNonFIPSAlgorithms.FindGoFiles()
 	require.NoError(t, err)
 	require.Len(t, files, 2)
 }
@@ -196,7 +198,7 @@ func TestCheckNoUnaliasedCryptoutilImports_WithTempDir(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// Test - should pass with no violations.
-	err = checkNoUnaliasedCryptoutilImports(logger)
+	err = lintGoNoUnaliasedImports.Check(logger)
 	require.NoError(t, err)
 }
 
@@ -223,7 +225,7 @@ func TestCheckNonFIPS_WithTempDir(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// Test - should pass with FIPS-compliant code.
-	err = checkNonFIPS(logger)
+	err = lintGoNonFIPSAlgorithms.Check(logger)
 	require.NoError(t, err)
 }
 
@@ -254,7 +256,7 @@ func TestCheckNoUnaliasedCryptoutilImports_WithViolations(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// Test - should fail with violations.
-	err = checkNoUnaliasedCryptoutilImports(logger)
+	err = lintGoNoUnaliasedImports.Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unaliased cryptoutil imports")
 }
@@ -290,7 +292,7 @@ func TestFindUnaliasedCryptoutilImports_ErrorPath(t *testing.T) {
 	}()
 
 	// Test - should get error from reading file.
-	_, err = findUnaliasedCryptoutilImports()
+	_, err = lintGoNoUnaliasedImports.FindUnaliasedCryptoutilImports()
 	require.Error(t, err)
 }
 
@@ -316,7 +318,7 @@ func TestCheckNonFIPS_WithViolations(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// Test - should fail with violations.
-	err = checkNonFIPS(logger)
+	err = lintGoNonFIPSAlgorithms.Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "non-FIPS algorithm violations")
 }
@@ -353,7 +355,7 @@ func TestFindGoFiles_ErrorPath(t *testing.T) {
 	}()
 
 	// Test - should get error from walking directory.
-	_, err = findGoFiles()
+	_, err = lintGoNonFIPSAlgorithms.FindGoFiles()
 	require.Error(t, err)
 }
 

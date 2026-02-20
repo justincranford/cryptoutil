@@ -289,7 +289,7 @@ func TestLint_WithValidationError(t *testing.T) {
 
 	err := Check(logger, FilterWorkflowFiles(filesByExtension))
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "lint-workflow failed")
+	require.Contains(t, err.Error(), "workflow validation failed")
 }
 
 func TestValidateAndGetWorkflowActionsDetails_PartialFailures(t *testing.T) {

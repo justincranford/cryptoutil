@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoLeftoverCoverage "cryptoutil/internal/apps/cicd/lint_go/leftover_coverage"
 
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +36,7 @@ func TestMatchesCoveragePattern(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := matchesCoveragePattern(tc.filename)
+			got := lintGoLeftoverCoverage.MatchesCoveragePattern(tc.filename)
 			require.Equal(t, tc.want, got)
 		})
 	}
@@ -62,7 +63,7 @@ func TestCheckLeftoverCoverage_NoFiles(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("leftover-coverage-test")
-	err = checkLeftoverCoverage(logger)
+	err = lintGoLeftoverCoverage.Check(logger)
 	require.NoError(t, err)
 }
 
@@ -99,7 +100,7 @@ func TestCheckLeftoverCoverage_WithCoverageFiles(t *testing.T) {
 	}
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("leftover-coverage-test")
-	err = checkLeftoverCoverage(logger)
+	err = lintGoLeftoverCoverage.Check(logger)
 
 	// Should return error because files were found and deleted.
 	require.Error(t, err)

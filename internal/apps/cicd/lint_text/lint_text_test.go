@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintTextUTF8 "cryptoutil/internal/apps/cicd/lint_text/utf8"
 )
 
 func TestLint_NoFiles(t *testing.T) {
@@ -123,7 +124,7 @@ func TestFilterTextFiles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := filterTextFiles(tc.input)
+			result := lintTextUTF8.FilterTextFiles(tc.input)
 			require.Len(t, result, tc.expected, "Filtered file count should match expected")
 		})
 	}
@@ -169,7 +170,7 @@ func TestCheckFileEncoding(t *testing.T) {
 			err := os.WriteFile(testFile, tc.content, 0o600)
 			require.NoError(t, err)
 
-			issues := checkFileEncoding(testFile)
+			issues := lintTextUTF8.CheckFileEncoding(testFile)
 
 			if tc.expectIssue {
 				require.NotEmpty(t, issues, "Expected encoding issue")
@@ -185,7 +186,7 @@ func TestCheckFileEncoding_FileOpenError(t *testing.T) {
 	t.Parallel()
 
 	// Pass a non-existent file path.
-	issues := checkFileEncoding("/nonexistent/path/to/file.txt")
+	issues := lintTextUTF8.CheckFileEncoding("/nonexistent/path/to/file.txt")
 
 	require.Len(t, issues, 1, "Should return one issue")
 	require.Contains(t, issues[0], "failed to open file", "Issue should indicate file open failure")

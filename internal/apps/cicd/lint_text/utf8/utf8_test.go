@@ -49,7 +49,7 @@ for _, tc := range tests {
 t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
 
-result := filterTextFiles(tc.input)
+result := FilterTextFiles(tc.input)
 require.Len(t, result, tc.expected, "Filtered file count should match expected")
 })
 }
@@ -95,7 +95,7 @@ testFile := filepath.Join(tmpDir, "test.txt")
 err := os.WriteFile(testFile, tc.content, 0o600)
 require.NoError(t, err)
 
-issues := checkFileEncoding(testFile)
+issues := CheckFileEncoding(testFile)
 
 if tc.expectIssue {
 require.NotEmpty(t, issues, "Expected encoding issue")
@@ -111,7 +111,7 @@ func TestCheckFileEncoding_FileOpenError(t *testing.T) {
 t.Parallel()
 
 // Pass a non-existent file path.
-issues := checkFileEncoding("/nonexistent/path/to/file.txt")
+issues := CheckFileEncoding("/nonexistent/path/to/file.txt")
 
 require.Len(t, issues, 1, "Should return one issue")
 require.Contains(t, issues[0], "failed to open file", "Issue should indicate file open failure")

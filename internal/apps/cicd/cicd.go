@@ -111,7 +111,7 @@ func run(commands []string) error {
 		case cmdLintPorts:
 			cmdErr = cryptoutilCmdCicdLintPorts.Lint(logger, filesByExtension)
 		case cmdLintGolangci:
-			cmdErr = cryptoutilCmdCicdLintGolangci.LintGolangCIConfig(logger, filesByExtension)
+				cmdErr = cryptoutilCmdCicdLintGolangci.Lint(logger, filesByExtension)
 		}
 
 		cmdDuration := time.Since(cmdStart)

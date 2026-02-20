@@ -6,6 +6,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	lintGoCryptoRand "cryptoutil/internal/apps/cicd/lint_go/crypto_rand"
+	lintGoInsecureSkipVerify "cryptoutil/internal/apps/cicd/lint_go/insecure_skip_verify"
+	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
 )
 
 func TestCheckCryptoRand_Clean(t *testing.T) {
@@ -29,7 +32,7 @@ func main() {
 	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkFileForMathRand(cleanFile)
+	violations, err := lintGoCryptoRand.CheckFileForMathRand(cleanFile)
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -55,7 +58,7 @@ func main() {
 	err := os.WriteFile(badFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkFileForMathRand(badFile)
+	violations, err := lintGoCryptoRand.CheckFileForMathRand(badFile)
 	require.NoError(t, err)
 	require.Len(t, violations, 2)
 	require.Contains(t, violations[0].Issue, "imports math/rand")
@@ -65,7 +68,7 @@ func main() {
 func TestCheckCryptoRand_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	_, err := checkFileForMathRand("/nonexistent/path.go")
+	_, err := lintGoCryptoRand.CheckFileForMathRand("/nonexistent/path.go")
 	require.Error(t, err)
 }
 
@@ -92,7 +95,7 @@ func main() {
 	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkFileForInsecureSkipVerify(cleanFile)
+	violations, err := lintGoInsecureSkipVerify.CheckFileForInsecureSkipVerify(cleanFile)
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -109,7 +112,7 @@ func TestCheckInsecureSkipVerify_Violation(t *testing.T) {
 	err := os.WriteFile(badFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkFileForInsecureSkipVerify(badFile)
+	violations, err := lintGoInsecureSkipVerify.CheckFileForInsecureSkipVerify(badFile)
 	require.NoError(t, err)
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0].Issue, "disables TLS certificate verification")
@@ -127,7 +130,7 @@ func TestCheckInsecureSkipVerify_WithNolint(t *testing.T) {
 	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkFileForInsecureSkipVerify(cleanFile)
+	violations, err := lintGoInsecureSkipVerify.CheckFileForInsecureSkipVerify(cleanFile)
 	require.NoError(t, err)
 	require.Empty(t, violations) // Should be skipped due to nolint.
 }
@@ -135,29 +138,29 @@ func TestCheckInsecureSkipVerify_WithNolint(t *testing.T) {
 func TestCheckInsecureSkipVerify_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	_, err := checkFileForInsecureSkipVerify("/nonexistent/path.go")
+	_, err := lintGoInsecureSkipVerify.CheckFileForInsecureSkipVerify("/nonexistent/path.go")
 	require.Error(t, err)
 }
 
 func TestPrintMathRandViolations(t *testing.T) {
 	t.Parallel()
 
-	violations := []cryptoViolation{
+	violations := []lintGoCommon.CryptoViolation{
 		{File: "file1.go", Line: 10, Content: "import math/rand", Issue: "imports math/rand instead of crypto/rand"},
 		{File: "file1.go", Line: 20, Content: "rand.Float64()", Issue: "uses math/rand function"},
 	}
 
 	// Just verify the print function does not panic.
-	printCryptoViolations("math/rand", violations)
+	lintGoCommon.PrintCryptoViolations("math/rand", violations)
 }
 
 func TestPrintInsecureSkipVerifyViolations(t *testing.T) {
 	t.Parallel()
 
-	violations := []cryptoViolation{
+	violations := []lintGoCommon.CryptoViolation{
 		{File: "file2.go", Line: 5, Content: "TLS config", Issue: "disables TLS certificate verification"},
 	}
 
 	// Just verify the print function does not panic.
-	printCryptoViolations("InsecureSkipVerify", violations)
+	lintGoCommon.PrintCryptoViolations("InsecureSkipVerify", violations)
 }

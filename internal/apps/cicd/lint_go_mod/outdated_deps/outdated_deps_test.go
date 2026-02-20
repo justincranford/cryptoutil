@@ -230,7 +230,7 @@ func TestLint_WithLinterError(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	err = Check(logger)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "lint-go-mod failed with 1 errors")
+	require.Contains(t, err.Error(), "failed to read go.mod")
 }
 
 // TestLint_Success tests the Lint function when all linters pass.

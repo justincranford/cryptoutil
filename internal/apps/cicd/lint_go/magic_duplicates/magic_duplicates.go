@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_go
+// Package magic_duplicates verifies that magic constants have no duplicate values across magic files.
+package magic_duplicates
 
 import (
 	"fmt"
@@ -8,28 +9,29 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
 )
 
-// checkMagicDuplicates is a LinterFunc that scans the magic package for constants
+// Check is a LinterFunc that scans the magic package for constants
 // that share the same literal value under multiple names.  Duplicate values indicate
 // that a canonical constant exists alongside redundant aliases, causing confusion
 // about which name callers should use.
-func checkMagicDuplicates(logger *cryptoutilCmdCicdCommon.Logger) error {
-	return checkMagicDuplicatesInDir(logger, magicDefaultDir)
+func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
+	return CheckMagicDuplicatesInDir(logger, lintGoCommon.MagicDefaultDir)
 }
 
-// checkMagicDuplicatesInDir is the testable implementation that accepts an explicit magicDir.
-func checkMagicDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir string) error {
+// CheckMagicDuplicatesInDir is the testable implementation that accepts an explicit magicDir.
+func CheckMagicDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir string) error {
 	logger.Log("Checking magic package for duplicate constant values...")
 
-	inv, err := parseMagicDir(magicDir)
+	inv, err := lintGoCommon.ParseMagicDir(magicDir)
 	if err != nil {
 		return fmt.Errorf("failed to parse magic package: %w", err)
 	}
 
 	type dupGroup struct {
 		value  string
-		consts []magicConstant
+		consts []lintGoCommon.MagicConstant
 	}
 
 	var groups []dupGroup
@@ -39,7 +41,7 @@ func checkMagicDuplicatesInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir 
 			continue
 		}
 
-		group := dupGroup{value: value, consts: append([]magicConstant(nil), consts...)}
+		group := dupGroup{value: value, consts: append([]lintGoCommon.MagicConstant(nil), consts...)}
 		sort.Slice(group.consts, func(i, j int) bool {
 			if group.consts[i].File != group.consts[j].File {
 				return group.consts[i].File < group.consts[j].File
