@@ -1,20 +1,17 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_ports
+package common
 
 import (
 	"testing"
-
-	lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"
-	lintPortsLegacyPorts "cryptoutil/internal/apps/cicd/lint_ports/legacy_ports"
-
+	
 	"github.com/stretchr/testify/require"
 )
 
 func TestAllLegacyPorts(t *testing.T) {
 	t.Parallel()
 
-	ports := lintPortsCommon.AllLegacyPorts()
+	ports := AllLegacyPorts()
 
 	// Verify known legacy ports are included.
 	require.Contains(t, ports, uint16(8888)) // cipher-im legacy
@@ -28,7 +25,7 @@ func TestAllLegacyPorts(t *testing.T) {
 func TestAllValidPublicPorts(t *testing.T) {
 	t.Parallel()
 
-	ports := lintPortsCommon.AllValidPublicPorts()
+	ports := AllValidPublicPorts()
 
 	// Verify standardized ports are included.
 	require.Contains(t, ports, uint16(8700)) // cipher-im
@@ -66,7 +63,7 @@ func TestIsOtelCollectorPort(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := lintPortsCommon.IsOtelCollectorPort(tt.port)
+			got := IsOtelCollectorPort(tt.port)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -91,34 +88,7 @@ func TestIsOtelRelatedFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := lintPortsCommon.IsOtelRelatedFile(tt.filePath)
-			require.Equal(t, tt.want, got)
-		})
-	}
-}
-
-func TestGetServiceForLegacyPort(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		port uint16
-		want string
-	}{
-		{name: "cipher-im 8888", port: 8888, want: "cipher-im"},
-		{name: "cipher-im 8889", port: 8889, want: "cipher-im"},
-		{name: "cipher-im 8890", port: 8890, want: "cipher-im"},
-		{name: "jose-ja 9443", port: 9443, want: "jose-ja"},
-		{name: "jose-ja 8092", port: 8092, want: "jose-ja"},
-		{name: "pki-ca 8443", port: 8443, want: "pki-ca"},
-		{name: "unknown port", port: 12345, want: "unknown"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := lintPortsLegacyPorts.GetServiceForLegacyPort(tt.port)
+			got := IsOtelRelatedFile(tt.filePath)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -143,16 +113,14 @@ func TestServicePorts_AllServicesPresent(t *testing.T) {
 		t.Run(svc, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, ok := lintPortsCommon.ServicePorts[svc]
+			cfg, ok := ServicePorts[svc]
 			require.True(t, ok, "Service %s should be in ServicePorts", svc)
 			require.Equal(t, svc, cfg.Name)
-			require.Equal(t, lintPortsCommon.StandardAdminPort, cfg.AdminPort)
+			require.Equal(t, StandardAdminPort, cfg.AdminPort)
 			require.NotEmpty(t, cfg.PublicPorts)
 		})
 	}
 }
-
-// TestLint_FileOpenError tests that checkFile handles file open errors gracefully.
 
 func TestIsOtelRelatedContent(t *testing.T) {
 	t.Parallel()
@@ -175,12 +143,38 @@ func TestIsOtelRelatedContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := lintPortsCommon.IsOtelRelatedContent(tt.content)
+			got := IsOtelRelatedContent(tt.content)
 			require.Equal(t, tt.want, got)
 		})
 	}
 }
 
-// TestLint_SkipsCollectorPortsInMagicFile tests that collector ports are skipped
-// when the line content contains related terms (even if file path doesn't).
-// NOTE: Function name avoids "otel/telemetry" to prevent t.TempDir() path matching.
+func TestIsComposeFile(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		filePath string
+		want     bool
+	}{
+		{name: "compose.yml", filePath: "deployments/compose.yml", want: true},
+		{name: "compose.yaml", filePath: "deployments/compose.yaml", want: true},
+		{name: "docker-compose.yml", filePath: "docker-compose.yml", want: true},
+		{name: "docker-compose.yaml", filePath: "docker-compose.yaml", want: true},
+		{name: "compose.e2e.yml", filePath: "deployments/identity/compose.e2e.yml", want: true},
+		{name: "compose.advanced.yml", filePath: "compose.advanced.yml", want: true},
+		{name: "regular yaml", filePath: "config/settings.yml", want: false},
+		{name: "regular yaml 2", filePath: "configs/app.yaml", want: false},
+		{name: "go file", filePath: "main.go", want: false},
+		{name: "dockerfile", filePath: "Dockerfile", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := IsComposeFile(tt.filePath)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}

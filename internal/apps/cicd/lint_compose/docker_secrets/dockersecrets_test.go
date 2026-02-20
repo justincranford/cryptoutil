@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_compose
+package docker_secrets
 
 import (
 	"os"
@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	lintComposeDockerSecrets "cryptoutil/internal/apps/cicd/lint_compose/docker_secrets"
 
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +18,7 @@ func TestLintDockerSecrets_NoComposeFiles(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{}
 
-	err := lintComposeDockerSecrets.Check(logger, filesByExtension)
+	err := Check(logger, filesByExtension)
 	require.NoError(t, err, "lint should pass with no compose files")
 }
 
@@ -51,7 +50,7 @@ secrets:
 		"yml": {composeFile},
 	}
 
-	err = lintComposeDockerSecrets.Check(logger, filesByExtension)
+	err = Check(logger, filesByExtension)
 	require.NoError(t, err, "lint should pass with valid Docker secrets pattern")
 }
 
@@ -198,7 +197,7 @@ services:
 				"yml": {composeFile},
 			}
 
-			err = lintComposeDockerSecrets.Check(logger, filesByExtension)
+			err = Check(logger, filesByExtension)
 
 			if tt.wantErr {
 				require.Error(t, err, "lint should fail for inline credentials")
@@ -213,7 +212,7 @@ services:
 func TestCheckComposeFileSecrets_NonExistentFile(t *testing.T) {
 	t.Parallel()
 
-	violations, err := lintComposeDockerSecrets.CheckComposeFileSecrets("/nonexistent/file.yml")
+	violations, err := CheckComposeFileSecrets("/nonexistent/file.yml")
 	require.Error(t, err, "should fail for non-existent file")
 	require.Nil(t, violations)
 }
@@ -236,7 +235,7 @@ services:
 	err := os.WriteFile(composeFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintComposeDockerSecrets.CheckComposeFileSecrets(composeFile)
+	violations, err := CheckComposeFileSecrets(composeFile)
 	require.NoError(t, err)
 	require.Len(t, violations, 3, "should detect 3 inline credentials")
 }
@@ -264,7 +263,7 @@ secrets:
 	err := os.WriteFile(composeFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintComposeDockerSecrets.CheckComposeFileSecrets(composeFile)
+	violations, err := CheckComposeFileSecrets(composeFile)
 	require.NoError(t, err)
 	require.Len(t, violations, 1, "should detect 1 inline credential (POSTGRES_USER)")
 }
