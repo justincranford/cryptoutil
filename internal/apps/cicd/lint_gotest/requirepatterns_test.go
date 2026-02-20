@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoTestNoHardcodedPasswords "cryptoutil/internal/apps/cicd/lint_gotest/no_hardcoded_passwords"
+	lintGoTestParallelTests "cryptoutil/internal/apps/cicd/lint_gotest/parallel_tests"
+	lintGoTestRequireOverAssert "cryptoutil/internal/apps/cicd/lint_gotest/require_over_assert"
 
 	"github.com/stretchr/testify/require"
 )
@@ -100,7 +103,7 @@ func TestSomething(t *testing.T) {
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 			testFiles := []string{testFile}
 
-			err = enforceRequireOverAssert(logger, testFiles)
+			err = lintGoTestRequireOverAssert.Check(logger, testFiles)
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -170,7 +173,7 @@ func helperFunc(t *testing.T) {
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 			testFiles := []string{testFile}
 
-			err = enforceParallelTests(logger, testFiles)
+			err = lintGoTestParallelTests.Check(logger, testFiles)
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -262,7 +265,7 @@ func TestSomething(t *testing.T) {
 			logger := cryptoutilCmdCicdCommon.NewLogger("test")
 			testFiles := []string{testFile}
 
-			err = enforceHardcodedPasswords(logger, testFiles)
+			err = lintGoTestNoHardcodedPasswords.Check(logger, testFiles)
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -316,7 +319,7 @@ func Test(t *testing.T) { require.NoError(t, nil) }
 			err := os.WriteFile(testFile, []byte(tc.fileContent), 0o600)
 			require.NoError(t, err)
 
-			issues := checkAssertUsage(testFile)
+			issues := lintGoTestRequireOverAssert.CheckAssertUsage(testFile)
 
 			if tc.wantIssues {
 				require.NotEmpty(t, issues)
@@ -362,7 +365,7 @@ func TestA(t *testing.T) { t.Log("test") }
 			err := os.WriteFile(testFile, []byte(tc.fileContent), 0o600)
 			require.NoError(t, err)
 
-			issues := checkParallelUsage(testFile)
+			issues := lintGoTestParallelTests.CheckParallelUsage(testFile)
 
 			if tc.wantIssues {
 				require.NotEmpty(t, issues)
@@ -412,7 +415,7 @@ func TestCheckHardcodedPasswords(t *testing.T) {
 			err := os.WriteFile(testFile, []byte(tc.fileContent), 0o600)
 			require.NoError(t, err)
 
-			issues := checkHardcodedPasswords(testFile)
+			issues := lintGoTestNoHardcodedPasswords.CheckHardcodedPasswords(testFile)
 
 			if tc.wantIssues {
 				require.NotEmpty(t, issues)

@@ -7,6 +7,11 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoTestBindAddressSafety "cryptoutil/internal/apps/cicd/lint_gotest/bind_address_safety"
+	lintGoTestNoHardcodedPasswords "cryptoutil/internal/apps/cicd/lint_gotest/no_hardcoded_passwords"
+	lintGoTestParallelTests "cryptoutil/internal/apps/cicd/lint_gotest/parallel_tests"
+	lintGoTestRequireOverAssert "cryptoutil/internal/apps/cicd/lint_gotest/require_over_assert"
+	lintGoTestTestPatterns "cryptoutil/internal/apps/cicd/lint_gotest/test_patterns"
 )
 
 // LinterFunc is a function type for individual Go test file linters.
@@ -18,11 +23,11 @@ var registeredLinters = []struct {
 	name   string
 	linter LinterFunc
 }{
-	{"test-patterns", enforceTestPatterns},
-	{"bind-address-safety", enforceBindAddressSafety},
-	{"require-over-assert", enforceRequireOverAssert},
-	{"parallel-tests", enforceParallelTests},
-	{"no-hardcoded-passwords", enforceHardcodedPasswords},
+	{"test-patterns", lintGoTestTestPatterns.Check},
+	{"bind-address-safety", lintGoTestBindAddressSafety.Check},
+	{"require-over-assert", lintGoTestRequireOverAssert.Check},
+	{"parallel-tests", lintGoTestParallelTests.Check},
+	{"no-hardcoded-passwords", lintGoTestNoHardcodedPasswords.Check},
 }
 
 // Lint runs all registered Go test file linters.

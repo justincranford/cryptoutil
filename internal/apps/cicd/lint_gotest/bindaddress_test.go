@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoTestBindAddressSafety "cryptoutil/internal/apps/cicd/lint_gotest/bind_address_safety"
+	lintGoTestTestPatterns "cryptoutil/internal/apps/cicd/lint_gotest/test_patterns"
 
 	"github.com/stretchr/testify/require"
 )
@@ -142,7 +144,7 @@ func TestExample(t *testing.T) {
 
 			// Run linter.
 			logger := cryptoutilCmdCicdCommon.NewLogger("bind-address-safety-test")
-			err = enforceBindAddressSafety(logger, []string{tempFile})
+			err = lintGoTestBindAddressSafety.Check(logger, []string{tempFile})
 
 			if tt.wantError {
 				require.Error(t, err, "Expected error for: %s", tt.description)
@@ -202,7 +204,7 @@ func TestExample(t *testing.T) {
 			require.NoError(t, err)
 
 			// Check file directly.
-			issues := checkBindAddressSafety(tempFile)
+			issues := lintGoTestBindAddressSafety.CheckBindAddressSafety(tempFile)
 
 			require.Len(t, issues, tt.wantIssues, "Expected %d issues, got %d", tt.wantIssues, len(issues))
 
@@ -229,7 +231,7 @@ func TestCheckTestFile_ReadError(t *testing.T) {
 	t.Parallel()
 
 	// Test with non-existent file to trigger read error.
-	issues := checkTestFile("/nonexistent/path/to/test_file.go")
+	issues := lintGoTestTestPatterns.CheckTestFile("/nonexistent/path/to/test_file.go")
 	require.Len(t, issues, 1)
 	require.Contains(t, issues[0], "Error reading file")
 }
@@ -246,7 +248,7 @@ func TestCheckTestFile_HardcodedUUID(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	issues := checkTestFile(testFile)
+	issues := lintGoTestTestPatterns.CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "Should find hardcoded UUID issue")
 
 	foundUUIDIssue := false
@@ -274,7 +276,7 @@ func TestCheckTestFile_TestErrorf(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	issues := checkTestFile(testFile)
+	issues := lintGoTestTestPatterns.CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "Should find t.Errorf issue")
 
 	foundErrorfIssue := false
@@ -302,7 +304,7 @@ func TestCheckTestFile_TestFatalf(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	issues := checkTestFile(testFile)
+	issues := lintGoTestTestPatterns.CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "Should find t.Fatalf issue")
 
 	foundFatalfIssue := false
@@ -323,7 +325,7 @@ func TestCheckBindAddressSafety_ReadError(t *testing.T) {
 	t.Parallel()
 
 	// Test with non-existent file to trigger read error.
-	issues := checkBindAddressSafety("/nonexistent/path/to/test_file.go")
+	issues := lintGoTestBindAddressSafety.CheckBindAddressSafety("/nonexistent/path/to/test_file.go")
 	require.Len(t, issues, 1)
 	require.Contains(t, issues[0], "Error reading file")
 }
@@ -343,7 +345,7 @@ func TestEnforceBindAddressSafety_FilteredFiles(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// This test file should be filtered out, so no issues should be found.
-	err = enforceBindAddressSafety(logger, []string{configTestFile})
+	err = lintGoTestBindAddressSafety.Check(logger, []string{configTestFile})
 
 	require.NoError(t, err, "Should succeed when only filtered files are provided")
 }
@@ -363,7 +365,7 @@ func TestEnforceTestPatterns_FilteredFiles(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// This test file should be filtered out, so no issues should be found.
-	err = enforceTestPatterns(logger, []string{adminTestFile})
+	err = lintGoTestTestPatterns.Check(logger, []string{adminTestFile})
 
 	require.NoError(t, err, "Should succeed when only filtered files are provided")
 }

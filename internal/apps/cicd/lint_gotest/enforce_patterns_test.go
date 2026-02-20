@@ -6,6 +6,10 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoTestCommon "cryptoutil/internal/apps/cicd/lint_gotest/common"
+	lintGoTestNoHardcodedPasswords "cryptoutil/internal/apps/cicd/lint_gotest/no_hardcoded_passwords"
+	lintGoTestParallelTests "cryptoutil/internal/apps/cicd/lint_gotest/parallel_tests"
+	lintGoTestRequireOverAssert "cryptoutil/internal/apps/cicd/lint_gotest/require_over_assert"
 
 	"github.com/stretchr/testify/require"
 )
@@ -58,7 +62,7 @@ func TestFilterExcludedTestFiles(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := filterExcludedTestFiles(tc.input)
+			result := lintGoTestCommon.FilterExcludedTestFiles(tc.input)
 
 			require.Len(t, result, tc.wantCount)
 		})
@@ -69,7 +73,7 @@ func TestEnforceRequireOverAssert_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := enforceRequireOverAssert(logger, []string{})
+	err := lintGoTestRequireOverAssert.Check(logger, []string{})
 
 	require.NoError(t, err)
 }
@@ -78,7 +82,7 @@ func TestEnforceParallelTests_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := enforceParallelTests(logger, []string{})
+	err := lintGoTestParallelTests.Check(logger, []string{})
 
 	require.NoError(t, err)
 }
@@ -87,7 +91,7 @@ func TestEnforceHardcodedPasswords_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := enforceHardcodedPasswords(logger, []string{})
+	err := lintGoTestNoHardcodedPasswords.Check(logger, []string{})
 
 	require.NoError(t, err)
 }
