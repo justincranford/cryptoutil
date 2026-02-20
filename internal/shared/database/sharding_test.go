@@ -6,15 +6,77 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"os"
 	"testing"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	postgresModule "github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	_ "modernc.org/sqlite" // SQLite driver
+	_ "modernc.org/sqlite" // SQLite driver.
 )
+
+var testPostgresDB *gorm.DB
+
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+
+	// Try to start PostgreSQL testcontainer for schema-level tests.
+	// Gracefully fallback to nil if Docker is unavailable.
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				// testcontainers panics when Docker Desktop not running.
+				testPostgresDB = nil
+			}
+		}()
+
+		dbName := fmt.Sprintf("testdb_%s", googleUuid.Must(googleUuid.NewV7()))
+		userName := fmt.Sprintf("user_%s", googleUuid.Must(googleUuid.NewV7()))
+
+		container, err := postgresModule.Run(ctx,
+			"postgres:18-alpine",
+			postgresModule.WithDatabase(dbName),
+			postgresModule.WithUsername(userName),
+			postgresModule.WithPassword("testpassword"),
+			testcontainers.WithWaitStrategy(
+				wait.ForLog("database system is ready to accept connections").
+					WithOccurrence(2).
+					WithStartupTimeout(60*time.Second),
+			),
+		)
+		if err != nil {
+			testPostgresDB = nil
+
+			return
+		}
+
+		connStr, connErr := container.ConnectionString(ctx, "sslmode=disable")
+		if connErr != nil {
+			testPostgresDB = nil
+
+			return
+		}
+
+		pgDB, openErr := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+		if openErr != nil {
+			testPostgresDB = nil
+
+			return
+		}
+
+		testPostgresDB = pgDB
+	}()
+
+	os.Exit(m.Run())
+}
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
@@ -116,7 +178,7 @@ func TestShardManager_GetDB_UnknownStrategy(t *testing.T) {
 	t.Parallel()
 	db := setupTestDB(t)
 	cfg := DefaultShardConfig()
-	cfg.Strategy = ShardStrategy(99) // Unknown strategy
+	cfg.Strategy = ShardStrategy(99) // Unknown strategy.
 	m := NewShardManager(db, cfg)
 	tenantID := googleUuid.New()
 	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
@@ -138,14 +200,111 @@ func TestShardManager_GetTenantSchemaName(t *testing.T) {
 
 func TestShardManager_GetDB_SchemaLevel(t *testing.T) {
 	t.Parallel()
-	// Skip: SQLite does not support CREATE SCHEMA, this is PostgreSQL-specific
-	t.Skip("Schema-level sharding requires PostgreSQL")
+
+	if testPostgresDB == nil {
+		t.Skip("Schema-level sharding requires PostgreSQL - Docker unavailable")
+	}
+
+	cfg := &ShardConfig{
+		Strategy:        StrategySchemaLevel,
+		SchemaPrefix:    "tenant_",
+		DefaultSchema:   "public",
+		EnableMigration: true,
+	}
+	m := NewShardManager(testPostgresDB, cfg)
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
+
+	t.Run("creates schema and returns DB", func(t *testing.T) {
+		tenantDB, err := m.GetDB(ctx)
+		require.NoError(t, err)
+		require.NotNil(t, tenantDB)
+	})
+
+	t.Run("returns cached DB on second call", func(t *testing.T) {
+		tenantDB1, err := m.GetDB(ctx)
+		require.NoError(t, err)
+
+		tenantDB2, err := m.GetDB(ctx)
+		require.NoError(t, err)
+
+		// Both should be non-nil DB instances.
+		require.NotNil(t, tenantDB1)
+		require.NotNil(t, tenantDB2)
+	})
+
+	t.Run("no migration when disabled", func(t *testing.T) {
+		cfg2 := &ShardConfig{
+			Strategy:        StrategySchemaLevel,
+			SchemaPrefix:    "nomig_",
+			DefaultSchema:   "public",
+			EnableMigration: false,
+		}
+		m2 := NewShardManager(testPostgresDB, cfg2)
+		tenantID2 := googleUuid.Must(googleUuid.NewV7())
+		ctx2 := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID2})
+
+		// Without migration, schema doesn't exist - but SET search_path still works.
+		tenantDB, err := m2.GetDB(ctx2)
+		require.NoError(t, err)
+		require.NotNil(t, tenantDB)
+	})
 }
 
 func TestShardManager_DropTenantSchema(t *testing.T) {
 	t.Parallel()
-	// Skip: SQLite does not support DROP SCHEMA, this is PostgreSQL-specific
-	t.Skip("Schema operations require PostgreSQL")
+
+	if testPostgresDB == nil {
+		t.Skip("Schema operations require PostgreSQL - Docker unavailable")
+	}
+
+	cfg := &ShardConfig{
+		Strategy:        StrategySchemaLevel,
+		SchemaPrefix:    "droptenant_",
+		DefaultSchema:   "public",
+		EnableMigration: true,
+	}
+	m := NewShardManager(testPostgresDB, cfg)
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
+
+	// First create the schema.
+	_, err := m.GetDB(ctx)
+	require.NoError(t, err)
+
+	// Now drop it.
+	err = m.DropTenantSchema(tenantID)
+	require.NoError(t, err)
+
+	// Dropping again (CASCADE, IF EXISTS) should not error.
+	err = m.DropTenantSchema(tenantID)
+	require.NoError(t, err)
+}
+
+func TestShardManager_GetDB_SchemaLevel_InvalidCache(t *testing.T) {
+	t.Parallel()
+
+	if testPostgresDB == nil {
+		t.Skip("Schema operations require PostgreSQL - Docker unavailable")
+	}
+
+	cfg := &ShardConfig{
+		Strategy:        StrategySchemaLevel,
+		SchemaPrefix:    "invalid_cache_",
+		DefaultSchema:   "public",
+		EnableMigration: true,
+	}
+	m := NewShardManager(testPostgresDB, cfg)
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	schemaName := cfg.SchemaPrefix + tenantID.String()
+	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
+
+	// Inject a non-*gorm.DB value directly into the cache to trigger the type assertion failure.
+	m.schemaCache.Store(schemaName, "not-a-gorm-db")
+
+	_, err := m.GetDB(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid cached DB type")
 }
 
 func TestShardStrategyString(t *testing.T) {

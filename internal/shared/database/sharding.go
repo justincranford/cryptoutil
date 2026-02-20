@@ -127,7 +127,7 @@ func (sm *ShardManager) getSchemaLevelDB(ctx context.Context, tc *TenantContext)
 
 	// Create a session with the schema search_path.
 	db := sm.baseDB.Session(&gorm.Session{NewDB: true})
-	if err := db.Exec(fmt.Sprintf("SET search_path TO %s", schemaName)).Error; err != nil {
+	if err := db.Exec(fmt.Sprintf("SET search_path TO \"%s\"", schemaName)).Error; err != nil {
 		return nil, fmt.Errorf("failed to set search_path: %w", err)
 	}
 
