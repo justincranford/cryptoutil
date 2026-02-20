@@ -5,13 +5,16 @@ package lint_ports
 import (
 	"testing"
 
+	lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"
+	lintPortsLegacyPorts "cryptoutil/internal/apps/cicd/lint_ports/legacy_ports"
+
 	"github.com/stretchr/testify/require"
 )
 
 func TestAllLegacyPorts(t *testing.T) {
 	t.Parallel()
 
-	ports := AllLegacyPorts()
+	ports := lintPortsCommon.AllLegacyPorts()
 
 	// Verify known legacy ports are included.
 	require.Contains(t, ports, uint16(8888)) // cipher-im legacy
@@ -25,7 +28,7 @@ func TestAllLegacyPorts(t *testing.T) {
 func TestAllValidPublicPorts(t *testing.T) {
 	t.Parallel()
 
-	ports := AllValidPublicPorts()
+	ports := lintPortsCommon.AllValidPublicPorts()
 
 	// Verify standardized ports are included.
 	require.Contains(t, ports, uint16(8700)) // cipher-im
@@ -63,7 +66,7 @@ func TestIsOtelCollectorPort(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := IsOtelCollectorPort(tt.port)
+			got := lintPortsCommon.IsOtelCollectorPort(tt.port)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -88,7 +91,7 @@ func TestIsOtelRelatedFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isOtelRelatedFile(tt.filePath)
+			got := lintPortsCommon.IsOtelRelatedFile(tt.filePath)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -115,7 +118,7 @@ func TestGetServiceForLegacyPort(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := getServiceForLegacyPort(tt.port)
+			got := lintPortsLegacyPorts.GetServiceForLegacyPort(tt.port)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -140,10 +143,10 @@ func TestServicePorts_AllServicesPresent(t *testing.T) {
 		t.Run(svc, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, ok := ServicePorts[svc]
+			cfg, ok := lintPortsCommon.ServicePorts[svc]
 			require.True(t, ok, "Service %s should be in ServicePorts", svc)
 			require.Equal(t, svc, cfg.Name)
-			require.Equal(t, StandardAdminPort, cfg.AdminPort)
+			require.Equal(t, lintPortsCommon.StandardAdminPort, cfg.AdminPort)
 			require.NotEmpty(t, cfg.PublicPorts)
 		})
 	}
@@ -172,7 +175,7 @@ func TestIsOtelRelatedContent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isOtelRelatedContent(tt.content)
+			got := lintPortsCommon.IsOtelRelatedContent(tt.content)
 			require.Equal(t, tt.want, got)
 		})
 	}

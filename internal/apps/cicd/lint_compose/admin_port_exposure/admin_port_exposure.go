@@ -42,7 +42,6 @@ type Violation struct {
 // Check checks all Docker Compose files for admin port exposure violations.
 // Returns an error if any compose file exposes port 9090 to the host.
 func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
-
 	// Find all compose files.
 	composeFiles := lintComposeCommon.FindComposeFiles(filesByExtension)
 	if len(composeFiles) == 0 {
@@ -76,7 +75,6 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][
 
 	return nil
 }
-
 
 // checkComposeFile checks a single compose file for admin port exposure.
 func CheckComposeFile(filePath string) ([]Violation, error) {
@@ -139,7 +137,6 @@ func CheckComposeFile(filePath string) ([]Violation, error) {
 
 	return violations, nil
 }
-
 
 // printViolations outputs all detected violations.
 func printViolations(violations []Violation) {

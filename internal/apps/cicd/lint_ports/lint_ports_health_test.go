@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintPortsHealthPaths "cryptoutil/internal/apps/cicd/lint_ports/health_paths"
 
 	"github.com/stretchr/testify/require"
 )
@@ -36,7 +37,7 @@ func TestIsLikelyHealthPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isLikelyHealthPath(tt.path)
+			got := lintPortsHealthPaths.IsLikelyHealthPath(tt.path)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -54,7 +55,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHealthPathsInDockerfile(dockerfile)
+	violations := lintPortsHealthPaths.CheckHealthPathsInDockerfile(dockerfile)
 	require.Empty(t, violations)
 }
 
@@ -69,7 +70,7 @@ HEALTHCHECK CMD wget -q -O /dev/null http://127.0.0.1:8080/health || exit 1
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHealthPathsInDockerfile(dockerfile)
+	violations := lintPortsHealthPaths.CheckHealthPathsInDockerfile(dockerfile)
 	require.NotEmpty(t, violations)
 	require.Contains(t, violations[0].Reason, "Non-standard health path")
 }
@@ -89,7 +90,7 @@ func TestCheckHealthPathsInCompose_ValidPath(t *testing.T) {
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHealthPathsInCompose(composeFile)
+	violations := lintPortsHealthPaths.CheckHealthPathsInCompose(composeFile)
 	require.Empty(t, violations)
 }
 
@@ -107,7 +108,7 @@ func TestCheckHealthPathsInCompose_InvalidPath(t *testing.T) {
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHealthPathsInCompose(composeFile)
+	violations := lintPortsHealthPaths.CheckHealthPathsInCompose(composeFile)
 	require.NotEmpty(t, violations)
 	require.Contains(t, violations[0].Reason, "Non-standard health path")
 }
@@ -128,7 +129,7 @@ HEALTHCHECK CMD wget -q -O /dev/null https://127.0.0.1:9090/admin/api/v1/livez
 		"dockerfile": {dockerfile},
 	}
 
-	err = lintHealthPaths(logger, filesByExtension)
+	err = lintPortsHealthPaths.Check(logger, filesByExtension)
 	require.NoError(t, err)
 }
 
@@ -148,7 +149,7 @@ HEALTHCHECK CMD curl -f http://localhost:8080/health
 		"dockerfile": {dockerfile},
 	}
 
-	err = lintHealthPaths(logger, filesByExtension)
+	err = lintPortsHealthPaths.Check(logger, filesByExtension)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "health path violations")
 }
@@ -160,14 +161,14 @@ HEALTHCHECK CMD curl -f http://localhost:8080/health
 func TestCheckHealthPathsInDockerfile_FileNotExists(t *testing.T) {
 	t.Parallel()
 
-	violations := checkHealthPathsInDockerfile("/nonexistent/path/Dockerfile")
+	violations := lintPortsHealthPaths.CheckHealthPathsInDockerfile("/nonexistent/path/Dockerfile")
 	require.Empty(t, violations)
 }
 
 func TestCheckHealthPathsInCompose_FileNotExists(t *testing.T) {
 	t.Parallel()
 
-	violations := checkHealthPathsInCompose("/nonexistent/path/compose.yml")
+	violations := lintPortsHealthPaths.CheckHealthPathsInCompose("/nonexistent/path/compose.yml")
 	require.Empty(t, violations)
 }
 
@@ -185,7 +186,7 @@ func TestCheckHealthPathsInCompose_NoHealthcheck(t *testing.T) {
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHealthPathsInCompose(composeFile)
+	violations := lintPortsHealthPaths.CheckHealthPathsInCompose(composeFile)
 	require.Empty(t, violations)
 }
 
@@ -201,7 +202,7 @@ HEALTHCHECK CMD wget -q -O /dev/null http://127.0.0.1:9090/healthz
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHealthPathsInDockerfile(dockerfile)
+	violations := lintPortsHealthPaths.CheckHealthPathsInDockerfile(dockerfile)
 	require.NotEmpty(t, violations)
 	require.Contains(t, violations[0].Reason, "Non-standard health path")
 }
@@ -220,6 +221,6 @@ func TestCheckHealthPathsInCompose_CorrectPathStandardPort(t *testing.T) {
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHealthPathsInCompose(composeFile)
+	violations := lintPortsHealthPaths.CheckHealthPathsInCompose(composeFile)
 	require.Empty(t, violations)
 }

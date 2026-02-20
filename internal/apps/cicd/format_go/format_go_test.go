@@ -369,7 +369,7 @@ func TestFilterGoFiles_NoGoFiles(t *testing.T) {
 
 	filesByExtension := map[string][]string{
 		".txt": {"file1.txt", "file2.txt"},
-		"md":  {"README.md"},
+		"md":   {"README.md"},
 	}
 
 	goFiles := formatGoEnforceAny.FilterGoFiles(filesByExtension)
@@ -381,7 +381,7 @@ func TestFilterGoFiles_WithGoFiles(t *testing.T) {
 	t.Parallel()
 
 	filesByExtension := map[string][]string{
-		"go":  {"file1.go", "file2.go"},
+		"go":   {"file1.go", "file2.go"},
 		".txt": {"file.txt"},
 	}
 

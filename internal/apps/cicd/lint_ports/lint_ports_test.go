@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"
 
 	"github.com/stretchr/testify/require"
 )
@@ -145,7 +146,7 @@ const port = 8888
 	require.NoError(t, err)
 
 	// Verify the file path does NOT contain OTEL-related terms.
-	require.False(t, isOtelRelatedFile(normalFile), "Test file path should NOT be telemetry-related")
+	require.False(t, lintPortsCommon.IsOtelRelatedFile(normalFile), "Test file path should NOT be telemetry-related")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{
@@ -398,7 +399,7 @@ const DefaultPublicPortInternalMetrics uint16 = 8888
 const PortOtelCollectorReceivedMetrics uint16 = 8889
 `), 0o600)
 	require.NoError(t, err)
-	require.False(t, isOtelRelatedFile(magicFile), "File path should NOT be otel-related")
+	require.False(t, lintPortsCommon.IsOtelRelatedFile(magicFile), "File path should NOT be otel-related")
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{

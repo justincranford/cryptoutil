@@ -263,31 +263,31 @@ func TestFindGolangCIConfigFiles_AllFormats(t *testing.T) {
 // TestLintGolangCIConfig_FileReadError tests that LintGolangCIConfig logs a warning
 // and continues when a config file cannot be opened (covers the warning+continue path).
 func TestLintGolangCIConfig_FileReadError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-logger := cryptoutilCmdCicdCommon.NewLogger("test")
-// Pass a nonexistent .golangci.yml path - FindGolangCIConfigFiles will include it
-// but checkGolangCIConfig will fail to open it.
-filesByExtension := map[string][]string{
-"yml": {"/nonexistent/path/.golangci.yml"},
-}
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	// Pass a nonexistent .golangci.yml path - FindGolangCIConfigFiles will include it
+	// but checkGolangCIConfig will fail to open it.
+	filesByExtension := map[string][]string{
+		"yml": {"/nonexistent/path/.golangci.yml"},
+	}
 
-// Should not return error - file errors are logged as warnings and skipped.
-err := lintGolangciConfig.Check(logger, filesByExtension)
-require.NoError(t, err, "LintGolangCIConfig should continue after file open error")
+	// Should not return error - file errors are logged as warnings and skipped.
+	err := lintGolangciConfig.Check(logger, filesByExtension)
+	require.NoError(t, err, "LintGolangCIConfig should continue after file open error")
 }
 
 // TestCheckGolangCIConfig_SectionExitOnTopLevelKey tests that section tracking is reset
 // when a non-section top-level key is encountered (covers lines 136-140).
 func TestCheckGolangCIConfig_SectionExitOnTopLevelKey(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
-configFile := filepath.Join(tmpDir, ".golangci.yml")
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, ".golangci.yml")
 
-// Config with linters-settings followed by a different top-level section.
-// The 'severity:' key triggers the section-exit reset logic.
-content := `linters-settings:
+	// Config with linters-settings followed by a different top-level section.
+	// The 'severity:' key triggers the section-exit reset logic.
+	content := `linters-settings:
   wsl_v5:
     allow-assign-and-anything: false
 severity:
@@ -296,34 +296,34 @@ linters:
   enable:
     - gofmt
 `
-err := os.WriteFile(configFile, []byte(content), 0o600)
-require.NoError(t, err)
+	err := os.WriteFile(configFile, []byte(content), 0o600)
+	require.NoError(t, err)
 
-violations, err := lintGolangciConfig.CheckGolangCIConfig(configFile)
-require.NoError(t, err, "checkGolangCIConfig should succeed with valid config")
-require.Empty(t, violations, "Should have no violations with valid v2 config")
+	violations, err := lintGolangciConfig.CheckGolangCIConfig(configFile)
+	require.NoError(t, err, "checkGolangCIConfig should succeed with valid config")
+	require.Empty(t, violations, "Should have no violations with valid v2 config")
 }
 
 // TestCheckGolangCIConfig_CommentTopLevelKey tests that comment lines at top level
 // do NOT reset section tracking (covers the false-branch of inner if).
 func TestCheckGolangCIConfig_CommentTopLevelKey(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tmpDir := t.TempDir()
-configFile := filepath.Join(tmpDir, ".golangci.yml")
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, ".golangci.yml")
 
-// Config with a comment at top-level after linters-settings.
-// The '# comment:' line should NOT exit sections.
-content := `linters-settings:
+	// Config with a comment at top-level after linters-settings.
+	// The '# comment:' line should NOT exit sections.
+	content := `linters-settings:
   wsl_v5:
     allow-assign-and-anything: false
 # comment: this should not exit sections
   wsl_v5:
     force-err-cuddling: false
 `
-err := os.WriteFile(configFile, []byte(content), 0o600)
-require.NoError(t, err)
+	err := os.WriteFile(configFile, []byte(content), 0o600)
+	require.NoError(t, err)
 
-_, err = lintGolangciConfig.CheckGolangCIConfig(configFile)
-require.NoError(t, err, "checkGolangCIConfig should succeed")
+	_, err = lintGolangciConfig.CheckGolangCIConfig(configFile)
+	require.NoError(t, err, "checkGolangCIConfig should succeed")
 }

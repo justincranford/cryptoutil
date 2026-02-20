@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
 func TestFilterExcludedTestFiles(t *testing.T) {
 	t.Parallel()
 

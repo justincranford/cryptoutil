@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"
+	lintPortsHostPortRanges "cryptoutil/internal/apps/cicd/lint_ports/host_port_ranges"
 
 	"github.com/stretchr/testify/require"
 )
@@ -36,7 +38,7 @@ func TestIsComposeFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isComposeFile(tt.filePath)
+			got := lintPortsCommon.IsComposeFile(tt.filePath)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -64,7 +66,7 @@ func TestGetServiceConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := getServiceConfig(tt.serviceName)
+			got := lintPortsHostPortRanges.GetServiceConfig(tt.serviceName)
 			if tt.wantNil {
 				require.Nil(t, got)
 			} else {
@@ -78,7 +80,7 @@ func TestGetServiceConfig(t *testing.T) {
 func TestIsPortInValidRange(t *testing.T) {
 	t.Parallel()
 
-	cipherConfig := &ServicePortConfig{
+	cipherConfig := &lintPortsCommon.ServicePortConfig{
 		Name:        "cipher-im",
 		PublicPorts: []uint16{8700, 8701, 8702},
 		AdminPort:   9090,
@@ -87,7 +89,7 @@ func TestIsPortInValidRange(t *testing.T) {
 	tests := []struct {
 		name string
 		port uint16
-		cfg  *ServicePortConfig
+		cfg  *lintPortsCommon.ServicePortConfig
 		want bool
 	}{
 		{name: "public port 8700", port: 8700, cfg: cipherConfig, want: true},
@@ -105,7 +107,7 @@ func TestIsPortInValidRange(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isPortInValidRange(tt.port, tt.cfg)
+			got := lintPortsHostPortRanges.IsPortInValidRange(tt.port, tt.cfg)
 			require.Equal(t, tt.want, got)
 		})
 	}
@@ -125,7 +127,7 @@ func TestCheckHostPortRangesInFile_ValidPorts(t *testing.T) {
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHostPortRangesInFile(composeFile)
+	violations := lintPortsHostPortRanges.CheckHostPortRangesInFile(composeFile)
 	require.Empty(t, violations)
 }
 
@@ -142,7 +144,7 @@ func TestCheckHostPortRangesInFile_InvalidPorts(t *testing.T) {
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHostPortRangesInFile(composeFile)
+	violations := lintPortsHostPortRanges.CheckHostPortRangesInFile(composeFile)
 	require.Len(t, violations, 1)
 	require.Equal(t, uint16(8070), violations[0].Port)
 	require.Contains(t, violations[0].Reason, "outside valid range")
@@ -167,7 +169,7 @@ func TestLintHostPortRanges_NoViolations(t *testing.T) {
 		"yml": {composeFile},
 	}
 
-	err = lintHostPortRanges(logger, filesByExtension)
+	err = lintPortsHostPortRanges.Check(logger, filesByExtension)
 	require.NoError(t, err)
 }
 
@@ -189,7 +191,7 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
 		"yml": {composeFile},
 	}
 
-	err = lintHostPortRanges(logger, filesByExtension)
+	err = lintPortsHostPortRanges.Check(logger, filesByExtension)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "host port range violations")
 }
@@ -201,7 +203,7 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
 func TestCheckHostPortRangesInFile_FileNotExists(t *testing.T) {
 	t.Parallel()
 
-	violations := checkHostPortRangesInFile("/nonexistent/path/compose.yml")
+	violations := lintPortsHostPortRanges.CheckHostPortRangesInFile("/nonexistent/path/compose.yml")
 	require.Empty(t, violations)
 }
 
@@ -219,7 +221,7 @@ func TestCheckHostPortRangesInFile_UnknownService(t *testing.T) {
 	require.NoError(t, err)
 
 	// Unknown services should not cause violations (no config to validate against).
-	violations := checkHostPortRangesInFile(composeFile)
+	violations := lintPortsHostPortRanges.CheckHostPortRangesInFile(composeFile)
 	require.Empty(t, violations)
 }
 
@@ -239,6 +241,6 @@ networks:
 `), 0o600)
 	require.NoError(t, err)
 
-	violations := checkHostPortRangesInFile(composeFile)
+	violations := lintPortsHostPortRanges.CheckHostPortRangesInFile(composeFile)
 	require.Empty(t, violations)
 }
