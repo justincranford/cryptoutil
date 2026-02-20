@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintTextUTF8 "cryptoutil/internal/apps/cicd/lint_text/utf8"
 )
 
 // LinterFunc is a function type for individual text linters.
@@ -18,7 +19,7 @@ var registeredLinters = []struct {
 	name   string
 	linter LinterFunc
 }{
-	{"utf8", enforceUTF8},
+	{"utf8", lintTextUTF8.Check},
 }
 
 // Lint runs all registered text linters on the provided files.

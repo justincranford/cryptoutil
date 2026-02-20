@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintWorkflowGitHubActions "cryptoutil/internal/apps/cicd/lint_workflow/github_actions"
 )
 
 // LinterFunc is a function type for individual workflow linters.
@@ -18,7 +19,7 @@ var registeredLinters = []struct {
 	name   string
 	linter LinterFunc
 }{
-	{"github-actions", lintGitHubWorkflows},
+	{"github-actions", lintWorkflowGitHubActions.Check},
 }
 
 // Lint runs all registered workflow linters.
@@ -28,7 +29,7 @@ func Lint(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]
 	logger.Log("Running workflow linters...")
 
 	// Filter to workflow files only from yml and yaml extensions.
-	workflowFiles := filterWorkflowFiles(filesByExtension)
+	workflowFiles := lintWorkflowGitHubActions.FilterWorkflowFiles(filesByExtension)
 
 	if len(workflowFiles) == 0 {
 		logger.Log("lint-workflow completed (no workflow files)")
@@ -57,57 +58,4 @@ func Lint(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]
 	logger.Log("lint-workflow completed successfully")
 
 	return nil
-}
-
-// filterWorkflowFiles returns only GitHub workflow files from the yml/yaml files in the map.
-func filterWorkflowFiles(filesByExtension map[string][]string) []string {
-	var workflowFiles []string
-
-	// Check yml files.
-	for _, f := range filesByExtension["yml"] {
-		if isWorkflowFile(f) {
-			workflowFiles = append(workflowFiles, f)
-		}
-	}
-
-	// Check yaml files.
-	for _, f := range filesByExtension["yaml"] {
-		if isWorkflowFile(f) {
-			workflowFiles = append(workflowFiles, f)
-		}
-	}
-
-	return workflowFiles
-}
-
-// isWorkflowFile checks if a file path is a GitHub workflow file.
-func isWorkflowFile(path string) bool {
-	// Check for .github/workflows/ in the path.
-	// Support both forward and backward slashes for cross-platform compatibility.
-	return (len(path) > 4 && (path[len(path)-4:] == ".yml" || path[len(path)-5:] == ".yaml")) &&
-		(contains(path, ".github/workflows/") || contains(path, ".github\\workflows\\"))
-}
-
-// contains checks if s contains substr.
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && findSubstring(s, substr) >= 0
-}
-
-// findSubstring returns the index of substr in s, or -1 if not found.
-func findSubstring(s, substr string) int {
-	if len(substr) == 0 {
-		return 0
-	}
-
-	if len(substr) > len(s) {
-		return -1
-	}
-
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-
-	return -1
 }

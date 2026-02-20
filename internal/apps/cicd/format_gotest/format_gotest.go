@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	formatGoTestTHelper "cryptoutil/internal/apps/cicd/format_gotest/thelper"
 )
 
 // FormatterFunc is a function type for individual Go test file formatters.
@@ -18,7 +19,7 @@ var registeredFormatters = []struct {
 	name      string
 	formatter FormatterFunc
 }{
-	{"thelper", fixTHelper},
+	{"thelper", formatGoTestTHelper.Fix},
 }
 
 // Format runs all registered Go test file formatters on the current directory.

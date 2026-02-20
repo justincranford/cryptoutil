@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_workflow
+// Package github_actions validates GitHub workflow files for outdated actions.
+package github_actions
 
 import (
 	json "encoding/json"
@@ -38,9 +39,9 @@ type WorkflowActionExceptions struct {
 // Actions pinned to branches are not deterministic and fail security best practices.
 var disallowedVersionsBranchPinning = []string{"main", "master", "latest", "develop", "dev", "trunk"}
 
-// lintGitHubWorkflows validates GitHub workflow files for outdated actions and other issues.
+// Check validates GitHub workflow files for outdated actions and other issues.
 // It returns an error if validation fails or outdated actions are found.
-func lintGitHubWorkflows(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error {
+func Check(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error {
 	workflowActionExceptions, err := loadWorkflowActionExceptions()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to load action exceptions: %v", err))
@@ -246,4 +247,57 @@ func checkActionVersionsConcurrently(_ *cryptoutilCmdCicdCommon.Logger, actionDe
 	}
 
 	return outdated, exempted, errors
+}
+
+// FilterWorkflowFiles returns only GitHub workflow files from the yml/yaml files in the map.
+func FilterWorkflowFiles(filesByExtension map[string][]string) []string {
+	var workflowFiles []string
+
+	// Check yml files.
+	for _, f := range filesByExtension["yml"] {
+		if IsWorkflowFile(f) {
+			workflowFiles = append(workflowFiles, f)
+		}
+	}
+
+	// Check yaml files.
+	for _, f := range filesByExtension["yaml"] {
+		if IsWorkflowFile(f) {
+			workflowFiles = append(workflowFiles, f)
+		}
+	}
+
+	return workflowFiles
+}
+
+// IsWorkflowFile checks if a file path is a GitHub workflow file.
+func IsWorkflowFile(path string) bool {
+	// Check for .github/workflows/ in the path.
+	// Support both forward and backward slashes for cross-platform compatibility.
+	return (len(path) > 4 && (path[len(path)-4:] == ".yml" || path[len(path)-5:] == ".yaml")) &&
+		(contains(path, ".github/workflows/") || contains(path, ".github\\workflows\\"))
+}
+
+// contains checks if s contains substr.
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && findSubstring(s, substr) >= 0
+}
+
+// findSubstring returns the index of substr in s, or -1 if not found.
+func findSubstring(s, substr string) int {
+	if len(substr) == 0 {
+		return 0
+	}
+
+	if len(substr) > len(s) {
+		return -1
+	}
+
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return i
+		}
+	}
+
+	return -1
 }

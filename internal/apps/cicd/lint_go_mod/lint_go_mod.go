@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGoModOutdatedDeps "cryptoutil/internal/apps/cicd/lint_go_mod/outdated_deps"
 )
 
 // LinterFunc is a function type for individual go.mod linters.
@@ -17,7 +18,7 @@ var registeredLinters = []struct {
 	name   string
 	linter LinterFunc
 }{
-	{"outdated-deps", checkOutdatedDeps},
+	{"outdated-deps", lintGoModOutdatedDeps.Check},
 }
 
 // Lint runs all registered go.mod linters.

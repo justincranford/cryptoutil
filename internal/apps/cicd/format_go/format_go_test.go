@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	formatGoCopyLoopVar "cryptoutil/internal/apps/cicd/format_go/copyloopvar"
+	formatGoEnforceAny "cryptoutil/internal/apps/cicd/format_go/enforce_any"
 )
 
 func TestFormat_NoFiles(t *testing.T) {
@@ -88,7 +90,7 @@ func TestIsGoVersionSupported(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			result := isGoVersionSupported(tc.version)
+			result := formatGoCopyLoopVar.IsGoVersionSupported(tc.version)
 			require.Equal(t, tc.supported, result)
 		})
 	}
@@ -98,7 +100,7 @@ func TestEnforceAny_NoFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	err := enforceAny(logger, map[string][]string{})
+	err := formatGoEnforceAny.Enforce(logger, map[string][]string{})
 	require.NoError(t, err, "enforceAny should succeed with no files")
 }
 
@@ -118,7 +120,7 @@ func TestEnforceAny_NoModifications(t *testing.T) {
 		"go": {testFile},
 	}
 
-	err = enforceAny(logger, filesByExtension)
+	err = formatGoEnforceAny.Enforce(logger, filesByExtension)
 	require.NoError(t, err, "enforceAny should return nil when no modifications made")
 }
 
@@ -139,7 +141,7 @@ func Process(data interface{}) interface{} {
 	require.NoError(t, err)
 
 	// Test processGoFile directly (bypasses GetGoFiles filtering).
-	replacements, err := processGoFile(testFile)
+	replacements, err := formatGoEnforceAny.ProcessGoFile(testFile)
 	require.NoError(t, err, "processGoFile should succeed")
 	require.Equal(t, 2, replacements, "Should have 2 replacements (two interface{} instances)")
 
@@ -158,7 +160,7 @@ func TestEnforceAny_ErrorProcessingFile(t *testing.T) {
 		"go": {"/nonexistent/path/to/file.go"},
 	}
 
-	err := enforceAny(logger, filesByExtension)
+	err := formatGoEnforceAny.Enforce(logger, filesByExtension)
 	// Should continue processing and return nil (errors are logged, not returned).
 	require.NoError(t, err, "enforceAny should continue after file errors")
 }
@@ -173,7 +175,7 @@ func TestProcessGoFile_NoChanges(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(testGoContentClean), 0o600)
 	require.NoError(t, err)
 
-	replacements, err := processGoFile(testFile)
+	replacements, err := formatGoEnforceAny.ProcessGoFile(testFile)
 	require.NoError(t, err)
 	require.Equal(t, 0, replacements, "Should have no replacements")
 }
@@ -195,7 +197,7 @@ func TestProcessGoFile_WithChanges(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(testGoContentWithInterfaceEmpty), 0o600)
 	require.NoError(t, err)
 
-	replacements, err := processGoFile(testFile)
+	replacements, err := formatGoEnforceAny.ProcessGoFile(testFile)
 	require.NoError(t, err)
 	require.Equal(t, 1, replacements, "Should have 1 replacement")
 
@@ -229,7 +231,7 @@ func main() {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+	changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 	require.NoError(t, err)
 	require.False(t, changed, "File should not be changed")
@@ -258,7 +260,7 @@ func TestFixCopyLoopVarInFile_WithLoopVarCopy(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+	changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 	require.NoError(t, err)
 	require.True(t, changed, "File should be changed")
@@ -281,7 +283,7 @@ func TestFixCopyLoopVarInFile_ParseError(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+	changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 	require.Error(t, err)
 	require.False(t, changed)
@@ -308,7 +310,7 @@ func main() {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+	changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 	require.NoError(t, err)
 	require.False(t, changed)
@@ -321,7 +323,7 @@ func TestFixCopyLoopVar_UnsupportedVersion(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, tmpDir, "go1.21")
+	processed, modified, issuesFixed, err := formatGoCopyLoopVar.Fix(logger, tmpDir, "go1.21")
 
 	require.NoError(t, err)
 	require.Equal(t, 0, processed, "Should process 0 files")
@@ -340,7 +342,7 @@ func TestFixCopyLoopVar_SupportedVersion(t *testing.T) {
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, tmpDir, "go1.22")
+	processed, modified, issuesFixed, err := formatGoCopyLoopVar.Fix(logger, tmpDir, "go1.22")
 
 	require.NoError(t, err)
 	require.Equal(t, 1, processed, "Should process 1 file")
@@ -354,7 +356,7 @@ func TestFixCopyLoopVar_EmptyDir(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
-	processed, modified, issuesFixed, err := fixCopyLoopVar(logger, tmpDir, "go1.22")
+	processed, modified, issuesFixed, err := formatGoCopyLoopVar.Fix(logger, tmpDir, "go1.22")
 
 	require.NoError(t, err)
 	require.Equal(t, 0, processed, "Should process 0 files")
@@ -370,7 +372,7 @@ func TestFilterGoFiles_NoGoFiles(t *testing.T) {
 		"md":  {"README.md"},
 	}
 
-	goFiles := filterGoFiles(filesByExtension)
+	goFiles := formatGoEnforceAny.FilterGoFiles(filesByExtension)
 
 	require.Empty(t, goFiles, "Should return empty slice when no Go files")
 }
@@ -383,7 +385,7 @@ func TestFilterGoFiles_WithGoFiles(t *testing.T) {
 		".txt": {"file.txt"},
 	}
 
-	goFiles := filterGoFiles(filesByExtension)
+	goFiles := formatGoEnforceAny.FilterGoFiles(filesByExtension)
 
 	// GetGoFiles applies exclusions, so result may be empty or contain files.
 	// Just verify it doesn't panic/error.
@@ -394,7 +396,7 @@ func TestProcessGoFile_ReadError(t *testing.T) {
 	t.Parallel()
 
 	// Non-existent file.
-	replacements, err := processGoFile("/nonexistent/file.go")
+	replacements, err := formatGoEnforceAny.ProcessGoFile("/nonexistent/file.go")
 
 	require.Error(t, err)
 	require.Equal(t, 0, replacements)

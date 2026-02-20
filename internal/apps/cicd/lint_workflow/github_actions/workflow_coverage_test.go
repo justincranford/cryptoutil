@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_workflow
+package github_actions
 
 import (
 	"os"
@@ -77,7 +77,7 @@ func TestValidateAndGetWorkflowActionsDetails_BranchPinned(t *testing.T) {
 	require.Contains(t, err.Error(), "1 workflow validation errors")
 }
 
-// TestLintGitHubWorkflows_BranchPinnedAction verifies that lintGitHubWorkflows
+// TestLintGitHubWorkflows_BranchPinnedAction verifies that Check
 // returns an error when a workflow has branch-pinned actions.
 // Note: Not parallel - changes working directory.
 func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
@@ -101,13 +101,13 @@ func TestLintGitHubWorkflows_BranchPinnedAction(t *testing.T) {
 	err = os.WriteFile(workflowFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = lintGitHubWorkflows(logger, []string{workflowFile})
+	err = Check(logger, []string{workflowFile})
 	require.Error(t, err, "Should fail when branch-pinned actions are found")
 	require.Contains(t, err.Error(), "workflow validation failed")
 }
 
 // TestLintGitHubWorkflows_ExceptionVersionMismatch verifies that
-// lintGitHubWorkflows prints warnings when exception version mismatches.
+// Check prints warnings when exception version mismatches.
 // Note: Not parallel - changes working directory to set up exceptions file.
 func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -144,6 +144,6 @@ func TestLintGitHubWorkflows_ExceptionVersionMismatch(t *testing.T) {
 	err = os.WriteFile(workflowFile, content, 0o600)
 	require.NoError(t, err)
 
-	err = lintGitHubWorkflows(logger, []string{workflowFile})
+	err = Check(logger, []string{workflowFile})
 	require.NoError(t, err, "Stale exception warnings do not cause failure")
 }

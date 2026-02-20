@@ -25,7 +25,7 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 	t.Parallel()
 
 	// Read original content of enforce_any.go.
-	originalContent, err := os.ReadFile("enforce_any.go")
+	originalContent, err := os.ReadFile("enforce_any/enforce_any.go")
 	require.NoError(t, err, "Failed to read enforce_any.go")
 
 	// Verify the file contains critical self-modification protection markers.

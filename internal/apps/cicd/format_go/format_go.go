@@ -7,6 +7,9 @@ import (
 	"runtime"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	formatGoCopyLoopVar "cryptoutil/internal/apps/cicd/format_go/copyloopvar"
+	formatGoEnforceAny "cryptoutil/internal/apps/cicd/format_go/enforce_any"
+	formatGoEnforceTimeNowUTC "cryptoutil/internal/apps/cicd/format_go/enforce_time_now_utc"
 )
 
 // FormatterFunc is a function type for individual Go formatters.
@@ -21,7 +24,7 @@ var registeredFormatters = []struct {
 	name      string
 	formatter FormatterFunc
 }{
-	{"copyloopvar", fixCopyLoopVar},
+	{"copyloopvar", formatGoCopyLoopVar.Fix},
 }
 
 // registeredSimpleFormatters holds formatters that work on file lists.
@@ -29,8 +32,8 @@ var registeredSimpleFormatters = []struct {
 	name      string
 	formatter FormatterFuncSimple
 }{
-	{"enforce-any", enforceAny},
-	{"enforce-time-now-utc", enforceTimeNowUTC},
+	{"enforce-any", formatGoEnforceAny.Enforce},
+	{"enforce-time-now-utc", formatGoEnforceTimeNowUTC.Enforce},
 }
 
 // Format runs all registered Go formatters.

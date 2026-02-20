@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	formatGoEnforceTimeNowUTC "cryptoutil/internal/apps/cicd/format_go/enforce_time_now_utc"
 
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +36,7 @@ println(now)
 	require.NoError(t, err)
 
 	// Run enforcement.
-	replacements, err := processGoFileForTimeNowUTC(testFile)
+	replacements, err := formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC(testFile)
 	require.NoError(t, err)
 	require.Equal(t, 1, replacements, "Should replace one time.Now() call")
 
@@ -71,7 +72,7 @@ println(now)
 	require.NoError(t, err)
 
 	// Run enforcement.
-	replacements, err := processGoFileForTimeNowUTC(testFile)
+	replacements, err := formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC(testFile)
 	require.NoError(t, err)
 	require.Equal(t, 0, replacements, "Should not modify already correct code")
 
@@ -104,7 +105,7 @@ println(later)
 	require.NoError(t, err)
 
 	// Run enforcement.
-	replacements, err := processGoFileForTimeNowUTC(testFile)
+	replacements, err := formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC(testFile)
 	require.NoError(t, err)
 	require.Equal(t, 1, replacements, "Should replace time.Now() in chained call")
 
@@ -140,7 +141,7 @@ println(later)
 	require.NoError(t, err)
 
 	// Run enforcement.
-	replacements, err := processGoFileForTimeNowUTC(testFile)
+	replacements, err := formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC(testFile)
 	require.NoError(t, err)
 	require.Equal(t, 1, replacements, "Should replace time.Now() in assignment")
 
@@ -158,12 +159,12 @@ func TestEnforceTimeNowUTC_SelfExclusion(t *testing.T) {
 	t.Parallel()
 
 	// Process this test file itself (should be excluded).
-	replacements, err := processGoFileForTimeNowUTC("enforce_time_now_utc_test.go")
+	replacements, err := formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC("enforce_time_now_utc_test.go")
 	require.NoError(t, err)
 	require.Equal(t, 0, replacements, "format_go package files should be excluded from enforcement")
 
 	// Process the enforcement file itself (should be excluded).
-	replacements, err = processGoFileForTimeNowUTC("enforce_time_now_utc.go")
+	replacements, err = formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC("enforce_time_now_utc/enforce_time_now_utc.go")
 	require.NoError(t, err)
 	require.Equal(t, 0, replacements, "format_go package files should be excluded from enforcement")
 }
@@ -198,7 +199,7 @@ func main() {
 
 	// Run enforcement via public API.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-enforce-time-now-utc")
-	err = enforceTimeNowUTC(logger, filesByExtension)
+	err = formatGoEnforceTimeNowUTC.Enforce(logger, filesByExtension)
 
 	// Expect error because files were modified.
 	require.Error(t, err, "Should return error when files modified")
@@ -245,7 +246,7 @@ func main() {
 
 	// Run enforcement via public API.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-enforce-time-now-utc")
-	err = enforceTimeNowUTC(logger, filesByExtension)
+	err = formatGoEnforceTimeNowUTC.Enforce(logger, filesByExtension)
 
 	// Expect no error because no files were modified.
 	require.NoError(t, err, "Should not return error when no modifications needed")
@@ -282,7 +283,7 @@ this is not valid Go code!
 
 	// Run enforcement via public API.
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-enforce-time-now-utc")
-	err = enforceTimeNowUTC(logger, filesByExtension)
+	err = formatGoEnforceTimeNowUTC.Enforce(logger, filesByExtension)
 
 	// Should not error even if file parsing fails (errors are logged and skipped).
 	require.NoError(t, err, "Should not error when file parsing fails")

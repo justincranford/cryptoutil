@@ -10,6 +10,9 @@ import (
 "github.com/stretchr/testify/require"
 
 cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+formatGoCopyLoopVar "cryptoutil/internal/apps/cicd/format_go/copyloopvar"
+formatGoEnforceAny "cryptoutil/internal/apps/cicd/format_go/enforce_any"
+formatGoEnforceTimeNowUTC "cryptoutil/internal/apps/cicd/format_go/enforce_time_now_utc"
 )
 
 // testGoContentWithInterfaceBraces is Go content with interface{} in a temp file
@@ -33,7 +36,7 @@ filesByExtension := map[string][]string{
 "go": {testFile},
 }
 
-err = enforceAny(logger, filesByExtension)
+err = formatGoEnforceAny.Enforce(logger, filesByExtension)
 require.Error(t, err, "enforceAny should return error when files were modified")
 require.Contains(t, err.Error(), "modified")
 }
@@ -77,7 +80,7 @@ for _, tc := range tests {
 t.Run(tc.name, func(t *testing.T) {
 t.Parallel()
 
-result := isGoVersionSupported(tc.version)
+result := formatGoCopyLoopVar.IsGoVersionSupported(tc.version)
 require.Equal(t, tc.supported, result)
 })
 }
@@ -131,7 +134,7 @@ err := os.WriteFile(testFile, []byte(testGoContentKeyCopy), 0o600)
 require.NoError(t, err)
 
 logger := cryptoutilCmdCicdCommon.NewLogger("test")
-changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 require.NoError(t, err)
 require.True(t, changed, "File should be changed (key copy should be removed)")
@@ -149,7 +152,7 @@ err := os.WriteFile(testFile, []byte(testGoContentLhsNotRhs), 0o600)
 require.NoError(t, err)
 
 logger := cryptoutilCmdCicdCommon.NewLogger("test")
-changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 require.NoError(t, err)
 require.False(t, changed, "File should not be changed (lhs != rhs is not a copy)")
@@ -168,7 +171,7 @@ err := os.WriteFile(testFile, []byte(testGoContentOuterVarShadow), 0o600)
 require.NoError(t, err)
 
 logger := cryptoutilCmdCicdCommon.NewLogger("test")
-changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 require.NoError(t, err)
 require.False(t, changed, "File should not be changed (x is not a range variable)")
@@ -211,7 +214,7 @@ err := os.WriteFile(testFile, []byte(testGoContentSelfAssign), 0o600)
 require.NoError(t, err)
 
 logger := cryptoutilCmdCicdCommon.NewLogger("test")
-changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 require.NoError(t, err)
 require.False(t, changed, "File should not be changed (v = v uses ASSIGN not DEFINE)")
@@ -230,7 +233,7 @@ err := os.WriteFile(testFile, []byte(testGoContentRhsIsIndex), 0o600)
 require.NoError(t, err)
 
 logger := cryptoutilCmdCicdCommon.NewLogger("test")
-changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 require.NoError(t, err)
 require.False(t, changed, "File should not be changed (RHS is index expression, not Ident)")
@@ -253,7 +256,7 @@ require.NoError(t, err)
 err = os.Chmod(testFile, 0o400)
 require.NoError(t, err)
 
-replacements, err := processGoFile(testFile)
+replacements, err := formatGoEnforceAny.ProcessGoFile(testFile)
 require.Error(t, err, "processGoFile should fail when file is read-only")
 require.Equal(t, 0, replacements, "Should return 0 replacements on error")
 require.Contains(t, err.Error(), "failed to write file")
@@ -266,7 +269,7 @@ _ = os.Chmod(testFile, 0o600)
 func TestProcessGoFileForTimeNowUTC_ReadError(t *testing.T) {
 t.Parallel()
 
-replacements, err := processGoFileForTimeNowUTC("/nonexistent/path/to/test.go")
+replacements, err := formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC("/nonexistent/path/to/test.go")
 require.Error(t, err, "processGoFileForTimeNowUTC should fail for nonexistent file")
 require.Equal(t, 0, replacements)
 require.Contains(t, err.Error(), "failed to read file")
@@ -295,7 +298,7 @@ testFile := filepath.Join(tmpDir, "test.go")
 err := os.WriteFile(testFile, []byte(testGoContentUTCOnVariable), 0o600)
 require.NoError(t, err)
 
-replacements, err := processGoFileForTimeNowUTC(testFile)
+replacements, err := formatGoEnforceTimeNowUTC.ProcessGoFileForTimeNowUTC(testFile)
 require.NoError(t, err, "Should not error on file with t.UTC() on variable")
 require.Equal(t, 0, replacements, "No replacements needed (already correct or not time.Now())")
 }
@@ -317,7 +320,7 @@ err = os.Chmod(testFile, 0o400)
 require.NoError(t, err)
 
 logger := cryptoutilCmdCicdCommon.NewLogger("test")
-changed, fixes, err := fixCopyLoopVarInFile(logger, testFile)
+changed, fixes, err := formatGoCopyLoopVar.FixInFile(logger, testFile)
 
 // Restore permissions for cleanup.
 _ = os.Chmod(testFile, 0o600)

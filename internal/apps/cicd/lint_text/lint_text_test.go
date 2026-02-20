@@ -67,6 +67,23 @@ func TestLint_FileWithBOM(t *testing.T) {
 	require.Contains(t, err.Error(), "lint-text failed", "Error should indicate lint-text failure")
 }
 
+func TestFilterTextFilesViaLint(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	goFile := filepath.Join(tmpDir, "main.go")
+	err := os.WriteFile(goFile, []byte("package main"), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"go": {goFile},
+	}
+
+	err = Lint(logger, filesByExtension)
+	require.NoError(t, err, "Lint should succeed with valid go files")
+}
+
 func TestFilterTextFiles(t *testing.T) {
 	t.Parallel()
 
