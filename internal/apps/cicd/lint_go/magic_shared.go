@@ -162,8 +162,8 @@ var magicGeneratedAPIDirs = map[string]bool{
 }
 
 const (
-	magicExcludeDirTestOutput       = "test-output"
-	magicExcludeDirWorkflowReports  = "workflow-reports"
+	magicExcludeDirTestOutput      = "test-output"
+	magicExcludeDirWorkflowReports = "workflow-reports"
 )
 
 // magicShouldSkipPath returns true if the given relative path should be excluded from magic scanning.

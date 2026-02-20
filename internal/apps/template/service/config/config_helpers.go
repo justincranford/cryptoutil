@@ -80,7 +80,7 @@ func logSettings(s *ServiceTemplateServerSettings) {
 		}
 
 		// Iterate through all registered settings and log them
-		for _, setting := range allServeiceTemplateServerRegisteredSettings {
+		for _, setting := range allServiceTemplateServerRegisteredSettings {
 			value := valueMap[setting.Name]
 			if setting.Redacted && (!s.DevMode || !s.VerboseMode) {
 				value = "REDACTED"
@@ -89,7 +89,7 @@ func logSettings(s *ServiceTemplateServerSettings) {
 			log.Info(setting.Description+" (-"+setting.Shorthand+"): ", value)
 		}
 
-		analysis := analyzeSettings(allServeiceTemplateServerRegisteredSettings)
+		analysis := analyzeSettings(allServiceTemplateServerRegisteredSettings)
 
 		var usedShorthands []string
 
@@ -123,7 +123,7 @@ func resetFlags() {
 func SetEnvAndRegisterSetting(_ []*Setting, setting *Setting) *Setting {
 	setting.Env = "CRYPTOUTIL_" + strings.ToUpper(strings.ReplaceAll(setting.Name, "-", "_"))
 
-	allServeiceTemplateServerRegisteredSettings = append(allServeiceTemplateServerRegisteredSettings, setting)
+	allServiceTemplateServerRegisteredSettings = append(allServiceTemplateServerRegisteredSettings, setting)
 
 	return setting
 }

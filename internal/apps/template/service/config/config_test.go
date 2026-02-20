@@ -196,19 +196,19 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 }
 
 func TestAnalyzeSettings_RealSettings(t *testing.T) {
-	result := analyzeSettings(allServeiceTemplateServerRegisteredSettings)
+	result := analyzeSettings(allServiceTemplateServerRegisteredSettings)
 
 	totalMappedByName := 0
 	for _, settings := range result.SettingsByNames {
 		totalMappedByName += len(settings)
 	}
 
-	require.Equal(t, len(allServeiceTemplateServerRegisteredSettings), totalMappedByName, "All settings should be accounted for by name")
+	require.Equal(t, len(allServiceTemplateServerRegisteredSettings), totalMappedByName, "All settings should be accounted for by name")
 
 	// Count settings with non-empty shorthands
 	settingsWithShorthands := 0
 
-	for _, setting := range allServeiceTemplateServerRegisteredSettings {
+	for _, setting := range allServiceTemplateServerRegisteredSettings {
 		if setting.Shorthand != "" {
 			settingsWithShorthands++
 		}

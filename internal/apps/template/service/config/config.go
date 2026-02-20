@@ -224,7 +224,7 @@ var subcommands = map[string]struct{}{
 	"ready": {},
 }
 
-var allServeiceTemplateServerRegisteredSettings []*Setting
+var allServiceTemplateServerRegisteredSettings []*Setting
 
 // ServiceTemplateServerSettings contains all configuration settings for the service template server.
 type ServiceTemplateServerSettings struct {

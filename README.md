@@ -31,7 +31,7 @@ I also decided to refactor the **CA** and **JOSE** components into external serv
 
 This project is **for fun**. I’ve worked on all four types of systems professionally, and I genuinely enjoy the challenge of building my own versions.
 
-This opportunity is also a great learning experiance, especially with respect to using **LLM agents** for Spec-Driven Development (SDD).
+This opportunity is also a great learning experience, especially with respect to using **LLM agents** for Spec-Driven Development (SDD).
 
 Finally, this project has given me a much greater appreciation for the breadth of work that goes into delivering modern, enterprise-ready security products.
 
