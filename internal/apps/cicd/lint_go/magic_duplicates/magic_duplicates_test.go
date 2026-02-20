@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_go
+package magic_duplicates
 
 import (
 	"os"
@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	lintGoMagicDuplicates "cryptoutil/internal/apps/cicd/lint_go/magic_duplicates"
 
 	"github.com/stretchr/testify/require"
 )
@@ -34,7 +33,7 @@ SchemeHTTP    = "http"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
-	err := lintGoMagicDuplicates.CheckMagicDuplicatesInDir(logger, dir)
+	err := CheckMagicDuplicatesInDir(logger, dir)
 	require.NoError(t, err)
 }
 
@@ -51,7 +50,7 @@ SchemeHTTPS   = "https"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
-	err := lintGoMagicDuplicates.CheckMagicDuplicatesInDir(logger, dir)
+	err := CheckMagicDuplicatesInDir(logger, dir)
 	// magic-duplicates is informational: violations are logged but do not return an error.
 	require.NoError(t, err)
 }
@@ -72,7 +71,7 @@ DefaultSizeB = 5
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
-	err := lintGoMagicDuplicates.CheckMagicDuplicatesInDir(logger, dir)
+	err := CheckMagicDuplicatesInDir(logger, dir)
 	// magic-duplicates is informational: violations are logged but do not return an error.
 	require.NoError(t, err)
 }
@@ -81,7 +80,7 @@ func TestCheckMagicDuplicatesInDir_InvalidDir(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
-	err := lintGoMagicDuplicates.CheckMagicDuplicatesInDir(logger, "/nonexistent/path/that/does/not/exist")
+	err := CheckMagicDuplicatesInDir(logger, "/nonexistent/path/that/does/not/exist")
 	require.Error(t, err)
 }
 
@@ -95,7 +94,7 @@ const Alone = "solo"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
-	err := lintGoMagicDuplicates.CheckMagicDuplicatesInDir(logger, dir)
+	err := CheckMagicDuplicatesInDir(logger, dir)
 	require.NoError(t, err)
 }
 
@@ -107,7 +106,7 @@ func TestCheckMagicDuplicatesInDir_EmptyPackage(t *testing.T) {
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
-	err := lintGoMagicDuplicates.CheckMagicDuplicatesInDir(logger, dir)
+	err := CheckMagicDuplicatesInDir(logger, dir)
 	require.NoError(t, err)
 }
 
@@ -125,7 +124,7 @@ const AlgorithmRSA = "RSA"
 `)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
-	err := lintGoMagicDuplicates.CheckMagicDuplicatesInDir(logger, dir)
+	err := CheckMagicDuplicatesInDir(logger, dir)
 	// magic-duplicates is informational: violations are logged but do not return an error.
 	require.NoError(t, err)
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_go
+package cgo_free_sqlite
 
 import (
 	"os"
@@ -11,8 +11,16 @@ import (
 
 
 	"github.com/stretchr/testify/require"
-	lintGoCGOFreeSQLite "cryptoutil/internal/apps/cicd/lint_go/cgo_free_sqlite"
 )
+
+// Test constants for repeated string literals.
+const (
+	osWindows        = "windows"
+	testCleanGoFile  = "clean.go"
+	testCleanContent = "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
+	testMainContent  = "package main\n\nfunc main() {}\n"
+)
+
 
 func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
@@ -33,7 +41,7 @@ func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
 	require.NoError(t, os.WriteFile(testCleanGoFile, []byte(testCleanContent), 0o600))
 
 	// Test with clean file - should have no violations.
-	violations, err := lintGoCGOFreeSQLite.CheckGoFilesForCGO()
+	violations, err := CheckGoFilesForCGO()
 	require.NoError(t, err)
 	require.Empty(t, violations)
 }
@@ -65,7 +73,7 @@ func TestCheckGoFilesForCGO_WithBannedImport(t *testing.T) {
 	require.NoError(t, os.WriteFile(bannedFile, []byte(bannedContent), 0o600))
 
 	// Test - should find the violation.
-	violations, err := lintGoCGOFreeSQLite.CheckGoFilesForCGO()
+	violations, err := CheckGoFilesForCGO()
 	require.NoError(t, err)
 	require.Len(t, violations, 1)
 	require.Contains(t, violations[0], "banned.go")
@@ -104,7 +112,7 @@ func TestCheckGoFilesForCGO_SkipsVendor(t *testing.T) {
 	require.NoError(t, os.WriteFile(mainFile, []byte(testMainContent), 0o600))
 
 	// Test - vendor should be skipped, no violations.
-	violations, err := lintGoCGOFreeSQLite.CheckGoFilesForCGO()
+	violations, err := CheckGoFilesForCGO()
 	require.NoError(t, err)
 	require.Empty(t, violations, "vendor directory should be skipped")
 }
@@ -136,7 +144,7 @@ func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
 	}()
 
 	// Test - should get error.
-	_, err = lintGoCGOFreeSQLite.CheckGoFilesForCGO()
+	_, err = CheckGoFilesForCGO()
 	require.Error(t, err)
 }
 

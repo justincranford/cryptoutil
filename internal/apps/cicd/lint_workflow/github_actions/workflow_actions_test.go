@@ -11,6 +11,7 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 )
+
 func TestLint_WithActualWorkflow(t *testing.T) {
 	t.Parallel()
 

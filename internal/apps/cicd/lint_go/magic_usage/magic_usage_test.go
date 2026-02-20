@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_go
+package magic_usage
 
 import (
 	"os"
@@ -8,10 +8,17 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	lintGoMagicUsage "cryptoutil/internal/apps/cicd/lint_go/magic_usage"
 
 	"github.com/stretchr/testify/require"
 )
+
+// writeMagicFile creates a file inside dir with the given content.
+func writeMagicFile(t *testing.T, dir, name, content string) {
+	t.Helper()
+
+	err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600)
+	require.NoError(t, err)
+}
 
 // setupMagicUsageDirs creates a magic dir and a separate root dir for usage tests.
 func setupMagicUsageDirs(t *testing.T) (magicDir, rootDir string) {
@@ -44,7 +51,7 @@ func greet() { fmt.Println("hello") }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	require.NoError(t, err)
 }
 
@@ -66,7 +73,7 @@ func scheme() string { return "https" }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	// magic-usage is informational: violations are logged but do not return an error.
 	require.NoError(t, err)
 }
@@ -89,7 +96,7 @@ const localHTTPS = "https"
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	// magic-usage is informational: violations are logged but do not return an error.
 	require.NoError(t, err)
 }
@@ -113,7 +120,7 @@ func f() string { return "." }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	require.NoError(t, err)
 }
 
@@ -135,7 +142,7 @@ func count() int { return 0 }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	require.NoError(t, err)
 }
 
@@ -165,7 +172,7 @@ const wantLimit = 500
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	// magic-usage is informational: violations are logged but do not return an error.
 	// The test confirms production-file violations are suppressed (no panic, clean exit).
 	require.NoError(t, err)
@@ -185,7 +192,7 @@ const x = "hello"
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	require.NoError(t, err)
 }
 
@@ -193,7 +200,7 @@ func TestCheckMagicUsageInDir_InvalidMagicDir(t *testing.T) {
 	t.Parallel()
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err := lintGoMagicUsage.CheckMagicUsageInDir(logger, "/nonexistent/magic", ".")
+	err := CheckMagicUsageInDir(logger, "/nonexistent/magic", ".")
 	require.Error(t, err)
 }
 
@@ -215,6 +222,6 @@ func genFunc() string { return "https" }
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("magic-usage-test")
-	err = lintGoMagicUsage.CheckMagicUsageInDir(logger, magicDir, rootDir)
+	err = CheckMagicUsageInDir(logger, magicDir, rootDir)
 	require.NoError(t, err)
 }

@@ -14,6 +14,7 @@ import (
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
+
 func TestCheckOutdatedDeps_NoGoMod(t *testing.T) {
 	// This test cannot be parallel because it changes working directory.
 	tmpDir := t.TempDir()

@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_go
+package cgo_free_sqlite
 
 import (
 	"testing"
@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	lintGoCGOFreeSQLite "cryptoutil/internal/apps/cicd/lint_go/cgo_free_sqlite"
 
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +34,7 @@ require (
 	err := os.WriteFile(goModFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoModForCGO(goModFile)
+	violations, err := CheckGoModForCGO(goModFile)
 	require.NoError(t, err)
 	require.Empty(t, violations, "Valid go.mod should have no violations")
 }
@@ -60,7 +59,7 @@ require (
 	err := os.WriteFile(goModFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoModForCGO(goModFile)
+	violations, err := CheckGoModForCGO(goModFile)
 	require.NoError(t, err)
 	require.Len(t, violations, 2, "Should detect 2 banned modules")
 	require.Contains(t, strings.Join(violations, "\n"), "go-sqlite3", "Should detect banned CGO sqlite")
@@ -86,7 +85,7 @@ require (
 	err := os.WriteFile(goModFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoModForCGO(goModFile)
+	violations, err := CheckGoModForCGO(goModFile)
 	require.NoError(t, err)
 	require.Empty(t, violations, "Indirect dependencies should not be flagged")
 }
@@ -94,7 +93,7 @@ require (
 func TestCheckGoModForCGO_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoModForCGO("/nonexistent/path/go.mod")
+	violations, err := CheckGoModForCGO("/nonexistent/path/go.mod")
 	require.Error(t, err)
 	require.Nil(t, violations)
 	require.Contains(t, err.Error(), "failed to open go.mod")
@@ -119,7 +118,7 @@ require (
 	err := os.WriteFile(goModFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	found, err := lintGoCGOFreeSQLite.CheckRequiredCGOModule(goModFile)
+	found, err := CheckRequiredCGOModule(goModFile)
 	require.NoError(t, err)
 	require.True(t, found, "Required module should be found")
 }
@@ -143,7 +142,7 @@ require (
 	err := os.WriteFile(goModFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	found, err := lintGoCGOFreeSQLite.CheckRequiredCGOModule(goModFile)
+	found, err := CheckRequiredCGOModule(goModFile)
 	require.NoError(t, err)
 	require.False(t, found, "Required module should not be found")
 }
@@ -151,7 +150,7 @@ require (
 func TestCheckRequiredCGOModule_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	found, err := lintGoCGOFreeSQLite.CheckRequiredCGOModule("/nonexistent/path/go.mod")
+	found, err := CheckRequiredCGOModule("/nonexistent/path/go.mod")
 	require.Error(t, err)
 	require.False(t, found)
 	require.Contains(t, err.Error(), "failed to open go.mod")
@@ -179,7 +178,7 @@ func main() {
 	err := os.WriteFile(cleanFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoFileForCGO(cleanFile)
+	violations, err := CheckGoFileForCGO(cleanFile)
 	require.NoError(t, err)
 	require.Empty(t, violations, "Clean file should have no violations")
 }
@@ -204,7 +203,7 @@ func main() {
 	err := os.WriteFile(bannedFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoFileForCGO(bannedFile)
+	violations, err := CheckGoFileForCGO(bannedFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, violations, "Banned import should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "banned CGO import detected")
@@ -230,7 +229,7 @@ func main() {
 	err := os.WriteFile(bannedFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoFileForCGO(bannedFile)
+	violations, err := CheckGoFileForCGO(bannedFile)
 	require.NoError(t, err)
 	require.NotEmpty(t, violations, "Banned migrate import should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "banned CGO migrate import detected")
@@ -257,7 +256,7 @@ import (
 	err := os.WriteFile(skippedFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoFileForCGO(skippedFile)
+	violations, err := CheckGoFileForCGO(skippedFile)
 	require.NoError(t, err)
 	require.Empty(t, violations, "lint_go files should be skipped")
 }
@@ -265,7 +264,7 @@ import (
 func TestCheckGoFileForCGO_FileNotFound(t *testing.T) {
 	t.Parallel()
 
-	violations, err := lintGoCGOFreeSQLite.CheckGoFileForCGO("/nonexistent/path/file.go")
+	violations, err := CheckGoFileForCGO("/nonexistent/path/file.go")
 	require.Error(t, err)
 	require.Nil(t, violations)
 	require.Contains(t, err.Error(), "failed to open")
@@ -283,7 +282,7 @@ func TestPrintCGOViolations_AllTypes(t *testing.T) {
 	importViolations := []string{"file.go:10: banned CGO import"}
 	hasRequired := false
 
-	lintGoCGOFreeSQLite.PrintCGOViolations(goModViolations, importViolations, hasRequired)
+	PrintCGOViolations(goModViolations, importViolations, hasRequired)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -302,7 +301,7 @@ func TestPrintCGOViolations_GoModOnly(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stderr = w
 
-	lintGoCGOFreeSQLite.PrintCGOViolations([]string{"go.mod:5: banned module"}, nil, true)
+	PrintCGOViolations([]string{"go.mod:5: banned module"}, nil, true)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -320,7 +319,7 @@ func TestPrintCGOViolations_ImportOnly(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stderr = w
 
-	lintGoCGOFreeSQLite.PrintCGOViolations(nil, []string{"file.go:10: banned import"}, true)
+	PrintCGOViolations(nil, []string{"file.go:10: banned import"}, true)
 
 	_ = w.Close()
 	os.Stderr = oldStderr
@@ -362,7 +361,7 @@ func TestCheckCGOFreeSQLite_WithTempDir(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// Test - should pass with required module present.
-	err = lintGoCGOFreeSQLite.Check(logger)
+	err = Check(logger)
 	require.NoError(t, err)
 }
 
@@ -391,7 +390,7 @@ func TestCheckCGOFreeSQLite_MissingRequired(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 
 	// Test - should fail because required module is missing.
-	err = lintGoCGOFreeSQLite.Check(logger)
+	err = Check(logger)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "CGO validation failed")
 }

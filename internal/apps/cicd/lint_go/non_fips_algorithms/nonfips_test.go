@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
 
-package lint_go
+package non_fips_algorithms
 
 import (
 	"os"
@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
-	lintGoNonFIPSAlgorithms "cryptoutil/internal/apps/cicd/lint_go/non_fips_algorithms"
 
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +19,7 @@ func TestCheckNonFIPS(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test-nonfips")
 
 	// Should pass (no violations in actual codebase after Phase 1).
-	err := lintGoNonFIPSAlgorithms.Check(logger)
+	err := Check(logger)
 	require.NoError(t, err, "Non-FIPS check should pass after bcrypt removal")
 }
 
@@ -51,7 +50,7 @@ func main() {
 	require.NoError(t, err)
 
 	// Check file.
-	violations := lintGoNonFIPSAlgorithms.CheckFileForNonFIPS(cleanFile)
+	violations := CheckFileForNonFIPS(cleanFile)
 	require.Empty(t, violations, "FIPS-approved code should have 0 violations")
 }
 
@@ -77,7 +76,7 @@ func main() {
 	require.NoError(t, err)
 
 	// Check file.
-	violations := lintGoNonFIPSAlgorithms.CheckFileForNonFIPS(bannedFile)
+	violations := CheckFileForNonFIPS(bannedFile)
 	require.NotEmpty(t, violations, "Bcrypt usage should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "bcrypt", "Violation should mention bcrypt")
 	require.Contains(t, strings.Join(violations, "\n"), "PBKDF2", "Violation should suggest PBKDF2")
@@ -106,7 +105,7 @@ func main() {
 	require.NoError(t, err)
 
 	// Check file.
-	violations := lintGoNonFIPSAlgorithms.CheckFileForNonFIPS(bannedFile)
+	violations := CheckFileForNonFIPS(bannedFile)
 	require.NotEmpty(t, violations, "MD5 usage should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "md5", "Violation should mention md5")
 	require.Contains(t, strings.Join(violations, "\n"), "SHA-256", "Violation should suggest SHA-256")
@@ -135,7 +134,7 @@ func main() {
 	require.NoError(t, err)
 
 	// Check file.
-	violations := lintGoNonFIPSAlgorithms.CheckFileForNonFIPS(bannedFile)
+	violations := CheckFileForNonFIPS(bannedFile)
 	require.NotEmpty(t, violations, "SHA-1 usage should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "sha1", "Violation should mention sha1")
 	require.Contains(t, strings.Join(violations, "\n"), "SHA-256", "Violation should suggest SHA-256")
@@ -163,7 +162,7 @@ func main() {
 	require.NoError(t, err)
 
 	// Check file.
-	violations := lintGoNonFIPSAlgorithms.CheckFileForNonFIPS(bannedFile)
+	violations := CheckFileForNonFIPS(bannedFile)
 	require.NotEmpty(t, violations, "DES usage should be detected")
 	require.Contains(t, strings.Join(violations, "\n"), "des", "Violation should mention des")
 	require.Contains(t, strings.Join(violations, "\n"), "AES", "Violation should suggest AES")
@@ -195,7 +194,7 @@ func main() {
 	require.NoError(t, err)
 
 	// Check file.
-	violations := lintGoNonFIPSAlgorithms.CheckFileForNonFIPS(bannedFile)
+	violations := CheckFileForNonFIPS(bannedFile)
 	require.NotEmpty(t, violations, "Multiple violations should be detected")
 
 	violationsStr := strings.Join(violations, "\n")
@@ -215,7 +214,7 @@ func TestPrintNonFIPSViolations(t *testing.T) {
 		"file2.go": {"Line 10: Found 'md5.New' (non-FIPS) - use SHA-256/384/512 instead"},
 	}
 
-	lintGoNonFIPSAlgorithms.PrintNonFIPSViolations(violations)
+	PrintNonFIPSViolations(violations)
 
 	_ = w.Close()
 
