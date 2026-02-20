@@ -295,13 +295,13 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 	}
 
 	// Validate database URL format
-	// Allow special SQLite formats: ":memory:", "file::memory:?cache=shared"
+	// Allow special SQLite formats: ":memory:", "file::memory:?cache=shared", "file::memory:NAME?cache=shared" (unique per-test)
 	// Standard formats must contain "://" (e.g., "postgres://...", "file://...")
 	if s.DatabaseURL != "" &&
 		s.DatabaseURL != ":memory:" &&
-		s.DatabaseURL != "file::memory:?cache=shared" &&
+		!strings.HasPrefix(s.DatabaseURL, "file::memory:") &&
 		!strings.Contains(s.DatabaseURL, "://") {
-		errors = append(errors, fmt.Sprintf("invalid database URL format '%s': must contain '://' (e.g., 'postgres://user:pass@host:port/db') or use SQLite special formats (':memory:', 'file::memory:?cache=shared')", s.DatabaseURL))
+		errors = append(errors, fmt.Sprintf("invalid database URL format '%s': must contain '://' (e.g., 'postgres://user:pass@host:port/db') or use SQLite special formats (':memory:', 'file::memory:NAME?cache=shared')", s.DatabaseURL))
 	}
 
 	// Validate CORS origins format

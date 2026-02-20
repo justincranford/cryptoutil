@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io/fs"
+	"strings"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
@@ -269,8 +270,8 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	// Determine database type from URL.
 	var databaseType string
 	if b.config.DatabaseURL == "" ||
-		b.config.DatabaseURL == "file::memory:?cache=shared" ||
 		b.config.DatabaseURL == ":memory:" ||
+		strings.HasPrefix(b.config.DatabaseURL, "file::memory:") ||
 		(len(b.config.DatabaseURL) >= 7 && b.config.DatabaseURL[:7] == "file://") ||
 		(len(b.config.DatabaseURL) >= 9 && b.config.DatabaseURL[:9] == "sqlite://") {
 		databaseType = "sqlite"

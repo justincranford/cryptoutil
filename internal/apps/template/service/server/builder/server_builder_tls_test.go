@@ -6,6 +6,7 @@ package builder
 
 import (
 	"crypto/elliptic"
+	"fmt"
 	"crypto/x509"
 	"encoding/pem"
 	"testing"
@@ -16,6 +17,8 @@ import (
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	googleUuid "github.com/google/uuid"
 
 	"github.com/stretchr/testify/require"
 )
@@ -219,7 +222,7 @@ func getMinimalSettings() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateSe
 	return &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:                    true,
 		VerboseMode:                false,
-		DatabaseURL:                cryptoutilSharedMagic.SQLiteInMemoryDSN,
+		DatabaseURL:                fmt.Sprintf("file::memory:%s?cache=shared", googleUuid.Must(googleUuid.NewV7()).String()),
 		OTLPService:                "template-service-test",
 		OTLPEnabled:                false,
 		OTLPEndpoint:               "grpc://127.0.0.1:4317",

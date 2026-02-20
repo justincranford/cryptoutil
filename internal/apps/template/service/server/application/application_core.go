@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -333,8 +334,8 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 
 	// Configure SQLite for concurrent operations.
 	// Note: Skip WAL mode for in-memory databases as it's not supported.
-	isInMemory := databaseURL == ":memory:" || databaseURL == "file::memory:?cache=shared" ||
-		(len(databaseURL) >= 7 && databaseURL[:7] == "file:/:" && (len(databaseURL) < 9 || databaseURL[7:9] == ":m"))
+        // Matches: ":memory:", "file::memory:?cache=shared", "file::memory:NAME?cache=shared" (unique per-test)
+        isInMemory := databaseURL == ":memory:" || strings.HasPrefix(databaseURL, "file::memory:")
 
 	if !isInMemory {
 		if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
