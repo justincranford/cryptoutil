@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	lintGolangciConfig "cryptoutil/internal/apps/cicd/lint_golangci/golangci_config"
 
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +19,7 @@ func TestLintGolangCIConfig_NoConfigFiles(t *testing.T) {
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
 	filesByExtension := map[string][]string{}
 
-	err := LintGolangCIConfig(logger, filesByExtension)
+	err := lintGolangciConfig.Check(logger, filesByExtension)
 	require.NoError(t, err, "lint should pass with no config files")
 }
 
@@ -52,7 +53,7 @@ linters:
 		"yml": {configFile},
 	}
 
-	err = LintGolangCIConfig(logger, filesByExtension)
+	err = lintGolangciConfig.Check(logger, filesByExtension)
 	require.NoError(t, err, "lint should pass with valid v2 config")
 }
 
@@ -183,7 +184,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
 				"yml": {configFile},
 			}
 
-			err = LintGolangCIConfig(logger, filesByExtension)
+			err = lintGolangciConfig.Check(logger, filesByExtension)
 
 			if tt.wantErr {
 				require.Error(t, err, "lint should fail for deprecated config")
@@ -198,7 +199,7 @@ func TestLintGolangCIConfig_DeprecatedOptions(t *testing.T) {
 func TestCheckGolangCIConfig_NonExistentFile(t *testing.T) {
 	t.Parallel()
 
-	violations, err := checkGolangCIConfig("/nonexistent/file.yml")
+	violations, err := lintGolangciConfig.CheckGolangCIConfig("/nonexistent/file.yml")
 	require.Error(t, err, "should fail for non-existent file")
 	require.Nil(t, violations)
 }
@@ -224,7 +225,7 @@ linters:
 	err := os.WriteFile(configFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	violations, err := checkGolangCIConfig(configFile)
+	violations, err := lintGolangciConfig.CheckGolangCIConfig(configFile)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(violations), 4, "should detect multiple violations")
 }
@@ -251,7 +252,7 @@ func TestFindGolangCIConfigFiles_AllFormats(t *testing.T) {
 		"toml": {tomlFile},
 	}
 
-	files := FindGolangCIConfigFiles(filesByExtension)
+	files := lintGolangciConfig.FindGolangCIConfigFiles(filesByExtension)
 	require.Len(t, files, 3, "should find yml, yaml, and toml config files")
 	require.Contains(t, files, ymlFile)
 	require.Contains(t, files, yamlFile)
@@ -272,7 +273,7 @@ filesByExtension := map[string][]string{
 }
 
 // Should not return error - file errors are logged as warnings and skipped.
-err := LintGolangCIConfig(logger, filesByExtension)
+err := lintGolangciConfig.Check(logger, filesByExtension)
 require.NoError(t, err, "LintGolangCIConfig should continue after file open error")
 }
 
@@ -298,7 +299,7 @@ linters:
 err := os.WriteFile(configFile, []byte(content), 0o600)
 require.NoError(t, err)
 
-violations, err := checkGolangCIConfig(configFile)
+violations, err := lintGolangciConfig.CheckGolangCIConfig(configFile)
 require.NoError(t, err, "checkGolangCIConfig should succeed with valid config")
 require.Empty(t, violations, "Should have no violations with valid v2 config")
 }
@@ -323,6 +324,6 @@ content := `linters-settings:
 err := os.WriteFile(configFile, []byte(content), 0o600)
 require.NoError(t, err)
 
-_, err = checkGolangCIConfig(configFile)
+_, err = lintGolangciConfig.CheckGolangCIConfig(configFile)
 require.NoError(t, err, "checkGolangCIConfig should succeed")
 }
