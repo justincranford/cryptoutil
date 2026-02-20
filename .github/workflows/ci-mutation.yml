@@ -119,7 +119,7 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           gremlins unleash \
-            --tags=!integration,!bench,!fuzz,!e2e,!pbt,!properties || true
+            --tags=!integration,!bench,!fuzz,!e2e,!pbt,!properties
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

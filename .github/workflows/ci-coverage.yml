@@ -117,7 +117,8 @@ jobs:
         # Exclude cmd/* packages (main packages without coverage requirements)
         # Exclude e2e/* packages (require Docker Compose, run in ci-e2e workflow)
         go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic \
-          $(go list ./internal/... | grep -v '/cmd$' | grep -v '/cmd/' | grep -v '/e2e$' | grep -v '/e2e/')
+          $(go list ./internal/... | grep -v '/cmd$' | grep -v '/cmd/' | grep -v '/e2e$' | grep -v '/e2e/') \
+          2>&1 | tee workflow-reports/coverage/coverage-per-pkg.txt
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -128,6 +129,38 @@ jobs:
 
     - name: Generate function-level coverage report
       run: go tool cover -func=workflow-reports/coverage/coverage.out > workflow-reports/coverage/coverage-func.txt
+
+    - name: Enforce per-package coverage threshold
+      run: |
+        echo "## 🔍 Per-Package Coverage Enforcement" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Package | Coverage | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|----------|--------|" >> $GITHUB_STEP_SUMMARY
+        FAILED=0
+        # internal/apps/cicd infrastructure packages require >=98%
+        # All other production packages require >=95%
+        while IFS= read -r line; do
+          PKG=$(echo "$line" | grep -oP '(?<=ok\s{1,10})[\w./\-]+' || true)
+          PCT=$(echo "$line" | grep -oP '[\d.]+(?=% of statements)' || true)
+          if [ -z "$PKG" ] || [ -z "$PCT" ]; then continue; fi
+          # Determine threshold: 98% for cicd infra, 95% for all others
+          THRESHOLD=95.0
+          if echo "$PKG" | grep -q '/apps/cicd'; then THRESHOLD=98.0; fi
+          STATUS="✅ PASS"
+          if awk "BEGIN {exit !($PCT < $THRESHOLD)}"; then
+            STATUS="❌ FAIL"
+            FAILED=1
+          fi
+          echo "| \`$PKG\` | ${PCT}% | $STATUS (min ${THRESHOLD}%) |" >> $GITHUB_STEP_SUMMARY
+        done < workflow-reports/coverage/coverage-per-pkg.txt
+        if [ "$FAILED" -eq 1 ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "❌ One or more packages are below the required coverage threshold." >> $GITHUB_STEP_SUMMARY
+          echo "❌ Per-package coverage gate failed — see table above for details"
+          exit 1
+        else
+          echo "✅ All packages meet per-package coverage thresholds"
+        fi
 
     - name: Scan coverage artifacts for vulnerabilities
       uses: ./.github/actions/security-scan-trivy2
@@ -153,8 +186,8 @@ jobs:
         echo "current_coverage=$CURRENT_COVERAGE" >> $GITHUB_OUTPUT
         echo "📋 Current coverage: ${CURRENT_COVERAGE}%"
 
-        # Coverage threshold enforcement (temporarily 73% - TODO: increase to 95%)
-        MINIMUM_COVERAGE=73.0
+        # Coverage threshold enforcement (95% required, matching architecture.md quality gates)
+        MINIMUM_COVERAGE=95.0
         if (( $(echo "$CURRENT_COVERAGE < $MINIMUM_COVERAGE" | bc -l) )); then
           echo "❌ Coverage ${CURRENT_COVERAGE}% is below minimum threshold ${MINIMUM_COVERAGE}%"
           echo "coverage_passed=false" >> $GITHUB_OUTPUT
@@ -219,7 +252,7 @@ jobs:
         echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
         echo "| Current Coverage | ${{ steps.coverage-trend.outputs.current_coverage }}% |" >> $GITHUB_STEP_SUMMARY
-        echo "| Minimum Threshold | 85.0% |" >> $GITHUB_STEP_SUMMARY
+        echo "| Minimum Threshold | 95.0% |" >> $GITHUB_STEP_SUMMARY
         echo "| Threshold Status | ${{ steps.coverage-trend.outputs.coverage_passed == 'true' && '✅ PASS' || '❌ FAIL' }} |" >> $GITHUB_STEP_SUMMARY
 
         if [ "${{ steps.coverage-trend.outputs.trend_text }}" != "baseline" ]; then
@@ -235,9 +268,9 @@ jobs:
     - name: Enforce coverage threshold
       if: steps.coverage-trend.outputs.coverage_passed == 'false'
       run: |
-        echo "❌ Coverage below minimum threshold of 73%"
+        echo "❌ Coverage below minimum threshold of 95%"
         echo "Current coverage: ${{ steps.coverage-trend.outputs.current_coverage }}%"
-        echo "TODO: Increase threshold to 95% after improving package coverage"
+        echo "Improve test coverage to meet the ≥95% quality gate"
         exit 1
 
     - name: Upload coverage
@@ -258,6 +291,7 @@ jobs:
           workflow-reports/coverage/coverage.out
           workflow-reports/coverage/coverage.html
           workflow-reports/coverage/coverage-func.txt
+          workflow-reports/coverage/coverage-per-pkg.txt
           coverage-upload-artifacts-trivy.sarif
         retention-days: 1
 
