@@ -1,0 +1,18 @@
+{
+  "MD001": false, // heading-increment: headings must increment by one level at a time
+  "MD003": false, // heading-style: consistent heading style (atx vs setext)
+  "MD013": false, // line-length: maximum line length
+  "MD024": false, // no-duplicate-heading: headings with the same content
+  "MD025": false, // single-title: single top-level heading per document
+  "MD031": false, // blanks-around-fences: blank lines around fenced code blocks
+  "MD032": false, // blanks-around-lists: blank lines around list items
+  "MD033": false, // no-inline-html: inline HTML not allowed
+  "MD035": false, // hr-style: consistent horizontal rule style
+  "MD036": false, // no-emphasis-as-heading: emphasis used instead of a heading
+  "MD040": false, // fenced-code-language: fenced code blocks should have a language specified
+  "MD041": false, // first-line-heading: first line in a file should be a top-level heading
+  "MD051": false, // link-fragments: link fragments should be valid
+  "MD056": false, // table-column-count: tables should have consistent column counts
+  "MD060": false, // code-block-style: consistent code block style (fenced vs indented)
+  "default": true
+}

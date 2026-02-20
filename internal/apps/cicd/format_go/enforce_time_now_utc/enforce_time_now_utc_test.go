@@ -287,6 +287,7 @@ this is not valid Go code!
 	// Should not error even if file parsing fails (errors are logged and skipped).
 	require.NoError(t, err, "Should not error when file parsing fails")
 }
+
 // TestProcessGoFileForTimeNowUTC_ReadError tests the read file error path.
 func TestProcessGoFileForTimeNowUTC_ReadError(t *testing.T) {
 	t.Parallel()
