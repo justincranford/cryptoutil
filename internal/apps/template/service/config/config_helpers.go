@@ -300,6 +300,7 @@ func validateConfiguration(s *ServiceTemplateServerSettings) error {
 	if s.DatabaseURL != "" &&
 		s.DatabaseURL != ":memory:" &&
 		!strings.HasPrefix(s.DatabaseURL, "file::memory:") &&
+		!strings.Contains(s.DatabaseURL, "mode=memory") &&
 		!strings.Contains(s.DatabaseURL, "://") {
 		errors = append(errors, fmt.Sprintf("invalid database URL format '%s': must contain '://' (e.g., 'postgres://user:pass@host:port/db') or use SQLite special formats (':memory:', 'file::memory:NAME?cache=shared')", s.DatabaseURL))
 	}

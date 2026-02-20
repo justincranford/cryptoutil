@@ -7,6 +7,7 @@ package builder
 import (
 	"crypto/elliptic"
 	"fmt"
+	"strings"
 	"crypto/x509"
 	"encoding/pem"
 	"testing"
@@ -222,7 +223,7 @@ func getMinimalSettings() *cryptoutilAppsTemplateServiceConfig.ServiceTemplateSe
 	return &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
 		DevMode:                    true,
 		VerboseMode:                false,
-		DatabaseURL:                fmt.Sprintf("file::memory:%s?cache=shared", googleUuid.Must(googleUuid.NewV7()).String()),
+		DatabaseURL:                fmt.Sprintf("file:%s?mode=memory&cache=shared", strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")),
 		OTLPService:                "template-service-test",
 		OTLPEnabled:                false,
 		OTLPEndpoint:               "grpc://127.0.0.1:4317",

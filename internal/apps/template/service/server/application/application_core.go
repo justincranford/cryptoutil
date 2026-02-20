@@ -270,6 +270,9 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 	} else if len(databaseURL) >= 13 && databaseURL[:13] == "file::memory:" {
 		// Handle file::memory:NAME?cache=shared format (used by test utilities with unique names).
 		isSQLite = true
+	} else if strings.HasPrefix(databaseURL, "file:") && strings.Contains(databaseURL, "mode=memory") {
+		// Handle file:NAME?mode=memory&cache=shared format (unique per-test in-memory SQLite).
+		isSQLite = true
 	} else {
 		return nil, nil, fmt.Errorf("unsupported database URL scheme: %s", databaseURL)
 	}
@@ -335,7 +338,8 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 	// Configure SQLite for concurrent operations.
 	// Note: Skip WAL mode for in-memory databases as it's not supported.
         // Matches: ":memory:", "file::memory:?cache=shared", "file::memory:NAME?cache=shared" (unique per-test)
-        isInMemory := databaseURL == ":memory:" || strings.HasPrefix(databaseURL, "file::memory:")
+        isInMemory := databaseURL == ":memory:" || strings.HasPrefix(databaseURL, "file::memory:") ||
+		strings.Contains(databaseURL, "mode=memory")
 
 	if !isInMemory {
 		if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {

@@ -390,13 +390,13 @@ func RequireNewForTest(applicationName string) *ServiceTemplateServerSettings {
 		// SQLite: Randomize the in-memory database name, so it is unique during concurrent testing
 		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "/DB?", "/DB_"+applicationName+"_"+uniqueSuffix+"?", 1)
 	} else if strings.HasPrefix(settings.DatabaseURL, "file::memory:") {
-		// SQLite file::memory: format with shared cache - use unique named database
-		// Format: file::memory:NAME?cache=shared
-		// Replace the empty name with a unique name for test isolation
-		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "file::memory:", "file::memory:"+applicationName+"_"+uniqueSuffix, 1)
+		// SQLite file::memory: format - convert to file:NAME?mode=memory&cache=shared
+		// The file::memory:NAME?cache=shared format creates disk files in modernc.org/sqlite.
+		// Use file:NAME?mode=memory&cache=shared which is the correct named in-memory URI.
+		settings.DatabaseURL = "file:" + applicationName + "_" + uniqueSuffix + "?mode=memory&cache=shared"
 	} else if strings.Contains(settings.DatabaseURL, ":memory:") {
-		// SQLite simple :memory: format - append suffix
-		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, ":memory:", ":memory:"+applicationName+"_"+uniqueSuffix, 1)
+		// SQLite simple :memory: format - convert to unique named in-memory database.
+		settings.DatabaseURL = "file:" + applicationName + "_" + uniqueSuffix + "?mode=memory&cache=private"
 	} else if strings.Contains(settings.DatabaseURL, "postgres://") {
 		// PostgreSQL: Use a unique schema within the shared database for concurrent testing
 		schemaName := applicationName + "_" + uniqueSuffix

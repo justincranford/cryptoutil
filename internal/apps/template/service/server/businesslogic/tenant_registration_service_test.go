@@ -233,21 +233,22 @@ func TestRegisterUserWithTenant_CreateTenant(t *testing.T) {
 
 	ctx := context.Background()
 	userID := googleUuid.Must(googleUuid.NewV7())
-	username := fmt.Sprintf("testuser_%s", userID.String()[:8])
-	email := fmt.Sprintf("test_%s@example.com", userID.String()[:8])
+	username := fmt.Sprintf("testuser_%s", userID.String())
+	email := fmt.Sprintf("test_%s@example.com", userID.String())
+	tenantName := fmt.Sprintf("New Test Tenant %s", userID.String())
 
 	// Create new tenant.
-	tenant, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, "New Test Tenant", true)
+	tenant, err := service.RegisterUserWithTenant(ctx, userID, username, email, testPasswordHash, tenantName, true)
 	require.NoError(t, err)
 	require.NotNil(t, tenant)
-	require.Equal(t, "New Test Tenant", tenant.Name)
+	require.Equal(t, tenantName, tenant.Name)
 	require.NotEqual(t, googleUuid.Nil, tenant.ID)
 
 	// Verify tenant exists in database.
 	retrieved, err := tenantRepo.GetByID(ctx, tenant.ID)
 	require.NoError(t, err)
 	require.Equal(t, tenant.ID, retrieved.ID)
-	require.Equal(t, "New Test Tenant", retrieved.Name)
+	require.Equal(t, tenantName, retrieved.Name)
 
 	// Verify user was created with correct data.
 	user, err := userRepo.GetByID(ctx, userID)

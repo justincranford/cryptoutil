@@ -272,6 +272,7 @@ func (b *ServerBuilder) applyMigrations(sqlDB *sql.DB) error {
 	if b.config.DatabaseURL == "" ||
 		b.config.DatabaseURL == ":memory:" ||
 		strings.HasPrefix(b.config.DatabaseURL, "file::memory:") ||
+		strings.Contains(b.config.DatabaseURL, "mode=memory") ||
 		(len(b.config.DatabaseURL) >= 7 && b.config.DatabaseURL[:7] == "file://") ||
 		(len(b.config.DatabaseURL) >= 9 && b.config.DatabaseURL[:9] == "sqlite://") {
 		databaseType = "sqlite"
