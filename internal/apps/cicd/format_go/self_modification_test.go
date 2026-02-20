@@ -37,8 +37,8 @@ func TestEnforceAnyDoesNotModifyItself(t *testing.T) {
 		"enforce_any.go MUST count interface{} occurrences, NOT any")
 
 	// Verify test data uses interface{} (not any) to properly test replacement.
-	testContent, err := os.ReadFile("format_go_test.go")
-	require.NoError(t, err, "Failed to read format_go_test.go")
+	testContent, err := os.ReadFile("enforce_any/enforce_any_test.go")
+	require.NoError(t, err, "Failed to read enforce_any/enforce_any_test.go")
 
 	// Check test constants use interface{} as input data.
 	require.Contains(t, string(testContent), `testGoContentWithInterfaceEmpty = "package main\n\nfunc main() {\n\tvar x interface{}`,
