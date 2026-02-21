@@ -9,16 +9,23 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"io"
 
 	googleUuid "github.com/google/uuid"
 )
+
+// uuidNewV7 is the UUID v7 generator — injectable for testing error paths.
+var uuidNewV7 = googleUuid.NewV7
+
+// globalRandReader is the random reader — injectable for testing error paths.
+var globalRandReader io.Reader = crand.Reader
 
 // GenerateUsernameSimple generates a random username with "user_" prefix and full UUID suffix.
 // Uses UUIDv7 for time-ordered uniqueness and concurrency safety.
 // Returns full UUID (36 chars) to prevent collisions in parallel test execution.
 // For test scenarios requiring specific lengths, use GenerateUsername(t, length) instead.
 func GenerateUsernameSimple() (string, error) {
-	id, err := googleUuid.NewV7()
+	id, err := uuidNewV7()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate UUID for username: %w", err)
 	}
@@ -30,7 +37,7 @@ func GenerateUsernameSimple() (string, error) {
 // Provides sufficient entropy for test passwords while maintaining readability.
 // For test scenarios requiring specific lengths, use GeneratePassword(t, length) instead.
 func GeneratePasswordSimple() (string, error) {
-	id, err := googleUuid.NewV7()
+	id, err := uuidNewV7()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate UUID for password: %w", err)
 	}
@@ -54,7 +61,7 @@ func GenerateString(length int) (string, error) {
 func GenerateBytes(lengthBytes int) ([]byte, error) {
 	bytes := make([]byte, lengthBytes)
 
-	_, err := crand.Read(bytes)
+	_, err := io.ReadFull(globalRandReader, bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate %d bytes: %w", lengthBytes, err)
 	}
@@ -72,7 +79,7 @@ func GenerateMultipleBytes(count, lengthBytes int) ([][]byte, error) {
 
 	concatSharedSecrets := make([]byte, count*lengthBytes) // max 255 * 64
 
-	_, err := crand.Read(concatSharedSecrets)
+	_, err := io.ReadFull(globalRandReader, concatSharedSecrets)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate consecutive byte slices: %w", err)
 	}
