@@ -4,6 +4,8 @@
 package builder
 
 import (
+	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -99,4 +101,54 @@ func TestDatabaseConfig(t *testing.T) {
 		require.False(t, cfg.VerboseMode)
 		require.Equal(t, "disabled", cfg.ContainerMode)
 	})
+}
+// fakeConnPool implements gorm.ConnPool but is NOT a *sql.DB.
+// This causes gorm.DB.DB() to return ErrInvalidDB, enabling error path testing.
+type fakeConnPool struct{}
+
+func (f *fakeConnPool) PrepareContext(_ context.Context, _ string) (*sql.Stmt, error) {
+	return nil, nil
+}
+
+func (f *fakeConnPool) ExecContext(_ context.Context, _ string, _ ...interface{}) (sql.Result, error) {
+	return nil, nil
+}
+
+func (f *fakeConnPool) QueryContext(_ context.Context, _ string, _ ...interface{}) (*sql.Rows, error) {
+	return nil, nil
+}
+
+func (f *fakeConnPool) QueryRowContext(_ context.Context, _ string, _ ...interface{}) *sql.Row {
+	return nil
+}
+
+func TestDatabaseConnection_SQL_DBError(t *testing.T) {
+	t.Parallel()
+
+	// Use a GORM DB with a fake ConnPool (not *sql.DB) to trigger gormDB.DB() error.
+	fakeDB := &gorm.DB{
+		Config: &gorm.Config{
+			ConnPool: &fakeConnPool{},
+		},
+	}
+
+	conn := &DatabaseConnection{gormDB: fakeDB}
+	sqlDB, err := conn.SQL()
+	require.Error(t, err)
+	require.Nil(t, sqlDB)
+}
+
+func TestDatabaseConnection_Close_DBError(t *testing.T) {
+	t.Parallel()
+
+	// Use a GORM DB with a fake ConnPool (not *sql.DB) to trigger gormDB.DB() error.
+	fakeDB := &gorm.DB{
+		Config: &gorm.Config{
+			ConnPool: &fakeConnPool{},
+		},
+	}
+
+	conn := &DatabaseConnection{gormDB: fakeDB}
+	err := conn.Close()
+	require.Error(t, err)
 }

@@ -212,12 +212,6 @@ func (b *ServerBuilder) WithBarrierConfig(config *BarrierConfig) *ServerBuilder 
 		return b
 	}
 
-	if err := config.Validate(); err != nil {
-		b.err = fmt.Errorf("invalid barrier config: %w", err)
-
-		return b
-	}
-
 	b.barrierConfig = config
 
 	return b

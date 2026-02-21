@@ -199,14 +199,14 @@ func ValidateSecurityHeaders(c *fiber.Ctx) []string {
 	var missing []string
 
 	for header, expectedValue := range ExpectedBrowserHeaders() {
-		if actualValue := c.Get(header); actualValue != expectedValue {
+		if actualValue := string(c.Response().Header.Peek(header)); actualValue != expectedValue {
 			missing = append(missing, header)
 		}
 	}
 
 	// Check HSTS is present if HTTPS.
 	if c.Protocol() == cryptoutilSharedMagic.ProtocolHTTPS {
-		if hsts := c.Get("Strict-Transport-Security"); hsts == "" {
+		if hsts := string(c.Response().Header.Peek("Strict-Transport-Security")); hsts == "" {
 			missing = append(missing, "Strict-Transport-Security")
 		}
 	}
