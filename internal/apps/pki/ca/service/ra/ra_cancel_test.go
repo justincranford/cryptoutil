@@ -363,7 +363,7 @@ func TestRAService_ValidateKeyStrength_RSA(t *testing.T) {
 	svc, err := NewRAService(cfg)
 	require.NoError(t, err)
 
-	timestamp := time.Now()
+	timestamp := time.Now().UTC()
 
 	// Valid RSA 2048-bit key.
 	rsaKey2048, err := rsa.GenerateKey(crand.Reader, 2048)
@@ -392,7 +392,7 @@ func TestRAService_ValidateKeyStrength_ECDSAInvalid(t *testing.T) {
 	svc, err := NewRAService(cfg)
 	require.NoError(t, err)
 
-	timestamp := time.Now()
+	timestamp := time.Now().UTC()
 
 	// P-224 is only 224 bits, below 256-bit minimum.
 	ecKey224, err := ecdsa.GenerateKey(elliptic.P224(), crand.Reader)
@@ -410,7 +410,7 @@ func TestRAService_ValidateKeyStrength_Ed25519(t *testing.T) {
 	svc, err := NewRAService(nil)
 	require.NoError(t, err)
 
-	timestamp := time.Now()
+	timestamp := time.Now().UTC()
 
 	// Ed25519 key is always valid.
 	ed25519Key, _, err := ed25519.GenerateKey(crand.Reader)
@@ -428,7 +428,7 @@ func TestRAService_ValidateKeyStrength_UnknownKeyType(t *testing.T) {
 	svc, err := NewRAService(nil)
 	require.NoError(t, err)
 
-	timestamp := time.Now()
+	timestamp := time.Now().UTC()
 
 	// Pass a non-key type to trigger the default case.
 	result := svc.validateKeyStrength("not-a-key", timestamp)

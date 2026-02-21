@@ -434,3 +434,16 @@ func TestTelemetryService_ShutdownIdempotent(t *testing.T) {
 }
 
 // TestParseProtocolAndEndpoint_AllProtocols tests parseProtocolAndEndpoint with all supported protocols.
+
+// TestNewTelemetryService_InvalidLogLevel tests that NewTelemetryService fails with invalid log level.
+func TestNewTelemetryService_InvalidLogLevel(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_invalid_log_level")
+	settings.LogLevel = "INVALID_LEVEL"
+
+	_, err := NewTelemetryService(ctx, settings)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to init logger")
+}

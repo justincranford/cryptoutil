@@ -102,6 +102,7 @@ func TestDatabaseConfig(t *testing.T) {
 		require.Equal(t, "disabled", cfg.ContainerMode)
 	})
 }
+
 // fakeConnPool implements gorm.ConnPool but is NOT a *sql.DB.
 // This causes gorm.DB.DB() to return ErrInvalidDB, enabling error path testing.
 type fakeConnPool struct{}

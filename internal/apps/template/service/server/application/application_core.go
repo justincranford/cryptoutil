@@ -335,8 +335,8 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 
 	// Configure SQLite for concurrent operations.
 	// Note: Skip WAL mode for in-memory databases as it's not supported.
-        // Matches: ":memory:", "file::memory:?cache=shared", "file::memory:NAME?cache=shared" (unique per-test)
-        isInMemory := databaseURL == ":memory:" || strings.HasPrefix(databaseURL, "file::memory:") ||
+	// Matches: ":memory:", "file::memory:?cache=shared", "file::memory:NAME?cache=shared" (unique per-test)
+	isInMemory := databaseURL == ":memory:" || strings.HasPrefix(databaseURL, "file::memory:") ||
 		strings.Contains(databaseURL, "mode=memory")
 
 	if !isInMemory {

@@ -237,3 +237,28 @@ func TestTelemetryService_OTLPConsoleWithOTLP(t *testing.T) {
 	// Use the service with both outputs
 	service.Slogger.Info("test with console and OTLP")
 }
+
+// TestCheckSidecarHealth_ErrorPropagation tests CheckSidecarHealth propagates errors.
+func TestCheckSidecarHealth_ErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	// Create service with HTTP endpoint and OTLPEnabled
+	ctx := context.Background()
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_err_propagation")
+	settings.OTLPEnabled = true
+	settings.OTLPEndpoint = testHTTPEndpoint
+
+	service, err := NewTelemetryService(ctx, settings)
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	defer service.Shutdown()
+
+	// Use a cancelled context to force checkSidecarHealth to fail via HTTP Start(ctx) check
+	cancelledCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err = service.CheckSidecarHealth(cancelledCtx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "sidecar health check failed")
+}
