@@ -11,6 +11,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+var hashHighFixedHKDFFn = cryptoutilSharedCryptoDigests.HKDF
+
 // HashHighEntropyDeterministic hashes a high-entropy secret (e.g., API key, token) using HKDF-SHA256 with a fixed info parameter.
 // This produces deterministic output (same secret → same hash every time).
 // Use this when you need consistent hashing for high-entropy secrets (e.g., API key lookups, token caching).
@@ -56,7 +58,7 @@ func HashSecretHKDFFixedHigh(secret string, fixedInfo []byte) (string, error) {
 	// Use HKDF with no salt (nil), fixed info parameter for deterministic output.
 	secretBytes := []byte(secret)
 
-	dk, err := cryptoutilSharedCryptoDigests.HKDF(cryptoutilSharedMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
+	dk, err := hashHighFixedHKDFFn(cryptoutilSharedMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF key derivation failed: %w", err)
 	}

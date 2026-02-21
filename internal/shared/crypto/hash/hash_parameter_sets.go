@@ -11,6 +11,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+var (
+	hashPBKDF2WithParamsFn       = cryptoutilSharedCryptoDigests.PBKDF2WithParams
+	hashVerifySecretWithParamsFn = cryptoutilSharedCryptoDigests.VerifySecretWithParams
+)
+
 // HashSecretPBKDF2 returns a formatted PBKDF2 hash string using default parameter set (version "1").
 // Format: {1}$pbkdf2-sha256$iter$base64(salt)$base64(dk).
 //
@@ -20,7 +25,7 @@ import (
 //  2. Get parameter set: params := registry.GetDefaultParameterSet()
 //  3. Hash with pepper: HashSecretPBKDF2WithParams(secret, params)
 func HashSecretPBKDF2(secret string) (string, error) {
-	hash, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, DefaultPBKDF2ParameterSet())
+	hash, err := hashPBKDF2WithParamsFn(secret, DefaultPBKDF2ParameterSet())
 	if err != nil {
 		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
 	}
@@ -35,7 +40,7 @@ func HashSecretPBKDF2(secret string) (string, error) {
 // Pattern: PBKDF2(password||pepper, salt, iterations, keyLength)
 // Reference: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#peppering
 func HashSecretPBKDF2WithParams(secret string, params *cryptoutilSharedCryptoDigests.PBKDF2Params) (string, error) {
-	hash, err := cryptoutilSharedCryptoDigests.PBKDF2WithParams(secret, params)
+	hash, err := hashPBKDF2WithParamsFn(secret, params)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate PBKDF2 hash: %w", err)
 	}
@@ -47,7 +52,7 @@ func HashSecretPBKDF2WithParams(secret string, params *cryptoutilSharedCryptoDig
 // CRITICAL: params MUST include pepper loaded from Docker/K8s secrets (same pepper used during hashing).
 // Pattern: PBKDF2(password||pepper, salt, iterations, keyLength).
 func VerifySecretPBKDF2WithParams(stored, provided string, params *cryptoutilSharedCryptoDigests.PBKDF2Params) (bool, error) {
-	valid, err := cryptoutilSharedCryptoDigests.VerifySecretWithParams(stored, provided, params)
+	valid, err := hashVerifySecretWithParamsFn(stored, provided, params)
 	if err != nil {
 		return false, fmt.Errorf("failed to verify secret: %w", err)
 	}

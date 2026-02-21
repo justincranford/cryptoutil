@@ -11,6 +11,8 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+var hashLowFixedHKDFFn = cryptoutilSharedCryptoDigests.HKDF
+
 // HashLowEntropyDeterministic hashes a low-entropy secret (e.g., password, PIN) using HKDF-SHA256 with a fixed info parameter.
 // This produces deterministic output (same secret → same hash every time).
 // Use this when you need consistent hashing for low-entropy secrets (e.g., password lookup tables, caching).
@@ -55,7 +57,7 @@ func HashSecretHKDFFixed(secret string, fixedInfo []byte) (string, error) {
 	// Use HKDF with no salt (nil), fixed info parameter for deterministic output.
 	secretBytes := []byte(secret)
 
-	dk, err := cryptoutilSharedCryptoDigests.HKDF(cryptoutilSharedMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
+	dk, err := hashLowFixedHKDFFn(cryptoutilSharedMagic.SHA256, secretBytes, nil, fixedInfo, dkLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF key derivation failed: %w", err)
 	}

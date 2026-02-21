@@ -16,6 +16,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+var (
+	hashHighRandomCrandReadFn = func(b []byte) (int, error) { return crand.Read(b) }
+	hashHighRandomHKDFFn      = cryptoutilSharedCryptoDigests.HKDF
+)
+
 // HashHighEntropyNonDeterministic hashes a high-entropy secret (e.g., API key, token) using a random salt.
 // Each invocation produces a different hash for the same input (non-deterministic).
 //
@@ -39,12 +44,12 @@ func HashSecretHKDFRandom(secret string) (string, error) {
 
 	// Generate random salt.
 	salt := make([]byte, cryptoutilSharedMagic.PBKDF2DefaultSaltBytes)
-	if _, err := crand.Read(salt); err != nil {
+	if _, err := hashHighRandomCrandReadFn(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
 	// Derive key using HKDF-SHA256.
-	dk, err := cryptoutilSharedCryptoDigests.HKDF(cryptoutilSharedMagic.SHA256, []byte(secret), salt, nil, cryptoutilSharedMagic.PBKDF2DerivedKeyLength)
+	dk, err := hashHighRandomHKDFFn(cryptoutilSharedMagic.SHA256, []byte(secret), salt, nil, cryptoutilSharedMagic.PBKDF2DerivedKeyLength)
 	if err != nil {
 		return "", fmt.Errorf("HKDF failed: %w", err)
 	}
@@ -93,7 +98,7 @@ func VerifySecretHKDFRandom(stored, provided string) (bool, error) {
 	}
 
 	// Derive key from provided secret using HKDF-SHA256.
-	providedDK, err := cryptoutilSharedCryptoDigests.HKDF(cryptoutilSharedMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
+	providedDK, err := hashHighRandomHKDFFn(cryptoutilSharedMagic.SHA256, []byte(provided), salt, nil, len(storedDK))
 	if err != nil {
 		return false, fmt.Errorf("HKDF failed: %w", err)
 	}
