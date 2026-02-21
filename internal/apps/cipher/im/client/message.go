@@ -14,6 +14,9 @@ import (
 	cryptoutilAppsTemplateServiceClient "cryptoutil/internal/apps/template/service/client"
 )
 
+// jsonMarshalFn is an injectable JSON marshal function for testing error paths.
+var jsonMarshalFn = json.Marshal
+
 // SendMessage sends a message to one or more receivers via /service/api/v1/messages/tx.
 func SendMessage(client *http.Client, baseURL, message, token string, receiverIDs ...googleUuid.UUID) (string, error) {
 	receiverIDStrs := make([]string, len(receiverIDs))
@@ -26,7 +29,7 @@ func SendMessage(client *http.Client, baseURL, message, token string, receiverID
 		"receiver_ids": receiverIDStrs,
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	reqJSON, err := jsonMarshalFn(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -109,7 +112,7 @@ func SendMessageBrowser(client *http.Client, baseURL, message, token string, rec
 		"receiver_ids": receiverIDStrs,
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	reqJSON, err := jsonMarshalFn(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}

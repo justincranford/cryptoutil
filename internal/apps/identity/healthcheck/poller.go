@@ -14,6 +14,9 @@ import (
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 )
 
+// newClientConfigFn is an injectable function for TLS client configuration, enabling testing of the fallback path.
+var newClientConfigFn = cryptoutilSharedCryptoTls.NewClientConfig
+
 // Response represents a health check JSON response.
 type Response struct {
 	Status   string            `json:"status"`
@@ -38,7 +41,7 @@ type Poller struct {
 // The skipTLSVerify parameter should only be true in development/testing environments.
 func NewPoller(timeout time.Duration, maxRetries int, skipTLSVerify bool) *Poller {
 	// Use internal/infra/tls/ for consistent TLS configuration across the project.
-	tlsConfig, err := cryptoutilSharedCryptoTls.NewClientConfig(&cryptoutilSharedCryptoTls.ClientConfigOptions{
+	tlsConfig, err := newClientConfigFn(&cryptoutilSharedCryptoTls.ClientConfigOptions{
 		SkipVerify: skipTLSVerify, // Only true in dev/test per Session 4 Q4
 	})
 	if err != nil {

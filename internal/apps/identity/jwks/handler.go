@@ -19,8 +19,9 @@ import (
 
 // Handler provides JWKS endpoint for exposing public signing keys.
 type Handler struct {
-	logger  *slog.Logger
-	keyRepo cryptoutilIdentityRepository.KeyRepository
+	logger        *slog.Logger
+	keyRepo       cryptoutilIdentityRepository.KeyRepository
+	marshalJSONFn func(v any) ([]byte, error)
 }
 
 // NewHandler creates a new JWKS handler instance.
@@ -34,8 +35,9 @@ func NewHandler(logger *slog.Logger, keyRepo cryptoutilIdentityRepository.KeyRep
 	}
 
 	return &Handler{
-		logger:  logger,
-		keyRepo: keyRepo,
+		logger:        logger,
+		keyRepo:       keyRepo,
+		marshalJSONFn: json.Marshal,
 	}, nil
 }
 
@@ -61,7 +63,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Marshal JWKS to JSON.
-	jwksBytes, err := json.Marshal(jwkSet)
+	jwksBytes, err := h.marshalJSONFn(jwkSet)
 	if err != nil {
 		h.logger.ErrorContext(ctx, "Failed to marshal JWKS", "error", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

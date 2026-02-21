@@ -17,7 +17,7 @@ import (
 
 var errTestJSONFailure = errors.New("forced JSON failure")
 
-func failingJSONEncoder(_ interface{}) ([]byte, error) {
+func failingJSONEncoder(_ any) ([]byte, error) {
 	return nil, errTestJSONFailure
 }
 
