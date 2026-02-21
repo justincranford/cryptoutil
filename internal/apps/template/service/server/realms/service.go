@@ -28,6 +28,9 @@ type UserServiceImpl struct {
 // - userFactory: Factory function to create new UserModel instances (e.g., func() UserModel { return &domain.User{} })
 //
 // Returns configured UserService ready for registration and authentication.
+// realmsServiceHashSecretPBKDF2Fn allows overriding hash function for unit testing.
+var realmsServiceHashSecretPBKDF2Fn = cryptoutilSharedCryptoHash.HashSecretPBKDF2
+
 func NewUserService(userRepo UserRepository, userFactory func() UserModel) *UserServiceImpl {
 	return &UserServiceImpl{
 		userRepo:    userRepo,
@@ -98,7 +101,7 @@ func (s *UserServiceImpl) RegisterUser(ctx context.Context, username, password s
 	}
 
 	// Hash password with PBKDF2-HMAC-SHA256 (LowEntropyRandom, FIPS-approved).
-	passwordHash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(password)
+	passwordHash, err := realmsServiceHashSecretPBKDF2Fn(password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
