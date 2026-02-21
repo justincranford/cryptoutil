@@ -25,6 +25,30 @@ import (
 	"golang.org/x/text/language"
 )
 
+// setupCmdPipes is a package-level function variable for creating stdout and stderr
+// pipes from an exec.Cmd. It is defined as a variable to allow injection during
+// testing to exercise the error handling paths that are otherwise unreachable.
+var setupCmdPipes = func(cmd *exec.Cmd) (io.ReadCloser, io.ReadCloser, error) {
+stdout, err := cmd.StdoutPipe()
+if err != nil {
+return nil, nil, fmt.Errorf("create stdout pipe: %w", err)
+}
+
+stderr, err := cmd.StderrPipe()
+if err != nil {
+return nil, nil, fmt.Errorf("create stderr pipe: %w", err)
+}
+
+return stdout, stderr, nil
+}
+
+// doCloseFile is a package-level function variable for closing a file.
+// It is defined as a variable to allow injection during testing to exercise
+// the close error handling path that is otherwise unreachable.
+var doCloseFile = func(f *os.File) error {
+return f.Close()
+}
+
 // WorkflowConfig defines a GitHub Actions workflow that can be run locally with act.
 func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir string, dryRun bool, actPath, actArgs string) WorkflowResult {
 	result := WorkflowResult{
@@ -131,7 +155,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	}
 
 	defer func() {
-		if err := workflowLog.Close(); err != nil {
+		if err := doCloseFile(workflowLog); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to close workflow log: %v\n", err)
 		}
 	}()
@@ -140,29 +164,9 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	cmd := exec.CommandContext(context.Background(), actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
 
 	// Setup stdout and stderr pipes for dual logging.
-	stdoutPipe, err := cmd.StdoutPipe()
+	stdoutPipe, stderrPipe, err := setupCmdPipes(cmd)
 	if err != nil {
-		errMsg := fmt.Sprintf("%sError creating stdout pipe: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
-		fmt.Print(errMsg)
-
-		if combinedLog != nil {
-			_, _ = combinedLog.WriteString(errMsg) //nolint:errcheck // Logging errors are non-fatal
-		}
-
-		result.Success = false
-		result.EndTime = time.Now().UTC()
-		result.Duration = result.EndTime.Sub(result.StartTime)
-		result.CPUTime = time.Duration(0)
-		result.MemoryUsage = 0
-		result.ErrorMessages = append(result.ErrorMessages, err.Error())
-		createAnalysisFile(result)
-
-		return result
-	}
-
-	stderrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		errMsg := fmt.Sprintf("%sError creating stderr pipe: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
+		errMsg := fmt.Sprintf("%sError creating command pipes: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
 		fmt.Print(errMsg)
 
 		if combinedLog != nil {

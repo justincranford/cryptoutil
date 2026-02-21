@@ -27,6 +27,8 @@ const (
 
 	// FilePermissionsDefault - Default file permissions for created files.
 	FilePermissionsDefault = 0o600
+	// FilePermOwnerReadOnlyGroupOtherReadOnly - Owner read-only, group/other read-only (0o444).
+	FilePermOwnerReadOnlyGroupOtherReadOnly = 0o444
 	// FilePermOwnerReadWriteOnly - Owner read/write only (0o600).
 	FilePermOwnerReadWriteOnly = 0o600
 	// FilePermOwnerReadWriteGroupRead - Owner read/write, group/other read (0o644).

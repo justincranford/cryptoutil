@@ -66,13 +66,20 @@ type ExecutionSummary struct {
 
 // Workflow executes the workflow runner with the provided command line arguments.
 func Workflow(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	return run(args[1:])
+	return runWithWorkflowsDir(args[1:], ".github/workflows")
 }
 
 // run executes the workflow runner with the provided command line arguments.
+// It uses the default .github/workflows directory for workflow discovery.
 func run(args []string) int {
+	return runWithWorkflowsDir(args, ".github/workflows")
+}
+
+// runWithWorkflowsDir executes the workflow runner with a configurable workflows directory.
+// This separation enables testing without changing the process working directory.
+func runWithWorkflowsDir(args []string, workflowsDir string) int {
 	// Create flag set for parsing.
-	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
+	fs := flag.NewFlagSet("workflow", flag.ContinueOnError)
 
 	workflows := fs.String("workflows", "", "Comma-separated list of workflows to run (benchmark,coverage,dast,e2e,fuzz,gitleaks,load,quality,race,sast)")
 	showHelp := fs.Bool("help", false, "Show usage with list available workflows and exit")
@@ -88,7 +95,7 @@ func run(args []string) int {
 	}
 
 	// Get available workflows - inline the call here
-	availableWorkflows, err := getAvailableWorkflows(".github/workflows")
+	availableWorkflows, err := getAvailableWorkflows(workflowsDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sError reading workflows directory: %v%s\n", cryptoutilSharedMagic.ColorRed, err, cryptoutilSharedMagic.ColorReset)
 		fmt.Fprintf(os.Stderr, "Make sure you're running from the project root with .github/workflows/ directory.\n")
@@ -142,7 +149,7 @@ func run(args []string) int {
 	}
 
 	defer func() {
-		if err := combinedLog.Close(); err != nil {
+		if err := doCloseFile(combinedLog); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to close combined log: %v\n", err)
 		}
 	}()
