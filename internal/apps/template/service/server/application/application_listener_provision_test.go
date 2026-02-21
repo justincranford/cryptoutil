@@ -46,6 +46,18 @@ func TestProvisionDatabase_ErrorPaths(t *testing.T) {
 			expectError:   true,
 			errorContains: "failed to open database",
 		},
+		{
+			name:          "file::memory: format",
+			databaseURL:   "file::memory:?cache=shared",
+			containerMode: "disabled",
+			expectError:   false,
+		},
+		{
+			name:          "file:NAME?mode=memory format",
+			databaseURL:   "file:provision_test_mode?mode=memory&cache=shared",
+			containerMode: "disabled",
+			expectError:   false,
+		},
 	}
 
 	for _, tt := range tests {

@@ -110,15 +110,15 @@ func (f *fakeConnPool) PrepareContext(_ context.Context, _ string) (*sql.Stmt, e
 	return nil, nil
 }
 
-func (f *fakeConnPool) ExecContext(_ context.Context, _ string, _ ...interface{}) (sql.Result, error) {
+func (f *fakeConnPool) ExecContext(_ context.Context, _ string, _ ...any) (sql.Result, error) {
 	return nil, nil
 }
 
-func (f *fakeConnPool) QueryContext(_ context.Context, _ string, _ ...interface{}) (*sql.Rows, error) {
+func (f *fakeConnPool) QueryContext(_ context.Context, _ string, _ ...any) (*sql.Rows, error) {
 	return nil, nil
 }
 
-func (f *fakeConnPool) QueryRowContext(_ context.Context, _ string, _ ...interface{}) *sql.Row {
+func (f *fakeConnPool) QueryRowContext(_ context.Context, _ string, _ ...any) *sql.Row {
 	return nil
 }
 

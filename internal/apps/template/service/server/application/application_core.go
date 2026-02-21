@@ -309,11 +309,9 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 	if isSQLite {
 		basic.TelemetryService.Slogger.Debug("opening SQLite database", "url", databaseURL)
 		db, err = openSQLite(ctx, databaseURL, settings.VerboseMode)
-	} else if isPostgres {
+	} else {
 		basic.TelemetryService.Slogger.Debug("opening PostgreSQL database", "url", maskPassword(databaseURL))
 		db, err = openPostgreSQL(ctx, databaseURL, settings.VerboseMode)
-	} else {
-		return nil, shutdownContainer, fmt.Errorf("unsupported database type")
 	}
 
 	if err != nil {
