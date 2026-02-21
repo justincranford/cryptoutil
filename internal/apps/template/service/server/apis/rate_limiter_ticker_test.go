@@ -39,8 +39,8 @@ func TestRateLimiter_CleanupTickerFires(t *testing.T) {
 
 	// Wait for the ticker to fire and cleanupLoop to call cleanup().
 	// The cleanup will remove our stale bucket.
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
+	deadline := time.Now().UTC().Add(2 * time.Second)
+	for time.Now().UTC().Before(deadline) {
 		time.Sleep(5 * time.Millisecond)
 
 		limiter.mu.RLock()
