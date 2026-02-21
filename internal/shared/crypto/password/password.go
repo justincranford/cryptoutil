@@ -14,10 +14,15 @@ import (
 	cryptoutilSharedCryptoPbkdf2 "cryptoutil/internal/shared/crypto/pbkdf2"
 )
 
+var (
+	passwordHashFn   = cryptoutilSharedCryptoPbkdf2.HashPassword
+	passwordVerifyFn = cryptoutilSharedCryptoPbkdf2.VerifyPassword
+)
+
 // HashPassword generates a FIPS-compliant PBKDF2-HMAC-SHA256 hash.
 // Always use this for new passwords.
 func HashPassword(password string) (string, error) {
-	hash, err := cryptoutilSharedCryptoPbkdf2.HashPassword(password)
+	hash, err := passwordHashFn(password)
 	if err != nil {
 		return "", fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -59,7 +64,7 @@ func VerifyPassword(password, storedHash string) (bool, bool, error) {
 
 	case "pbkdf2":
 		// Modern FIPS-compliant PBKDF2.
-		match, err := cryptoutilSharedCryptoPbkdf2.VerifyPassword(password, storedHash)
+		match, err := passwordVerifyFn(password, storedHash)
 		if err != nil {
 			return false, false, fmt.Errorf("pbkdf2 verification failed: %w", err)
 		}
