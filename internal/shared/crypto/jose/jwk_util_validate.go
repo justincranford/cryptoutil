@@ -370,56 +370,35 @@ func IsVerifyJWK(jwk joseJwk.Key) (bool, error) {
 	}
 }
 
-// EnsureSignatureAlgorithmType ensures that the JWK's algorithm field is properly typed as joseJwa.SignatureAlgorithm
-// instead of a string. This is necessary after JSON parsing which converts types to strings.
+// EnsureSignatureAlgorithmType validates that the JWK has a recognized signature algorithm.
+// In JWX v3, algorithm fields are stored as typed structs (not strings), so this function
+// gets the algorithm as a typed joseJwa.SignatureAlgorithm and validates it is supported.
 func EnsureSignatureAlgorithmType(jwk joseJwk.Key) error {
 	if jwk == nil {
 		return fmt.Errorf("JWK invalid: %w", cryptoutilSharedApperr.ErrCantBeNil)
 	}
 
-	// Get the algorithm as a string first
-	var algString string
+	// Get the algorithm as a typed SignatureAlgorithm (JWX v3 stores typed algorithm structs).
+	var alg joseJwa.SignatureAlgorithm
 
-	err := jwk.Get(joseJwk.AlgorithmKey, &algString)
+	err := jwk.Get(joseJwk.AlgorithmKey, &alg)
 	if err != nil {
 		return fmt.Errorf("failed to get algorithm from JWK: %w", err)
 	}
 
-	// Convert string to proper SignatureAlgorithm type
-	var alg joseJwa.SignatureAlgorithm
-
-	switch algString {
-	case algStrHS256:
-		alg = AlgHS256
-	case algStrHS384:
-		alg = AlgHS384
-	case algStrHS512:
-		alg = AlgHS512
-	case algStrRS256:
-		alg = AlgRS256
-	case algStrRS384:
-		alg = AlgRS384
-	case algStrRS512:
-		alg = AlgRS512
-	case algStrPS256:
-		alg = AlgPS256
-	case algStrPS384:
-		alg = AlgPS384
-	case algStrPS512:
-		alg = AlgPS512
-	case algStrES256:
-		alg = AlgES256
-	case algStrES384:
-		alg = AlgES384
-	case algStrES512:
-		alg = AlgES512
-	case algStrEdDSA:
-		alg = AlgEdDSA
+	// Validate that the algorithm is a known supported signature algorithm.
+	switch alg.String() {
+	case algStrHS256, algStrHS384, algStrHS512,
+		algStrRS256, algStrRS384, algStrRS512,
+		algStrPS256, algStrPS384, algStrPS512,
+		algStrES256, algStrES384, algStrES512,
+		algStrEdDSA:
+		// Valid signature algorithm, already properly typed.
 	default:
-		return fmt.Errorf("unsupported signature algorithm: %s", algString)
+		return fmt.Errorf("unsupported signature algorithm: %s", alg)
 	}
 
-	// Set the properly typed algorithm back on the JWK
+	// Set the properly typed algorithm back on the JWK to ensure type consistency.
 	err = jwk.Set(joseJwk.AlgorithmKey, alg)
 	if err != nil {
 		return fmt.Errorf("failed to set typed algorithm on JWK: %w", err)

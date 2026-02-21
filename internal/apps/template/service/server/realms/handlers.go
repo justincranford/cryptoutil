@@ -176,7 +176,7 @@ func (s *UserServiceImpl) HandleLoginUser(jwtSecret string) fiber.Handler {
 		}
 
 		// Generate JWT token.
-			token, expiresAt, err := realmsHandlersGenerateJWTFn(user.GetID(), user.GetUsername(), jwtSecret)
+		token, expiresAt, err := realmsHandlersGenerateJWTFn(user.GetID(), user.GetUsername(), jwtSecret)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to generate token",

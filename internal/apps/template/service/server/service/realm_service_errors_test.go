@@ -251,7 +251,7 @@ func (b *badJSONRealmConfig) GetType() RealmType { return RealmTypeBasicClientID
 func (b *badJSONRealmConfig) Validate() error { return nil }
 
 func (b *badJSONRealmConfig) MarshalJSON() ([]byte, error) {
-return nil, errBadJSONMarshal
+	return nil, errBadJSONMarshal
 }
 
 var errBadJSONMarshal = errors.New("test: marshal error for realm config")
@@ -259,120 +259,120 @@ var errBadJSONMarshal = errors.New("test: marshal error for realm config")
 // TestCreateRealm_RepoError tests CreateRealm when the repo Create fails.
 // Covers realm_service_impl.go:192-194.
 func TestCreateRealm_RepoError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-expectedErr := errors.New("create realm db error")
-tenantID := googleUuid.New()
+	expectedErr := errors.New("create realm db error")
+	tenantID := googleUuid.New()
 
-mockRepo := &mockRealmRepoWithErrors{createErr: expectedErr}
-svc := NewRealmService(mockRepo)
+	mockRepo := &mockRealmRepoWithErrors{createErr: expectedErr}
+	svc := NewRealmService(mockRepo)
 
-_, err := svc.CreateRealm(context.Background(), tenantID, string(RealmTypeBasicClientIDSecret), nil)
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to create realm")
+	_, err := svc.CreateRealm(context.Background(), tenantID, string(RealmTypeBasicClientIDSecret), nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to create realm")
 }
 
 // TestCreateRealm_JsonMarshalError tests CreateRealm when json.Marshal fails.
 // Covers realm_service_impl.go:175-177.
 func TestCreateRealm_JsonMarshalError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tenantID := googleUuid.New()
-mockRepo := &mockRealmRepoWithErrors{}
-svc := NewRealmService(mockRepo)
+	tenantID := googleUuid.New()
+	mockRepo := &mockRealmRepoWithErrors{}
+	svc := NewRealmService(mockRepo)
 
-_, err := svc.CreateRealm(context.Background(), tenantID, string(RealmTypeBasicClientIDSecret), &badJSONRealmConfig{})
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to serialize realm configuration")
+	_, err := svc.CreateRealm(context.Background(), tenantID, string(RealmTypeBasicClientIDSecret), &badJSONRealmConfig{})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to serialize realm configuration")
 }
 
 // TestListRealms_RepoError tests ListRealms when the repo ListByTenant fails.
 // Covers realm_service_impl.go:217-219.
 func TestListRealms_RepoError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-expectedErr := errors.New("list realms db error")
-tenantID := googleUuid.New()
+	expectedErr := errors.New("list realms db error")
+	tenantID := googleUuid.New()
 
-mockRepo := &mockRealmRepoWithErrors{listByTenantErr: expectedErr}
-svc := NewRealmService(mockRepo)
+	mockRepo := &mockRealmRepoWithErrors{listByTenantErr: expectedErr}
+	svc := NewRealmService(mockRepo)
 
-_, err := svc.ListRealms(context.Background(), tenantID, false)
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to list realms")
+	_, err := svc.ListRealms(context.Background(), tenantID, false)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to list realms")
 }
 
 // TestGetFirstActiveRealm_ListError tests GetFirstActiveRealm when ListByTenant fails.
 // Covers realm_service_impl.go:229-231.
 func TestGetFirstActiveRealm_ListError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-expectedErr := errors.New("list active realms db error")
-tenantID := googleUuid.New()
+	expectedErr := errors.New("list active realms db error")
+	tenantID := googleUuid.New()
 
-mockRepo := &mockRealmRepoWithErrors{listByTenantErr: expectedErr}
-svc := NewRealmService(mockRepo)
+	mockRepo := &mockRealmRepoWithErrors{listByTenantErr: expectedErr}
+	svc := NewRealmService(mockRepo)
 
-_, err := svc.GetFirstActiveRealm(context.Background(), tenantID)
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to list realms")
+	_, err := svc.GetFirstActiveRealm(context.Background(), tenantID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to list realms")
 }
 
 // TestGetFirstActiveRealm_EmptyList tests GetFirstActiveRealm when no active realms exist.
 // Covers realm_service_impl.go:234-236.
 func TestGetFirstActiveRealm_EmptyList(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tenantID := googleUuid.New()
-mockRepo := &mockRealmRepoWithErrors{listByTenantRealms: []*cryptoutilAppsTemplateServiceServerRepository.TenantRealm{}}
-svc := NewRealmService(mockRepo)
+	tenantID := googleUuid.New()
+	mockRepo := &mockRealmRepoWithErrors{listByTenantRealms: []*cryptoutilAppsTemplateServiceServerRepository.TenantRealm{}}
+	svc := NewRealmService(mockRepo)
 
-realm, err := svc.GetFirstActiveRealm(context.Background(), tenantID)
-require.Nil(t, realm)
-require.ErrorIs(t, err, ErrNoActiveRealm)
+	realm, err := svc.GetFirstActiveRealm(context.Background(), tenantID)
+	require.Nil(t, realm)
+	require.ErrorIs(t, err, ErrNoActiveRealm)
 }
 
 // TestGetFirstActiveRealm_Success tests GetFirstActiveRealm when an active realm exists.
 // Covers realm_service_impl.go:239.
 func TestGetFirstActiveRealm_Success(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tenantID := googleUuid.New()
-activeRealm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
-ID:       googleUuid.New(),
-TenantID: tenantID,
-RealmID:  googleUuid.New(),
-Active:   true,
-}
+	tenantID := googleUuid.New()
+	activeRealm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
+		ID:       googleUuid.New(),
+		TenantID: tenantID,
+		RealmID:  googleUuid.New(),
+		Active:   true,
+	}
 
-mockRepo := &mockRealmRepoWithErrors{
-listByTenantRealms: []*cryptoutilAppsTemplateServiceServerRepository.TenantRealm{activeRealm},
-}
-svc := NewRealmService(mockRepo)
+	mockRepo := &mockRealmRepoWithErrors{
+		listByTenantRealms: []*cryptoutilAppsTemplateServiceServerRepository.TenantRealm{activeRealm},
+	}
+	svc := NewRealmService(mockRepo)
 
-result, err := svc.GetFirstActiveRealm(context.Background(), tenantID)
-require.NoError(t, err)
-require.Equal(t, activeRealm, result)
+	result, err := svc.GetFirstActiveRealm(context.Background(), tenantID)
+	require.NoError(t, err)
+	require.Equal(t, activeRealm, result)
 }
 
 // TestUpdateRealm_JsonMarshalError tests UpdateRealm when json.Marshal on config fails.
 // Covers realm_service_impl.go:261-263.
 func TestUpdateRealm_JsonMarshalError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tenantID := googleUuid.New()
-realmID := googleUuid.New()
-existingRealm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
-ID:       googleUuid.New(),
-TenantID: tenantID,
-RealmID:  realmID,
-Active:   true,
-}
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	existingRealm := &cryptoutilAppsTemplateServiceServerRepository.TenantRealm{
+		ID:       googleUuid.New(),
+		TenantID: tenantID,
+		RealmID:  realmID,
+		Active:   true,
+	}
 
-mockRepo := &mockRealmRepoWithErrors{realm: existingRealm}
-svc := NewRealmService(mockRepo)
+	mockRepo := &mockRealmRepoWithErrors{realm: existingRealm}
+	svc := NewRealmService(mockRepo)
 
-_, err := svc.UpdateRealm(context.Background(), tenantID, realmID, &badJSONRealmConfig{}, nil)
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to serialize realm configuration")
+	_, err := svc.UpdateRealm(context.Background(), tenantID, realmID, &badJSONRealmConfig{}, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to serialize realm configuration")
 }

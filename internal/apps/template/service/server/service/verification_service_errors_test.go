@@ -291,41 +291,41 @@ func TestCleanupExpiredRegistrations_ClientDeleteExpiredError(t *testing.T) {
 // TestListPendingUsers_RepoError tests ListPendingUsers when the repo returns an error.
 // Covers verification_service.go:86-88 (ListByTenant error return in ListPendingUsers).
 func TestListPendingUsers_RepoError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tenantID := googleUuid.New()
-expectedErr := errors.New("list pending users db error")
+	tenantID := googleUuid.New()
+	expectedErr := errors.New("list pending users db error")
 
-mockRepo := &mockUnverifiedUserRepoWithErrors{
-listByTenantErr: expectedErr,
-}
+	mockRepo := &mockUnverifiedUserRepoWithErrors{
+		listByTenantErr: expectedErr,
+	}
 
-svc := &VerificationServiceImpl{
-unverifiedUserRepo: mockRepo,
-}
+	svc := &VerificationServiceImpl{
+		unverifiedUserRepo: mockRepo,
+	}
 
-_, err := svc.ListPendingUsers(context.Background(), tenantID)
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to list pending users")
+	_, err := svc.ListPendingUsers(context.Background(), tenantID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to list pending users")
 }
 
 // TestListPendingClients_RepoError tests ListPendingClients when the repo returns an error.
 // Covers verification_service.go:96-98 (ListByTenant error return in ListPendingClients).
 func TestListPendingClients_RepoError(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-tenantID := googleUuid.New()
-expectedErr := errors.New("list pending clients db error")
+	tenantID := googleUuid.New()
+	expectedErr := errors.New("list pending clients db error")
 
-mockClientRepo := &mockUnverifiedClientRepoWithErrors{
-listByTenantErr: expectedErr,
-}
+	mockClientRepo := &mockUnverifiedClientRepoWithErrors{
+		listByTenantErr: expectedErr,
+	}
 
-svc := &VerificationServiceImpl{
-unverifiedClientRepo: mockClientRepo,
-}
+	svc := &VerificationServiceImpl{
+		unverifiedClientRepo: mockClientRepo,
+	}
 
-_, err := svc.ListPendingClients(context.Background(), tenantID)
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to list pending clients")
+	_, err := svc.ListPendingClients(context.Background(), tenantID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to list pending clients")
 }

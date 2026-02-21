@@ -384,79 +384,79 @@ type failingSignerImpl struct{}
 func (f failingSignerImpl) Public() crypto.PublicKey { return []byte("pub") }
 
 func (f failingSignerImpl) Sign(_ io.Reader, _ []byte, _ crypto.SignerOpts) ([]byte, error) {
-return nil, errSignFailed
+	return nil, errSignFailed
 }
 
 // TestVerifyEdDSA_SuccessPath tests the success return path of verifyEdDSA.
 // Covers the "return nil" statement on the happy path (line 204).
 func TestVerifyEdDSA_SuccessPath(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-provider := NewSoftwareProvider()
+	provider := NewSoftwareProvider()
 
-// Generate Ed25519 key pair.
-kp, err := provider.generateEdDSAKeyPair(testEd25519Curve)
-require.NoError(t, err)
+	// Generate Ed25519 key pair.
+	kp, err := provider.generateEdDSAKeyPair(testEd25519Curve)
+	require.NoError(t, err)
 
-pub, ok := kp.PublicKey.(ed25519.PublicKey)
-require.True(t, ok)
+	pub, ok := kp.PublicKey.(ed25519.PublicKey)
+	require.True(t, ok)
 
-priv, ok := kp.PrivateKey.(ed25519.PrivateKey)
-require.True(t, ok)
+	priv, ok := kp.PrivateKey.(ed25519.PrivateKey)
+	require.True(t, ok)
 
-// Sign the digest using the private key directly.
-digest := sha256.Sum256([]byte("message for success path"))
-signature := ed25519.Sign(priv, digest[:])
+	// Sign the digest using the private key directly.
+	digest := sha256.Sum256([]byte("message for success path"))
+	signature := ed25519.Sign(priv, digest[:])
 
-// Verify the signature - must succeed (covers success "return nil" path).
-err = provider.verifyEdDSA(pub, digest[:], signature)
-require.NoError(t, err)
+	// Verify the signature - must succeed (covers success "return nil" path).
+	err = provider.verifyEdDSA(pub, digest[:], signature)
+	require.NoError(t, err)
 }
 
 // TestSign_WithFailingSignerSign tests Sign when signer.Sign returns an error.
 // Covers the error return in Sign after signer.Sign fails.
 func TestSign_WithFailingSignerSign(t *testing.T) {
-t.Parallel()
+	t.Parallel()
 
-provider := NewSoftwareProvider()
+	provider := NewSoftwareProvider()
 
-digest := sha256.Sum256([]byte("test sign error path"))
+	digest := sha256.Sum256([]byte("test sign error path"))
 
-_, err := provider.Sign(failingSignerImpl{}, digest[:], crypto.SHA256)
-require.Error(t, err)
-require.Contains(t, err.Error(), "signing failed")
+	_, err := provider.Sign(failingSignerImpl{}, digest[:], crypto.SHA256)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "signing failed")
 }
 
 // TestGenerateRSAKeyPair_KeygenError tests generateRSAKeyPair when keygen fails.
 // NOTE: Must NOT use t.Parallel() - modifies package-level pkiCryptoGenerateRSAKeyPairFn.
 func TestGenerateRSAKeyPair_KeygenError(t *testing.T) {
-orig := pkiCryptoGenerateRSAKeyPairFn
-pkiCryptoGenerateRSAKeyPairFn = func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-return nil, errSignFailed
-}
+	orig := pkiCryptoGenerateRSAKeyPairFn
+	pkiCryptoGenerateRSAKeyPairFn = func(_ int) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+		return nil, errSignFailed
+	}
 
-defer func() { pkiCryptoGenerateRSAKeyPairFn = orig }()
+	defer func() { pkiCryptoGenerateRSAKeyPairFn = orig }()
 
-provider := NewSoftwareProvider()
+	provider := NewSoftwareProvider()
 
-_, err := provider.generateRSAKeyPair(MinRSAKeyBits)
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to generate RSA key pair")
+	_, err := provider.generateRSAKeyPair(MinRSAKeyBits)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to generate RSA key pair")
 }
 
 // TestGenerateECDSAKeyPair_KeygenError tests generateECDSAKeyPair when keygen fails.
 // NOTE: Must NOT use t.Parallel() - modifies package-level pkiCryptoGenerateECDSAKeyPairFn.
 func TestGenerateECDSAKeyPair_KeygenError(t *testing.T) {
-orig := pkiCryptoGenerateECDSAKeyPairFn
-pkiCryptoGenerateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
-return nil, errSignFailed
-}
+	orig := pkiCryptoGenerateECDSAKeyPairFn
+	pkiCryptoGenerateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+		return nil, errSignFailed
+	}
 
-defer func() { pkiCryptoGenerateECDSAKeyPairFn = orig }()
+	defer func() { pkiCryptoGenerateECDSAKeyPairFn = orig }()
 
-provider := NewSoftwareProvider()
+	provider := NewSoftwareProvider()
 
-_, err := provider.generateECDSAKeyPair("P-256")
-require.Error(t, err)
-require.Contains(t, err.Error(), "failed to generate ECDSA key pair")
+	_, err := provider.generateECDSAKeyPair("P-256")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to generate ECDSA key pair")
 }

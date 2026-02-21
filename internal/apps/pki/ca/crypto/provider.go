@@ -70,7 +70,7 @@ type SoftwareProvider struct{}
 
 // Injectable vars for testing - allows error path coverage without modifying public API.
 var (
-	pkiCryptoGenerateRSAKeyPairFn  func(int) (*cryptoutilSharedCryptoKeygen.KeyPair, error)                   = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair
+	pkiCryptoGenerateRSAKeyPairFn   func(int) (*cryptoutilSharedCryptoKeygen.KeyPair, error)            = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair
 	pkiCryptoGenerateECDSAKeyPairFn func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
 )
 
