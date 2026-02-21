@@ -20,6 +20,9 @@ import (
 // emailRegex is a simple email validation pattern.
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
+// registrationHandlersHashSecretPBKDF2Fn allows overriding hash function for testing.
+var registrationHandlersHashSecretPBKDF2Fn = cryptoutilSharedCryptoHash.HashSecretPBKDF2
+
 // RegistrationHandlers handles tenant registration endpoints.
 type RegistrationHandlers struct {
 	registrationService *cryptoutilAppsTemplateServiceServerBusinesslogic.TenantRegistrationService
@@ -67,7 +70,7 @@ func (h *RegistrationHandlers) HandleRegisterUser(c *fiber.Ctx) error {
 	}
 
 	// Hash password using FIPS-approved PBKDF2-HMAC-SHA256.
-	passwordHash, err := cryptoutilSharedCryptoHash.HashSecretPBKDF2(req.Password)
+	passwordHash, err := registrationHandlersHashSecretPBKDF2Fn(req.Password)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to process password",
