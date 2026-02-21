@@ -26,6 +26,9 @@ type UnsealKeysService interface {
 	Shutdown()
 }
 
+// Injectable vars for testing - allows error path coverage without modifying public API.
+var hkdfWithSHA256Fn = cryptoutilSharedCryptoDigests.HKDFwithSHA256
+
 func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key, error) {
 	combinations, err := cryptoutilSharedUtilCombinations.ComputeCombinations(m, chooseN)
 	if err != nil {
@@ -50,7 +53,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		ikmForDerivedKid := append(append([]byte{}, cryptoutilSharedMagic.FixedIKMForDerivedKid...), currentCombinationBytesConcat...)
 		saltForDerivedKid := append(append([]byte{}, cryptoutilSharedMagic.FixedSaltForDerivedKid...), currentCombinationBytesConcat...)
 
-		derivedKidBytes, err := cryptoutilSharedCryptoDigests.HKDFwithSHA256(ikmForDerivedKid, saltForDerivedKid, cryptoutilSharedMagic.FixedContextForDerivedKid, cryptoutilSharedMagic.DerivedKeySizeBytes)
+		derivedKidBytes, err := hkdfWithSHA256Fn(ikmForDerivedKid, saltForDerivedKid, cryptoutilSharedMagic.FixedContextForDerivedKid, cryptoutilSharedMagic.DerivedKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive unseal JWK kid bytes: %w", err)
 		}
@@ -65,7 +68,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		ikmForDerivedSecret := append(append([]byte{}, cryptoutilSharedMagic.FixedIKMForDerivedSecret...), currentCombinationBytesConcat...)
 		saltForDerivedSecret := append(append([]byte{}, cryptoutilSharedMagic.FixedSaltForDerivedSecret...), currentCombinationBytesConcat...)
 
-		derivedSecretBytes, err := cryptoutilSharedCryptoDigests.HKDFwithSHA256(ikmForDerivedSecret, saltForDerivedSecret, cryptoutilSharedMagic.FixedContextForDerivedSecret, cryptoutilSharedMagic.DerivedKeySizeBytes)
+		derivedSecretBytes, err := hkdfWithSHA256Fn(ikmForDerivedSecret, saltForDerivedSecret, cryptoutilSharedMagic.FixedContextForDerivedSecret, cryptoutilSharedMagic.DerivedKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive unseal JWK secret bytes: %w", err)
 		}

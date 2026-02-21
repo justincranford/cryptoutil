@@ -23,6 +23,13 @@ var PEMTypes = []string{
 	cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, cryptoutilSharedMagic.StringPEMTypePKIXPublicKey, cryptoutilSharedMagic.StringPEMTypeRSAPrivateKey, cryptoutilSharedMagic.StringPEMTypeRSAPublicKey, cryptoutilSharedMagic.StringPEMTypeECPrivateKey, cryptoutilSharedMagic.StringPEMTypeCertificate, cryptoutilSharedMagic.StringPEMTypeCSR, cryptoutilSharedMagic.StringPEMTypeSecretKey,
 }
 
+// Injectable vars for testing - allows error path coverage without modifying public API.
+var (
+	x509MarshalPKCS8PrivateKeyFn = x509.MarshalPKCS8PrivateKey
+	x509MarshalPKIXPublicKeyFn   = x509.MarshalPKIXPublicKey
+	derDecodesPEMTypes           = PEMTypes
+)
+
 // PEMEncodes encodes multiple keys (e.g., certificate chains) to PEM format.
 func PEMEncodes(keys any) ([][]byte, error) {
 	switch expression := keys.(type) {
@@ -81,14 +88,14 @@ func PEMEncode(key any) ([]byte, error) {
 func DEREncode(key any) ([]byte, string, error) {
 	switch x509Type := key.(type) {
 	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ecdh.PrivateKey:
-		privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(x509Type)
+		privateKeyBytes, err := x509MarshalPKCS8PrivateKeyFn(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
 
 		return privateKeyBytes, cryptoutilSharedMagic.StringPEMTypePKCS8PrivateKey, nil
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
-		publicKeyBytes, err := x509.MarshalPKIXPublicKey(x509Type)
+		publicKeyBytes, err := x509MarshalPKIXPublicKeyFn(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
@@ -146,7 +153,7 @@ func DERDecode(bytes []byte, x509Type string) (any, error) {
 
 // DERDecodes attempts to decode DER-encoded bytes by trying all known PEM types.
 func DERDecodes(bytes []byte) (any, string, error) {
-	for _, derType := range PEMTypes {
+	for _, derType := range derDecodesPEMTypes {
 		key, err := DERDecode(bytes, derType)
 		if err == nil {
 			return key, derType, nil
