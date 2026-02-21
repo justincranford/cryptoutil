@@ -27,6 +27,11 @@ type IntermediateKeysService struct {
 	rootKeysService  *RootKeysService
 }
 
+// intermediateGenerateJWEJWKFn is an injectable var for testing the error path when generating a new intermediate JWK.
+var intermediateGenerateJWEJWKFn = func(svc *cryptoutilSharedCryptoJose.JWKGenService) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+	return svc.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
+}
+
 // NewIntermediateKeysService creates a new IntermediateKeysService with the specified dependencies.
 func NewIntermediateKeysService(telemetryService *cryptoutilSharedTelemetry.TelemetryService, jwkGenService *cryptoutilSharedCryptoJose.JWKGenService, repository Repository, rootKeysService *RootKeysService) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
@@ -73,7 +78,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilSharedCryptoJose.JW
 	if encryptedIntermediateKeyLatest == nil {
 		log.Printf("DEBUG initializeFirstIntermediateJWK: Creating first intermediate JWK")
 
-		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJWEJWK(&cryptoutilSharedCryptoJose.EncA256GCM, &cryptoutilSharedCryptoJose.AlgDir)
+		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := intermediateGenerateJWEJWKFn(jwkGenService)
 		if err != nil {
 			log.Printf("DEBUG initializeFirstIntermediateJWK: GenerateJWEJWK failed: %v", err)
 
