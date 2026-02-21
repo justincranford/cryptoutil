@@ -1,6 +1,5 @@
 // Copyright (c) 2025 Justin Cranford
 //
-//
 
 package sysinfo
 
@@ -9,117 +8,155 @@ import (
 	"errors"
 	"os/user"
 	"testing"
+	"time"
 
-	"github.com/shirou/gopsutil/v4/cpu"
-	"github.com/shirou/gopsutil/v4/host"
-	"github.com/shirou/gopsutil/v4/mem"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 	"github.com/stretchr/testify/require"
 )
 
-// TestCPUInfo_NoCPU tests the "no CPU info" error path
-// when gopsutil returns empty slice.
-func TestCPUInfo_NoCPU(t *testing.T) {
-	t.Parallel()
+// TestCPUInfo_Error tests error path when gopsutil fails.
+// Cannot be parallel since it modifies package-level vars.
+func TestCPUInfo_Error(t *testing.T) {
+	orig := sysinfoGetCPUInfoFn
+	sysinfoGetCPUInfoFn = func(_ context.Context) ([]cpu.InfoStat, error) {
+		return nil, errors.New("injected CPU info failure")
+	}
 
-	// Cannot easily mock gopsutil to return empty slice,
-	// but we can document the coverage gap
-	t.Skip("Cannot mock gopsutil to return empty CPU slice")
+	defer func() { sysinfoGetCPUInfoFn = orig }()
+
+	_, _, _, _, err := CPUInfo()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get CPU info")
 }
 
-// TestCPUInfo_Error tests error path when gopsutil fails.
-func TestCPUInfo_Error(t *testing.T) {
-	t.Parallel()
+// TestCPUInfo_NoCPU tests the "no CPU info" error path when gopsutil returns empty slice.
+// Cannot be parallel since it modifies package-level vars.
+func TestCPUInfo_NoCPU(t *testing.T) {
+	orig := sysinfoGetCPUInfoFn
+	sysinfoGetCPUInfoFn = func(_ context.Context) ([]cpu.InfoStat, error) {
+		return []cpu.InfoStat{}, nil // empty slice
+	}
 
-	// Cannot easily mock gopsutil to return error,
-	// but we can document the coverage gap
-	t.Skip("Cannot mock gopsutil to return error")
+	defer func() { sysinfoGetCPUInfoFn = orig }()
+
+	_, _, _, _, err := CPUInfo()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no CPU info")
 }
 
 // TestRAMSize_Error tests error path when gopsutil fails.
+// Cannot be parallel since it modifies package-level vars.
 func TestRAMSize_Error(t *testing.T) {
-	t.Parallel()
+	orig := sysinfoGetVirtualMemoryFn
+	sysinfoGetVirtualMemoryFn = func(_ context.Context) (*mem.VirtualMemoryStat, error) {
+		return nil, errors.New("injected RAM info failure")
+	}
 
-	// Cannot easily mock gopsutil to return error
-	t.Skip("Cannot mock gopsutil to return error")
+	defer func() { sysinfoGetVirtualMemoryFn = orig }()
+
+	_, err := RAMSize()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get RAM info")
 }
 
 // TestOSHostname_Error tests error path when os.Hostname fails.
+// Cannot be parallel since it modifies package-level vars.
 func TestOSHostname_Error(t *testing.T) {
-	t.Parallel()
+	orig := sysinfoGetOSHostnameFn
+	sysinfoGetOSHostnameFn = func() (string, error) {
+		return "", errors.New("injected hostname failure")
+	}
 
-	// Cannot easily mock os.Hostname to return error
-	t.Skip("Cannot mock os.Hostname to return error")
+	defer func() { sysinfoGetOSHostnameFn = orig }()
+
+	_, err := OSHostname()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get OS hostname")
 }
 
 // TestHostID_Error tests error path when gopsutil fails.
+// Cannot be parallel since it modifies package-level vars.
 func TestHostID_Error(t *testing.T) {
-	t.Parallel()
+	orig := sysinfoGetHostIDFn
+	sysinfoGetHostIDFn = func(_ context.Context) (string, error) {
+		return "", errors.New("injected host ID failure")
+	}
 
-	// Cannot easily mock gopsutil to return error
-	t.Skip("Cannot mock gopsutil to return error")
+	defer func() { sysinfoGetHostIDFn = orig }()
+
+	_, err := HostID()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get host ID")
 }
 
 // TestUserInfo_Error tests error path when user.Current fails.
+// Cannot be parallel since it modifies package-level vars.
 func TestUserInfo_Error(t *testing.T) {
-	t.Parallel()
+	orig := sysinfoGetUserCurrentFn
+	sysinfoGetUserCurrentFn = func() (*user.User, error) {
+		return nil, errors.New("injected user info failure")
+	}
 
-	// Cannot easily mock user.Current to return error
-	t.Skip("Cannot mock user.Current to return error")
+	defer func() { sysinfoGetUserCurrentFn = orig }()
+
+	_, _, _, err := UserInfo()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get user info")
 }
 
-// Document coverage gaps - error paths require invasive mocking.
-// These functions are thin wrappers around standard library and gopsutil.
-// Error paths are:
-// - CPUInfo: ctx timeout (line 50), no CPU info (line 57)
-// - RAMSize: ctx timeout (line 66)
-// - OSHostname: os.Hostname error (line 73)
-// - HostID: ctx timeout (line 85)
-// - UserInfo: user.Current error (line 95)
-//
-// Reaching these paths requires:
-// 1. Mocking gopsutil internals (cpu.InfoWithContext, mem.VirtualMemoryWithContext, host.HostIDWithContext)
-// 2. Mocking os.Hostname
-// 3. Mocking user.Current
-//
-// None of these have clean injection points. Options:
-// A. Accept 84.4% coverage (error paths are defensive)
-// B. Refactor to use interfaces for all system calls (invasive)
-// C. Use build tags with test implementations (complex)
-//
-// Decision: Accept 84.4% coverage with documented gaps.
-// Error paths are defensive wrappers around stable APIs.
-// Integration tests cover real-world scenarios.
-//
-// This comment documents the coverage gaps for future reference.
+// blockingProviderForTimeout is a SysInfoProvider that blocks until released.
+// Used to trigger timeout paths in GetAllInfoWithTimeout.
+type blockingProviderForTimeout struct {
+	releaseCh chan struct{}
+}
 
-// TestDocumentedCoverageGaps ensures the test file exists and documents gaps.
-func TestDocumentedCoverageGaps(t *testing.T) {
+func (p *blockingProviderForTimeout) RuntimeGoArch() string { return "amd64" }
+func (p *blockingProviderForTimeout) RuntimeGoOS() string   { return "linux" }
+func (p *blockingProviderForTimeout) RuntimeNumCPU() int    { return 1 }
+
+func (p *blockingProviderForTimeout) CPUInfo() (string, string, string, string, error) {
+	<-p.releaseCh
+
+	return "", "", "", "", nil
+}
+
+func (p *blockingProviderForTimeout) RAMSize() (uint64, error) {
+	<-p.releaseCh
+
+	return 0, nil
+}
+
+func (p *blockingProviderForTimeout) OSHostname() (string, error) {
+	<-p.releaseCh
+
+	return "", nil
+}
+
+func (p *blockingProviderForTimeout) HostID() (string, error) {
+	<-p.releaseCh
+
+	return "", nil
+}
+
+func (p *blockingProviderForTimeout) UserInfo() (string, string, string, error) {
+	<-p.releaseCh
+
+	return "", "", "", nil
+}
+
+// TestGetAllInfoWithTimeout_Timeout tests that timeout paths are triggered.
+func TestGetAllInfoWithTimeout_Timeout(t *testing.T) {
 	t.Parallel()
 
-	// This test passes to acknowledge the documented coverage gaps
-	gaps := []string{
-		"CPUInfo: cpu.InfoWithContext error path (line 49)",
-		"CPUInfo: empty CPU slice path (line 57)",
-		"RAMSize: mem.VirtualMemoryWithContext error path (line 65)",
-		"OSHostname: os.Hostname error path (line 73)",
-		"HostID: host.HostIDWithContext error path (line 84)",
-		"UserInfo: user.Current error path (line 95)",
-	}
+	releaseCh := make(chan struct{})
+	provider := &blockingProviderForTimeout{releaseCh: releaseCh}
 
-	for _, gap := range gaps {
-		t.Logf("Documented coverage gap: %s", gap)
-	}
+	// Release blocker after test regardless of outcome.
+	defer close(releaseCh)
 
-	// Verify the error types exist to ensure error paths are valid
-	var (
-		_ = context.DeadlineExceeded
-		_ = cpu.InfoWithContext
-		_ = mem.VirtualMemoryWithContext
-		_ = host.HostIDWithContext
-		_ = user.Current
-		_ = errors.New
-	)
-
-	// Coverage gaps are documented and acknowledged
-	require.True(t, true, "Coverage gaps documented")
+	// 1ms timeout — all goroutines should hit the timeout path.
+	_, err := GetAllInfoWithTimeout(provider, time.Millisecond)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to collect system information")
 }

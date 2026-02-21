@@ -44,62 +44,71 @@ func RuntimeNumCPU() int {
 	return runtime.NumCPU()
 }
 
+// sysinfoFns holds injectable function vars for testing OS-level calls.
+var (
+	sysinfoGetCPUInfoFn           = func(ctx context.Context) ([]cpu.InfoStat, error) { return cpu.InfoWithContext(ctx) }
+	sysinfoGetVirtualMemoryFn     = func(ctx context.Context) (*mem.VirtualMemoryStat, error) { return mem.VirtualMemoryWithContext(ctx) }
+	sysinfoGetOSHostnameFn        = os.Hostname
+	sysinfoGetHostIDFn            = func(ctx context.Context) (string, error) { return host.HostIDWithContext(ctx) }
+	sysinfoGetUserCurrentFn       = user.Current
+)
+
 // CPUInfo Returns VendorID, Family, Model, PhysicalID, ModelName.
 func CPUInfo() (string, string, string, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cpuInfoTimeout)
-	defer cancel()
+        ctx, cancel := context.WithTimeout(context.Background(), cpuInfoTimeout)
+        defer cancel()
 
-	cpuInfo, err := cpu.InfoWithContext(ctx)
-	if err != nil {
-		return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get CPU info: %w", err)
-	}
+        cpuInfo, err := sysinfoGetCPUInfoFn(ctx)
+        if err != nil {
+                return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get CPU info: %w", err)
+        }
 
-	for _, cpu := range cpuInfo {
-		return cpu.VendorID, cpu.Family, cpu.PhysicalID, cpu.ModelName, nil
-	}
+        for _, cpu := range cpuInfo {
+                return cpu.VendorID, cpu.Family, cpu.PhysicalID, cpu.ModelName, nil
+        }
 
-	return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("no CPU info")
+        return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("no CPU info")
 }
 
 // RAMSize returns the total RAM size in bytes.
 func RAMSize() (uint64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), memoryTimeout)
-	defer cancel()
+        ctx, cancel := context.WithTimeout(context.Background(), memoryTimeout)
+        defer cancel()
 
-	vmStats, err := mem.VirtualMemoryWithContext(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get RAM info: %w", err)
-	}
+        vmStats, err := sysinfoGetVirtualMemoryFn(ctx)
+        if err != nil {
+                return 0, fmt.Errorf("failed to get RAM info: %w", err)
+        }
 
-	return vmStats.Total, nil
+        return vmStats.Total, nil
 }
 
 // OSHostname returns the OS hostname.
 func OSHostname() (string, error) {
-	hostname, err := os.Hostname()
-	if err != nil {
-		return "", fmt.Errorf("failed to get OS hostname: %w", err)
-	}
+        hostname, err := sysinfoGetOSHostnameFn()
+        if err != nil {
+                return "", fmt.Errorf("failed to get OS hostname: %w", err)
+        }
 
-	return hostname, nil
+        return hostname, nil
 }
 
 // HostID returns the unique host identifier.
 func HostID() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), hostIDTimeout)
-	defer cancel()
+        ctx, cancel := context.WithTimeout(context.Background(), hostIDTimeout)
+        defer cancel()
 
-	hostID, err := host.HostIDWithContext(ctx)
-	if err != nil {
-		return "", fmt.Errorf("failed to get host ID: %w", err)
-	}
+        hostID, err := sysinfoGetHostIDFn(ctx)
+        if err != nil {
+                return "", fmt.Errorf("failed to get host ID: %w", err)
+        }
 
-	return hostID, nil
+        return hostID, nil
 }
 
 // UserInfo Returns UserID, GroupID, Username.
 func UserInfo() (string, string, string, error) {
-	userInfo, err := user.Current()
+        userInfo, err := sysinfoGetUserCurrentFn()
 	if err != nil {
 		return EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get user info: %w", err)
 	}
