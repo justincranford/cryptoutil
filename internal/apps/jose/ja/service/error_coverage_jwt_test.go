@@ -470,7 +470,7 @@ func TestValidateJWT_FallbackNoActiveMaterial(t *testing.T) {
 
 	claimsMap := map[string]any{
 		"sub": "test",
-		"exp": time.Now().Add(time.Hour).Unix(),
+		"exp": time.Now().UTC().Add(time.Hour).Unix(),
 	}
 
 	builder := jwt.Signed(signer).Claims(claimsMap)
