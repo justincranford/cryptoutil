@@ -30,7 +30,7 @@ func newAdminServerWithFailingJSON() *AdminServer {
 	})
 
 	server := &AdminServer{
-		app: app,
+		app:      app,
 		settings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 	}
 	server.registerRoutes()
@@ -47,7 +47,7 @@ func newPublicServerWithFailingJSON() *PublicHTTPServer {
 	})
 
 	server := &PublicHTTPServer{
-		app: app,
+		app:      app,
 		settings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{},
 	}
 	server.registerRoutes()
