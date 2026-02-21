@@ -15,6 +15,9 @@ import (
 	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 )
 
+// Injectable function variables for testing.
+var newJWKGenServiceFn = cryptoutilSharedCryptoJose.NewJWKGenService
+
 // Basic encapsulates basic service infrastructure (telemetry, unseal, JWK generation).
 // This is the foundation layer used by Core.
 type Basic struct {
@@ -55,7 +58,7 @@ func StartBasic(ctx context.Context, settings *cryptoutilAppsTemplateServiceConf
 	app.UnsealKeysService = unsealKeysService
 
 	// Initialize JWK Generation Service.
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
+	jwkGenService, err := newJWKGenServiceFn(ctx, telemetryService, settings.VerboseMode)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
 		app.Shutdown()

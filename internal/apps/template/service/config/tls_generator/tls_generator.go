@@ -24,11 +24,11 @@ const (
 
 // Injectable vars for testing error paths.
 var (
-	generateECDSAKeyPairFn     = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
-	createCASubjectsFn         = cryptoutilSharedCryptoCertificate.CreateCASubjects
-	createEndEntitySubjectFn   = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
-	buildTLSCertificateFn      = cryptoutilSharedCryptoCertificate.BuildTLSCertificate
-	marshalPKCS8PrivateKeyFn   = x509.MarshalPKCS8PrivateKey
+	generateECDSAKeyPairFn   = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
+	createCASubjectsFn       = cryptoutilSharedCryptoCertificate.CreateCASubjects
+	createEndEntitySubjectFn = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
+	buildTLSCertificateFn    = cryptoutilSharedCryptoCertificate.BuildTLSCertificate
+	marshalPKCS8PrivateKeyFn = x509.MarshalPKCS8PrivateKey
 )
 
 // GenerateTLSMaterial creates TLS configuration based on the specified mode.

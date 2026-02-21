@@ -24,6 +24,14 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// Injectable function variables for testing.
+var (
+	newBarrierGormRepositoryFn = cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository
+	newSessionManagerServiceFn = cryptoutilAppsTemplateServiceServerBusinesslogic.NewSessionManagerService
+	newRotationServiceFn       = cryptoutilAppsTemplateServiceServerBarrier.NewRotationService
+	newStatusServiceFn         = cryptoutilAppsTemplateServiceServerBarrier.NewStatusService
+)
+
 // Core extends Basic with database infrastructure.
 // Handles automatic database provisioning (SQLite in-memory, PostgreSQL testcontainer, or external DB).
 type Core struct {
@@ -123,7 +131,7 @@ func InitializeServicesOnCore(
 	}
 
 	// Create barrier repository and service.
-	barrierRepo, err := cryptoutilAppsTemplateServiceServerBarrier.NewGormRepository(core.DB)
+	barrierRepo, err := newBarrierGormRepositoryFn(core.DB)
 	if err != nil {
 		core.Shutdown()
 
@@ -155,7 +163,7 @@ func InitializeServicesOnCore(
 	services.RealmService = realmService
 
 	// Create session manager service.
-	sessionManager, err := cryptoutilAppsTemplateServiceServerBusinesslogic.NewSessionManagerService(
+	sessionManager, err := newSessionManagerServiceFn(
 		ctx,
 		core.DB,
 		core.Basic.TelemetryService,
@@ -190,7 +198,7 @@ func InitializeServicesOnCore(
 	services.RegistrationService = registrationService
 
 	// Create barrier rotation service.
-	rotationService, err := cryptoutilAppsTemplateServiceServerBarrier.NewRotationService(
+	rotationService, err := newRotationServiceFn(
 		core.Basic.JWKGenService,
 		barrierRepo,
 		core.Basic.UnsealKeysService,
@@ -204,7 +212,7 @@ func InitializeServicesOnCore(
 	services.RotationService = rotationService
 
 	// Create barrier status service.
-	statusService, err := cryptoutilAppsTemplateServiceServerBarrier.NewStatusService(barrierRepo)
+	statusService, err := newStatusServiceFn(barrierRepo)
 	if err != nil {
 		core.Shutdown()
 
