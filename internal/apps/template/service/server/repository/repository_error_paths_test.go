@@ -387,7 +387,7 @@ require.Error(t, err)
 
 // setupPartialTestDB creates an isolated in-memory SQLite DB with only the
 // specified models migrated. Used to trigger errors in specific code paths.
-func setupPartialTestDB(t *testing.T, models ...interface{}) *gorm.DB {
+func setupPartialTestDB(t *testing.T, models ...any) *gorm.DB {
 t.Helper()
 
 dsn := fmt.Sprintf("file:partial_%s?mode=memory&cache=shared", googleUuid.Must(googleUuid.NewV7()).String())

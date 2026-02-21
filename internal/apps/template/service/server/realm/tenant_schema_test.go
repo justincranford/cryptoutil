@@ -260,7 +260,7 @@ func TestTenantManager_WithTenant_RowClosure(t *testing.T) {
 
 	// Execute a query to trigger the scope closure (the WHERE clause lambda).
 	// Even if the table doesn't exist, using Raw executes the closure.
-	var result []map[string]interface{}
+	var result []map[string]any
 
 	_ = scopedDB.Table("nonexistent_table_for_scope_test").Find(&result)
 	// Result may or may not error; what matters is the closure was invoked.

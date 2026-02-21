@@ -38,7 +38,7 @@ keyPair := testKeyGenPool.GetMany(1)[0]
 tests := []struct {
 name           string
 issuerSubject  *Subject
-issuerPrivKey  interface{}
+issuerPrivKey  any
 subjectName    string
 subjectKeyPair *cryptoutilSharedCryptoKeygen.KeyPair
 maxPathLen     int
