@@ -195,16 +195,12 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(caKeyPairs, "Test CA", duration)
 	require.NoError(t, err)
 
-	// Save issuing CA private key before CreateCASubjects clears it.
-	issuingCAPrivateKey := caKeyPairs[len(caKeyPairs)-1].Private
-
 	// Generate server key pair.
 	serverKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
 	require.NoError(t, err)
 
-	// Restore issuing CA private key.
-	issuingCA := caSubjects[len(caSubjects)-1]
-	issuingCA.KeyMaterial.PrivateKey = issuingCAPrivateKey
+	// Use Intermediate CA as issuing CA (its PrivateKey is valid after CreateCASubjects).
+	issuingCA := caSubjects[0]
 
 	serverSubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(
 		issuingCA,
@@ -262,7 +258,8 @@ func TestGenerateTLSMaterialStatic_HappyPath(t *testing.T) {
 	require.NotNil(t, tlsCert.Leaf)
 	require.Equal(t, "Test Server", tlsCert.Leaf.Subject.CommonName)
 
-	// Verify certificate chain includes server + intermediate CA (root CA not included as per TLS best practice).	// The chain includes server cert + intermediate CA cert = 2 total.	require.Len(t, tlsCert.Certificate, 3)
+	// Verify certificate chain: server cert + intermediate CA cert + root CA cert = 3 total.
+	require.Len(t, tlsCert.Certificate, 3)
 
 	// Verify DNS names.
 	require.Contains(t, tlsCert.Leaf.DNSNames, "localhost")

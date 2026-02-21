@@ -59,24 +59,10 @@ func GenerateTLSMaterial(cfg *TLSGeneratedSettings) (*cryptoutilAppsTemplateServ
 
 // generateTLSMaterialStatic uses pre-provided TLS certificates (production mode).
 func generateTLSMaterialStatic(cfg *TLSGeneratedSettings) (*cryptoutilAppsTemplateServiceConfig.TLSMaterial, error) {
-	if len(cfg.StaticCertPEM) == 0 {
-		return nil, fmt.Errorf("static mode requires StaticCertPEM")
-	} else if len(cfg.StaticKeyPEM) == 0 {
-		return nil, fmt.Errorf("static mode requires StaticKeyPEM")
-	}
-
 	// Parse TLS certificate and private key.
 	cert, err := tls.X509KeyPair(cfg.StaticCertPEM, cfg.StaticKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse static TLS certificate: %w", err)
-	}
-
-	// Parse leaf certificate for validation.
-	if cert.Leaf == nil && len(cert.Certificate) > 0 {
-		cert.Leaf, err = x509.ParseCertificate(cert.Certificate[0])
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse leaf certificate: %w", err)
-		}
 	}
 
 	// Build certificate pools from chain.
