@@ -27,13 +27,17 @@ var ErrNoActiveSecretVersion = errors.New("no active secret version found")
 
 // SecretRotationService handles client secret rotation operations.
 type SecretRotationService struct {
-	db *gorm.DB
+	db               *gorm.DB
+	generateSecretFn func(int) (string, error)
+	hashSecretFn     func(string) (string, error)
 }
 
 // NewSecretRotationService creates a new secret rotation service.
 func NewSecretRotationService(db *gorm.DB) *SecretRotationService {
 	return &SecretRotationService{
-		db: db,
+		db:               db,
+		generateSecretFn: generateRandomSecret,
+		hashSecretFn:     cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic,
 	}
 }
 
@@ -57,13 +61,13 @@ func (s *SecretRotationService) RotateClientSecret(
 	var result RotateClientSecretResult
 
 	// Generate new secret.
-	newSecretPlaintext, err := generateRandomSecret(cryptoutilSharedMagic.SecretGenerationDefaultByteLength)
+	newSecretPlaintext, err := s.generateSecretFn(cryptoutilSharedMagic.SecretGenerationDefaultByteLength)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate new secret: %w", err)
 	}
 
 	// Hash new secret.
-	newSecretHash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
+	newSecretHash, err := s.hashSecretFn(newSecretPlaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash new secret: %w", err)
 	} // Execute rotation in transaction.
