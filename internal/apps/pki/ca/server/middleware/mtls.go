@@ -4,6 +4,7 @@
 package middleware
 
 import (
+	"crypto/tls"
 	"crypto/x509"
 	"errors"
 	"fmt"
@@ -57,7 +58,8 @@ func DefaultMTLSConfig() *MTLSConfig {
 
 // MTLSMiddleware provides mTLS authentication.
 type MTLSMiddleware struct {
-	config *MTLSConfig
+	config        *MTLSConfig
+	getTLSStateFn func(c *fiber.Ctx) *tls.ConnectionState
 }
 
 // NewMTLSMiddleware creates a new mTLS middleware.
@@ -68,6 +70,9 @@ func NewMTLSMiddleware(config *MTLSConfig) *MTLSMiddleware {
 
 	return &MTLSMiddleware{
 		config: config,
+		getTLSStateFn: func(c *fiber.Ctx) *tls.ConnectionState {
+			return c.Context().TLSConnectionState()
+		},
 	}
 }
 
@@ -99,7 +104,7 @@ type ClientCertContextKey struct{}
 func (m *MTLSMiddleware) Handler() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Get TLS connection state.
-		tlsState := c.Context().TLSConnectionState()
+		tlsState := m.getTLSStateFn(c)
 		if tlsState == nil {
 			if m.config.RequireClientCert {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
