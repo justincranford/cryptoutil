@@ -21,6 +21,9 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// generateTLSMaterialFn is the function used to generate TLS material. Injectable for testing.
+var generateTLSMaterialFn = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial
+
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
 // Binds to address and port from ServiceTemplateServerSettings.
 type AdminServer struct {
@@ -51,7 +54,7 @@ func NewAdminHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateSer
 	}
 
 	// Generate TLS material based on configured mode.
-	tlsMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := generateTLSMaterialFn(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}

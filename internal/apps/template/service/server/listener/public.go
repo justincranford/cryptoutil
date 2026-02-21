@@ -60,7 +60,7 @@ func NewPublicHTTPServer(ctx context.Context, settings *cryptoutilAppsTemplateSe
 	}
 
 	// Generate TLS material based on configured mode.
-	tlsMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(tlsCfg)
+	tlsMaterial, err := generateTLSMaterialFn(tlsCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate TLS material: %w", err)
 	}
