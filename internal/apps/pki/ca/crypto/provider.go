@@ -68,6 +68,12 @@ type Provider interface {
 // SoftwareProvider implements Provider using software-based cryptography.
 type SoftwareProvider struct{}
 
+// Injectable vars for testing - allows error path coverage without modifying public API.
+var (
+	pkiCryptoGenerateRSAKeyPairFn  func(int) (*cryptoutilSharedCryptoKeygen.KeyPair, error)                   = cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair
+	pkiCryptoGenerateECDSAKeyPairFn func(elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
+)
+
 // NewSoftwareProvider creates a new software-based crypto provider.
 func NewSoftwareProvider() *SoftwareProvider {
 	return &SoftwareProvider{}
@@ -92,7 +98,7 @@ func (p *SoftwareProvider) generateRSAKeyPair(bits int) (*KeyPair, error) {
 		return nil, fmt.Errorf("RSA key size must be at least %d bits, got %d", MinRSAKeyBits, bits)
 	}
 
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateRSAKeyPair(bits)
+	keyPair, err := pkiCryptoGenerateRSAKeyPairFn(bits)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate RSA key pair: %w", err)
 	}
@@ -119,7 +125,7 @@ func (p *SoftwareProvider) generateECDSAKeyPair(curve string) (*KeyPair, error) 
 		return nil, fmt.Errorf("unsupported ECDSA curve: %s", curve)
 	}
 
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(ecCurve)
+	keyPair, err := pkiCryptoGenerateECDSAKeyPairFn(ecCurve)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate ECDSA key pair: %w", err)
 	}

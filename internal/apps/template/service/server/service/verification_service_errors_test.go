@@ -19,6 +19,7 @@ import (
 // mockUnverifiedUserRepo with error injection.
 type mockUnverifiedUserRepoWithErrors struct {
 	getByIDErr       error
+	listByTenantErr  error
 	deleteErr        error
 	deleteExpiredErr error
 	user             *cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser
@@ -41,7 +42,7 @@ func (m *mockUnverifiedUserRepoWithErrors) GetByUsername(ctx context.Context, us
 }
 
 func (m *mockUnverifiedUserRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedUser, error) {
-	return nil, nil
+	return nil, m.listByTenantErr
 }
 
 func (m *mockUnverifiedUserRepoWithErrors) Delete(ctx context.Context, id googleUuid.UUID) error {
@@ -55,6 +56,7 @@ func (m *mockUnverifiedUserRepoWithErrors) DeleteExpired(ctx context.Context) (i
 // mockUnverifiedClientRepo with error injection.
 type mockUnverifiedClientRepoWithErrors struct {
 	getByIDErr       error
+	listByTenantErr  error
 	deleteErr        error
 	deleteExpiredErr error
 	client           *cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient
@@ -77,7 +79,7 @@ func (m *mockUnverifiedClientRepoWithErrors) GetByClientID(ctx context.Context, 
 }
 
 func (m *mockUnverifiedClientRepoWithErrors) ListByTenant(ctx context.Context, tenantID googleUuid.UUID) ([]*cryptoutilAppsTemplateServiceServerRepository.UnverifiedClient, error) {
-	return nil, nil
+	return nil, m.listByTenantErr
 }
 
 func (m *mockUnverifiedClientRepoWithErrors) Delete(ctx context.Context, id googleUuid.UUID) error {
@@ -284,4 +286,46 @@ func TestCleanupExpiredRegistrations_ClientDeleteExpiredError(t *testing.T) {
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to cleanup expired client registrations")
+}
+
+// TestListPendingUsers_RepoError tests ListPendingUsers when the repo returns an error.
+// Covers verification_service.go:86-88 (ListByTenant error return in ListPendingUsers).
+func TestListPendingUsers_RepoError(t *testing.T) {
+t.Parallel()
+
+tenantID := googleUuid.New()
+expectedErr := errors.New("list pending users db error")
+
+mockRepo := &mockUnverifiedUserRepoWithErrors{
+listByTenantErr: expectedErr,
+}
+
+svc := &VerificationServiceImpl{
+unverifiedUserRepo: mockRepo,
+}
+
+_, err := svc.ListPendingUsers(context.Background(), tenantID)
+require.Error(t, err)
+require.Contains(t, err.Error(), "failed to list pending users")
+}
+
+// TestListPendingClients_RepoError tests ListPendingClients when the repo returns an error.
+// Covers verification_service.go:96-98 (ListByTenant error return in ListPendingClients).
+func TestListPendingClients_RepoError(t *testing.T) {
+t.Parallel()
+
+tenantID := googleUuid.New()
+expectedErr := errors.New("list pending clients db error")
+
+mockClientRepo := &mockUnverifiedClientRepoWithErrors{
+listByTenantErr: expectedErr,
+}
+
+svc := &VerificationServiceImpl{
+unverifiedClientRepo: mockClientRepo,
+}
+
+_, err := svc.ListPendingClients(context.Background(), tenantID)
+require.Error(t, err)
+require.Contains(t, err.Error(), "failed to list pending clients")
 }
