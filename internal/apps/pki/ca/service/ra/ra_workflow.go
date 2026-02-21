@@ -25,6 +25,14 @@ import (
 )
 
 // RequestStatus represents the current state of a certificate request.
+
+// Check name constants for validation results.
+const (
+	checkNameCSRSignature    = "csr_signature"
+	checkNameKeyStrength     = "key_strength"
+	checkNameDomainBlocklist = "domain_blocklist"
+)
+
 func (s *RAService) processAction(_ context.Context, requestID googleUuid.UUID, approverID, action, comment string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -82,14 +90,14 @@ func (s *RAService) validateRequest(_ context.Context, csr *x509.CertificateRequ
 	// Validate CSR signature.
 	if err := csr.CheckSignature(); err != nil {
 		results = append(results, ValidationResult{
-			CheckName: "csr_signature",
+			CheckName: checkNameCSRSignature,
 			Passed:    false,
 			Message:   fmt.Sprintf("Invalid CSR signature: %v", err),
 			Timestamp: now,
 		})
 	} else {
 		results = append(results, ValidationResult{
-			CheckName: "csr_signature",
+			CheckName: checkNameCSRSignature,
 			Passed:    true,
 			Message:   "CSR signature is valid",
 			Timestamp: now,
@@ -118,7 +126,7 @@ func (s *RAService) validateKeyStrength(pubKey any, timestamp time.Time) Validat
 		bits := key.N.BitLen()
 		if bits < s.config.Validation.MinRSAKeySize {
 			return ValidationResult{
-				CheckName: "key_strength",
+				CheckName: checkNameKeyStrength,
 				Passed:    false,
 				Message:   fmt.Sprintf("RSA key size %d bits is below minimum %d bits", bits, s.config.Validation.MinRSAKeySize),
 				Timestamp: timestamp,
@@ -126,7 +134,7 @@ func (s *RAService) validateKeyStrength(pubKey any, timestamp time.Time) Validat
 		}
 
 		return ValidationResult{
-			CheckName: "key_strength",
+			CheckName: checkNameKeyStrength,
 			Passed:    true,
 			Message:   fmt.Sprintf("RSA key size %d bits meets requirements", bits),
 			Timestamp: timestamp,
@@ -136,7 +144,7 @@ func (s *RAService) validateKeyStrength(pubKey any, timestamp time.Time) Validat
 		bits := key.Curve.Params().BitSize
 		if bits < s.config.Validation.MinECKeySize {
 			return ValidationResult{
-				CheckName: "key_strength",
+				CheckName: checkNameKeyStrength,
 				Passed:    false,
 				Message:   fmt.Sprintf("EC key size %d bits is below minimum %d bits", bits, s.config.Validation.MinECKeySize),
 				Timestamp: timestamp,
@@ -144,7 +152,7 @@ func (s *RAService) validateKeyStrength(pubKey any, timestamp time.Time) Validat
 		}
 
 		return ValidationResult{
-			CheckName: "key_strength",
+			CheckName: checkNameKeyStrength,
 			Passed:    true,
 			Message:   fmt.Sprintf("EC key size %d bits meets requirements", bits),
 			Timestamp: timestamp,
@@ -152,7 +160,7 @@ func (s *RAService) validateKeyStrength(pubKey any, timestamp time.Time) Validat
 
 	case ed25519.PublicKey:
 		return ValidationResult{
-			CheckName: "key_strength",
+			CheckName: checkNameKeyStrength,
 			Passed:    true,
 			Message:   "Ed25519 key meets requirements",
 			Timestamp: timestamp,
@@ -160,7 +168,7 @@ func (s *RAService) validateKeyStrength(pubKey any, timestamp time.Time) Validat
 
 	default:
 		return ValidationResult{
-			CheckName: "key_strength",
+			CheckName: checkNameKeyStrength,
 			Passed:    false,
 			Message:   "Unknown key type",
 			Timestamp: timestamp,
@@ -184,7 +192,7 @@ func (s *RAService) validateDomains(csr *x509.CertificateRequest, timestamp time
 		for _, blocked := range s.config.Validation.BlocklistedDomains {
 			if strings.HasSuffix(domain, blocked) || domain == blocked {
 				return ValidationResult{
-					CheckName: "domain_blocklist",
+					CheckName: checkNameDomainBlocklist,
 					Passed:    false,
 					Message:   fmt.Sprintf("Domain %s is blocklisted", domain),
 					Timestamp: timestamp,
@@ -194,7 +202,7 @@ func (s *RAService) validateDomains(csr *x509.CertificateRequest, timestamp time
 	}
 
 	return ValidationResult{
-		CheckName: "domain_blocklist",
+		CheckName: checkNameDomainBlocklist,
 		Passed:    true,
 		Message:   "All domains pass blocklist check",
 		Timestamp: timestamp,

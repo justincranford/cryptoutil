@@ -4,6 +4,11 @@ package ra
 
 import (
 	"context"
+	ecdsa "crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
 	"crypto/x509/pkix"
 	"testing"
 	"time"
@@ -346,4 +351,87 @@ func TestGenerateTestCSR(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, csr)
 	require.NotNil(t, key)
+}
+
+// TestRAService_ValidateKeyStrength_RSA tests RSA key strength validation.
+func TestRAService_ValidateKeyStrength_RSA(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultRAConfig()
+	cfg.Validation.MinRSAKeySize = 2048
+
+	svc, err := NewRAService(cfg)
+	require.NoError(t, err)
+
+	timestamp := time.Now()
+
+	// Valid RSA 2048-bit key.
+	rsaKey2048, err := rsa.GenerateKey(crand.Reader, 2048)
+	require.NoError(t, err)
+
+	result := svc.validateKeyStrength(&rsaKey2048.PublicKey, timestamp)
+	require.True(t, result.Passed)
+	require.Equal(t, "key_strength", result.CheckName)
+
+	// Invalid RSA 1024-bit key (below minimum).
+	rsaKey1024, err := rsa.GenerateKey(crand.Reader, 1024) //nolint:gosec // G403: intentionally weak RSA key to test minimum size rejection
+	require.NoError(t, err)
+
+	result = svc.validateKeyStrength(&rsaKey1024.PublicKey, timestamp)
+	require.False(t, result.Passed)
+	require.Contains(t, result.Message, "below minimum")
+}
+
+// TestRAService_ValidateKeyStrength_ECDSAInvalid tests ECDSA key below minimum size.
+func TestRAService_ValidateKeyStrength_ECDSAInvalid(t *testing.T) {
+	t.Parallel()
+
+	cfg := DefaultRAConfig()
+	cfg.Validation.MinECKeySize = 256
+
+	svc, err := NewRAService(cfg)
+	require.NoError(t, err)
+
+	timestamp := time.Now()
+
+	// P-224 is only 224 bits, below 256-bit minimum.
+	ecKey224, err := ecdsa.GenerateKey(elliptic.P224(), crand.Reader)
+	require.NoError(t, err)
+
+	result := svc.validateKeyStrength(&ecKey224.PublicKey, timestamp)
+	require.False(t, result.Passed)
+	require.Contains(t, result.Message, "below minimum")
+}
+
+// TestRAService_ValidateKeyStrength_Ed25519 tests Ed25519 key validation.
+func TestRAService_ValidateKeyStrength_Ed25519(t *testing.T) {
+	t.Parallel()
+
+	svc, err := NewRAService(nil)
+	require.NoError(t, err)
+
+	timestamp := time.Now()
+
+	// Ed25519 key is always valid.
+	ed25519Key, _, err := ed25519.GenerateKey(crand.Reader)
+	require.NoError(t, err)
+
+	result := svc.validateKeyStrength(ed25519Key, timestamp)
+	require.True(t, result.Passed)
+	require.Equal(t, "Ed25519 key meets requirements", result.Message)
+}
+
+// TestRAService_ValidateKeyStrength_UnknownKeyType tests unknown key type.
+func TestRAService_ValidateKeyStrength_UnknownKeyType(t *testing.T) {
+	t.Parallel()
+
+	svc, err := NewRAService(nil)
+	require.NoError(t, err)
+
+	timestamp := time.Now()
+
+	// Pass a non-key type to trigger the default case.
+	result := svc.validateKeyStrength("not-a-key", timestamp)
+	require.False(t, result.Passed)
+	require.Equal(t, "Unknown key type", result.Message)
 }
