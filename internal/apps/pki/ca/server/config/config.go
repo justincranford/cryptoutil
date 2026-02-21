@@ -86,31 +86,26 @@ var (
 	})
 )
 
-// Parse parses command line arguments and returns pki-ca settings.
-func Parse(args []string, exitIfHelp bool) (*CAServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns pki-ca settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*CAServerSettings, error) {
+	// Register pki-ca specific flags on the provided FlagSet BEFORE parsing.
+	// This must happen before calling template ParseWithFlagSet since it will call fs.Parse().
+	fs.StringP(caConfigPathSetting.Name, caConfigPathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(caConfigPathSetting), caConfigPathSetting.Description)
+	fs.StringP(profilesPathSetting.Name, profilesPathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(profilesPathSetting), profilesPathSetting.Description)
+	fs.BoolP(enableESTSetting.Name, enableESTSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableESTSetting), enableESTSetting.Description)
+	fs.BoolP(enableOCSPSetting.Name, enableOCSPSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableOCSPSetting), enableOCSPSetting.Description)
+	fs.BoolP(enableCRLSetting.Name, enableCRLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableCRLSetting), enableCRLSetting.Description)
+	fs.BoolP(enableTimestampSetting.Name, enableTimestampSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableTimestampSetting), enableTimestampSetting.Description)
+
+	// Parse base template settings using the same FlagSet.
+	// This will register template flags and call fs.Parse() + viper.BindPFlags().
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register pki-ca specific flags.
-	pflag.StringP(caConfigPathSetting.Name, caConfigPathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(caConfigPathSetting), caConfigPathSetting.Description)
-	pflag.StringP(profilesPathSetting.Name, profilesPathSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(profilesPathSetting), profilesPathSetting.Description)
-	pflag.BoolP(enableESTSetting.Name, enableESTSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableESTSetting), enableESTSetting.Description)
-	pflag.BoolP(enableOCSPSetting.Name, enableOCSPSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableOCSPSetting), enableOCSPSetting.Description)
-	pflag.BoolP(enableCRLSetting.Name, enableCRLSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableCRLSetting), enableCRLSetting.Description)
-	pflag.BoolP(enableTimestampSetting.Name, enableTimestampSetting.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsBoolSetting(enableTimestampSetting), enableTimestampSetting.Description)
-
-	// Parse flags.
-	pflag.Parse()
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create pki-ca settings.
+	// Create pki-ca settings using values from viper (bound by template ParseWithFlagSet).
 	settings := &CAServerSettings{
 		ServiceTemplateServerSettings: baseSettings,
 		CAConfigPath:                  viper.GetString(caConfigPathSetting.Name),
@@ -135,6 +130,12 @@ func Parse(args []string, exitIfHelp bool) (*CAServerSettings, error) {
 	logCASettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command line arguments and returns pki-ca settings.
+// Uses global pflag.CommandLine for backward compatibility.
+func Parse(args []string, exitIfHelp bool) (*CAServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateCASettings validates pki-ca specific configuration.
