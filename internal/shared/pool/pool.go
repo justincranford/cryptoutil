@@ -21,6 +21,8 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
+var poolMaintenanceInterval = cryptoutilSharedMagic.PoolMaintenanceInterval
+
 // ValueGenPool is a high-performance generic pool that pre-generates values using worker goroutines.
 type ValueGenPool[T any] struct {
 	poolStartTime               time.Time               // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
@@ -382,7 +384,7 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 	}
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
-	ticker := time.NewTicker(cryptoutilSharedMagic.PoolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
+	ticker := time.NewTicker(poolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
 
 	defer func() { ticker.Stop() }() //nolint:errcheck
 
@@ -432,13 +434,13 @@ func validateConfig[T any](config *ValueGenPoolConfig[T]) error {
 		return fmt.Errorf("number of workers can't be 0")
 	} else if config.poolSize == 0 {
 		return fmt.Errorf("pool size can't be 0")
-	} else if config.maxLifetimeValues == 0 {
-		return fmt.Errorf("max lifetime values can't be 0")
-	} else if config.maxLifetimeDuration <= 0 {
-		return fmt.Errorf("max lifetime duration must be positive and non-zero")
+	} else if config.maxLifetimeValues == 0 && config.maxLifetimeDuration > 0 {
+		return fmt.Errorf("max lifetime values can't be 0 when max lifetime duration is set")
+	} else if config.maxLifetimeDuration <= 0 && config.maxLifetimeValues > 0 {
+		return fmt.Errorf("max lifetime duration must be positive and non-zero when max lifetime values is set")
 	} else if config.numWorkers > config.poolSize {
 		return fmt.Errorf("number of workers can't be greater than pool size")
-	} else if uint64(config.poolSize) > config.maxLifetimeValues {
+	} else if config.maxLifetimeValues > 0 && uint64(config.poolSize) > config.maxLifetimeValues {
 		return fmt.Errorf("pool size can't be greater than max lifetime values")
 	} else if config.generateFunction == nil {
 		return fmt.Errorf("generate function can't be nil")
