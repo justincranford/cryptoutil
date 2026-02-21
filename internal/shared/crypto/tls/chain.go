@@ -19,6 +19,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+var (
+	chainGenerateECDSAKeyPairFn       = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
+	chainCreateCASubjectsFn           = cryptoutilSharedCryptoCertificate.CreateCASubjects
+	chainCreateEndEntitySubjectFn     = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
+)
+
 // fqdnPattern validates FQDN-style names (per Session 3 Q3).
 // Allows alphanumeric, hyphens, and dots. Must start/end with alphanumeric.
 var fqdnPattern = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$`)
@@ -235,7 +241,7 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 	keyPairs := make([]*cryptoutilSharedCryptoKeygen.KeyPair, opts.ChainLength)
 
 	for i := range keyPairs {
-		keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(ellipticCurve)
+		keyPair, err := chainGenerateECDSAKeyPairFn(ellipticCurve)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate key pair for CA %d: %w", i, err)
 		}
@@ -255,7 +261,7 @@ func CreateCAChain(opts *CAChainOptions) (*CAChain, error) {
 		caSubjectNamePrefix = opts.CommonNamePrefix + " CA"
 	}
 
-	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(keyPairs, caSubjectNamePrefix, opts.Duration)
+	caSubjects, err := chainCreateCASubjectsFn(keyPairs, caSubjectNamePrefix, opts.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}
@@ -280,7 +286,7 @@ func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilSharedCryp
 	// Generate key pair for end entity.
 	ellipticCurve := curveToElliptic(opts.Curve)
 
-	keyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(ellipticCurve)
+	keyPair, err := chainGenerateECDSAKeyPairFn(ellipticCurve)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key pair: %w", err)
 	}
@@ -290,7 +296,7 @@ func (c *CAChain) CreateEndEntity(opts *EndEntityOptions) (*cryptoutilSharedCryp
 		duration = DefaultEndEntityDuration
 	}
 
-	subject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(
+	subject, err := chainCreateEndEntitySubjectFn(
 		c.IssuingCA,
 		keyPair,
 		opts.SubjectName,

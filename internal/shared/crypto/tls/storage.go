@@ -15,6 +15,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+var (
+	storageMkdirAllFn    = os.MkdirAll
+	storageWriteFileFn   = os.WriteFile
+	storageMarshalPKCS8Fn = func(key any) ([]byte, error) { return x509.MarshalPKCS8PrivateKey(key) }
+)
+
 // StorageFormat defines the format for storing certificates and keys.
 type StorageFormat string
 
@@ -94,7 +100,7 @@ func StoreCertificate(subject *cryptoutilSharedCryptoCertificate.Subject, opts *
 	}
 
 	// Create directory if it doesn't exist.
-	if err := os.MkdirAll(opts.Directory, opts.DirMode); err != nil {
+	if err := storageMkdirAllFn(opts.Directory, opts.DirMode); err != nil {
 		return nil, fmt.Errorf("failed to create directory %s: %w", opts.Directory, err)
 	}
 
@@ -125,7 +131,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 	}
 
 	// Write certificate chain.
-	if err := os.WriteFile(certPath, certChainPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead); err != nil {
+	if err := storageWriteFileFn(certPath, certChainPEM, cryptoutilSharedMagic.FilePermOwnerReadWriteGroupRead); err != nil {
 		return nil, fmt.Errorf("failed to write certificate: %w", err)
 	}
 
@@ -136,7 +142,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 
 	// Write private key if requested.
 	if opts.IncludePrivateKey && subject.KeyMaterial.PrivateKey != nil { //nolint:gosec // Explicit check for private key
-		keyDER, err := x509.MarshalPKCS8PrivateKey(subject.KeyMaterial.PrivateKey)
+		keyDER, err := storageMarshalPKCS8Fn(subject.KeyMaterial.PrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal private key: %w", err)
 		}
@@ -146,7 +152,7 @@ func storePEM(subject *cryptoutilSharedCryptoCertificate.Subject, opts *StorageO
 			Bytes: keyDER,
 		})
 
-		if err := os.WriteFile(keyPath, keyPEM, opts.FileMode); err != nil {
+		if err := storageWriteFileFn(keyPath, keyPEM, opts.FileMode); err != nil {
 			return nil, fmt.Errorf("failed to write private key: %w", err)
 		}
 

@@ -15,6 +15,8 @@ import (
 	cryptoutilSharedCryptoCertificate "cryptoutil/internal/shared/crypto/certificate"
 )
 
+var configBuildTLSCertificateFn = cryptoutilSharedCryptoCertificate.BuildTLSCertificate
+
 // MinTLSVersion is the minimum TLS version allowed (TLS 1.3 only per Session 4 Q5).
 const MinTLSVersion = tls.VersionTLS13
 
@@ -71,7 +73,7 @@ func NewServerConfig(opts *ServerConfigOptions) (*Config, error) {
 		return nil, fmt.Errorf("subject cannot be nil")
 	}
 
-	tlsCert, rootCAsPool, intermediateCAsPool, err := cryptoutilSharedCryptoCertificate.BuildTLSCertificate(opts.Subject)
+	tlsCert, rootCAsPool, intermediateCAsPool, err := configBuildTLSCertificateFn(opts.Subject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
@@ -129,7 +131,7 @@ func NewClientConfig(opts *ClientConfigOptions) (*Config, error) {
 	if opts.ClientSubject != nil {
 		var err error
 
-		tlsCert, rootCAsPool, intermediateCAsPool, err = cryptoutilSharedCryptoCertificate.BuildTLSCertificate(opts.ClientSubject)
+		tlsCert, rootCAsPool, intermediateCAsPool, err = configBuildTLSCertificateFn(opts.ClientSubject)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build client TLS certificate: %w", err)
 		}
