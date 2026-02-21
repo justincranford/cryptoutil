@@ -136,3 +136,4 @@ go.work.sum
 *.csr
 *.pfx
 *.p12
+:memory:*

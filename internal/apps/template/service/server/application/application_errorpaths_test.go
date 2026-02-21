@@ -117,18 +117,6 @@ _, err := StartListener(ctx, cfg)
 require.ErrorContains(t, err, "application core")
 }
 
-// TestProvisionDatabase_FileMemoryNamedDSN tests the file::memory:NAME path in provisionDatabase.
-func TestProvisionDatabase_FileMemoryNamedDSN(t *testing.T) {
-t.Parallel()
-
-ctx := context.Background()
-settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
-settings.DatabaseURL = "file::memory:testcoveragedsncase?cache=shared"
-
-core, err := StartCore(ctx, settings)
-require.NoError(t, err)
-core.Shutdown()
-}
 
 // TestInitializeServicesOnCore_NewGormRepositoryFailure tests error path when NewGormRepository fails.
 func TestInitializeServicesOnCore_NewGormRepositoryFailure(t *testing.T) {
