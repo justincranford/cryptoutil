@@ -15,6 +15,8 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+var pbkdf2CrandReadFn = func(b []byte) (int, error) { return crand.Read(b) }
+
 const (
 	// Iterations600k is the OWASP 2025 recommended minimum for PBKDF2-HMAC-SHA256.
 	Iterations600k = 600000
@@ -50,7 +52,7 @@ func HashPasswordWithIterations(password string, iterations int) (string, error)
 
 	// Generate cryptographically secure random salt.
 	salt := make([]byte, SaltLength32)
-	if _, err := crand.Read(salt); err != nil {
+	if _, err := pbkdf2CrandReadFn(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
