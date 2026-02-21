@@ -22,6 +22,15 @@ const (
 	pemTypeCertificate = "CERTIFICATE"
 )
 
+// Injectable vars for testing error paths.
+var (
+	generateECDSAKeyPairFn     = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair
+	createCASubjectsFn         = cryptoutilSharedCryptoCertificate.CreateCASubjects
+	createEndEntitySubjectFn   = cryptoutilSharedCryptoCertificate.CreateEndEntitySubject
+	buildTLSCertificateFn      = cryptoutilSharedCryptoCertificate.BuildTLSCertificate
+	marshalPKCS8PrivateKeyFn   = x509.MarshalPKCS8PrivateKey
+)
+
 // GenerateTLSMaterial creates TLS configuration based on the specified mode.
 //
 // Supports three modes:
@@ -158,7 +167,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	}
 
 	// Generate server key pair (ECDSA P-384).
-	serverKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
+	serverKeyPair, err := generateECDSAKeyPairFn(elliptic.P384())
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate server key pair: %w", err)
 	}
@@ -191,7 +200,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	}
 
 	// Generate server certificate signed by CA.
-	serverSubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(
+	serverSubject, err := createEndEntitySubjectFn(
 		issuerSubject,
 		serverKeyPair,
 		"Server Certificate",
@@ -208,7 +217,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 	}
 
 	// Build TLS certificate from server subject to validate and obtain chains.
-	_, _, _, err = cryptoutilSharedCryptoCertificate.BuildTLSCertificate(serverSubject)
+	_, _, _, err = buildTLSCertificateFn(serverSubject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
@@ -221,7 +230,7 @@ func GenerateServerCertFromCA(caCertPEM, caKeyPEM []byte, dns []string, ips []st
 
 	// Private key PEM
 	// Marshal PKCS8 private key DER then encode to PEM.
-	dk, err := x509.MarshalPKCS8PrivateKey(serverKeyPair.Private)
+	dk, err := marshalPKCS8PrivateKeyFn(serverKeyPair.Private)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
 	}
@@ -255,14 +264,14 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	var err error
 
 	for i := range caKeyPairs {
-		caKeyPairs[i], err = cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
+		caKeyPairs[i], err = generateECDSAKeyPairFn(elliptic.P384())
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate CA key pair %d: %w", i, err)
 		}
 	}
 
 	// Create CA subjects (Root → Intermediate).
-	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects(caKeyPairs, "Auto-Generated CA", duration)
+	caSubjects, err := createCASubjectsFn(caKeyPairs, "Auto-Generated CA", duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}
@@ -271,7 +280,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	issuingCAPrivateKey := caKeyPairs[len(caKeyPairs)-1].Private
 
 	// Generate server key pair.
-	serverKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
+	serverKeyPair, err := generateECDSAKeyPairFn(elliptic.P384())
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate server key pair: %w", err)
 	}
@@ -290,7 +299,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	issuingCA := caSubjects[len(caSubjects)-1]
 	issuingCA.KeyMaterial.PrivateKey = issuingCAPrivateKey
 
-	serverSubject, err := cryptoutilSharedCryptoCertificate.CreateEndEntitySubject(
+	serverSubject, err := createEndEntitySubjectFn(
 		issuingCA,
 		serverKeyPair,
 		"Auto-Generated Server Certificate",
@@ -307,7 +316,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	}
 
 	// Validate by building TLS certificate.
-	_, _, _, err = cryptoutilSharedCryptoCertificate.BuildTLSCertificate(serverSubject)
+	_, _, _, err = buildTLSCertificateFn(serverSubject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build TLS certificate: %w", err)
 	}
@@ -319,7 +328,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 	}
 
 	// Marshal server private key to PKCS8 DER then PEM.
-	dk, err := x509.MarshalPKCS8PrivateKey(serverKeyPair.Private)
+	dk, err := marshalPKCS8PrivateKeyFn(serverKeyPair.Private)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal server private key to DER: %w", err)
 	}
@@ -336,7 +345,7 @@ func GenerateAutoTLSGeneratedSettings(dns []string, ips []string, validityDays i
 // Returns CA certificate PEM, CA private key PEM, and any error.
 func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 	// Generate CA key pair using ECDSA P-384.
-	caKeyPair, err := cryptoutilSharedCryptoKeygen.GenerateECDSAKeyPair(elliptic.P384())
+	caKeyPair, err := generateECDSAKeyPairFn(elliptic.P384())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate CA key pair: %w", err)
 	}
@@ -344,7 +353,7 @@ func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 	// Create 1-tier CA (just a root CA for simplicity in tests).
 	duration := time.Duration(cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year) * cryptoutilSharedMagic.HoursPerDay * time.Hour
 
-	caSubjects, err := cryptoutilSharedCryptoCertificate.CreateCASubjects([]*cryptoutilSharedCryptoKeygen.KeyPair{caKeyPair}, "Test CA", duration)
+	caSubjects, err := createCASubjectsFn([]*cryptoutilSharedCryptoKeygen.KeyPair{caKeyPair}, "Test CA", duration)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create CA subjects: %w", err)
 	}
@@ -360,7 +369,7 @@ func GenerateTestCA() (caCertPEM []byte, caKeyPEM []byte, err error) {
 	})
 
 	// Encode CA private key to PKCS8 PEM.
-	caKeyBytes, err := x509.MarshalPKCS8PrivateKey(caKeyPair.Private)
+	caKeyBytes, err := marshalPKCS8PrivateKeyFn(caKeyPair.Private)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal CA private key: %w", err)
 	}
