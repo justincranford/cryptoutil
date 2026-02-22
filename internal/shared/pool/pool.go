@@ -23,6 +23,16 @@ import (
 
 var poolMaintenanceInterval = cryptoutilSharedMagic.PoolMaintenanceInterval
 
+// newFloat64HistogramFn wraps metric.Meter.Float64Histogram for testing.
+var newFloat64HistogramFn = func(m metric.Meter, name string, opts ...metric.Float64HistogramOption) (metric.Float64Histogram, error) {
+	return m.Float64Histogram(name, opts...)
+}
+
+// newInt64CounterFn wraps metric.Meter.Int64Counter for testing.
+var newInt64CounterFn = func(m metric.Meter, name string, opts ...metric.Int64CounterOption) (metric.Int64Counter, error) {
+	return m.Int64Counter(name, opts...)
+}
+
 // ValueGenPool is a high-performance generic pool that pre-generates values using worker goroutines.
 type ValueGenPool[T any] struct {
 	poolStartTime               time.Time               // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
@@ -80,27 +90,27 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "type", Value: attribute.StringValue(fmt.Sprintf("%T", *new(T)))}), // record the type of T in the metric attributes
 	}...)
 
-	getHistogramMetric, err := meter.Float64Histogram("cryptoutil.pool.get", metric.WithUnit("ms"))
+	getHistogramMetric, err := newFloat64HistogramFn(meter, "cryptoutil.pool.get", metric.WithUnit("ms"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create get metric: %w", err)
 	}
 
-	permissionHistogramMetric, err := meter.Float64Histogram("cryptoutil.pool.permission", metric.WithUnit("ms"))
+	permissionHistogramMetric, err := newFloat64HistogramFn(meter, "cryptoutil.pool.permission", metric.WithUnit("ms"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create permission metric: %w", err)
 	}
 
-	generateHistogramMetric, err := meter.Float64Histogram("cryptoutil.pool.generate", metric.WithUnit("ms"))
+	generateHistogramMetric, err := newFloat64HistogramFn(meter, "cryptoutil.pool.generate", metric.WithUnit("ms"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create generate metric: %w", err)
 	}
 
-	getCounterMetric, err := meter.Int64Counter("cryptoutil.pool.get.count")
+	getCounterMetric, err := newInt64CounterFn(meter, "cryptoutil.pool.get.count")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create get counter metric: %w", err)
 	}
 
-	generateCounterMetric, err := meter.Int64Counter("cryptoutil.pool.generate.count")
+	generateCounterMetric, err := newInt64CounterFn(meter, "cryptoutil.pool.generate.count")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create generate counter metric: %w", err)
 	}

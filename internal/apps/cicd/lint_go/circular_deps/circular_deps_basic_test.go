@@ -215,3 +215,41 @@ func TestCheck_NoGoMod(t *testing.T) {
 	require.Error(t, err, "Check() should fail when no go.mod in current directory")
 	require.Contains(t, err.Error(), "failed to read go.mod")
 }
+
+// TestCheck_FreshCheckFindsCircularDeps covers the code path where CheckDependencies
+// returns an error inside Check() (lines 101-104, 110-115). NOT parallel — modifies
+// package-level var and changes working directory.
+func TestCheck_FreshCheckFindsCircularDeps(t *testing.T) {
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tempDir := t.TempDir()
+	require.NoError(t, os.Chdir(tempDir))
+
+	// Create go.mod so os.Stat("go.mod") succeeds.
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testmod\n\ngo 1.21\n"), 0o600))
+
+	// Remove cache so we get a cache miss.
+	cacheFile := cryptoutilSharedMagic.CircularDepCacheFileName
+	_ = os.Remove(cacheFile)
+
+	// Inject go list output containing a circular dependency.
+	origGoList := goListOutputFn
+	goListOutputFn = func() ([]byte, error) {
+		return []byte("{\"ImportPath\": \"testmod/a\", \"Imports\": [\"testmod/b\"]}\n{\"ImportPath\": \"testmod/b\", \"Imports\": [\"testmod/a\"]}"), nil
+	}
+
+	defer func() { goListOutputFn = origGoList }()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test-circular-fresh")
+
+	// Check should detect circular dependency from injected output.
+	err = Check(logger)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "circular dependency")
+
+	// Clean up cache file.
+	_ = os.Remove(cacheFile)
+}

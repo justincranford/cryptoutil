@@ -7,6 +7,7 @@ package pool
 import (
 	"context"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -360,6 +361,83 @@ func TestWorker_TimeLimitVerbose(t *testing.T) {
 	// Drain channel until closed; ensures worker defers complete before test exits.
 	poolInstance.Cancel()
 
+	for range poolInstance.generateChannel { //nolint:revive
+	}
+}
+
+// TestWorker_PanicRecoveryInGeneratePublishRelease covers the panic recovery defer
+// in generatePublishRelease (line 308-310).
+func TestWorker_PanicRecoveryInGeneratePublishRelease(t *testing.T) {
+	t.Parallel()
+
+	var callCount atomic.Int32
+
+	generateFn := func() (googleUuid.UUID, error) {
+		if callCount.Add(1) == 1 {
+			panic("test panic in generate function")
+		}
+
+		return googleUuid.NewV7()
+	}
+
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
+		context.Background(), testTelemetryService,
+		"panic-recovery-gpr", 1, 1, 10, time.Minute, generateFn, false,
+	))
+	require.NoError(t, err)
+	require.NotNil(t, poolInstance)
+
+	defer poolInstance.Cancel()
+
+	// First generate panics, recovered in generatePublishRelease defer.
+	// Worker loops, second generate succeeds.
+	val := poolInstance.Get()
+	require.NotEqual(t, googleUuid.UUID{}, val)
+}
+
+// TestWorker_TimeLimitInGeneratePublishRelease covers the time limit check
+// inside generatePublishRelease (lines 327-334), including verbose path.
+func TestWorker_TimeLimitInGeneratePublishRelease(t *testing.T) {
+	t.Parallel()
+
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
+		context.Background(), testTelemetryService,
+		"time-limit-in-gpr", 1, 1, 100, 1*time.Nanosecond,
+		cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), true,
+	))
+	require.NoError(t, err)
+	require.NotNil(t, poolInstance)
+
+	defer poolInstance.Cancel()
+
+	// With 1ns lifetime, the worker's first call to generatePublishRelease
+	// detects time.Since(poolStartTime) >= 1ns and returns error.
+	// Ticker eventually detects and closes channels.
+	for range poolInstance.generateChannel { //nolint:revive
+	}
+}
+
+// TestWorker_ValueLimitVerboseInGeneratePublishRelease covers the verbose
+// log path in generatePublishRelease's value limit check (line 338-340).
+func TestWorker_ValueLimitVerboseInGeneratePublishRelease(t *testing.T) {
+	t.Parallel()
+
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(
+		context.Background(), testTelemetryService,
+		"value-limit-verbose-gpr", 1, 1, 1, time.Minute,
+		cryptoutilSharedUtilRandom.GenerateUUIDv7Function(), true,
+	))
+	require.NoError(t, err)
+	require.NotNil(t, poolInstance)
+
+	defer poolInstance.Cancel()
+
+	// Get the one allowed value.
+	val := poolInstance.Get()
+	require.NotEqual(t, googleUuid.UUID{}, val)
+
+	// Worker's second call hits value limit with verbose=true.
+	// Ticker detects limit and closes channels.
 	for range poolInstance.generateChannel { //nolint:revive
 	}
 }

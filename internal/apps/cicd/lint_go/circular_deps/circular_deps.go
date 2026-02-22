@@ -18,6 +18,13 @@ import (
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
+// goListOutputFn wraps the go list command for testing.
+var goListOutputFn = func() ([]byte, error) {
+	cmd := exec.CommandContext(context.Background(), "go", "list", "-json", "./...")
+
+	return cmd.Output()
+}
+
 // PackageInfo represents Go package metadata from 'go list -json'.
 type PackageInfo struct {
 	ImportPath string   `json:"ImportPath"`
@@ -78,9 +85,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
 	// Cache miss or expired, perform actual check.
 	logger.Log("Running: go list -json ./...")
 
-	cmd := exec.CommandContext(context.Background(), "go", "list", "-json", "./...")
-
-	output, err := cmd.Output()
+	output, err := goListOutputFn()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error running go list: %v", err))
 
