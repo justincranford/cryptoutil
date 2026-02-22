@@ -380,8 +380,8 @@ func TestProvisioner_Provision_SignatureAlgorithmError(t *testing.T) {
 	fakeIssuer := &x509.Certificate{
 		SerialNumber:          big.NewInt(1),
 		Subject:               pkix.Name{CommonName: "Fake Issuer"},
-		NotBefore:             time.Now().Add(-time.Hour),
-		NotAfter:              time.Now().Add(time.Hour),
+		NotBefore:             time.Now().UTC().Add(-time.Hour),
+		NotAfter:              time.Now().UTC().Add(time.Hour),
 		IsCA:                  true,
 		BasicConstraintsValid: true,
 		MaxPathLen:            1,

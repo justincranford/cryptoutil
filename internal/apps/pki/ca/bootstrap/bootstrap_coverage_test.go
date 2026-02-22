@@ -191,7 +191,9 @@ func TestBootstrapper_GetSignatureAlgorithm_Unsupported(t *testing.T) {
 }
 
 // var prevents unused import error for pkix and big.
-var _ = pkix.Name{}
-var _ = big.NewInt
-var _ *ecdsa.PublicKey
-var _ = crand.Reader
+var (
+	_ = pkix.Name{}
+	_ = big.NewInt
+	_ *ecdsa.PublicKey
+	_ = crand.Reader
+)

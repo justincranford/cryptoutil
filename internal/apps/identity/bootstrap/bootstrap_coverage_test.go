@@ -34,6 +34,7 @@ func (m *mockClientRepo) GetByClientID(ctx context.Context, clientID string) (*c
 
 	return nil, cryptoutilIdentityAppErr.ErrClientNotFound
 }
+
 func (m *mockClientRepo) Create(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
 	if m.createFn != nil {
 		return m.createFn(ctx, client)
@@ -41,6 +42,7 @@ func (m *mockClientRepo) Create(ctx context.Context, client *cryptoutilIdentityD
 
 	return nil
 }
+
 func (m *mockClientRepo) Delete(ctx context.Context, id googleUuid.UUID) error {
 	if m.deleteFn != nil {
 		return m.deleteFn(ctx, id)
@@ -48,15 +50,19 @@ func (m *mockClientRepo) Delete(ctx context.Context, id googleUuid.UUID) error {
 
 	return nil
 }
+
 func (m *mockClientRepo) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.Client, error) {
 	return nil, nil
 }
+
 func (m *mockClientRepo) GetAll(_ context.Context) ([]*cryptoutilIdentityDomain.Client, error) {
 	return nil, nil
 }
+
 func (m *mockClientRepo) Update(_ context.Context, _ *cryptoutilIdentityDomain.Client) error {
 	return nil
 }
+
 func (m *mockClientRepo) List(_ context.Context, _, _ int) ([]*cryptoutilIdentityDomain.Client, error) {
 	return nil, nil
 }
@@ -64,6 +70,7 @@ func (m *mockClientRepo) Count(_ context.Context) (int64, error) { return 0, nil
 func (m *mockClientRepo) RotateSecret(_ context.Context, _ googleUuid.UUID, _, _, _ string) error {
 	return nil
 }
+
 func (m *mockClientRepo) GetSecretHistory(_ context.Context, _ googleUuid.UUID) ([]cryptoutilIdentityDomain.ClientSecretHistory, error) {
 	return nil, nil
 }
@@ -82,6 +89,7 @@ func (m *mockUserRepo) GetBySub(ctx context.Context, sub string) (*cryptoutilIde
 
 	return nil, cryptoutilIdentityAppErr.ErrUserNotFound
 }
+
 func (m *mockUserRepo) Create(ctx context.Context, user *cryptoutilIdentityDomain.User) error {
 	if m.createFn != nil {
 		return m.createFn(ctx, user)
@@ -89,6 +97,7 @@ func (m *mockUserRepo) Create(ctx context.Context, user *cryptoutilIdentityDomai
 
 	return nil
 }
+
 func (m *mockUserRepo) Delete(ctx context.Context, id googleUuid.UUID) error {
 	if m.deleteFn != nil {
 		return m.deleteFn(ctx, id)
@@ -96,12 +105,15 @@ func (m *mockUserRepo) Delete(ctx context.Context, id googleUuid.UUID) error {
 
 	return nil
 }
+
 func (m *mockUserRepo) GetByID(_ context.Context, _ googleUuid.UUID) (*cryptoutilIdentityDomain.User, error) {
 	return nil, nil
 }
+
 func (m *mockUserRepo) GetByUsername(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
 	return nil, nil
 }
+
 func (m *mockUserRepo) GetByEmail(_ context.Context, _ string) (*cryptoutilIdentityDomain.User, error) {
 	return nil, nil
 }

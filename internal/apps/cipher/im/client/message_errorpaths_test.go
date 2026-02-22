@@ -166,9 +166,9 @@ func TestDeleteMessageBrowser_RequestError(t *testing.T) {
 
 // TestSendMessage_MarshalError covers the json.Marshal error path.
 func TestSendMessage_MarshalError(t *testing.T) {
-        // NOTE: Cannot use t.Parallel() here because this test mutates the
-        // package-level jsonMarshalFn variable, which would cause a race
-        // condition with other parallel tests that call SendMessage.
+	// NOTE: Cannot use t.Parallel() here because this test mutates the
+	// package-level jsonMarshalFn variable, which would cause a race
+	// condition with other parallel tests that call SendMessage.
 	originalFn := jsonMarshalFn
 
 	defer func() { jsonMarshalFn = originalFn }()
