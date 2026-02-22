@@ -14,7 +14,7 @@ import (
 // stubPublicServer implements IPublicServer for testing accessor branches.
 type stubPublicServer struct{ startErr error }
 
-func (s *stubPublicServer) Start(context.Context) error  { return s.startErr }
+func (s *stubPublicServer) Start(context.Context) error    { return s.startErr }
 func (s *stubPublicServer) Shutdown(context.Context) error { return nil }
 func (s *stubPublicServer) ActualPort() int                { return 8443 }
 func (s *stubPublicServer) PublicBaseURL() string          { return "https://localhost:8443" }
@@ -22,7 +22,7 @@ func (s *stubPublicServer) PublicBaseURL() string          { return "https://loc
 // stubAdminServer implements IAdminServer for testing accessor branches.
 type stubAdminServer struct{}
 
-func (s *stubAdminServer) Start(context.Context) error  { return nil }
+func (s *stubAdminServer) Start(context.Context) error    { return nil }
 func (s *stubAdminServer) Shutdown(context.Context) error { return nil }
 func (s *stubAdminServer) ActualPort() int                { return 9090 }
 func (s *stubAdminServer) SetReady(bool)                  {}

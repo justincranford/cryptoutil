@@ -13,6 +13,13 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
+)
+
+// pollServerReady timeout and interval for waiting on server port allocation.
+const (
+	pollServerReadyTimeout  = 5 * time.Second
+	pollServerReadyInterval = 100 * time.Millisecond
 )
 
 // TestCAServer_HandleOCSP tests the OCSP endpoint.
@@ -31,20 +38,10 @@ func TestCAServer_HandleOCSP(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		if server.PublicPort() > 0 {
-			break
-		}
-
-		time.Sleep(waitInterval)
-	}
-
-	require.Greater(t, server.PublicPort(), 0, "server did not bind to port")
+	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+		return server.PublicPort() > 0, nil
+	})
+	require.NoError(t, err, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -96,20 +93,10 @@ func TestCAServer_HandleOCSP_InvalidRequest(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		if server.PublicPort() > 0 {
-			break
-		}
-
-		time.Sleep(waitInterval)
-	}
-
-	require.Greater(t, server.PublicPort(), 0, "server did not bind to port")
+	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+		return server.PublicPort() > 0, nil
+	})
+	require.NoError(t, err, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -161,20 +148,10 @@ func TestCAServer_HandleCRLDistribution_Error(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		if server.PublicPort() > 0 {
-			break
-		}
-
-		time.Sleep(waitInterval)
-	}
-
-	require.Greater(t, server.PublicPort(), 0, "server did not bind to port")
+	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+		return server.PublicPort() > 0, nil
+	})
+	require.NoError(t, err, "server did not bind to port")
 
 	// Create HTTP client.
 	client := &http.Client{
@@ -241,21 +218,10 @@ func TestCAServer_HealthEndpoints_EdgeCases(t *testing.T) {
 	}()
 
 	// Wait for server to be ready and ports to be allocated.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		if server.PublicPort() > 0 && server.AdminPort() > 0 {
-			break
-		}
-
-		time.Sleep(waitInterval)
-	}
-
-	require.Greater(t, server.PublicPort(), 0, "server did not bind to public port")
-	require.Greater(t, server.AdminPort(), 0, "server did not bind to admin port")
+	err = cryptoutilSharedUtilPoll.Until(ctx, pollServerReadyTimeout, pollServerReadyInterval, func(_ context.Context) (bool, error) {
+		return server.PublicPort() > 0 && server.AdminPort() > 0, nil
+	})
+	require.NoError(t, err, "server did not bind to ports")
 
 	// Create HTTP client.
 	client := &http.Client{

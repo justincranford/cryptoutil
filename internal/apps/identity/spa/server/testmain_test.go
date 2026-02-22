@@ -10,6 +10,7 @@ import (
 	"time"
 
 	cryptoutilAppsIdentitySpaServerConfig "cryptoutil/internal/apps/identity/spa/server/config"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 var (
@@ -63,17 +64,11 @@ func TestMain(m *testing.M) {
 
 // waitForReady waits for the server to become ready.
 func waitForReady(server *SPAServer, timeout time.Duration) bool {
-	deadline := time.Now().UTC().Add(timeout)
+	err := cryptoutilSharedUtilPoll.Until(context.Background(), timeout, checkInterval, func(_ context.Context) (bool, error) {
+		return server.PublicPort() > 0 && server.AdminPort() > 0, nil
+	})
 
-	for time.Now().UTC().Before(deadline) {
-		if server.PublicPort() > 0 && server.AdminPort() > 0 {
-			return true
-		}
-
-		time.Sleep(checkInterval)
-	}
-
-	return false
+	return err == nil
 }
 
 // requireTestSetup checks that the test server is properly initialized.

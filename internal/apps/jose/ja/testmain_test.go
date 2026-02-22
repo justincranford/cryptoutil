@@ -5,17 +5,18 @@
 package ja
 
 import (
-"context"
-"fmt"
-http "net/http"
-"os"
-"testing"
-"time"
+	"context"
+	"fmt"
+	http "net/http"
+	"os"
+	"testing"
+	"time"
 
-cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose/ja/server"
-cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
-cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilAppsJoseJaServer "cryptoutil/internal/apps/jose/ja/server"
+	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
+	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 var (
@@ -39,40 +40,33 @@ if err != nil {
 panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 }
 
-// Start server in background.
-errChan := make(chan error, 1)
+	// Start server in background.
+	errChan := make(chan error, 1)
 
-go func() {
-if startErr := testJoseJAService.Start(ctx); startErr != nil {
-errChan <- startErr
-}
-}()
+	go func() {
+		if startErr := testJoseJAService.Start(ctx); startErr != nil {
+			errChan <- startErr
+		}
+	}()
 
-// Wait for server ports to be assigned.
-const (
-maxWaitAttempts = 50
-waitInterval    = 100 * time.Millisecond
-)
+	// Wait for server ports to be assigned.
+	const (
+		pollTimeout  = 5 * time.Second
+		pollInterval = 100 * time.Millisecond
+	)
 
-var publicPort, adminPort int
-for i := 0; i < maxWaitAttempts; i++ {
-publicPort = testJoseJAService.PublicPort()
-adminPort = testJoseJAService.AdminPort()
+	pollErr := cryptoutilSharedUtilPoll.Until(ctx, pollTimeout, pollInterval, func(_ context.Context) (bool, error) {
+		select {
+		case startErr := <-errChan:
+			return false, fmt.Errorf("server failed to start: %w", startErr)
+		default:
+		}
 
-if publicPort > 0 && adminPort > 0 {
-break
-}
-
-select {
-case startErr := <-errChan:
-panic(fmt.Sprintf("TestMain: server failed to start: %v", startErr))
-case <-time.After(waitInterval):
-}
-}
-
-if publicPort == 0 || adminPort == 0 {
-panic("TestMain: server did not bind to ports")
-}
+		return testJoseJAService.PublicPort() > 0 && testJoseJAService.AdminPort() > 0, nil
+	})
+	if pollErr != nil {
+		panic(fmt.Sprintf("TestMain: %v", pollErr))
+	}
 
 // Mark server as ready.
 testJoseJAService.SetReady(true)

@@ -16,6 +16,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 func stopIdentityServer(demoServer *identityDemoServer) {
@@ -44,35 +46,24 @@ func stopIdentityServer(demoServer *identityDemoServer) {
 
 // waitForIdentityHealth waits for Identity server health checks to pass.
 func waitForIdentityHealth(ctx context.Context, demoServer *identityDemoServer, timeout time.Duration) error {
-	deadline := time.Now().UTC().Add(timeout)
 	healthURL := demoServer.baseURL + "/health"
-
 	client := &http.Client{Timeout: identityHTTPClientTimeout}
 
-	for time.Now().UTC().Before(deadline) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+	return cryptoutilSharedUtilPoll.Until(ctx, timeout, identityHealthInterval, func(pollCtx context.Context) (bool, error) {
+		req, err := http.NewRequestWithContext(pollCtx, http.MethodGet, healthURL, nil)
 		if err != nil {
-			continue
+			return false, nil
 		}
 
 		resp, err := client.Do(req)
-		if err == nil {
-			_ = resp.Body.Close()
-
-			if resp.StatusCode == http.StatusOK {
-				return nil
-			}
+		if err != nil {
+			return false, nil
 		}
 
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("health check interrupted: %w", ctx.Err())
-		case <-time.After(identityHealthInterval):
-			// Continue polling.
-		}
-	}
+		_ = resp.Body.Close()
 
-	return fmt.Errorf("health checks did not pass within %v", timeout)
+		return resp.StatusCode == http.StatusOK, nil
+	})
 }
 
 // verifyOpenIDConfiguration verifies the OpenID configuration endpoint.

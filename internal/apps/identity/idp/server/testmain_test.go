@@ -4,7 +4,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -12,6 +11,7 @@ import (
 
 	cryptoutilAppsIdentityIdpServerConfig "cryptoutil/internal/apps/identity/idp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 var (
@@ -74,23 +74,9 @@ const (
 
 // waitForReady waits for the server to be ready.
 func waitForReady(ctx context.Context, server *IDPServer) error {
-	deadline := time.Now().UTC().Add(readyTimeout)
-
-	for time.Now().UTC().Before(deadline) {
-		// Check if public port is allocated.
-		if server.PublicPort() > 0 {
-			return nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("context cancelled while waiting for server: %w", ctx.Err())
-		default:
-			time.Sleep(checkInterval)
-		}
-	}
-
-	return context.DeadlineExceeded
+	return cryptoutilSharedUtilPoll.Until(ctx, readyTimeout, checkInterval, func(_ context.Context) (bool, error) {
+		return server.PublicPort() > 0, nil
+	})
 }
 
 // requireTestSetup ensures test server is running before tests execute.

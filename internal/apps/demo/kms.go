@@ -10,9 +10,10 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // KMS demo step counts.
@@ -162,26 +163,16 @@ func startKMSServer(_ context.Context, settings *cryptoutilAppsTemplateServiceCo
 
 // waitForKMSHealth waits for KMS health checks to pass.
 func waitForKMSHealth(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, timeout time.Duration) error {
-	deadline := time.Now().UTC().Add(timeout)
-
-	for time.Now().UTC().Before(deadline) {
+	return cryptoutilSharedUtilPoll.Until(ctx, timeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(_ context.Context) (bool, error) {
 		_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(settings)
-		if err == nil {
-			_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(settings)
-			if err == nil {
-				return nil
-			}
+		if err != nil {
+			return false, nil
 		}
 
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("health check interrupted: %w", ctx.Err())
-		case <-time.After(cryptoutilSharedMagic.DefaultHealthCheckInterval):
-			// Continue polling.
-		}
-	}
+		_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(settings)
 
-	return fmt.Errorf("health checks did not pass within %v", timeout)
+		return err == nil, nil
+	})
 }
 
 // demonstrateKMSOperations demonstrates KMS cryptographic operations.

@@ -14,6 +14,7 @@ import (
 	cryptoutilAppsIdentityRpServer "cryptoutil/internal/apps/identity/rp/server"
 	cryptoutilAppsIdentityRpServerConfig "cryptoutil/internal/apps/identity/rp/server/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 
 	"github.com/stretchr/testify/require"
 )
@@ -100,23 +101,9 @@ func TestMain(m *testing.M) {
 
 // waitForReady waits for the server to be ready by polling port allocation.
 func waitForReady(ctx context.Context, srv *cryptoutilAppsIdentityRpServer.RPServer) error {
-	deadline := time.Now().UTC().Add(readyTimeout)
-
-	for time.Now().UTC().Before(deadline) {
-		// Check if public port is allocated.
-		if srv.PublicPort() > 0 {
-			return nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("context cancelled while waiting for server: %w", ctx.Err())
-		default:
-			time.Sleep(checkInterval)
-		}
-	}
-
-	return context.DeadlineExceeded
+	return cryptoutilSharedUtilPoll.Until(ctx, readyTimeout, checkInterval, func(_ context.Context) (bool, error) {
+		return srv.PublicPort() > 0, nil
+	})
 }
 
 // requireTestSetup verifies test infrastructure is available.

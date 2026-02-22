@@ -19,63 +19,44 @@ import (
 	"time"
 
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // Integration demo step counts.
 func waitForIntegrationHealth(ctx context.Context, servers *integrationServers, timeout time.Duration) error {
-	deadline := time.Now().UTC().Add(timeout)
-
-	// Wait for Identity server health.
 	identityHealthURL := servers.identityBaseURL + "/health"
-
 	client := &http.Client{Timeout: integrationHTTPTimeout}
 
-	for time.Now().UTC().Before(deadline) {
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, identityHealthURL, nil)
+	// Wait for Identity server health.
+	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, integrationHealthInterval, func(pollCtx context.Context) (bool, error) {
+		req, err := http.NewRequestWithContext(pollCtx, http.MethodGet, identityHealthURL, nil)
 		if err != nil {
-			continue
+			return false, nil
 		}
 
 		resp, err := client.Do(req)
-		if err == nil {
-			_ = resp.Body.Close()
-
-			if resp.StatusCode == http.StatusOK {
-				break
-			}
+		if err != nil {
+			return false, nil
 		}
 
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("health check interrupted: %w", ctx.Err())
-		case <-time.After(integrationHealthInterval):
-			// Continue polling.
-		}
-	}
+		_ = resp.Body.Close()
 
-	if time.Now().UTC().After(deadline) {
-		return fmt.Errorf("identity health check did not pass within %v", timeout)
+		return resp.StatusCode == http.StatusOK, nil
+	}); err != nil {
+		return fmt.Errorf("identity health check failed: %w", err)
 	}
 
 	// Wait for KMS server health.
-	for time.Now().UTC().Before(deadline) {
+	return cryptoutilSharedUtilPoll.Until(ctx, timeout, integrationHealthInterval, func(_ context.Context) (bool, error) {
 		_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(servers.kmsSettings)
-		if err == nil {
-			_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(servers.kmsSettings)
-			if err == nil {
-				return nil
-			}
+		if err != nil {
+			return false, nil
 		}
 
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("health check interrupted: %w", ctx.Err())
-		case <-time.After(integrationHealthInterval):
-			// Continue polling.
-		}
-	}
+		_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(servers.kmsSettings)
 
-	return fmt.Errorf("KMS health check did not pass within %v", timeout)
+		return err == nil, nil
+	})
 }
 
 // obtainIntegrationAccessToken obtains an access token from the Identity server.
