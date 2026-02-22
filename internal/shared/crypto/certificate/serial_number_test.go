@@ -119,6 +119,36 @@ func TestRandomizedNotBeforeNotAfterEndEntity_ExceedsMaxDuration(t *testing.T) {
 	require.Contains(t, err.Error(), "requestedDuration exceeds maxSubscriberCertDuration")
 }
 
+func TestRandomizedNotBeforeNotAfterCA_ActualDurationExceedsMax(t *testing.T) {
+	t.Parallel()
+
+	// Use exactly TLSDefaultMaxCACertDuration so the pre-check passes (== not >),
+	// but the randomized jitter pushes the actual duration beyond the max.
+	_, _, err := randomizedNotBeforeNotAfterCA(
+		time.Now().UTC(),
+		cryptoutilSharedMagic.TLSDefaultMaxCACertDuration,
+		time.Minute,
+		cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute,
+	)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "actual duration exceeds maxCACertDuration")
+}
+
+func TestRandomizedNotBeforeNotAfterEndEntity_ActualDurationExceedsMax(t *testing.T) {
+	t.Parallel()
+
+	// Use exactly TLSDefaultSubscriberCertDuration so the pre-check passes (== not >),
+	// but the randomized jitter pushes the actual duration beyond the max.
+	_, _, err := randomizedNotBeforeNotAfterEndEntity(
+		time.Now().UTC(),
+		cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration,
+		time.Minute,
+		cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute,
+	)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "actual duration exceeds maxSubscriberCertDuration")
+}
+
 func TestGenerateNotBeforeNotAfter(t *testing.T) {
 	t.Parallel()
 
