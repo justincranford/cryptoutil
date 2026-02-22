@@ -17,6 +17,7 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 	mapper := NewOamOrmMapper()
 
 	validUUID := googleUuid.New()
+	zeroUUID := googleUuid.UUID{}
 	algorithm := cryptoutilOpenapiModel.A128CBCHS256Dir
 	name := "test-key"
 	versioningAllowed := true
@@ -24,6 +25,7 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 	zeroPageSize := cryptoutilKmsServer.PageSize(0)
 	emptyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm("")
 	emptyString := ""
+	emptySort := cryptoutilOpenapiModel.ElasticKeySort("")
 
 	tests := []struct {
 		name          string
@@ -81,6 +83,24 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 			false,
 			"Elastic Key Name",
 		},
+		{
+			"invalid UUID",
+			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
+				ElasticKeyID: &[]googleUuid.UUID{zeroUUID},
+			},
+			true,
+			false,
+			"Elastic Key ID",
+		},
+		{
+			"invalid sort",
+			&cryptoutilOpenapiModel.ElasticKeysQueryParams{
+				Sort: &[]cryptoutilOpenapiModel.ElasticKeySort{emptySort},
+			},
+			true,
+			false,
+			"Elastic Key Sort",
+		},
 	}
 
 	for _, tc := range tests {
@@ -108,6 +128,7 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 	mapper := NewOamOrmMapper()
 
 	materialKeyID := googleUuid.New()
+	zeroMaterialKeyID := googleUuid.UUID{}
 	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	maxDate := time.Now().UTC()
 	futureDate := time.Now().UTC().Add(24 * time.Hour)
@@ -170,6 +191,15 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 			false,
 			"Key Sort",
 		},
+		{
+			"invalid material key UUID",
+			&cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
+				MaterialKeyID: &[]googleUuid.UUID{zeroMaterialKeyID},
+			},
+			true,
+			false,
+			"MaterialKeyID",
+		},
 	}
 
 	for _, tc := range tests {
@@ -197,6 +227,8 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 
 	elasticKeyID := googleUuid.New()
 	materialKeyID := googleUuid.New()
+	zeroElasticKeyID := googleUuid.UUID{}
+	zeroMatKeyID := googleUuid.UUID{}
 	minDate := time.Now().UTC().Add(-24 * time.Hour)
 	maxDate := time.Now().UTC()
 	futureDate := time.Now().UTC().Add(24 * time.Hour)
@@ -259,6 +291,24 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 			true,
 			false,
 			"Key Sort",
+		},
+		{
+			"invalid elastic key UUID",
+			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
+				ElasticKeyID: &[]googleUuid.UUID{zeroElasticKeyID},
+			},
+			true,
+			false,
+			"ElasticKeyID",
+		},
+		{
+			"invalid material key UUID",
+			&cryptoutilOpenapiModel.MaterialKeysQueryParams{
+				MaterialKeyID: &[]googleUuid.UUID{zeroMatKeyID},
+			},
+			true,
+			false,
+			"MaterialKeyID",
 		},
 	}
 

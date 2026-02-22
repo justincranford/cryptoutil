@@ -161,6 +161,9 @@ func TestToOamMaterialKey(t *testing.T) {
 	elasticKeyID := googleUuid.New()
 	materialKeyID := googleUuid.New()
 	generateDateMillis := time.Now().UTC().UnixMilli()
+	importDateMillis := time.Now().UTC().Add(-time.Hour).UnixMilli()
+	expirationDateMillis := time.Now().UTC().Add(time.Hour).UnixMilli()
+	revocationDateMillis := time.Now().UTC().Add(-30 * time.Minute).UnixMilli()
 	publicBytes := []byte(`{"kty":"RSA"}`)
 
 	tests := []struct {
@@ -214,6 +217,20 @@ func TestToOamMaterialKey(t *testing.T) {
 			},
 			expectError:   true,
 			errorContains: "material key missing required material key ID",
+		},
+		{
+			name: "valid material key with all dates",
+			ormKey: &cryptoutilOrmRepository.MaterialKey{
+				ElasticKeyID:                  elasticKeyID,
+				MaterialKeyID:                 materialKeyID,
+				MaterialKeyClearPublic:        publicBytes,
+				MaterialKeyEncryptedNonPublic: []byte("encrypted"),
+				MaterialKeyGenerateDate:       &generateDateMillis,
+				MaterialKeyImportDate:         &importDateMillis,
+				MaterialKeyExpirationDate:     &expirationDateMillis,
+				MaterialKeyRevocationDate:     &revocationDateMillis,
+			},
+			expectError: false,
 		},
 	}
 
