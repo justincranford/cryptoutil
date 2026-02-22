@@ -402,4 +402,33 @@ func TestFix_HelperWithoutTestingParam(t *testing.T) {
 	require.Zero(t, fixed)
 }
 
+func TestGetTestingParam_SelectorWithNonIdentX(t *testing.T) {
+	t.Parallel()
+
+	// Construct AST with *a.b.T parameter — SelectorExpr.X is a SelectorExpr (not Ident).
+	// This covers the "continue" when selExpr.X.(*ast.Ident) fails.
+	funcDecl := &ast.FuncDecl{
+		Name: &ast.Ident{Name: "setupHelper"},
+		Type: &ast.FuncType{
+			Params: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{{Name: "x"}},
+						Type: &ast.StarExpr{
+							X: &ast.SelectorExpr{
+								X:   &ast.SelectorExpr{X: &ast.Ident{Name: "a"}, Sel: &ast.Ident{Name: "b"}},
+								Sel: &ast.Ident{Name: "T"},
+							},
+						},
+					},
+				},
+			},
+		},
+		Body: &ast.BlockStmt{},
+	}
+
+	result := getTestingParam(funcDecl)
+	require.Empty(t, result, "*a.b.T has non-Ident selector X")
+}
+
 const testContentSetupMissingHelper = "package foo\n\nimport \"testing\"\n\nfunc setupSomething(t *testing.T) {\n\tt.Log(\"setup\")\n}\n"
