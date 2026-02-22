@@ -14,6 +14,13 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// Injectable functions for testing defensive error paths.
+var (
+	filesStatFn  = func(f *os.File) (os.FileInfo, error) { return f.Stat() }
+	filesReadFn  = func(f *os.File, p []byte) (int, error) { return f.Read(p) }
+	filesCloseFn = func(f *os.File) error { return f.Close() }
+)
+
 // WriteFile writes content to a file with the specified permissions.
 // If permissions is 0, it defaults to CacheFilePermissions.
 // The content can be a string or []byte.
@@ -193,14 +200,14 @@ func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 	}
 
 	defer func() {
-		if closeErr := file.Close(); closeErr != nil {
+		if closeErr := filesCloseFn(file); closeErr != nil {
 			// Log error but don't override the main return error
 			fmt.Printf("Warning: failed to close file %s: %v\n", filePath, closeErr)
 		}
 	}()
 
 	// Get file info to determine file size
-	fileInfo, err := file.Stat()
+	fileInfo, err := filesStatFn(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get file stats for %s: %w", filePath, err)
 	}
@@ -214,7 +221,7 @@ func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 	// Read the limited bytes
 	buffer := make([]byte, bytesToRead)
 
-	n, err := file.Read(buffer)
+	n, err := filesReadFn(file, buffer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read bytes from file %s: %w", filePath, err)
 	}

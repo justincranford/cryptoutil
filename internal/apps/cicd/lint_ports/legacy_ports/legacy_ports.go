@@ -18,10 +18,16 @@ lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"
 // legacyPortPattern matches port numbers in various contexts.
 var legacyPortPattern = regexp.MustCompile(`\b(\d{4,5})\b`)
 
+// Injectable functions for testing defensive error paths.
+var (
+	legacyPortsAllFn     = lintPortsCommon.AllLegacyPorts
+	legacyPortsFindAllFn = legacyPortPattern.FindAllStringSubmatch
+)
+
 // Check checks for legacy port usage in all relevant files.
 // Returns an error if any legacy ports are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger, filesByExtension map[string][]string) error {
-legacyPorts := lintPortsCommon.AllLegacyPorts()
+	legacyPorts := legacyPortsAllFn()
 if len(legacyPorts) == 0 {
 logger.Log("No legacy ports defined, skipping legacy port check")
 
@@ -96,7 +102,7 @@ lineNum++
 line := scanner.Text()
 
 // Find all potential port numbers in the line.
-matches := legacyPortPattern.FindAllStringSubmatch(line, -1)
+		matches := legacyPortsFindAllFn(line, -1)
 for _, match := range matches {
 if len(match) < 2 {
 continue
