@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	fiber "github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 
@@ -123,6 +124,107 @@ func TestHandleListJoinRequests_InvalidTenantIDType(t *testing.T) {
 	req := httptest.NewRequest("GET", "/join-requests", nil)
 	resp, err := app.Test(req, -1)
 	require.NoError(t, err)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, 500, resp.StatusCode)
+}
+
+// TestHandleRegisterUser_ServiceError covers the service error path at
+// registration_handlers.go:93-97 (RegisterUserWithTenant returns error).
+//
+// Uses a closed database to force the service to return a database error.
+func TestHandleRegisterUser_ServiceError(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+
+	// Create a real SQLite DB, migrate schema, then close it to force errors.
+	closedDB, initErr := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(
+		ctx,
+		"file:test-reg-svc-err?mode=memory&cache=private",
+		cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
+	)
+	require.NoError(t, initErr)
+
+	sqlDB, sqlErr := closedDB.DB()
+	require.NoError(t, sqlErr)
+	require.NoError(t, sqlDB.Close()) // Close DB to force all queries to fail.
+
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(closedDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(closedDB)
+	joinRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(closedDB)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
+		closedDB, tenantRepo, userRepo, joinRepo,
+	)
+	handlers := NewRegistrationHandlers(registrationService)
+
+	app := fiber.New()
+	app.Post("/register", handlers.HandleRegisterUser)
+
+	body := RegisterUserRequest{
+		Username:     strings.Repeat("a", cryptoutilSharedMagic.CipherMinUsernameLength),
+		Email:        "user@example.com",
+		Password:     strings.Repeat("p", cryptoutilSharedMagic.CipherMinPasswordLength),
+		TenantName:   strings.Repeat("t", cryptoutilSharedMagic.CipherMinUsernameLength),
+		CreateTenant: true,
+	}
+
+	bodyBytes, marshalErr := json.Marshal(body)
+	require.NoError(t, marshalErr)
+
+	req := httptest.NewRequest("POST", "/register", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, respErr := app.Test(req, -1)
+	require.NoError(t, respErr)
+
+	defer func() { require.NoError(t, resp.Body.Close()) }()
+
+	require.Equal(t, 500, resp.StatusCode)
+}
+
+// TestHandleListJoinRequests_ServiceError covers the service error path at
+// registration_handlers.go:182-186 (ListJoinRequests returns error).
+//
+// Uses a closed database to force the service to return a database error.
+func TestHandleListJoinRequests_ServiceError(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+
+	// Create a real SQLite DB, migrate schema, then close it to force errors.
+	closedDB, initErr := cryptoutilAppsTemplateServiceServerRepository.InitSQLite(
+		ctx,
+		"file:test-list-svc-err?mode=memory&cache=private",
+		cryptoutilAppsTemplateServiceServerRepository.MigrationsFS,
+	)
+	require.NoError(t, initErr)
+
+	sqlDB, sqlErr := closedDB.DB()
+	require.NoError(t, sqlErr)
+	require.NoError(t, sqlDB.Close())
+
+	tenantRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantRepository(closedDB)
+	userRepo := cryptoutilAppsTemplateServiceServerRepository.NewUserRepository(closedDB)
+	joinRepo := cryptoutilAppsTemplateServiceServerRepository.NewTenantJoinRequestRepository(closedDB)
+	registrationService := cryptoutilAppsTemplateServiceServerBusinesslogic.NewTenantRegistrationService(
+		closedDB, tenantRepo, userRepo, joinRepo,
+	)
+	handlers := NewRegistrationHandlers(registrationService)
+
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+
+	app := fiber.New()
+	app.Get("/join-requests", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", tenantID)
+
+		return c.Next()
+	}, handlers.HandleListJoinRequests)
+
+	req := httptest.NewRequest("GET", "/join-requests", nil)
+	resp, respErr := app.Test(req, -1)
+	require.NoError(t, respErr)
 
 	defer func() { require.NoError(t, resp.Body.Close()) }()
 
