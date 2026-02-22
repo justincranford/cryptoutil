@@ -2047,6 +2047,7 @@ func TestListMessages_Handler(t *testing.T) {
 - ≥98% infrastructure/utility code
 - 0% acceptable for main() if internalMain() ≥95%
 - Generated code excluded from coverage
+- **`internal/shared/magic/` excluded**: constants-only package, no executable logic
 
 ### 10.3 Integration Testing Strategy
 
@@ -2315,6 +2316,7 @@ type ServiceAndJob struct {
 - OpenAPI-generated code (stable, no business logic)
 - GORM models (database schema definitions)
 - Protobuf-generated code (gRPC/protobuf stubs)
+- **`internal/shared/magic/`**: constants-only package, no executable logic to mutate
 
 ### 10.6 Load Testing Strategy
 
@@ -2448,10 +2450,11 @@ func BenchmarkAESEncrypt(b *testing.B) {
 
 #### 11.1.4 Magic Values Organization
 
+- **ALL magic constants and variables MUST be consolidated in `internal/shared/magic/`**; domain-specific sub-files allowed (e.g., `magic_domain*.go`) but NEVER in scattered package-local files
 - Shared constants: internal/shared/magic/magic_*.go (network, database, cryptography, testing)
-- Domain-specific constants: internal/<package>/magic*.go
 - Pattern: Declare as named variables, NEVER inline literals
 - Rationale: mnd (magic number detector) linter enforcement
+- **Coverage/Mutation Exemption**: `internal/shared/magic/` is **excluded from all code coverage and mutation testing thresholds**; it contains only named constants and variables with no executable logic to test
 
 ### 11.2 Quality Gates
 
