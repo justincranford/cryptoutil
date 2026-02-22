@@ -15,6 +15,9 @@ import (
 
 const fingerprintLeeway = 1
 
+// injectable for testing error paths.
+var getAllInfoWithTimeoutFn = cryptoutilSharedUtilSysinfo.GetAllInfoWithTimeout
+
 // UnsealKeysServiceFromSysInfo implements UnsealKeysService using system information fingerprinting.
 type UnsealKeysServiceFromSysInfo struct {
 	unsealJWKs []joseJwk.Key
@@ -47,7 +50,7 @@ func (u *UnsealKeysServiceFromSysInfo) Shutdown() {
 
 // NewUnsealKeysServiceFromSysInfo creates a new UnsealKeysService using system information fingerprinting.
 func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSharedUtilSysinfo.SysInfoProvider) (UnsealKeysService, error) {
-	sysinfos, err := cryptoutilSharedUtilSysinfo.GetAllInfoWithTimeout(sysInfoProvider, cryptoutilSharedMagic.DefaultSysInfoAllTimeout)
+	sysinfos, err := getAllInfoWithTimeoutFn(sysInfoProvider, cryptoutilSharedMagic.DefaultSysInfoAllTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
 	}

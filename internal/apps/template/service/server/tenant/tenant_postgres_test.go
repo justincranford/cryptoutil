@@ -25,10 +25,12 @@ import (
 
 // mockPGDriver is a configurable in-process SQL driver.
 type mockPGDriver struct {
-	mu       sync.Mutex
-	failExec bool
-	rowsData [][]driver.Value
-	columns  []string
+	mu        sync.Mutex
+	failExec  bool
+	failScan  bool // When true, rows return non-string values to trigger Scan error.
+	failIter  bool // When true, rows.Next() returns an error after first row.
+	rowsData  [][]driver.Value
+	columns   []string
 }
 
 func (d *mockPGDriver) setFail(fail bool) {
@@ -36,6 +38,20 @@ func (d *mockPGDriver) setFail(fail bool) {
 	defer d.mu.Unlock()
 
 	d.failExec = fail
+}
+
+func (d *mockPGDriver) setFailScan(fail bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.failScan = fail
+}
+
+func (d *mockPGDriver) setFailIter(fail bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+
+	d.failIter = fail
 }
 
 func (d *mockPGDriver) setRows(cols []string, rows [][]driver.Value) {
@@ -95,15 +111,19 @@ func (s *mockPGStmt) Query(_ []driver.Value) (driver.Rows, error) {
 	}
 
 	return &mockPGRows{
-		columns: append([]string{}, s.conn.driver.columns...),
-		data:    append([][]driver.Value{}, s.conn.driver.rowsData...),
+		columns:  append([]string{}, s.conn.driver.columns...),
+		data:     append([][]driver.Value{}, s.conn.driver.rowsData...),
+		failScan: s.conn.driver.failScan,
+		failIter: s.conn.driver.failIter,
 	}, nil
 }
 
 type mockPGRows struct {
-	columns []string
-	data    [][]driver.Value
-	pos     int
+	columns  []string
+	data     [][]driver.Value
+	pos      int
+	failScan bool
+	failIter bool
 }
 
 func (r *mockPGRows) Columns() []string { return r.columns }
@@ -114,8 +134,22 @@ func (r *mockPGRows) Next(dest []driver.Value) error {
 		return io.EOF
 	}
 
+	// Simulate iteration error after first row.
+	if r.failIter && r.pos > 0 {
+		return errors.New("mock iteration error")
+	}
+
 	row := r.data[r.pos]
 	r.pos++
+
+	if r.failScan {
+		// Return an unsupported driver.Value type to trigger Scan error.
+		for i := range dest {
+			dest[i] = struct{}{}
+		}
+
+		return nil
+	}
 
 	copy(dest, row)
 
@@ -315,6 +349,49 @@ func TestListPostgresSchemas_Error(t *testing.T) {
 	_, err := sm.ListSchemas(context.Background())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to list PostgreSQL schemas")
+}
+
+// TestListPostgresSchemas_ScanError tests error path when rows.Scan fails.
+// Cannot be parallel because it configures the global pgDriver.
+func TestListPostgresSchemas_ScanError(t *testing.T) {
+	pgDriver.setFail(false)
+	pgDriver.setFailScan(true)
+	pgDriver.setRows([]string{"schema_name"}, [][]driver.Value{
+		{"tenant_bad"},
+	})
+
+	defer func() {
+		pgDriver.setFailScan(false)
+		pgDriver.setRows(nil, nil)
+	}()
+
+	sm := newMockPGSchemaManager(t)
+
+	_, err := sm.ListSchemas(context.Background())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to scan schema name")
+}
+
+// TestListPostgresSchemas_IterError tests error path when rows.Err() returns an error.
+// Cannot be parallel because it configures the global pgDriver.
+func TestListPostgresSchemas_IterError(t *testing.T) {
+	pgDriver.setFail(false)
+	pgDriver.setFailIter(true)
+	pgDriver.setRows([]string{"schema_name"}, [][]driver.Value{
+		{"tenant_ok"},
+		{"tenant_fail"},
+	})
+
+	defer func() {
+		pgDriver.setFailIter(false)
+		pgDriver.setRows(nil, nil)
+	}()
+
+	sm := newMockPGSchemaManager(t)
+
+	_, err := sm.ListSchemas(context.Background())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error iterating schema rows")
 }
 
 // ----------------------------------------------------------------------------

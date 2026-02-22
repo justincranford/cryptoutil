@@ -18,10 +18,13 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// injectable for testing error paths.
+var generateBytesFn = cryptoutilSharedUtilRandom.GenerateBytes
+
 // NewUnsealKeysServiceFromSettings creates a new UnsealKeysService from application settings.
 func NewUnsealKeysServiceFromSettings(_ context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
-		randomBytes, err := cryptoutilSharedUtilRandom.GenerateBytes(cryptoutilSharedMagic.RandomKeySizeBytes)
+		randomBytes, err := generateBytesFn(cryptoutilSharedMagic.RandomKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
 		}

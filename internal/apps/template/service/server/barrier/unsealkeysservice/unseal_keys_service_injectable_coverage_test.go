@@ -8,9 +8,11 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilSysinfo "cryptoutil/internal/shared/util/sysinfo"
 
@@ -120,4 +122,94 @@ func TestNewUnsealKeysServiceFromSysInfo_HKDFError(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
 	require.Contains(t, err.Error(), "failed to create unseal JWKs")
+}
+
+// TestNewUnsealKeysServiceFromSysInfo_EmptySysinfos tests the empty sysinfos error path.
+// Uses injectable getAllInfoWithTimeoutFn to return empty slice, covering numSysinfos == 0 branch.
+//
+// NOTE: Must NOT use t.Parallel() - modifies package-level getAllInfoWithTimeoutFn.
+func TestNewUnsealKeysServiceFromSysInfo_EmptySysinfos(t *testing.T) {
+	originalFn := getAllInfoWithTimeoutFn
+	getAllInfoWithTimeoutFn = func(_ cryptoutilSharedUtilSysinfo.SysInfoProvider, _ time.Duration) ([][]byte, error) {
+		return [][]byte{}, nil
+	}
+
+	defer func() { getAllInfoWithTimeoutFn = originalFn }()
+
+	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{})
+
+	require.Error(t, err)
+	require.Nil(t, unsealKeysService)
+	require.Contains(t, err.Error(), "empty sysinfos not supported")
+}
+
+// TestNewUnsealKeysServiceFromSysInfo_SingleSysinfo tests the numSysinfos == 1 branch.
+// Uses injectable getAllInfoWithTimeoutFn to return a single element, covering chooseN = 1 path.
+//
+// NOTE: Must NOT use t.Parallel() - modifies package-level getAllInfoWithTimeoutFn.
+func TestNewUnsealKeysServiceFromSysInfo_SingleSysinfo(t *testing.T) {
+	originalFn := getAllInfoWithTimeoutFn
+	getAllInfoWithTimeoutFn = func(_ cryptoutilSharedUtilSysinfo.SysInfoProvider, _ time.Duration) ([][]byte, error) {
+		return [][]byte{[]byte("single-sysinfo-entry-for-testing")}, nil
+	}
+
+	defer func() { getAllInfoWithTimeoutFn = originalFn }()
+
+	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(&cryptoutilSharedUtilSysinfo.DefaultSysInfoProvider{})
+
+	require.NoError(t, err)
+	require.NotNil(t, unsealKeysService)
+}
+
+// TestDeriveJWKs_SecondHKDFError tests the second HKDF error path in deriveJWKsFromMChooseNCombinations.
+// Uses call-count injection: first HKDF call (for KID) succeeds, second (for secret) fails.
+//
+// NOTE: Must NOT use t.Parallel() - modifies package-level hkdfWithSHA256Fn.
+func TestDeriveJWKs_SecondHKDFError(t *testing.T) {
+	callCount := 0
+	originalFn := hkdfWithSHA256Fn
+
+	hkdfWithSHA256Fn = func(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
+		callCount++
+		if callCount == 2 {
+			return nil, fmt.Errorf("simulated second HKDF error")
+		}
+
+		return cryptoutilSharedCryptoDigests.HKDFwithSHA256(secret, salt, info, outputBytesLength)
+	}
+
+	defer func() { hkdfWithSHA256Fn = originalFn }()
+
+	sharedSecret := make([]byte, cryptoutilSharedMagic.MinSharedSecretLength)
+	sharedSecretsM := [][]byte{sharedSecret}
+
+	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
+
+	require.Error(t, err)
+	require.Nil(t, unsealKeysService)
+	require.Contains(t, err.Error(), "failed to derive unseal JWK secret bytes")
+}
+
+// TestNewUnsealKeysServiceFromSettings_DevMode_GenerateBytesError tests the GenerateBytes error path.
+// Uses injectable generateBytesFn to simulate random byte generation failure in DevMode.
+//
+// NOTE: Must NOT use t.Parallel() - modifies package-level generateBytesFn.
+func TestNewUnsealKeysServiceFromSettings_DevMode_GenerateBytesError(t *testing.T) {
+	originalFn := generateBytesFn
+	generateBytesFn = func(_ int) ([]byte, error) {
+		return nil, fmt.Errorf("simulated random generation error")
+	}
+
+	defer func() { generateBytesFn = originalFn }()
+
+	ctx := context.Background()
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-dev-generate-error")
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
+	settings.DevMode = true
+
+	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
+
+	require.Error(t, err)
+	require.Nil(t, unsealKeysService)
+	require.Contains(t, err.Error(), "failed to generate random bytes for dev mode")
 }

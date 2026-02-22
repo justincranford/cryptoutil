@@ -462,3 +462,58 @@ func TestSchemaPrefix_Constant(t *testing.T) {
 
 	require.Equal(t, "tenant_", SchemaPrefix)
 }
+
+func TestNewSchemaManager_DBError(t *testing.T) {
+	t.Parallel()
+
+	// Create a GORM DB with a PreparedStmt connector wrapping nil sql.DB,
+	// which causes db.DB() to return ErrInvalidDB.
+	bareDB := &gorm.DB{
+		Config: &gorm.Config{
+			ConnPool: &gorm.PreparedStmtDB{},
+		},
+	}
+
+	_, err := NewSchemaManager(bareDB, DBTypeSQLite)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get sql.DB")
+}
+
+func TestListSQLiteSchemas_RowsErrError(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+
+	sm, err := NewSchemaManager(db, DBTypeSQLite)
+	require.NoError(t, err)
+
+	// Create some tenant schemas so rows iteration has data.
+	err = sm.CreateSchema(context.Background(), SchemaName(testTenantUUID2))
+	require.NoError(t, err)
+
+	// Cancel context before listing to trigger rows.Err().
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err = sm.ListSchemas(ctx)
+	require.Error(t, err)
+}
+
+func TestListSQLiteSchemas_ClosedDBError(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
+
+	sm, err := NewSchemaManager(db, DBTypeSQLite)
+	require.NoError(t, err)
+
+	// Close the underlying SQL connection to force query failure.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+
+	err = sqlDB.Close()
+	require.NoError(t, err)
+
+	_, err = sm.ListSchemas(context.Background())
+	require.Error(t, err)
+}
