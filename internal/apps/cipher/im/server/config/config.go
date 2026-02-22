@@ -78,30 +78,25 @@ var (
 	})
 )
 
-// Parse parses command-line arguments and returns the Cipher-IM server settings.
-func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
-	// Parse base template settings first.
-	baseSettings, err := cryptoutilAppsTemplateServiceConfig.Parse(args, exitIfHelp)
+// ParseWithFlagSet parses command line arguments using provided FlagSet and returns cipher-im settings.
+// This enables test isolation by allowing each test to use its own FlagSet.
+func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
+	// Register cipher-im specific flags on the provided FlagSet BEFORE parsing.
+	// This must happen before calling template ParseWithFlagSet since it will call fs.Parse().
+	fs.StringP(messageJWEAlgorithm.Name, messageJWEAlgorithm.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(messageJWEAlgorithm), messageJWEAlgorithm.Description)
+	fs.IntP(messageMinLength.Name, messageMinLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMinLength), messageMinLength.Description)
+	fs.IntP(messageMaxLength.Name, messageMaxLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMaxLength), messageMaxLength.Description)
+	fs.IntP(recipientsMinCount.Name, recipientsMinCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMinCount), recipientsMinCount.Description)
+	fs.IntP(recipientsMaxCount.Name, recipientsMaxCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMaxCount), recipientsMaxCount.Description)
+
+	// Parse base template settings using the same FlagSet.
+	// This will register template flags and call fs.Parse() + viper.BindPFlags().
+	baseSettings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, args, exitIfHelp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template settings: %w", err)
 	}
 
-	// Register cipher-im specific flags.
-	pflag.StringP(messageJWEAlgorithm.Name, messageJWEAlgorithm.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsStringSetting(messageJWEAlgorithm), messageJWEAlgorithm.Description)
-	pflag.IntP(messageMinLength.Name, messageMinLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMinLength), messageMinLength.Description)
-	pflag.IntP(messageMaxLength.Name, messageMaxLength.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(messageMaxLength), messageMaxLength.Description)
-	pflag.IntP(recipientsMinCount.Name, recipientsMinCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMinCount), recipientsMinCount.Description)
-	pflag.IntP(recipientsMaxCount.Name, recipientsMaxCount.Shorthand, cryptoutilAppsTemplateServiceConfig.RegisterAsIntSetting(recipientsMaxCount), recipientsMaxCount.Description)
-
-	// Parse flags.
-	pflag.Parse()
-
-	// Bind flags to viper.
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("failed to bind flags: %w", err)
-	}
-
-	// Create cipher-im settings.
+	// Create cipher-im settings using values from viper (bound by template ParseWithFlagSet).
 	settings := &CipherImServerSettings{
 		ServiceTemplateServerSettings: baseSettings,
 		MessageJWEAlgorithm:           viper.GetString(messageJWEAlgorithm.Name),
@@ -133,6 +128,11 @@ func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
 	logCipherImSettings(settings)
 
 	return settings, nil
+}
+
+// Parse parses command-line arguments and returns the Cipher-IM server settings.
+func Parse(args []string, exitIfHelp bool) (*CipherImServerSettings, error) {
+	return ParseWithFlagSet(pflag.CommandLine, args, exitIfHelp)
 }
 
 // validateCipherImSettings validates cipher-im specific configuration.

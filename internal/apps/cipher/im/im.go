@@ -19,6 +19,8 @@ import (
 	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
+	"github.com/spf13/pflag"
 )
 
 const sqliteInMemoryURL = cryptoutilSharedMagic.SQLiteInMemoryDSN
@@ -68,7 +70,9 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
-	cfg, err := cryptoutilAppsCipherImServerConfig.Parse(argsWithSubcommand, true)
+	fs := pflag.NewFlagSet("cipher-im-server", pflag.ContinueOnError)
+
+	cfg, err := cryptoutilAppsCipherImServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 
