@@ -363,8 +363,10 @@ func TestPublicServerBase_StartAndShutdown(t *testing.T) {
 		errChan <- server.Start(ctx)
 	}()
 
-	// Give server time to start.
-	time.Sleep(100 * time.Millisecond)
+	// Wait for server to bind port using polling (not sleep) to avoid race.
+	require.Eventually(t, func() bool {
+		return server.ActualPort() > 0
+	}, 10*time.Second, 50*time.Millisecond, "server should allocate port")
 
 	// Verify actual port is assigned.
 	actualPort := server.ActualPort()
