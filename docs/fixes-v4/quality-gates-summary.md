@@ -6,6 +6,27 @@ See [quality-gates-details.md](quality-gates-details.md) for full per-package da
 
 ---
 
+## Session Progress
+
+### Completed Refactorings (this session)
+
+1. **Polling utility extraction** — Created `internal/shared/util/poll/poll.go` with `Until()` function. 100% test coverage via table-driven tests. Replaced inline polling loops in 9 files (11 files changed, 120 insertions, 256 deletions).
+
+2. **Duration constants consolidation** — Moved `Days1`, `Days30`, `Days365` from `internal/shared/util/datetime/duration_util.go` to `internal/shared/magic/magic_pkix.go`. Simplified cert duration expressions. Deleted redundant file. Updated 2 consumer files.
+
+3. **Test timeout constants consolidation** — Added `TestPollReadyTimeout`, `TestPollReadyInterval`, `TestServerShutdownTimeout`, `TestIntegrationTimeout` to `internal/shared/magic/magic_testing.go`. Updated `testutil.DefaultIntegrationTimeout` and PKI test constants to reference magic.
+
+### Commits
+
+| Hash | Type | Description |
+|------|------|-------------|
+| (session-1) | feat(poll) | extract parameterized polling loop to internal/shared/util/poll |
+| (session-2) | refactor(poll) | replace inline polling loops with poll.Until() |
+| (session-3) | refactor(magic) | move duration constants from datetime to magic package |
+| (session-4) | refactor(magic) | consolidate test polling/timeout constants to magic_testing.go |
+
+---
+
 ## Failing Quality Gates
 
 1. **[QG-1: Linting — 2 goconst violations (exit code 1)](#qg-1-linting--2-goconst-violations-exit-code-1)** — `golangci-lint run` exits 1; must be zero issues before commit.
@@ -27,7 +48,7 @@ See [quality-gates-details.md](quality-gates-details.md) for full per-package da
 - `go build -tags e2e ./...` — clean
 - mutations — all packages meet threshold
 - pre-commit checks — all checks pass
-- pre-push checks — all checks pass
+- pre-push checks — all check
 - `go test ./... -shuffle=on` — all tests pass
 - integration tests — all tests pass
 - e2e tests — all tests pass
