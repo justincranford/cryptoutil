@@ -22,7 +22,12 @@ See [quality-gates-details.md](quality-gates-details.md) for full per-package da
 
 ## Passing Quality Gates
 
-- `go build ./...` — clean
-- `go build -tags e2e,integration ./...` — clean
-- `go run ./cmd/cicd lint-deployments validate-all` — all 65 validators pass
-- `go test ./...` — all tests pass when run without `-shuffle=on` interference (see QG-2 for shuffle failures)
+- `go build ./...` — clean, all packages meet code cov thresholds
+- `go build -tags integration ./...` — clean
+- `go build -tags e2e ./...` — clean
+- mutations — all packages meet threshold
+- pre-commit checks — all checks pass
+- pre-push checks — all checks pass
+- `go test ./... -shuffle=on` — all tests pass
+- integration tests — all tests pass
+- e2e tests — all tests pass

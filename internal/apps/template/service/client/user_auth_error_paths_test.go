@@ -13,6 +13,8 @@ import (
 // errTestGenerateFailure is used to inject into the generate functions.
 var errTestGenerateFailure = errors.New("test: generate failure")
 
+const testUsername = "user"
+
 // TestRegisterTestUserService_UsernameError tests RegisterTestUserService
 // when username generation fails.
 // NOTE: Must NOT use t.Parallel() - modifies package-level var.
@@ -36,7 +38,7 @@ func TestRegisterTestUserService_PasswordError(t *testing.T) {
 origUsername := templateClientGenerateUsernameSimpleFn
 origPassword := templateClientGeneratePasswordSimpleFn
 
-templateClientGenerateUsernameSimpleFn = func() (string, error) { return "user", nil }
+templateClientGenerateUsernameSimpleFn = func() (string, error) { return testUsername, nil }
 templateClientGeneratePasswordSimpleFn = func() (string, error) { return "", errTestGenerateFailure }
 
 defer func() {
@@ -72,7 +74,7 @@ func TestRegisterTestUserBrowser_PasswordError(t *testing.T) {
 origUsername := templateClientGenerateUsernameSimpleFn
 origPassword := templateClientGeneratePasswordSimpleFn
 
-templateClientGenerateUsernameSimpleFn = func() (string, error) { return "user", nil }
+templateClientGenerateUsernameSimpleFn = func() (string, error) { return testUsername, nil }
 templateClientGeneratePasswordSimpleFn = func() (string, error) { return "", errTestGenerateFailure }
 
 defer func() {

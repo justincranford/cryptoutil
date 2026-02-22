@@ -22,7 +22,7 @@ cryptoutilIdentityNotifications "cryptoutil/internal/apps/identity/notifications
 func setupCoverageTestDB(t *testing.T) (*gorm.DB, *sql.DB) {
 t.Helper()
 
-dsn := ":memory:"
+dsn := testDSNMemory
 sqlDB, err := sql.Open("sqlite", dsn)
 require.NoError(t, err)
 

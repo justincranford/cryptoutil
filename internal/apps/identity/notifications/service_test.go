@@ -19,12 +19,14 @@ import (
 	cryptoutilIdentityNotifications "cryptoutil/internal/apps/identity/notifications"
 )
 
+const testDSNMemory = ":memory:"
+
 // setupTestDB creates an in-memory SQLite database for testing.
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
 	// Use unique in-memory database per test (no shared cache).
-	dsn := ":memory:"
+	dsn := testDSNMemory
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 
