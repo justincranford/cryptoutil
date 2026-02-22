@@ -232,6 +232,114 @@ func TestRequireRealmMiddleware_WithTenant(t *testing.T) {
 	require.Equal(t, 200, resp.StatusCode)
 }
 
+func TestRealmContextMiddleware_FromJWT_WithUserAndClient(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+	realmID := googleUuid.New()
+	userID := googleUuid.New()
+	clientID := googleUuid.New()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+
+	// Middleware to set JWT claims with user_id and client_id in custom claims.
+	app.Use(func(c *fiber.Ctx) error {
+		claims := &JWTClaims{
+			Scopes: []string{"kms:read"},
+			Custom: map[string]any{
+				"tenant_id": tenantID.String(),
+				"realm_id":  realmID.String(),
+				"user_id":   userID.String(),
+				"client_id": clientID.String(),
+			},
+		}
+		ctx := context.WithValue(c.UserContext(), JWTContextKey{}, claims)
+		c.SetUserContext(ctx)
+
+		return c.Next()
+	})
+
+	app.Use(RealmContextMiddleware())
+
+	app.Get("/test", func(c *fiber.Ctx) error {
+		realmCtx := GetRealmContext(c.UserContext())
+		if realmCtx == nil {
+			return c.Status(500).SendString("no realm context")
+		}
+
+		return c.JSON(fiber.Map{
+			"tenant_id": realmCtx.TenantID.String(),
+			"realm_id":  realmCtx.RealmID.String(),
+			"user_id":   realmCtx.UserID.String(),
+			"client_id": realmCtx.ClientID.String(),
+			"source":    realmCtx.Source,
+		})
+	})
+
+	req := httptest.NewRequest("GET", "/test", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, 200, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.Contains(t, string(body), userID.String())
+	require.Contains(t, string(body), clientID.String())
+	require.Contains(t, string(body), tenantID.String())
+	require.Contains(t, string(body), realmID.String())
+}
+
+func TestRealmContextMiddleware_FromOIDC_WithTenantIDs(t *testing.T) {
+	t.Parallel()
+
+	tenantID := googleUuid.New()
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+
+	// Middleware to set OIDC claims with TenantIDs array (not TenantID string).
+	app.Use(func(c *fiber.Ctx) error {
+		claims := &OIDCClaims{
+			TenantIDs: []string{tenantID.String()},
+		}
+		ctx := context.WithValue(c.UserContext(), OIDCClaimsContextKey{}, claims)
+		c.SetUserContext(ctx)
+
+		return c.Next()
+	})
+
+	app.Use(RealmContextMiddleware())
+
+	app.Get("/test", func(c *fiber.Ctx) error {
+		realmCtx := GetRealmContext(c.UserContext())
+		if realmCtx == nil {
+			return c.Status(500).SendString("no realm context")
+		}
+
+		return c.JSON(fiber.Map{
+			"tenant_id": realmCtx.TenantID.String(),
+			"source":    realmCtx.Source,
+		})
+	})
+
+	req := httptest.NewRequest("GET", "/test", nil)
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, 200, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.Contains(t, string(body), tenantID.String())
+	require.Contains(t, string(body), `"source":"oidc"`)
+}
+
 func TestGetRealmContext_NilContext(t *testing.T) {
 	t.Parallel()
 

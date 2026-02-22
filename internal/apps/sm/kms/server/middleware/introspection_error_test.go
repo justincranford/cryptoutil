@@ -262,3 +262,38 @@ func TestBatchIntrospector_BatchIntrospectMultipleBatches(t *testing.T) {
 	// All 5 tokens should have been requested individually.
 	require.Equal(t, 5, requestCount)
 }
+
+// TestBatchIntrospector_IntrospectCacheHit tests the Introspect cache hit path.
+func TestBatchIntrospector_IntrospectCacheHit(t *testing.T) {
+	t.Parallel()
+
+	requestCount := 0
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"active": true}`))
+	}))
+	defer server.Close()
+
+	introspector, introspectorErr := NewBatchIntrospector(IntrospectionConfig{
+		IntrospectionURL: server.URL,
+		MaxBatchSize:     10,
+	})
+	require.NoError(t, introspectorErr)
+
+	ctx := context.Background()
+
+	// First call should hit the server.
+	result1, err := introspector.Introspect(ctx, "cached-token")
+	require.NoError(t, err)
+	require.True(t, result1.Active)
+	require.Equal(t, 1, requestCount)
+
+	// Second call should use cache (no additional server request).
+	result2, err := introspector.Introspect(ctx, "cached-token")
+	require.NoError(t, err)
+	require.True(t, result2.Active)
+	require.Equal(t, 1, requestCount) // Still 1 because of cache hit.
+}
