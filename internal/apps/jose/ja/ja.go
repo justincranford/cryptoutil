@@ -13,6 +13,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/spf13/pflag"
+
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
@@ -58,11 +60,14 @@ func jaServerStart(args []string, stdout, stderr io.Writer) int {
 
 	ctx := context.Background()
 
-	// Parse configuration using config.Parse() which leverages viper+pflag.
+	// Parse configuration using ParseWithFlagSet with a fresh FlagSet.
+	// Uses ContinueOnError for proper error handling (no os.Exit on bad flags).
 	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
-	cfg, err := cryptoutilAppsJoseJaServerConfig.Parse(argsWithSubcommand, true)
+	fs := pflag.NewFlagSet("jose-ja-server", pflag.ContinueOnError)
+
+	cfg, err := cryptoutilAppsJoseJaServerConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 
