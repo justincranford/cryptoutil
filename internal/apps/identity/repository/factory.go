@@ -212,6 +212,16 @@ func (f *RepositoryFactory) Close() error {
 	return nil
 }
 
+// NewRepositoryFactoryForTesting creates a minimal RepositoryFactory for unit tests,
+// injecting only the repositories needed for the code under test.
+// The db field is left nil; do not call Close() or AutoMigrate() on the result.
+func NewRepositoryFactoryForTesting(userRepo UserRepository, clientRepo ClientRepository) *RepositoryFactory {
+	return &RepositoryFactory{
+		userRepo:   userRepo,
+		clientRepo: clientRepo,
+	}
+}
+
 // AutoMigrate runs database migrations using golang-migrate with embedded SQL files.
 func (f *RepositoryFactory) AutoMigrate(_ context.Context) error {
 	// Get underlying *sql.DB from GORM DB instance.
