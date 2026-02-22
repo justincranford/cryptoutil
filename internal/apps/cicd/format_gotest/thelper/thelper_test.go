@@ -382,4 +382,24 @@ func TestFix_ReadOnlyFile(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to process")
 }
 
+func TestFix_HelperWithoutTestingParam(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	tmpDir := t.TempDir()
+
+	// Helper function named "setup*" but without *testing.T parameter.
+	// This exercises the getTestingParam() == "" early return in fixTHelperInFile.
+	content := "package foo\n\nfunc setupSomething() {\n}\n"
+	err := os.WriteFile(filepath.Join(tmpDir, "something_test.go"), []byte(content), 0o600)
+	require.NoError(t, err)
+
+	processed, modified, fixed, err := Fix(logger, tmpDir)
+
+	require.NoError(t, err)
+	require.Equal(t, 1, processed)
+	require.Zero(t, modified)
+	require.Zero(t, fixed)
+}
+
 const testContentSetupMissingHelper = "package foo\n\nimport \"testing\"\n\nfunc setupSomething(t *testing.T) {\n\tt.Log(\"setup\")\n}\n"
