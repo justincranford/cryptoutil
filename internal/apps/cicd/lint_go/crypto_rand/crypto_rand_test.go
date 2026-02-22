@@ -3,6 +3,7 @@ package crypto_rand
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
@@ -338,4 +339,19 @@ func TestCheckFileForMathRand_UsageNolintSkipped(t *testing.T) {
 	// Should include violation for the import line but no usage violation.
 	require.Len(t, violations, 1, "Only import line should be flagged, not nolint usage line")
 	require.Contains(t, violations[0].Issue, "imports math/rand")
+}
+
+func TestCheckFileForMathRand_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	goFile := filepath.Join(tmpDir, "huge_line.go")
+
+	// Create a file with a line exceeding bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
+	longLine := "package foo\n// " + strings.Repeat("x", 70000) + "\n"
+	require.NoError(t, os.WriteFile(goFile, []byte(longLine), 0o600))
+
+	_, err := CheckFileForMathRand(goFile)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error reading file")
 }

@@ -136,3 +136,11 @@ func TestA(t *testing.T) { t.Log("test") }
 		})
 	}
 }
+
+func TestCheckParallelUsage_ReadFileError(t *testing.T) {
+	t.Parallel()
+
+	issues := CheckParallelUsage("/nonexistent/path/that/does/not/exist_test.go")
+	require.NotEmpty(t, issues)
+	require.Contains(t, issues[0], "Error reading file")
+}

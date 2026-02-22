@@ -141,3 +141,25 @@ func TestCheck_UsesMagicDefaultDir(t *testing.T) {
 	require.Error(t, err, "Check() should fail when MagicDefaultDir does not exist relative to CWD")
 	require.Contains(t, err.Error(), "failed to parse magic package")
 }
+
+func TestCheckMagicDuplicatesInDir_MultipleDuplicateGroups(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	writeMagicFile(t, dir, "magic_multi.go", `package magic
+
+const (
+	ProtoHTTPS  = "https"
+	SchemeHTTPS = "https"
+	SizeA       = 42
+	SizeB       = 42
+	AlgoRSA     = "RSA"
+	AlgoRSA2    = "RSA"
+)
+`)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("magic-dup-test")
+	err := CheckMagicDuplicatesInDir(logger, dir)
+	// magic-duplicates is informational: violations are logged but do not return an error.
+	require.NoError(t, err)
+}

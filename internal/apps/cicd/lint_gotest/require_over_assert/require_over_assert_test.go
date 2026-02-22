@@ -173,3 +173,11 @@ func Test(t *testing.T) { require.NoError(t, nil) }
 		})
 	}
 }
+
+func TestCheckAssertUsage_ReadFileError(t *testing.T) {
+	t.Parallel()
+
+	issues := CheckAssertUsage("/nonexistent/path/that/does/not/exist_test.go")
+	require.NotEmpty(t, issues)
+	require.Contains(t, issues[0], "Error reading file")
+}
