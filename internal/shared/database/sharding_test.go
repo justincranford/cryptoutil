@@ -284,17 +284,17 @@ func TestShardManager_DropTenantSchema(t *testing.T) {
 func TestShardManager_GetDB_SchemaLevel_InvalidCache(t *testing.T) {
 	t.Parallel()
 
-	if testPostgresDB == nil {
-		t.Skip("Schema operations require PostgreSQL - Docker unavailable")
-	}
+	// Use SQLite — the corrupt cache test never queries the DB, it only checks
+	// the type assertion after a direct schemaCache.Store of a non-*gorm.DB value.
+	db := setupTestDB(t)
 
 	cfg := &ShardConfig{
 		Strategy:        StrategySchemaLevel,
 		SchemaPrefix:    "invalid_cache_",
 		DefaultSchema:   "public",
-		EnableMigration: true,
+		EnableMigration: false, // No migration needed — cache is pre-populated.
 	}
-	m := NewShardManager(testPostgresDB, cfg)
+	m := NewShardManager(db, cfg)
 	tenantID := googleUuid.Must(googleUuid.NewV7())
 	schemaName := cfg.SchemaPrefix + tenantID.String()
 	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
@@ -305,6 +305,27 @@ func TestShardManager_GetDB_SchemaLevel_InvalidCache(t *testing.T) {
 	_, err := m.GetDB(ctx)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid cached DB type")
+}
+
+func TestShardManager_GetDB_SchemaLevel_EnsureSchemaError(t *testing.T) {
+	t.Parallel()
+
+	// Use SQLite which does not support CREATE SCHEMA — triggers ensureSchema failure.
+	db := setupTestDB(t)
+
+	cfg := &ShardConfig{
+		Strategy:        StrategySchemaLevel,
+		SchemaPrefix:    "schema_err_",
+		DefaultSchema:   "public",
+		EnableMigration: true, // Forces ensureSchema call — fails on SQLite.
+	}
+	m := NewShardManager(db, cfg)
+	tenantID := googleUuid.Must(googleUuid.NewV7())
+	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
+
+	_, err := m.GetDB(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to create schema")
 }
 
 func TestShardStrategyString(t *testing.T) {
