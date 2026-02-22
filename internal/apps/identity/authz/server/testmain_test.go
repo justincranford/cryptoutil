@@ -4,7 +4,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"testing"

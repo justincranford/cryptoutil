@@ -6,6 +6,16 @@ package magic
 
 import "time"
 
+// Common duration constants.
+const (
+	// Days1 represents a 24-hour period.
+	Days1 = 24 * time.Hour
+	// Days30 represents a 30-day period.
+	Days30 = 30 * Days1
+	// Days365 represents a 365-day period.
+	Days365 = 365 * Days1
+)
+
 // TLS certificate validity periods.
 const (
 	// Serial number bit sizes for cryptographic range.
@@ -21,22 +31,22 @@ const (
 	// TLSMaxValidityCACertYears - Maximum years for CA certificates.
 	TLSMaxValidityCACertYears = 25
 	// TLSMaxCACertDuration - Maximum duration for CA certificates (25 years).
-	TLSMaxCACertDuration = TLSMaxValidityCACertYears * 365 * 24 * time.Hour
+	TLSMaxCACertDuration = TLSMaxValidityCACertYears * Days365
 
 	// TLSDefaultValidityCACertYears - Years for CA certificates.
 	TLSDefaultValidityCACertYears = 10
-	// TLSDefaultMaxCACertDuration - Maximum duration for CA certificates (25 years).
-	TLSDefaultMaxCACertDuration = TLSMaxValidityCACertYears * 365 * 24 * time.Hour
+	// TLSDefaultMaxCACertDuration - Maximum duration for CA certificates (10 years).
+	TLSDefaultMaxCACertDuration = TLSDefaultValidityCACertYears * Days365
 
 	// TLSMaxValidityEndEntityDays - Maximum days for server end-entity certificate.
 	TLSMaxValidityEndEntityDays = 398
 	// TLSMaxSubscriberCertDuration - Maximum duration for subscriber certificates (398 days).
-	TLSMaxSubscriberCertDuration = TLSMaxValidityEndEntityDays * 24 * time.Hour
+	TLSMaxSubscriberCertDuration = TLSMaxValidityEndEntityDays * Days1
 
 	// TLSDefaultValidityEndEntityDays - Days for server end-entity certificate.
 	TLSDefaultValidityEndEntityDays = 397
-	// TLSDefaultSubscriberCertDuration - Maximum duration for subscriber certificates (398 days).
-	TLSDefaultSubscriberCertDuration = TLSDefaultValidityEndEntityDays * 24 * time.Hour
+	// TLSDefaultSubscriberCertDuration - Default duration for subscriber certificates (397 days).
+	TLSDefaultSubscriberCertDuration = TLSDefaultValidityEndEntityDays * Days1
 
 	// Test certificate validity durations.
 	TLSTestCACertValidity20Years        = 20

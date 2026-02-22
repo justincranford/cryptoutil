@@ -6,9 +6,9 @@
 package poll
 
 import (
-"context"
-"fmt"
-"time"
+	"context"
+	"fmt"
+	"time"
 )
 
 // ConditionFunc is a function that returns true when the polled condition is met.
@@ -18,25 +18,25 @@ type ConditionFunc func(ctx context.Context) (done bool, err error)
 // Until polls conditionFn at the given interval until it returns true, the context is canceled,
 // or the timeout elapses. Returns nil when the condition is met, or an error otherwise.
 func Until(ctx context.Context, timeout time.Duration, interval time.Duration, conditionFn ConditionFunc) error {
-deadline := time.Now().UTC().Add(timeout)
+	deadline := time.Now().UTC().Add(timeout)
 
-for time.Now().UTC().Before(deadline) {
-done, err := conditionFn(ctx)
-if err != nil {
-return fmt.Errorf("poll condition failed: %w", err)
-}
+	for time.Now().UTC().Before(deadline) {
+		done, err := conditionFn(ctx)
+		if err != nil {
+			return fmt.Errorf("poll condition failed: %w", err)
+		}
 
-if done {
-return nil
-}
+		if done {
+			return nil
+		}
 
-select {
-case <-ctx.Done():
-return fmt.Errorf("poll canceled: %w", ctx.Err())
-case <-time.After(interval):
-// Continue polling.
-}
-}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("poll canceled: %w", ctx.Err())
+		case <-time.After(interval):
+			// Continue polling.
+		}
+	}
 
-return fmt.Errorf("poll timed out after %v", timeout)
+	return fmt.Errorf("poll timed out after %v", timeout)
 }

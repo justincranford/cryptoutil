@@ -20,25 +20,25 @@ import (
 )
 
 var (
-testJoseJAService *cryptoutilAppsJoseJaServer.JoseJAServer
-sharedHTTPClient  *http.Client
-publicBaseURL     string
-adminBaseURL      string
+	testJoseJAService *cryptoutilAppsJoseJaServer.JoseJAServer
+	sharedHTTPClient  *http.Client
+	publicBaseURL     string
+	adminBaseURL      string
 )
 
 func TestMain(m *testing.M) {
-// Create in-memory SQLite configuration for testing.
-cfg := cryptoutilAppsJoseJaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	// Create in-memory SQLite configuration for testing.
+	cfg := cryptoutilAppsJoseJaServerConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-ctx := context.Background()
+	ctx := context.Background()
 
-// Create server.
-var err error
+	// Create server.
+	var err error
 
-testJoseJAService, err = cryptoutilAppsJoseJaServer.NewFromConfig(ctx, cfg)
-if err != nil {
-panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
-}
+	testJoseJAService, err = cryptoutilAppsJoseJaServer.NewFromConfig(ctx, cfg)
+	if err != nil {
+		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
+	}
 
 	// Start server in background.
 	errChan := make(chan error, 1)
@@ -68,24 +68,24 @@ panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 		panic(fmt.Sprintf("TestMain: %v", pollErr))
 	}
 
-// Mark server as ready.
-testJoseJAService.SetReady(true)
+	// Mark server as ready.
+	testJoseJAService.SetReady(true)
 
-// Store base URLs for tests.
-publicBaseURL = testJoseJAService.PublicBaseURL()
-adminBaseURL = testJoseJAService.AdminBaseURL()
+	// Store base URLs for tests.
+	publicBaseURL = testJoseJAService.PublicBaseURL()
+	adminBaseURL = testJoseJAService.AdminBaseURL()
 
-// Create shared HTTP client for all tests (accepts self-signed certs).
-sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
+	// Create shared HTTP client for all tests (accepts self-signed certs).
+	sharedHTTPClient = cryptoutilSharedCryptoTls.NewClientForTest()
 
-// Run all tests.
-exitCode := m.Run()
+	// Run all tests.
+	exitCode := m.Run()
 
-// Cleanup: Shutdown server.
-shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-defer cancel()
+	// Cleanup: Shutdown server.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-_ = testJoseJAService.Shutdown(shutdownCtx)
+	_ = testJoseJAService.Shutdown(shutdownCtx)
 
-os.Exit(exitCode)
+	os.Exit(exitCode)
 }

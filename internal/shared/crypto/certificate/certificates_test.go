@@ -18,7 +18,6 @@ import (
 	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedUtilDatetime "cryptoutil/internal/shared/util/datetime"
 
 	"github.com/stretchr/testify/require"
 )
@@ -39,12 +38,12 @@ const (
 	testHTTPMaxRetries         = cryptoutilSharedMagic.TestHTTPMaxRetries
 
 	// Certificate validity durations.
-	testCACertValidity10Years        = cryptoutilSharedMagic.TLSDefaultValidityCACertYears * 365 * cryptoutilSharedUtilDatetime.Days1
-	testCACertValidity20Years        = cryptoutilSharedMagic.TLSTestCACertValidity20Years * 365 * cryptoutilSharedUtilDatetime.Days1
-	testCACertValidity5Years         = cryptoutilSharedMagic.TLSTestCACertValidity5Years * 365 * cryptoutilSharedUtilDatetime.Days1
-	testEndEntityCertValidity396Days = cryptoutilSharedMagic.TLSTestEndEntityCertValidity396Days * cryptoutilSharedUtilDatetime.Days1
-	testEndEntityCertValidity30Days  = cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedUtilDatetime.Days1
-	testEndEntityCertValidity1Year   = cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedUtilDatetime.Days1
+	testCACertValidity10Years        = cryptoutilSharedMagic.TLSDefaultValidityCACertYears * cryptoutilSharedMagic.Days365
+	testCACertValidity20Years        = cryptoutilSharedMagic.TLSTestCACertValidity20Years * cryptoutilSharedMagic.Days365
+	testCACertValidity5Years         = cryptoutilSharedMagic.TLSTestCACertValidity5Years * cryptoutilSharedMagic.Days365
+	testEndEntityCertValidity396Days = cryptoutilSharedMagic.TLSTestEndEntityCertValidity396Days * cryptoutilSharedMagic.Days1
+	testEndEntityCertValidity30Days  = cryptoutilSharedMagic.TLSTestEndEntityCertValidity30Days * cryptoutilSharedMagic.Days1
+	testEndEntityCertValidity1Year   = cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.Days1
 
 	// Test constants.
 	testNegativeDuration = cryptoutilSharedMagic.TestNegativeDuration
