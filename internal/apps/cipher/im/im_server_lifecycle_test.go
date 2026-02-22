@@ -77,7 +77,7 @@ func TestIM_ServerLifecycle(t *testing.T) {
 	// Wait for server to start (goroutine prints "Starting cipher-im service" to stdout).
 	const maxWait = 30 * time.Second
 
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	for time.Since(startTime) < maxWait {
 		mu.Lock()
