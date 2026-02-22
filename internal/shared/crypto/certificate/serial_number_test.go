@@ -67,14 +67,14 @@ func TestRandomizedNotBeforeNotAfterCA_HappyPath(t *testing.T) {
 	require.True(t, actualDuration <= requestedDuration+maxSubtract)
 
 	// Verify does not exceed max CA cert duration.
-	require.True(t, actualDuration <= cryptoutilSharedMagic.TLSDefaultMaxCACertDuration)
+	require.True(t, actualDuration <= cryptoutilSharedMagic.TLSMaxCACertDuration)
 }
 
 func TestRandomizedNotBeforeNotAfterCA_ExceedsMaxDuration(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now().UTC()
-	requestedDuration := cryptoutilSharedMagic.TLSDefaultMaxCACertDuration + time.Hour // Exceeds max.
+	requestedDuration := cryptoutilSharedMagic.TLSMaxCACertDuration + time.Hour // Exceeds max.
 	minSubtract := 5 * time.Minute
 	maxSubtract := 10 * time.Minute
 
@@ -119,34 +119,34 @@ func TestRandomizedNotBeforeNotAfterEndEntity_ExceedsMaxDuration(t *testing.T) {
 	require.Contains(t, err.Error(), "requestedDuration exceeds maxSubscriberCertDuration")
 }
 
-func TestRandomizedNotBeforeNotAfterCA_ActualDurationExceedsMax(t *testing.T) {
+func TestRandomizedNotBeforeNotAfterCA_ExactMaxDurationSucceeds(t *testing.T) {
 	t.Parallel()
 
-	// Use exactly TLSDefaultMaxCACertDuration so the pre-check passes (== not >),
-	// but the randomized jitter pushes the actual duration beyond the max.
-	_, _, err := randomizedNotBeforeNotAfterCA(
+	// Use exactly TLSDefaultMaxCACertDuration (== not >) with standard randomization.
+	// The post-check uses requestedDuration+maxSubtract, so this succeeds.
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(
 		time.Now().UTC(),
 		cryptoutilSharedMagic.TLSDefaultMaxCACertDuration,
 		time.Minute,
 		cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute,
 	)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "actual duration exceeds maxCACertDuration")
+	require.NoError(t, err)
+	require.True(t, notBefore.Before(notAfter))
 }
 
-func TestRandomizedNotBeforeNotAfterEndEntity_ActualDurationExceedsMax(t *testing.T) {
+func TestRandomizedNotBeforeNotAfterEndEntity_ExactMaxDurationSucceeds(t *testing.T) {
 	t.Parallel()
 
-	// Use exactly TLSDefaultSubscriberCertDuration so the pre-check passes (== not >),
-	// but the randomized jitter pushes the actual duration beyond the max.
-	_, _, err := randomizedNotBeforeNotAfterEndEntity(
+	// Use exactly TLSDefaultSubscriberCertDuration (== not >) with standard randomization.
+	// The post-check uses requestedDuration+maxSubtract, so this succeeds.
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(
 		time.Now().UTC(),
 		cryptoutilSharedMagic.TLSDefaultSubscriberCertDuration,
 		time.Minute,
 		cryptoutilSharedMagic.CertificateRandomizationNotBeforeMinutes*time.Minute,
 	)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "actual duration exceeds maxSubscriberCertDuration")
+	require.NoError(t, err)
+	require.True(t, notBefore.Before(notAfter))
 }
 
 func TestGenerateNotBeforeNotAfter(t *testing.T) {

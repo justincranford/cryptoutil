@@ -263,7 +263,7 @@ func TestGenerateNotBeforeNotAfter_InvalidParams(t *testing.T) {
 func TestRandomizedNotBeforeNotAfterCA_ExcessiveDuration(t *testing.T) {
 	t.Parallel()
 
-	// 26 years exceeds TLSDefaultMaxCACertDuration (25 years).
+	// 26 years exceeds TLSMaxCACertDuration (25 years).
 	excessiveDuration := time.Duration(26 * 365 * 24 * time.Hour)
 
 	_, _, err := randomizedNotBeforeNotAfterCA(
