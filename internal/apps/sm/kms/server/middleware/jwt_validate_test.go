@@ -292,3 +292,96 @@ func TestJWTMiddleware_FullFlow(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateToken_WithRevocationCheck(t *testing.T) {
+t.Parallel()
+
+jwksServer := newTestJWKSServer(t)
+
+introspectionServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+w.WriteHeader(http.StatusOK)
+
+_, writeErr := w.Write([]byte(`{"active":true}`))
+require.NoError(t, writeErr)
+}))
+t.Cleanup(introspectionServer.Close)
+
+now := time.Now().UTC()
+
+validator, err := NewJWTValidator(JWTValidatorConfig{
+JWKSURL:             jwksServer.server.URL,
+RevocationCheckMode: RevocationCheckEveryRequest,
+IntrospectionURL:    introspectionServer.URL,
+})
+require.NoError(t, err)
+
+tokenString := jwksServer.signToken(t, map[string]any{
+"sub":   "user-revcheck",
+"exp":   now.Add(1 * time.Hour).Unix(),
+"iat":   now.Unix(),
+"scope": "read write",
+})
+
+claims, err := validator.ValidateToken(t.Context(), tokenString)
+require.NoError(t, err)
+require.NotNil(t, claims)
+require.Equal(t, "user-revcheck", claims.Subject)
+}
+
+func TestValidateToken_RevokedDuringCheck(t *testing.T) {
+t.Parallel()
+
+jwksServer := newTestJWKSServer(t)
+
+introspectionServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+w.WriteHeader(http.StatusOK)
+
+_, writeErr := w.Write([]byte(`{"active":false}`))
+require.NoError(t, writeErr)
+}))
+t.Cleanup(introspectionServer.Close)
+
+now := time.Now().UTC()
+
+validator, err := NewJWTValidator(JWTValidatorConfig{
+JWKSURL:             jwksServer.server.URL,
+RevocationCheckMode: RevocationCheckEveryRequest,
+IntrospectionURL:    introspectionServer.URL,
+})
+require.NoError(t, err)
+
+tokenString := jwksServer.signToken(t, map[string]any{
+"sub": "revoked-user",
+"exp": now.Add(1 * time.Hour).Unix(),
+"iat": now.Unix(),
+})
+
+claims, err := validator.ValidateToken(t.Context(), tokenString)
+require.Error(t, err)
+require.Nil(t, claims)
+require.Contains(t, err.Error(), "revoked")
+}
+
+func TestValidateToken_WithAllowedAlgorithms(t *testing.T) {
+t.Parallel()
+
+jwksServer := newTestJWKSServer(t)
+now := time.Now().UTC()
+
+validator, err := NewJWTValidator(JWTValidatorConfig{
+JWKSURL:           jwksServer.server.URL,
+AllowedAlgorithms: DefaultAllowedAlgorithms(),
+})
+require.NoError(t, err)
+
+tokenString := jwksServer.signToken(t, map[string]any{
+"sub": "user-alg",
+"exp": now.Add(1 * time.Hour).Unix(),
+"iat": now.Unix(),
+})
+
+claims, err := validator.ValidateToken(t.Context(), tokenString)
+require.NoError(t, err)
+require.NotNil(t, claims)
+}
+

@@ -5,6 +5,7 @@ import (
 	http "net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
@@ -197,3 +198,66 @@ func TestServiceAuth_APIKeyNilConfig(t *testing.T) {
 
 	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }
+
+func TestTryAuthenticate_UnsupportedMethod(t *testing.T) {
+	t.Parallel()
+
+	mw, err := NewServiceAuthMiddleware(ServiceAuthConfig{
+		AllowedMethods: []AuthMethod{"unsupported"},
+	})
+	require.NoError(t, err)
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Use(mw.Middleware())
+	app.Get("/test", func(c *fiber.Ctx) error {
+		return c.SendStatus(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestServiceAuth_ClientCredentialsWithJWT(t *testing.T) {
+	t.Parallel()
+
+	jwksServer := newTestJWKSServer(t)
+	now := time.Now().UTC()
+
+	mw, err := NewServiceAuthMiddleware(ServiceAuthConfig{
+		AllowedMethods:          []AuthMethod{AuthMethodClientCredentials, AuthMethodJWT},
+		JWTConfig:               &JWTValidatorConfig{JWKSURL: jwksServer.server.URL},
+		ClientCredentialsConfig: &ClientCredentialsConfig{},
+	})
+	require.NoError(t, err)
+
+	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	app.Use(mw.Middleware())
+	app.Get("/test", func(c *fiber.Ctx) error {
+		return c.SendStatus(http.StatusOK)
+	})
+
+	tokenString := jwksServer.signToken(t, map[string]any{
+		"sub":                "client-creds-service",
+		"exp":                now.Add(1 * time.Hour).Unix(),
+		"iat":                now.Unix(),
+		"preferred_username": "my-service",
+		"scope":              "read",
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	req.Header.Set("Authorization", "Bearer "+tokenString)
+
+	resp, err := app.Test(req, -1)
+	require.NoError(t, err)
+
+	defer func() { _ = resp.Body.Close() }()
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+

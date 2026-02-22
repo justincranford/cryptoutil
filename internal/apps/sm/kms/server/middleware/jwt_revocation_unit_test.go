@@ -50,9 +50,9 @@ func TestExtractClaims(t *testing.T) {
 					Subject("user-123").
 					Issuer("https://auth.example.com").
 					Audience([]string{"api.example.com"}).
-					Expiration(time.Now().Add(time.Hour)).
-					IssuedAt(time.Now()).
-					NotBefore(time.Now().Add(-time.Minute)).
+					Expiration(time.Now().UTC().Add(time.Hour)).
+					IssuedAt(time.Now().UTC()).
+					NotBefore(time.Now().UTC().Add(-time.Minute)).
 					JwtID("jti-abc").
 					Build()
 				require.NoError(t, err)
