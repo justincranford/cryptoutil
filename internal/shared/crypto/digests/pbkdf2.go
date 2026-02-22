@@ -17,6 +17,9 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
+// Injectable var for testing - allows error path coverage for crypto/rand.Read.
+var digestsRandReadFn = crand.Read
+
 // PBKDF2Params defines parameters for PBKDF2-HMAC hashing.
 type PBKDF2Params struct {
 	// Version identifier (e.g., "1", "2", "3") for versioned hash format.
@@ -59,7 +62,7 @@ func PBKDF2WithParams(secret string, params *PBKDF2Params) (string, error) {
 	}
 
 	salt := make([]byte, params.SaltLength)
-	if _, err := crand.Read(salt); err != nil {
+	if _, err := digestsRandReadFn(salt); err != nil {
 		return "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 

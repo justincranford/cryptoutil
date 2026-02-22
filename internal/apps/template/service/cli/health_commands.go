@@ -36,15 +36,10 @@ func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, de
 			if i+1 < len(args) && url == defaultBase { // Only set if not already set
 				baseURL := args[i+1]
 
-				healthPath := cryptoutilSharedMagic.DefaultPublicServiceAPIContextPath + "/health"
-				if !strings.HasSuffix(baseURL, "/health") {
-					if strings.HasSuffix(baseURL, healthPath) {
-						url = baseURL
-					} else {
-						url = baseURL + "/health"
-					}
-				} else {
+				if strings.HasSuffix(baseURL, "/health") {
 					url = baseURL
+				} else {
+					url = baseURL + "/health"
 				}
 
 				i++ // Skip next arg

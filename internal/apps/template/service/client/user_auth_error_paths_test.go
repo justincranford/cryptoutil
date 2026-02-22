@@ -13,6 +13,9 @@ import (
 // errTestGenerateFailure is used to inject into the generate functions.
 var errTestGenerateFailure = errors.New("test: generate failure")
 
+// errTestMarshalFailure is used to inject into the JSON marshal function.
+var errTestMarshalFailure = errors.New("test: marshal failure")
+
 const testUsername = "user"
 
 // TestRegisterTestUserService_UsernameError tests RegisterTestUserService
@@ -85,4 +88,52 @@ func TestRegisterTestUserBrowser_PasswordError(t *testing.T) {
 	_, err := RegisterTestUserBrowser(nil, "https://localhost")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to generate password")
+}
+
+// TestRegisterServiceUser_MarshalError tests RegisterServiceUser
+// when JSON marshaling fails.
+// NOTE: Must NOT use t.Parallel() - modifies package-level var.
+func TestRegisterServiceUser_MarshalError(t *testing.T) {
+	orig := templateClientJSONMarshalFn
+	templateClientJSONMarshalFn = func(_ any) ([]byte, error) {
+		return nil, errTestMarshalFailure
+	}
+
+	defer func() { templateClientJSONMarshalFn = orig }()
+
+	_, err := RegisterServiceUser(nil, "https://localhost", "user", "pass")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to marshal request")
+}
+
+// TestRegisterBrowserUser_MarshalError tests RegisterBrowserUser
+// when JSON marshaling fails.
+// NOTE: Must NOT use t.Parallel() - modifies package-level var.
+func TestRegisterBrowserUser_MarshalError(t *testing.T) {
+	orig := templateClientJSONMarshalFn
+	templateClientJSONMarshalFn = func(_ any) ([]byte, error) {
+		return nil, errTestMarshalFailure
+	}
+
+	defer func() { templateClientJSONMarshalFn = orig }()
+
+	_, err := RegisterBrowserUser(nil, "https://localhost", "user", "pass")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to marshal request")
+}
+
+// TestLoginUser_MarshalError tests LoginUser
+// when JSON marshaling fails.
+// NOTE: Must NOT use t.Parallel() - modifies package-level var.
+func TestLoginUser_MarshalError(t *testing.T) {
+	orig := templateClientJSONMarshalFn
+	templateClientJSONMarshalFn = func(_ any) ([]byte, error) {
+		return nil, errTestMarshalFailure
+	}
+
+	defer func() { templateClientJSONMarshalFn = orig }()
+
+	_, err := LoginUser(nil, "https://localhost", "/login", "user", "pass")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to marshal request")
 }

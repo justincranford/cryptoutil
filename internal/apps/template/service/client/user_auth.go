@@ -22,6 +22,7 @@ import (
 var (
 	templateClientGenerateUsernameSimpleFn = cryptoutilSharedUtilRandom.GenerateUsernameSimple
 	templateClientGeneratePasswordSimpleFn = cryptoutilSharedUtilRandom.GeneratePasswordSimple
+	templateClientJSONMarshalFn            = json.Marshal
 )
 
 // User represents a user with authentication token for client operations.
@@ -41,7 +42,7 @@ func RegisterServiceUser(client *http.Client, baseURL, username, password string
 		"password": password,
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	reqJSON, err := templateClientJSONMarshalFn(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -98,7 +99,7 @@ func RegisterBrowserUser(client *http.Client, baseURL, username, password string
 		"password": password,
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	reqJSON, err := templateClientJSONMarshalFn(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
@@ -155,7 +156,7 @@ func LoginUser(client *http.Client, baseURL, loginPath, username, password strin
 		"password": password,
 	}
 
-	reqJSON, err := json.Marshal(reqBody)
+	reqJSON, err := templateClientJSONMarshalFn(reqBody)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}

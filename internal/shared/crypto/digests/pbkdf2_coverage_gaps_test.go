@@ -4,12 +4,16 @@ package digests
 
 import (
 	sha256 "crypto/sha256"
+	"errors"
 	"hash"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+// errTestInjectFailure is used to inject errors into injectable vars.
+var errTestInjectFailure = errors.New("test: injected failure")
 
 // TestPBKDF2WithParams_ErrorPaths tests error handling for PBKDF2WithParams.
 func TestPBKDF2WithParams_ErrorPaths(t *testing.T) {
@@ -242,4 +246,43 @@ func TestParsePbkdf2Params_CoverageCheck(t *testing.T) {
 			require.False(t, valid, "Valid should be false when error occurs")
 		})
 	}
+}
+
+// TestPBKDF2WithParams_RandReadError tests PBKDF2WithParams when crypto/rand.Read fails.
+// NOTE: Must NOT use t.Parallel() - modifies package-level var.
+func TestPBKDF2WithParams_RandReadError(t *testing.T) {
+	orig := digestsRandReadFn
+	digestsRandReadFn = func(_ []byte) (int, error) {
+		return 0, errTestInjectFailure
+	}
+
+	defer func() { digestsRandReadFn = orig }()
+
+	params := &PBKDF2Params{
+		Version:    "1",
+		HashName:   "pbkdf2-sha256",
+		Iterations: 600000,
+		SaltLength: 32,
+		KeyLength:  32,
+		HashFunc:   func() hash.Hash { return sha256.New() },
+	}
+
+	_, err := PBKDF2WithParams("testsecret", params)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to generate salt")
+}
+
+// TestHKDF_ReadError tests HKDF when the internal Read call fails.
+// NOTE: Must NOT use t.Parallel() - modifies package-level var.
+func TestHKDF_ReadError(t *testing.T) {
+	orig := digestsHKDFReadFn
+	digestsHKDFReadFn = func(_ interface{ Read([]byte) (int, error) }, _ []byte) (int, error) {
+		return 0, errTestInjectFailure
+	}
+
+	defer func() { digestsHKDFReadFn = orig }()
+
+	_, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info"), sha256.Size)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to compute HKDF")
 }

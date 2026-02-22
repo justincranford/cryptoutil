@@ -27,6 +27,11 @@ var (
 	ErrInvalidOutputBytesLengthTooBig   = errors.New("outputBytesLength too big; maximum is 255 * digest block size")
 )
 
+// Injectable var for testing - allows error path coverage for io.ReadFull on HKDF.
+var digestsHKDFReadFn = func(reader interface{ Read([]byte) (int, error) }, buf []byte) (int, error) {
+	return reader.Read(buf)
+}
+
 // Digest name constants for HKDF operations.
 const (
 	// DigestSHA512 is the name constant for SHA-512 digest.
@@ -102,7 +107,7 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 	hkdfAlgorithm := hkdf.New(digestFunction, secretBytes, saltBytes, infoBytes)
 	hkdfOutputBytes := make([]byte, outputBytesLength)
 
-	_, err := hkdfAlgorithm.Read(hkdfOutputBytes)
+	_, err := digestsHKDFReadFn(hkdfAlgorithm, hkdfOutputBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute HKDF: %w", err)
 	}
