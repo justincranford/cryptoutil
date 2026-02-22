@@ -119,6 +119,11 @@ func TestClaimsExtractor_ExtractFromMap(t *testing.T) {
 			rawClaims: nil,
 			wantErr:   true,
 		},
+		{
+			name:      "marshal error - unsupported type",
+			rawClaims: map[string]any{"sub": "user-123", "bad": make(chan int)},
+			wantErr:   true,
+		},
 	}
 
 	for _, tc := range tests {

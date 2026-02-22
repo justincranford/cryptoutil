@@ -303,6 +303,26 @@ func TestShouldPerformRevocationCheck(t *testing.T) {
 			claims:   &JWTClaims{Scopes: []string{"read"}},
 			expected: true,
 		},
+		{
+			name: "interval mode",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:    "https://example.com/introspect",
+				RevocationCheckMode: RevocationCheckInterval,
+			},
+			claims:   &JWTClaims{Scopes: []string{"read"}},
+			expected: true,
+		},
+		{
+			name: "unknown mode falls through to default",
+			config: JWTValidatorConfig{
+				JWKSURL:             "https://example.com/.well-known/jwks.json",
+				IntrospectionURL:    "https://example.com/introspect",
+				RevocationCheckMode: "unknown-mode",
+			},
+			claims:   &JWTClaims{Scopes: []string{"read"}},
+			expected: false,
+		},
 	}
 
 	for _, tc := range tests {
