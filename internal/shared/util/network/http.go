@@ -18,6 +18,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// Injectable functions for testing defensive error paths.
+var (
+	networkReadAllFn      = io.ReadAll
+	networkRoundTripperFn func(*http.Request) (*http.Response, error) // nil = use real client.Do
+)
+
 // HTTPGetLivez performs a GET /livez request to the private health endpoint.
 func HTTPGetLivez(ctx context.Context, baseURL, adminContextPath string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
 	fullPath := adminContextPath + cryptoutilSharedMagic.PrivateAdminLivezRequestPath
@@ -109,7 +115,13 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 		client.Transport = transport
 	}
 
-	resp, err := client.Do(req)
+	var resp *http.Response
+	if networkRoundTripperFn != nil {
+		resp, err = networkRoundTripperFn(req)
+	} else {
+		resp, err = client.Do(req)
+	}
+
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("failed to make %s request: %w", method, err)
 	}
@@ -120,7 +132,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 		}
 	}()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := networkReadAllFn(resp.Body)
 	if err != nil {
 		return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to read response body: %w", err)
 	}

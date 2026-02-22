@@ -66,7 +66,7 @@ const testUsername  = "user"      // user_auth_error_paths_test.go
 **Applies to:** `internal/shared/*`, `internal/cmd/cicd*`, `internal/apps/cicd/*`, `internal/apps/template/service/*`
 **Excluded:** test-helper sub-packages (`/testutil`, `/testing/*`, `/mocks`, `/keygenpooltest`); `internal/shared/magic/` (constants only, no executable logic)
 **Sorted by:** group priority, then coverage ascending within each group
-**Test requirement:** ALL coverage fixes MUST use table-driven tests for both happy paths and sad paths
+**Test requirement:** ALL coverage fixes MUST use table-driven tests for both happy paths and sad paths; take care to also follow the t.parallel, use `requires` instead of `asserts`, and all other constraints dictated by docs/ARCHITECTURE.md; also, use file names with semantic meaning, not generic names like `*highcov_test.go`
 
 ### OMITTED — constants only, no executable logic
 

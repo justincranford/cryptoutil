@@ -3,6 +3,7 @@
 package asn1
 
 import (
+	"crypto/x509"
 	"errors"
 	"os"
 	"path/filepath"
@@ -167,4 +168,38 @@ func TestDERRead_DecodesAllFail(t *testing.T) {
 	_, _, err := DERRead(filename)
 	require.Error(t, err)
 	require.ErrorContains(t, err, "decode failed")
+}
+
+func TestPEMEncodes_EncodeError(t *testing.T) {
+	// Cannot be parallel: modifies package-level injectable var.
+	originalFn := pemEncodeInternalFn
+
+	defer func() { pemEncodeInternalFn = originalFn }()
+
+	pemEncodeInternalFn = func(_ any) ([]byte, error) {
+		return nil, errors.New("injected PEM encode failure")
+	}
+
+	// Create a minimal certificate slice to trigger the loop.
+	certs := []*x509.Certificate{{Raw: []byte("test")}}
+	_, err := PEMEncodes(certs)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "encode failed")
+}
+
+func TestDEREncodes_EncodeError(t *testing.T) {
+	// Cannot be parallel: modifies package-level injectable var.
+	originalFn := derEncodeInternalFn
+
+	defer func() { derEncodeInternalFn = originalFn }()
+
+	derEncodeInternalFn = func(_ any) ([]byte, string, error) {
+		return nil, "", errors.New("injected DER encode failure")
+	}
+
+	// Create a minimal certificate slice to trigger the loop.
+	certs := []*x509.Certificate{{Raw: []byte("test")}}
+	_, err := DEREncodes(certs)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "encode failed")
 }

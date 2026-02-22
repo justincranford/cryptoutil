@@ -16,6 +16,12 @@ import (
 	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
 )
 
+// Injectable functions for testing defensive error paths.
+var (
+	magicUsageAbsFn  = filepath.Abs
+	magicUsageWalkFn = filepath.Walk
+)
+
 // magicUsageKind classifies how a magic value appears outside the magic package.
 type magicUsageKind string
 
@@ -64,12 +70,12 @@ func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 		return nil
 	}
 
-	absMagicDir, err := filepath.Abs(magicDir)
+	absMagicDir, err := magicUsageAbsFn(magicDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve magic dir: %w", err)
 	}
 
-	absRootDir, err := filepath.Abs(rootDir)
+	absRootDir, err := magicUsageAbsFn(rootDir)
 	if err != nil {
 		return fmt.Errorf("cannot resolve root dir: %w", err)
 	}
@@ -79,7 +85,7 @@ func CheckMagicUsageInDir(logger *cryptoutilCmdCicdCommon.Logger, magicDir, root
 		walkErrors []string
 	)
 
-	walkErr := filepath.Walk(absRootDir, func(path string, info os.FileInfo, err error) error {
+	walkErr := magicUsageWalkFn(absRootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			walkErrors = append(walkErrors, fmt.Sprintf("walk error at %s: %v", path, err))
 

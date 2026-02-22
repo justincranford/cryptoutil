@@ -28,6 +28,8 @@ var (
 	x509MarshalPKCS8PrivateKeyFn = x509.MarshalPKCS8PrivateKey
 	x509MarshalPKIXPublicKeyFn   = x509.MarshalPKIXPublicKey
 	derDecodesPEMTypes           = PEMTypes
+	pemEncodeInternalFn          = PEMEncode
+	derEncodeInternalFn          = DEREncode
 )
 
 // PEMEncodes encodes multiple keys (e.g., certificate chains) to PEM format.
@@ -37,7 +39,7 @@ func PEMEncodes(keys any) ([][]byte, error) {
 		var pemBytesList [][]byte
 
 		for _, k := range expression {
-			pemBytes, err := PEMEncode(k)
+			pemBytes, err := pemEncodeInternalFn(k)
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
@@ -58,7 +60,7 @@ func DEREncodes(key any) ([][]byte, error) {
 	switch expression := key.(type) {
 	case []*x509.Certificate:
 		for _, k := range expression {
-			derBytes, _, err := DEREncode(k)
+			derBytes, _, err := derEncodeInternalFn(k)
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
@@ -106,12 +108,7 @@ func DEREncode(key any) ([]byte, string, error) {
 	case *x509.CertificateRequest:
 		return x509Type.Raw, cryptoutilSharedMagic.StringPEMTypeCSR, nil
 	case []byte:
-		byteKey, ok := key.([]byte)
-		if !ok {
-			return nil, "", fmt.Errorf("type assertion to []byte failed")
-		}
-
-		return byteKey, cryptoutilSharedMagic.StringPEMTypeSecretKey, nil
+		return x509Type, cryptoutilSharedMagic.StringPEMTypeSecretKey, nil
 	default:
 		return nil, "", fmt.Errorf("not supported [%T]", x509Type)
 	}

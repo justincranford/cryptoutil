@@ -258,6 +258,13 @@ Back to [quality-gates-summary.md](quality-gates-summary.md)
 - **Issue**: Many `fmt.Errorf` calls don't use `%w` wrapping. Some are validation errors (acceptable), but some wrap function return values that MUST use `%w`.
 - **Fix**: Audit top offenders: `jwk_util_validate.go` (30), `certificates.go` (27), `jws_jwk_util.go` (25).
 
+### F-6.39.1: semantic file names
+
+- **Files**: *_cov*.go outside out cicd
+- **Severity**: MEDIUM
+- **Issue**: Many files have meaningless names or subnames, related to increasing code coverage to reach required coverage and mutations thresholds, for unit/integration/e2e tests
+- **Fix**: List all les in internal/*, filter on filenames with names that don't match the semantic meaning of the contents of the file or the package; rename the file, or consolidate the tests contented in it to other meaningfully named test files within the package; take care to avoid duplicate tests, and take care to ensure tests following doc/ARCHITECTURE.md requirements like table-driven happy path tests, table-driven sad path tests, t.parallel(), use `requires` instead of `asserts`, and all of the other test constraints dictated by docs/ARCHITECTURE.md
+
 ---
 
 ## LOW Priority

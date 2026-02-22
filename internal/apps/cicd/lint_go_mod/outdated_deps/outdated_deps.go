@@ -18,6 +18,9 @@ import (
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 )
 
+// Injectable functions for testing defensive error paths.
+var outdatedDepsMarshalFn = func(v any, prefix, indent string) ([]byte, error) { return json.MarshalIndent(v, prefix, indent) }
+
 // Check checks for outdated Go direct dependencies and fails if any are found.
 // This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
@@ -280,7 +283,7 @@ func loadDepCache(cacheFile string) (*cryptoutilSharedMagic.DepCache, error) {
 
 // saveDepCache saves dependency cache to the specified file.
 func saveDepCache(cacheFile string, cache cryptoutilSharedMagic.DepCache) error {
-	content, err := json.MarshalIndent(cache, "", "  ")
+	content, err := outdatedDepsMarshalFn(cache, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)
 	}
