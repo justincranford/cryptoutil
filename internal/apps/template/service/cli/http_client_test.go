@@ -49,6 +49,27 @@ func TestLoadCACertPool_InvalidPEM(t *testing.T) {
 	require.Nil(t, pool)
 }
 
+func TestLoadCACertPool_InvalidCertDER(t *testing.T) {
+	t.Parallel()
+
+	// Create a PEM file with CERTIFICATE type but invalid DER bytes inside.
+	invalidCertPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: []byte("invalid DER certificate data"),
+	})
+
+	tmpDir := t.TempDir()
+	certPath := filepath.Join(tmpDir, "bad_cert.pem")
+
+	err := os.WriteFile(certPath, invalidCertPEM, 0o600)
+	require.NoError(t, err)
+
+	pool, err := cryptoutilAppsTemplateCli.LoadCACertPool(certPath)
+	require.Error(t, err)
+	require.Nil(t, pool)
+	require.Contains(t, err.Error(), "failed to parse CA certificate")
+}
+
 func TestHTTPGet_Success(t *testing.T) {
 	t.Parallel()
 

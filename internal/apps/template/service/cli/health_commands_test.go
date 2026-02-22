@@ -342,6 +342,54 @@ func TestShutdownCommand_ConnectionRefused(t *testing.T) {
 	require.Contains(t, stderr.String(), "❌")
 }
 
+func TestLivezCommand_URLWithSuffix(t *testing.T) {
+	t.Parallel()
+
+	srv := newHealthMockServer(t, "/admin/api/v1/livez", http.StatusOK, `{"status":"alive"}`)
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsTemplateCli.LivezCommand(
+		[]string{"--url", srv.URL + "/admin/api/v1/livez"},
+		&stdout, &stderr,
+		"Usage: livez",
+	)
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String(), "✅")
+}
+
+func TestReadyzCommand_URLWithSuffix(t *testing.T) {
+	t.Parallel()
+
+	srv := newHealthMockServer(t, "/admin/api/v1/readyz", http.StatusOK, `{"ready":true}`)
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsTemplateCli.ReadyzCommand(
+		[]string{"--url", srv.URL + "/admin/api/v1/readyz"},
+		&stdout, &stderr,
+		"Usage: readyz",
+	)
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String(), "✅")
+}
+
+func TestShutdownCommand_URLWithSuffix(t *testing.T) {
+	t.Parallel()
+
+	srv := newHealthMockServer(t, "/admin/api/v1/shutdown", http.StatusOK, `{"shutdown":"ok"}`)
+
+	var stdout, stderr bytes.Buffer
+
+	exitCode := cryptoutilAppsTemplateCli.ShutdownCommand(
+		[]string{"--url", srv.URL + "/admin/api/v1/shutdown"},
+		&stdout, &stderr,
+		"Usage: shutdown",
+	)
+	require.Equal(t, 0, exitCode)
+	require.Contains(t, stdout.String(), "✅")
+}
+
 func TestRouteService_HealthSubcommand_Success(t *testing.T) {
 	t.Parallel()
 
