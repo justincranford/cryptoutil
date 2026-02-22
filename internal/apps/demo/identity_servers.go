@@ -49,21 +49,13 @@ func waitForIdentityHealth(ctx context.Context, demoServer *identityDemoServer, 
 	healthURL := demoServer.baseURL + "/health"
 	client := &http.Client{Timeout: identityHTTPClientTimeout}
 
-	return cryptoutilSharedUtilPoll.Until(ctx, timeout, identityHealthInterval, func(pollCtx context.Context) (bool, error) {
-		req, err := http.NewRequestWithContext(pollCtx, http.MethodGet, healthURL, nil)
-		if err != nil {
-			return false, nil
-		}
+	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, identityHealthInterval, func(pollCtx context.Context) (bool, error) {
+		return isHTTPHealthy(pollCtx, client, healthURL), nil
+	}); err != nil {
+		return fmt.Errorf("identity health check failed: %w", err)
+	}
 
-		resp, err := client.Do(req)
-		if err != nil {
-			return false, nil
-		}
-
-		_ = resp.Body.Close()
-
-		return resp.StatusCode == http.StatusOK, nil
-	})
+	return nil
 }
 
 // verifyOpenIDConfiguration verifies the OpenID configuration endpoint.

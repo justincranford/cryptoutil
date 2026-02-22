@@ -42,7 +42,7 @@ Ordered by ease of fix (easiest first) within severity.
 | # | ID | Ease | Finding |
 |---|-----|------|---------|
 | 16 | F-6.17 | Easy | [pool.go long if/else chain (12 branches)](#f-617-poolgo-long-ifelse-chain-12-branches) — switch conversion |
-| 17 | F-6.24 | Easy | [Empty shared/barrier/ directory](#f-624-empty-sharedbarrier-directory) — delete or add doc.go |
+| 17 | F-6.24 | Easy | [Empty shared/barrier/ directory](#f-624-empty-sharedbarrier-directory) — delete |
 | 18 | F-6.25 | Easy | [TLS chain.go constants outside magic](#f-625-tls-chaingo-constants-outside-magic) — move 3 constants |
 | 19 | F-6.26 | Easy | [Algorithm string constants not in magic](#f-626-algorithm-string-constants-in-jose-files-not-in-magic) — move 13 constants |
 | 20 | F-6.27 | Easy | [pwdgen.go policy constants outside magic](#f-627-pwdgengo-policy-constants-outside-magic) — move constants |
@@ -53,16 +53,16 @@ Ordered by ease of fix (easiest first) within severity.
 | 25 | F-6.31 | Medium | [Observability tests — 30 standalone functions](#f-631-observability-tests--30-standalone-functions) — table-driven conversion |
 | 26 | F-6.36 | Medium | [Duplicate identity/demo constants](#f-636-duplicate-identitydemo-constants-with-demo-package) — dedup |
 | 27 | F-6.38 | Medium | [SQL interpolation in sharding (defense)](#f-638-sql-interpolation-in-sharding-defense-in-depth) — validate input |
-| 28 | F-6.18 | Medium | [pool.go at 451 lines](#f-618-poolgo-at-451-lines-approaching-limit) — split before limit |
-| 29 | F-6.19 | Medium | [certificates.go at 474 lines](#f-619-certificatesgo-at-474-lines) — split before limit |
-| 30 | F-6.20 | Medium | [identity/issuer/jws.go at 494 lines](#f-620-identityissuerjwsgo-at-494-lines) — split before limit |
-| 31 | F-6.21 | Medium | [pki/ca/cli/cli.go at 492 lines](#f-621-pkicaclicligo-at-492-lines) — split before limit |
-| 32 | F-6.22 | Medium | [workflow_executor.go at 491 lines](#f-622-workflowworkflow_executorgo-at-491-lines) — split before limit |
+| 28 | F-6.18 | Medium | [pool.go at 451 lines](#f-618-poolgo-at-451-lines-approaching-limit) — split before limit? NO!!! |
+| 29 | F-6.19 | Medium | [certificates.go at 474 lines](#f-619-certificatesgo-at-474-lines) — split before limit? NO!!! |
+| 30 | F-6.20 | Medium | [identity/issuer/jws.go at 494 lines](#f-620-identityissuerjwsgo-at-494-lines) — split before limit? NO!!! |
+| 31 | F-6.21 | Medium | [pki/ca/cli/cli.go at 492 lines](#f-621-pkicaclicligo-at-492-lines) — split before limit? NO!!! |
+| 32 | F-6.22 | Medium | [workflow_executor.go at 491 lines](#f-622-workflowworkflow_executorgo-at-491-lines) — split before limit? NO!!! |
 | 33 | F-6.16 | Complex | [35 test files missing t.Parallel()](#f-616-35-test-files-missing-tparallel) — 35 files to modify |
 | 34 | F-6.23 | Complex | [Container package has zero tests](#f-623-container-package-has-zero-tests) — write tests (Docker) |
 | 35 | F-6.30 | Complex | [91 httptest.NewServer usages](#f-630-91-httptestnewserver-usages-in-tests) — audit 91 usages |
-| 36 | F-6.32 | Complex | [identity/rp/ and identity/spa/ zero tests](#f-632-identityrp-and-identityspa-have-zero-tests) — write tests |
-| 37 | F-6.33 | Complex | [pki/ca/domain/ has zero tests](#f-633-pkicadomain-has-zero-tests) — write tests |
+| 36 | F-6.32 | Complex | [identity/rp/ and identity/spa/ zero tests](#f-632-identityrp-and-identityspa-have-zero-tests) — write tests? NO!!! |
+| 37 | F-6.33 | Complex | [pki/ca/domain/ has zero tests](#f-633-pkicadomain-has-zero-tests) — write tests? NO!!! |
 | 38 | F-6.35 | Complex | [jose package name mismatch](#f-635-jose-package-name-mismatch) — rename pkg + all imports |
 | 39 | F-6.39 | Complex | [fmt.Errorf without %w audit](#f-639-fmterrorf-without-w-audit-needed) — audit 1,089 instances |
 

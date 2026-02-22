@@ -45,8 +45,10 @@ func TestUntil(t *testing.T) {
 			interval: 10 * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
 				callCount := 0
+
 				return func(_ context.Context) (bool, error) {
 					callCount++
+
 					return callCount >= 3, nil
 				}
 			},
@@ -91,6 +93,7 @@ func TestUntil(t *testing.T) {
 			ctxFn: func() context.Context {
 				ctx, cancel := context.WithCancel(context.Background())
 				cancel()
+
 				return ctx
 			},
 			wantErr:     true,

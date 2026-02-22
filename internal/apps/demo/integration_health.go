@@ -29,34 +29,19 @@ func waitForIntegrationHealth(ctx context.Context, servers *integrationServers, 
 
 	// Wait for Identity server health.
 	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, integrationHealthInterval, func(pollCtx context.Context) (bool, error) {
-		req, err := http.NewRequestWithContext(pollCtx, http.MethodGet, identityHealthURL, nil)
-		if err != nil {
-			return false, nil
-		}
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return false, nil
-		}
-
-		_ = resp.Body.Close()
-
-		return resp.StatusCode == http.StatusOK, nil
+		return isHTTPHealthy(pollCtx, client, identityHealthURL), nil
 	}); err != nil {
 		return fmt.Errorf("identity health check failed: %w", err)
 	}
 
 	// Wait for KMS server health.
-	return cryptoutilSharedUtilPoll.Until(ctx, timeout, integrationHealthInterval, func(_ context.Context) (bool, error) {
-		_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(servers.kmsSettings)
-		if err != nil {
-			return false, nil
-		}
+	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, integrationHealthInterval, func(_ context.Context) (bool, error) {
+		return isKMSHealthy(servers.kmsSettings), nil
+	}); err != nil {
+		return fmt.Errorf("kms health check failed: %w", err)
+	}
 
-		_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(servers.kmsSettings)
-
-		return err == nil, nil
-	})
+	return nil
 }
 
 // obtainIntegrationAccessToken obtains an access token from the Identity server.

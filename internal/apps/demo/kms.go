@@ -163,16 +163,13 @@ func startKMSServer(_ context.Context, settings *cryptoutilAppsTemplateServiceCo
 
 // waitForKMSHealth waits for KMS health checks to pass.
 func waitForKMSHealth(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings, timeout time.Duration) error {
-	return cryptoutilSharedUtilPoll.Until(ctx, timeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(_ context.Context) (bool, error) {
-		_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(settings)
-		if err != nil {
-			return false, nil
-		}
+	if err := cryptoutilSharedUtilPoll.Until(ctx, timeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(_ context.Context) (bool, error) {
+		return isKMSHealthy(settings), nil
+	}); err != nil {
+		return fmt.Errorf("kms health check failed: %w", err)
+	}
 
-		_, err = cryptoutilServerApplication.SendServerListenerReadinessCheck(settings)
-
-		return err == nil, nil
-	})
+	return nil
 }
 
 // demonstrateKMSOperations demonstrates KMS cryptographic operations.
