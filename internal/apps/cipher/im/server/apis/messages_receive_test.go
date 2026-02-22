@@ -227,3 +227,38 @@ func TestHandleDeleteMessage_NotFound(t *testing.T) {
 
 // TestHandleSendMessage_EncryptMessageFailure would require mocking the encryption.
 // This is a defensive code path that's hard to test without mocks.
+
+// TestHandleDeleteMessage_ExistingMessageNoAuth tests that HandleDeleteMessage returns
+// 401 when a message exists but no user authentication context is set.
+// This covers the !ok branch for userID extraction after a successful FindByID.
+func TestHandleDeleteMessage_ExistingMessageNoAuth(t *testing.T) {
+        t.Parallel()
+
+        ctx := context.Background()
+
+        // Create a message so FindByID succeeds.
+        senderID := googleUuid.New()
+        messageID := googleUuid.New()
+        message := &cryptoutilAppsCipherImDomain.Message{
+                ID:       messageID,
+                SenderID: senderID,
+                JWE:      "test-jwe-no-auth",
+        }
+        require.NoError(t, testMessageRepo.Create(ctx, message))
+
+        // Build handler with NO auth middleware (so user_id local is never set).
+        app := fiber.New()
+        // Deliberately omit testAuthMiddleware so c.Locals(ContextKeyUserID) stays nil.
+        app.Delete("/messages/:id", testMessageHandler.HandleDeleteMessage())
+
+        req := httptest.NewRequest(http.MethodDelete, "/messages/"+messageID.String(), nil)
+        // No X-User-ID header, no middleware to set the local.
+
+        resp, err := app.Test(req, -1)
+        require.NoError(t, err)
+
+        defer func() { _ = resp.Body.Close() }()
+
+        // Should return 401 because message exists but user context is missing.
+        require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
