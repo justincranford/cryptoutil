@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -278,6 +279,19 @@ func TestIntegrationTimeout(t *testing.T) {
 		timeout := cryptoutilSharedTestutil.IntegrationTimeout()
 		require.Equal(t, cryptoutilSharedTestutil.DefaultIntegrationTimeout, timeout)
 	})
+}
+
+// TestIntegrationTimeout_Override verifies that TestTimeoutOverride is used when set.
+// Sequential: modifies package-level TestTimeoutOverride variable.
+func TestIntegrationTimeout_Override(t *testing.T) {
+	customTimeout := 42 * time.Second
+
+	cryptoutilSharedTestutil.TestTimeoutOverride = customTimeout
+
+	defer func() { cryptoutilSharedTestutil.TestTimeoutOverride = 0 }()
+
+	timeout := cryptoutilSharedTestutil.IntegrationTimeout()
+	require.Equal(t, customTimeout, timeout)
 }
 
 func TestIntegrationContext(t *testing.T) {
