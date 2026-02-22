@@ -130,3 +130,46 @@ func TestGenerateTestCA_MarshalKeyError(t *testing.T) {
 	_, _, err := GenerateTestCA()
 	require.ErrorContains(t, err, "failed to marshal CA private key")
 }
+
+func TestGenerateServerCertFromCA_ServerKeyGenError(t *testing.T) {
+	caCertPEM, caKeyPEM, err := GenerateTestCA()
+	require.NoError(t, err)
+
+	orig := generateECDSAKeyPairFn
+	generateECDSAKeyPairFn = func(_ elliptic.Curve) (*cryptoutilSharedCryptoKeygen.KeyPair, error) {
+		return nil, errInjectTLSGen
+	}
+
+	defer func() { generateECDSAKeyPairFn = orig }()
+
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	require.ErrorContains(t, err, "failed to generate server key pair")
+}
+
+func TestGenerateServerCertFromCA_BuildTLSError(t *testing.T) {
+	caCertPEM, caKeyPEM, err := GenerateTestCA()
+	require.NoError(t, err)
+
+	orig := buildTLSCertificateFn
+	buildTLSCertificateFn = func(_ *cryptoutilSharedCryptoCertificate.Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
+		return nil, nil, nil, errInjectTLSGen
+	}
+
+	defer func() { buildTLSCertificateFn = orig }()
+
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	require.ErrorContains(t, err, "failed to build TLS certificate")
+}
+
+func TestGenerateServerCertFromCA_MarshalKeyError(t *testing.T) {
+	caCertPEM, caKeyPEM, err := GenerateTestCA()
+	require.NoError(t, err)
+
+	orig := marshalPKCS8PrivateKeyFn
+	marshalPKCS8PrivateKeyFn = func(_ any) ([]byte, error) { return nil, errInjectTLSGen }
+
+	defer func() { marshalPKCS8PrivateKeyFn = orig }()
+
+	_, err = GenerateServerCertFromCA(caCertPEM, caKeyPEM, []string{"localhost"}, []string{"127.0.0.1"}, cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year)
+	require.ErrorContains(t, err, "failed to marshal server private key")
+}
