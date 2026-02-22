@@ -36,6 +36,9 @@ var (
 	testMessageHandler *MessageHandler
 	testMessageRepo    *cryptoutilAppsCipherImRepository.MessageRepository
 	testRecipientRepo  *cryptoutilAppsCipherImRepository.MessageRecipientJWKRepository
+	testJWKGenService  *cryptoutilSharedCryptoJose.JWKGenService
+	testBarrierService *cryptoutilAppsTemplateServiceServerBarrier.Service
+	testDB             *gorm.DB
 )
 
 func TestMain(m *testing.M) {
@@ -126,6 +129,9 @@ func TestMain(m *testing.M) {
 	defer barrierService.Shutdown()
 
 	// Initialize repositories.
+	testDB = db
+	testJWKGenService = jwkGenService
+	testBarrierService = barrierService
 	testMessageRepo = cryptoutilAppsCipherImRepository.NewMessageRepository(db)
 	testRecipientRepo = cryptoutilAppsCipherImRepository.NewMessageRecipientJWKRepository(db, barrierService)
 
