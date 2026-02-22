@@ -149,6 +149,18 @@ const (
 	TestHourDuration = time.Hour
 )
 
+// Test polling and shutdown constants (shared across testmain_test.go files).
+const (
+	// TestPollReadyTimeout - Timeout for server readiness polling in tests.
+	TestPollReadyTimeout = 10 * time.Second
+	// TestPollReadyInterval - Interval between readiness checks in tests.
+	TestPollReadyInterval = 100 * time.Millisecond
+	// TestServerShutdownTimeout - Timeout for server shutdown in tests.
+	TestServerShutdownTimeout = 5 * time.Second
+	// TestIntegrationTimeout - Overall timeout for integration tests.
+	TestIntegrationTimeout = 60 * time.Second
+)
+
 // Test settings constants.
 const (
 	// TestDefaultLogLevelAll - All log level for comprehensive logging.

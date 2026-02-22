@@ -13,13 +13,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // pollServerReady timeout and interval for waiting on server port allocation.
 const (
-	pollServerReadyTimeout  = 5 * time.Second
-	pollServerReadyInterval = 100 * time.Millisecond
+	pollServerReadyTimeout  = cryptoutilSharedMagic.TestPollReadyTimeout
+	pollServerReadyInterval = cryptoutilSharedMagic.TestPollReadyInterval
 )
 
 // TestCAServer_HandleOCSP tests the OCSP endpoint.

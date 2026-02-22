@@ -20,7 +20,7 @@ import (
 
 // Default test timeout for integration tests (configurable via TestTimeoutOverride).
 const (
-	DefaultIntegrationTimeout = 60 * time.Second
+	DefaultIntegrationTimeout = cryptoutilSharedMagic.TestIntegrationTimeout
 )
 
 // TestTimeoutOverride allows tests to configure a custom timeout.
