@@ -2,10 +2,42 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
+	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
 
 	"github.com/stretchr/testify/require"
 )
+
+// stubPublicServer implements IPublicServer for testing accessor branches.
+type stubPublicServer struct{ startErr error }
+
+func (s *stubPublicServer) Start(context.Context) error  { return s.startErr }
+func (s *stubPublicServer) Shutdown(context.Context) error { return nil }
+func (s *stubPublicServer) ActualPort() int                { return 8443 }
+func (s *stubPublicServer) PublicBaseURL() string          { return "https://localhost:8443" }
+
+// stubAdminServer implements IAdminServer for testing accessor branches.
+type stubAdminServer struct{}
+
+func (s *stubAdminServer) Start(context.Context) error  { return nil }
+func (s *stubAdminServer) Shutdown(context.Context) error { return nil }
+func (s *stubAdminServer) ActualPort() int                { return 9090 }
+func (s *stubAdminServer) SetReady(bool)                  {}
+func (s *stubAdminServer) AdminBaseURL() string           { return "https://localhost:9090" }
+
+func newTestApp(t *testing.T) *cryptoutilAppsTemplateServiceServer.Application {
+	t.Helper()
+
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(
+		context.Background(), &stubPublicServer{}, &stubAdminServer{},
+	)
+	require.NoError(t, err)
+
+	return app
+}
 
 func TestNewKMSServer_NilChecks(t *testing.T) {
 	t.Parallel()
@@ -127,4 +159,77 @@ func TestKMSServer_Accessors(t *testing.T) {
 			require.Nil(t, tc.server.Settings())
 		})
 	}
+}
+
+func TestKMSServer_AccessorsWithResources(t *testing.T) {
+	t.Parallel()
+
+	app := newTestApp(t)
+	srv := &KMSServer{
+		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+			Application: app,
+		},
+	}
+
+	require.Equal(t, 8443, srv.PublicPort())
+	require.Equal(t, 9090, srv.AdminPort())
+	require.Equal(t, "https://localhost:8443", srv.PublicBaseURL())
+	require.Equal(t, "https://localhost:9090", srv.AdminBaseURL())
+	require.NotNil(t, srv.Resources())
+}
+
+func TestKMSServer_StartError(t *testing.T) {
+	t.Parallel()
+
+	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(
+		context.Background(),
+		&stubPublicServer{startErr: fmt.Errorf("bind failed")},
+		&stubAdminServer{},
+	)
+	require.NoError(t, err)
+
+	srv := &KMSServer{
+		ctx: context.Background(),
+		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+			Application: app,
+		},
+	}
+
+	err = srv.Start()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to start KMS server")
+	require.True(t, srv.IsReady()) // ready was set before Application.Start blocked
+}
+
+func TestKMSServer_ShutdownWithResources(t *testing.T) {
+	t.Parallel()
+
+	app := newTestApp(t)
+	shutdownCoreCalled := false
+	shutdownContainerCalled := false
+
+	srv := &KMSServer{
+		ctx: context.Background(),
+		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{
+			Application:       app,
+			ShutdownCore:      func() { shutdownCoreCalled = true },
+			ShutdownContainer: func() { shutdownContainerCalled = true },
+		},
+	}
+
+	srv.ready.Store(true)
+	require.NotPanics(t, func() { srv.Shutdown() })
+	require.False(t, srv.IsReady())
+	require.True(t, shutdownCoreCalled)
+	require.True(t, shutdownContainerCalled)
+}
+
+func TestKMSServer_ShutdownWithPartialResources(t *testing.T) {
+	t.Parallel()
+
+	srv := &KMSServer{
+		resources: &cryptoutilAppsTemplateServiceServerBuilder.ServiceResources{},
+	}
+
+	require.NotPanics(t, func() { srv.Shutdown() })
 }
