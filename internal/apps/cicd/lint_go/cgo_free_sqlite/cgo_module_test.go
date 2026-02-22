@@ -446,3 +446,33 @@ func TestCheck_WalkError(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to check Go files")
 }
+
+func TestCheckGoModForCGO_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a go.mod file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	goModFile := filepath.Join(tempDir, "go.mod")
+	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), 0o600))
+
+	_, err := CheckGoModForCGO(goModFile)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error reading go.mod")
+}
+
+func TestCheckRequiredCGOModule_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a go.mod file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	goModFile := filepath.Join(tempDir, "go.mod")
+	require.NoError(t, os.WriteFile(goModFile, []byte("module test\n"+longLine), 0o600))
+
+	_, err := CheckRequiredCGOModule(goModFile)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error reading go.mod")
+}

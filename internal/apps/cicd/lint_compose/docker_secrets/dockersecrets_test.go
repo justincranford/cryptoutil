@@ -5,6 +5,7 @@ package docker_secrets
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
@@ -305,4 +306,40 @@ networks:
 	violations, err := CheckComposeFileSecrets(composeFile)
 	require.NoError(t, err)
 	require.Empty(t, violations)
+}
+
+func TestCheckComposeFileSecrets_EnvironmentSectionExitNonKeyLine(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	composeFile := filepath.Join(tmpDir, "compose.yml")
+
+	// Environment section followed by a continuation line that is not a key, comment, or list.
+	content := `services:
+  myapp:
+    image: alpine:3.19
+    environment:
+      - SAFE_VAR=safe
+    NOTAKEY
+`
+	require.NoError(t, os.WriteFile(composeFile, []byte(content), 0o600))
+
+	violations, err := CheckComposeFileSecrets(composeFile)
+	require.NoError(t, err)
+	require.Empty(t, violations)
+}
+
+func TestCheckComposeFileSecrets_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	composeFile := filepath.Join(tmpDir, "compose.yml")
+
+	// Create a file with a line exceeding bufio.MaxScanTokenSize to trigger scanner.Err().
+	longLine := "services:\n  myapp:\n    environment:\n      - " + strings.Repeat("x", 70000) + "\n"
+	require.NoError(t, os.WriteFile(composeFile, []byte(longLine), 0o600))
+
+	_, err := CheckComposeFileSecrets(composeFile)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to read file")
 }

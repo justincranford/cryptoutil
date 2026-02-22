@@ -104,6 +104,47 @@ func TestCheckGoFileForUnaliasedCryptoutilImports_FileNotFound(t *testing.T) {
 	require.Contains(t, err.Error(), "failed to open")
 }
 
+func TestCheckGoFileForUnaliasedCryptoutilImports_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a Go file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	goFile := filepath.Join(tempDir, "long.go")
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), 0o600))
+
+	_, err := CheckGoFileForUnaliasedCryptoutilImports(goFile)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error reading")
+}
+
+func TestFindUnaliasedCryptoutilImports_WalkCallbackError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod 0o000 on directories does not work on Windows")
+	}
+
+	tmpDir := t.TempDir()
+	require.NoError(t, os.Chdir(tmpDir))
+
+	// Create a subdirectory and make it inaccessible so filepath.Walk passes an error to the callback.
+	lockedDir := filepath.Join(tmpDir, "locked")
+	require.NoError(t, os.MkdirAll(lockedDir, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(lockedDir, "main.go"), []byte("package main\n"), 0o600))
+	require.NoError(t, os.Chmod(lockedDir, 0o000))
+
+	defer func() { _ = os.Chmod(filepath.Join(tmpDir, "locked"), 0o700) }()
+
+	_, err = FindUnaliasedCryptoutilImports()
+	require.Error(t, err)
+}
+
 func TestPrintCryptoutilImportViolations(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test redirects os.Stderr which is global.
 	oldStderr := os.Stderr

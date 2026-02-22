@@ -148,4 +148,18 @@ func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestCheckGoFileForCGO_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a Go file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	goFile := filepath.Join(tempDir, "main.go")
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), 0o600))
+
+	_, err := CheckGoFileForCGO(goFile)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error reading")
+}
 

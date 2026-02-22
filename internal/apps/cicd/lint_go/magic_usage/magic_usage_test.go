@@ -5,6 +5,7 @@ package magic_usage
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
@@ -304,4 +305,46 @@ func TestCheckMagicUsageInDir_UnparseableGoFile(t *testing.T) {
 	err := CheckMagicUsageInDir(logger, magicDir, rootDir)
 	// The unparseable file is silently skipped.
 	require.NoError(t, err)
+}
+
+func TestCheckMagicUsageInDir_WalkErrNonExistentRoot(t *testing.T) {
+	t.Parallel()
+
+	// Create a valid magic dir with constants, but use a nonexistent root dir.
+	magicDir := t.TempDir()
+	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err := CheckMagicUsageInDir(logger, magicDir, "/nonexistent/root/dir")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "walk errors")
+}
+
+func TestCheckMagicUsageInDir_AbsErrorDeletedCWD(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes and deletes CWD.
+	if runtime.GOOS == "windows" {
+		t.Skip("deleting CWD not supported on Windows")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	// Create a magic directory with real constants (absolute path for ParseMagicDir).
+	magicDir := t.TempDir()
+	writeMagicFile(t, magicDir, "magic.go", "package magic\n\nconst Timeout = 30\n")
+
+	// Create a temporary directory, chdir into it, then delete it to break Getwd().
+	lostDir, err := os.MkdirTemp("", "lost-cwd-*")
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(lostDir))
+	require.NoError(t, os.RemoveAll(lostDir))
+
+	// Now filepath.Abs on any relative path will fail because Getwd() fails.
+	// Pass a relative rootDir to trigger the Abs error path.
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = CheckMagicUsageInDir(logger, magicDir, "relative/root")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cannot resolve")
 }

@@ -359,3 +359,54 @@ func TestFindGoFiles_ErrorPath(t *testing.T) {
 	_, err = FindGoFiles()
 	require.Error(t, err)
 }
+
+func TestCheckFileForNonFIPS_ReadFileError(t *testing.T) {
+	t.Parallel()
+
+	// Passing a nonexistent path should return an error message in the violations.
+	violations := CheckFileForNonFIPS("/nonexistent/path/to/file.go")
+	require.Len(t, violations, 1)
+	require.Contains(t, violations[0], "Error reading file")
+}
+
+func TestCheckFileForNonFIPS_NolintComment(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a Go file with a banned algorithm and a nolint comment on the same line.
+	goFile := filepath.Join(tempDir, "main.go")
+	content := "package main\n\nimport \"crypto/md5\" //nolint:gosec // Required for legacy\n"
+	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
+
+	violations := CheckFileForNonFIPS(goFile)
+	require.Empty(t, violations, "nolint comment should suppress violation")
+}
+
+func TestCheck_FindGoFilesError(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() - test changes working directory.
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod 0o000 does not work on Windows")
+	}
+
+	origDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	defer func() { require.NoError(t, os.Chdir(origDir)) }()
+
+	tempDir := t.TempDir()
+	require.NoError(t, os.Chdir(tempDir))
+
+	// Create a subdirectory that will trigger walk error.
+	subDir := "lockdir"
+	require.NoError(t, os.MkdirAll(subDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, "file.go"), []byte("package main\n"), 0o600))
+	require.NoError(t, os.Chmod(subDir, 0o000))
+
+	defer func() { _ = os.Chmod(filepath.Join(tempDir, subDir), 0o755) }()
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	err = Check(logger)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to find Go files")
+}

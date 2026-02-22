@@ -3,6 +3,8 @@ package insecure_skip_verify
 import (
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -275,4 +277,39 @@ func TestFindInsecureSkipVerifyViolationsInDir_NonExistentRoot(t *testing.T) {
 
 	_, err := FindInsecureSkipVerifyViolationsInDir("/nonexistent/path/that/does/not/exist")
 	require.Error(t, err, "Non-existent root should return an error")
+}
+
+func TestCheckFileForInsecureSkipVerify_ScannerError(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a Go file with a line longer than bufio.MaxScanTokenSize (64KB) to trigger scanner.Err().
+	longLine := "// " + strings.Repeat("x", 70000) + "\n"
+	goFile := filepath.Join(tempDir, "main.go")
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"+longLine), 0o600))
+
+	_, err := CheckFileForInsecureSkipVerify(goFile)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error reading file")
+}
+
+func TestFindInsecureSkipVerifyViolationsInDir_CheckFileError(t *testing.T) {
+	t.Parallel()
+
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod 0o000 does not work on Windows")
+	}
+
+	tempDir := t.TempDir()
+
+	// Create a Go file that is unreadable, so CheckFileForInsecureSkipVerify returns error during Walk.
+	goFile := filepath.Join(tempDir, "main.go")
+	require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), 0o600))
+	require.NoError(t, os.Chmod(goFile, 0o000))
+
+	defer func() { _ = os.Chmod(goFile, 0o600) }()
+
+	_, err := FindInsecureSkipVerifyViolationsInDir(tempDir)
+	require.Error(t, err)
 }

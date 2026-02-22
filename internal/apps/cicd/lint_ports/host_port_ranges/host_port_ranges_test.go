@@ -209,3 +209,41 @@ func TestLintHostPortRanges_WithViolations(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "host port range violations")
 }
+
+func TestLintHostPortRanges_NonComposeYAMLSkipped(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Create a YAML file that is NOT a compose file (should be skipped by IsComposeFile).
+	nonComposeFile := filepath.Join(tempDir, "config.yml")
+	err := os.WriteFile(nonComposeFile, []byte(`key: value
+`), 0o600)
+	require.NoError(t, err)
+
+	logger := cryptoutilCmdCicdCommon.NewLogger("test")
+	filesByExtension := map[string][]string{
+		"yml": {nonComposeFile},
+	}
+
+	err = Check(logger, filesByExtension)
+	require.NoError(t, err)
+}
+
+func TestCheckHostPortRangesInFile_PortParseUintError(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Port 99999 exceeds uint16 max (65535), so ParseUint with bitSize=16 will fail.
+	composeFile := filepath.Join(tempDir, "compose.yml")
+	err := os.WriteFile(composeFile, []byte(`services:
+  cipher-im:
+    ports:
+      - "99999:8700"
+`), 0o600)
+	require.NoError(t, err)
+
+	violations := CheckHostPortRangesInFile(composeFile)
+	require.Empty(t, violations)
+}
