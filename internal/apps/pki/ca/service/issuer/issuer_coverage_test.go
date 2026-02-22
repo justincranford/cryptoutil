@@ -91,8 +91,8 @@ func TestNewIssuer_NonCACert(t *testing.T) {
 	leafTemplate := &x509.Certificate{
 		SerialNumber:          big.NewInt(99),
 		Subject:               pkix.Name{CommonName: "leaf"},
-		NotBefore:             time.Now().Add(-time.Hour),
-		NotAfter:              time.Now().Add(time.Hour),
+		NotBefore:             time.Now().UTC().Add(-time.Hour),
+		NotAfter:              time.Now().UTC().Add(time.Hour),
 		IsCA:                  false,
 		BasicConstraintsValid: true,
 	}

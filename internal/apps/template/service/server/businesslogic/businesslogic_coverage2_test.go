@@ -85,7 +85,7 @@ func TestValidateBrowserSession_JWE_NoJTIClaim(t *testing.T) {
 t.Parallel()
 
 sm := setupJWESessionManager(t)
-futureExp := time.Now().Add(24 * time.Hour).Unix()
+futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
 claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"sub":"user123"}`, futureExp))
 token := encryptCustomJWEClaims(t, sm, claimsJSON)
 
@@ -100,7 +100,7 @@ func TestValidateBrowserSession_JWE_InvalidJTI(t *testing.T) {
 t.Parallel()
 
 sm := setupJWESessionManager(t)
-futureExp := time.Now().Add(24 * time.Hour).Unix()
+futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
 claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"jti":"not-a-valid-uuid"}`, futureExp))
 token := encryptCustomJWEClaims(t, sm, claimsJSON)
 
@@ -205,7 +205,7 @@ func TestValidateServiceSession_JWE_NoJTIClaim(t *testing.T) {
 t.Parallel()
 
 sm := setupJWESessionManager(t)
-futureExp := time.Now().Add(24 * time.Hour).Unix()
+futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
 claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"sub":"client123"}`, futureExp))
 token := encryptCustomJWEServiceClaims(t, sm, claimsJSON)
 

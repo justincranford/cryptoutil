@@ -363,7 +363,7 @@ func TestValidateBrowserSession_JWS_NoJTIClaim(t *testing.T) {
 	err := sm.Initialize(context.Background())
 	require.NoError(t, err)
 
-	futureExp := time.Now().Add(24 * time.Hour).Unix()
+	futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
 	claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"sub":"user123"}`, futureExp))
 	token := signCustomJWSClaims(t, sm, claimsJSON)
 
@@ -392,7 +392,7 @@ func TestValidateBrowserSession_JWS_InvalidJTI(t *testing.T) {
 	err := sm.Initialize(context.Background())
 	require.NoError(t, err)
 
-	futureExp := time.Now().Add(24 * time.Hour).Unix()
+	futureExp := time.Now().UTC().Add(24 * time.Hour).Unix()
 	claimsJSON := []byte(fmt.Sprintf(`{"exp":%d,"jti":"not-a-valid-uuid"}`, futureExp))
 	token := signCustomJWSClaims(t, sm, claimsJSON)
 
