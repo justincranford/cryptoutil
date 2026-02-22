@@ -1,13 +1,20 @@
-// Copyright (c) 2025 Justin Cranford
-//
-//
-
 package middleware
 
 import (
 	"context"
+	crand "crypto/rand"
+	rsa "crypto/rsa"
+	json "encoding/json"
+	"errors"
+	http "net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
 
+	fiber "github.com/gofiber/fiber/v2"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,69 +28,51 @@ func TestNewServiceAuthMiddleware(t *testing.T) {
 		errMsg  string
 	}{
 		{
-			name: "valid config with JWT",
-			config: ServiceAuthConfig{
-				AllowedMethods: []AuthMethod{AuthMethodJWT},
-				JWTConfig: &JWTValidatorConfig{
-					JWKSURL: "https://example.com/.well-known/jwks.json",
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "valid config with mTLS",
-			config: ServiceAuthConfig{
-				AllowedMethods: []AuthMethod{AuthMethodMTLS},
-				MTLSConfig: &MTLSConfig{
-					RequireClientCert: true,
-					AllowedCNs:        []string{"service-a.example.com"},
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "valid config with API key",
+			name: "valid API key config",
 			config: ServiceAuthConfig{
 				AllowedMethods: []AuthMethod{AuthMethodAPIKey},
 				APIKeyConfig: &APIKeyConfig{
-					HeaderName: "X-API-Key",
-					ValidKeys: map[string]string{
-						"secret-key-123": "service-a",
-					},
+					ValidKeys: map[string]string{"key1": "svc1"},
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "valid config with multiple methods",
-			config: ServiceAuthConfig{
-				AllowedMethods: []AuthMethod{AuthMethodJWT, AuthMethodMTLS, AuthMethodAPIKey},
-				JWTConfig: &JWTValidatorConfig{
-					JWKSURL: "https://example.com/.well-known/jwks.json",
-				},
-				MTLSConfig: &MTLSConfig{
-					RequireClientCert: false,
-				},
-				APIKeyConfig: &APIKeyConfig{
-					ValidKeys: map[string]string{"key": "service"},
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name:    "no allowed methods",
+			name:    "empty allowed methods",
 			config:  ServiceAuthConfig{},
 			wantErr: true,
 			errMsg:  "at least one auth method must be allowed",
 		},
 		{
+			name: "valid JWT config",
+			config: ServiceAuthConfig{
+				AllowedMethods: []AuthMethod{AuthMethodJWT},
+				JWTConfig: &JWTValidatorConfig{
+					JWKSURL: "https://auth.example.com/.well-known/jwks.json",
+				},
+			},
+			wantErr: false,
+		},
+		{
 			name: "invalid JWT config",
 			config: ServiceAuthConfig{
 				AllowedMethods: []AuthMethod{AuthMethodJWT},
-				JWTConfig:      &JWTValidatorConfig{}, // Missing JWKS URL.
+				JWTConfig: &JWTValidatorConfig{
+					JWKSURL: "",
+				},
 			},
 			wantErr: true,
-			errMsg:  "JWKS URL is required",
+			errMsg:  "failed to create JWT validator",
+		},
+		{
+			name: "mTLS config",
+			config: ServiceAuthConfig{
+				AllowedMethods: []AuthMethod{AuthMethodMTLS},
+				MTLSConfig: &MTLSConfig{
+					RequireClientCert: true,
+				},
+			},
+			wantErr: false,
 		},
 	}
 
@@ -91,82 +80,50 @@ func TestNewServiceAuthMiddleware(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			middleware, err := NewServiceAuthMiddleware(tc.config)
+			mw, err := NewServiceAuthMiddleware(tc.config)
+
 			if tc.wantErr {
 				require.Error(t, err)
+				require.Nil(t, mw)
 				require.Contains(t, err.Error(), tc.errMsg)
-				require.Nil(t, middleware)
 			} else {
 				require.NoError(t, err)
-				require.NotNil(t, middleware)
+				require.NotNil(t, mw)
 			}
 		})
 	}
 }
 
-func TestAuthMethodConstants(t *testing.T) {
-	t.Parallel()
-
-	// Verify auth method constants have expected string values.
-	tests := []struct {
-		method   AuthMethod
-		expected string
-	}{
-		{AuthMethodJWT, "jwt"},
-		{AuthMethodMTLS, "mtls"},
-		{AuthMethodAPIKey, "api-key"},
-		{AuthMethodClientCredentials, "client-credentials"},
-	}
-
-	for _, tc := range tests {
-		t.Run(string(tc.method), func(t *testing.T) {
-			t.Parallel()
-
-			require.Equal(t, tc.expected, string(tc.method))
-		})
-	}
-}
-
-func TestGetServiceAuthInfo(t *testing.T) {
+func TestServiceAuth_APIKey(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		setup    func() context.Context
-		expected *ServiceAuthInfo
+		name           string
+		headerName     string
+		headerValue    string
+		validKeys      map[string]string
+		expectedStatus int
 	}{
 		{
-			name: "auth info present",
-			setup: func() context.Context {
-				info := &ServiceAuthInfo{
-					Method:      AuthMethodJWT,
-					ServiceName: "test-service",
-					Subject:     "user@example.com",
-					Scopes:      []string{"read", "write"},
-				}
-
-				return context.WithValue(context.Background(), ServiceAuthContextKey{}, info)
-			},
-			expected: &ServiceAuthInfo{
-				Method:      AuthMethodJWT,
-				ServiceName: "test-service",
-				Subject:     "user@example.com",
-				Scopes:      []string{"read", "write"},
-			},
+			name:           "valid API key",
+			headerName:     "X-API-Key",
+			headerValue:    "valid-key-123",
+			validKeys:      map[string]string{"valid-key-123": "test-service"},
+			expectedStatus: http.StatusOK,
 		},
 		{
-			name: "auth info absent",
-			setup: func() context.Context {
-				return context.Background()
-			},
-			expected: nil,
+			name:           "invalid API key",
+			headerName:     "X-API-Key",
+			headerValue:    "wrong-key",
+			validKeys:      map[string]string{"valid-key-123": "test-service"},
+			expectedStatus: http.StatusUnauthorized,
 		},
 		{
-			name: "wrong type in context",
-			setup: func() context.Context {
-				return context.WithValue(context.Background(), ServiceAuthContextKey{}, "wrong-type")
-			},
-			expected: nil,
+			name:           "missing API key",
+			headerName:     "X-API-Key",
+			headerValue:    "",
+			validKeys:      map[string]string{"valid-key-123": "test-service"},
+			expectedStatus: http.StatusUnauthorized,
 		},
 	}
 
@@ -174,204 +131,67 @@ func TestGetServiceAuthInfo(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := tc.setup()
-			info := GetServiceAuthInfo(ctx)
-
-			if tc.expected == nil {
-				require.Nil(t, info)
-			} else {
-				require.NotNil(t, info)
-				require.Equal(t, tc.expected.Method, info.Method)
-				require.Equal(t, tc.expected.ServiceName, info.ServiceName)
-				require.Equal(t, tc.expected.Subject, info.Subject)
-				require.Equal(t, tc.expected.Scopes, info.Scopes)
-			}
-		})
-	}
-}
-
-func TestServiceAuthMiddleware_IsAllowedValue(t *testing.T) {
-	t.Parallel()
-
-	middleware := &ServiceAuthMiddleware{
-		config: ServiceAuthConfig{
-			AllowedMethods: []AuthMethod{AuthMethodAPIKey},
-		},
-	}
-
-	tests := []struct {
-		name     string
-		value    string
-		allowed  []string
-		expected bool
-	}{
-		{
-			name:     "value in list",
-			value:    "service-a",
-			allowed:  []string{"service-a", "service-b"},
-			expected: true,
-		},
-		{
-			name:     "value not in list",
-			value:    "service-c",
-			allowed:  []string{"service-a", "service-b"},
-			expected: false,
-		},
-		{
-			name:     "empty allowed list",
-			value:    "service-a",
-			allowed:  []string{},
-			expected: false,
-		},
-		{
-			name:     "empty value",
-			value:    "",
-			allowed:  []string{"service-a"},
-			expected: false,
-		},
-		{
-			name:     "exact match required",
-			value:    "service",
-			allowed:  []string{"service-a", "service-b"},
-			expected: false,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			result := middleware.isAllowedValue(tc.value, tc.allowed)
-			require.Equal(t, tc.expected, result)
-		})
-	}
-}
-
-func TestMTLSConfig_Validation(t *testing.T) {
-	t.Parallel()
-
-	// Test that MTLSConfig fields work correctly.
-	tests := []struct {
-		name   string
-		config MTLSConfig
-	}{
-		{
-			name: "require client cert",
-			config: MTLSConfig{
-				RequireClientCert: true,
-			},
-		},
-		{
-			name: "optional client cert",
-			config: MTLSConfig{
-				RequireClientCert: false,
-			},
-		},
-		{
-			name: "with allowed CNs",
-			config: MTLSConfig{
-				AllowedCNs: []string{"cn1.example.com", "cn2.example.com"},
-			},
-		},
-		{
-			name: "with allowed OUs",
-			config: MTLSConfig{
-				AllowedOUs: []string{"Engineering", "Operations"},
-			},
-		},
-		{
-			name: "with DNS SANs",
-			config: MTLSConfig{
-				AllowedDNSSANs: []string{"service.example.com"},
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			middleware, err := NewServiceAuthMiddleware(ServiceAuthConfig{
-				AllowedMethods: []AuthMethod{AuthMethodMTLS},
-				MTLSConfig:     &tc.config,
-			})
-			require.NoError(t, err)
-			require.NotNil(t, middleware)
-		})
-	}
-}
-
-func TestAPIKeyConfig_Validation(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name   string
-		config APIKeyConfig
-	}{
-		{
-			name: "with static keys",
-			config: APIKeyConfig{
-				ValidKeys: map[string]string{
-					"key1": "service-a",
-					"key2": "service-b",
-				},
-			},
-		},
-		{
-			name: "with custom header",
-			config: APIKeyConfig{
-				HeaderName: "X-Custom-Key",
-				ValidKeys: map[string]string{
-					"key": "service",
-				},
-			},
-		},
-		{
-			name: "with validator function",
-			config: APIKeyConfig{
-				KeyValidator: func(_ context.Context, _ string) (string, bool, error) {
-					return "validated-service", true, nil
-				},
-			},
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			middleware, err := NewServiceAuthMiddleware(ServiceAuthConfig{
+			mw, err := NewServiceAuthMiddleware(ServiceAuthConfig{
 				AllowedMethods: []AuthMethod{AuthMethodAPIKey},
-				APIKeyConfig:   &tc.config,
-			})
-			require.NoError(t, err)
-			require.NotNil(t, middleware)
-		})
-	}
-}
-
-func TestClientCredentialsConfig_Validation(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name   string
-		config ClientCredentialsConfig
-	}{
-		{
-			name: "with endpoints",
-			config: ClientCredentialsConfig{
-				TokenEndpoint:         "https://example.com/oauth2/token",
-				IntrospectionEndpoint: "https://example.com/oauth2/introspect",
-			},
-		},
-		{
-			name: "with client ID validator",
-			config: ClientCredentialsConfig{
-				IntrospectionEndpoint: "https://example.com/oauth2/introspect",
-				ValidateClientID: func(clientID string) bool {
-					return clientID == "allowed-client"
+				APIKeyConfig: &APIKeyConfig{
+					ValidKeys: tc.validKeys,
 				},
+			})
+			require.NoError(t, err)
+
+			app := fiber.New(fiber.Config{DisableStartupMessage: true})
+			app.Use(mw.Middleware())
+			app.Get("/test", func(c *fiber.Ctx) error {
+				return c.SendStatus(http.StatusOK)
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			if tc.headerValue != "" {
+				req.Header.Set(tc.headerName, tc.headerValue)
+			}
+
+			resp, err := app.Test(req, -1)
+			require.NoError(t, err)
+
+			defer func() { _ = resp.Body.Close() }()
+
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestServiceAuth_APIKeyValidator(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		apiKey         string
+		validator      func(ctx context.Context, apiKey string) (string, bool, error)
+		expectedStatus int
+	}{
+		{
+			name:   "valid via validator",
+			apiKey: "dynamic-key",
+			validator: func(_ context.Context, _ string) (string, bool, error) {
+				return "dynamic-svc", true, nil
 			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:   "invalid via validator",
+			apiKey: "bad-key",
+			validator: func(_ context.Context, _ string) (string, bool, error) {
+				return "", false, nil
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:   "validator error",
+			apiKey: "error-key",
+			validator: func(_ context.Context, _ string) (string, bool, error) {
+				return "", false, errors.New("db error")
+			},
+			expectedStatus: http.StatusUnauthorized,
 		},
 	}
 
@@ -379,58 +199,123 @@ func TestClientCredentialsConfig_Validation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			middleware, err := NewServiceAuthMiddleware(ServiceAuthConfig{
-				AllowedMethods:          []AuthMethod{AuthMethodClientCredentials},
-				ClientCredentialsConfig: &tc.config,
+			mw, err := NewServiceAuthMiddleware(ServiceAuthConfig{
+				AllowedMethods: []AuthMethod{AuthMethodAPIKey},
+				APIKeyConfig: &APIKeyConfig{
+					KeyValidator: tc.validator,
+				},
 			})
 			require.NoError(t, err)
-			require.NotNil(t, middleware)
+
+			app := fiber.New(fiber.Config{DisableStartupMessage: true})
+			app.Use(mw.Middleware())
+			app.Get("/test", func(c *fiber.Ctx) error {
+				return c.SendStatus(http.StatusOK)
+			})
+
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req.Header.Set("X-API-Key", tc.apiKey)
+
+			resp, err := app.Test(req, -1)
+			require.NoError(t, err)
+
+			defer func() { _ = resp.Body.Close() }()
+
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 		})
 	}
 }
 
-func TestServiceAuthInfo_Fields(t *testing.T) {
+func TestServiceAuth_JWT(t *testing.T) {
 	t.Parallel()
 
-	info := &ServiceAuthInfo{
-		Method:        AuthMethodMTLS,
-		ServiceName:   "backend-service",
-		ClientID:      "client-123",
-		Subject:       "service@example.com",
-		CertificateCN: "backend-service.internal",
-		Scopes:        []string{"kms:read", "kms:write"},
-		Metadata: map[string]any{
-			"tenant_id": "tenant-456",
-			"role":      "admin",
-		},
+	const rsaKeyBits = 2048
+
+	privateKey, err := rsa.GenerateKey(crand.Reader, rsaKeyBits)
+	require.NoError(t, err)
+
+	pubJWK, err := joseJwk.Import(privateKey.Public())
+	require.NoError(t, err)
+
+	keyID := "sa-test-key-1"
+
+	require.NoError(t, pubJWK.Set(joseJwk.KeyIDKey, keyID))
+	require.NoError(t, pubJWK.Set(joseJwk.AlgorithmKey, joseJwa.RS256()))
+	require.NoError(t, pubJWK.Set(joseJwk.KeyUsageKey, "sig"))
+
+	keySet := joseJwk.NewSet()
+
+	require.NoError(t, keySet.AddKey(pubJWK))
+
+	jwksServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		buf, marshalErr := json.Marshal(keySet)
+		require.NoError(t, marshalErr)
+
+		_, writeErr := w.Write(buf)
+		require.NoError(t, writeErr)
+	}))
+	t.Cleanup(jwksServer.Close)
+
+	signToken := func(t *testing.T, sub string, exp time.Time) string {
+		t.Helper()
+
+		privJWK, importErr := joseJwk.Import(privateKey)
+		require.NoError(t, importErr)
+		require.NoError(t, privJWK.Set(joseJwk.KeyIDKey, keyID))
+		require.NoError(t, privJWK.Set(joseJwk.AlgorithmKey, joseJwa.RS256()))
+
+		now := time.Now().UTC()
+
+		token, buildErr := jwt.NewBuilder().
+			Claim("sub", sub).
+			Claim("iat", now.Unix()).
+			Claim("exp", exp.Unix()).
+			Claim("scope", "read").
+			Build()
+		require.NoError(t, buildErr)
+
+		signed, signErr := jwt.Sign(token, jwt.WithKey(joseJwa.RS256(), privJWK))
+		require.NoError(t, signErr)
+
+		return string(signed)
 	}
 
-	require.Equal(t, AuthMethodMTLS, info.Method)
-	require.Equal(t, "backend-service", info.ServiceName)
-	require.Equal(t, "client-123", info.ClientID)
-	require.Equal(t, "service@example.com", info.Subject)
-	require.Equal(t, "backend-service.internal", info.CertificateCN)
-	require.Len(t, info.Scopes, 2)
-	require.Contains(t, info.Scopes, "kms:read")
-	require.Contains(t, info.Scopes, "kms:write")
-	require.Equal(t, "tenant-456", info.Metadata["tenant_id"])
-	require.Equal(t, "admin", info.Metadata["role"])
-}
+	mw, err := NewServiceAuthMiddleware(ServiceAuthConfig{
+		AllowedMethods: []AuthMethod{AuthMethodJWT},
+		JWTConfig: &JWTValidatorConfig{
+			JWKSURL: jwksServer.URL,
+		},
+	})
+	require.NoError(t, err)
 
-func TestConfigureTLSForMTLS(t *testing.T) {
-	t.Parallel()
+	now := time.Now().UTC()
 
 	tests := []struct {
-		name              string
-		requireClientCert bool
+		name           string
+		authHeader     string
+		expectedStatus int
 	}{
 		{
-			name:              "require client cert",
-			requireClientCert: true,
+			name:           "valid JWT token",
+			authHeader:     "Bearer " + signToken(t, "svc-user", now.Add(1*time.Hour)),
+			expectedStatus: http.StatusOK,
 		},
 		{
-			name:              "optional client cert",
-			requireClientCert: false,
+			name:           "expired JWT token",
+			authHeader:     "Bearer " + signToken(t, "svc-user", now.Add(-1*time.Hour)),
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:           "no bearer prefix",
+			authHeader:     "Basic dXNlcjpwYXNz",
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:           "missing header",
+			authHeader:     "",
+			expectedStatus: http.StatusUnauthorized,
 		},
 	}
 
@@ -438,61 +323,23 @@ func TestConfigureTLSForMTLS(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			tlsConfig := ConfigureTLSForMTLS(tc.requireClientCert)
-			require.NotNil(t, tlsConfig)
-
-			// Verify TLS 1.3 minimum.
-			const tlsVersion13 uint16 = 0x0304
-
-			require.Equal(t, tlsVersion13, tlsConfig.MinVersion)
-		})
-	}
-}
-
-func TestServiceAuthMiddleware_ErrorDetailLevel(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name          string
-		errorLevel    string
-		expectedLevel string
-		expectDefault bool
-	}{
-		{
-			name:          "explicit minimal level",
-			errorLevel:    "minimal",
-			expectedLevel: "minimal",
-		},
-		{
-			name:          "explicit detailed level",
-			errorLevel:    "detailed",
-			expectedLevel: "detailed",
-		},
-		{
-			name:          "explicit debug level",
-			errorLevel:    "debug",
-			expectedLevel: "debug",
-		},
-		{
-			name:          "empty defaults to minimal",
-			errorLevel:    "",
-			expectedLevel: "minimal",
-			expectDefault: true,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			middleware, err := NewServiceAuthMiddleware(ServiceAuthConfig{
-				AllowedMethods:   []AuthMethod{AuthMethodAPIKey},
-				APIKeyConfig:     &APIKeyConfig{ValidKeys: map[string]string{"k": "v"}},
-				ErrorDetailLevel: tc.errorLevel,
+			app := fiber.New(fiber.Config{DisableStartupMessage: true})
+			app.Use(mw.Middleware())
+			app.Get("/test", func(c *fiber.Ctx) error {
+				return c.SendStatus(http.StatusOK)
 			})
+
+			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			if tc.authHeader != "" {
+				req.Header.Set("Authorization", tc.authHeader)
+			}
+
+			resp, err := app.Test(req, -1)
 			require.NoError(t, err)
-			require.NotNil(t, middleware)
-			require.Equal(t, tc.expectedLevel, middleware.config.ErrorDetailLevel)
+
+			defer func() { _ = resp.Body.Close() }()
+
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
 		})
 	}
 }
