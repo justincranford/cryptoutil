@@ -22,6 +22,11 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+var (
+	parseCertificateFn = x509.ParseCertificate // injectable for testing error paths.
+	jsonMarshalFn      = json.Marshal          // injectable for testing error paths.
+)
+
 // KeyMaterial holds the cryptographic components for a certificate.
 type KeyMaterial struct {
 	CertificateChain []*x509.Certificate
@@ -276,7 +281,7 @@ func SignCertificate(issuerCertificate *x509.Certificate, issuerPrivateKey crypt
 		return nil, nil, nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
 
-	certificate, err := x509.ParseCertificate(certificateDER)
+	certificate, err := parseCertificateFn(certificateDER)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to parse certificate: %w", err)
 	}
@@ -316,7 +321,7 @@ func SerializeSubjects(subjects []*Subject, includePrivateKey bool) ([][]byte, e
 			return nil, fmt.Errorf("failed to convert KeyMaterial to JSON format for subject %d: %w", i, err)
 		}
 
-		keyMaterialEncodedBytes, err := json.Marshal(keyMaterialEncoded)
+		keyMaterialEncodedBytes, err := jsonMarshalFn(keyMaterialEncoded)
 		if err != nil {
 			return nil, fmt.Errorf("failed to serialize KeyMaterialEncoded for subject %d: %w", i, err)
 		}

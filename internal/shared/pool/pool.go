@@ -14,8 +14,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"

@@ -40,6 +40,13 @@ import (
 	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 )
 
+var (
+	initMetricsFn              = initMetrics              // injectable for testing error paths.
+	initTracesFn               = initTraces               // injectable for testing error paths.
+	stdoutMetricExporterNewFn  = stdoutMetricExporter.New  // injectable for testing error paths.
+	stdoutTraceExporterNewFn   = stdoutTraceExporter.New   // injectable for testing error paths.
+)
+
 // TelemetryService is a composite of OpenTelemetry providers for Logs, Metrics, and Traces.
 type TelemetryService struct {
 	StartTime          time.Time
@@ -98,12 +105,12 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilAppsTemplateSe
 		slogger.Info("sidecar health check succeeded", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
 	}
 
-	metricsProvider, err := initMetrics(ctx, slogger, settings)
+	metricsProvider, err := initMetricsFn(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init metrics: %w", err)
 	}
 
-	tracesProvider, err := initTraces(ctx, slogger, settings)
+	tracesProvider, err := initTracesFn(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init traces: %w", err)
 	}
@@ -272,7 +279,6 @@ func initLogger(ctx context.Context, settings *cryptoutilAppsTemplateServiceConf
 		otelExporter, _ = grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(*endpoint))
 	}
 
-
 	otelProviderOptions := []logSdk.LoggerProviderOption{
 		logSdk.WithResource(otelLogsResource),
 		logSdk.WithProcessor(logSdk.NewBatchProcessor(otelExporter,
@@ -338,7 +344,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	}
 
 	if settings.OTLPConsole {
-		stdoutMetrics, err := stdoutMetricExporter.New(stdoutMetricExporter.WithPrettyPrint())
+		stdoutMetrics, err := stdoutMetricExporterNewFn(stdoutMetricExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT metrics failed", "error", err)
 
@@ -395,7 +401,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	}
 
 	if settings.OTLPConsole {
-		stdoutTraces, err := stdoutTraceExporter.New(stdoutTraceExporter.WithPrettyPrint())
+		stdoutTraces, err := stdoutTraceExporterNewFn(stdoutTraceExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT traces failed", "error", err)
 

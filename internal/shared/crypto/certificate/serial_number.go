@@ -17,11 +17,13 @@ var (
 	minSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.MinSerialNumberBits) // 2^64
 	maxSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilSharedMagic.MaxSerialNumberBits) // 2^159
 	rangeSerialNumber = new(big.Int).Sub(maxSerialNumber, minSerialNumber)                         // Range size: 2^159 - 2^64
+
+	randIntFn = crand.Int // injectable for testing error paths.
 )
 
 // GenerateSerialNumber generates a cryptographically random serial number in the range [2^64, 2^159) per CA/Browser Forum requirements.
 func GenerateSerialNumber() (*big.Int, error) {
-	randomOffsetFromMin, err := crand.Int(crand.Reader, rangeSerialNumber) // Range [0, rangeSerialNumber)
+	randomOffsetFromMin, err := randIntFn(crand.Reader, rangeSerialNumber) // Range [0, rangeSerialNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random serial number offset: %w", err)
 	}
@@ -72,7 +74,7 @@ func generateNotBeforeNotAfter(requestedStart time.Time, requestedDuration, minS
 		return time.Time{}, time.Time{}, fmt.Errorf("maxRangeOffset must be positive, got (%v)", maxRangeOffset)
 	}
 
-	rangeOffset, err := crand.Int(crand.Reader, big.NewInt(maxRangeOffset)) // [0, maxRangeOffset)
+	rangeOffset, err := randIntFn(crand.Reader, big.NewInt(maxRangeOffset)) // [0, maxRangeOffset)
 	if err != nil {
 		return time.Time{}, time.Time{}, fmt.Errorf("failed to generate random range offset: %w", err)
 	}
