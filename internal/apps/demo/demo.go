@@ -157,57 +157,57 @@ func Demo(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 func parseArgs(args []string) *Config {
 	config := DefaultConfig()
 
-        skipNext := false
+	skipNext := false
 
-        for i, arg := range args {
-                if skipNext {
-                        skipNext = false
+	for i, arg := range args {
+		if skipNext {
+			skipNext = false
 
-                        continue
-                }
+			continue
+		}
 
-                switch arg {
-                case "--output", "-o":
-                        if i+1 < len(args) {
-                                skipNext = true
+		switch arg {
+		case "--output", "-o":
+			if i+1 < len(args) {
+				skipNext = true
 
-                                switch args[i+1] {
-                                case "human":
-                                        config.OutputFormat = OutputHuman
-                                case "json":
-                                        config.OutputFormat = OutputJSON
-                                case "structured":
-                                        config.OutputFormat = OutputStructured
-                                }
-                        }
-                case "--no-color":
-                        config.NoColor = true
-                case "--verbose":
-                        config.Verbose = true
-                case "--quiet", "-q":
-                        config.Quiet = true
-                case "--continue-on-error":
-                        config.ContinueOnError = true
-                case "--fail-fast":
-                        config.ContinueOnError = false
-                case "--health-timeout":
-                        if i+1 < len(args) {
-                                skipNext = true
+				switch args[i+1] {
+				case "human":
+					config.OutputFormat = OutputHuman
+				case "json":
+					config.OutputFormat = OutputJSON
+				case "structured":
+					config.OutputFormat = OutputStructured
+				}
+			}
+		case "--no-color":
+			config.NoColor = true
+		case "--verbose":
+			config.Verbose = true
+		case "--quiet", "-q":
+			config.Quiet = true
+		case "--continue-on-error":
+			config.ContinueOnError = true
+		case "--fail-fast":
+			config.ContinueOnError = false
+		case "--health-timeout":
+			if i+1 < len(args) {
+				skipNext = true
 
-                                if d, err := time.ParseDuration(args[i+1]); err == nil {
-                                        config.HealthTimeout = d
-                                }
-                        }
-                case "--retry":
-                        if i+1 < len(args) {
-                                skipNext = true
-                                // Attempt to parse retry count; ignore invalid values.
-                                _, _ = fmt.Sscanf(args[i+1], "%d", &config.RetryCount)
-                        }
-                }
-        }
+				if d, err := time.ParseDuration(args[i+1]); err == nil {
+					config.HealthTimeout = d
+				}
+			}
+		case "--retry":
+			if i+1 < len(args) {
+				skipNext = true
+				// Attempt to parse retry count; ignore invalid values.
+				_, _ = fmt.Sscanf(args[i+1], "%d", &config.RetryCount)
+			}
+		}
+	}
 
-        return config
+	return config
 }
 
 // printUsage prints the CLI usage information.
