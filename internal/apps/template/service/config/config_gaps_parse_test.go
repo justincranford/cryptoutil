@@ -184,9 +184,9 @@ bind-public-port: [invalid yaml syntax
 // TestNewForJOSEServer_PanicOnInvalidArgs tests that NewForJOSEServer panics on invalid args.
 func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
+	resetFlags()
 
-	defer viper.Reset()
+	defer resetFlags()
 
 	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
@@ -197,9 +197,9 @@ func TestNewForJOSEServer_PanicOnInvalidArgs(t *testing.T) {
 // TestNewForCAServer_PanicOnInvalidArgs tests that NewForCAServer panics on invalid args.
 func TestNewForCAServer_PanicOnInvalidArgs(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() here - ParseWithFlagSet modifies global viper state
-	viper.Reset()
+	resetFlags()
 
-	defer viper.Reset()
+	defer resetFlags()
 
 	// In dev mode, IPv4AnyAddress is rejected, so this should cause a validation error and panic
 	require.Panics(t, func() {
