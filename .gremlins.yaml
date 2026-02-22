@@ -3,8 +3,9 @@
 # Documentation: https://gremlins.dev/
 
 # Quality gates - make Gremlins fail if thresholds are not met
-threshold-efficacy: 70.0    # Minimum percentage of killed mutants vs total killed+lived (reasonable target)
-threshold-mcover: 60.0      # Minimum percentage of mutant coverage (focus on quality over quantity)
+# Architecture requirement: ≥95% mandatory minimum, ≥98% ideal
+threshold-efficacy: 95.0    # Minimum percentage of killed mutants vs total killed+lived (≥95% mandatory, ≥98% ideal)
+threshold-mcover: 95.0      # Minimum percentage of mutant coverage
 
 # Performance settings
 workers: 1                  # Single worker for stability (prevents race conditions)
