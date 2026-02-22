@@ -157,51 +157,57 @@ func Demo(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 func parseArgs(args []string) *Config {
 	config := DefaultConfig()
 
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
+        skipNext := false
 
-		switch arg {
-		case "--output", "-o":
-			if i+1 < len(args) {
-				i++
+        for i, arg := range args {
+                if skipNext {
+                        skipNext = false
 
-				switch args[i] {
-				case "human":
-					config.OutputFormat = OutputHuman
-				case "json":
-					config.OutputFormat = OutputJSON
-				case "structured":
-					config.OutputFormat = OutputStructured
-				}
-			}
-		case "--no-color":
-			config.NoColor = true
-		case "--verbose":
-			config.Verbose = true
-		case "--quiet", "-q":
-			config.Quiet = true
-		case "--continue-on-error":
-			config.ContinueOnError = true
-		case "--fail-fast":
-			config.ContinueOnError = false
-		case "--health-timeout":
-			if i+1 < len(args) {
-				i++
+                        continue
+                }
 
-				if d, err := time.ParseDuration(args[i]); err == nil {
-					config.HealthTimeout = d
-				}
-			}
-		case "--retry":
-			if i+1 < len(args) {
-				i++
-				// Attempt to parse retry count; ignore invalid values.
-				_, _ = fmt.Sscanf(args[i], "%d", &config.RetryCount)
-			}
-		}
-	}
+                switch arg {
+                case "--output", "-o":
+                        if i+1 < len(args) {
+                                skipNext = true
 
-	return config
+                                switch args[i+1] {
+                                case "human":
+                                        config.OutputFormat = OutputHuman
+                                case "json":
+                                        config.OutputFormat = OutputJSON
+                                case "structured":
+                                        config.OutputFormat = OutputStructured
+                                }
+                        }
+                case "--no-color":
+                        config.NoColor = true
+                case "--verbose":
+                        config.Verbose = true
+                case "--quiet", "-q":
+                        config.Quiet = true
+                case "--continue-on-error":
+                        config.ContinueOnError = true
+                case "--fail-fast":
+                        config.ContinueOnError = false
+                case "--health-timeout":
+                        if i+1 < len(args) {
+                                skipNext = true
+
+                                if d, err := time.ParseDuration(args[i+1]); err == nil {
+                                        config.HealthTimeout = d
+                                }
+                        }
+                case "--retry":
+                        if i+1 < len(args) {
+                                skipNext = true
+                                // Attempt to parse retry count; ignore invalid values.
+                                _, _ = fmt.Sscanf(args[i+1], "%d", &config.RetryCount)
+                        }
+                }
+        }
+
+        return config
 }
 
 // printUsage prints the CLI usage information.

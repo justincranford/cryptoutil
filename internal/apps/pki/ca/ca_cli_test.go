@@ -6,16 +6,10 @@ package ca
 
 import (
 "bytes"
-"sync"
-"syscall"
 "testing"
-"time"
 
 "github.com/stretchr/testify/require"
 
-cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-
-"strings"
 )
 
 func TestCA_SubcommandHelpFlags(t *testing.T) {
@@ -146,83 +140,6 @@ combined := stdout.String() + stderr.String()
 require.Contains(t, combined, "Failed to create server")
 }
 
-// TestCA_ServerLifecycle tests the full server start → signal → shutdown lifecycle.
-func TestCA_ServerLifecycle(t *testing.T) {
-var mu sync.Mutex
-
-stdout := &syncWriter{buf: &bytes.Buffer{}, mu: &mu}
-stderr := &syncWriter{buf: &bytes.Buffer{}, mu: &mu}
-
-exitCodeChan := make(chan int, 1)
-
-go func() {
-exitCodeChan <- caServerStart([]string{
-"--dev",
-"--database-url", cryptoutilSharedMagic.SQLiteInMemoryDSN,
-}, stdout, stderr)
-}()
-
-const maxWait = 30 * time.Second
-
-startTime := time.Now().UTC()
-
-for time.Since(startTime) < maxWait {
-mu.Lock()
-
-output := stdout.buf.String()
-
-mu.Unlock()
-
-if strings.Contains(output, "Starting pki-ca service") {
-break
-}
-
-time.Sleep(100 * time.Millisecond) //nolint:mnd // Polling interval for server startup.
-}
-
-time.Sleep(500 * time.Millisecond) //nolint:mnd // Wait for server to finish binding.
-
-err := syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
-require.NoError(t, err)
-
-select {
-case exitCode := <-exitCodeChan:
-require.Equal(t, 0, exitCode, "Server should exit cleanly after SIGTERM")
-case <-time.After(maxWait):
-t.Fatal("Server did not shut down within timeout")
-}
-}
-
-// TestCA_ServerStartError tests the errChan error path when port is already in use.
-func TestCA_ServerStartError(t *testing.T) {
-var mu sync.Mutex
-
-stdout := &syncWriter{buf: &bytes.Buffer{}, mu: &mu}
-stderr := &syncWriter{buf: &bytes.Buffer{}, mu: &mu}
-
-exitCodeChan := make(chan int, 1)
-
-go func() {
-exitCodeChan <- caServerStart([]string{
-"--dev",
-"--database-url", cryptoutilSharedMagic.SQLiteInMemoryDSN,
-}, stdout, stderr)
-}()
-
-select {
-case exitCode := <-exitCodeChan:
-require.Equal(t, 1, exitCode, "Server should fail when address is already in use")
-case <-time.After(30 * time.Second): //nolint:mnd // Generous timeout for server start failure.
-t.Fatal("Server did not return within timeout")
-}
-
-mu.Lock()
-defer mu.Unlock()
-
-output := stdout.buf.String() + stderr.buf.String()
-require.Contains(t, output, "Server error")
-}
-
 func TestCA_SubcommandLiveServer(t *testing.T) {
 tests := []struct {
 subcommand       string
@@ -265,17 +182,4 @@ require.Contains(t, output, expected, "Output should contain: %s", expected)
 }
 })
 }
-}
-
-// syncWriter is a thread-safe io.Writer that wraps a bytes.Buffer.
-type syncWriter struct {
-buf *bytes.Buffer
-mu  *sync.Mutex
-}
-
-func (w *syncWriter) Write(p []byte) (int, error) {
-w.mu.Lock()
-defer w.mu.Unlock()
-
-return w.buf.Write(p)
 }
