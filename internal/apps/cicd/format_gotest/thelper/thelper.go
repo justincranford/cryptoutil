@@ -8,12 +8,18 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 )
+
+// printerFprintFn is an injectable function for printer.Fprint (used in tests for error coverage).
+var printerFprintFn = func(output io.Writer, fset *token.FileSet, node any) error {
+	return printer.Fprint(output, fset, node)
+}
 
 // helperFunctionPatterns are naming patterns that indicate test helper functions.
 var helperFunctionPatterns = []string{
@@ -122,7 +128,7 @@ func fixTHelperInFile(_ *cryptoutilCmdCicdCommon.Logger, filePath string) (bool,
 		}
 		defer file.Close() //nolint:errcheck // Defer close is best-effort.
 
-		if err := printer.Fprint(file, fset, node); err != nil {
+		if err := printerFprintFn(file, fset, node); err != nil {
 			return false, fixCount, fmt.Errorf("failed to write file: %w", err)
 		}
 

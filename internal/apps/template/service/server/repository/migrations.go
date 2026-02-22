@@ -18,6 +18,9 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
+// migrateNewWithInstanceFn is injectable for testing the migrate.NewWithInstance error path.
+var migrateNewWithInstanceFn = migrate.NewWithInstance
+
 // DatabaseType represents supported database types.
 type DatabaseType string
 
@@ -103,7 +106,7 @@ func (r *MigrationRunner) Apply(db *sql.DB, dbType DatabaseType) error {
 		return fmt.Errorf("unsupported database type: %s", dbType)
 	}
 
-	m, err := migrate.NewWithInstance("iofs", sourceDriver, string(dbType), databaseDriver)
+	m, err := migrateNewWithInstanceFn("iofs", sourceDriver, string(dbType), databaseDriver)
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}

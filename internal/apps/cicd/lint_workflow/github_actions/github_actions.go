@@ -39,6 +39,9 @@ type WorkflowActionExceptions struct {
 // Actions pinned to branches are not deterministic and fail security best practices.
 var disallowedVersionsBranchPinning = []string{"main", "master", "latest", "develop", "dev", "trunk"}
 
+// checkActionVersionsConcurrentlyFn is injectable for testing the outdated actions branch.
+var checkActionVersionsConcurrentlyFn = checkActionVersionsConcurrently
+
 // Check validates GitHub workflow files for outdated actions and other issues.
 // It returns an error if validation fails or outdated actions are found.
 func Check(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error {
@@ -63,7 +66,7 @@ func Check(logger *cryptoutilCmdCicdCommon.Logger, workflowFiles []string) error
 	logger.Log(fmt.Sprintf("Checking %d unique actions for updates", len(workflowsActionDetails)))
 
 	versionCheckStart := time.Now().UTC()
-	outdated, exempted, errors := checkActionVersionsConcurrently(logger, workflowsActionDetails, workflowActionExceptions)
+	outdated, exempted, errors := checkActionVersionsConcurrentlyFn(logger, workflowsActionDetails, workflowActionExceptions)
 	versionCheckEnd := time.Now().UTC()
 
 	logger.Log(fmt.Sprintf("Version checks completed in %.2fs", versionCheckEnd.Sub(versionCheckStart).Seconds()))

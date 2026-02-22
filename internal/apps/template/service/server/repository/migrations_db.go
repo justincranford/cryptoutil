@@ -13,9 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// Injectable functions for testing error paths.
+var (
+	sqlOpenFn         = sql.Open
+	gormOpenFn        = gorm.Open
+	applyMigrationsFn = ApplyMigrations
+)
+
 // InitPostgreSQL initializes a PostgreSQL database connection with GORM.
 func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
-	sqlDB, err := sql.Open("pgx", databaseURL)
+	sqlDB, err := sqlOpenFn("pgx", databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
 	}
@@ -30,7 +37,7 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS)
 		Conn: sqlDB,
 	})
 
-	db, err := gorm.Open(dialector, &gorm.Config{
+	db, err := gormOpenFn(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
@@ -48,7 +55,7 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS)
 	sqlDB.SetConnMaxLifetime(cryptoutilSharedMagic.PostgreSQLConnMaxLifetime) // 1 hour
 
 	// Run migrations.
-	if err := ApplyMigrations(sqlDB, DatabaseTypePostgreSQL, migrationsFS); err != nil {
+	if err := applyMigrationsFn(sqlDB, DatabaseTypePostgreSQL, migrationsFS); err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
@@ -58,7 +65,7 @@ func InitPostgreSQL(ctx context.Context, databaseURL string, migrationsFS fs.FS)
 // InitSQLite initializes a SQLite database connection with GORM.
 func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*gorm.DB, error) {
 	// Open SQLite database.
-	sqlDB, err := sql.Open("sqlite", databaseURL)
+	sqlDB, err := sqlOpenFn("sqlite", databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
 	}
@@ -76,7 +83,7 @@ func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*g
 	// Create GORM instance.
 	dialector := sqlite.Dialector{Conn: sqlDB}
 
-	db, err := gorm.Open(dialector, &gorm.Config{
+	db, err := gormOpenFn(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
@@ -94,7 +101,7 @@ func InitSQLite(ctx context.Context, databaseURL string, migrationsFS fs.FS) (*g
 	sqlDB.SetConnMaxLifetime(0)                                           // In-memory: never close
 
 	// Run migrations.
-	if err := ApplyMigrations(sqlDB, DatabaseTypeSQLite, migrationsFS); err != nil {
+	if err := applyMigrationsFn(sqlDB, DatabaseTypeSQLite, migrationsFS); err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
