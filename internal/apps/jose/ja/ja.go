@@ -24,24 +24,23 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Ja implements the JWK Authority service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Ja(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
 		cryptoutilTemplateCli.ServiceConfig{
-			ServiceID:        cryptoutilSharedMagic.JoseJAServiceID,
-			ProductName:      cryptoutilSharedMagic.JoseProductName,
-			ServiceName:      cryptoutilSharedMagic.JoseJAServiceName,
+			ServiceID:         cryptoutilSharedMagic.JoseJAServiceID,
+			ProductName:       cryptoutilSharedMagic.JoseProductName,
+			ServiceName:       cryptoutilSharedMagic.JoseJAServiceName,
 			DefaultPublicPort: uint16(cryptoutilSharedMagic.JoseJAServicePort),
-			UsageMain:        JAUsageMain,
-			UsageServer:      JAUsageServer,
-			UsageClient:      JAUsageClient,
-			UsageInit:        JAUsageInit,
-			UsageHealth:      JAUsageHealth,
-			UsageLivez:       JAUsageLivez,
-			UsageReadyz:      JAUsageReadyz,
-			UsageShutdown:    JAUsageShutdown,
+			UsageMain:         JAUsageMain,
+			UsageServer:       JAUsageServer,
+			UsageClient:       JAUsageClient,
+			UsageInit:         JAUsageInit,
+			UsageHealth:       JAUsageHealth,
+			UsageLivez:        JAUsageLivez,
+			UsageReadyz:       JAUsageReadyz,
+			UsageShutdown:     JAUsageShutdown,
 		},
 		args, stdout, stderr,
 		jaServerStart,

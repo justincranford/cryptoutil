@@ -24,7 +24,6 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-
 // Ca implements the Certificate Authority service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Ca(args []string, _ io.Reader, stdout, stderr io.Writer) int {

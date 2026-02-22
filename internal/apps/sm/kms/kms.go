@@ -16,30 +16,31 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	_ "modernc.org/sqlite"             // CGO-free SQLite driver
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilKMSServer "cryptoutil/internal/apps/sm/kms/server"
 	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-)
 
+	"github.com/spf13/pflag"
+)
 
 // Kms implements the Key Management Service subcommand handler.
 // Handles subcommands: server, client, init, health, livez, readyz, shutdown.
 func Kms(args []string, _ io.Reader, stdout, stderr io.Writer) int {
 	return cryptoutilTemplateCli.RouteService(
 		cryptoutilTemplateCli.ServiceConfig{
-			ServiceID:        cryptoutilSharedMagic.KMSServiceID,
-			ProductName:      cryptoutilSharedMagic.SMProductName,
-			ServiceName:      cryptoutilSharedMagic.KMSServiceName,
+			ServiceID:         cryptoutilSharedMagic.KMSServiceID,
+			ProductName:       cryptoutilSharedMagic.SMProductName,
+			ServiceName:       cryptoutilSharedMagic.KMSServiceName,
 			DefaultPublicPort: uint16(cryptoutilSharedMagic.KMSServicePort),
-			UsageMain:        KMSUsageMain,
-			UsageServer:      KMSUsageServer,
-			UsageClient:      KMSUsageClient,
-			UsageInit:        KMSUsageInit,
-			UsageHealth:      KMSUsageHealth,
-			UsageLivez:       KMSUsageLivez,
-			UsageReadyz:      KMSUsageReadyz,
-			UsageShutdown:    KMSUsageShutdown,
+			UsageMain:         KMSUsageMain,
+			UsageServer:       KMSUsageServer,
+			UsageClient:       KMSUsageClient,
+			UsageInit:         KMSUsageInit,
+			UsageHealth:       KMSUsageHealth,
+			UsageLivez:        KMSUsageLivez,
+			UsageReadyz:       KMSUsageReadyz,
+			UsageShutdown:     KMSUsageShutdown,
 		},
 		args, stdout, stderr,
 		kmsServerStart,
@@ -62,7 +63,9 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 	// Note: We prepend "start" as the subcommand for Parse() to validate.
 	argsWithSubcommand := append([]string{"start"}, args...)
 
-	settings, err := cryptoutilAppsTemplateServiceConfig.Parse(argsWithSubcommand, true)
+	fs := pflag.NewFlagSet("sm-kms-server", pflag.ContinueOnError)
+
+	settings, err := cryptoutilAppsTemplateServiceConfig.ParseWithFlagSet(fs, argsWithSubcommand, true)
 	if err != nil {
 		_, _ = fmt.Fprintf(stderr, "❌ Failed to parse configuration: %v\n", err)
 
