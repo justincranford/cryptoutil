@@ -6,10 +6,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	
+
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintPortsCommon "cryptoutil/internal/apps/cicd/lint_ports/common"
-	
+
 	"github.com/stretchr/testify/require"
 )
 

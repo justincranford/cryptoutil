@@ -234,10 +234,9 @@ func TestPrintNonFIPSViolations(t *testing.T) {
 	require.Contains(t, output, "FIPS 140-3")
 }
 
-
 // Test constants for repeated string literals.
 const (
-	osWindows         = "windows"
+	osWindows          = "windows"
 	testPackageMainDef = "package main\n"
 )
 

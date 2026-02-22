@@ -222,3 +222,20 @@ func TestGlobalRegistry(t *testing.T) {
 	versions := registry.ListVersions()
 	require.Len(t, versions, 3, "should have exactly 3 registered versions")
 }
+
+// TestGetDefaultParameterSet_MissingDefaultPanics tests that GetDefaultParameterSet panics
+// when the default version parameter set is missing (programming error condition).
+func TestGetDefaultParameterSet_MissingDefaultPanics(t *testing.T) {
+	t.Parallel()
+
+	registry := NewParameterSetRegistry()
+
+	// Corrupt the registry by removing the default version.
+	registry.mu.Lock()
+	delete(registry.parameterSets, registry.defaultVersion)
+	registry.mu.Unlock()
+
+	require.Panics(t, func() {
+		registry.GetDefaultParameterSet()
+	})
+}

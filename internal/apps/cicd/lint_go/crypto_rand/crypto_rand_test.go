@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCheckCryptoRand_Clean(t *testing.T) {

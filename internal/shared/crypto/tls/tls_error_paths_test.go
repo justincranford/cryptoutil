@@ -429,3 +429,76 @@ func TestNewClientForTest(t *testing.T) {
 
 	require.NotNil(t, client)
 }
+
+func TestCreateEndEntity_NilIssuingCA(t *testing.T) {
+	t.Parallel()
+
+	chain := &CAChain{IssuingCA: nil}
+
+	_, err := chain.CreateEndEntity(&EndEntityOptions{SubjectName: "test.local"})
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no issuing CA available")
+}
+
+func TestNewServerConfig_ClientAuthWithNilClientCAs(t *testing.T) {
+	t.Parallel()
+
+	subject := testSubjectHelper(t)
+
+	config, err := NewServerConfig(&ServerConfigOptions{
+		Subject:    subject,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+		ClientCAs:  nil, // Should default to rootCAsPool.
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, config)
+	require.NotNil(t, config.TLSConfig.ClientCAs, "ClientCAs should be set from rootCAsPool")
+}
+
+func TestNewServerConfig_WithCipherSuites(t *testing.T) {
+	t.Parallel()
+
+	subject := testSubjectHelper(t)
+
+	config, err := NewServerConfig(&ServerConfigOptions{
+		Subject:      subject,
+		CipherSuites: []uint16{tls.TLS_AES_128_GCM_SHA256, tls.TLS_AES_256_GCM_SHA384},
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, config)
+	require.Equal(t, []uint16{tls.TLS_AES_128_GCM_SHA256, tls.TLS_AES_256_GCM_SHA384}, config.TLSConfig.CipherSuites)
+}
+
+func TestStoreCertificate_UnsupportedFormat(t *testing.T) {
+	t.Parallel()
+
+	subject := testSubjectHelper(t)
+	opts := DefaultStorageOptions(t.TempDir())
+	opts.Format = StorageFormat("unsupported")
+
+	_, err := StoreCertificate(subject, opts)
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "unsupported storage format")
+}
+
+func TestLoadCertificatePEM_CACertificate(t *testing.T) {
+	t.Parallel()
+
+	chain, err := CreateCAChain(DefaultCAChainOptions("test-ca.local"))
+	require.NoError(t, err)
+
+	// Store the root CA certificate.
+	opts := DefaultStorageOptions(t.TempDir())
+	stored, err := StoreCertificate(chain.RootCA, opts)
+	require.NoError(t, err)
+
+	// Load it back - should hit the IsCA branch and set MaxPathLen.
+	subject, err := LoadCertificatePEM(stored.CertificatePath, stored.PrivateKeyPath)
+	require.NoError(t, err)
+	require.NotNil(t, subject)
+	require.True(t, subject.KeyMaterial.CertificateChain[0].IsCA)
+}

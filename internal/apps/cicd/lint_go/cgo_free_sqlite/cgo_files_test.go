@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +19,6 @@ const (
 	testCleanContent = "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
 	testMainContent  = "package main\n\nfunc main() {}\n"
 )
-
 
 func TestCheckGoFilesForCGO_WithTempDir(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
@@ -162,4 +160,3 @@ func TestCheckGoFileForCGO_ScannerError(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "error reading")
 }
-
