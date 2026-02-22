@@ -120,7 +120,7 @@ Back to [quality-gates-summary.md](quality-gates-summary.md)
 - **File**: `internal/apps/identity/healthcheck/poller.go` line 72
 - **Severity**: MEDIUM
 - **Issue**: `Poller.Poll()` implements its own polling loop with exponential backoff. Functionally similar to `poll.Until()` but with backoff. Two polling implementations violates DRY.
-- **Fix**: Extend `poll.Until()` to optionally support exponential backoff, or document why separate implementation is needed.
+- **Fix**: Extend `poll.Until()` to optionally support exponential backoff.
 
 ### F-4.2: Demo package — 20+ scattered constants
 
