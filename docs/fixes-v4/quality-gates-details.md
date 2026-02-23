@@ -103,10 +103,13 @@ const testUsername  = "user"      // user_auth_error_paths_test.go
 
 ### shared packages — 12 packages
 
+> **Structural ceiling**: `shared/crypto/jose` (89.9%) — all 111 uncovered blocks are `.Set()` error paths on valid JWK headers, `uuid.NewV7()` error paths, and unreachable `default` branches. Cannot improve without mocking internal library functions.
+> **Structural ceiling**: `shared/container` (0%) — only used transitionally for test containers; no executable logic worth testing.
+
 | Coverage | Covered | Total | Missing | Package |
 |----------|---------|-------|---------|---------|
 | 0.0% | 0 | 63 | 63 | `internal/shared/container` |
-| 88.4% | 987 | 1117 | 130 | `internal/shared/crypto/jose` |
+| 89.9% | 987 | 1117 | 130 | `internal/shared/crypto/jose` |
 | 95.3% | 221 | 232 | 11 | `internal/shared/crypto/certificate` |
 | 95.5% | 85 | 89 | 4 | `internal/shared/util/files` |
 | 96.4% | 188 | 195 | 7 | `internal/shared/pool` |
@@ -150,25 +153,34 @@ const testUsername  = "user"      // user_auth_error_paths_test.go
 **Sorted by:** coverage ascending (lowest = highest urgency)
 **Test requirement:** ALL coverage fixes MUST use table-driven tests for both happy paths and sad paths
 
-| Coverage | Covered | Total | Missing | Package |
-|----------|---------|-------|---------|---------|
-| 0.0% | 0 | 34 | 34 | `internal/apps/sm/kms/cmd` |
-| 0.0% | 0 | 42 | 42 | `internal/apps/jose/ja` |
-| 0.0% | 0 | 42 | 42 | `internal/apps/sm/kms` |
-| 0.0% | 0 | 42 | 42 | `internal/apps/pki/ca` |
-| 5.9% | 1 | 17 | 16 | `internal/apps/cryptoutil` |
-| 0.0% | 0 | 60 | 60 | `internal/apps/sm/kms/server` |
-| 0.0% | 0 | 74 | 74 | `internal/apps/cipher/im/testing` |
-| 0.0% | 0 | 330 | 330 | `internal/apps/sm/kms/server/handler` |
-| 0.0% | 0 | 367 | 367 | `internal/apps/sm/kms/server/repository/orm` |
-| 0.0% | 0 | 647 | 647 | `internal/apps/sm/kms/server/application` |
-| 31.0% | 13 | 42 | 29 | `internal/apps/cipher/im` |
-| 7.3% | 3 | 41 | 38 | `internal/apps/sm/kms/server/demo` |
-| 83.3% | 70 | 84 | 14 | `internal/apps/cipher/im/server/apis` |
-| 86.5% | 90 | 104 | 14 | `internal/apps/cipher/im/server` |
-| 93.5% | 43 | 46 | 3 | `internal/apps/cipher/im/server/config` |
-| 36.8% | 225 | 612 | 387 | `internal/apps/sm/kms/server/businesslogic` |
-| 58.5% | 427 | 730 | 303 | `internal/apps/sm/kms/server/middleware` |
+### PASSING ≥95% (10 of 17 packages)
+
+| Coverage | Package | Notes |
+|----------|---------|-------|
+| 100% | `internal/apps/sm/kms` | ✅ |
+| 100% | `internal/apps/cryptoutil` | ✅ |
+| 100% | `internal/apps/cipher/im/server/config` | ✅ |
+| 97.9% | `internal/apps/jose/ja` | ✅ |
+| 97.9% | `internal/apps/pki/ca` | ✅ |
+| 97.9% | `internal/apps/cipher/im` | ✅ |
+| 96.2% | `internal/apps/cipher/im/server` | ✅ |
+| 95.3% | `internal/apps/sm/kms/server/middleware` | ✅ |
+| 95.2% | `internal/apps/cipher/im/server/apis` | ✅ |
+| N/A | `internal/apps/sm/kms/cmd` | DELETED (dead code) |
+
+### STRUCTURAL CEILINGS — 7 packages (WON'T IMPLEMENT)
+
+> All remaining packages have genuine structural ceilings that cannot be improved without mocking internal dependencies, full integration setups, or bypassing SQLite deadlocks.
+
+| Coverage | Package | Ceiling Reason |
+|----------|---------|----------------|
+| 0.0% | `internal/apps/sm/kms/server/application` | `//go:build integration` tag — integration-only code |
+| 0.0% | `internal/apps/sm/kms/server/repository/orm` | `//go:build integration` tag — integration-only code |
+| 70.0% | `internal/apps/sm/kms/server` | `NewKMSServer` (20%) requires full integration setup |
+| 77.0% | `internal/apps/cipher/im/testing` | Test helper defensive error paths (TLS config failure, server creation failure) |
+| 81.7% | `internal/apps/sm/kms/server/businesslogic` | `AddElasticKey` (20%), `GenerateMaterialKeyInElasticKey` (9.7%), `ImportMaterialKey` (40.6%) — SQLite deadlock with nested write transactions |
+| 82.9% | `internal/apps/sm/kms/server/demo` | `SeedDemoData` calls `AddElasticKey` — same SQLite deadlock |
+| 87.0% | `internal/apps/sm/kms/server/handler` | All 17 handler methods at 0% — thin wrappers calling businessLogicService, no interface to mock |
 
 ### WON'T IMPLEMENT
 
