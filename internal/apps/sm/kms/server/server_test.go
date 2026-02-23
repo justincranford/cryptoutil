@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
+	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServer "cryptoutil/internal/apps/template/service/server"
 	cryptoutilAppsTemplateServiceServerBuilder "cryptoutil/internal/apps/template/service/server/builder"
 
+	fiber "github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -232,4 +235,44 @@ func TestKMSServer_ShutdownWithPartialResources(t *testing.T) {
 	}
 
 	require.NotPanics(t, func() { srv.Shutdown() })
+}
+
+func TestRegisterKMSRoutes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings
+	}{
+		{
+			name: "default paths",
+			settings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				PublicBrowserAPIContextPath: "/browser/api/v1",
+				PublicServiceAPIContextPath: "/service/api/v1",
+			},
+		},
+		{
+			name: "custom paths",
+			settings: &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+				PublicBrowserAPIContextPath: "/custom/browser",
+				PublicServiceAPIContextPath: "/custom/service",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			app := fiber.New(fiber.Config{DisableStartupMessage: true})
+			kmsCore := &cryptoutilServerApplication.ServerApplicationCore{}
+
+			err := registerKMSRoutes(app, kmsCore, tc.settings)
+			require.NoError(t, err)
+
+			// Verify routes were registered (Fiber's route stack should be non-empty).
+			routes := app.GetRoutes()
+			require.NotEmpty(t, routes)
+		})
+	}
 }
