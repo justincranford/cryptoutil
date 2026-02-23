@@ -22,6 +22,16 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// Injectable vars for testing Build() error paths.
+var (
+	newAdminHTTPServerFn  = cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer
+	startCoreFn           = cryptoutilAppsTemplateServiceServerApplication.StartCore
+	initServicesOnCoreFn  = cryptoutilAppsTemplateServiceServerApplication.InitializeServicesOnCore
+	generateTLSMaterialFn = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial
+	newPublicServerBaseFn = cryptoutilAppsTemplateServiceServer.NewPublicServerBase
+	newApplicationFn      = cryptoutilAppsTemplateServiceServer.NewApplication
+)
+
 // ServiceResources contains all initialized service resources available to domain-specific code.
 func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	if b.err != nil {
@@ -44,14 +54,14 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create admin server.
-	adminServer, err := cryptoutilAppsTemplateServiceServerListener.NewAdminHTTPServer(b.ctx, b.config, adminTLSCfg)
+	adminServer, err := newAdminHTTPServerFn(b.ctx, b.config, adminTLSCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin server: %w", err)
 	}
 
 	// Phase W.1: Initialize application core WITHOUT services (DB + telemetry only).
 	// CRITICAL: Must run migrations BEFORE initializing services (BarrierService needs barrier_root_keys table).
-	applicationCore, err := cryptoutilAppsTemplateServiceServerApplication.StartCore(b.ctx, b.config)
+	applicationCore, err := startCoreFn(b.ctx, b.config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start application core: %w", err)
 	}
@@ -80,7 +90,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	var services *cryptoutilAppsTemplateServiceServerApplication.CoreWithServices
 
 	if barrierEnabled {
-		services, err = cryptoutilAppsTemplateServiceServerApplication.InitializeServicesOnCore(
+		services, err = initServicesOnCoreFn(
 			b.ctx,
 			applicationCore,
 			b.config,
@@ -110,7 +120,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Generate TLS material for public server.
-	publicTLSMaterial, err := cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial(publicTLSCfg)
+	publicTLSMaterial, err := generateTLSMaterialFn(publicTLSCfg)
 	if err != nil {
 		applicationCore.Shutdown()
 
@@ -118,7 +128,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create public server base.
-	publicServerBase, err := cryptoutilAppsTemplateServiceServer.NewPublicServerBase(&cryptoutilAppsTemplateServiceServer.PublicServerConfig{
+	publicServerBase, err := newPublicServerBaseFn(&cryptoutilAppsTemplateServiceServer.PublicServerConfig{
 		BindAddress: b.config.BindPublicAddress,
 		Port:        int(b.config.BindPublicPort),
 		TLSMaterial: publicTLSMaterial,
@@ -198,7 +208,7 @@ func (b *ServerBuilder) Build() (*ServiceResources, error) {
 	}
 
 	// Create application wrapper with both servers.
-	app, err := cryptoutilAppsTemplateServiceServer.NewApplication(b.ctx, publicServerBase, adminServer)
+	app, err := newApplicationFn(b.ctx, publicServerBase, adminServer)
 	if err != nil {
 		applicationCore.Shutdown()
 
