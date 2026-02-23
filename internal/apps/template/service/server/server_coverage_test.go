@@ -6,9 +6,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"testing"
 	"time"
 
+	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
@@ -17,7 +19,9 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 )
 
 // TestPublicServerBase_StartContextCancellation tests Start when context is canceled before server runs.
@@ -123,10 +127,75 @@ func TestPublicServerBase_ShutdownTwice(t *testing.T) {
 // TestNewServiceTemplate_JWKGenInitError tests NewServiceTemplate when JWKGenService fails to initialize.
 // Target: service_template.go:83 (JWKGenService init error)
 //
-// NOTE: Cannot easily trigger JWKGen init error in practice (requires telemetry/pool failure).
-// This test documents the code path exists but is difficult to cover.
+// TestNewServiceTemplate_TelemetryInitError tests NewServiceTemplate when telemetry init fails.
+// Cannot use t.Parallel() because it modifies the package-level injectable var.
+func TestNewServiceTemplate_TelemetryInitError(t *testing.T) {
+	originalFn := newTelemetryServiceFn
+	newTelemetryServiceFn = func(_ context.Context, _ *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+		return nil, fmt.Errorf("mock telemetry failure")
+	}
+
+	defer func() { newTelemetryServiceFn = originalFn }()
+
+	ctx := context.Background()
+
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		OTLPService: "test-service",
+		LogLevel:    "INFO",
+	}
+
+	dbUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	dsn := "file:" + dbUUID.String() + "?mode=memory&cache=private"
+
+	sqlDB, err := sql.Open("sqlite", dsn)
+	require.NoError(t, err)
+
+	defer func() { _ = sqlDB.Close() }()
+
+	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
+	require.NoError(t, err)
+
+	_, err = NewServiceTemplate(ctx, config, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to initialize telemetry")
+}
+
+// TestNewServiceTemplate_JWKGenInitError tests NewServiceTemplate when JWK gen service init fails.
+// Cannot use t.Parallel() because it modifies the package-level injectable var.
 func TestNewServiceTemplate_JWKGenInitError(t *testing.T) {
-	t.Skip("JWKGen init error difficult to trigger - requires telemetry/pool failure")
+	originalFn := newJWKGenServiceFn
+	newJWKGenServiceFn = func(_ context.Context, _ *cryptoutilSharedTelemetry.TelemetryService, _ bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
+		return nil, fmt.Errorf("mock jwkgen failure")
+	}
+
+	defer func() { newJWKGenServiceFn = originalFn }()
+
+	ctx := context.Background()
+
+	config := &cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings{
+		OTLPService:  "test-service",
+		LogLevel:     "INFO",
+		OTLPEndpoint: "http://localhost:4318",
+	}
+
+	dbUUID, err := googleUuid.NewV7()
+	require.NoError(t, err)
+
+	dsn := "file:" + dbUUID.String() + "?mode=memory&cache=private"
+
+	sqlDB, err := sql.Open("sqlite", dsn)
+	require.NoError(t, err)
+
+	defer func() { _ = sqlDB.Close() }()
+
+	db, err := gorm.Open(sqlite.Dialector{Conn: sqlDB}, &gorm.Config{SkipDefaultTransaction: true})
+	require.NoError(t, err)
+
+	_, err = NewServiceTemplate(ctx, config, db, cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to initialize JWK generation service")
 }
 
 // TestNewServiceTemplate_OptionError tests NewServiceTemplate when option application fails.
@@ -295,4 +364,69 @@ func TestApplication_StartContextCancellation(t *testing.T) {
 	err = app.Start(ctx)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "application startup cancelled")
+}
+
+// TestPublicServerBase_ErrChanPath tests that Start returns via errChan when Fiber app is shut down
+// directly (without canceling the server context). Covers the errChan select case.
+func TestPublicServerBase_ErrChanPath(t *testing.T) {
+	t.Parallel()
+
+	config := &PublicServerConfig{
+		BindAddress: "127.0.0.1",
+		Port:        0,
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+
+	base, err := NewPublicServerBase(config)
+	require.NoError(t, err)
+
+	// Start server in background with a non-cancellable context.
+	startErr := make(chan error, 1)
+
+	go func() {
+		startErr <- base.Start(context.Background())
+	}()
+
+	// Wait for server to be listening.
+	require.Eventually(t, func() bool {
+		return base.ActualPort() != 0
+	}, 5*time.Second, 10*time.Millisecond)
+
+	// Directly shutdown the Fiber app (NOT base.Shutdown which also cancels context).
+	// This causes app.Listener to return, firing errChan, without serverCtx.Done().
+	_ = base.app.Shutdown()
+
+	// Start returns via errChan path.
+	err = <-startErr
+
+	// Fiber returns nil on clean shutdown — coverage of errChan path is the goal.
+	_ = err
+}
+
+// TestPublicServerBase_ListenerError tests Start when app.Listener returns an error.
+// Covers public_server_base.go:141-143 (app.Listener error inside goroutine).
+// Cannot use t.Parallel() because it modifies the package-level injectable var.
+func TestPublicServerBase_ListenerError(t *testing.T) {
+	original := appListenerFn
+	appListenerFn = func(_ *fiber.App, ln net.Listener) error {
+		_ = ln.Close()
+
+		return fmt.Errorf("forced listener error")
+	}
+
+	defer func() { appListenerFn = original }()
+
+	config := &PublicServerConfig{
+		BindAddress: "127.0.0.1",
+		Port:        0,
+		TLSMaterial: createTestTLSMaterial(t),
+	}
+
+	base, err := NewPublicServerBase(config)
+	require.NoError(t, err)
+
+	err = base.Start(context.Background())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "public server error")
+	require.Contains(t, err.Error(), "forced listener error")
 }

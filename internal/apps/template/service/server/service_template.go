@@ -33,6 +33,16 @@ type ServiceTemplate struct {
 // ServiceTemplateOption is a functional option for configuring ServiceTemplate.
 type ServiceTemplateOption func(*ServiceTemplate) error
 
+// newTelemetryServiceFn is an injectable var for testing the telemetry init error path.
+var newTelemetryServiceFn = func(ctx context.Context, config *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
+	return cryptoutilSharedTelemetry.NewTelemetryService(ctx, config)
+}
+
+// newJWKGenServiceFn is an injectable var for testing the JWK gen init error path.
+var newJWKGenServiceFn = func(ctx context.Context, telemetryService *cryptoutilSharedTelemetry.TelemetryService, devMode bool) (*cryptoutilSharedCryptoJose.JWKGenService, error) {
+	return cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, devMode)
+}
+
 // NewServiceTemplate creates a new ServiceTemplate with common infrastructure.
 // Initializes telemetry, JWK generation service, and optionally barrier service.
 // Does NOT run migrations or create HTTP servers (caller-specific).
@@ -60,14 +70,14 @@ func NewServiceTemplate(
 	}
 
 	// Initialize telemetry service.
-	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, config)
+	telemetryService, err := newTelemetryServiceFn(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize telemetry: %w", err)
 	}
 
 	// Initialize JWK Generation Service for cryptographic operations.
 	// Uses in-memory key pools with telemetry for monitoring.
-	jwkGenService, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetryService, false)
+	jwkGenService, err := newJWKGenServiceFn(ctx, telemetryService, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize JWK generation service: %w", err)
 	}

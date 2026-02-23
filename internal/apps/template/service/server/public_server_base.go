@@ -15,6 +15,12 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// appListenerFn is an injectable var for testing the app.Listener error path.
+var appListenerFn = func(app *fiber.App, ln net.Listener) error {
+	//nolint:wrapcheck // Pass-through to Fiber framework.
+	return app.Listener(ln)
+}
+
 // PublicServerBase provides reusable public server infrastructure.
 type PublicServerBase struct {
 	bindAddress string
@@ -138,7 +144,7 @@ func (s *PublicServerBase) Start(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := s.app.Listener(tlsListener); err != nil {
+		if err := appListenerFn(s.app, tlsListener); err != nil {
 			errChan <- fmt.Errorf("public server error: %w", err)
 		} else {
 			errChan <- nil
