@@ -7,8 +7,8 @@ package realm
 import (
 	"context"
 	"database/sql"
-	json "encoding/json"
 	"encoding/base64"
+	json "encoding/json"
 	"fmt"
 	"io"
 	http "net/http"

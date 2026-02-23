@@ -29,7 +29,7 @@ type fakeListener struct {
 
 func (f *fakeListener) Accept() (net.Conn, error) { return f.inner.Accept() }
 func (f *fakeListener) Close() error              { return f.inner.Close() }
-func (f *fakeListener) Addr() net.Addr             { return &fakeAddr{} }
+func (f *fakeListener) Addr() net.Addr            { return &fakeAddr{} }
 
 // invalidPortListener wraps a real listener but returns an out-of-range port.
 type invalidPortListener struct {

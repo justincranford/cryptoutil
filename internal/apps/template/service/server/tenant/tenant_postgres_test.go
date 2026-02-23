@@ -25,12 +25,12 @@ import (
 
 // mockPGDriver is a configurable in-process SQL driver.
 type mockPGDriver struct {
-	mu        sync.Mutex
-	failExec  bool
-	failScan  bool // When true, rows return non-string values to trigger Scan error.
-	failIter  bool // When true, rows.Next() returns an error after first row.
-	rowsData  [][]driver.Value
-	columns   []string
+	mu       sync.Mutex
+	failExec bool
+	failScan bool // When true, rows return non-string values to trigger Scan error.
+	failIter bool // When true, rows.Next() returns an error after first row.
+	rowsData [][]driver.Value
+	columns  []string
 }
 
 func (d *mockPGDriver) setFail(fail bool) {

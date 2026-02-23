@@ -30,6 +30,11 @@ var (
 	newSessionManagerServiceFn = cryptoutilAppsTemplateServiceServerBusinesslogic.NewSessionManagerService
 	newRotationServiceFn       = cryptoutilAppsTemplateServiceServerBarrier.NewRotationService
 	newStatusServiceFn         = cryptoutilAppsTemplateServiceServerBarrier.NewStatusService
+	startPostgresFn            = cryptoutilSharedContainer.StartPostgres
+	sqlOpenFn                  = sql.Open
+	gormOpenSQLiteFn           = func(dialector gorm.Dialector, config *gorm.Config) (*gorm.DB, error) {
+		return gorm.Open(dialector, config)
+	}
 )
 
 // Core extends Basic with database infrastructure.
@@ -289,7 +294,7 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 	if isPostgres && containerMode != "" && containerMode != "disabled" {
 		basic.TelemetryService.Slogger.Debug("attempting to start PostgreSQL testcontainer", "containerMode", containerMode)
 
-		containerURL, cleanup, err := cryptoutilSharedContainer.StartPostgres(
+		containerURL, cleanup, err := startPostgresFn(
 			ctx,
 			basic.TelemetryService,
 			"test_db",
@@ -336,7 +341,7 @@ func provisionDatabase(ctx context.Context, basic *Basic, settings *cryptoutilAp
 // openSQLite opens a SQLite database connection with GORM and configures WAL mode.
 func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.DB, error) {
 	// Open database connection using database/sql.
-	sqlDB, err := sql.Open("sqlite", databaseURL)
+	sqlDB, err := sqlOpenFn("sqlite", databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open SQLite database: %w", err)
 	}
@@ -369,7 +374,7 @@ func openSQLite(ctx context.Context, databaseURL string, debugMode bool) (*gorm.
 		gormConfig.Logger = logger.Default.LogMode(cryptoutilSharedMagic.GormLogModeInfo)
 	}
 
-	db, err := gorm.Open(dialector, gormConfig)
+	db, err := gormOpenSQLiteFn(dialector, gormConfig)
 	if err != nil {
 		_ = sqlDB.Close()
 

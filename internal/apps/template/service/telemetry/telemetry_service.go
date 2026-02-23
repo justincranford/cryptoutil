@@ -41,10 +41,10 @@ import (
 )
 
 var (
-	initMetricsFn              = initMetrics              // injectable for testing error paths.
-	initTracesFn               = initTraces               // injectable for testing error paths.
-	stdoutMetricExporterNewFn  = stdoutMetricExporter.New  // injectable for testing error paths.
-	stdoutTraceExporterNewFn   = stdoutTraceExporter.New   // injectable for testing error paths.
+	initMetricsFn             = initMetrics              // injectable for testing error paths.
+	initTracesFn              = initTraces               // injectable for testing error paths.
+	stdoutMetricExporterNewFn = stdoutMetricExporter.New // injectable for testing error paths.
+	stdoutTraceExporterNewFn  = stdoutTraceExporter.New  // injectable for testing error paths.
 )
 
 // TelemetryService is a composite of OpenTelemetry providers for Logs, Metrics, and Traces.
