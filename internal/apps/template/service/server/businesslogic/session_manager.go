@@ -58,12 +58,12 @@ const (
 
 // Injectable function variables for testing error paths.
 var (
-	jsonMarshalFn      = json.Marshal
-	generateRSAJWKFn   = cryptoutilSharedCryptoJose.GenerateRSAJWK
-	generateECDSAJWKFn = cryptoutilSharedCryptoJose.GenerateECDSAJWK
-	generateEdDSAJWKFn = cryptoutilSharedCryptoJose.GenerateEDDSAJWK
-	generateAESJWKFn   = cryptoutilSharedCryptoJose.GenerateAESJWK
-	generateHMACJWKFn  = cryptoutilSharedCryptoJose.GenerateHMACJWK
+	jsonMarshalFn                  = json.Marshal
+	generateRSAJWKFn               = cryptoutilSharedCryptoJose.GenerateRSAJWK
+	generateECDSAJWKFn             = cryptoutilSharedCryptoJose.GenerateECDSAJWK
+	generateEdDSAJWKFn             = cryptoutilSharedCryptoJose.GenerateEDDSAJWK
+	generateAESJWKFn               = cryptoutilSharedCryptoJose.GenerateAESJWK
+	generateHMACJWKFn              = cryptoutilSharedCryptoJose.GenerateHMACJWK
 	jwkParseKeyFn                  = joseJwk.ParseKey
 	signBytesFn                    = cryptoutilSharedCryptoJose.SignBytes
 	encryptBytesFn                 = cryptoutilSharedCryptoJose.EncryptBytes
