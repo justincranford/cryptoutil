@@ -115,8 +115,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*Ciphe
 	// Realms are stored in database and loaded at runtime via migration 0005_add_realms.up.sql.
 
 	// Override template defaults with cipher-im specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.CipherServicePort
+	// Only override public port if user didn't explicitly specify one via CLI flag.
+	// Private admin port (9090) is universal across all services.
+	if !fs.Changed("bind-public-port") {
+		settings.BindPublicPort = cryptoutilSharedMagic.CipherServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceCipherIM
 
 	// Validate cipher-im specific settings.

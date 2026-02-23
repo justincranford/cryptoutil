@@ -113,10 +113,19 @@ func imServiceServerStart(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 	case sig := <-sigChan:
-		fmt.Printf("\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+
+		shutdownCtx, cancel := context.WithTimeout(ctx, cryptoutilSharedMagic.DefaultDataServerShutdownTimeout)
+		defer cancel()
+
+		if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
+			_, _ = fmt.Fprintf(stderr, "⚠️  Shutdown error: %v\n", shutdownErr)
+		}
 	}
 
-	fmt.Println("✅ cipher-im service stopped")
+	signal.Stop(sigChan)
+
+	_, _ = fmt.Fprintln(stdout, "✅ cipher-im service stopped")
 
 	return 0
 }

@@ -117,8 +117,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*CASer
 	}
 
 	// Override template defaults with pki-ca specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.PKICAServicePort
+	// Only override public port if user didn't explicitly specify one via CLI flag.
+	// Private admin port (9090) is universal across all services.
+	if !fs.Changed("bind-public-port") {
+		settings.BindPublicPort = cryptoutilSharedMagic.PKICAServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServicePKICA
 
 	// Validate pki-ca specific settings.

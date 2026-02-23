@@ -116,7 +116,7 @@ func TestParse_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, settings)
 	require.Equal(t, "127.0.0.1", settings.BindPublicAddress)
-	require.Equal(t, uint16(cryptoutilSharedMagic.CipherServicePort), settings.BindPublicPort) // Overridden to cipher default.
+	require.Equal(t, uint16(8080), settings.BindPublicPort) // CLI flag --bind-public-port=8080 is respected.
 	require.Equal(t, cryptoutilSharedMagic.CipherJWEAlgorithm, settings.MessageJWEAlgorithm)
 	require.Equal(t, cryptoutilSharedMagic.CipherMessageMinLength, settings.MessageMinLength)
 	require.Equal(t, cryptoutilSharedMagic.CipherMessageMaxLength, settings.MessageMaxLength)

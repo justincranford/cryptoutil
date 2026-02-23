@@ -85,8 +85,12 @@ func ParseWithFlagSet(fs *pflag.FlagSet, args []string, exitIfHelp bool) (*JoseJ
 	}
 
 	// Override template defaults with jose-ja specific values.
-	// NOTE: Only override public port - private admin port (9090) is universal across all services.
-	settings.BindPublicPort = cryptoutilSharedMagic.JoseJAServicePort
+	// Only override public port if user didn't explicitly specify one via CLI flag.
+	// Private admin port (9090) is universal across all services.
+	if !fs.Changed("bind-public-port") {
+		settings.BindPublicPort = cryptoutilSharedMagic.JoseJAServicePort
+	}
+
 	settings.OTLPService = cryptoutilSharedMagic.OTLPServiceJoseJA
 
 	// Validate jose-ja specific settings.

@@ -102,11 +102,14 @@ func kmsServerStart(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 	case sig := <-sigChan:
-		fmt.Printf("\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+		_, _ = fmt.Fprintf(stdout, "\n⏹️  Received signal %v, shutting down gracefully...\n", sig)
+
 		srv.Shutdown()
 	}
 
-	fmt.Println("✅ sm-kms service stopped")
+	signal.Stop(sigChan)
+
+	_, _ = fmt.Fprintln(stdout, "✅ sm-kms service stopped")
 
 	return 0
 }
