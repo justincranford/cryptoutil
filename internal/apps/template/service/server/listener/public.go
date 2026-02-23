@@ -19,6 +19,16 @@ import (
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
+// publicListenFn is injectable for testing the TCP listener creation in Start().
+var publicListenFn = func(ctx context.Context, network, address string) (net.Listener, error) {
+	return (&net.ListenConfig{}).Listen(ctx, network, address)
+}
+
+// publicAppListenerFn is injectable for testing the Fiber app.Listener call in Start().
+var publicAppListenerFn = func(app *fiber.App, ln net.Listener) error {
+	return app.Listener(ln)
+}
+
 // PublicHTTPServer implements the PublicServer interface for business logic APIs and UIs.
 // Binds to configurable address and port from ServiceTemplateServerSettings.
 //
@@ -162,9 +172,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	}
 
 	// Create TCP listener using address and port from ServiceTemplateServerSettings.
-	listenConfig := &net.ListenConfig{}
-
-	listener, err := listenConfig.Listen(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))
+	listener, err := publicListenFn(ctx, "tcp", fmt.Sprintf("%s:%d", s.settings.BindPublicAddress, s.settings.BindPublicPort))
 	if err != nil {
 		return fmt.Errorf("failed to create listener: %w", err)
 	}
@@ -189,7 +197,7 @@ func (s *PublicHTTPServer) Start(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := s.app.Listener(tlsListener); err != nil {
+		if err := publicAppListenerFn(s.app, tlsListener); err != nil {
 			errChan <- fmt.Errorf("public server error: %w", err)
 		} else {
 			errChan <- nil

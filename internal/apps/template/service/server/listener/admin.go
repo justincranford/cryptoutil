@@ -24,6 +24,17 @@ import (
 // generateTLSMaterialFn is the function used to generate TLS material. Injectable for testing.
 var generateTLSMaterialFn = cryptoutilAppsTemplateServiceConfigTlsGenerator.GenerateTLSMaterial
 
+// adminListenFn is injectable for testing the TCP listener creation error paths.
+var adminListenFn = func(ctx context.Context, network, address string) (net.Listener, error) {
+	return (&net.ListenConfig{}).Listen(ctx, network, address)
+}
+
+// adminAppListenerFn is injectable for testing the app.Listener error path.
+var adminAppListenerFn = func(app *fiber.App, ln net.Listener) error {
+	//nolint:wrapcheck // Pass-through to Fiber framework.
+	return app.Listener(ln)
+}
+
 // AdminServer represents the private admin API server for health checks and graceful shutdown.
 // Binds to address and port from ServiceTemplateServerSettings.
 type AdminServer struct {
@@ -190,9 +201,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	addr := fmt.Sprintf("%s:%d", s.settings.BindPrivateAddress, s.settings.BindPrivatePort)
 
 	// Create listener.
-	var lc net.ListenConfig
-
-	listener, err := lc.Listen(ctx, "tcp", addr)
+	listener, err := adminListenFn(ctx, "tcp", addr)
 	if err != nil {
 		return fmt.Errorf("failed to create admin listener: %w", err)
 	}
@@ -237,7 +246,7 @@ func (s *AdminServer) Start(ctx context.Context) error {
 	errChan := make(chan error, 1)
 
 	go func() {
-		if err := s.app.Listener(tlsListener); err != nil {
+		if err := adminAppListenerFn(s.app, tlsListener); err != nil {
 			errChan <- fmt.Errorf("admin server error: %w", err)
 		} else {
 			errChan <- nil
