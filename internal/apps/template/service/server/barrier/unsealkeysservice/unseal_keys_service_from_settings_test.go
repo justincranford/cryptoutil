@@ -96,6 +96,22 @@ func TestNewUnsealKeysServiceFromSettings_InvalidNValue(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid N value")
 }
 
+// TestNewUnsealKeysServiceFromSettings_MZeroBoundary tests that m=0 is rejected in M-of-N mode.
+// Standalone test (not table-driven) ensures gremlins can reliably kill the m<=0 boundary mutant.
+func TestNewUnsealKeysServiceFromSettings_MZeroBoundary(t *testing.T) {
+	t.Parallel()
+
+	ctx, telemetryService := createTestContext(t)
+	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-m-zero-boundary")
+	settings.DevMode = false
+	settings.UnsealMode = "0-of-3" // m=0, n=3: m must fail validation, not proceed to file reading.
+
+	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
+	require.Error(t, err)
+	require.Nil(t, unsealKeysService)
+	require.Contains(t, err.Error(), "invalid M-of-N values")
+}
+
 func TestNewUnsealKeysServiceFromSettings_InvalidMNValues(t *testing.T) {
 	t.Parallel()
 

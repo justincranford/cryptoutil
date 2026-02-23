@@ -110,7 +110,7 @@ const testUsername  = "user"      // user_auth_error_paths_test.go
 | 97.9% | `internal/apps/jose/ja` | ✅ |
 | 97.9% | `internal/apps/pki/ca` | ✅ |
 | 97.9% | `internal/apps/cipher/im` | ✅ |
-| 96.2% | `internal/apps/cipher/im/server` | ✅ |
+| 96.2% | `internal/apps/cipher/im/server` | ✅ |-
 | 95.3% | `internal/apps/sm/kms/server/middleware` | ✅ |
 | 95.2% | `internal/apps/cipher/im/server/apis` | ✅ |
 | N/A | `internal/apps/sm/kms/cmd` | DELETED (dead code) |

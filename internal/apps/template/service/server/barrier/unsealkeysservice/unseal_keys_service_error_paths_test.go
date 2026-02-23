@@ -149,7 +149,7 @@ func TestNewUnsealKeysServiceSharedSecrets_MaxSecrets(t *testing.T) {
 
 	// Create exactly MaxUnsealSharedSecrets (256) secrets
 	secrets := make([][]byte, cryptoutilSharedMagic.MaxUnsealSharedSecrets)
-	for i := 0; i < cryptoutilSharedMagic.MaxUnsealSharedSecrets; i++ {
+	for i := range secrets {
 		secrets[i] = []byte("shared secret with sufficient minimum length here")
 	}
 
@@ -157,5 +157,26 @@ func TestNewUnsealKeysServiceSharedSecrets_MaxSecrets(t *testing.T) {
 	service, err := NewUnsealKeysServiceSharedSecrets(secrets, 10)
 	require.Error(t, err)
 	require.Nil(t, service)
-	require.Contains(t, err.Error(), "can't be greater than")
+	// Use specific prefix to distinguish from downstream "m can't be greater than 255" in combinations.go.
+	require.Contains(t, err.Error(), "shared secrets can't be greater than")
+}
+
+// TestNewUnsealKeysServiceSharedSecrets_MaxMinusOneSecrets tests the boundary just below max shared secrets.
+func TestNewUnsealKeysServiceSharedSecrets_MaxMinusOneSecrets(t *testing.T) {
+	t.Parallel()
+
+	// Create MaxUnsealSharedSecrets-1 secrets (should pass the count check).
+	count := cryptoutilSharedMagic.MaxUnsealSharedSecrets - 1
+	secrets := make([][]byte, count)
+
+	for i := range secrets {
+		secrets[i] = []byte("shared secret with sufficient minimum length here")
+	}
+
+	// Should pass the count check (count < Max), but fail in ComputeCombinations
+	// because len(m) >= 255 (i.e. 255 >= 255).
+	service, err := NewUnsealKeysServiceSharedSecrets(secrets, 2)
+	require.Error(t, err)
+	require.Nil(t, service)
+	require.Contains(t, err.Error(), "failed to create unseal JWK combinations")
 }
