@@ -144,9 +144,3 @@ func TestKMS_ServerCreateError(t *testing.T) {
 	combined := stdout.String() + stderr.String()
 	require.Contains(t, combined, "Failed to create server")
 }
-
-// NOTE: TestKMS_ServerLifecycle and TestKMS_ServerStartError are not included
-// because NewKMSServer initialization hangs when using --dev mode with SQLite.
-// The KMS server has dual initialization (ServerApplicationCore + ServerBuilder.Build)
-// and the keygen pool workers block indefinitely during test execution.
-// The srv.Start() goroutine, signal handler, and errChan paths remain uncovered.

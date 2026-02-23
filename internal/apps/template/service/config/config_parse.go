@@ -151,6 +151,17 @@ func ParseWithFlagSet(fs *pflag.FlagSet, commandParameters []string, exitIfHelp 
 	fs.StringArrayP(unsealFiles.Name, unsealFiles.Shorthand, RegisterAsStringArraySetting(&unsealFiles), unsealFiles.Usage)
 	fs.StringSliceP(browserRealms.Name, browserRealms.Shorthand, RegisterAsStringSliceSetting(&browserRealms), browserRealms.Usage)
 	fs.StringSliceP(serviceRealms.Name, serviceRealms.Shorthand, RegisterAsStringSliceSetting(&serviceRealms), serviceRealms.Usage)
+	fs.StringP(browserSessionCookie.Name, browserSessionCookie.Shorthand, RegisterAsStringSetting(&browserSessionCookie), browserSessionCookie.Usage)
+	fs.StringP(browserSessionAlgorithm.Name, browserSessionAlgorithm.Shorthand, RegisterAsStringSetting(&browserSessionAlgorithm), browserSessionAlgorithm.Usage)
+	fs.StringP(browserSessionJWSAlgorithm.Name, browserSessionJWSAlgorithm.Shorthand, RegisterAsStringSetting(&browserSessionJWSAlgorithm), browserSessionJWSAlgorithm.Usage)
+	fs.StringP(browserSessionJWEAlgorithm.Name, browserSessionJWEAlgorithm.Shorthand, RegisterAsStringSetting(&browserSessionJWEAlgorithm), browserSessionJWEAlgorithm.Usage)
+	fs.DurationP(browserSessionExpiration.Name, browserSessionExpiration.Shorthand, RegisterAsDurationSetting(&browserSessionExpiration), browserSessionExpiration.Usage)
+	fs.StringP(serviceSessionAlgorithm.Name, serviceSessionAlgorithm.Shorthand, RegisterAsStringSetting(&serviceSessionAlgorithm), serviceSessionAlgorithm.Usage)
+	fs.StringP(serviceSessionJWSAlgorithm.Name, serviceSessionJWSAlgorithm.Shorthand, RegisterAsStringSetting(&serviceSessionJWSAlgorithm), serviceSessionJWSAlgorithm.Usage)
+	fs.StringP(serviceSessionJWEAlgorithm.Name, serviceSessionJWEAlgorithm.Shorthand, RegisterAsStringSetting(&serviceSessionJWEAlgorithm), serviceSessionJWEAlgorithm.Usage)
+	fs.DurationP(serviceSessionExpiration.Name, serviceSessionExpiration.Shorthand, RegisterAsDurationSetting(&serviceSessionExpiration), serviceSessionExpiration.Usage)
+	fs.DurationP(sessionIdleTimeout.Name, sessionIdleTimeout.Shorthand, RegisterAsDurationSetting(&sessionIdleTimeout), sessionIdleTimeout.Usage)
+	fs.DurationP(sessionCleanupInterval.Name, sessionCleanupInterval.Shorthand, RegisterAsDurationSetting(&sessionCleanupInterval), sessionCleanupInterval.Usage)
 
 	err := fs.Parse(subCommandParameters)
 	if err != nil {
