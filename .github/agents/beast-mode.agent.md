@@ -53,7 +53,7 @@ NEVER end your turn without having truly and completely solved the problem.
 - ✅ **Thoroughness**: Evidence-based validation at every step
 - ✅ **Reliability**: Quality gates enforced (≥95%/98% coverage/mutation)
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
-- ✅ Accuracy: Changes must address root cause, not just symptoms
+- ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
 - ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
