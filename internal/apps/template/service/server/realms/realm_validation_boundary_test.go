@@ -137,8 +137,7 @@ func TestRegisterUser_BoundaryPasswordLength(t *testing.T) {
 
 	// Exact boundary: password with exactly DefaultPasswordMinLengthChars (8) chars.
 	password := strings.Repeat("p", cryptoutilSharedMagic.DefaultPasswordMinLengthChars) // pragma: allowlist secret
-	_, err := s.RegisterUser(nil, "testuser", password) //nolint:staticcheck // nil ctx OK for unit test — hits mock repo.
-
+	_, err := s.RegisterUser(nil, "testuser", password)                                  //nolint:staticcheck // nil ctx OK for unit test — hits mock repo.
 	// Password length validation should pass; may succeed or fail on hash — verify no length error.
 	if err != nil {
 		require.NotContains(t, err.Error(), "password must be at least")

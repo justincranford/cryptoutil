@@ -298,3 +298,32 @@ func TestReadFilesBytes_EmptyPathIndex(t *testing.T) {
 	require.Nil(t, contents)
 	require.EqualError(t, err, "empty file path 1 of 1 in list")
 }
+
+// TestReadFilesBytes_ReadErrorIndex verifies error message contains correct
+// 1-based index when a file fails to read (not validation phase).
+// This kills the ARITHMETIC_BASE mutant on i+1 at the read loop (line 139).
+func TestReadFilesBytes_ReadErrorIndex(t *testing.T) {
+	t.Parallel()
+
+	// Provide a non-existent file path that passes validation (non-empty)
+	// but fails during ReadFileBytes.
+	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{"/nonexistent/path/file.txt"})
+	require.Error(t, err)
+	require.Nil(t, contents)
+	require.Contains(t, err.Error(), "failed to read file 1 of 1")
+}
+
+// TestReadFilesBytesLimit_ReadErrorIndex verifies error message contains correct
+// 1-based index when a file fails to read in the limited variant.
+// This kills the ARITHMETIC_BASE mutant on i+1 at the read loop (line 180).
+func TestReadFilesBytesLimit_ReadErrorIndex(t *testing.T) {
+	t.Parallel()
+
+	// Provide a non-existent file path that passes validation but fails during read.
+	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytesLimit(
+		[]string{"/nonexistent/path/file.txt"}, 10, 100,
+	)
+	require.Error(t, err)
+	require.Nil(t, contents)
+	require.Contains(t, err.Error(), "failed to read file 1 of 1")
+}
