@@ -296,5 +296,5 @@ func TestReadFilesBytes_EmptyPathIndex(t *testing.T) {
 	contents, err := cryptoutilSharedUtilFiles.ReadFilesBytes([]string{"  "})
 	require.Error(t, err)
 	require.Nil(t, contents)
-	require.Contains(t, err.Error(), "1 of 1")
+	require.EqualError(t, err, "empty file path 1 of 1 in list")
 }

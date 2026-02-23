@@ -173,6 +173,22 @@ func TestEncode_Panic_CombinationTooLarge(t *testing.T) {
 	}, "Encode should panic when combination length > 255")
 }
 
+// TestEncode_NoPanic_CombinationExactly255 tests no panic at exact boundary of 255 elements.
+// Kills CONDITIONALS_BOUNDARY mutant changing `> 255` to `>= 255` at combinations.go:82.
+func TestEncode_NoPanic_CombinationExactly255(t *testing.T) {
+	t.Parallel()
+
+	exactCombination := make(combination, maxUint8Value)
+	for i := range exactCombination {
+		exactCombination[i] = value("X")
+	}
+
+	testify.NotPanics(t, func() {
+		encoded := exactCombination.Encode()
+		testify.NotEmpty(t, encoded, "Encoding 255-element combination should produce non-empty output")
+	}, "Encode should NOT panic at exactly 255 elements")
+}
+
 // TestEncode_Panic_ValueTooLarge tests panic when value length exceeds uint8.
 func TestEncode_Panic_ValueTooLarge(t *testing.T) {
 	t.Parallel()
@@ -190,6 +206,24 @@ func TestEncode_Panic_ValueTooLarge(t *testing.T) {
 	}, "Encode should panic when value length > 255")
 }
 
+// TestEncode_NoPanic_ValueExactly255 tests no panic at exact boundary of 255-byte value.
+// Kills CONDITIONALS_BOUNDARY mutant changing `> 255` to `>= 255` at combinations.go:90.
+func TestEncode_NoPanic_ValueExactly255(t *testing.T) {
+	t.Parallel()
+
+	exactValue := make(value, maxUint8Value) // exactly 255 bytes
+	for i := range exactValue {
+		exactValue[i] = 'X'
+	}
+
+	c := combination{exactValue}
+
+	testify.NotPanics(t, func() {
+		encoded := c.Encode()
+		testify.NotEmpty(t, encoded, "Encoding 255-byte value should produce non-empty output")
+	}, "Encode should NOT panic at exactly 255-byte value")
+}
+
 // TestComputeCombinations_LargeMError tests error when M length exceeds uint8.
 func TestComputeCombinations_LargeMError(t *testing.T) {
 	t.Parallel()
@@ -204,6 +238,37 @@ func TestComputeCombinations_LargeMError(t *testing.T) {
 
 	testify.Error(t, err, "ComputeCombinations should error when M length >= 255")
 	testify.Contains(t, err.Error(), "can't be greater than", "Error should mention bounds")
+}
+
+// TestComputeCombinations_ExactlyMaxMError tests error at exact boundary of 255 M elements.
+// Kills CONDITIONALS_BOUNDARY mutant changing `>= 255` to `> 255` at combinations.go:31.
+func TestComputeCombinations_ExactlyMaxMError(t *testing.T) {
+	t.Parallel()
+
+	exactM := make(M, maxUint8Value) // exactly 255
+	for i := range exactM {
+		exactM[i] = []byte("X")
+	}
+
+	_, err := ComputeCombinations(exactM, 1)
+
+	testify.Error(t, err, "ComputeCombinations should error when M length == 255")
+	testify.Contains(t, err.Error(), "can't be greater than", "Error should mention bounds")
+}
+
+// TestComputeCombinations_JustBelowMaxM tests that M with 254 elements succeeds.
+func TestComputeCombinations_JustBelowMaxM(t *testing.T) {
+	t.Parallel()
+
+	belowMaxM := make(M, maxUint8Value-1) // exactly 254
+	for i := range belowMaxM {
+		belowMaxM[i] = []byte("X")
+	}
+
+	result, err := ComputeCombinations(belowMaxM, 1)
+
+	testify.NoError(t, err, "ComputeCombinations should succeed with M length 254")
+	testify.Len(t, result, maxUint8Value-1, "Should return 254 single-element combinations")
 }
 
 // TestEncode_EmptyCombination tests encoding empty combination.
