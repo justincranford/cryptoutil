@@ -411,8 +411,6 @@ linters:
           alias: cryptoutilSQLRepository
         - pkg: "cryptoutil/internal/apps/sm/kms/client"
           alias: cryptoutilKmsClient
-        - pkg: "cryptoutil/internal/apps/sm/kms/cmd"
-          alias: cryptoutilKmsCmd
         - pkg: "cryptoutil/internal/apps/sm/kms/server/businesslogic"
           alias: cryptoutilKmsServerBusinesslogic
         - pkg: "cryptoutil/internal/apps/sm/kms/server/demo"

@@ -32,6 +32,11 @@ const (
 	// SQLiteMaxOpenConnections - Maximum open connections for SQLite.
 	SQLiteMaxOpenConnections = 1
 
+	// SQLiteMaxOpenConnectionsForGORM - Maximum open connections for SQLite when GORM
+	// transactions nest barrier operations. GORM services need separate connections for
+	// nested transactions (e.g., ORM ReadOnly + barrier DecryptContentWithContext).
+	SQLiteMaxOpenConnectionsForGORM = 5
+
 	// PostgreSQLMaxOpenConns - Maximum open connections for PostgreSQL.
 	PostgreSQLMaxOpenConns = 25
 	// PostgreSQLMaxIdleConns - Maximum idle connections for PostgreSQL.
