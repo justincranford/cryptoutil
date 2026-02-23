@@ -131,6 +131,9 @@ linters:
       # Exclude wrapcheck from cipher-im session manager wrapper (internal package).
       - path: "internal/apps/cipher/im/server/businesslogic/session_manager_service\\.go$"
         linters: [wrapcheck]
+      # Exclude wrapcheck from template session manager barrier wrappers (internal package delegation).
+      - path: "internal/apps/template/service/server/businesslogic/session_manager\\.go$"
+        linters: [wrapcheck]
       # Exclude wrapcheck from template registration handlers (Fiber HTTP response helpers).
       - path: "internal/apps/template/service/server/apis/registration_handlers\\.go$"
         linters: [wrapcheck]

@@ -33,6 +33,7 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerBarrier "cryptoutil/internal/apps/template/service/server/barrier"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
+	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
@@ -54,6 +55,42 @@ const (
 	algIdentifierES512           = "ES512"
 	algIdentifierEdDSA           = "EdDSA"
 )
+
+// Injectable function variables for testing error paths.
+var (
+	jsonMarshalFn      = json.Marshal
+	generateRSAJWKFn   = cryptoutilSharedCryptoJose.GenerateRSAJWK
+	generateECDSAJWKFn = cryptoutilSharedCryptoJose.GenerateECDSAJWK
+	generateEdDSAJWKFn = cryptoutilSharedCryptoJose.GenerateEDDSAJWK
+	generateAESJWKFn   = cryptoutilSharedCryptoJose.GenerateAESJWK
+	generateHMACJWKFn  = cryptoutilSharedCryptoJose.GenerateHMACJWK
+	jwkParseKeyFn                  = joseJwk.ParseKey
+	signBytesFn                    = cryptoutilSharedCryptoJose.SignBytes
+	encryptBytesFn                 = cryptoutilSharedCryptoJose.EncryptBytes
+	decryptBytesFn                 = cryptoutilSharedCryptoJose.DecryptBytes
+	verifyBytesFn                  = cryptoutilSharedCryptoJose.VerifyBytes
+	hashHighEntropyDeterministicFn = cryptoutilSharedCryptoHash.HashHighEntropyDeterministic
+	barrierEncryptFn               = defaultBarrierEncrypt
+	barrierDecryptFn               = defaultBarrierDecrypt
+)
+
+// defaultBarrierEncrypt encrypts data using the barrier service, or returns data as-is if barrier is nil (test mode).
+func defaultBarrierEncrypt(ctx context.Context, barrier *cryptoutilAppsTemplateServiceServerBarrier.Service, data []byte) ([]byte, error) {
+	if barrier != nil {
+		return barrier.EncryptBytesWithContext(ctx, data)
+	}
+
+	return data, nil
+}
+
+// defaultBarrierDecrypt decrypts data using the barrier service, or returns data as-is if barrier is nil (test mode).
+func defaultBarrierDecrypt(ctx context.Context, barrier *cryptoutilAppsTemplateServiceServerBarrier.Service, data []byte) ([]byte, error) {
+	if barrier != nil {
+		return barrier.DecryptBytesWithContext(ctx, data)
+	}
+
+	return data, nil
+}
 
 // SessionManager manages session tokens for browser and service clients.
 //
@@ -232,7 +269,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				algValue = joseJwa.HS512()
 			}
 
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateHMACJWK(hmacBits)
+			jwk, genErr = generateHMACJWKFn(hmacBits)
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, algValue)
 				if genErr == nil {
@@ -240,7 +277,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierRS256, algIdentifierRS384, algIdentifierRS512:
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateRSAJWK(cryptoutilSharedMagic.RSAKeySize2048)
+			jwk, genErr = generateRSAJWKFn(cryptoutilSharedMagic.RSAKeySize2048)
 			if genErr == nil {
 				// Set 'alg' attribute for signing
 				var algValue joseJwa.SignatureAlgorithm
@@ -260,7 +297,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierES256:
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateECDSAJWK(elliptic.P256())
+			jwk, genErr = generateECDSAJWKFn(elliptic.P256())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES256())
 				if genErr == nil {
@@ -268,7 +305,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierES384:
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateECDSAJWK(elliptic.P384())
+			jwk, genErr = generateECDSAJWKFn(elliptic.P384())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES384())
 				if genErr == nil {
@@ -276,7 +313,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierES512:
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateECDSAJWK(elliptic.P521())
+			jwk, genErr = generateECDSAJWKFn(elliptic.P521())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES512())
 				if genErr == nil {
@@ -284,7 +321,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case algIdentifierEdDSA:
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateEDDSAJWK("Ed25519")
+			jwk, genErr = generateEdDSAJWKFn("Ed25519")
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())
 				if genErr == nil {
@@ -298,7 +335,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 		// Generate encryption JWK based on algorithm
 		switch algIdentifier {
 		case cryptoutilSharedMagic.SessionJWEAlgorithmDirA256GCM:
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateAESJWK(cryptoutilSharedMagic.AESKeySize256)
+			jwk, genErr = generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
 				// Set 'enc' and 'alg' attributes for encryption
 				genErr = jwk.Set("enc", joseJwa.A256GCM())
@@ -307,7 +344,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 				}
 			}
 		case cryptoutilSharedMagic.SessionJWEAlgorithmA256GCMKWA256GCM:
-			jwk, genErr = cryptoutilSharedCryptoJose.GenerateAESJWK(cryptoutilSharedMagic.AESKeySize256)
+			jwk, genErr = generateAESJWKFn(cryptoutilSharedMagic.AESKeySize256)
 			if genErr == nil {
 				genErr = jwk.Set("enc", joseJwa.A256GCM())
 				if genErr == nil {
@@ -326,25 +363,15 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	}
 
 	// Marshal JWK to JSON bytes
-	jwkBytes, marshalErr := json.Marshal(jwk)
+	jwkBytes, marshalErr := jsonMarshalFn(jwk)
 	if marshalErr != nil {
 		return googleUuid.UUID{}, fmt.Errorf("failed to marshal JWK: %w", marshalErr)
 	}
 
 	// Encrypt JWK with barrier service (skip encryption if no barrier service for tests)
-	var (
-		encryptedJWK []byte
-		encryptErr   error
-	)
-
-	if sm.barrier != nil {
-		encryptedJWK, encryptErr = sm.barrier.EncryptBytesWithContext(ctx, jwkBytes)
-		if encryptErr != nil {
-			return googleUuid.UUID{}, fmt.Errorf("failed to encrypt JWK: %w", encryptErr)
-		}
-	} else {
-		// No barrier service (test mode) - store as plain text
-		encryptedJWK = jwkBytes
+	encryptedJWK, encryptErr := barrierEncryptFn(ctx, sm.barrier, jwkBytes)
+	if encryptErr != nil {
+		return googleUuid.UUID{}, fmt.Errorf("failed to encrypt JWK: %w", encryptErr)
 	}
 
 	// Store JWK in database (encrypted)

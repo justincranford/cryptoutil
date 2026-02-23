@@ -30,8 +30,6 @@ import (
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
 func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, principalID string, tenantID, realmID googleUuid.UUID) (string, error) {
@@ -69,23 +67,13 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 	}
 
 	// Decrypt JWK with barrier service (skip decryption if no barrier service for tests)
-	var (
-		decryptedJWKBytes []byte
-		decryptErr        error
-	)
-
-	if sm.barrier != nil {
-		decryptedJWKBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, jwkBytes)
-		if decryptErr != nil {
-			return "", fmt.Errorf("failed to decrypt session JWK: %w", decryptErr)
-		}
-	} else {
-		// No barrier service (test mode) - jwkBytes are already plain text
-		decryptedJWKBytes = jwkBytes
+	decryptedJWKBytes, decryptErr := barrierDecryptFn(ctx, sm.barrier, jwkBytes)
+	if decryptErr != nil {
+		return "", fmt.Errorf("failed to decrypt session JWK: %w", decryptErr)
 	}
 
 	// Parse JWK from JSON bytes
-	jwk, parseErr := joseJwk.ParseKey(decryptedJWKBytes)
+	jwk, parseErr := jwkParseKeyFn(decryptedJWKBytes)
 	if parseErr != nil {
 		return "", fmt.Errorf("failed to parse JWK: %w", parseErr)
 	}
@@ -111,19 +99,19 @@ func (sm *SessionManager) issueJWESession(ctx context.Context, isBrowser bool, p
 		"realm_id":  realmID.String(),
 	}
 
-	claimsBytes, marshalErr := json.Marshal(claims)
+	claimsBytes, marshalErr := jsonMarshalFn(claims)
 	if marshalErr != nil {
 		return "", fmt.Errorf("failed to marshal JWT claims: %w", marshalErr)
 	}
 
 	// Encrypt JWT claims with JWK
-	_, jweBytes, encryptErr := cryptoutilSharedCryptoJose.EncryptBytes([]joseJwk.Key{jwk}, claimsBytes)
+	_, jweBytes, encryptErr := encryptBytesFn([]joseJwk.Key{jwk}, claimsBytes)
 	if encryptErr != nil {
 		return "", fmt.Errorf("failed to encrypt JWT: %w", encryptErr)
 	}
 
 	// Hash jti for database storage (enables revocation)
-	tokenHash, hashErr := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(jti.String())
+	tokenHash, hashErr := hashHighEntropyDeterministicFn(jti.String())
 	if hashErr != nil {
 		return "", fmt.Errorf("failed to hash jti: %w", hashErr)
 	}
@@ -200,25 +188,15 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	// Decrypt JWK with barrier service (skip decryption if no barrier service for tests)
-	var (
-		decryptedJWKBytes []byte
-		decryptErr        error
-	)
+	decryptedJWKBytes, decryptErr := barrierDecryptFn(ctx, sm.barrier, jwkBytes)
+	if decryptErr != nil {
+		summary := errMsgInvalidSessionToken
 
-	if sm.barrier != nil {
-		decryptedJWKBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, jwkBytes)
-		if decryptErr != nil {
-			summary := errMsgInvalidSessionToken
-
-			return nil, cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, decryptErr)
-		}
-	} else {
-		// No barrier service (test mode) - jwkBytes are already plain text
-		decryptedJWKBytes = jwkBytes
+		return nil, cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, decryptErr)
 	}
 
 	// Parse JWK from JSON bytes
-	jwk, parseErr := joseJwk.ParseKey(decryptedJWKBytes)
+	jwk, parseErr := jwkParseKeyFn(decryptedJWKBytes)
 	if parseErr != nil {
 		summary := errMsgInvalidSessionToken
 
@@ -226,7 +204,7 @@ func (sm *SessionManager) validateJWESession(ctx context.Context, isBrowser bool
 	}
 
 	// Decrypt and verify JWT
-	claimsBytes, verifyErr := cryptoutilSharedCryptoJose.DecryptBytes([]joseJwk.Key{jwk}, []byte(token))
+	claimsBytes, verifyErr := decryptBytesFn([]joseJwk.Key{jwk}, []byte(token))
 	if verifyErr != nil {
 		summary := errMsgInvalidSessionToken
 

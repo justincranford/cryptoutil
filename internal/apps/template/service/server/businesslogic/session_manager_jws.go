@@ -30,8 +30,6 @@ import (
 
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
-	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
 func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, principalID string, tenantID, realmID googleUuid.UUID) (string, error) {
@@ -69,17 +67,13 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 	}
 
 	// Decrypt JWK bytes with barrier service (skip decryption if no barrier service for tests)
-	var decryptErr error
-	if sm.barrier != nil {
-		jwkBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, []byte(jwkBytes))
-		if decryptErr != nil {
-			return "", fmt.Errorf("failed to decrypt JWK: %w", decryptErr)
-		}
+	decryptedJWKBytes, decryptErr := barrierDecryptFn(ctx, sm.barrier, jwkBytes)
+	if decryptErr != nil {
+		return "", fmt.Errorf("failed to decrypt JWK: %w", decryptErr)
 	}
-	// If no barrier service (test mode), jwkBytes are already plain text
 
 	// Parse JWK from JSON and ensure 'alg' is properly typed for signing
-	jwk, err := joseJwk.ParseKey(jwkBytes)
+	jwk, err := jwkParseKeyFn(decryptedJWKBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse JWK: %w", err)
 	}
@@ -105,19 +99,19 @@ func (sm *SessionManager) issueJWSSession(ctx context.Context, isBrowser bool, p
 		"realm_id":  realmID.String(),
 	}
 
-	claimsBytes, err := json.Marshal(claims)
+	claimsBytes, err := jsonMarshalFn(claims)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal JWT claims: %w", err)
 	}
 
 	// Sign JWT
-	_, jwsBytes, err := cryptoutilSharedCryptoJose.SignBytes([]joseJwk.Key{jwk}, claimsBytes)
+	_, jwsBytes, err := signBytesFn([]joseJwk.Key{jwk}, claimsBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign JWT: %w", err)
 	}
 
 	// Store session metadata in database (for revocation)
-	tokenHash, err := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(jti.String())
+	tokenHash, err := hashHighEntropyDeterministicFn(jti.String())
 	if err != nil {
 		return "", fmt.Errorf("failed to hash jti: %w", err)
 	}
@@ -193,25 +187,15 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Decrypt JWK bytes with barrier service (skip decryption if no barrier service for tests)
-	var (
-		decryptedJWKBytes []byte
-		decryptErr        error
-	)
+	decryptedJWKBytes, decryptErr := barrierDecryptFn(ctx, sm.barrier, jwkBytes)
+	if decryptErr != nil {
+		summary := "Failed to decrypt JWK"
 
-	if sm.barrier != nil {
-		decryptedJWKBytes, decryptErr = sm.barrier.DecryptBytesWithContext(ctx, jwkBytes)
-		if decryptErr != nil {
-			summary := "Failed to decrypt JWK"
-
-			return nil, cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, decryptErr)
-		}
-	} else {
-		// No barrier service (test mode) - jwkBytes are already plain text
-		decryptedJWKBytes = jwkBytes
+		return nil, cryptoutilSharedApperr.NewHTTP401Unauthorized(&summary, decryptErr)
 	}
 
 	// Parse JWK from JSON
-	privateJWK, err := joseJwk.ParseKey(decryptedJWKBytes)
+	privateJWK, err := jwkParseKeyFn(decryptedJWKBytes)
 	if err != nil {
 		summary := "Failed to parse session JWK"
 
@@ -228,7 +212,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	// No normalization required; verification utilities will validate algorithm type.
 
 	// Verify JWT signature
-	claimsBytes, err := cryptoutilSharedCryptoJose.VerifyBytes([]joseJwk.Key{publicJWK}, []byte(token))
+	claimsBytes, err := verifyBytesFn([]joseJwk.Key{publicJWK}, []byte(token))
 	if err != nil {
 		summary := "Invalid JWT signature"
 
@@ -274,7 +258,7 @@ func (sm *SessionManager) validateJWSSession(ctx context.Context, isBrowser bool
 	}
 
 	// Hash jti for database lookup
-	tokenHash, err := cryptoutilSharedCryptoHash.HashHighEntropyDeterministic(jti.String())
+	tokenHash, err := hashHighEntropyDeterministicFn(jti.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash jti: %w", err)
 	}
