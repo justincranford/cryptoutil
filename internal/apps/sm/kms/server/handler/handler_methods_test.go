@@ -1,12 +1,3 @@
-//go:build ignore
-// +build ignore
-
-// TODO(v7-phase5): This test file is temporarily disabled during OpenAPI migration.
-// The handler tests need to be updated to use the new KMS-specific OpenAPI types:
-// - cryptoutil/api/kms/server instead of cryptoutil/api/server
-// - New response type structure (embedded structs vs named fields)
-// - 404 response handling for endpoints that support it
-
 // Copyright (c) 2025 Justin Cranford
 
 //nolint:wrapcheck,thelper // Test code doesn't need to wrap errors or use t.Helper()
@@ -16,8 +7,7 @@ import (
 	"errors"
 	"testing"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilOpenapiServer "cryptoutil/api/server"
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
@@ -34,7 +24,7 @@ func TestStrictServer_HandlerMethodsExist(t *testing.T) {
 	server := NewOpenapiStrictServer(mockService)
 
 	// Verify server is a valid implementation
-	var _ cryptoutilOpenapiServer.StrictServerInterface = server
+	var _ cryptoutilKmsServer.StrictServerInterface = server
 
 	require.NotNil(t, server)
 }
@@ -48,7 +38,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDResponse_Success(t *testing.
 	require.NoError(t, err)
 
 	uuid := openapiTypes.UUID(googleUUID)
-	elasticKey := &cryptoutilOpenapiModel.ElasticKey{
+	elasticKey := &cryptoutilKmsServer.ElasticKey{
 		ElasticKeyID: &uuid,
 	}
 
@@ -152,11 +142,10 @@ func TestOamOasMapper_ToOasPostElastickeyElasticKeyIDMaterialkeyResponse_Success
 	googleUUID, err := googleUuid.NewV7()
 	require.NoError(t, err)
 
-	materialKeyID := cryptoutilOpenapiModel.MaterialKeyID(googleUUID)
-	elasticKeyID := cryptoutilOpenapiModel.ElasticKeyID(googleUUID)
-	materialKey := &cryptoutilOpenapiModel.MaterialKey{
-		MaterialKeyID: materialKeyID,
-		ElasticKeyID:  elasticKeyID,
+	uuid := openapiTypes.UUID(googleUUID)
+	materialKey := &cryptoutilKmsServer.MaterialKey{
+		MaterialKeyID: &uuid,
+		ElasticKeyID:  &uuid,
 	}
 
 	resp, err := mapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(nil, materialKey)
@@ -223,11 +212,10 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResp
 	googleUUID, err := googleUuid.NewV7()
 	require.NoError(t, err)
 
-	materialKeyID := cryptoutilOpenapiModel.MaterialKeyID(googleUUID)
-	elasticKeyID := cryptoutilOpenapiModel.ElasticKeyID(googleUUID)
-	materialKey := &cryptoutilOpenapiModel.MaterialKey{
-		MaterialKeyID: materialKeyID,
-		ElasticKeyID:  elasticKeyID,
+	uuid := openapiTypes.UUID(googleUUID)
+	materialKey := &cryptoutilKmsServer.MaterialKey{
+		MaterialKeyID: &uuid,
+		ElasticKeyID:  &uuid,
 	}
 
 	resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(nil, materialKey)
@@ -294,7 +282,7 @@ func TestOamOasMapper_ToOamGetElasticKeyMaterialKeysQueryParams(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	params := &cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysParams{}
+	params := &cryptoutilKmsServer.GetElastickeyElasticKeyIDMaterialkeysParams{}
 
 	result := mapper.toOamGetElasticKeyMaterialKeysQueryParams(params)
 	require.NotNil(t, result)
@@ -305,7 +293,7 @@ func TestOamOasMapper_ToOasGetElastickeyElasticKeyIDMaterialkeysResponse_Success
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	keys := []cryptoutilOpenapiModel.MaterialKey{}
+	keys := []cryptoutilKmsServer.MaterialKey{}
 
 	resp, err := mapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(nil, keys)
 	require.NoError(t, err)
@@ -487,7 +475,7 @@ func TestOamOasMapper_ToOamGetElasticKeyQueryParams(t *testing.T) {
 	t.Parallel()
 
 	mapper := NewOasOamMapper()
-	params := &cryptoutilOpenapiServer.GetElastickeysParams{}
+	params := &cryptoutilKmsServer.GetElastickeysParams{}
 
 	result := mapper.toOamGetElasticKeyQueryParams(params)
 	require.NotNil(t, result)

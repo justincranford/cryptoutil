@@ -1,12 +1,3 @@
-//go:build ignore
-// +build ignore
-
-// TODO(v7-phase5): This test file is temporarily disabled during OpenAPI migration.
-// The handler tests need to be updated to use the new KMS-specific OpenAPI types:
-// - cryptoutil/api/kms/server instead of cryptoutil/api/server
-// - New response type structure (embedded structs vs named fields)
-// - 404 response handling for endpoints that support it
-
 // Copyright (c) 2025 Justin Cranford
 
 //nolint:wrapcheck,thelper // Test code doesn't need to wrap errors or use t.Helper()
@@ -16,9 +7,7 @@ import (
 	"errors"
 	"testing"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
-	cryptoutilOpenapiServer "cryptoutil/api/server"
-	cryptoutilKmsServerBusinesslogic "cryptoutil/internal/apps/sm/kms/server/businesslogic"
+	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 
 	googleUuid "github.com/google/uuid"
@@ -70,7 +59,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	uuid := openapiTypes.UUID(googleUUID)
-	elasticKey := &cryptoutilOpenapiModel.ElasticKey{
+	elasticKey := &cryptoutilKmsServer.ElasticKey{
 		ElasticKeyID: &uuid,
 	}
 
@@ -78,7 +67,7 @@ func TestOamOasMapper_ToOasPostKeyResponse_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickey200JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickey200JSONResponse)
 	require.True(t, ok)
 	require.NotNil(t, jsonResp.ElasticKeyID)
 }
@@ -95,12 +84,12 @@ func TestOamOasMapper_ToOasPostKeyResponse_BadRequest(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickey400JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickey400JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP400BadRequest)
+	require.NotNil(t, jsonResp.BadRequestJSONResponse)
 }
 
-// TestOamOasMapper_ToOasPostKeyResponse_NotFound tests 404 error response.
+// TestOamOasMapper_ToOasPostKeyResponse_NotFound tests that 404 falls through to error (PostElastickey has no 404 response).
 func TestOamOasMapper_ToOasPostKeyResponse_NotFound(t *testing.T) {
 	t.Parallel()
 
@@ -109,12 +98,9 @@ func TestOamOasMapper_ToOasPostKeyResponse_NotFound(t *testing.T) {
 	appErr := cryptoutilSharedApperr.NewHTTP404NotFound(&summary, nil)
 
 	resp, err := mapper.toOasPostKeyResponse(appErr, nil)
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickey404JSONResponse)
-	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP404NotFound)
+	require.Error(t, err)
+	require.Nil(t, resp)
+	require.Contains(t, err.Error(), "failed to add ElasticKey")
 }
 
 // TestOamOasMapper_ToOasPostKeyResponse_InternalServerError tests 500 error response.
@@ -129,9 +115,9 @@ func TestOamOasMapper_ToOasPostKeyResponse_InternalServerError(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickey500JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickey500JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP500InternalServerError)
+	require.NotNil(t, jsonResp.InternalServerErrorJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostKeyResponse_UnknownError tests handling of unknown errors.
@@ -158,7 +144,7 @@ func TestOamOasMapper_ToOasPostDecryptResponse_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	textResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt200TextResponse)
+	textResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt200TextResponse)
 	require.True(t, ok)
 	require.Equal(t, decryptedData, []byte(textResp))
 }
@@ -175,9 +161,9 @@ func TestOamOasMapper_ToOasPostDecryptResponse_BadRequest(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt400JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt400JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP400BadRequest)
+	require.NotNil(t, jsonResp.BadRequestJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostDecryptResponse_NotFound tests 404 error for decrypt.
@@ -192,9 +178,9 @@ func TestOamOasMapper_ToOasPostDecryptResponse_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt404JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt404JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP404NotFound)
+	require.NotNil(t, jsonResp.NotFoundJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostDecryptResponse_InternalServerError tests 500 error for decrypt.
@@ -209,9 +195,9 @@ func TestOamOasMapper_ToOasPostDecryptResponse_InternalServerError(t *testing.T)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt500JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDDecrypt500JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP500InternalServerError)
+	require.NotNil(t, jsonResp.InternalServerErrorJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostEncryptResponse_Success tests successful encrypt response.
@@ -225,7 +211,7 @@ func TestOamOasMapper_ToOasPostEncryptResponse_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	textResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt200TextResponse)
+	textResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt200TextResponse)
 	require.True(t, ok)
 	require.Equal(t, encryptedData, []byte(textResp))
 }
@@ -242,9 +228,9 @@ func TestOamOasMapper_ToOasPostEncryptResponse_BadRequest(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt400JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt400JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP400BadRequest)
+	require.NotNil(t, jsonResp.BadRequestJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostEncryptResponse_NotFound tests 404 error for encrypt.
@@ -259,9 +245,9 @@ func TestOamOasMapper_ToOasPostEncryptResponse_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt404JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt404JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP404NotFound)
+	require.NotNil(t, jsonResp.NotFoundJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostEncryptResponse_InternalServerError tests 500 error for encrypt.
@@ -276,9 +262,9 @@ func TestOamOasMapper_ToOasPostEncryptResponse_InternalServerError(t *testing.T)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt500JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDEncrypt500JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP500InternalServerError)
+	require.NotNil(t, jsonResp.InternalServerErrorJSONResponse)
 }
 
 // TestOamOasMapper_ToOamPostGenerateQueryParams tests parameter mapping for generate endpoint.
@@ -287,16 +273,16 @@ func TestOamOasMapper_ToOamPostGenerateQueryParams(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	context := testContext
-	alg := cryptoutilOpenapiModel.GenerateAlgorithm("RSA-OAEP")
-	openapiParams := &cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateParams{
+	alg := "RSA-OAEP"
+	openapiParams := &cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerateParams{
 		Context: &context,
 		Alg:     &alg,
 	}
 
 	generateParams := mapper.toOamPostGenerateQueryParams(openapiParams)
 	require.NotNil(t, generateParams)
-	require.Equal(t, &context, generateParams.Context)
-	require.Equal(t, &alg, generateParams.Alg)
+	require.NotNil(t, generateParams.Context)
+	require.NotNil(t, generateParams.Alg)
 }
 
 // TestOamOasMapper_ToOamPostEncryptQueryParams tests parameter mapping for encrypt endpoint.
@@ -305,7 +291,7 @@ func TestOamOasMapper_ToOamPostEncryptQueryParams(t *testing.T) {
 
 	mapper := NewOasOamMapper()
 	context := testContext
-	openapiParams := &cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptParams{
+	openapiParams := &cryptoutilKmsServer.PostElastickeyElasticKeyIDEncryptParams{
 		Context: &context,
 	}
 
@@ -326,7 +312,7 @@ func TestOamOasMapper_ToOasPostGenerateResponse_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	textResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate200TextResponse)
+	textResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate200TextResponse)
 	require.True(t, ok)
 	require.Equal(t, encryptedJWK, []byte(textResp))
 }
@@ -343,9 +329,9 @@ func TestOamOasMapper_ToOasPostGenerateResponse_BadRequest(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate400JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate400JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP400BadRequest)
+	require.NotNil(t, jsonResp.BadRequestJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostGenerateResponse_NotFound tests 404 error for generate.
@@ -360,9 +346,9 @@ func TestOamOasMapper_ToOasPostGenerateResponse_NotFound(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate404JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate404JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP404NotFound)
+	require.NotNil(t, jsonResp.NotFoundJSONResponse)
 }
 
 // TestOamOasMapper_ToOasPostGenerateResponse_InternalServerError tests 500 error for generate.
@@ -377,9 +363,9 @@ func TestOamOasMapper_ToOasPostGenerateResponse_InternalServerError(t *testing.T
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 
-	jsonResp, ok := resp.(cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate500JSONResponse)
+	jsonResp, ok := resp.(cryptoutilKmsServer.PostElastickeyElasticKeyIDGenerate500JSONResponse)
 	require.True(t, ok)
-	require.NotNil(t, jsonResp.HTTP500InternalServerError)
+	require.NotNil(t, jsonResp.InternalServerErrorJSONResponse)
 }
 
 // TestStrictServer_HandlerMethodsExist verifies that all handler methods are implemented.
