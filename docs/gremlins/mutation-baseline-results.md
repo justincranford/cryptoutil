@@ -6,7 +6,76 @@ Mutation testing baseline established on Linux (ncc-1701-d) using gremlins v0.6.
 
 **Configuration**: `.gremlins.yml` with 180s timeout, 6 mutators (ARITHMETIC_BASE, CONDITIONALS_BOUNDARY, CONDITIONALS_NEGATION, INCREMENT_DECREMENT, INVERT_NEGATIVES, REMOVE_SELF_ASSIGNMENTS), 85% efficacy threshold.
 
-**Date**: 2026-01-26
+**Baseline Date**: 2026-01-26
+**QG-6 Update Date**: 2026-01-28
+
+---
+
+## QG-6 Mutation Testing Improvement Results
+
+Per-package gremlins analysis with `--timeout-coefficient=60`. All packages run individually to prevent terminal overflow.
+
+### Package Results Table
+
+| Package | Before | After | Killed | Lived | NC | TO | Status |
+|---------|--------|-------|--------|-------|-----|-----|--------|
+| jose (ja) | 96.15% | 100% | 269 | 0 | — | — | ✅ |
+| certificate | — | 100% | 124 | 0 | — | — | ✅ |
+| hash | — | 100% | 57 | 0 | — | — | ✅ |
+| digests | — | 100% | — | 0 | — | — | ✅ |
+| keygen | — | 100% | — | 0 | — | — | ✅ |
+| database | — | 100% | — | 0 | — | — | ✅ |
+| apperr | — | 100% | — | 0 | — | — | ✅ |
+| builder | — | 100% | 34 | 0 | — | — | ✅ |
+| listener | — | 100% | 20 | 0 | — | — | ✅ |
+| application | — | 100% | 30 | 0 | — | — | ✅ |
+| middleware | — | 100% | 10 | 0 | — | — | ✅ |
+| repository | — | 100% | — | 0 | — | — | ✅ |
+| sm-kms handler | — | 100% | 42 | 0 | — | — | ✅ |
+| sm-kms businesslogic | — | 100% | 20 | 0 | 21 | 135 | ✅ |
+| telemetry | 61.29% | 100% | 16 | 0 | 4 | 23 | ✅ |
+| service | 88.71% | 99.19% | 123 | 1 | — | — | ✅ |
+| lint_deployments | — | 98.68% | 300 | 4 | 3 | 0 | ✅ |
+| client | — | 97.44% | 38 | 1 | — | — | ✅ |
+| combinations | — | 96.67% | 29 | 1 | — | — | ✅ |
+| config | — | 96.43% | — | — | — | — | ✅ |
+| tls | 79.17% | 95.83% | — | — | — | — | ✅ |
+| tenant | — | 95.92% | — | — | — | — | ✅ |
+| barrier | 92.16% | 94.12% | 48 | 3 | — | — | ⚠️ structural |
+| apis | 86.27% | 92.31% | 36 | 3 | — | — | ⚠️ structural |
+| realms | 79.66% | 91.53% | 54 | 5 | — | — | ⚠️ structural |
+| realm | 85.71% | 90.76% | 108 | 11 | — | — | ⚠️ structural |
+| files | 82.14% | 89.29% | 25 | 3 | — | — | ⚠️ structural |
+| pool | — | 73.47% | 36 | 13 | — | — | ⚠️ concurrency |
+| cli | — | 66.91% | 93 | 46 | — | — | ⚠️ CLI patterns |
+| container | — | 66.67% | 2 | 1 | 10 | — | ⚠️ DB-dependent |
+| template businesslogic | — | 0% | 0 | 0 | 0 | 114 | ⚠️ all timeout |
+| sm-kms ORM | — | 0% | 0 | 0 | 108 | 0 | ⚠️ all NC |
+
+### Packages At or Above 95% Threshold
+
+22 packages meet or exceed 95% efficacy (15 at 100%).
+
+### Structural Ceiling Categories
+
+1. **Semantically equivalent mutants**: `repeatedCount > x` vs `>= x` assigns same value when equal; `i > 0` boundary comparing zero-value prevRune at i=0.
+2. **DB-dependent code**: GORM operations (Create/Find/Update/Delete) require real PostgreSQL connections — mock-resistant.
+3. **Complex integration mocking**: Session managers, realm providers, tenant federation lookups.
+4. **Concurrency patterns**: goroutine scheduling, channel operations, pool resize races.
+5. **CLI arg parsing**: Repetitive `i++` and bounds checking in health command iteration.
+6. **Dead code paths**: dotfile extension handling where `filepath.Ext(".gitignore")` returns `".gitignore"` not `""`.
+7. **Formatting-only guards**: `len(slice) > 0` before `strings.Join` — empty join produces same visible result.
+8. **Boolean comparisons**: `!=` on booleans has no meaningful BOUNDARY mutation.
+
+### Test Files Created/Modified
+
+| File | Tests Added | Mutants Killed |
+|------|-------------|----------------|
+| `realms/realm_validation_boundary_test.go` | 6 | ~12 (79→91%) |
+| `service/realm_config_validate_boundary_test.go` | 2 | ~13 (88→99%) |
+| `realm/tenant_boundary_test.go` | 3 | ~6 (85→90%) |
+| `files/files_mutation_test.go` | 2 | 2 (82→89%) |
+| `lint_deployments/lint_deployments_boundary_test.go` | 5 | 5 (97→98.68%) |
 
 ## Results by Service
 
