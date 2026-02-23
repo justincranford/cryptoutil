@@ -18,6 +18,7 @@ func TestCheck_OutdatedActionsFound(t *testing.T) {
 	original := checkActionVersionsConcurrentlyFn
 	checkActionVersionsConcurrentlyFn = func(_ *cryptoutilCmdCicdCommon.Logger, details map[string]WorkflowActionDetails, _ *WorkflowActionExceptions) ([]WorkflowActionDetails, []WorkflowActionDetails, []string) {
 		var outdated []WorkflowActionDetails
+
 		for _, d := range details {
 			d.LatestVersion = "v99.0.0"
 			outdated = append(outdated, d)
