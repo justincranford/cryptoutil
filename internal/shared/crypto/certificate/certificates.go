@@ -191,10 +191,9 @@ func BuildTLSCertificate(endEntitySubject *Subject) (*tls.Certificate, *x509.Cer
 
 	rootCACertsPool := x509.NewCertPool()
 
-	if len(endEntitySubject.KeyMaterial.CertificateChain) > 0 {
-		rootCert := endEntitySubject.KeyMaterial.CertificateChain[len(endEntitySubject.KeyMaterial.CertificateChain)-1]
-		rootCACertsPool.AddCert(rootCert)
-	}
+	// Length already validated above (returns error if 0), so chain is guaranteed non-empty here.
+	rootCert := endEntitySubject.KeyMaterial.CertificateChain[len(endEntitySubject.KeyMaterial.CertificateChain)-1]
+	rootCACertsPool.AddCert(rootCert)
 
 	intermediateCertsPool := x509.NewCertPool()
 	for j := 1; j < len(endEntitySubject.KeyMaterial.CertificateChain)-1; j++ {

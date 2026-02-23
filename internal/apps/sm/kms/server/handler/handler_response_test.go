@@ -198,7 +198,7 @@ func TestOamOasMapper_ToOasPutElastickeyElasticKeyIDResponse(t *testing.T) {
 			require.NoError(t, uuidErr)
 
 			uuid := openapiTypes.UUID(googleUUID)
-elasticKey := &cryptoutilKmsServer.ElasticKey{
+			elasticKey := &cryptoutilKmsServer.ElasticKey{
 				ElasticKeyID: &uuid,
 			}
 

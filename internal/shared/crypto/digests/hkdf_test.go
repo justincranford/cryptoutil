@@ -37,6 +37,8 @@ func TestHKDFHappyPath(t *testing.T) {
 		{"Valid SHA384", "SHA384", []byte("secret"), []byte("salt"), []byte("info"), 48},
 		{"Valid SHA256", "SHA256", []byte("secret"), []byte("salt"), []byte("info"), 32},
 		{"Valid SHA224", "SHA224", []byte("secret"), []byte("salt"), []byte("info"), 28},
+		{"Max Output Length SHA256", "SHA256", []byte("secret"), []byte("salt"), []byte("info"), 255 * 32},
+		{"Max Output Length SHA512", "SHA512", []byte("secret"), []byte("salt"), []byte("info"), 255 * 64},
 	}
 
 	for _, tt := range happyPathTests {
