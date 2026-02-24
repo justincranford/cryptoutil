@@ -93,7 +93,7 @@ jobs:
     - name: Build Docker images
       uses: ./.github/actions/docker-compose-build
 
-    # SERVICE_TEMPLATE_TODO: pki-ca not yet migrated to service-template pattern
+    # TODO: pki-ca not yet migrated to service-template pattern
     # Migration status: cipher-im ✅, jose-ja ✅, sm-kms ✅ | pki-ca ❌, identity-* ❌
     # CA deployment needed for E2E test infrastructure (certificate dependencies)
     - name: Deploy CA services
@@ -160,7 +160,23 @@ jobs:
           exit 1
         fi
 
-        # SERVICE_TEMPLATE_TODO: Enable identity E2E tests after identity services migrated to service-template pattern
+        # Test jose-ja E2E
+        if go test -tags=e2e -v -timeout=30m ./internal/apps/jose/ja/e2e/... 2>&1; then
+          echo "✅ jose-ja E2E tests completed successfully"
+        else
+          echo "❌ jose-ja E2E tests failed"
+          exit 1
+        fi
+
+        # Test sm-kms E2E
+        if go test -tags=e2e -v -timeout=30m ./internal/apps/sm/kms/e2e/... 2>&1; then
+          echo "✅ sm-kms E2E tests completed successfully"
+        else
+          echo "❌ sm-kms E2E tests failed"
+          exit 1
+        fi
+
+        # TODO: Enable identity E2E tests after identity services migrated to service-template pattern
         # Currently DISABLED - identity-authz, identity-idp, identity-rp, identity-rs, identity-spa not yet migrated
         # Migration status: cipher-im ✅, jose-ja ✅, sm-kms ✅ | pki-ca ❌, identity-* ❌
         # Test identity E2E
@@ -171,7 +187,7 @@ jobs:
         #   exit 1
         # fi
 
-        echo "⚠️  Identity E2E tests SKIPPED - awaiting service-template migration (SERVICE_TEMPLATE_TODO marker)"
+        echo "⚠️  Identity E2E tests SKIPPED - awaiting service-template migration"
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))

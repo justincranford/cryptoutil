@@ -3,6 +3,8 @@
 // Package magic provides domain-specific constants and configuration values.
 package magic
 
+import "time"
+
 // JOSE-JA Service Configuration.
 const (
 	// OTLPServiceJoseJA is the OTLP service name for jose-ja telemetry.
@@ -65,14 +67,34 @@ const (
 
 // JOSE-JA E2E Test Configuration.
 const (
-	// JoseJAE2ESQLitePublicPort is the public port for SQLite E2E tests.
-	JoseJAE2ESQLitePublicPort = 8800
+	// JoseJAE2EComposeFile is the path to the jose docker compose file (relative from e2e test directory).
+	// Path: internal/apps/jose/ja/e2e → ../../../../../deployments/jose/compose.yml
+	// Levels: e2e→ja(1)→jose(2)→apps(3)→internal(4)→root(5), then deployments/jose.
+	JoseJAE2EComposeFile = "../../../../../deployments/jose/compose.yml"
 
-	// JoseJAE2EPostgreSQL1PublicPort is the public port for first PostgreSQL E2E tests (SERVICE-level).
-	JoseJAE2EPostgreSQL1PublicPort = 8801
+	// JoseJAE2ESQLiteContainer is the SQLite instance service name in compose.
+	JoseJAE2ESQLiteContainer = "jose-ja-app-sqlite-1"
 
-	// JoseJAE2EPostgreSQL2PublicPort is the public port for second PostgreSQL E2E tests (SERVICE-level).
-	JoseJAE2EPostgreSQL2PublicPort = 8802
+	// JoseJAE2EPostgreSQL1Container is the PostgreSQL instance 1 service name in compose.
+	JoseJAE2EPostgreSQL1Container = "jose-ja-app-postgres-1"
+
+	// JoseJAE2EPostgreSQL2Container is the PostgreSQL instance 2 service name in compose.
+	JoseJAE2EPostgreSQL2Container = "jose-ja-app-postgres-2"
+
+	// JoseJAE2EHealthTimeout is the timeout for health checks during E2E tests.
+	JoseJAE2EHealthTimeout = 180 * time.Second
+
+	// JoseJAE2EHealthPollInterval is the interval between health check attempts.
+	JoseJAE2EHealthPollInterval = 2 * time.Second
+
+	// JoseJAE2ESQLitePublicPort is the SQLite instance public HTTPS port (PRODUCT level: 18800).
+	JoseJAE2ESQLitePublicPort = 18800
+
+	// JoseJAE2EPostgreSQL1PublicPort is the PostgreSQL instance 1 public HTTPS port (PRODUCT level: 18801).
+	JoseJAE2EPostgreSQL1PublicPort = 18801
+
+	// JoseJAE2EPostgreSQL2PublicPort is the PostgreSQL instance 2 public HTTPS port (PRODUCT level: 18802).
+	JoseJAE2EPostgreSQL2PublicPort = 18802
 
 	// JoseJAE2EGrafanaPort is the Grafana port for E2E tests.
 	JoseJAE2EGrafanaPort = 3000
@@ -82,6 +104,9 @@ const (
 
 	// JoseJAE2EOtelCollectorHTTPPort is the OpenTelemetry collector HTTP port for E2E tests.
 	JoseJAE2EOtelCollectorHTTPPort = 4318
+
+	// JoseJAE2EHealthEndpoint is the public health check endpoint.
+	JoseJAE2EHealthEndpoint = "/service/api/v1/health"
 )
 
 // JOSE-JA Service Pagination Constants.

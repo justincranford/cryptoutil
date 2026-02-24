@@ -513,16 +513,17 @@
 - **Files**: `internal/apps/jose/ja/*.go`
 
 #### Task 6.3: Migrate jose-ja and sm-kms TestMains to template helper (Step A)
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30min
+- **Actual**: 25min
 - **Dependencies**: Task 6.0, 6.1, 6.2
 - **Source**: Q1=E — "ensure jose-ja and sm-kms are reusing the same main and E2E test code"
 - **Description**: jose-ja `server/testmain_test.go` uses raw loop (50 × 100ms polls). sm-kms has no integration TestMain. Both should use the generic template helper created in Task 6.0. This standardizes startup pattern across all migrated services.
 - **Acceptance Criteria**:
-  - [ ] jose-ja `server/testmain_test.go` uses template `StartServiceFromConfig()` pattern
-  - [ ] sm-kms integration TestMain created using template helper pattern
-  - [ ] Tests pass: `go test -tags=integration ./internal/apps/jose/ja/...` and `./internal/apps/sm/kms/...`
+  - [x] jose-ja `server/testmain_test.go` uses template `MustStartAndWaitForDualPorts` + `DualPortBaseURLs` pattern
+  - [x] sm-kms integration TestMain created using template helper pattern
+  - [x] Tests pass: jose-ja server (0.6s), sm-kms server (0.025s), lint clean with --build-tags integration
 - **Files**: `internal/apps/jose/ja/server/testmain_test.go`, `internal/apps/sm/kms/server/testmain_integration_test.go` (new)
 
 #### Task 6.4: Update CI E2E workflow paths and add jose-ja/sm-kms E2E tests
