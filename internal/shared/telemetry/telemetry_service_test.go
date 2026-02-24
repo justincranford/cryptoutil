@@ -13,11 +13,10 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 )
 
 var (
-	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("telemetry_service_test")
+	testSettings         = NewTestTelemetrySettings("telemetry_service_test")
 	testCtx              = context.Background()
 	testTelemetryService *TelemetryService
 )

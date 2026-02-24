@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"go.opentelemetry.io/otel/metric"

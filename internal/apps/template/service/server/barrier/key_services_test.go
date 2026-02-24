@@ -20,7 +20,7 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // createKeyServiceTestDB creates an isolated in-memory SQLite database with barrier tables.
@@ -90,7 +90,7 @@ func TestNewRootKeysService_ValidationErrors(t *testing.T) {
 	ctx := context.Background()
 
 	// Create valid dependencies for testing.
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -177,7 +177,7 @@ func TestNewIntermediateKeysService_ValidationErrors(t *testing.T) {
 	ctx := context.Background()
 
 	// Create valid dependencies for testing.
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -269,7 +269,7 @@ func TestNewContentKeysService_ValidationErrors(t *testing.T) {
 	ctx := context.Background()
 
 	// Create valid dependencies for testing.
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -364,7 +364,7 @@ func TestRootKeysService_Shutdown(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -399,7 +399,7 @@ func TestIntermediateKeysService_Shutdown(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 

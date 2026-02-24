@@ -15,7 +15,7 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilAppsTemplateServiceServerApplication "cryptoutil/internal/apps/template/service/server/application"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 )
 
@@ -35,7 +35,7 @@ type ServiceTemplateOption func(*ServiceTemplate) error
 
 // newTelemetryServiceFn is an injectable var for testing the telemetry init error path.
 var newTelemetryServiceFn = func(ctx context.Context, config *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilSharedTelemetry.TelemetryService, error) {
-	return cryptoutilSharedTelemetry.NewTelemetryService(ctx, config)
+	return cryptoutilSharedTelemetry.NewTelemetryService(ctx, config.ToTelemetrySettings())
 }
 
 // newJWKGenServiceFn is an injectable var for testing the JWK gen init error path.

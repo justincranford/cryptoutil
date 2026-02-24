@@ -9,8 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/docker/go-connections/nat"
@@ -39,7 +38,7 @@ func setupTestTelemetry(t *testing.T) *cryptoutilSharedTelemetry.TelemetryServic
 	t.Helper()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
+	settings := cryptoutilSharedTelemetry.NewTestTelemetrySettings("container_test")
 
 	svc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
 	require.NoError(t, err)

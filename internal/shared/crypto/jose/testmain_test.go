@@ -9,23 +9,22 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 var (
-	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("jwkgen_service_test")
-	testCtx              = context.Background()
-	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
-	testJWKGenService    *JWKGenService
+	testTelemetrySettings = cryptoutilSharedTelemetry.NewTestTelemetrySettings("jwkgen_service_test")
+	testCtx               = context.Background()
+	testTelemetryService  *cryptoutilSharedTelemetry.TelemetryService
+	testJWKGenService     *JWKGenService
 )
 
 func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testTelemetrySettings)
 		defer testTelemetryService.Shutdown()
 
 		var err error

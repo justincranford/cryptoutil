@@ -7,7 +7,6 @@ import (
 	"context"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 
 	"github.com/stretchr/testify/require"
 )
@@ -107,7 +106,7 @@ func TestTelemetryService_CheckSidecarHealth_OTLPDisabled(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_disabled")
+	settings := NewTestTelemetrySettings("test_sidecar_disabled")
 	settings.OTLPEnabled = false
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -126,7 +125,7 @@ func TestTelemetryService_CheckSidecarHealth_OTLPEnabled(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_sidecar_enabled")
+	settings := NewTestTelemetrySettings("test_sidecar_enabled")
 	settings.OTLPEnabled = true
 	settings.OTLPEndpoint = testHTTPEndpoint // Non-existent endpoint
 
@@ -146,7 +145,7 @@ func TestTelemetryService_GRPCEndpoint(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_grpc")
+	settings := NewTestTelemetrySettings("test_grpc")
 	settings.OTLPEnabled = true
 	settings.OTLPEndpoint = testGRPCEndpoint
 
@@ -162,7 +161,7 @@ func TestTelemetryService_GRPCSEndpoint(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_grpcs")
+	settings := NewTestTelemetrySettings("test_grpcs")
 	settings.OTLPEnabled = true
 	settings.OTLPEndpoint = testGRPCSEndpoint
 
@@ -178,7 +177,7 @@ func TestTelemetryService_HTTPSEndpoint(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_https")
+	settings := NewTestTelemetrySettings("test_https")
 	settings.OTLPEnabled = true
 	settings.OTLPEndpoint = testHTTPSEndpoint
 
@@ -194,7 +193,7 @@ func TestTelemetryService_OTLPConsole(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_console")
+	settings := NewTestTelemetrySettings("test_console")
 	settings.OTLPEnabled = false
 	settings.OTLPConsole = true
 
@@ -210,7 +209,7 @@ func TestTelemetryService_InvalidEndpoint(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_invalid_endpoint")
+	settings := NewTestTelemetrySettings("test_invalid_endpoint")
 	settings.OTLPEnabled = true
 	settings.OTLPEndpoint = testInvalidFTPEndpoint // Invalid protocol
 
@@ -224,7 +223,7 @@ func TestTelemetryService_VerboseModeWithOTLP(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_verbose_otlp")
+	settings := NewTestTelemetrySettings("test_verbose_otlp")
 	settings.VerboseMode = true
 	settings.OTLPEnabled = true
 	settings.OTLPEndpoint = testHTTPEndpoint
@@ -242,7 +241,7 @@ func TestTelemetryService_ShutdownWithVerboseMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_shutdown_verbose")
+	settings := NewTestTelemetrySettings("test_shutdown_verbose")
 	settings.VerboseMode = true
 
 	service, err := NewTelemetryService(ctx, settings)

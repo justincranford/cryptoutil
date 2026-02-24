@@ -13,7 +13,7 @@ cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/c
 cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 googleUuid "github.com/google/uuid"
 joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
@@ -82,7 +82,7 @@ t.Helper()
 
 ctx := context.Background()
 
-telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 require.NoError(t, err)
 
 t.Cleanup(func() { telemetryService.Shutdown() })

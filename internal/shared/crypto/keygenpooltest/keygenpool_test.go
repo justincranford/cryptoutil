@@ -17,11 +17,10 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedPool "cryptoutil/internal/shared/pool"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
 
 	googleUuid "github.com/google/uuid"
@@ -39,7 +38,7 @@ type TestCase struct {
 }
 
 var (
-	testSettings                 = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("keygenpool_test")
+	testTelemetrySettings        = cryptoutilSharedTelemetry.NewTestTelemetrySettings("keygenpool_test")
 	testCtx                      = context.Background()
 	testTelemetryService         *cryptoutilSharedTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
@@ -79,7 +78,7 @@ func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testTelemetrySettings)
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()

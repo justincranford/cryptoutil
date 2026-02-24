@@ -11,7 +11,7 @@ import (
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +22,7 @@ func TestNewUnsealKeysServiceFromSettings_VerboseMode(t *testing.T) {
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-verbose-mode")
-	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings.ToTelemetrySettings())
 	telemetryService.VerboseMode = true
 
 	// Use DevMode=true to avoid sysinfo collection timeout on Windows (CPU info takes 4+ seconds).

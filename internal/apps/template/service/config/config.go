@@ -14,6 +14,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // viperMutex protects concurrent access to the global viper instance used in ParseWithFlagSet.
@@ -331,4 +332,20 @@ type analysisResult struct {
 	SettingsByShorthands map[string][]*Setting
 	DuplicateNames       []string
 	DuplicateShorthands  []string
+}
+
+// ToTelemetrySettings converts the server settings to TelemetrySettings for the shared telemetry package.
+func (s *ServiceTemplateServerSettings) ToTelemetrySettings() *cryptoutilSharedTelemetry.TelemetrySettings {
+	return &cryptoutilSharedTelemetry.TelemetrySettings{
+		LogLevel:        s.LogLevel,
+		VerboseMode:     s.VerboseMode,
+		OTLPEnabled:     s.OTLPEnabled,
+		OTLPConsole:     s.OTLPConsole,
+		OTLPService:     s.OTLPService,
+		OTLPInstance:    s.OTLPInstance,
+		OTLPVersion:     s.OTLPVersion,
+		OTLPEnvironment: s.OTLPEnvironment,
+		OTLPHostname:    s.OTLPHostname,
+		OTLPEndpoint:    s.OTLPEndpoint,
+	}
 }

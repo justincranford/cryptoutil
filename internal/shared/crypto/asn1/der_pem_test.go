@@ -17,23 +17,22 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("der_pem_test")
-	testCtx              = context.Background()
-	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
+	testTelemetrySettings = cryptoutilSharedTelemetry.NewTestTelemetrySettings("der_pem_test")
+	testCtx               = context.Background()
+	testTelemetryService  *cryptoutilSharedTelemetry.TelemetryService
 )
 
 func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testTelemetrySettings)
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()

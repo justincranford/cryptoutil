@@ -8,7 +8,7 @@ import (
 	"context"
 
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // RequireNewForTest creates a JWKGenService for testing with panic on error.

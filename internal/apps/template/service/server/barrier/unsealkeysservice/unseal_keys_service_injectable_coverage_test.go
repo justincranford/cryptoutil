@@ -11,7 +11,7 @@ import (
 	"time"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilSysinfo "cryptoutil/internal/shared/util/sysinfo"
@@ -58,7 +58,7 @@ func TestNewUnsealKeysServiceFromSettings_VerboseMode_InvalidMode(t *testing.T) 
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-verbose-invalid")
-	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings.ToTelemetrySettings())
 	telemetryService.VerboseMode = true
 
 	settings.DevMode = false
@@ -204,7 +204,7 @@ func TestNewUnsealKeysServiceFromSettings_DevMode_GenerateBytesError(t *testing.
 
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test-dev-generate-error")
-	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings.ToTelemetrySettings())
 	settings.DevMode = true
 
 	unsealKeysService, err := NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)

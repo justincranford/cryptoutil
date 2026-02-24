@@ -11,11 +11,10 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedPool "cryptoutil/internal/shared/pool"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 const (
@@ -24,17 +23,17 @@ const (
 )
 
 var (
-	testSettings         = cryptoutilAppsTemplateServiceConfig.RequireNewForTest("certificates_test")
-	testCtx              = context.Background()
-	testTelemetryService *cryptoutilSharedTelemetry.TelemetryService
-	testKeyGenPool       *cryptoutilSharedPool.ValueGenPool[*cryptoutilSharedCryptoKeygen.KeyPair]
+	testTelemetrySettings = cryptoutilSharedTelemetry.NewTestTelemetrySettings("certificates_test")
+	testCtx               = context.Background()
+	testTelemetryService  *cryptoutilSharedTelemetry.TelemetryService
+	testKeyGenPool        *cryptoutilSharedPool.ValueGenPool[*cryptoutilSharedCryptoKeygen.KeyPair]
 )
 
 func TestMain(m *testing.M) {
 	var rc int
 
 	func() {
-		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
+		testTelemetryService = cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testTelemetrySettings)
 		defer testTelemetryService.Shutdown()
 
 		var err error

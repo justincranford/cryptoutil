@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +23,7 @@ func createTestContext(t *testing.T) (context.Context, *cryptoutilSharedTelemetr
 	ctx := context.Background()
 	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("unsealkeysservice-test")
 
-	return ctx, cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings)
+	return ctx, cryptoutilSharedTelemetry.RequireNewForTest(ctx, settings.ToTelemetrySettings())
 }
 
 func TestNewUnsealKeysServiceFromSettings_DevMode(t *testing.T) {

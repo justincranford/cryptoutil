@@ -30,9 +30,9 @@ import (
 	cryptoutilAppsTemplateServiceServerBusinesslogic "cryptoutil/internal/apps/template/service/server/businesslogic"
 	cryptoutilAppsTemplateServiceServerDomain "cryptoutil/internal/apps/template/service/server/domain"
 	cryptoutilAppsTemplateServiceServerRepository "cryptoutil/internal/apps/template/service/server/repository"
-	cryptoutilTelemetry "cryptoutil/internal/apps/template/service/telemetry"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	// Use modernc SQLite driver (CGO-free).
 	_ "modernc.org/sqlite"
@@ -190,7 +190,7 @@ func TestMain(m *testing.M) {
 	// Create telemetry service (minimal - no OTLP export).
 	testConfig := cryptoutilAppsTemplateServiceConfig.NewTestConfig("127.0.0.1", 0, true)
 
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, testConfig)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, testConfig.ToTelemetrySettings())
 	if err != nil {
 		panic(fmt.Sprintf("failed to create telemetry service: %v", err))
 	}

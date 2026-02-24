@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +25,7 @@ const (
 func TestNewTelemetryService_NilContext(t *testing.T) {
 	t.Parallel()
 
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_nil_ctx")
+	settings := NewTestTelemetrySettings("test_nil_ctx")
 
 	_, err := NewTelemetryService(nil, settings) //nolint:staticcheck // Testing nil context error handling
 	require.Error(t, err)
@@ -38,7 +37,7 @@ func TestNewTelemetryService_EmptyServiceName(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_empty_service")
+	settings := NewTestTelemetrySettings("test_empty_service")
 	settings.OTLPService = "" // Empty service name
 
 	_, err := NewTelemetryService(ctx, settings)
@@ -51,7 +50,7 @@ func TestNewTelemetryService_Success(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_success")
+	settings := NewTestTelemetrySettings("test_success")
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
@@ -72,7 +71,7 @@ func TestNewTelemetryService_VerboseMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_verbose")
+	settings := NewTestTelemetrySettings("test_verbose")
 	settings.VerboseMode = true
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -89,7 +88,7 @@ func TestShutdown_CallsOnce(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_shutdown_once")
+	settings := NewTestTelemetrySettings("test_shutdown_once")
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
@@ -106,7 +105,7 @@ func TestShutdown_NonVerboseMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_shutdown_non_verbose")
+	settings := NewTestTelemetrySettings("test_shutdown_non_verbose")
 	settings.VerboseMode = false
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -122,7 +121,7 @@ func TestShutdown_VerboseMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_shutdown_verbose")
+	settings := NewTestTelemetrySettings("test_shutdown_verbose")
 	settings.VerboseMode = true
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -138,7 +137,7 @@ func TestShutdown_WithTracesMetricsLogs(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_shutdown_full")
+	settings := NewTestTelemetrySettings("test_shutdown_full")
 	settings.VerboseMode = true
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -179,7 +178,7 @@ func TestShutdown_NilProviders(t *testing.T) {
 
 	// Create a minimal logger for Shutdown to use
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_nil_providers")
+	settings := NewTestTelemetrySettings("test_nil_providers")
 	slogger, _, err := initLogger(ctx, settings)
 	require.NoError(t, err)
 
@@ -194,7 +193,7 @@ func TestShutdown_AfterUptime(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_uptime")
+	settings := NewTestTelemetrySettings("test_uptime")
 	settings.VerboseMode = true
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -217,7 +216,7 @@ func TestTelemetryService_ProvidersNotNil(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_providers")
+	settings := NewTestTelemetrySettings("test_providers")
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
@@ -253,7 +252,7 @@ func TestTelemetryService_OTLPDisabled(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_otlp_disabled")
+	settings := NewTestTelemetrySettings("test_otlp_disabled")
 	settings.OTLPEnabled = false
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -271,7 +270,7 @@ func TestTelemetryService_OTLPEnabled(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_otlp_enabled")
+	settings := NewTestTelemetrySettings("test_otlp_enabled")
 	settings.OTLPEnabled = true
 	settings.OTLPEndpoint = testHTTPEndpoint // HTTP endpoint
 
@@ -304,7 +303,7 @@ func TestTelemetryService_DifferentLogLevels(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_loglevel_" + tt.logLevel)
+			settings := NewTestTelemetrySettings("test_loglevel_" + tt.logLevel)
 			settings.LogLevel = tt.logLevel
 
 			service, err := NewTelemetryService(ctx, settings)
@@ -324,7 +323,7 @@ func TestTelemetryService_SettingsStored(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_settings_stored")
+	settings := NewTestTelemetrySettings("test_settings_stored")
 	settings.OTLPService = "test-service"
 
 	service, err := NewTelemetryService(ctx, settings)
@@ -377,7 +376,7 @@ func TestTelemetryService_Concurrent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_concurrent")
+	settings := NewTestTelemetrySettings("test_concurrent")
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
@@ -421,7 +420,7 @@ func TestTelemetryService_ShutdownIdempotent(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_shutdown_idempotent")
+	settings := NewTestTelemetrySettings("test_shutdown_idempotent")
 
 	service, err := NewTelemetryService(ctx, settings)
 	require.NoError(t, err)
@@ -440,7 +439,7 @@ func TestNewTelemetryService_InvalidLogLevel(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_invalid_log_level")
+	settings := NewTestTelemetrySettings("test_invalid_log_level")
 	settings.LogLevel = "INVALID_LEVEL"
 
 	_, err := NewTelemetryService(ctx, settings)

@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	stdoutLogExporter "log/slog"
@@ -53,7 +52,7 @@ func doExampleTraceSpan(ctx context.Context, tracer traceApi.Tracer, slogger *st
 	return spanCtx
 }
 
-func getOtelMetricsTracesAttributes(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) []attributeApi.KeyValue {
+func getOtelMetricsTracesAttributes(settings *TelemetrySettings) []attributeApi.KeyValue {
 	return []attributeApi.KeyValue{
 		oltpSemanticConventions.DeploymentID(settings.OTLPEnvironment),   // deployment.environment.name (e.g. local-standalone, adhoc, dev, qa, preprod, prod)
 		oltpSemanticConventions.HostName(settings.OTLPHostname),          // service.instance.id (e.g. 12)
@@ -63,11 +62,11 @@ func getOtelMetricsTracesAttributes(settings *cryptoutilAppsTemplateServiceConfi
 	}
 }
 
-func getOtelLogsAttributes(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) []attributeApi.KeyValue {
+func getOtelLogsAttributes(settings *TelemetrySettings) []attributeApi.KeyValue {
 	return getOtelMetricsTracesAttributes(settings) // same (for now)
 }
 
-func getSlogStdoutAttributes(settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) []stdoutLogExporter.Attr {
+func getSlogStdoutAttributes(settings *TelemetrySettings) []stdoutLogExporter.Attr {
 	otelAttrs := getOtelLogsAttributes(settings)
 	slogAttrs := make([]stdoutLogExporter.Attr, 0, len(otelAttrs))
 
@@ -93,7 +92,7 @@ func parseProtocolAndEndpoint(otlpEndpoint *string) (bool, bool, bool, bool, *st
 }
 
 // checkSidecarHealth performs a connectivity check to the OTLP sidecar during startup.
-func checkSidecarHealth(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) error {
+func checkSidecarHealth(ctx context.Context, settings *TelemetrySettings) error {
 	// Parse the endpoint to determine protocol and address
 	isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 	if err != nil {
@@ -125,7 +124,7 @@ func checkSidecarHealth(ctx context.Context, settings *cryptoutilAppsTemplateSer
 }
 
 // checkSidecarHealthWithRetry performs connectivity check to OTLP sidecar with retry logic, before init logsProvider; caller must log results.
-func checkSidecarHealthWithRetry(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) ([]error, error) {
+func checkSidecarHealthWithRetry(ctx context.Context, settings *TelemetrySettings) ([]error, error) {
 	maxRetries := cryptoutilSharedMagic.DefaultSidecarHealthCheckMaxRetries
 	retryDelay := cryptoutilSharedMagic.DefaultSidecarHealthCheckRetryDelay
 

@@ -20,7 +20,7 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 	t.Parallel()
@@ -35,7 +35,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		{
 			name: "invalid_jwe_format",
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServerBarrier.Transaction, *cryptoutilAppsTemplateServiceServerBarrier.RootKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 				require.NoError(t, err)
 				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -79,7 +79,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		{
 			name: "corrupted_jwe_json",
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServerBarrier.Transaction, *cryptoutilAppsTemplateServiceServerBarrier.RootKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 				require.NoError(t, err)
 				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -123,7 +123,7 @@ func TestRootKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		{
 			name: "nil_encrypted_bytes",
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServerBarrier.Transaction, *cryptoutilAppsTemplateServiceServerBarrier.RootKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 				require.NoError(t, err)
 				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -183,7 +183,7 @@ func TestRootKeysService_EncryptKey_GetLatestFails(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 

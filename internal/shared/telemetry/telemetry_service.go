@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	slogMulti "github.com/samber/slog-multi"
@@ -60,7 +59,7 @@ type TelemetryService struct {
 	logsProviderSdk    *logSdk.LoggerProvider                                             // Not exported, but still needed to do shutdown
 	metricsProviderSdk *metricSdk.MeterProvider                                           // Not exported, but still needed to do shutdown
 	tracesProviderSdk  *traceSdk.TracerProvider                                           // Not exported, but still needed to do shutdown
-	settings           *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings // Store settings for health checks
+	settings           *TelemetrySettings // Store settings for health checks
 }
 
 // Timeout constants for telemetry operations.
@@ -77,7 +76,7 @@ const (
 )
 
 // NewTelemetryService creates and initializes a TelemetryService with OTLP exporters.
-func NewTelemetryService(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*TelemetryService, error) {
+func NewTelemetryService(ctx context.Context, settings *TelemetrySettings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
 
 	if ctx == nil {
@@ -243,7 +242,7 @@ func (s *TelemetryService) Shutdown() {
 	})
 }
 
-func initLogger(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
+func initLogger(ctx context.Context, settings *TelemetrySettings) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
 	slogLevel, err := ParseLogLevel(settings.LogLevel)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse log level: %w", err)
@@ -297,7 +296,7 @@ func initLogger(ctx context.Context, settings *cryptoutilAppsTemplateServiceConf
 	return slogger, otelProvider, nil
 }
 
-func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*metricSdk.MeterProvider, error) {
+func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*metricSdk.MeterProvider, error) {
 	if settings.VerboseMode {
 		slogger.Debug("initializing metrics provider")
 	}
@@ -362,7 +361,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	return metricsProvider, nil
 }
 
-func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*traceSdk.TracerProvider, error) {
+func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *TelemetrySettings) (*traceSdk.TracerProvider, error) {
 	if settings.VerboseMode {
 		slogger.Debug("initializing traces provider")
 	}

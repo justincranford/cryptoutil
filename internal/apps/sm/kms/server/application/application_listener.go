@@ -16,7 +16,7 @@ import (
 	cryptoutilKmsServer "cryptoutil/api/kms/server"
 	cryptoutilKmsServerHandler "cryptoutil/internal/apps/sm/kms/server/handler"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilNetwork "cryptoutil/internal/shared/util/network"

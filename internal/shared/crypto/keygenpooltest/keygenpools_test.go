@@ -20,7 +20,7 @@ import (
 	cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedPool "cryptoutil/internal/shared/pool"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 const (
@@ -37,7 +37,7 @@ func TestPoolsExample(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testSettings)
+	telemetryService := cryptoutilSharedTelemetry.RequireNewForTest(testCtx, testTelemetrySettings)
 	defer telemetryService.Shutdown()
 
 	keys, err := generateKeys(ctx, telemetryService)

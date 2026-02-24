@@ -12,7 +12,7 @@ import (
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // ServerApplicationBasic provides basic server application components including telemetry, unseal keys, and JWK generation.
@@ -26,7 +26,7 @@ type ServerApplicationBasic struct {
 func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*ServerApplicationBasic, error) {
 	serverApplicationBasic := &ServerApplicationBasic{}
 
-	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
+	telemetryService, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings.ToTelemetrySettings())
 	if err != nil {
 		return nil, fmt.Errorf("failed to initailize telemetry: %w", err)
 	}

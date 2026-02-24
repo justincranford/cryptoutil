@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 
 	stdoutLogExporter "log/slog"
 
@@ -26,13 +25,13 @@ import (
 // TestNewTelemetryService_InitMetricsError tests the error path when initMetrics fails.
 func TestNewTelemetryService_InitMetricsError(t *testing.T) {
 	original := initMetricsFn
-	initMetricsFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*metricSdk.MeterProvider, error) {
+	initMetricsFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *TelemetrySettings) (*metricSdk.MeterProvider, error) {
 		return nil, fmt.Errorf("injected initMetrics error")
 	}
 
 	defer func() { initMetricsFn = original }()
 
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_metrics_error")
+	settings := NewTestTelemetrySettings("test_metrics_error")
 
 	_, err := NewTelemetryService(context.Background(), settings)
 	require.Error(t, err)
@@ -42,13 +41,13 @@ func TestNewTelemetryService_InitMetricsError(t *testing.T) {
 // TestNewTelemetryService_InitTracesError tests the error path when initTraces fails.
 func TestNewTelemetryService_InitTracesError(t *testing.T) {
 	original := initTracesFn
-	initTracesFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*traceSdk.TracerProvider, error) {
+	initTracesFn = func(_ context.Context, _ *stdoutLogExporter.Logger, _ *TelemetrySettings) (*traceSdk.TracerProvider, error) {
 		return nil, fmt.Errorf("injected initTraces error")
 	}
 
 	defer func() { initTracesFn = original }()
 
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_traces_error")
+	settings := NewTestTelemetrySettings("test_traces_error")
 
 	_, err := NewTelemetryService(context.Background(), settings)
 	require.Error(t, err)
@@ -128,7 +127,7 @@ func TestInitMetrics_StdoutExporterError(t *testing.T) {
 
 	defer func() { stdoutMetricExporterNewFn = originalStdout }()
 
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_stdout_metrics_error")
+	settings := NewTestTelemetrySettings("test_stdout_metrics_error")
 	settings.OTLPConsole = true
 
 	_, err := NewTelemetryService(context.Background(), settings)
@@ -145,7 +144,7 @@ func TestInitTraces_StdoutExporterError(t *testing.T) {
 
 	defer func() { stdoutTraceExporterNewFn = originalStdout }()
 
-	settings := cryptoutilAppsTemplateServiceConfig.RequireNewForTest("test_stdout_traces_error")
+	settings := NewTestTelemetrySettings("test_stdout_traces_error")
 	settings.OTLPConsole = true
 
 	_, err := NewTelemetryService(context.Background(), settings)

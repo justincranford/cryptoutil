@@ -15,7 +15,7 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/apps/template/service/server/barrier/unsealkeysservice"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 func TestIntermediateKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 	t.Parallel()
@@ -30,7 +30,7 @@ func TestIntermediateKeysService_DecryptKey_ErrorPaths(t *testing.T) {
 		{
 			name: "invalid_jwe_format",
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServerBarrier.Transaction, *cryptoutilAppsTemplateServiceServerBarrier.IntermediateKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 				require.NoError(t, err)
 				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -95,7 +95,7 @@ func TestContentKeysService_EncryptContent_NilInput(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -148,7 +148,7 @@ func TestContentKeysService_DecryptContent_InvalidCiphertext(t *testing.T) {
 
 	ctx := context.Background()
 
-	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+	telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 	require.NoError(t, err)
 	t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -207,7 +207,7 @@ func TestRootKeysService_DecryptKey_AdditionalErrorPaths(t *testing.T) {
 		{
 			name: "key_not_found",
 			setupFunc: func(t *testing.T) (cryptoutilAppsTemplateServiceServerBarrier.Transaction, *cryptoutilAppsTemplateServiceServerBarrier.RootKeysService, []byte) {
-				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+				telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 				require.NoError(t, err)
 				t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -291,7 +291,7 @@ func TestRotationService_RotateRootKey_ErrorPaths(t *testing.T) {
 	t.Run("no_root_key_exists", func(t *testing.T) {
 		t.Parallel()
 
-		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 		require.NoError(t, err)
 		t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -351,7 +351,7 @@ func TestRotationService_RotateIntermediateKey_ErrorPaths(t *testing.T) {
 	t.Run("no_intermediate_key_exists", func(t *testing.T) {
 		t.Parallel()
 
-		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 		require.NoError(t, err)
 		t.Cleanup(func() { telemetrySvc.Shutdown() })
 
@@ -411,7 +411,7 @@ func TestRotationService_RotateContentKey_ErrorPaths(t *testing.T) {
 	t.Run("no_intermediate_key_exists", func(t *testing.T) {
 		t.Parallel()
 
-		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true))
+		telemetrySvc, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true).ToTelemetrySettings())
 		require.NoError(t, err)
 		t.Cleanup(func() { telemetrySvc.Shutdown() })
 

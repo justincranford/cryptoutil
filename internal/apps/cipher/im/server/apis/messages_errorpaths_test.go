@@ -25,7 +25,7 @@ import (
 	cryptoutilAppsCipherImDomain "cryptoutil/internal/apps/cipher/im/domain"
 	cryptoutilAppsCipherImRepository "cryptoutil/internal/apps/cipher/im/repository"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
-	cryptoutilSharedTelemetry "cryptoutil/internal/apps/template/service/telemetry"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 	cryptoutilSharedUtilRandom "cryptoutil/internal/shared/util/random"
@@ -117,7 +117,7 @@ func createShutdownJWKHandler(t *testing.T) *MessageHandler {
 
 	settings := cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true)
 
-	telemetry, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings)
+	telemetry, err := cryptoutilSharedTelemetry.NewTelemetryService(ctx, settings.ToTelemetrySettings())
 	require.NoError(t, err)
 
 	shutdownJWKGen, err := cryptoutilSharedCryptoJose.NewJWKGenService(ctx, telemetry, false)
