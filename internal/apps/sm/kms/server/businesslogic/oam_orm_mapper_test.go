@@ -17,11 +17,15 @@ import (
 const testDescription = "test description"
 
 func TestNewOamOrmMapper(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 	testify.NotNil(t, mapper, "mapper should not be nil")
 }
 
 func TestToOrmAddElasticKey(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 	elasticKeyID := googleUuid.New()
 	tenantID := googleUuid.New()
@@ -53,6 +57,8 @@ func TestToOrmAddElasticKey(t *testing.T) {
 }
 
 func TestToOrmAddMaterialKey(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 	elasticKeyID := googleUuid.New()
 	materialKeyID := googleUuid.New()
@@ -72,6 +78,8 @@ func TestToOrmAddMaterialKey(t *testing.T) {
 }
 
 func TestToOamElasticKeyStatus(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name           string
 		importAllowed  bool
@@ -83,6 +91,8 @@ func TestToOamElasticKeyStatus(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result := toOamElasticKeyStatus(&tc.importAllowed)
 			testify.NotNil(t, result)
 			testify.Equal(t, tc.expectedStatus, *result)
@@ -91,6 +101,8 @@ func TestToOamElasticKeyStatus(t *testing.T) {
 }
 
 func TestToOamElasticKey(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 	elasticKeyID := googleUuid.New()
 
@@ -119,6 +131,8 @@ func TestToOamElasticKey(t *testing.T) {
 }
 
 func TestToOamElasticKeys(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 	id1 := googleUuid.New()
 	id2 := googleUuid.New()
@@ -156,6 +170,8 @@ func TestToOamElasticKeys(t *testing.T) {
 }
 
 func TestToOamMaterialKey(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	elasticKeyID := googleUuid.New()
@@ -236,6 +252,8 @@ func TestToOamMaterialKey(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result, err := mapper.toOamMaterialKey(tc.ormKey)
 
 			if tc.expectError {
@@ -260,6 +278,8 @@ func TestToOamMaterialKey(t *testing.T) {
 }
 
 func TestToOamMaterialKeys(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	elasticKeyID := googleUuid.New()
@@ -306,6 +326,8 @@ func TestToOamMaterialKeys(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			results, err := mapper.toOamMaterialKeys(tc.ormKeys)
 
 			if tc.expectError {
@@ -320,6 +342,8 @@ func TestToOamMaterialKeys(t *testing.T) {
 }
 
 func TestToOptionalOrmUUIDs(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	validUUID1 := googleUuid.New()
@@ -340,6 +364,8 @@ func TestToOptionalOrmUUIDs(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result, err := mapper.toOptionalOrmUUIDs(tc.input)
 
 			if tc.expectError {
@@ -359,6 +385,8 @@ func TestToOptionalOrmUUIDs(t *testing.T) {
 }
 
 func TestToOptionalOrmStrings(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	validStrings := []string{"value1", "value2"}
@@ -380,6 +408,8 @@ func TestToOptionalOrmStrings(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result, err := mapper.toOptionalOrmStrings(tc.input)
 
 			if tc.expectError {
@@ -400,6 +430,8 @@ func TestToOptionalOrmStrings(t *testing.T) {
 }
 
 func TestToOrmDateRange(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	now := time.Now().UTC()
@@ -423,6 +455,8 @@ func TestToOrmDateRange(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			resultMin, resultMax, err := mapper.toOrmDateRange(tc.minDate, tc.maxDate)
 
 			if tc.expectError {
@@ -438,6 +472,8 @@ func TestToOrmDateRange(t *testing.T) {
 }
 
 func TestToOrmPageNumber(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	zero := cryptoutilKmsServer.PageNumber(0)
@@ -458,6 +494,8 @@ func TestToOrmPageNumber(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result, err := mapper.toOrmPageNumber(tc.input)
 
 			if tc.expectError {
@@ -472,6 +510,8 @@ func TestToOrmPageNumber(t *testing.T) {
 }
 
 func TestToOrmPageSize(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	one := cryptoutilKmsServer.PageSize(1)
@@ -492,6 +532,8 @@ func TestToOrmPageSize(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result, err := mapper.toOrmPageSize(tc.input)
 
 			if tc.expectError {

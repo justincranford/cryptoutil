@@ -16,6 +16,8 @@ import (
 )
 
 func TestCleanupTestCertificates(t *testing.T) {
+	t.Parallel()
+
 	// List PEM files in the current package directory
 	files, err := os.ReadDir(".")
 	if err != nil {

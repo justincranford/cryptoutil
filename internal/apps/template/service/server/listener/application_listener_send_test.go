@@ -61,6 +61,8 @@ return server, cancel, &wg
 // TestSendLivenessCheck_Success tests the success path of SendLivenessCheck.
 // Covers: return result, nil (the non-error path in SendLivenessCheck).
 func TestSendLivenessCheck_Success(t *testing.T) {
+	t.Parallel()
+
 // NOT parallel: starts admin server with dynamic port.
 server, cancel, wg := startAdminServer(t)
 
@@ -82,6 +84,8 @@ require.NotNil(t, result)
 // TestSendReadinessCheck_Success tests the success path of SendReadinessCheck.
 // Covers: return result, nil (the non-error path in SendReadinessCheck).
 func TestSendReadinessCheck_Success(t *testing.T) {
+	t.Parallel()
+
 // NOT parallel: starts admin server with dynamic port.
 server, cancel, wg := startAdminServer(t)
 
@@ -106,6 +110,8 @@ require.NotNil(t, result)
 // Covers: return nil (the non-error path in SendShutdownRequest).
 // Pattern matches TestAdminServer_Shutdown_Endpoint: explicit cancel() + wg.Wait().
 func TestSendShutdownRequest_Success(t *testing.T) {
+	t.Parallel()
+
 // NOT parallel: starts admin server with dynamic port.
 server, cancel, wg := startAdminServer(t)
 

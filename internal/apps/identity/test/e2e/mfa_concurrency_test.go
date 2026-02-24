@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestMFAChainConcurrency tests concurrent MFA chain execution.
@@ -87,7 +87,7 @@ func (s *E2ETestSuite) executeMFAChain(ctx context.Context, userID string, metho
 		SessionID: googleUuid.Must(googleUuid.NewV7()).String(),
 		UserID:    googleUuid.MustParse(userID),
 		IssuedAt:  time.Now().UTC(),
-		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSessionLifetime),
 		Active:    boolPtr(true),
 	}
 

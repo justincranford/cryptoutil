@@ -15,6 +15,8 @@ const (
 
 // TestNewSessionHandler tests the NewSessionHandler constructor.
 func TestNewSessionHandler(t *testing.T) {
+	t.Parallel()
+
 	// NewSessionHandler should not panic with nil - it just passes through to template handler.
 	sessionHandler := NewSessionHandler(nil)
 	require.NotNil(t, sessionHandler)
@@ -22,6 +24,8 @@ func TestNewSessionHandler(t *testing.T) {
 
 // TestSessionHandlerTypeAlias verifies that the type alias works correctly.
 func TestSessionHandlerTypeAlias(t *testing.T) {
+	t.Parallel()
+
 	// Verify that SessionHandler type alias resolves correctly.
 	handler := (*SessionHandler)(nil)
 	require.Nil(t, handler)
@@ -29,6 +33,8 @@ func TestSessionHandlerTypeAlias(t *testing.T) {
 
 // TestSessionRequestResponseTypes verifies the re-exported types work.
 func TestSessionRequestResponseTypes(t *testing.T) {
+	t.Parallel()
+
 	// Test that the type aliases compile and work.
 	var issueReq SessionIssueRequest
 

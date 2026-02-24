@@ -88,6 +88,8 @@ func createBearerToken(token string) string {
 
 // TestPublicEndpoint tests that public endpoints don't require authentication.
 func TestPublicEndpoint(t *testing.T) {
+	t.Parallel()
+
 	app, _ := setupTestService(t)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/public/health", nil)
@@ -111,6 +113,8 @@ func TestPublicEndpoint(t *testing.T) {
 
 // TestProtectedEndpoint_NoToken tests that protected endpoints reject requests without tokens.
 func TestProtectedEndpoint_NoToken(t *testing.T) {
+	t.Parallel()
+
 	app, _ := setupTestService(t)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
@@ -134,6 +138,8 @@ func TestProtectedEndpoint_NoToken(t *testing.T) {
 
 // TestProtectedEndpoint_InvalidTokenFormat tests Bearer token format validation.
 func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
+	t.Parallel()
+
 	app, _ := setupTestService(t)
 
 	testCases := []struct {
@@ -147,6 +153,8 @@ func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			req := httptest.NewRequest(http.MethodGet, "/api/v1/protected/resource", nil)
 			req.Header.Set("Authorization", tc.header)
 
@@ -162,6 +170,8 @@ func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
 
 // TestScopeEnforcement_MissingScope tests scope enforcement for protected resources.
 func TestScopeEnforcement_MissingScope(t *testing.T) {
+	t.Parallel()
+
 	app, tokenSvc := setupTestService(t)
 
 	// Configure mock to return claims without required scope.
@@ -199,6 +209,8 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 
 // TestScopeEnforcement_ValidScope tests successful scope validation.
 func TestScopeEnforcement_ValidScope(t *testing.T) {
+	t.Parallel()
+
 	app, tokenSvc := setupTestService(t)
 
 	// Configure mock to return valid claims with required scope.

@@ -14,6 +14,8 @@ import (
 )
 
 func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	validUUID := googleUuid.New()
@@ -105,6 +107,8 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			tenantID := googleUuid.New()
 			result, err := mapper.toOrmGetElasticKeysQueryParams(tenantID, tc.params)
 
@@ -125,6 +129,8 @@ func TestToOrmGetElasticKeysQueryParams(t *testing.T) {
 }
 
 func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	materialKeyID := googleUuid.New()
@@ -204,6 +210,8 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result, err := mapper.toOrmGetMaterialKeysForElasticKeyQueryParams(tc.params)
 
 			if tc.expectError {
@@ -223,6 +231,8 @@ func TestToOrmGetMaterialKeysForElasticKeyQueryParams(t *testing.T) {
 }
 
 func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
+	t.Parallel()
+
 	mapper := NewOamOrmMapper()
 
 	elasticKeyID := googleUuid.New()
@@ -314,6 +324,8 @@ func TestToOrmGetMaterialKeysQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			result, err := mapper.toOrmGetMaterialKeysQueryParams(tc.params)
 
 			if tc.expectError {

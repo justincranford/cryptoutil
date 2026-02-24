@@ -19,8 +19,8 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestAuthorizationCodeFlowWithDatabase validates OAuth 2.1 authorization code flow with database persistence.
@@ -33,7 +33,7 @@ import (
 func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilIdentityMagic.TestRefreshTokenLifetime)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.TestRefreshTokenLifetime)
 	defer cancel()
 
 	// Create test database and repositories.
@@ -65,8 +65,8 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                    "Test Client",
 		RedirectURIs:            []string{"https://example.com/callback"},
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
-		AllowedResponseTypes:    []string{cryptoutilIdentityMagic.ResponseTypeCode},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
 		AllowedScopes:           []string{"openid", "profile", "email"},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 	}
@@ -74,7 +74,7 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 
 	// Generate PKCE challenge.
 	_, codeChallenge := generatePKCEChallengeDatabase()
-	state := generateRandomStringDatabase(cryptoutilIdentityMagic.DefaultStateLength)
+	state := generateRandomStringDatabase(cryptoutilSharedMagic.DefaultStateLength)
 
 	// Step 1: Create authorization request in database.
 	t.Log("🔐 Creating authorization request with PKCE...")
@@ -84,13 +84,13 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 		ID:                  googleUuid.Must(googleUuid.NewV7()),
 		ClientID:            testClient.ClientID,
 		RedirectURI:         testClient.RedirectURIs[0],
-		ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile email",
 		State:               state,
 		CodeChallenge:       codeChallenge,
-		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
-		ExpiresAt:           time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
+		ExpiresAt:           time.Now().UTC().Add(cryptoutilSharedMagic.DefaultCodeLifetime),
 	}
 	require.NoError(t, authzReqRepo.Create(ctx, authRequest), "Failed to create authorization request")
 
@@ -113,14 +113,14 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 		ClientID:  testClient.ClientID,
 		Scope:     authRequest.Scope,
 		GrantedAt: time.Now().UTC(),
-		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultRefreshTokenLifetime),
 	}
 	require.NoError(t, consentRepo.Create(ctx, consentDecision), "Failed to create consent decision")
 
 	// Step 4: Generate authorization code.
 	t.Log("🔑 Generating authorization code...")
 
-	authCode := generateRandomStringDatabase(cryptoutilIdentityMagic.DefaultAuthCodeLength)
+	authCode := generateRandomStringDatabase(cryptoutilSharedMagic.DefaultAuthCodeLength)
 	authRequest.Code = authCode
 	authRequest.ConsentGranted = true
 	require.NoError(t, authzReqRepo.Update(ctx, authRequest), "Failed to update authorization request with code")
@@ -170,7 +170,7 @@ func TestAuthorizationCodeFlowWithDatabase(t *testing.T) {
 // generatePKCEChallenge generates a PKCE code verifier and code challenge for database test.
 func generatePKCEChallengeDatabase() (codeVerifier, codeChallenge string) {
 	// Generate code verifier (43-128 characters).
-	verifierBytes := make([]byte, cryptoutilIdentityMagic.DefaultCodeChallengeLength)
+	verifierBytes := make([]byte, cryptoutilSharedMagic.DefaultCodeChallengeLength)
 	if _, err := io.ReadFull(crand.Reader, verifierBytes); err != nil {
 		panic(fmt.Sprintf("failed to generate code verifier: %v", err))
 	}

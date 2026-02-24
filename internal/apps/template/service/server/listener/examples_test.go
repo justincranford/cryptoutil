@@ -284,7 +284,9 @@ func _exampleHealthChecks() {
 // Usage Example: Individual Tests
 // ========================================
 
-func TestSomething(_ *testing.T) {
+func TestSomething(t *testing.T) {
+	t.Parallel()
+
 	// Tests now have access to:
 	// - baseURL: Full public server URL with actual port
 	// - adminURL: Full admin server URL (always 127.0.0.1:9090 in production, dynamic in tests)

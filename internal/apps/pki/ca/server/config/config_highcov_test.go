@@ -13,6 +13,8 @@ import (
 // TestParse_HappyPath tests ParseWithFlagSet with valid arguments.
 // Uses a fresh FlagSet to avoid pflag.CommandLine state conflicts with count > 1 runs.
 func TestParse_HappyPath(t *testing.T) {
+	t.Parallel()
+
 	// Not parallel: pflag FlagSets may share global viper state.
 	fs := pflag.NewFlagSet("test-pki-happy-path", pflag.ContinueOnError)
 	args := []string{

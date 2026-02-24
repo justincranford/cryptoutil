@@ -68,6 +68,8 @@ return server, client, port, cancel, &wg
 // The HTTP /admin/api/v1/shutdown endpoint sets s.shutdown=true but leaves Fiber running
 // (scheduled goroutine is a no-op), providing a reliable window to test livez.
 func TestAdminServer_Livez_DuringHTTPShutdown(t *testing.T) {
+	t.Parallel()
+
 // NOT parallel: starts admin server.
 _, client, port, cancel, wg := startAdminServerWithClient(t)
 
@@ -103,6 +105,8 @@ assert.Equal(t, http.StatusServiceUnavailable, livezResp.StatusCode)
 // TestAdminServer_Readyz_DuringHTTPShutdown covers handleReadyz's "return nil" after
 // the shutdown JSON response when s.shutdown=true via the HTTP endpoint.
 func TestAdminServer_Readyz_DuringHTTPShutdown(t *testing.T) {
+	t.Parallel()
+
 // NOT parallel: starts admin server.
 server, client, port, cancel, wg := startAdminServerWithClient(t)
 

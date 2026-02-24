@@ -16,8 +16,8 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestOIDCCoreEndpoints(t *testing.T) {
@@ -114,7 +114,7 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 			Valid: true,
 		},
 		CreatedAt:      time.Now().UTC(),
-		ExpiresAt:      time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
+		ExpiresAt:      time.Now().UTC().Add(cryptoutilSharedMagic.DefaultCodeLifetime),
 		ConsentGranted: false,
 	}
 
@@ -147,7 +147,7 @@ func TestOIDCCoreEndpoints(t *testing.T) {
 		ClientID:  testClient.ClientID,
 		Scope:     authRequest.Scope,
 		GrantedAt: time.Now().UTC(),
-		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultRefreshTokenLifetime),
 	}
 
 	err = consentRepo.Create(ctx, consentDecision)

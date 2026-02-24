@@ -56,9 +56,13 @@ var (
 )
 
 func TestIsPrivateJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isPrivate, err := IsPrivateJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
@@ -71,9 +75,13 @@ func TestIsPrivateJWK(t *testing.T) {
 }
 
 func TestIsPublicJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isPublic, err := IsPublicJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
@@ -86,9 +94,13 @@ func TestIsPublicJWK(t *testing.T) {
 }
 
 func TestIsAsymmetricJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isAsymmetric, err := IsAsymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
@@ -101,9 +113,13 @@ func TestIsAsymmetricJWK(t *testing.T) {
 }
 
 func TestIsSymmetricJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isSymmetric, err := IsSymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
@@ -116,9 +132,13 @@ func TestIsSymmetricJWK(t *testing.T) {
 }
 
 func TestIsEncryptJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isEncrypt, err := IsEncryptJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
@@ -131,9 +151,13 @@ func TestIsEncryptJWK(t *testing.T) {
 }
 
 func TestIsDecryptJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isDecrypt, err := IsDecryptJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
@@ -146,9 +170,13 @@ func TestIsDecryptJWK(t *testing.T) {
 }
 
 func TestIsSignJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isSign, err := IsSignJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)
@@ -161,9 +189,13 @@ func TestIsSignJWK(t *testing.T) {
 }
 
 func TestIsVerifyJWK(t *testing.T) {
+	t.Parallel()
+
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+
 			isVerify, err := IsVerifyJWK(tc.jwk)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)

@@ -17,11 +17,15 @@ import (
 
 // TestE2E runs the complete end-to-end test suite.
 func TestE2E(t *testing.T) {
+	t.Parallel()
+
 	suite.Run(t, new(E2ETestSuite))
 }
 
 // TestSummaryReportOnly runs a quick test to demonstrate summary report functionality.
 func TestSummaryReportOnly(t *testing.T) {
+	t.Parallel()
+
 	suite.Run(t, new(SummaryTestSuite))
 }
 
