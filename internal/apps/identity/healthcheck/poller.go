@@ -12,6 +12,7 @@ import (
 	"time"
 
 	cryptoutilSharedCryptoTls "cryptoutil/internal/shared/crypto/tls"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // newClientConfigFn is an injectable function for TLS client configuration, enabling testing of the fallback path.
@@ -26,15 +27,13 @@ type Response struct {
 
 const (
 	defaultInitialInterval = 1 * time.Second
-	defaultMaxInterval     = 30 * time.Second
 )
 
-// Poller polls service health endpoints with exponential backoff retry.
+// Poller polls service health endpoints using poll.Until for retry.
 type Poller struct {
-	client          *http.Client
-	maxRetries      int
-	initialInterval time.Duration
-	maxInterval     time.Duration
+	client   *http.Client
+	timeout  time.Duration
+	interval time.Duration
 }
 
 // NewPoller creates a new health check poller.
@@ -50,9 +49,8 @@ func NewPoller(timeout time.Duration, maxRetries int, skipTLSVerify bool) *Polle
 			client: &http.Client{
 				Timeout: timeout,
 			},
-			maxRetries:      maxRetries,
-			initialInterval: defaultInitialInterval,
-			maxInterval:     defaultMaxInterval,
+			timeout:  time.Duration(maxRetries) * defaultInitialInterval,
+			interval: defaultInitialInterval,
 		}
 	}
 
@@ -63,40 +61,30 @@ func NewPoller(timeout time.Duration, maxRetries int, skipTLSVerify bool) *Polle
 				TLSClientConfig: tlsConfig.TLSConfig,
 			},
 		},
-		maxRetries:      maxRetries,
-		initialInterval: defaultInitialInterval,
-		maxInterval:     defaultMaxInterval,
+		timeout:  time.Duration(maxRetries) * defaultInitialInterval,
+		interval: defaultInitialInterval,
 	}
 }
 
-// Poll polls a health endpoint until it returns healthy or max retries reached.
+// Poll polls a health endpoint until it returns healthy or the timeout elapses.
 func (p *Poller) Poll(ctx context.Context, url string) (*Response, error) {
-	interval := p.initialInterval
+	var lastResp *Response
 
-	for attempt := 0; attempt < p.maxRetries; attempt++ {
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("polling canceled: %w", ctx.Err())
-		default:
+	err := cryptoutilSharedUtilPoll.Until(ctx, p.timeout, p.interval, func(ctx context.Context) (bool, error) {
+		resp, checkErr := p.check(ctx, url)
+		if checkErr == nil && resp.Status == "healthy" {
+			lastResp = resp
+
+			return true, nil
 		}
 
-		resp, err := p.check(ctx, url)
-		if err == nil && resp.Status == "healthy" {
-			return resp, nil
-		}
-
-		// Wait with exponential backoff before retry
-		if attempt < p.maxRetries-1 {
-			time.Sleep(interval)
-
-			interval = interval * 2
-			if interval > p.maxInterval {
-				interval = p.maxInterval
-			}
-		}
+		return false, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("health check failed: %w", err)
 	}
 
-	return nil, fmt.Errorf("health check failed after %d attempts", p.maxRetries)
+	return lastResp, nil
 }
 
 // Check performs a single health check request.

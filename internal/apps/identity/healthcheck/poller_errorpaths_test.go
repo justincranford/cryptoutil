@@ -30,18 +30,16 @@ func TestPoller_IntervalCapping(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Use small intervals so interval exceeds maxInterval quickly.
-	// 1ms initial, 4ms max. After 3 doublings: 1->2->4->8>4(capped).
+	// Use small intervals so poll.Until retries quickly.
 	poller := &Poller{
-		client:          server.Client(),
-		maxRetries:      6,
-		initialInterval: 1 * time.Millisecond,
-		maxInterval:     4 * time.Millisecond,
+		client:   server.Client(),
+		timeout:  10 * time.Millisecond,
+		interval: 1 * time.Millisecond,
 	}
 
 	resp, err := poller.Poll(context.Background(), server.URL+"/health")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "health check failed after")
+	require.Contains(t, err.Error(), "health check failed")
 	require.Nil(t, resp)
 }
 
@@ -49,16 +47,15 @@ func TestPoller_InvalidURL(t *testing.T) {
 	t.Parallel()
 
 	poller := &Poller{
-		client:          &http.Client{Timeout: 1 * time.Second},
-		maxRetries:      1,
-		initialInterval: 1 * time.Millisecond,
-		maxInterval:     4 * time.Millisecond,
+		client:   &http.Client{Timeout: 1 * time.Second},
+		timeout:  5 * time.Millisecond,
+		interval: 1 * time.Millisecond,
 	}
 
 	// URL with null byte causes http.NewRequestWithContext to fail.
 	resp, err := poller.Poll(context.Background(), "http://\x00invalid")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "health check failed after")
+	require.Contains(t, err.Error(), "health check failed")
 	require.Nil(t, resp)
 }
 
@@ -72,15 +69,14 @@ func TestPoller_ClosedServer(t *testing.T) {
 	server.Close() // Close immediately so client.Do fails.
 
 	poller := &Poller{
-		client:          &http.Client{Timeout: 1 * time.Second},
-		maxRetries:      1,
-		initialInterval: 1 * time.Millisecond,
-		maxInterval:     4 * time.Millisecond,
+		client:   &http.Client{Timeout: 1 * time.Second},
+		timeout:  5 * time.Millisecond,
+		interval: 1 * time.Millisecond,
 	}
 
 	resp, err := poller.Poll(context.Background(), serverURL+"/health")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "health check failed after")
+	require.Contains(t, err.Error(), "health check failed")
 	require.Nil(t, resp)
 }
 
@@ -99,7 +95,7 @@ func TestNewPoller_TLSConfigFallback(t *testing.T) {
 	poller := NewPoller(5*time.Second, 3, true)
 	require.NotNil(t, poller)
 	require.NotNil(t, poller.client)
-	require.Equal(t, 3, poller.maxRetries)
+	require.Equal(t, 3*defaultInitialInterval, poller.timeout)
 	require.Equal(t, 5*time.Second, poller.client.Timeout)
 	// When TLS config fails, transport should be nil (no TLS config).
 	require.Nil(t, poller.client.Transport)
