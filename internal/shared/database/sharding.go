@@ -6,11 +6,16 @@ package database
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sync"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+// schemaNamePattern validates schema names to prevent SQL injection.
+// Only allows alphanumeric characters, underscores, and hyphens.
+var schemaNamePattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 // ShardStrategy defines how tenants are mapped to database shards.
 type ShardStrategy int
@@ -108,6 +113,10 @@ func (sm *ShardManager) getRowLevelDB(ctx context.Context, tc *TenantContext) (*
 func (sm *ShardManager) getSchemaLevelDB(ctx context.Context, tc *TenantContext) (*gorm.DB, error) {
 	schemaName := sm.config.SchemaPrefix + tc.TenantID.String()
 
+	if err := validateSchemaName(schemaName); err != nil {
+		return nil, err
+	}
+
 	// Check cache first.
 	if cached, ok := sm.schemaCache.Load(schemaName); ok {
 		cachedDB, assertOk := cached.(*gorm.DB)
@@ -153,9 +162,22 @@ func (sm *ShardManager) GetTenantSchemaName(tenantID googleUuid.UUID) string {
 func (sm *ShardManager) DropTenantSchema(tenantID googleUuid.UUID) error {
 	schemaName := sm.GetTenantSchemaName(tenantID)
 
+	if err := validateSchemaName(schemaName); err != nil {
+		return err
+	}
+
 	sm.schemaCache.Delete(schemaName)
 
 	query := fmt.Sprintf("DROP SCHEMA IF EXISTS \"%s\" CASCADE", schemaName)
 
 	return sm.baseDB.Exec(query).Error
+}
+
+// validateSchemaName ensures the schema name contains only safe characters.
+func validateSchemaName(name string) error {
+	if !schemaNamePattern.MatchString(name) {
+		return fmt.Errorf("invalid schema name %q: must match %s", name, schemaNamePattern.String())
+	}
+
+	return nil
 }
