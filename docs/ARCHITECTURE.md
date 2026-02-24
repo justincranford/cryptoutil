@@ -70,13 +70,12 @@ This document is structured to serve multiple audiences:
 
 ### 1.1 Vision Statement
 
-**cryptoutil** is a production-ready suite of five cryptographic-based products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, Zero-Trust principles, and security-on-by-default:
+**cryptoutil** is a production-ready suite of four cryptographic-based products, designed with enterprise-grade security, **FIPS 140-3** standards compliance, Zero-Trust principles, and security-on-by-default:
 
 1. **Private Key Infrastructure (PKI)** - X.509 certificate management with EST, SCEP, OCSP, and CRL support
 2. **JSON Object Signing and Encryption (JOSE)** - JWK/JWS/JWE/JWT cryptographic operations
-3. **Cipher** - End-to-end encrypted messaging with encryption-at-rest
-4. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers
-5. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
+3. **Secrets Manager (SM)** - Elastic key management service with hierarchical key barriers; also hosts the encrypted messaging service
+4. **Identity** - OAuth 2.1, OIDC 1.0, WebAuthn, and Passkeys authentication and authorization
 
 **Purpose**: This project is **for fun** while providing a comprehensive learning experience with LLM agents for Spec-Driven Development (SDD) and delivering modern, enterprise-ready security products.
 
@@ -385,21 +384,14 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - **Use Cases**: API token generation, data encryption, digital signatures
 - **Key Features**: Per-message key rotation, automatic key versioning
 
-#### 3. Cipher
+#### 3. Secrets Manager (SM)
 
-- **Service**: Instant Messenger (IM)
-- **Capabilities**: End-to-end encrypted messaging, encryption-at-rest for messages
-- **Use Cases**: Secure communications, encrypted data storage
-- **Security**: Message-level JWKs, barrier-encrypted persistence
+- **Services**: Key Management Service (KMS), Instant Messenger (IM; renamed from cipher-im — code rename in progress)
+- **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest, end-to-end encrypted messaging
+- **Use Cases**: Application secrets, database encryption keys, API key management, secure communications
+- **Key Features**: Unseal-based bootstrapping, automatic key rotation, message-level JWKs
 
-#### 4. Secrets Manager (SM)
-
-- **Service**: Key Management Service (KMS)
-- **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest
-- **Use Cases**: Application secrets, database encryption keys, API key management
-- **Key Features**: Unseal-based bootstrapping, automatic key rotation
-
-#### 5. Identity
+#### 4. Identity
 
 - **Services**: Authorization Server (Authz), Identity Provider (IdP), Resource Server (RS), Relying Party (RP), Single Page Application (SPA)
 - **Capabilities**: OAuth 2.1, OIDC 1.0, WebAuthn, Passkeys, multi-factor authentication
@@ -417,7 +409,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 Resource Server |
 | **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OAuth 2.1 Relying Party |
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
-| **Cipher** | **Instant Messenger (IM)** | **cipher-im** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
+| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** (renaming from cipher-im) | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
 | **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
 
 **Implementation Status**:
@@ -427,7 +419,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
 | **pki-ca** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
 | **jose-ja** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
-| **cipher-im** | ❌ Not Started | 0% | Planned for Phase 3 of implementation |
+| **sm-im** (cipher-im rename, in progress) | ❌ Rename Pending | 0% | Phase 8: code rename cipher-im → sm-im |
 | **identity-authz** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-idp** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-rs** | ✅ Complete | 100% | Dual servers, Docker Compose working |
@@ -438,7 +430,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 **See Also**: [docs/fixes-v1/](../fixes-v1/) for current implementation work and [docs/speckit/specs-002-cryptoutil/](../speckit/specs-002-cryptoutil/) for detailed specifications.
 
-#### 3.2.1 Secrets Manager (SM) Product
+#### 3.2.1 Secrets Manager (SM) Product (2 Services)
 
 ##### 3.2.1.1 Key Management Service (KMS) Service
 
@@ -454,23 +446,11 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18000-18099
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28000-28099
 
-#### 3.2.2 Cipher Product
+#### 3.2.2 SM Instant Messenger (IM) Service (moved from Cipher product)
 
 ##### 3.2.2.1 Instant Messenger (IM) Service
 
-- Product-Service (Unique Identifier): cipher-im
-- Service Name: Instant Messenger (IM)
-- Service Description: E2E encrypted messaging, encryption-at-rest
-- Address (Container): Private Admin Compose+K8s APIs: 127.0.0.1 (container loopback only, IPv4 only)
-- Address (Container): Public Browser+Service APIs: 0.0.0.0 (all interfaces, IPv4 only)
-- Address (Host): Public Browser+Service APIs: 127.0.0.1 (IPv4 only), localhost
-- Port Value (Container): Private Admin Compose+K8s APIs: 9090
-- Port Value (Container): Public Browser+Service APIs: 8080
-- Port Range (Host): Public Browser+Service APIs (Isolated Service Deployment): 8700-8799
-- Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18700-18799
-- Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28700-28799
-
-#### 3.2.3 JSON Object Signing & Encryption (JOSE) Product
+- Product-Service (Unique Identifier): sm-im (renaming from cipher-im; code rename in Phase 8 of fixes-v7) JSON Object Signing & Encryption (JOSE) Product
 
 ##### 3.2.3.1 JWK Authority (JA) Service
 
@@ -955,7 +935,8 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 - ALL new services MUST use `internal/apps/template/service/` (consistency, reduced duplication)
 - ALL existing services MUST be refactored to use `internal/apps/template/service/` (iterative migration)
-- Migration priority: cipher-im FIRST (validation) → jose-ja → pki-ca → identity services → sm-kms LAST
+- Migration priority: sm-im (cipher-im) → jose-ja → sm-kms → pki-ca → identity services
+  - sm-im/jose-ja/sm-kms migrate first (SM product); pki-ca second; identity last
 
 ### 5.2 Service Builder Pattern
 

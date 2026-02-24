@@ -52,7 +52,22 @@ These findings affect multiple phases and must be tracked separately:
 
 ### 1. sm-kms Migration Debt (~19h)
 - `server/application/application_core.go` + `application_basic.go`: Old pre-builder wrappers
-- `server/middleware/`: 15 non-test files of custom JWT/claims/session middleware (template has 1)
+- `server/middleware/`: **10 non-test files** of custom middleware (actual count; previously noted as 15):
+
+  | File | Lines | Purpose | Status vs Template |
+  |------|-------|---------|-------------------|
+  | `claims.go` | 332 | OIDCClaims, ClaimsExtractor, scope/role/permission helpers | Promote to template |
+  | `errors.go` | 287 | OAuth2/RFC 7807 error responses, AuthErrorResponder | Promote to template |
+  | `introspection.go` | 309 | BatchIntrospector, token introspection with caching | Promote to template |
+  | `jwt.go` | 247 | JWT validation with JWK caching | Compare vs `realms/middleware.go:JWTMiddleware` |
+  | `jwt_revocation.go` | 417 | JWT revocation checking | Promote to template |
+  | `realm_context.go` | 161 | Realm context from request | Compare vs `realms/` package |
+  | `scopes.go` | 327 | ScopeValidator, scope enforcement | Promote to template |
+  | `service_auth.go` | 436 | AuthMethod enum, mTLS/Bearer service auth | Promote to template |
+  | `session.go` | 180 | Session token validation | Likely DUPLICATE of `template/middleware/session.go` |
+  | `tenant.go` | 105 | Tenant context extraction | Compare vs `realm/tenant.go` |
+
+  **Decision during migration**: compare each file against template equivalents before choosing to promote, delete, or keep sm-kms-specific. This comparison is part of the ~19h estimate.
 - `server.go:35,49`: TODOs for SQLRepository→GORM and GORM+barrier integration
 - No integration tests, no E2E tests
 - **Note**: sm-kms is LAST per ARCHITECTURE.md migration order, but debt blocks MERGE0b and MERGE2/3 options
