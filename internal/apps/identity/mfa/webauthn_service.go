@@ -15,7 +15,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // WebAuthnService handles WebAuthn registration and authentication ceremonies.
@@ -119,7 +119,7 @@ func (s *WebAuthnService) BeginRegistration(ctx context.Context, user *WebAuthnU
 		UserID:       user.ID,
 		SessionData:  sessionData,
 		CeremonyType: string(WebAuthnCeremonyRegistration),
-		ExpiresAt:    time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultWebAuthnSessionExpiry),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultWebAuthnSessionExpiry),
 	}
 
 	if err := s.db.WithContext(ctx).Create(webauthnSession).Error; err != nil {
@@ -191,7 +191,7 @@ func (s *WebAuthnService) BeginAuthentication(ctx context.Context, user *WebAuth
 		UserID:       user.ID,
 		SessionData:  sessionData,
 		CeremonyType: string(WebAuthnCeremonyAuthentication),
-		ExpiresAt:    time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultWebAuthnSessionExpiry),
+		ExpiresAt:    time.Now().UTC().Add(cryptoutilSharedMagic.DefaultWebAuthnSessionExpiry),
 	}
 
 	if err := s.db.WithContext(ctx).Create(webauthnSession).Error; err != nil {

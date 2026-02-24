@@ -20,9 +20,9 @@ import (
 	"time"
 
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki/ca/crypto"
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/apps/pki/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/apps/pki/ca/profile/subject"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // IssuingCAConfig defines an issuing CA's configuration.
@@ -149,7 +149,7 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 
 	// Calculate validity period.
 	now := time.Now().UTC()
-	notBefore := now.Add(-cryptoutilCAMagic.BackdateBuffer)
+	notBefore := now.Add(-cryptoutilSharedMagic.BackdateBuffer)
 	notAfter := now.Add(req.ValidityDuration)
 
 	// Ensure certificate doesn't outlive issuer.
@@ -212,7 +212,7 @@ func (i *Issuer) Issue(req *CertificateRequest) (*IssuedCertificate, *AuditEntry
 		Certificate:    cert,
 		CertificatePEM: certPEM,
 		ChainPEM:       chainPEM,
-		SerialNumber:   cert.SerialNumber.Text(cryptoutilCAMagic.HexBase),
+		SerialNumber:   cert.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 		Fingerprint:    certificateFingerprint(cert),
 		IssuedAt:       now,
 	}
@@ -364,7 +364,7 @@ func (i *Issuer) getExtKeyUsage() []x509.ExtKeyUsage {
 
 func generateSerialNumber() (*big.Int, error) {
 	// Generate 20 bytes (160 bits) of randomness per CA/Browser Forum requirements.
-	serialBytes := make([]byte, cryptoutilCAMagic.SerialNumberLength)
+	serialBytes := make([]byte, cryptoutilSharedMagic.SerialNumberLength)
 	if _, err := crand.Read(serialBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}

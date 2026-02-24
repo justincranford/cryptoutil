@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestProductionKeyGenerator_GenerateSigningKey_RS256(t *testing.T) {
@@ -33,7 +33,7 @@ func TestProductionKeyGenerator_GenerateSigningKey_RS256(t *testing.T) {
 
 	rsaKey, ok := key.Key.(*rsa.PrivateKey)
 	require.True(t, ok, "Key material should be RSA private key")
-	require.Equal(t, cryptoutilIdentityMagic.RSA2048KeySize, rsaKey.N.BitLen(), "RS256 should use 2048-bit RSA key")
+	require.Equal(t, cryptoutilSharedMagic.RSA2048KeySize, rsaKey.N.BitLen(), "RS256 should use 2048-bit RSA key")
 }
 
 func TestProductionKeyGenerator_GenerateSigningKey_RS384(t *testing.T) {
@@ -50,7 +50,7 @@ func TestProductionKeyGenerator_GenerateSigningKey_RS384(t *testing.T) {
 
 	rsaKey, ok := key.Key.(*rsa.PrivateKey)
 	require.True(t, ok, "Key material should be RSA private key")
-	require.Equal(t, cryptoutilIdentityMagic.RSA3072KeySize, rsaKey.N.BitLen(), "RS384 should use 3072-bit RSA key")
+	require.Equal(t, cryptoutilSharedMagic.RSA3072KeySize, rsaKey.N.BitLen(), "RS384 should use 3072-bit RSA key")
 }
 
 func TestProductionKeyGenerator_GenerateSigningKey_RS512(t *testing.T) {
@@ -67,7 +67,7 @@ func TestProductionKeyGenerator_GenerateSigningKey_RS512(t *testing.T) {
 
 	rsaKey, ok := key.Key.(*rsa.PrivateKey)
 	require.True(t, ok, "Key material should be RSA private key")
-	require.Equal(t, cryptoutilIdentityMagic.RSA4096KeySize, rsaKey.N.BitLen(), "RS512 should use 4096-bit RSA key")
+	require.Equal(t, cryptoutilSharedMagic.RSA4096KeySize, rsaKey.N.BitLen(), "RS512 should use 4096-bit RSA key")
 }
 
 func TestProductionKeyGenerator_GenerateSigningKey_ES256(t *testing.T) {
@@ -135,7 +135,7 @@ func TestProductionKeyGenerator_GenerateSigningKey_HS256(t *testing.T) {
 
 	hmacKey, ok := key.Key.([]byte)
 	require.True(t, ok, "Key material should be byte slice")
-	require.Equal(t, cryptoutilIdentityMagic.HMACSHA256KeySize, len(hmacKey), "HS256 should use 32-byte HMAC key")
+	require.Equal(t, cryptoutilSharedMagic.HMACSHA256KeySize, len(hmacKey), "HS256 should use 32-byte HMAC key")
 }
 
 func TestProductionKeyGenerator_GenerateSigningKey_HS384(t *testing.T) {
@@ -152,7 +152,7 @@ func TestProductionKeyGenerator_GenerateSigningKey_HS384(t *testing.T) {
 
 	hmacKey, ok := key.Key.([]byte)
 	require.True(t, ok, "Key material should be byte slice")
-	require.Equal(t, cryptoutilIdentityMagic.HMACSHA384KeySize, len(hmacKey), "HS384 should use 48-byte HMAC key")
+	require.Equal(t, cryptoutilSharedMagic.HMACSHA384KeySize, len(hmacKey), "HS384 should use 48-byte HMAC key")
 }
 
 func TestProductionKeyGenerator_GenerateSigningKey_HS512(t *testing.T) {
@@ -169,7 +169,7 @@ func TestProductionKeyGenerator_GenerateSigningKey_HS512(t *testing.T) {
 
 	hmacKey, ok := key.Key.([]byte)
 	require.True(t, ok, "Key material should be byte slice")
-	require.Equal(t, cryptoutilIdentityMagic.HMACSHA512KeySize, len(hmacKey), "HS512 should use 64-byte HMAC key")
+	require.Equal(t, cryptoutilSharedMagic.HMACSHA512KeySize, len(hmacKey), "HS512 should use 64-byte HMAC key")
 }
 
 func TestProductionKeyGenerator_GenerateSigningKey_UnsupportedAlgorithm(t *testing.T) {
@@ -196,7 +196,7 @@ func TestProductionKeyGenerator_GenerateEncryptionKey(t *testing.T) {
 	require.NoError(t, err, "Encryption key generation should succeed")
 	require.NotNil(t, key, "Encryption key should not be nil")
 	require.NotEmpty(t, key.KeyID, "KeyID should be generated")
-	require.Equal(t, cryptoutilIdentityMagic.AES256KeySize, len(key.Key), "Encryption key should be 32 bytes (AES-256)")
+	require.Equal(t, cryptoutilSharedMagic.AES256KeySize, len(key.Key), "Encryption key should be 32 bytes (AES-256)")
 	require.False(t, key.Active, "New key should not be active")
 	require.False(t, key.ValidForDecr, "New key should not be valid for decryption")
 	require.NotZero(t, key.CreatedAt, "CreatedAt should be set")

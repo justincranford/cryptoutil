@@ -9,7 +9,7 @@ import (
 
 	testify "github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Validates requirements:
@@ -74,7 +74,7 @@ func TestGenerateCodeChallenge(t *testing.T) {
 		{
 			name:     "s256_method",
 			verifier: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
-			method:   cryptoutilIdentityMagic.PKCEMethodS256,
+			method:   cryptoutilSharedMagic.PKCEMethodS256,
 			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
 				testify.NotEmpty(t, challenge, "Code challenge should not be empty")
@@ -87,7 +87,7 @@ func TestGenerateCodeChallenge(t *testing.T) {
 		{
 			name:     "plain_method",
 			verifier: "test-code-verifier",
-			method:   cryptoutilIdentityMagic.PKCEMethodPlain,
+			method:   cryptoutilSharedMagic.PKCEMethodPlain,
 			verifyFn: func(t *testing.T, verifier string, challenge string, _ string) {
 				t.Helper()
 				testify.Equal(t, verifier, challenge, "Plain challenge should equal verifier")
@@ -185,28 +185,28 @@ func TestValidateCodeVerifier(t *testing.T) {
 			name:      "s256_valid",
 			verifier:  "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk",
 			challenge: GenerateS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"),
-			method:    cryptoutilIdentityMagic.PKCEMethodS256,
+			method:    cryptoutilSharedMagic.PKCEMethodS256,
 			wantValid: true,
 		},
 		{
 			name:      "s256_invalid",
 			verifier:  "wrong-verifier",
 			challenge: GenerateS256Challenge("correct-verifier"),
-			method:    cryptoutilIdentityMagic.PKCEMethodS256,
+			method:    cryptoutilSharedMagic.PKCEMethodS256,
 			wantValid: false,
 		},
 		{
 			name:      "plain_valid",
 			verifier:  "test-code-verifier",
 			challenge: "test-code-verifier",
-			method:    cryptoutilIdentityMagic.PKCEMethodPlain,
+			method:    cryptoutilSharedMagic.PKCEMethodPlain,
 			wantValid: true,
 		},
 		{
 			name:      "plain_invalid",
 			verifier:  "correct-verifier",
 			challenge: "wrong-verifier",
-			method:    cryptoutilIdentityMagic.PKCEMethodPlain,
+			method:    cryptoutilSharedMagic.PKCEMethodPlain,
 			wantValid: false,
 		},
 		{
@@ -297,11 +297,11 @@ func TestPKCERoundtrip(t *testing.T) {
 	}{
 		{
 			name:   "s256_method",
-			method: cryptoutilIdentityMagic.PKCEMethodS256,
+			method: cryptoutilSharedMagic.PKCEMethodS256,
 		},
 		{
 			name:   "plain_method",
-			method: cryptoutilIdentityMagic.PKCEMethodPlain,
+			method: cryptoutilSharedMagic.PKCEMethodPlain,
 		},
 		{
 			name:   "default_method_s256",
@@ -339,7 +339,7 @@ func TestPKCERoundtrip_MultipleVerifiers(t *testing.T) {
 		verifier, err := GenerateCodeVerifier()
 		testify.NoError(t, err, "Generate code verifier should succeed")
 
-		challenge := GenerateCodeChallenge(verifier, cryptoutilIdentityMagic.PKCEMethodS256)
+		challenge := GenerateCodeChallenge(verifier, cryptoutilSharedMagic.PKCEMethodS256)
 		testify.NotEmpty(t, challenge, "Code challenge should not be empty")
 
 		verifiers[i] = verifier
@@ -349,7 +349,7 @@ func TestPKCERoundtrip_MultipleVerifiers(t *testing.T) {
 	// Verify each verifier validates only with its own challenge
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 10; j++ {
-			valid := ValidateCodeVerifier(verifiers[i], challenges[j], cryptoutilIdentityMagic.PKCEMethodS256)
+			valid := ValidateCodeVerifier(verifiers[i], challenges[j], cryptoutilSharedMagic.PKCEMethodS256)
 
 			if i == j {
 				testify.True(t, valid, "Verifier should validate with its own challenge")

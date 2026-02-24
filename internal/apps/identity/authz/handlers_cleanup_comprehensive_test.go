@@ -15,8 +15,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestCleanupService_DeletesExpiredTokens(t *testing.T) {
@@ -187,7 +187,7 @@ func createCleanupTestClient(
 		RedirectURIs:            []string{"https://example.com/callback"},
 		AllowedScopes:           []string{"read", "write"},
 		ClientType:              "confidential",
-		TokenEndpointAuthMethod: cryptoutilIdentityMagic.ClientAuthMethodSecretPost,
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             boolPtr(true),
 	}
 

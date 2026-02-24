@@ -14,7 +14,6 @@ import (
 
 	"golang.org/x/crypto/pbkdf2"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -28,9 +27,9 @@ type PBKDF2Hasher struct {
 // NewPBKDF2Hasher creates a new PBKDF2 hasher with FIPS-approved parameters.
 func NewPBKDF2Hasher() *PBKDF2Hasher {
 	return &PBKDF2Hasher{
-		iterations: cryptoutilIdentityMagic.PBKDF2Iterations,
-		saltLength: cryptoutilIdentityMagic.PBKDF2SaltLength,
-		keyLength:  cryptoutilIdentityMagic.PBKDF2KeyLength,
+		iterations: cryptoutilSharedMagic.PBKDF2Iterations,
+		saltLength: cryptoutilSharedMagic.PBKDF2SaltLength,
+		keyLength:  cryptoutilSharedMagic.PBKDF2KeyLength,
 	}
 }
 

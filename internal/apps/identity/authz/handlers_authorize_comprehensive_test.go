@@ -20,8 +20,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleAuthorizeGET_HappyPath tests successful authorization request flow.
@@ -42,13 +42,13 @@ func TestHandleAuthorizeGET_HappyPath(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilIdentityMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:               []string{"test-state"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
+		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -76,13 +76,13 @@ func TestHandleAuthorizeGET_InvalidClientID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{"non-existent-client"},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
-		cryptoutilIdentityMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:               []string{"test-state"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{"non-existent-client"},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -113,13 +113,13 @@ func TestHandleAuthorizeGET_InvalidRedirectURI(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{"https://malicious.com/callback"},
-		cryptoutilIdentityMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:               []string{"test-state"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://malicious.com/callback"},
+		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -152,13 +152,13 @@ func TestHandleAuthorizeGET_UnsupportedResponseType(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{"token"},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilIdentityMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:               []string{"test-state"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{"token"},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
+		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -191,11 +191,11 @@ func TestHandleAuthorizeGET_MissingCodeChallenge(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType: []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
-		cryptoutilIdentityMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
+		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -228,13 +228,13 @@ func TestHandleAuthorizeGET_InvalidCodeChallengeMethod(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilIdentityMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:               []string{"test-state"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{"plain"},
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
+		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{"plain"},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -267,13 +267,13 @@ func TestHandleAuthorizePOST_HappyPath(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
-		cryptoutilIdentityMagic.ParamScope:               []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:               []string{"test-state"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{testClient.RedirectURIs[0]},
+		cryptoutilSharedMagic.ParamScope:               []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:               []string{"test-state"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formData.Encode()))
@@ -306,11 +306,11 @@ func TestHandleAuthorizePOST_MissingPKCE(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType: []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
-		cryptoutilIdentityMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{testClient.RedirectURIs[0]},
+		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/authorize", strings.NewReader(formData.Encode()))

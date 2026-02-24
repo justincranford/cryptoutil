@@ -19,8 +19,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleDeviceAuthorization_HappyPath validates successful device authorization request.
@@ -39,8 +39,8 @@ func TestHandleDeviceAuthorization_HappyPath(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID: []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamScope:    []string{"openid profile"},
+		cryptoutilSharedMagic.ParamClientID: []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamScope:    []string{"openid profile"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
@@ -118,7 +118,7 @@ func TestHandleDeviceAuthorization_MissingClientID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamScope: []string{"openid"},
+		cryptoutilSharedMagic.ParamScope: []string{"openid"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
@@ -136,7 +136,7 @@ func TestHandleDeviceAuthorization_MissingClientID(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidRequest, result["error"], "Error code should be invalid_request")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, result["error"], "Error code should be invalid_request")
 	require.Contains(t, result["error_description"], "client_id", "Error description should mention client_id")
 }
 
@@ -153,8 +153,8 @@ func TestHandleDeviceAuthorization_InvalidClientID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID: []string{"invalid-client-id-12345"},
-		cryptoutilIdentityMagic.ParamScope:    []string{"openid"},
+		cryptoutilSharedMagic.ParamClientID: []string{"invalid-client-id-12345"},
+		cryptoutilSharedMagic.ParamScope:    []string{"openid"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
@@ -172,7 +172,7 @@ func TestHandleDeviceAuthorization_InvalidClientID(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err, "Should decode JSON response")
 
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidClient, result["error"], "Error code should be invalid_client")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, result["error"], "Error code should be invalid_client")
 }
 
 // TestHandleDeviceAuthorization_OptionalScope validates request without scope parameter.
@@ -191,7 +191,7 @@ func TestHandleDeviceAuthorization_OptionalScope(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID: []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamClientID: []string{testClient.ClientID},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/device_authorization", strings.NewReader(formData.Encode()))
@@ -263,9 +263,9 @@ func createTestClientForDevice(ctx context.Context, t *testing.T, repoFactory *c
 		Name:                    "Test Device Client",
 		RedirectURIs:            []string{"https://example.com/callback"},
 		AllowedScopes:           []string{"openid", "profile", "email"},
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode, cryptoutilIdentityMagic.GrantTypeDeviceCode},
-		AllowedResponseTypes:    []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		TokenEndpointAuthMethod: cryptoutilIdentityMagic.ClientAuthMethodSecretPost,
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode, cryptoutilSharedMagic.GrantTypeDeviceCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             &requirePKCE,
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,

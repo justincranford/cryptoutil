@@ -8,8 +8,8 @@ import (
 	"crypto/x509"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Registry manages client authentication methods.
@@ -33,9 +33,9 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory, co
 	// Create combined CRL/OCSP revocation checker
 	// OCSP timeout: 5s, CRL timeout: 10s, CRL cache: 1 hour
 	revocationChecker := NewCombinedRevocationChecker(
-		cryptoutilIdentityMagic.DefaultOCSPTimeout,
-		cryptoutilIdentityMagic.DefaultCRLTimeout,
-		cryptoutilIdentityMagic.DefaultCRLCacheMaxAge,
+		cryptoutilSharedMagic.DefaultOCSPTimeout,
+		cryptoutilSharedMagic.DefaultCRLTimeout,
+		cryptoutilSharedMagic.DefaultCRLCacheMaxAge,
 	)
 
 	caValidator := NewCACertificateValidator(systemCertPool, revocationChecker)

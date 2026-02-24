@@ -5,8 +5,8 @@ package mfa_test
 import (
 	"testing"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +16,7 @@ func TestGenerateEmailOTP_Format(t *testing.T) {
 
 	otp, err := cryptoutilIdentityMfa.GenerateEmailOTP()
 	require.NoError(t, err)
-	require.Len(t, otp, cryptoutilIdentityMagic.DefaultEmailOTPLength, "OTP should be 6 digits")
+	require.Len(t, otp, cryptoutilSharedMagic.DefaultEmailOTPLength, "OTP should be 6 digits")
 	require.Regexp(t, `^\d{6}$`, otp, "OTP should be 6 numeric digits")
 }
 

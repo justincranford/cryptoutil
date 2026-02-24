@@ -21,8 +21,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleAuthorizationCodeGrant_ErrorPaths targets uncovered error branches (51.7% coverage).
@@ -53,7 +53,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 					RequirePKCE:             boolPtr(true),
-					PKCEChallengeMethod:     cryptoutilIdentityMagic.PKCEMethodS256,
+					PKCEChallengeMethod:     cryptoutilSharedMagic.PKCEMethodS256,
 				}
 
 				clientRepo := repoFactory.ClientRepository()
@@ -69,10 +69,10 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 					ClientID:            clientID,
 					Code:                authCode,
 					RedirectURI:         "https://example.com/callback",
-					ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
+					ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 					Scope:               "openid profile",
 					CodeChallenge:       "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-					CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
+					CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 					CreatedAt:           time.Now().UTC(),
 					ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 					ConsentGranted:      true,
@@ -87,7 +87,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 				return clientID, authCode, "https://example.com/callback", verifier
 			},
 			expectedStatus: fiber.StatusBadRequest,
-			expectedError:  cryptoutilIdentityMagic.ErrorInvalidRequest,
+			expectedError:  cryptoutilSharedMagic.ErrorInvalidRequest,
 		},
 	}
 
@@ -109,7 +109,7 @@ func TestHandleAuthorizationCodeGrant_ErrorPaths(t *testing.T) {
 
 			// Build token request form.
 			form := url.Values{}
-			form.Set("grant_type", cryptoutilIdentityMagic.GrantTypeAuthorizationCode)
+			form.Set("grant_type", cryptoutilSharedMagic.GrantTypeAuthorizationCode)
 			form.Set("code", code)
 			form.Set("redirect_uri", redirectURI)
 			form.Set("client_id", clientID)

@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // InMemoryChallengeStore tests.
@@ -36,7 +36,7 @@ func TestInMemoryChallengeStore_StoreAndRetrieve(t *testing.T) {
 	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
-		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
+		Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
 		ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
 	}
 
@@ -76,7 +76,7 @@ func TestInMemoryChallengeStore_RetrieveExpired(t *testing.T) {
 	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
-		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
+		Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
 		ExpiresAt: time.Now().UTC().Add(-1 * time.Minute), // Already expired.
 	}
 
@@ -101,7 +101,7 @@ func TestInMemoryChallengeStore_Delete(t *testing.T) {
 	challenge := &cryptoutilIdentityIdpUserauth.AuthChallenge{
 		ID:        challengeID,
 		UserID:    googleUuid.NewString(),
-		Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
+		Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
 		ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
 	}
 
@@ -145,7 +145,7 @@ func TestInMemoryChallengeStore_MultipleChallenges(t *testing.T) {
 		challenges[i] = &cryptoutilIdentityIdpUserauth.AuthChallenge{
 			ID:        googleUuid.Must(googleUuid.NewV7()),
 			UserID:    googleUuid.NewString(),
-			Method:    cryptoutilIdentityMagic.AuthMethodSMSOTP,
+			Method:    cryptoutilSharedMagic.AuthMethodSMSOTP,
 			ExpiresAt: time.Now().UTC().Add(5 * time.Minute),
 		}
 		secrets[i] = googleUuid.NewString()

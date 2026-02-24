@@ -15,6 +15,7 @@ import (
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Identity demo step counts.
@@ -49,8 +50,8 @@ const (
 	identityStepsAfterHealth = 3
 
 	// Demo client credentials (shared with integration demo).
-	identityDemoClientID     = "demo-client"
-	identityDemoClientSecret = "demo-secret"
+	identityDemoClientID     = cryptoutilSharedMagic.DemoClientID
+	identityDemoClientSecret = cryptoutilSharedMagic.DemoClientSecret
 )
 
 // identityDemoServer holds the running Identity server instance.

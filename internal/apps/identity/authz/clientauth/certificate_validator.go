@@ -14,7 +14,7 @@ import (
 	"time"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CertificateValidator defines the interface for certificate validation.
@@ -107,7 +107,7 @@ func (v *CACertificateValidator) ValidateCertificate(clientCert *x509.Certificat
 
 		if issuer != nil {
 			// Create context with timeout for revocation check.
-			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilIdentityMagic.DefaultRevocationTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DefaultRevocationTimeout)
 			defer cancel()
 
 			if err := v.revocationChecker.CheckRevocation(ctx, clientCert, issuer); err != nil {

@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestMFAChainConcurrency tests concurrent MFA chain execution.

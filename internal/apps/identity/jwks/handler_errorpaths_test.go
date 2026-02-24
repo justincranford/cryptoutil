@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -31,7 +31,7 @@ func TestHandler_ServeHTTP_JSONMarshalError(t *testing.T) {
 
 	logger := slog.Default()
 	keyRepo := &MockKeyRepository{}
-	keyRepo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+	keyRepo.On("FindByUsage", mock.Anything, cryptoutilSharedMagic.KeyUsageSigning, true).
 		Return([]*cryptoutilIdentityDomain.Key{}, nil)
 
 	handler, err := NewHandler(logger, keyRepo)
@@ -42,7 +42,7 @@ func TestHandler_ServeHTTP_JSONMarshalError(t *testing.T) {
 		return nil, errors.New("simulated marshal failure")
 	}
 
-	req := httptest.NewRequest(http.MethodGet, cryptoutilIdentityMagic.PathJWKS, nil)
+	req := httptest.NewRequest(http.MethodGet, cryptoutilSharedMagic.PathJWKS, nil)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -58,13 +58,13 @@ func TestHandler_ServeHTTP_WriteError(t *testing.T) {
 
 	logger := slog.Default()
 	keyRepo := &MockKeyRepository{}
-	keyRepo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+	keyRepo.On("FindByUsage", mock.Anything, cryptoutilSharedMagic.KeyUsageSigning, true).
 		Return([]*cryptoutilIdentityDomain.Key{}, nil)
 
 	handler, err := NewHandler(logger, keyRepo)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodGet, cryptoutilIdentityMagic.PathJWKS, nil)
+	req := httptest.NewRequest(http.MethodGet, cryptoutilSharedMagic.PathJWKS, nil)
 	w := &failingResponseWriter{ResponseRecorder: httptest.NewRecorder()}
 
 	handler.ServeHTTP(w, req)

@@ -19,8 +19,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandlePAR_HappyPath validates successful PAR request.
@@ -36,11 +36,11 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{"nonexistent-client-id"},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{"nonexistent-client-id"},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
@@ -60,7 +60,7 @@ func TestHandlePAR_InvalidClient(t *testing.T) {
 
 	errorCode, ok := result["error"].(string)
 	require.True(t, ok, "error should be string")
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidClient, errorCode, "Should return invalid_client error")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, errorCode, "Should return invalid_client error")
 }
 
 // TestHandlePAR_InvalidRedirectURI validates error when redirect_uri is not registered.
@@ -79,11 +79,11 @@ func TestHandlePAR_InvalidRedirectURI(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{"https://malicious.com/callback"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://malicious.com/callback"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
@@ -103,7 +103,7 @@ func TestHandlePAR_InvalidRedirectURI(t *testing.T) {
 
 	errorCode, ok := result["error"].(string)
 	require.True(t, ok, "error should be string")
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
@@ -126,11 +126,11 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{"token"}, // Only "code" is supported.
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{cryptoutilIdentityMagic.PKCEMethodS256},
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{"token"}, // Only "code" is supported.
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{cryptoutilSharedMagic.PKCEMethodS256},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
@@ -150,7 +150,7 @@ func TestHandlePAR_UnsupportedResponseType(t *testing.T) {
 
 	errorCode, ok := result["error"].(string)
 	require.True(t, ok, "error should be string")
-	require.Equal(t, cryptoutilIdentityMagic.ErrorUnsupportedResponseType, errorCode, "Should return unsupported_response_type error")
+	require.Equal(t, cryptoutilSharedMagic.ErrorUnsupportedResponseType, errorCode, "Should return unsupported_response_type error")
 }
 
 // TestHandlePAR_UnsupportedCodeChallengeMethod validates error for unsupported code_challenge_method.
@@ -169,11 +169,11 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:            []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamResponseType:        []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
-		cryptoutilIdentityMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
-		cryptoutilIdentityMagic.ParamCodeChallengeMethod: []string{"plain"}, // Only S256 is supported.
+		cryptoutilSharedMagic.ParamClientID:            []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamResponseType:        []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:         []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamCodeChallenge:       []string{"test-code-challenge"},
+		cryptoutilSharedMagic.ParamCodeChallengeMethod: []string{"plain"}, // Only S256 is supported.
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/par", strings.NewReader(formData.Encode()))
@@ -193,7 +193,7 @@ func TestHandlePAR_UnsupportedCodeChallengeMethod(t *testing.T) {
 
 	errorCode, ok := result["error"].(string)
 	require.True(t, ok, "error should be string")
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Should return invalid_request error")
 
 	errorDescription, ok := result["error_description"].(string)
 	require.True(t, ok, "error_description should be string")
@@ -250,9 +250,9 @@ func createTestClientForPAR(ctx context.Context, t *testing.T, repoFactory *cryp
 		Name:                    "Test PAR Client",
 		RedirectURIs:            []string{"https://example.com/callback"},
 		AllowedScopes:           []string{"openid", "profile", "email"},
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
-		AllowedResponseTypes:    []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		TokenEndpointAuthMethod: cryptoutilIdentityMagic.ClientAuthMethodSecretPost,
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		AllowedResponseTypes:    []string{cryptoutilSharedMagic.ResponseTypeCode},
+		TokenEndpointAuthMethod: cryptoutilSharedMagic.ClientAuthMethodSecretPost,
 		RequirePKCE:             &requirePKCE,
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,

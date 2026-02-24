@@ -9,12 +9,12 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // GenerateAuthorizationCode generates a cryptographically secure random authorization code.
 func GenerateAuthorizationCode() (string, error) {
-	bytes := make([]byte, cryptoutilIdentityMagic.DefaultAuthCodeLength)
+	bytes := make([]byte, cryptoutilSharedMagic.DefaultAuthCodeLength)
 
 	_, err := crand.Read(bytes)
 	if err != nil {

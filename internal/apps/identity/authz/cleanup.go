@@ -10,7 +10,7 @@ import (
 	"log/slog"
 	"time"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CleanupService manages background token and session cleanup operations.
@@ -25,7 +25,7 @@ type CleanupService struct {
 func NewCleanupService(service *Service) *CleanupService {
 	return &CleanupService{
 		service:  service,
-		interval: cryptoutilIdentityMagic.DefaultTokenCleanupInterval,
+		interval: cryptoutilSharedMagic.DefaultTokenCleanupInterval,
 		stopChan: make(chan struct{}),
 		doneChan: make(chan struct{}),
 	}
@@ -79,7 +79,7 @@ func (c *CleanupService) runCleanup(ctx context.Context) {
 // WithInterval sets a custom cleanup interval and returns the service.
 func (c *CleanupService) WithInterval(interval time.Duration) *CleanupService {
 	if interval <= 0 {
-		interval = cryptoutilIdentityMagic.DefaultTokenCleanupInterval
+		interval = cryptoutilSharedMagic.DefaultTokenCleanupInterval
 	}
 
 	c.interval = interval

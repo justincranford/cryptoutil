@@ -17,8 +17,8 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
@@ -134,7 +134,7 @@ func TestDiscoveryHandler_ReturnsValidOIDCMetadata(t *testing.T) {
 			require.Contains(t, metadata.TokenEndpointAuthMethodsSupported, "tls_client_auth")
 
 			// Verify PKCE support (OAuth 2.1 required).
-			require.Contains(t, metadata.CodeChallengeMethodsSupported, cryptoutilIdentityMagic.PKCEMethodS256)
+			require.Contains(t, metadata.CodeChallengeMethodsSupported, cryptoutilSharedMagic.PKCEMethodS256)
 
 			// Verify claims supported (OIDC standard claims).
 			require.Contains(t, metadata.ClaimsSupported, "sub")

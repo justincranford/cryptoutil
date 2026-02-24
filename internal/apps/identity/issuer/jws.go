@@ -21,7 +21,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // JWSIssuer issues JWS (signed) JWT tokens using versioned signing keys.
@@ -107,22 +107,22 @@ func NewJWSIssuerLegacy(
 func (i *JWSIssuer) IssueAccessToken(_ context.Context, claims map[string]any) (string, error) {
 	// Create token claims.
 	tokenClaims := make(map[string]any)
-	tokenClaims[cryptoutilIdentityMagic.ClaimIss] = i.issuer
-	tokenClaims[cryptoutilIdentityMagic.ClaimIat] = time.Now().UTC().Unix()
-	tokenClaims[cryptoutilIdentityMagic.ClaimExp] = time.Now().UTC().Add(i.accessTokenTTL).Unix()
-	tokenClaims[cryptoutilIdentityMagic.ClaimJti] = googleUuid.NewString()
+	tokenClaims[cryptoutilSharedMagic.ClaimIss] = i.issuer
+	tokenClaims[cryptoutilSharedMagic.ClaimIat] = time.Now().UTC().Unix()
+	tokenClaims[cryptoutilSharedMagic.ClaimExp] = time.Now().UTC().Add(i.accessTokenTTL).Unix()
+	tokenClaims[cryptoutilSharedMagic.ClaimJti] = googleUuid.NewString()
 
 	// Add standard claims.
-	if sub, ok := claims[cryptoutilIdentityMagic.ClaimSub].(string); ok {
-		tokenClaims[cryptoutilIdentityMagic.ClaimSub] = sub
+	if sub, ok := claims[cryptoutilSharedMagic.ClaimSub].(string); ok {
+		tokenClaims[cryptoutilSharedMagic.ClaimSub] = sub
 	}
 
-	if aud, ok := claims[cryptoutilIdentityMagic.ClaimAud]; ok {
-		tokenClaims[cryptoutilIdentityMagic.ClaimAud] = aud
+	if aud, ok := claims[cryptoutilSharedMagic.ClaimAud]; ok {
+		tokenClaims[cryptoutilSharedMagic.ClaimAud] = aud
 	}
 
-	if scope, ok := claims[cryptoutilIdentityMagic.ParamScope].(string); ok {
-		tokenClaims[cryptoutilIdentityMagic.ParamScope] = scope
+	if scope, ok := claims[cryptoutilSharedMagic.ParamScope].(string); ok {
+		tokenClaims[cryptoutilSharedMagic.ParamScope] = scope
 	}
 
 	// Add custom claims.
@@ -139,30 +139,30 @@ func (i *JWSIssuer) IssueAccessToken(_ context.Context, claims map[string]any) (
 // IssueIDToken issues a JWS ID token with OIDC claims.
 func (i *JWSIssuer) IssueIDToken(_ context.Context, claims map[string]any) (string, error) {
 	// Validate required OIDC claims.
-	if _, ok := claims[cryptoutilIdentityMagic.ClaimSub].(string); !ok {
+	if _, ok := claims[cryptoutilSharedMagic.ClaimSub].(string); !ok {
 		return "", cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
-			fmt.Errorf("missing required claim: %s", cryptoutilIdentityMagic.ClaimSub),
+			fmt.Errorf("missing required claim: %s", cryptoutilSharedMagic.ClaimSub),
 		)
 	}
 
-	if _, ok := claims[cryptoutilIdentityMagic.ClaimAud]; !ok {
+	if _, ok := claims[cryptoutilSharedMagic.ClaimAud]; !ok {
 		return "", cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
-			fmt.Errorf("missing required claim: %s", cryptoutilIdentityMagic.ClaimAud),
+			fmt.Errorf("missing required claim: %s", cryptoutilSharedMagic.ClaimAud),
 		)
 	}
 
 	// Create token claims.
 	tokenClaims := make(map[string]any)
-	tokenClaims[cryptoutilIdentityMagic.ClaimIss] = i.issuer
-	tokenClaims[cryptoutilIdentityMagic.ClaimIat] = time.Now().UTC().Unix()
-	tokenClaims[cryptoutilIdentityMagic.ClaimExp] = time.Now().UTC().Add(i.idTokenTTL).Unix()
-	tokenClaims[cryptoutilIdentityMagic.ClaimJti] = googleUuid.NewString()
+	tokenClaims[cryptoutilSharedMagic.ClaimIss] = i.issuer
+	tokenClaims[cryptoutilSharedMagic.ClaimIat] = time.Now().UTC().Unix()
+	tokenClaims[cryptoutilSharedMagic.ClaimExp] = time.Now().UTC().Add(i.idTokenTTL).Unix()
+	tokenClaims[cryptoutilSharedMagic.ClaimJti] = googleUuid.NewString()
 
 	// Add all claims (including OIDC profile/email/address/phone claims).
 	for key, value := range claims {
-		if !isStandardClaim(key) || key == cryptoutilIdentityMagic.ClaimSub || key == cryptoutilIdentityMagic.ClaimAud {
+		if !isStandardClaim(key) || key == cryptoutilSharedMagic.ClaimSub || key == cryptoutilSharedMagic.ClaimAud {
 			tokenClaims[key] = value
 		}
 	}
@@ -175,7 +175,7 @@ func (i *JWSIssuer) IssueIDToken(_ context.Context, claims map[string]any) (stri
 func (i *JWSIssuer) ValidateToken(_ context.Context, tokenString string) (map[string]any, error) {
 	// Parse JWT parts (header.claims.signature).
 	parts := strings.Split(tokenString, ".")
-	if len(parts) != cryptoutilIdentityMagic.JWSPartCount {
+	if len(parts) != cryptoutilSharedMagic.JWSPartCount {
 		return nil, cryptoutilIdentityAppErr.ErrInvalidToken
 	}
 
@@ -239,7 +239,7 @@ func (i *JWSIssuer) ValidateToken(_ context.Context, tokenString string) (map[st
 	}
 
 	// Validate expiration.
-	if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
+	if exp, ok := claims[cryptoutilSharedMagic.ClaimExp].(float64); ok {
 		if time.Now().UTC().Unix() > int64(exp) {
 			return nil, cryptoutilIdentityAppErr.ErrTokenExpired
 		}
@@ -308,7 +308,7 @@ func verifyJWTSignature(signingInput string, signature []byte, algorithm string,
 
 	// Verify based on algorithm.
 	switch algorithm {
-	case cryptoutilIdentityMagic.AlgorithmRS256:
+	case cryptoutilSharedMagic.AlgorithmRS256:
 		rsaPubKey, ok := publicKey.(*rsa.PublicKey)
 		if !ok {
 			return fmt.Errorf("expected RSA public key for %s algorithm", algorithm)
@@ -320,20 +320,20 @@ func verifyJWTSignature(signingInput string, signature []byte, algorithm string,
 
 		return nil
 
-	case cryptoutilIdentityMagic.AlgorithmES256:
+	case cryptoutilSharedMagic.AlgorithmES256:
 		ecPubKey, ok := publicKey.(*ecdsa.PublicKey)
 		if !ok {
 			return fmt.Errorf("expected ECDSA public key for %s algorithm", algorithm)
 		}
 
 		// ECDSA signature for ES256 is r || s, each 32 bytes.
-		if len(signature) != cryptoutilIdentityMagic.JWSES256ComponentSizeBytes*2 {
+		if len(signature) != cryptoutilSharedMagic.JWSES256ComponentSizeBytes*2 {
 			return fmt.Errorf("invalid ECDSA signature length: %d", len(signature))
 		}
 
-		r := new(big.Int).SetBytes(signature[:cryptoutilIdentityMagic.JWSES256ComponentSizeBytes])
+		r := new(big.Int).SetBytes(signature[:cryptoutilSharedMagic.JWSES256ComponentSizeBytes])
 
-		s := new(big.Int).SetBytes(signature[cryptoutilIdentityMagic.JWSES256ComponentSizeBytes:])
+		s := new(big.Int).SetBytes(signature[cryptoutilSharedMagic.JWSES256ComponentSizeBytes:])
 		if !ecdsa.Verify(ecPubKey, hash[:], r, s) {
 			return fmt.Errorf("ECDSA signature verification failed")
 		}
@@ -433,7 +433,7 @@ func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
 
 	// Sign based on algorithm.
 	switch algorithm {
-	case cryptoutilIdentityMagic.AlgorithmRS256:
+	case cryptoutilSharedMagic.AlgorithmRS256:
 		rsaKey, ok := privateKey.(*rsa.PrivateKey)
 		if !ok {
 			return "", fmt.Errorf("expected RSA private key for %s algorithm", algorithm)
@@ -446,7 +446,7 @@ func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
 
 		return base64.RawURLEncoding.EncodeToString(signature), nil
 
-	case cryptoutilIdentityMagic.AlgorithmES256:
+	case cryptoutilSharedMagic.AlgorithmES256:
 		ecKey, ok := privateKey.(*ecdsa.PrivateKey)
 		if !ok {
 			return "", fmt.Errorf("expected ECDSA private key for %s algorithm", algorithm)
@@ -458,12 +458,12 @@ func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
 		}
 
 		// ECDSA signature for ES256 is r || s, each 32 bytes.
-		signature := make([]byte, cryptoutilIdentityMagic.JWSES256ComponentSizeBytes*2)
+		signature := make([]byte, cryptoutilSharedMagic.JWSES256ComponentSizeBytes*2)
 		rBytes := r.Bytes()
 		sBytes := s.Bytes()
 
-		copy(signature[cryptoutilIdentityMagic.JWSES256ComponentSizeBytes-len(rBytes):cryptoutilIdentityMagic.JWSES256ComponentSizeBytes], rBytes)
-		copy(signature[cryptoutilIdentityMagic.JWSES256ComponentSizeBytes*2-len(sBytes):], sBytes)
+		copy(signature[cryptoutilSharedMagic.JWSES256ComponentSizeBytes-len(rBytes):cryptoutilSharedMagic.JWSES256ComponentSizeBytes], rBytes)
+		copy(signature[cryptoutilSharedMagic.JWSES256ComponentSizeBytes*2-len(sBytes):], sBytes)
 
 		return base64.RawURLEncoding.EncodeToString(signature), nil
 
@@ -475,13 +475,13 @@ func signJWT(signingInput, algorithm string, privateKey any) (string, error) {
 // isStandardClaim checks if a claim is a standard JWT/OIDC claim.
 func isStandardClaim(claim string) bool {
 	standardClaims := []string{
-		cryptoutilIdentityMagic.ClaimIss,
-		cryptoutilIdentityMagic.ClaimSub,
-		cryptoutilIdentityMagic.ClaimAud,
-		cryptoutilIdentityMagic.ClaimExp,
-		cryptoutilIdentityMagic.ClaimNbf,
-		cryptoutilIdentityMagic.ClaimIat,
-		cryptoutilIdentityMagic.ClaimJti,
+		cryptoutilSharedMagic.ClaimIss,
+		cryptoutilSharedMagic.ClaimSub,
+		cryptoutilSharedMagic.ClaimAud,
+		cryptoutilSharedMagic.ClaimExp,
+		cryptoutilSharedMagic.ClaimNbf,
+		cryptoutilSharedMagic.ClaimIat,
+		cryptoutilSharedMagic.ClaimJti,
 	}
 
 	for _, std := range standardClaims {

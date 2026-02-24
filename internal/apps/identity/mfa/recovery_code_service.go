@@ -11,8 +11,8 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RecoveryCodeRepository defines minimal repository interface.
@@ -46,7 +46,7 @@ func (s *RecoveryCodeService) GenerateForUser(ctx context.Context, userID google
 
 	// Hash codes and create domain models.
 	codes := make([]*cryptoutilIdentityDomain.RecoveryCode, count)
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRecoveryCodeLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultRecoveryCodeLifetime)
 
 	for i, plaintext := range plaintextCodes {
 		// Hash code with PBKDF2 (FIPS-compliant).

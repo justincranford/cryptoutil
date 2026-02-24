@@ -14,8 +14,8 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // handleClientSecretRotation handles POST /oauth2/v1/clients/{id}/rotate-secret.
@@ -30,7 +30,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	authenticatedClient, err := s.authenticateClient(c)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
+			"error":             cryptoutilSharedMagic.ErrorInvalidClient,
 			"error_description": "Client authentication failed",
 		})
 	}
@@ -39,7 +39,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	// In production, you might also allow admin clients to rotate any client's secret.
 	if authenticatedClient.ClientID != clientIDParam {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorAccessDenied,
+			"error":             cryptoutilSharedMagic.ErrorAccessDenied,
 			"error_description": "Client can only rotate its own secret",
 		})
 	}
@@ -51,22 +51,22 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	if err != nil {
 		if errors.Is(err, cryptoutilIdentityAppErr.ErrClientNotFound) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+				"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 				"error_description": "Client not found",
 			})
 		}
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to retrieve client",
 		})
 	}
 
 	// Generate new client secret (32 bytes = 256 bits of entropy).
-	secretBytes := make([]byte, cryptoutilIdentityMagic.ClientSecretLength)
+	secretBytes := make([]byte, cryptoutilSharedMagic.ClientSecretLength)
 	if _, err := crand.Read(secretBytes); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to generate new secret",
 		})
 	}
@@ -77,7 +77,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	hashedSecret, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(newSecretPlaintext)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to hash new secret",
 		})
 	}
@@ -89,7 +89,7 @@ func (s *Service) handleClientSecretRotation(c *fiber.Ctx) error {
 	err = clientRepo.RotateSecret(ctx, client.ID, hashedSecret, rotatedBy, reason)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to rotate secret",
 		})
 	}

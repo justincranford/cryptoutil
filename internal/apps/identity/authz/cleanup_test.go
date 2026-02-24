@@ -15,8 +15,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -96,12 +96,12 @@ func TestCleanupService_WithInterval(t *testing.T) {
 		{
 			name:             "zero interval uses default",
 			interval:         0,
-			expectedInterval: cryptoutilIdentityMagic.DefaultTokenCleanupInterval,
+			expectedInterval: cryptoutilSharedMagic.DefaultTokenCleanupInterval,
 		},
 		{
 			name:             "negative interval uses default",
 			interval:         -1 * time.Minute,
-			expectedInterval: cryptoutilIdentityMagic.DefaultTokenCleanupInterval,
+			expectedInterval: cryptoutilSharedMagic.DefaultTokenCleanupInterval,
 		},
 	}
 

@@ -21,8 +21,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleClientCredentialsGrant_ErrorPaths tests error paths for handleClientCredentialsGrant (76.9% → 90%).
@@ -111,7 +111,7 @@ func TestHandleClientCredentialsGrant_ErrorPaths(t *testing.T) {
 			clientID, scope, authHeader := tc.setupFunc(t, repoFactory)
 
 			form := url.Values{}
-			form.Set("grant_type", cryptoutilIdentityMagic.GrantTypeClientCredentials)
+			form.Set("grant_type", cryptoutilSharedMagic.GrantTypeClientCredentials)
 
 			if clientID != "" {
 				form.Set("client_id", clientID)

@@ -21,8 +21,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleRefreshTokenGrant_ErrorPaths tests error paths for handleRefreshTokenGrant (80.0% → 90%).
@@ -42,7 +42,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				t.Helper()
 
 				// No token provided.
-				return "", cryptoutilIdentityMagic.TestClientID, cryptoutilIdentityMagic.ScopeRead
+				return "", cryptoutilSharedMagic.TestClientID, cryptoutilSharedMagic.ScopeRead
 			},
 			expectedStatus: fiber.StatusBadRequest,
 		},
@@ -62,7 +62,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				t.Helper()
 
 				// Token does not exist.
-				return "non-existent-refresh-token-" + googleUuid.NewString(), cryptoutilIdentityMagic.TestClientID, cryptoutilIdentityMagic.ScopeRead
+				return "non-existent-refresh-token-" + googleUuid.NewString(), cryptoutilSharedMagic.TestClientID, cryptoutilSharedMagic.ScopeRead
 			},
 			expectedStatus: fiber.StatusNotFound, // Token lookup returns 404
 		},
@@ -93,7 +93,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess, // WRONG type
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
-					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 					ExpiresAt:   time.Now().UTC().Add(1 * time.Hour),
 					IssuedAt:    time.Now().UTC(),
 					NotBefore:   time.Now().UTC(),
@@ -103,7 +103,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				err = tokenRepo.Create(ctx, token)
 				require.NoError(t, err, "Failed to create access token")
 
-				return tokenValue, client.ClientID, cryptoutilIdentityMagic.ScopeRead
+				return tokenValue, client.ClientID, cryptoutilSharedMagic.ScopeRead
 			},
 			expectedStatus: fiber.StatusBadRequest,
 		},
@@ -135,7 +135,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeRefresh,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
-					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 					ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
 					IssuedAt:    time.Now().UTC(),
 					NotBefore:   time.Now().UTC(),
@@ -147,7 +147,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				err = tokenRepo.Create(ctx, token)
 				require.NoError(t, err, "Failed to create revoked refresh token")
 
-				return tokenValue, client.ClientID, cryptoutilIdentityMagic.ScopeRead
+				return tokenValue, client.ClientID, cryptoutilSharedMagic.ScopeRead
 			},
 			expectedStatus: fiber.StatusBadRequest,
 		},
@@ -178,7 +178,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeRefresh,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					TokenValue:  tokenValue,
-					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 					ExpiresAt:   time.Now().UTC().Add(-1 * time.Hour), // Already expired
 					IssuedAt:    time.Now().UTC().Add(-25 * time.Hour),
 					NotBefore:   time.Now().UTC().Add(-25 * time.Hour),
@@ -188,7 +188,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 				err = tokenRepo.Create(ctx, token)
 				require.NoError(t, err, "Failed to create expired refresh token")
 
-				return tokenValue, client.ClientID, cryptoutilIdentityMagic.ScopeRead
+				return tokenValue, client.ClientID, cryptoutilSharedMagic.ScopeRead
 			},
 			expectedStatus: fiber.StatusBadRequest,
 		},
@@ -209,7 +209,7 @@ func TestHandleRefreshTokenGrant_ErrorPaths(t *testing.T) {
 			refreshToken, clientID, scope := tc.setupFunc(t, repoFactory)
 
 			form := url.Values{}
-			form.Set("grant_type", cryptoutilIdentityMagic.GrantTypeRefreshToken)
+			form.Set("grant_type", cryptoutilSharedMagic.GrantTypeRefreshToken)
 
 			if refreshToken != "" {
 				form.Set("refresh_token", refreshToken)

@@ -21,8 +21,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestMultiTenantTokenIsolation validates that client A cannot introspect client B's tokens.
@@ -75,7 +75,7 @@ func TestMultiTenantTokenIsolation(t *testing.T) {
 			t.Parallel()
 
 			formBody := url.Values{
-				cryptoutilIdentityMagic.ParamToken: []string{tc.token},
+				cryptoutilSharedMagic.ParamToken: []string{tc.token},
 			}
 
 			req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -132,7 +132,7 @@ func TestMultiTenantTokenRevocationIsolation(t *testing.T) {
 
 	// Step 2: Revoke token A.
 	revokeFormBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{tokenA.TokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{tokenA.TokenValue},
 	}
 
 	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
@@ -236,7 +236,7 @@ func introspectToken(t *testing.T, app *fiber.App, tokenValue string) map[string
 	t.Helper()
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{tokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{tokenValue},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -350,7 +350,7 @@ func createMultiTenantTestClientWithScopes(t *testing.T, repoFactory *cryptoutil
 		ClientID:                fmt.Sprintf("test-%s-%s", name, clientUUID.String()),
 		Name:                    fmt.Sprintf("Test Client %s", name),
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           scopes,
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,

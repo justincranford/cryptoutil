@@ -7,7 +7,6 @@ package config
 import (
 	"time"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
@@ -63,7 +62,7 @@ func RequireNewForTest(_ string) *Config {
 		},
 		Tokens: &TokenConfig{
 			AccessTokenLifetime:  cryptoutilSharedMagic.TestTimeoutCryptoutilReady,
-			RefreshTokenLifetime: cryptoutilIdentityMagic.TestRefreshTokenLifetime,
+			RefreshTokenLifetime: cryptoutilSharedMagic.TestRefreshTokenLifetime,
 			Issuer:               "test-issuer",
 		},
 		Sessions: &SessionConfig{

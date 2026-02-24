@@ -16,8 +16,8 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRs "cryptoutil/internal/apps/identity/rs"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	testify "github.com/stretchr/testify/require"
@@ -129,7 +129,7 @@ func TestProtectedEndpoint_NoToken(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	testify.NoError(t, err)
 
-	testify.Equal(t, cryptoutilIdentityMagic.ErrorInvalidToken, result["error"])
+	testify.Equal(t, cryptoutilSharedMagic.ErrorInvalidToken, result["error"])
 }
 
 // TestProtectedEndpoint_InvalidTokenFormat tests Bearer token format validation.
@@ -167,9 +167,9 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	// Configure mock to return claims without required scope.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-			cryptoutilIdentityMagic.ClaimClientID: "test-client",
-			cryptoutilIdentityMagic.ClaimScope:    "write:other",
+			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
+			cryptoutilSharedMagic.ClaimClientID: "test-client",
+			cryptoutilSharedMagic.ClaimScope:    "write:other",
 		}, nil
 	}
 	tokenSvc.isActiveFunc = func(_ map[string]any) bool {
@@ -194,7 +194,7 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	err = json.Unmarshal(body, &result)
 	testify.NoError(t, err)
 
-	testify.Equal(t, cryptoutilIdentityMagic.ErrorInsufficientScope, result["error"])
+	testify.Equal(t, cryptoutilSharedMagic.ErrorInsufficientScope, result["error"])
 }
 
 // TestScopeEnforcement_ValidScope tests successful scope validation.
@@ -204,9 +204,9 @@ func TestScopeEnforcement_ValidScope(t *testing.T) {
 	// Configure mock to return valid claims with required scope.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-			cryptoutilIdentityMagic.ClaimClientID: "test-client",
-			cryptoutilIdentityMagic.ClaimScope:    "read:resource write:resource",
+			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
+			cryptoutilSharedMagic.ClaimClientID: "test-client",
+			cryptoutilSharedMagic.ClaimScope:    "read:resource write:resource",
 		}, nil
 	}
 	tokenSvc.isActiveFunc = func(_ map[string]any) bool {

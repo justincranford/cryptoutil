@@ -21,9 +21,9 @@ import (
 	"time"
 
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki/ca/crypto"
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/apps/pki/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/apps/pki/ca/profile/subject"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RootCAConfig defines configuration for root CA bootstrap.
@@ -139,7 +139,7 @@ func (b *Bootstrapper) Bootstrap(config *RootCAConfig) (*RootCA, *AuditEntry, er
 
 	// Calculate validity period.
 	now := time.Now().UTC()
-	notBefore := now.Add(-cryptoutilCAMagic.BackdateBuffer)
+	notBefore := now.Add(-cryptoutilSharedMagic.BackdateBuffer)
 	notAfter := now.Add(config.ValidityDuration)
 
 	// Build certificate template.
@@ -196,7 +196,7 @@ func (b *Bootstrapper) Bootstrap(config *RootCAConfig) (*RootCA, *AuditEntry, er
 		Timestamp:    now,
 		Operation:    "root_ca_bootstrap",
 		CAName:       config.Name,
-		SerialNumber: cert.SerialNumber.Text(cryptoutilCAMagic.HexBase),
+		SerialNumber: cert.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 		SubjectDN:    cert.Subject.String(),
 		NotBefore:    cert.NotBefore,
 		NotAfter:     cert.NotAfter,
@@ -255,7 +255,7 @@ func resolveSubjectDN(config *RootCAConfig) (pkix.Name, error) {
 
 func generateSerialNumber() (*big.Int, error) {
 	// Generate 20 bytes (160 bits) of randomness per CA/Browser Forum requirements.
-	serialBytes := make([]byte, cryptoutilCAMagic.SerialNumberLength)
+	serialBytes := make([]byte, cryptoutilSharedMagic.SerialNumberLength)
 	if _, err := crand.Read(serialBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}
@@ -275,13 +275,13 @@ func generateSerialNumber() (*big.Int, error) {
 
 func (b *Bootstrapper) persistMaterials(config *RootCAConfig, rootCA *RootCA) error {
 	// Create output directory.
-	if err := os.MkdirAll(config.OutputDir, cryptoutilCAMagic.DirPermissions); err != nil {
+	if err := os.MkdirAll(config.OutputDir, cryptoutilSharedMagic.DirPermissions); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
 	// Write certificate.
 	certPath := filepath.Join(config.OutputDir, config.Name+".crt")
-	if err := os.WriteFile(certPath, rootCA.CertificatePEM, cryptoutilCAMagic.FilePermissions); err != nil {
+	if err := os.WriteFile(certPath, rootCA.CertificatePEM, cryptoutilSharedMagic.FilePermissions); err != nil {
 		return fmt.Errorf("failed to write certificate: %w", err)
 	}
 
@@ -297,7 +297,7 @@ func (b *Bootstrapper) persistMaterials(config *RootCAConfig, rootCA *RootCA) er
 	})
 
 	keyPath := filepath.Join(config.OutputDir, config.Name+".key")
-	if err := os.WriteFile(keyPath, keyPEM, cryptoutilCAMagic.KeyFilePermissions); err != nil {
+	if err := os.WriteFile(keyPath, keyPEM, cryptoutilSharedMagic.KeyFilePermissions); err != nil {
 		return fmt.Errorf("failed to write private key: %w", err)
 	}
 

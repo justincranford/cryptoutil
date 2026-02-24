@@ -16,8 +16,8 @@ import (
 	"time"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRs "cryptoutil/internal/apps/identity/rs"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	testify "github.com/stretchr/testify/require"
 )
@@ -39,9 +39,9 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
-					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-					cryptoutilIdentityMagic.ClaimClientID: "test-client",
-					cryptoutilIdentityMagic.ClaimScope:    tc.scope,
+					cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
+					cryptoutilSharedMagic.ClaimClientID: "test-client",
+					cryptoutilSharedMagic.ClaimScope:    tc.scope,
 				}, nil
 			}
 			tokenSvc.isActiveFunc = func(_ map[string]any) bool {
@@ -68,9 +68,9 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 	// Configure mock for write scope.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-			cryptoutilIdentityMagic.ClaimClientID: "test-client",
-			cryptoutilIdentityMagic.ClaimScope:    "write:resource",
+			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
+			cryptoutilSharedMagic.ClaimClientID: "test-client",
+			cryptoutilSharedMagic.ClaimScope:    "write:resource",
 		}, nil
 	}
 	tokenSvc.isActiveFunc = func(_ map[string]any) bool {
@@ -117,9 +117,9 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
-					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-					cryptoutilIdentityMagic.ClaimClientID: "test-client",
-					cryptoutilIdentityMagic.ClaimScope:    tc.scope,
+					cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
+					cryptoutilSharedMagic.ClaimClientID: "test-client",
+					cryptoutilSharedMagic.ClaimScope:    tc.scope,
 				}, nil
 			}
 			tokenSvc.isActiveFunc = func(_ map[string]any) bool {
@@ -146,15 +146,15 @@ func TestExpiredToken(t *testing.T) {
 	// Configure mock to return expired token.
 	tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 		return map[string]any{
-			cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(-1 * time.Hour).Unix()),
-			cryptoutilIdentityMagic.ClaimClientID: "test-client",
-			cryptoutilIdentityMagic.ClaimScope:    "read:resource",
+			cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(-1 * time.Hour).Unix()),
+			cryptoutilSharedMagic.ClaimClientID: "test-client",
+			cryptoutilSharedMagic.ClaimScope:    "read:resource",
 		}, nil
 	}
 	tokenSvc.isActiveFunc = func(claims map[string]any) bool {
 		// Check expiration.
 		now := time.Now().UTC().Unix()
-		if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
+		if exp, ok := claims[cryptoutilSharedMagic.ClaimExp].(float64); ok {
 			return int64(exp) >= now
 		}
 
@@ -246,9 +246,9 @@ func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
 			// NOTE: No t.Parallel() - subtests share mockTokenService, parallel execution causes race.
 			tokenSvc.validateFunc = func(_ context.Context, _ string) (map[string]any, error) {
 				return map[string]any{
-					cryptoutilIdentityMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
-					cryptoutilIdentityMagic.ClaimClientID: "test-client",
-					cryptoutilIdentityMagic.ClaimScope:    tc.scope,
+					cryptoutilSharedMagic.ClaimExp:      float64(time.Now().UTC().Add(1 * time.Hour).Unix()),
+					cryptoutilSharedMagic.ClaimClientID: "test-client",
+					cryptoutilSharedMagic.ClaimScope:    tc.scope,
 				}, nil
 			}
 			tokenSvc.isActiveFunc = func(_ map[string]any) bool {
@@ -287,9 +287,9 @@ func TestAdminMetrics_RequiresAdminScope(t *testing.T) {
 				testify.Contains(t, metrics, "requests_failed")
 
 				// Verify metric values are correct integers.
-				testify.Equal(t, float64(cryptoutilIdentityMagic.ExampleMetricRequestsTotal), metrics["requests_total"])
-				testify.Equal(t, float64(cryptoutilIdentityMagic.ExampleMetricRequestsSuccess), metrics["requests_success"])
-				testify.Equal(t, float64(cryptoutilIdentityMagic.ExampleMetricRequestsFailed), metrics["requests_failed"])
+				testify.Equal(t, float64(cryptoutilSharedMagic.ExampleMetricRequestsTotal), metrics["requests_total"])
+				testify.Equal(t, float64(cryptoutilSharedMagic.ExampleMetricRequestsSuccess), metrics["requests_success"])
+				testify.Equal(t, float64(cryptoutilSharedMagic.ExampleMetricRequestsFailed), metrics["requests_failed"])
 			}
 		})
 	}

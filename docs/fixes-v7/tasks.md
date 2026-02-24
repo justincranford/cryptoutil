@@ -243,73 +243,78 @@
 **Phase Objective**: Move all domain-specific magic constants to `internal/shared/magic/`
 
 #### Task 3.1: Move identity magic package to shared/magic
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30min
+- **Actual**: 20min
 - **Dependencies**: None
 - **Source**: fixes-v6 F-6.10
-- **Description**: `internal/apps/identity/magic/` has magic_uris.go, magic_scopes.go, magic_adaptive.go, magic_metrics.go. Move to `internal/shared/magic/magic_identity*.go`.
+- **Description**: `internal/apps/identity/magic/` has 12 magic files. Moved to `internal/shared/magic/magic_identity_*.go`.
 - **Acceptance Criteria**:
-  - [ ] Constants moved to `internal/shared/magic/`
-  - [ ] Old package deleted
-  - [ ] All imports updated
-  - [ ] Build + tests pass
-- **Files**: `internal/apps/identity/magic/*` → `internal/shared/magic/magic_identity*.go`
+  - [x] Constants moved to `internal/shared/magic/` — 12 files moved with identity_ prefix
+  - [x] Old package deleted
+  - [x] All imports updated — 131 single-import files + 3 dual-import files
+  - [x] Build + tests pass
+- **Files**: `internal/apps/identity/magic/*` → `internal/shared/magic/magic_identity_*.go`
 
 #### Task 3.2: Move PKI CA magic package to shared/magic
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15min
+- **Actual**: 5min
 - **Dependencies**: None
 - **Source**: fixes-v6 F-6.11
-- **Description**: `internal/apps/pki/ca/magic/magic.go` (28 lines). Move to `internal/shared/magic/magic_pki_ca.go`.
+- **Description**: `internal/apps/pki/ca/magic/magic.go` (28 lines). Moved to `internal/shared/magic/magic_pki_ca.go`.
 - **Acceptance Criteria**:
-  - [ ] Constants moved to `internal/shared/magic/`
-  - [ ] Old package deleted
-  - [ ] All imports updated
-  - [ ] Build + tests pass
+  - [x] Constants moved to `internal/shared/magic/`
+  - [x] Old package deleted
+  - [x] All imports updated — 9 files, import alias auto-fixed by golangci-lint
+  - [x] Build + tests pass
 - **Files**: `internal/apps/pki/ca/magic/magic.go` → `internal/shared/magic/magic_pki_ca.go`
 
 #### Task 3.3: Move identity config magic to shared/magic
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15min
+- **Actual**: 15min
 - **Dependencies**: None
 - **Source**: fixes-v6 F-6.12
-- **Description**: `internal/apps/identity/config/magic.go` (62 lines). Move to `internal/shared/magic/`.
+- **Description**: `internal/apps/identity/config/magic.go` (62 lines). Created `internal/shared/magic/magic_identity_config.go` with exported constants.
 - **Acceptance Criteria**:
-  - [ ] Constants moved to `internal/shared/magic/`
-  - [ ] Old file deleted
-  - [ ] All imports updated
-  - [ ] Build + tests pass
-- **Files**: `internal/apps/identity/config/magic.go` → `internal/shared/magic/`
+  - [x] Constants moved to `internal/shared/magic/` — exported with Identity prefix
+  - [x] Old file deleted
+  - [x] All imports updated — defaults.go and validation.go now import shared magic
+  - [x] Build + tests pass
+- **Files**: `internal/apps/identity/config/magic.go` → `internal/shared/magic/magic_identity_config.go`
 
 #### Task 3.4: Move TLS constants to shared/magic
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15min
+- **Actual**: 5min
 - **Dependencies**: None
 - **Source**: fixes-v6 F-6.25
-- **Description**: TLS-related constants scattered outside shared/magic.
+- **Description**: TLS constants investigated. Only `MinTLSVersion = tls.VersionTLS13` in crypto/tls/config.go — appropriately placed (depends on crypto/tls import). All other TLS constants already in shared/magic (64 references).
 - **Acceptance Criteria**:
-  - [ ] TLS constants moved to `internal/shared/magic/magic_tls.go`
-  - [ ] All imports updated
-  - [ ] Build + tests pass
-- **Files**: TBD (investigate scattered TLS constants)
+  - [x] TLS constants audited — already consolidated; one exception appropriately placed in its home package
+  - [x] All imports verified
+  - [x] Build + tests pass
+- **Files**: No changes needed
 
 #### Task 3.5: Consolidate demo package scattered constants
-- **Status**: ❌
+- **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 30min
+- **Actual**: 15min
 - **Dependencies**: None
 - **Source**: fixes-v5 F-4.2, fixes-v6 F-6.36
-- **Description**: Demo packages have 20+ scattered constants and duplicates. Consolidate to shared/magic.
+- **Description**: Created `internal/shared/magic/magic_demo.go` with shared demo constants. Updated 4 demo files to reference them.
 - **Acceptance Criteria**:
-  - [ ] Demo constants moved to `internal/shared/magic/magic_demo.go`
-  - [ ] No duplicate constants
-  - [ ] All imports updated
-  - [ ] Build + tests pass
-- **Files**: `internal/apps/*/demo/*.go` → `internal/shared/magic/magic_demo.go`
+  - [x] Demo constants moved to `internal/shared/magic/magic_demo.go` — DemoClientID, DemoClientSecret, DemoRedirectURI, DemoSampleAccessToken, DemoPort, DemoIssuer, DemoClientName
+  - [x] No duplicate constants — all 4 demo files now reference magic
+  - [x] All imports updated
+  - [x] Build + tests pass
+- **Files**: `internal/shared/magic/magic_demo.go`, `internal/apps/identity/demo/demo.go`, `internal/apps/demo/identity.go`, `internal/apps/demo/integration.go`, `internal/apps/demo/script.go`
 
 ---
 

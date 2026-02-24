@@ -12,8 +12,8 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRs "cryptoutil/internal/apps/identity/rs"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RSServer wraps the Resource Server service with HTTP server lifecycle.
@@ -38,9 +38,9 @@ func NewRSServer(_ context.Context, config *cryptoutilIdentityConfig.Config, log
 	// Create Fiber app for resource server.
 	fiberApp := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
-		ReadTimeout:           cryptoutilIdentityMagic.DefaultReadTimeout,
-		WriteTimeout:          cryptoutilIdentityMagic.DefaultWriteTimeout,
-		IdleTimeout:           cryptoutilIdentityMagic.DefaultIdleTimeout,
+		ReadTimeout:           cryptoutilSharedMagic.DefaultReadTimeout,
+		WriteTimeout:          cryptoutilSharedMagic.DefaultWriteTimeout,
+		IdleTimeout:           cryptoutilSharedMagic.DefaultIdleTimeout,
 		ServerHeader:          "Resource-Server",
 		AppName:               "Identity Resource Server",
 	})

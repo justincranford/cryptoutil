@@ -15,7 +15,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilApiCaServer "cryptoutil/api/ca/server"
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func (h *Handler) ListCAs(c *fiber.Ctx) error {
@@ -196,7 +196,7 @@ func getKeyInfo(cert *x509.Certificate) (string, int) {
 	case *rsa.PublicKey:
 		return "RSA", pub.N.BitLen()
 	case ed25519.PublicKey:
-		return "EdDSA", ed25519.PublicKeySize * cryptoutilCAMagic.BitsPerByte
+		return "EdDSA", ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte
 	default:
 		return "unknown", 0
 	}

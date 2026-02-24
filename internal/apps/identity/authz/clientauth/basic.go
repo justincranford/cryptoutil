@@ -11,9 +11,9 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoDigests "cryptoutil/internal/shared/crypto/digests"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // BasicAuthenticator implements HTTP Basic authentication for OAuth 2.1 clients.
@@ -30,7 +30,7 @@ func NewBasicAuthenticator(clientRepo cryptoutilIdentityRepository.ClientReposit
 
 // Method returns the authentication method name.
 func (b *BasicAuthenticator) Method() string {
-	return cryptoutilIdentityMagic.ClientAuthMethodSecretBasic
+	return cryptoutilSharedMagic.ClientAuthMethodSecretBasic
 }
 
 // Authenticate authenticates a client using HTTP Basic authentication.

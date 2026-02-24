@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 )
@@ -145,7 +145,7 @@ func (m *MTLSMiddleware) Handler() fiber.Handler {
 			OrganizationalUnits: clientCert.Subject.OrganizationalUnit,
 			DNSNames:            clientCert.DNSNames,
 			EmailAddresses:      clientCert.EmailAddresses,
-			SerialNumber:        clientCert.SerialNumber.Text(cryptoutilCAMagic.HexBase),
+			SerialNumber:        clientCert.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 			Certificate:         clientCert,
 		}
 

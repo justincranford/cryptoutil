@@ -19,8 +19,8 @@ import (
 	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 var (
@@ -101,27 +101,27 @@ func CreateTestConfig(t *testing.T, authzPort, idpPort, rsPort int) *cryptoutilI
 			BindAddress:  "127.0.0.1",
 			Port:         authzPort,
 			TLSEnabled:   false,
-			ReadTimeout:  cryptoutilIdentityMagic.TestReadTimeout,
-			WriteTimeout: cryptoutilIdentityMagic.TestWriteTimeout,
-			IdleTimeout:  cryptoutilIdentityMagic.TestIdleTimeout,
+			ReadTimeout:  cryptoutilSharedMagic.TestReadTimeout,
+			WriteTimeout: cryptoutilSharedMagic.TestWriteTimeout,
+			IdleTimeout:  cryptoutilSharedMagic.TestIdleTimeout,
 		},
 		IDP: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "test-idp",
 			BindAddress:  "127.0.0.1",
 			Port:         idpPort,
 			TLSEnabled:   false,
-			ReadTimeout:  cryptoutilIdentityMagic.TestReadTimeout,
-			WriteTimeout: cryptoutilIdentityMagic.TestWriteTimeout,
-			IdleTimeout:  cryptoutilIdentityMagic.TestIdleTimeout,
+			ReadTimeout:  cryptoutilSharedMagic.TestReadTimeout,
+			WriteTimeout: cryptoutilSharedMagic.TestWriteTimeout,
+			IdleTimeout:  cryptoutilSharedMagic.TestIdleTimeout,
 		},
 		RS: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "test-rs",
 			BindAddress:  "127.0.0.1",
 			Port:         rsPort,
 			TLSEnabled:   false,
-			ReadTimeout:  cryptoutilIdentityMagic.TestReadTimeout,
-			WriteTimeout: cryptoutilIdentityMagic.TestWriteTimeout,
-			IdleTimeout:  cryptoutilIdentityMagic.TestIdleTimeout,
+			ReadTimeout:  cryptoutilSharedMagic.TestReadTimeout,
+			WriteTimeout: cryptoutilSharedMagic.TestWriteTimeout,
+			IdleTimeout:  cryptoutilSharedMagic.TestIdleTimeout,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type:        "sqlite",
@@ -130,7 +130,7 @@ func CreateTestConfig(t *testing.T, authzPort, idpPort, rsPort int) *cryptoutilI
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			AccessTokenLifetime:  time.Hour,
-			RefreshTokenLifetime: cryptoutilIdentityMagic.TestRefreshTokenLifetime,
+			RefreshTokenLifetime: cryptoutilSharedMagic.TestRefreshTokenLifetime,
 			IDTokenLifetime:      time.Hour,
 			AccessTokenFormat:    "jws",
 			RefreshTokenFormat:   "uuid",
@@ -146,7 +146,7 @@ func WaitForServer(t *testing.T, url string, timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	ticker := time.NewTicker(cryptoutilIdentityMagic.TestServerWaitTickerInterval)
+	ticker := time.NewTicker(cryptoutilSharedMagic.TestServerWaitTickerInterval)
 	defer ticker.Stop()
 
 	for {

@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Validates requirements:
@@ -144,7 +144,7 @@ func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 		Scope:               "openid",
 		State:               "state1",
 		CodeChallenge:       "challenge1",
-		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
 		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 	}
@@ -158,7 +158,7 @@ func TestAuthorizationRequestStore_CodeIndexing(t *testing.T) {
 		Scope:               "openid profile",
 		State:               "state2",
 		CodeChallenge:       "challenge2",
-		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
 		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 	}

@@ -14,8 +14,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // SMSOTPAuthenticator authenticates users via SMS one-time passwords.
@@ -43,8 +43,8 @@ func NewSMSOTPAuthenticator(
 		challengeStore: challengeStore,
 		rateLimiter:    rateLimiter,
 		userRepo:       userRepo,
-		otpLength:      cryptoutilIdentityMagic.DefaultOTPLength,
-		otpExpiration:  cryptoutilIdentityMagic.DefaultOTPLifetime,
+		otpLength:      cryptoutilSharedMagic.DefaultOTPLength,
+		otpExpiration:  cryptoutilSharedMagic.DefaultOTPLifetime,
 	}
 }
 
@@ -170,7 +170,7 @@ func (g *DefaultOTPGenerator) GenerateOTP(length int) (string, error) {
 	}
 
 	otp := make([]byte, length)
-	maxDigit := big.NewInt(cryptoutilIdentityMagic.DecimalRadix)
+	maxDigit := big.NewInt(cryptoutilSharedMagic.DecimalRadix)
 
 	for i := 0; i < length; i++ {
 		digit, err := crand.Int(crand.Reader, maxDigit)

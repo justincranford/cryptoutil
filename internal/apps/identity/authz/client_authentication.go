@@ -13,7 +13,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // authenticateClient authenticates a client using the configured authentication method.
@@ -34,7 +34,7 @@ func (s *Service) authenticateClient(c *fiber.Ctx) (*cryptoutilIdentityDomain.Cl
 			clientID := parts[0]
 			clientSecret := parts[1]
 
-			authenticator, ok := s.clientAuth.GetAuthenticator(cryptoutilIdentityMagic.ClientAuthMethodSecretBasic)
+			authenticator, ok := s.clientAuth.GetAuthenticator(cryptoutilSharedMagic.ClientAuthMethodSecretBasic)
 			if !ok {
 				return nil, fiber.ErrUnauthorized
 			}
@@ -49,11 +49,11 @@ func (s *Service) authenticateClient(c *fiber.Ctx) (*cryptoutilIdentityDomain.Cl
 	}
 
 	// Try POST body authentication.
-	clientID := c.FormValue(cryptoutilIdentityMagic.ParamClientID)
-	clientSecret := c.FormValue(cryptoutilIdentityMagic.ParamClientSecret)
+	clientID := c.FormValue(cryptoutilSharedMagic.ParamClientID)
+	clientSecret := c.FormValue(cryptoutilSharedMagic.ParamClientSecret)
 
 	if clientID != "" && clientSecret != "" {
-		authenticator, ok := s.clientAuth.GetAuthenticator(cryptoutilIdentityMagic.ClientAuthMethodSecretPost)
+		authenticator, ok := s.clientAuth.GetAuthenticator(cryptoutilSharedMagic.ClientAuthMethodSecretPost)
 		if !ok {
 			return nil, fiber.ErrUnauthorized
 		}

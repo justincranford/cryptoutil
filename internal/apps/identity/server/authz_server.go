@@ -15,8 +15,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthZServer represents the OAuth 2.1 authorization server.
@@ -36,9 +36,9 @@ func NewAuthZServer(
 ) *AuthZServer {
 	// Create Fiber app.
 	app := fiber.New(fiber.Config{
-		ReadTimeout:  time.Duration(cryptoutilIdentityMagic.FiberReadTimeoutSeconds) * time.Second,
-		WriteTimeout: time.Duration(cryptoutilIdentityMagic.FiberWriteTimeoutSeconds) * time.Second,
-		IdleTimeout:  time.Duration(cryptoutilIdentityMagic.FiberIdleTimeoutSeconds) * time.Second,
+		ReadTimeout:  time.Duration(cryptoutilSharedMagic.FiberReadTimeoutSeconds) * time.Second,
+		WriteTimeout: time.Duration(cryptoutilSharedMagic.FiberWriteTimeoutSeconds) * time.Second,
+		IdleTimeout:  time.Duration(cryptoutilSharedMagic.FiberIdleTimeoutSeconds) * time.Second,
 	})
 
 	// Create authorization service.

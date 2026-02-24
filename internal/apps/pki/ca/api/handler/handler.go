@@ -13,13 +13,13 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilApiCaServer "cryptoutil/api/ca/server"
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/apps/pki/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/apps/pki/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/pki/ca/service/issuer"
 	cryptoutilCAServiceRevocation "cryptoutil/internal/apps/pki/ca/service/revocation"
 	cryptoutilCAServiceTimestamp "cryptoutil/internal/apps/pki/ca/service/timestamp"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Handler implements the CA enrollment ServerInterface.
@@ -136,7 +136,7 @@ func NewHandler(issuer *cryptoutilCAServiceIssuer.Issuer, storage cryptoutilCASt
 func (h *Handler) ListCertificates(c *fiber.Ctx, params cryptoutilApiCaServer.ListCertificatesParams) error {
 	// Build filter from params.
 	filter := &cryptoutilCAStorage.ListFilter{
-		Limit:  cryptoutilCAMagic.DefaultPageLimit,
+		Limit:  cryptoutilSharedMagic.DefaultPageLimit,
 		Offset: 0,
 	}
 

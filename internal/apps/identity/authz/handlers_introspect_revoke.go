@@ -13,19 +13,19 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // handleIntrospect handles POST /introspect - OAuth 2.1 token introspection endpoint.
 func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 	// Extract parameters.
-	token := c.FormValue(cryptoutilIdentityMagic.ParamToken)
-	tokenTypeHint := c.FormValue(cryptoutilIdentityMagic.ParamTokenTypeHint)
+	token := c.FormValue(cryptoutilSharedMagic.ParamToken)
+	tokenTypeHint := c.FormValue(cryptoutilSharedMagic.ParamTokenTypeHint)
 
 	// Validate required parameters.
 	if token == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "token is required",
 		})
 	}
@@ -149,19 +149,19 @@ func (s *Service) handleIntrospect(c *fiber.Ctx) error {
 func isJWT(token string) bool {
 	parts := strings.Split(token, ".")
 
-	return len(parts) == cryptoutilIdentityMagic.JWSPartCount
+	return len(parts) == cryptoutilSharedMagic.JWSPartCount
 }
 
 // handleRevoke handles POST /revoke - OAuth 2.1 token revocation endpoint.
 func (s *Service) handleRevoke(c *fiber.Ctx) error {
 	// Extract parameters.
-	token := c.FormValue(cryptoutilIdentityMagic.ParamToken)
-	tokenTypeHint := c.FormValue(cryptoutilIdentityMagic.ParamTokenTypeHint)
+	token := c.FormValue(cryptoutilSharedMagic.ParamToken)
+	tokenTypeHint := c.FormValue(cryptoutilSharedMagic.ParamTokenTypeHint)
 
 	// Validate required parameters.
 	if token == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "token is required",
 		})
 	}
@@ -179,17 +179,17 @@ func (s *Service) handleRevoke(c *fiber.Ctx) error {
 	// Validate token type hint if provided.
 	if tokenTypeHint != "" {
 		switch tokenTypeHint {
-		case cryptoutilIdentityMagic.TokenTypeAccessToken:
+		case cryptoutilSharedMagic.TokenTypeAccessToken:
 			if tokenRecord.TokenType != cryptoutilIdentityDomain.TokenTypeAccess {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+					"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 					"error_description": "Token type hint does not match actual token type",
 				})
 			}
-		case cryptoutilIdentityMagic.TokenTypeRefreshToken:
+		case cryptoutilSharedMagic.TokenTypeRefreshToken:
 			if tokenRecord.TokenType != cryptoutilIdentityDomain.TokenTypeRefresh {
 				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-					"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+					"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 					"error_description": "Token type hint does not match actual token type",
 				})
 			}
@@ -202,7 +202,7 @@ func (s *Service) handleRevoke(c *fiber.Ctx) error {
 		appErr := cryptoutilIdentityAppErr.ErrTokenRevocationFailed
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": appErr.Message,
 		})
 	}

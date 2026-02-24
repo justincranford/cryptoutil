@@ -17,10 +17,10 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilApiCaServer "cryptoutil/api/ca/server"
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
 	cryptoutilCAProfileCertificate "cryptoutil/internal/apps/pki/ca/profile/certificate"
 	cryptoutilCAProfileSubject "cryptoutil/internal/apps/pki/ca/profile/subject"
 	cryptoutilCAServiceIssuer "cryptoutil/internal/apps/pki/ca/service/issuer"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func (h *Handler) lookupCertificateBySerial(ctx context.Context, serialNumber *big.Int) *x509.Certificate {
@@ -29,7 +29,7 @@ func (h *Handler) lookupCertificateBySerial(ctx context.Context, serialNumber *b
 	}
 
 	// Look up in storage using hex-encoded serial.
-	serialHex := serialNumber.Text(cryptoutilCAMagic.HexBase)
+	serialHex := serialNumber.Text(cryptoutilSharedMagic.HexBase)
 
 	storedCert, err := h.storage.GetBySerialNumber(ctx, serialHex)
 	if err != nil {

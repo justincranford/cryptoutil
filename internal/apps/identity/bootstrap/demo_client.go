@@ -15,9 +15,9 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CreateDemoClient creates the demo-client for testing OAuth flows if it doesn't exist.
@@ -68,12 +68,12 @@ func CreateDemoClient(
 			"https://localhost:3000/callback",
 		},
 		AllowedGrantTypes: []string{
-			cryptoutilIdentityMagic.GrantTypeClientCredentials,
-			cryptoutilIdentityMagic.GrantTypeAuthorizationCode,
-			cryptoutilIdentityMagic.GrantTypeRefreshToken,
+			cryptoutilSharedMagic.GrantTypeClientCredentials,
+			cryptoutilSharedMagic.GrantTypeAuthorizationCode,
+			cryptoutilSharedMagic.GrantTypeRefreshToken,
 		},
 		AllowedResponseTypes: []string{
-			cryptoutilIdentityMagic.ResponseTypeCode,
+			cryptoutilSharedMagic.ResponseTypeCode,
 		},
 		AllowedScopes: []string{
 			"openid",
@@ -85,9 +85,9 @@ func CreateDemoClient(
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 		RequirePKCE:             &requirePKCE,
 		PKCEChallengeMethod:     "S256",
-		AccessTokenLifetime:     int(cryptoutilIdentityMagic.DefaultAccessTokenLifetime.Seconds()),
-		RefreshTokenLifetime:    int(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime.Seconds()),
-		IDTokenLifetime:         int(cryptoutilIdentityMagic.DefaultIDTokenLifetime.Seconds()),
+		AccessTokenLifetime:     int(cryptoutilSharedMagic.DefaultAccessTokenLifetime.Seconds()),
+		RefreshTokenLifetime:    int(cryptoutilSharedMagic.DefaultRefreshTokenLifetime.Seconds()),
+		IDTokenLifetime:         int(cryptoutilSharedMagic.DefaultIDTokenLifetime.Seconds()),
 		Enabled:                 &enabled,
 	}
 

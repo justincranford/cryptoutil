@@ -12,7 +12,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // MIMEApplicationJWT is the MIME type for JWT responses.
@@ -30,16 +30,16 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Missing Authorization header",
 		})
 	}
 
 	// Parse Bearer token.
 	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || parts[0] != cryptoutilIdentityMagic.AuthorizationBearer {
+	if len(parts) != 2 || parts[0] != cryptoutilSharedMagic.AuthorizationBearer {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Invalid Authorization header format",
 		})
 	}
@@ -50,7 +50,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	claims, err := s.tokenSvc.ValidateAccessToken(ctx, accessToken)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Invalid or expired access token",
 		})
 	}
@@ -67,20 +67,20 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 		// JWT tokens don't exist in database, so this is expected for JWT format.
 		if len(claims) == 0 {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token not found",
 			})
 		}
 
 		// Extract client_id from JWT claims for JWT-signed response.
-		if aud, ok := claims[cryptoutilIdentityMagic.ClaimAud].(string); ok {
+		if aud, ok := claims[cryptoutilSharedMagic.ClaimAud].(string); ok {
 			clientID = aud
 		}
 	} else {
 		// Check token expiration for UUID tokens.
 		if time.Now().UTC().After(dbToken.ExpiresAt) {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token has expired",
 			})
 		}
@@ -101,7 +101,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	sub, ok := claims["sub"].(string)
 	if !ok || sub == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "Token missing sub claim",
 		})
 	}
@@ -112,7 +112,7 @@ func (s *Service) handleUserInfo(c *fiber.Ctx) error {
 	user, err := userRepo.GetBySub(ctx, sub)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+			"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 			"error_description": "User not found",
 		})
 	}

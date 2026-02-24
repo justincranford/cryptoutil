@@ -16,7 +16,7 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestNewJWSIssuerLegacy_Success validates successful JWS issuer creation with valid parameters.
@@ -116,7 +116,7 @@ func TestNewJWEIssuerLegacy_Success(t *testing.T) {
 	t.Parallel()
 
 	// AES-256 requires 32 bytes.
-	encryptionKey := make([]byte, cryptoutilIdentityMagic.AES256KeySize)
+	encryptionKey := make([]byte, cryptoutilSharedMagic.AES256KeySize)
 	_, err := crand.Read(encryptionKey)
 	require.NoError(t, err)
 

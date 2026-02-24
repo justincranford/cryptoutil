@@ -15,7 +15,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CredentialType represents the type of WebAuthn credential.
@@ -119,7 +119,7 @@ func NewWebAuthnAuthenticator(
 	}
 
 	if config.Timeout == 0 {
-		config.Timeout = cryptoutilIdentityMagic.DefaultOTPLifetime
+		config.Timeout = cryptoutilSharedMagic.DefaultOTPLifetime
 	}
 
 	// Create WebAuthn instance.

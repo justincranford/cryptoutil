@@ -15,7 +15,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockPushNotificationService implements PushNotificationService for testing.
@@ -152,7 +152,7 @@ func TestPushNotificationAuthenticator_InitiateAuth(t *testing.T) {
 	require.NotNil(t, challenge)
 	require.Equal(t, userID, challenge.UserID)
 	require.Equal(t, "push_notification", challenge.Method)
-	require.WithinDuration(t, beforeInitiate.Add(cryptoutilIdentityMagic.DefaultPushNotificationTimeout), challenge.ExpiresAt, 5*time.Second)
+	require.WithinDuration(t, beforeInitiate.Add(cryptoutilSharedMagic.DefaultPushNotificationTimeout), challenge.ExpiresAt, 5*time.Second)
 
 	// Verify push notification was sent.
 	require.Len(t, mockPush.sentNotifications, 1)

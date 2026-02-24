@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleIntrospect_TokenTypeHint tests introspect with token_type_hint parameter.
@@ -31,8 +31,8 @@ func TestHandleIntrospect_TokenTypeHint(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken:         []string{"non-existent-token"},
-		cryptoutilIdentityMagic.ParamTokenTypeHint: []string{"access_token"},
+		cryptoutilSharedMagic.ParamToken:         []string{"non-existent-token"},
+		cryptoutilSharedMagic.ParamTokenTypeHint: []string{"access_token"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))
@@ -61,7 +61,7 @@ func TestHandleRevoke_InvalidToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{"non-existent-token"},
+		cryptoutilSharedMagic.ParamToken: []string{"non-existent-token"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(reqBody.Encode()))

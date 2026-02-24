@@ -14,7 +14,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // handleDeviceAuthorization handles POST /device_authorization - RFC 8628 Section 3.1.
@@ -34,13 +34,13 @@ import (
 // - expires_in: Device code lifetime in seconds (default: 1800).
 // - interval: Minimum polling interval in seconds (default: 5).
 func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
-	clientID := c.FormValue(cryptoutilIdentityMagic.ParamClientID)
-	scope := c.FormValue(cryptoutilIdentityMagic.ParamScope)
+	clientID := c.FormValue(cryptoutilSharedMagic.ParamClientID)
+	scope := c.FormValue(cryptoutilSharedMagic.ParamScope)
 
 	// Validate required parameters.
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "client_id is required",
 		})
 	}
@@ -55,7 +55,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Client not found for device authorization", "client_id", clientID, "error", err)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
+			"error":             cryptoutilSharedMagic.ErrorInvalidClient,
 			"error_description": "Invalid client_id",
 		})
 	}
@@ -66,7 +66,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to generate device code", "error", err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to generate device code",
 		})
 	}
@@ -77,7 +77,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to generate user code", "error", err)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to generate user code",
 		})
 	}
@@ -93,7 +93,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		Scope:      scope,
 		Status:     cryptoutilIdentityDomain.DeviceAuthStatusPending,
 		CreatedAt:  time.Now().UTC(),
-		ExpiresAt:  time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultDeviceCodeLifetime),
+		ExpiresAt:  time.Now().UTC().Add(cryptoutilSharedMagic.DefaultDeviceCodeLifetime),
 	}
 
 	deviceAuthRepo := s.repoFactory.DeviceAuthorizationRepository()
@@ -101,7 +101,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Failed to store device authorization", "error", err, "device_code", deviceCode[:8]+"...")
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to store device authorization",
 		})
 	}
@@ -115,7 +115,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 	}
 
 	verificationURI := fmt.Sprintf("%s/device", baseURL)
-	verificationURIComplete := fmt.Sprintf("%s?%s=%s", verificationURI, cryptoutilIdentityMagic.ParamUserCode, userCode)
+	verificationURIComplete := fmt.Sprintf("%s?%s=%s", verificationURI, cryptoutilSharedMagic.ParamUserCode, userCode)
 
 	slog.InfoContext(ctx, "Device authorization request created",
 		"device_code_prefix", deviceCode[:8]+"...",
@@ -131,7 +131,7 @@ func (s *Service) handleDeviceAuthorization(c *fiber.Ctx) error {
 		"user_code":                 userCode,
 		"verification_uri":          verificationURI,
 		"verification_uri_complete": verificationURIComplete,
-		"expires_in":                int(cryptoutilIdentityMagic.DefaultDeviceCodeLifetime.Seconds()),
-		"interval":                  int(cryptoutilIdentityMagic.DefaultPollingInterval.Seconds()),
+		"expires_in":                int(cryptoutilSharedMagic.DefaultDeviceCodeLifetime.Seconds()),
+		"interval":                  int(cryptoutilSharedMagic.DefaultPollingInterval.Seconds()),
 	})
 }

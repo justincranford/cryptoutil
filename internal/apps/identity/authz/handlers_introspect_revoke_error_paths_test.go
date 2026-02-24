@@ -15,8 +15,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	googleUuid "github.com/google/uuid"
@@ -44,7 +44,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					AllowedScopes:           []string{cryptoutilIdentityMagic.ScopeRead, cryptoutilIdentityMagic.ScopeWrite},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 				}
@@ -62,7 +62,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeRefresh,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    client.ID,
-					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 					IssuedAt:    time.Now().UTC(),
 					NotBefore:   time.Now().UTC(),
@@ -71,7 +71,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 				err = tokenRepo.Create(ctx, refreshToken)
 				require.NoError(t, err, "Failed to create refresh token")
 
-				return refreshToken.TokenValue, cryptoutilIdentityMagic.TokenTypeAccessToken
+				return refreshToken.TokenValue, cryptoutilSharedMagic.TokenTypeAccessToken
 			},
 			expectedStatus: fiber.StatusBadRequest, // 400 - hint mismatch
 		},
@@ -87,7 +87,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 					ClientID:                "test-client-" + googleUuid.NewString(),
 					ClientSecret:            "test-secret",
 					Name:                    "Test Client",
-					AllowedScopes:           []string{cryptoutilIdentityMagic.ScopeRead, cryptoutilIdentityMagic.ScopeWrite},
+					AllowedScopes:           []string{cryptoutilSharedMagic.ScopeRead, cryptoutilSharedMagic.ScopeWrite},
 					ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
 					TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
 				}
@@ -105,7 +105,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 					TokenType:   cryptoutilIdentityDomain.TokenTypeAccess,
 					TokenFormat: cryptoutilIdentityDomain.TokenFormatUUID,
 					ClientID:    client.ID,
-					Scopes:      []string{cryptoutilIdentityMagic.ScopeRead},
+					Scopes:      []string{cryptoutilSharedMagic.ScopeRead},
 					ExpiresAt:   time.Now().UTC().Add(time.Hour),
 					IssuedAt:    time.Now().UTC(),
 					NotBefore:   time.Now().UTC(),
@@ -114,7 +114,7 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 				err = tokenRepo.Create(ctx, accessToken)
 				require.NoError(t, err, "Failed to create access token")
 
-				return accessToken.TokenValue, cryptoutilIdentityMagic.TokenTypeRefreshToken
+				return accessToken.TokenValue, cryptoutilSharedMagic.TokenTypeRefreshToken
 			},
 			expectedStatus: fiber.StatusBadRequest, // 400 - hint mismatch
 		},
@@ -138,8 +138,8 @@ func TestHandleRevoke_AdditionalErrorPaths(t *testing.T) {
 
 			// Build revocation request form.
 			form := url.Values{}
-			form.Set(cryptoutilIdentityMagic.ParamToken, tokenValue)
-			form.Set(cryptoutilIdentityMagic.ParamTokenTypeHint, tokenTypeHint)
+			form.Set(cryptoutilSharedMagic.ParamToken, tokenValue)
+			form.Set(cryptoutilSharedMagic.ParamTokenTypeHint, tokenTypeHint)
 
 			req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")

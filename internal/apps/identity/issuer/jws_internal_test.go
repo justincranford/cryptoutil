@@ -15,7 +15,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -35,7 +35,7 @@ func TestSignJWT(t *testing.T) {
 	}{
 		{
 			name:      "RS256_success",
-			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			keyGen: func() any {
 				key, err := rsa.GenerateKey(crand.Reader, 2048)
 				require.NoError(t, err)
@@ -46,7 +46,7 @@ func TestSignJWT(t *testing.T) {
 		},
 		{
 			name:      "ES256_success",
-			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+			algorithm: cryptoutilSharedMagic.AlgorithmES256,
 			keyGen: func() any {
 				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
@@ -57,14 +57,14 @@ func TestSignJWT(t *testing.T) {
 		},
 		{
 			name:        "RS256_wrong_key_type",
-			algorithm:   cryptoutilIdentityMagic.AlgorithmRS256,
+			algorithm:   cryptoutilSharedMagic.AlgorithmRS256,
 			keyGen:      func() any { return invalidKeyString },
 			wantErr:     true,
 			errContains: "expected RSA private key",
 		},
 		{
 			name:        "ES256_wrong_key_type",
-			algorithm:   cryptoutilIdentityMagic.AlgorithmES256,
+			algorithm:   cryptoutilSharedMagic.AlgorithmES256,
 			keyGen:      func() any { return invalidKeyString },
 			wantErr:     true,
 			errContains: "expected ECDSA private key",
@@ -112,7 +112,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 	}{
 		{
 			name:      "RS256_valid_signature",
-			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			setupKeys: func(_ *testing.T) (any, any) {
 				key, err := rsa.GenerateKey(crand.Reader, 2048)
 				require.NoError(t, err)
@@ -123,7 +123,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 		},
 		{
 			name:      "ES256_valid_signature",
-			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+			algorithm: cryptoutilSharedMagic.AlgorithmES256,
 			setupKeys: func(_ *testing.T) (any, any) {
 				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
@@ -134,7 +134,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 		},
 		{
 			name:      "RS256_wrong_public_key_type",
-			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			setupKeys: func(_ *testing.T) (any, any) {
 				key, err := rsa.GenerateKey(crand.Reader, 2048)
 				require.NoError(t, err)
@@ -146,7 +146,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 		},
 		{
 			name:      "ES256_wrong_public_key_type",
-			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+			algorithm: cryptoutilSharedMagic.AlgorithmES256,
 			setupKeys: func(_ *testing.T) (any, any) {
 				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
@@ -158,7 +158,7 @@ func TestVerifyJWTSignature(t *testing.T) {
 		},
 		{
 			name:      "ES256_invalid_signature_length",
-			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+			algorithm: cryptoutilSharedMagic.AlgorithmES256,
 			setupKeys: func(_ *testing.T) (any, any) {
 				key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 				require.NoError(t, err)
@@ -228,7 +228,7 @@ func TestConvertToJWK(t *testing.T) {
 			name: "RSA_private_key",
 			key: &SigningKey{
 				KeyID:     "test-rsa-kid",
-				Algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+				Algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 				Key: func() any {
 					key, err := rsa.GenerateKey(crand.Reader, 2048)
 					require.NoError(t, err)
@@ -239,15 +239,15 @@ func TestConvertToJWK(t *testing.T) {
 			expected: map[string]any{
 				"kid": "test-rsa-kid",
 				"use": "sig",
-				"alg": cryptoutilIdentityMagic.AlgorithmRS256,
-				"kty": cryptoutilIdentityMagic.KeyTypeRSA,
+				"alg": cryptoutilSharedMagic.AlgorithmRS256,
+				"kty": cryptoutilSharedMagic.KeyTypeRSA,
 			},
 		},
 		{
 			name: "RSA_public_key",
 			key: &SigningKey{
 				KeyID:     "test-rsa-pub-kid",
-				Algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+				Algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 				Key: func() any {
 					key, err := rsa.GenerateKey(crand.Reader, 2048)
 					require.NoError(t, err)
@@ -258,15 +258,15 @@ func TestConvertToJWK(t *testing.T) {
 			expected: map[string]any{
 				"kid": "test-rsa-pub-kid",
 				"use": "sig",
-				"alg": cryptoutilIdentityMagic.AlgorithmRS256,
-				"kty": cryptoutilIdentityMagic.KeyTypeRSA,
+				"alg": cryptoutilSharedMagic.AlgorithmRS256,
+				"kty": cryptoutilSharedMagic.KeyTypeRSA,
 			},
 		},
 		{
 			name: "ECDSA_private_key",
 			key: &SigningKey{
 				KeyID:     "test-ec-kid",
-				Algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+				Algorithm: cryptoutilSharedMagic.AlgorithmES256,
 				Key: func() any {
 					key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 					require.NoError(t, err)
@@ -277,8 +277,8 @@ func TestConvertToJWK(t *testing.T) {
 			expected: map[string]any{
 				"kid": "test-ec-kid",
 				"use": "sig",
-				"alg": cryptoutilIdentityMagic.AlgorithmES256,
-				"kty": cryptoutilIdentityMagic.KeyTypeEC,
+				"alg": cryptoutilSharedMagic.AlgorithmES256,
+				"kty": cryptoutilSharedMagic.KeyTypeEC,
 				"crv": "P-256",
 			},
 		},
@@ -286,7 +286,7 @@ func TestConvertToJWK(t *testing.T) {
 			name: "ECDSA_public_key",
 			key: &SigningKey{
 				KeyID:     "test-ec-pub-kid",
-				Algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+				Algorithm: cryptoutilSharedMagic.AlgorithmES256,
 				Key: func() any {
 					key, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 					require.NoError(t, err)
@@ -297,8 +297,8 @@ func TestConvertToJWK(t *testing.T) {
 			expected: map[string]any{
 				"kid": "test-ec-pub-kid",
 				"use": "sig",
-				"alg": cryptoutilIdentityMagic.AlgorithmES256,
-				"kty": cryptoutilIdentityMagic.KeyTypeEC,
+				"alg": cryptoutilSharedMagic.AlgorithmES256,
+				"kty": cryptoutilSharedMagic.KeyTypeEC,
 				"crv": "P-256",
 			},
 		},
@@ -350,12 +350,12 @@ func TestConvertToJWK(t *testing.T) {
 			}
 
 			// Verify RSA/ECDSA specific fields exist.
-			if tc.expected["kty"] == cryptoutilIdentityMagic.KeyTypeRSA {
+			if tc.expected["kty"] == cryptoutilSharedMagic.KeyTypeRSA {
 				require.NotNil(t, jwk["n"])
 				require.NotNil(t, jwk["e"])
 			}
 
-			if tc.expected["kty"] == cryptoutilIdentityMagic.KeyTypeEC {
+			if tc.expected["kty"] == cryptoutilSharedMagic.KeyTypeEC {
 				require.NotNil(t, jwk["x"])
 				require.NotNil(t, jwk["y"])
 			}

@@ -15,7 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RegisterMiddleware registers all middleware for the AuthZ server.
@@ -73,7 +73,7 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 
 	// Rate limiting middleware.
 	app.Use(limiter.New(limiter.Config{
-		Max:        cryptoutilIdentityMagic.DefaultRateLimitRequests,
-		Expiration: cryptoutilIdentityMagic.DefaultRateLimitWindow,
+		Max:        cryptoutilSharedMagic.DefaultRateLimitRequests,
+		Expiration: cryptoutilSharedMagic.DefaultRateLimitWindow,
 	}))
 }

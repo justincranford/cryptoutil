@@ -17,7 +17,7 @@ import (
 	"golang.org/x/crypto/ocsp"
 
 	cryptoutilCACrypto "cryptoutil/internal/apps/pki/ca/crypto"
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RevocationReason represents X.509 revocation reasons.
@@ -413,7 +413,7 @@ type RevocationEntry struct {
 // ToEntry converts a RevokedCertificate to a RevocationEntry.
 func (rc *RevokedCertificate) ToEntry(issuerDN string) *RevocationEntry {
 	return &RevocationEntry{
-		SerialNumber:   rc.SerialNumber.Text(cryptoutilCAMagic.HexBase),
+		SerialNumber:   rc.SerialNumber.Text(cryptoutilSharedMagic.HexBase),
 		RevocationTime: rc.RevocationTime,
 		Reason:         rc.Reason.String(),
 		ReasonCode:     int(rc.Reason),

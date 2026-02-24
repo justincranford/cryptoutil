@@ -18,7 +18,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // BackChannelLogoutService handles back-channel logout token generation and delivery.
@@ -35,7 +35,7 @@ func NewBackChannelLogoutService(tokenService *cryptoutilIdentityIssuer.TokenSer
 		tokenService: tokenService,
 		issuer:       issuer,
 		httpClient: &http.Client{
-			Timeout: cryptoutilIdentityMagic.BackChannelLogoutTimeout,
+			Timeout: cryptoutilSharedMagic.BackChannelLogoutTimeout,
 		},
 		logger: logger,
 	}
@@ -97,10 +97,10 @@ func (s *BackChannelLogoutService) generateLogoutToken(ctx context.Context, sess
 
 	// Build logout token claims as a map for the token service.
 	claims := map[string]any{
-		cryptoutilIdentityMagic.ClaimIss: s.issuer,
-		cryptoutilIdentityMagic.ClaimAud: client.ClientID,
-		cryptoutilIdentityMagic.ClaimIat: now.Unix(),
-		"jti":                            googleUuid.Must(googleUuid.NewV7()).String(),
+		cryptoutilSharedMagic.ClaimIss: s.issuer,
+		cryptoutilSharedMagic.ClaimAud: client.ClientID,
+		cryptoutilSharedMagic.ClaimIat: now.Unix(),
+		"jti":                          googleUuid.Must(googleUuid.NewV7()).String(),
 		"events": map[string]any{
 			"http://schemas.openid.net/event/backchannel-logout": map[string]any{},
 		},
@@ -108,7 +108,7 @@ func (s *BackChannelLogoutService) generateLogoutToken(ctx context.Context, sess
 
 	// Add subject if available from session.
 	if session.UserID != googleUuid.Nil {
-		claims[cryptoutilIdentityMagic.ClaimSub] = session.UserID.String()
+		claims[cryptoutilSharedMagic.ClaimSub] = session.UserID.String()
 	}
 
 	// Add session ID if client requires it.

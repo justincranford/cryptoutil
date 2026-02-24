@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestGenerateAuthorizationCode_Success validates successful code generation.
@@ -25,7 +25,7 @@ func TestGenerateAuthorizationCode_Success(t *testing.T) {
 	// Validate base64url encoding.
 	decoded, err := base64.RawURLEncoding.DecodeString(code)
 	require.NoError(t, err, "Code should be valid base64url")
-	require.Len(t, decoded, cryptoutilIdentityMagic.DefaultAuthCodeLength, "Decoded code should match expected length")
+	require.Len(t, decoded, cryptoutilSharedMagic.DefaultAuthCodeLength, "Decoded code should match expected length")
 }
 
 // TestGenerateAuthorizationCode_Uniqueness validates that generated codes are unique.
@@ -58,7 +58,7 @@ func TestGenerateAuthorizationCode_Length(t *testing.T) {
 
 		decoded, err := base64.RawURLEncoding.DecodeString(code)
 		require.NoError(t, err, "Code should decode successfully")
-		require.Len(t, decoded, cryptoutilIdentityMagic.DefaultAuthCodeLength, "Decoded length should be consistent")
+		require.Len(t, decoded, cryptoutilSharedMagic.DefaultAuthCodeLength, "Decoded length should be consistent")
 	}
 }
 

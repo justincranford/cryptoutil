@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockCredentialStore implements CredentialStore for testing.

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // FuzzJWSTokenParsing tests JWS token parsing with various inputs.
@@ -28,8 +28,8 @@ func FuzzJWSTokenParsing(f *testing.F) {
 		"https://test.example.com",
 		[]byte("test-signing-key"),
 		"RS256",
-		cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-		cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)
 	if err != nil {
 		f.Fatalf("failed to create issuer: %v", err)
@@ -59,8 +59,8 @@ func FuzzJWSClaimsMarshaling(f *testing.F) {
 		"https://test.example.com",
 		[]byte("test-signing-key"),
 		"RS256",
-		cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-		cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)
 	if err != nil {
 		f.Fatalf("failed to create issuer: %v", err)
@@ -70,9 +70,9 @@ func FuzzJWSClaimsMarshaling(f *testing.F) {
 
 	f.Fuzz(func(_ *testing.T, sub, aud, scope string) {
 		claims := map[string]any{
-			cryptoutilIdentityMagic.ClaimSub:   sub,
-			cryptoutilIdentityMagic.ClaimAud:   aud,
-			cryptoutilIdentityMagic.ParamScope: scope,
+			cryptoutilSharedMagic.ClaimSub:   sub,
+			cryptoutilSharedMagic.ClaimAud:   aud,
+			cryptoutilSharedMagic.ParamScope: scope,
 		}
 
 		// Issue token - should not panic.
@@ -97,8 +97,8 @@ func FuzzJWSIDTokenGeneration(f *testing.F) {
 		"https://test.example.com",
 		[]byte("test-signing-key"),
 		"RS256",
-		cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-		cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)
 	if err != nil {
 		f.Fatalf("failed to create issuer: %v", err)
@@ -108,8 +108,8 @@ func FuzzJWSIDTokenGeneration(f *testing.F) {
 
 	f.Fuzz(func(_ *testing.T, sub, aud, name, email string) {
 		claims := map[string]any{
-			cryptoutilIdentityMagic.ClaimSub: sub,
-			cryptoutilIdentityMagic.ClaimAud: aud,
+			cryptoutilSharedMagic.ClaimSub: sub,
+			cryptoutilSharedMagic.ClaimAud: aud,
 		}
 
 		if name != "" {
@@ -143,8 +143,8 @@ func FuzzJWSExpirationValidation(f *testing.F) {
 		"https://test.example.com",
 		[]byte("test-signing-key"),
 		"RS256",
-		cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-		cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+		cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+		cryptoutilSharedMagic.DefaultIDTokenLifetime,
 	)
 	if err != nil {
 		f.Fatalf("failed to create issuer: %v", err)
@@ -154,9 +154,9 @@ func FuzzJWSExpirationValidation(f *testing.F) {
 
 	f.Fuzz(func(_ *testing.T, exp int64) {
 		claims := map[string]any{
-			cryptoutilIdentityMagic.ClaimSub: "test-user",
-			cryptoutilIdentityMagic.ClaimAud: "test-client",
-			cryptoutilIdentityMagic.ClaimExp: float64(exp),
+			cryptoutilSharedMagic.ClaimSub: "test-user",
+			cryptoutilSharedMagic.ClaimAud: "test-client",
+			cryptoutilSharedMagic.ClaimExp: float64(exp),
 		}
 
 		// Issue token.

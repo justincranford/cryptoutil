@@ -12,7 +12,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthorizationRequest represents a pending OAuth 2.1 authorization request.
@@ -175,7 +175,7 @@ func (s *InMemoryAuthorizationRequestStore) Delete(_ context.Context, requestID 
 
 // cleanup removes expired authorization requests.
 func (s *InMemoryAuthorizationRequestStore) cleanup() {
-	ticker := time.NewTicker(cryptoutilIdentityMagic.ChallengeCleanupInterval)
+	ticker := time.NewTicker(cryptoutilSharedMagic.ChallengeCleanupInterval)
 	defer ticker.Stop()
 
 	for range ticker.C {

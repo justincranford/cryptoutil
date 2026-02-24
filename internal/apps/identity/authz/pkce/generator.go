@@ -11,7 +11,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -33,13 +33,13 @@ func GenerateCodeVerifier() (string, error) {
 // GenerateCodeChallenge generates a PKCE code challenge from a code verifier.
 func GenerateCodeChallenge(codeVerifier, method string) string {
 	if method == "" {
-		method = cryptoutilIdentityMagic.PKCEMethodS256
+		method = cryptoutilSharedMagic.PKCEMethodS256
 	}
 
 	switch method {
-	case cryptoutilIdentityMagic.PKCEMethodPlain:
+	case cryptoutilSharedMagic.PKCEMethodPlain:
 		return codeVerifier
-	case cryptoutilIdentityMagic.PKCEMethodS256:
+	case cryptoutilSharedMagic.PKCEMethodS256:
 		return GenerateS256Challenge(codeVerifier)
 	default:
 		return ""

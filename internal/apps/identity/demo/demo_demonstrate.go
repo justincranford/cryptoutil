@@ -17,7 +17,7 @@ import (
 	"net/url"
 	"strings"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func printEndpointSummary() {
@@ -115,8 +115,8 @@ func demonstrateTokenEndpoint(ctx context.Context, client *http.Client) (string,
 			if at, ok := tokenResp["access_token"].(string); ok {
 				accessToken = at
 				_, _ = fmt.Fprintf(outWriter, "   ✅ Access Token (first %d): %s...\n",
-					cryptoutilIdentityMagic.DemoMinTokenChars,
-					accessToken[:min(cryptoutilIdentityMagic.DemoMinTokenChars, len(accessToken))])
+					cryptoutilSharedMagic.DemoMinTokenChars,
+					accessToken[:min(cryptoutilSharedMagic.DemoMinTokenChars, len(accessToken))])
 			}
 
 			if tokenType, ok := tokenResp["token_type"].(string); ok {
@@ -309,7 +309,7 @@ func getJSON(ctx context.Context, client *http.Client, urlStr string) (map[strin
 }
 
 func generatePKCE() (verifier, challenge string) {
-	verifierBytes := make([]byte, cryptoutilIdentityMagic.DefaultStateLength)
+	verifierBytes := make([]byte, cryptoutilSharedMagic.DefaultStateLength)
 
 	if _, err := crand.Read(verifierBytes); err != nil {
 		// Fall back to deterministic value for demo purposes.
@@ -325,7 +325,7 @@ func generatePKCE() (verifier, challenge string) {
 }
 
 func generateState() string {
-	stateBytes := make([]byte, cryptoutilIdentityMagic.DefaultNonceLength/2)
+	stateBytes := make([]byte, cryptoutilSharedMagic.DefaultNonceLength/2)
 
 	if _, err := crand.Read(stateBytes); err != nil {
 		// Fall back to deterministic value for demo purposes.

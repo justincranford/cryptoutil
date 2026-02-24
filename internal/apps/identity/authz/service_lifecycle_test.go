@@ -15,8 +15,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockKeyGenerator implements KeyGenerator for testing.
@@ -65,10 +65,10 @@ func TestServiceStart(t *testing.T) {
 	// Create token service.
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:               "https://issuer.example.com",
-		AccessTokenFormat:    cryptoutilIdentityMagic.TokenFormatJWS,
-		AccessTokenLifetime:  cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-		RefreshTokenLifetime: cryptoutilIdentityMagic.DefaultRefreshTokenLifetime,
-		IDTokenLifetime:      cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+		AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
+		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
+		IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
 		SigningAlgorithm:     "RS256",
 	}
 
@@ -146,10 +146,10 @@ func TestServiceStop(t *testing.T) {
 	// Create token service.
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:               "https://issuer.example.com",
-		AccessTokenFormat:    cryptoutilIdentityMagic.TokenFormatJWS,
-		AccessTokenLifetime:  cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-		RefreshTokenLifetime: cryptoutilIdentityMagic.DefaultRefreshTokenLifetime,
-		IDTokenLifetime:      cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+		AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
+		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
+		IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
 		SigningAlgorithm:     "RS256",
 	}
 

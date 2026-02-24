@@ -17,9 +17,9 @@ import (
 	cryptoutilIdentityBootstrap "cryptoutil/internal/apps/identity/bootstrap"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ExecuteIdentity is the entry point for the identity CLI, routing to authz, idp, rs, or spa-rp services.
@@ -262,7 +262,7 @@ func identityAuthz(parameters []string) {
 	fmt.Println("\nShutting down server...")
 
 	// Create shutdown context with timeout
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilSharedMagic.ShutdownTimeoutSeconds)*time.Second)
 	defer shutdownCancel()
 
 	// Stop server gracefully
@@ -348,7 +348,7 @@ func identityIdp(parameters []string) {
 	fmt.Println("\nShutting down server...")
 
 	// Create shutdown context with timeout
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilSharedMagic.ShutdownTimeoutSeconds)*time.Second)
 	defer shutdownCancel()
 
 	// Stop server gracefully
@@ -412,7 +412,7 @@ func identityRs(parameters []string) {
 	fmt.Println("\nShutting down server...")
 
 	// Create shutdown context with timeout
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilSharedMagic.ShutdownTimeoutSeconds)*time.Second)
 	defer shutdownCancel()
 
 	// Stop server gracefully

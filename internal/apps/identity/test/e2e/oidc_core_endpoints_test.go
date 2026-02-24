@@ -16,7 +16,7 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 )
 

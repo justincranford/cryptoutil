@@ -14,7 +14,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestRiskScenario_LowRisk tests low-risk authentication scenarios.

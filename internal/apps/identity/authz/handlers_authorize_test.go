@@ -15,8 +15,8 @@ import (
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
@@ -32,10 +32,10 @@ func TestHandleAuthorizeGET_MissingClientID(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamResponseType: []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{"https://example.com/callback"},
-		cryptoutilIdentityMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -63,10 +63,10 @@ func TestHandleAuthorizeGET_MissingResponseType(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:    []string{"test-client"},
-		cryptoutilIdentityMagic.ParamRedirectURI: []string{"https://example.com/callback"},
-		cryptoutilIdentityMagic.ParamScope:       []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:       []string{"test-state"},
+		cryptoutilSharedMagic.ParamClientID:    []string{"test-client"},
+		cryptoutilSharedMagic.ParamRedirectURI: []string{"https://example.com/callback"},
+		cryptoutilSharedMagic.ParamScope:       []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:       []string{"test-state"},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)
@@ -94,10 +94,10 @@ func TestHandleAuthorizeGET_MissingRedirectURI(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	query := url.Values{
-		cryptoutilIdentityMagic.ParamClientID:     []string{"test-client"},
-		cryptoutilIdentityMagic.ParamResponseType: []string{cryptoutilIdentityMagic.ResponseTypeCode},
-		cryptoutilIdentityMagic.ParamScope:        []string{"openid profile"},
-		cryptoutilIdentityMagic.ParamState:        []string{"test-state"},
+		cryptoutilSharedMagic.ParamClientID:     []string{"test-client"},
+		cryptoutilSharedMagic.ParamResponseType: []string{cryptoutilSharedMagic.ResponseTypeCode},
+		cryptoutilSharedMagic.ParamScope:        []string{"openid profile"},
+		cryptoutilSharedMagic.ParamState:        []string{"test-state"},
 	}
 
 	req := httptest.NewRequest("GET", "/oauth2/v1/authorize?"+query.Encode(), nil)

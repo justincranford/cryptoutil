@@ -20,9 +20,9 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestAuthenticateClient_BasicAuthSuccess validates HTTP Basic authentication success.
@@ -63,7 +63,7 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType: []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
 	basicAuth := base64.StdEncoding.EncodeToString([]byte(testClient.ClientID + ":test-secret"))
@@ -73,7 +73,7 @@ func TestAuthenticateClient_BasicAuthSuccess(t *testing.T) {
 	req.Header.Set("Authorization", "Basic "+basicAuth)
 
 	// Use 30 second timeout for parallel test execution under load.
-	resp, err := app.Test(req, cryptoutilIdentityMagic.FiberTestTimeoutMs)
+	resp, err := app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -115,16 +115,16 @@ func TestAuthenticateClient_PostAuthSuccess(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamClientSecret: []string{"test-secret"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamClientSecret: []string{"test-secret"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use 30 second timeout for parallel test execution under load.
-	resp, err := app.Test(req, cryptoutilIdentityMagic.FiberTestTimeoutMs)
+	resp, err := app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -154,14 +154,14 @@ func TestAuthenticateClient_NoCredentialsFailure(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType: []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Use 30 second timeout for parallel test execution under load.
-	resp, err := app.Test(req, cryptoutilIdentityMagic.FiberTestTimeoutMs)
+	resp, err := app.Test(req, cryptoutilSharedMagic.FiberTestTimeoutMs)
 	require.NoError(t, err, "Request should succeed")
 
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
@@ -236,7 +236,7 @@ func createClientAuthFlowTestClient(
 		ClientID:                fmt.Sprintf("test-client-%s", clientUUID.String()),
 		Name:                    "Test Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           []string{"openid", "profile", "email"},
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: authMethod,

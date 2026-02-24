@@ -16,7 +16,7 @@ import (
 	"time"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // KeyRotationPolicy defines key rotation behavior.
@@ -30,9 +30,9 @@ type KeyRotationPolicy struct {
 // DefaultKeyRotationPolicy returns the default key rotation policy.
 func DefaultKeyRotationPolicy() *KeyRotationPolicy {
 	return &KeyRotationPolicy{
-		RotationInterval:    cryptoutilIdentityMagic.DefaultKeyRotationInterval,
-		GracePeriod:         cryptoutilIdentityMagic.DefaultKeyGracePeriod,
-		MaxActiveKeys:       cryptoutilIdentityMagic.DefaultMaxActiveKeys,
+		RotationInterval:    cryptoutilSharedMagic.DefaultKeyRotationInterval,
+		GracePeriod:         cryptoutilSharedMagic.DefaultKeyGracePeriod,
+		MaxActiveKeys:       cryptoutilSharedMagic.DefaultMaxActiveKeys,
 		AutoRotationEnabled: false,
 	}
 }
@@ -40,9 +40,9 @@ func DefaultKeyRotationPolicy() *KeyRotationPolicy {
 // StrictKeyRotationPolicy returns a strict key rotation policy for production.
 func StrictKeyRotationPolicy() *KeyRotationPolicy {
 	return &KeyRotationPolicy{
-		RotationInterval:    cryptoutilIdentityMagic.StrictKeyRotationInterval,
-		GracePeriod:         cryptoutilIdentityMagic.StrictKeyGracePeriod,
-		MaxActiveKeys:       cryptoutilIdentityMagic.StrictMaxActiveKeys,
+		RotationInterval:    cryptoutilSharedMagic.StrictKeyRotationInterval,
+		GracePeriod:         cryptoutilSharedMagic.StrictKeyGracePeriod,
+		MaxActiveKeys:       cryptoutilSharedMagic.StrictMaxActiveKeys,
 		AutoRotationEnabled: true,
 	}
 }
@@ -50,9 +50,9 @@ func StrictKeyRotationPolicy() *KeyRotationPolicy {
 // DevelopmentKeyRotationPolicy returns a relaxed policy for development.
 func DevelopmentKeyRotationPolicy() *KeyRotationPolicy {
 	return &KeyRotationPolicy{
-		RotationInterval:    cryptoutilIdentityMagic.DevelopmentKeyRotationInterval,
-		GracePeriod:         cryptoutilIdentityMagic.DevelopmentKeyGracePeriod,
-		MaxActiveKeys:       cryptoutilIdentityMagic.DevelopmentMaxActiveKeys,
+		RotationInterval:    cryptoutilSharedMagic.DevelopmentKeyRotationInterval,
+		GracePeriod:         cryptoutilSharedMagic.DevelopmentKeyGracePeriod,
+		MaxActiveKeys:       cryptoutilSharedMagic.DevelopmentMaxActiveKeys,
 		AutoRotationEnabled: false,
 	}
 }
@@ -416,20 +416,20 @@ func convertToJWK(key *SigningKey) map[string]any {
 
 	switch k := key.Key.(type) {
 	case *rsa.PrivateKey:
-		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeRSA
+		jwk["kty"] = cryptoutilSharedMagic.KeyTypeRSA
 		jwk["n"] = base64URLEncode(k.N.Bytes())
 		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
 	case *rsa.PublicKey:
-		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeRSA
+		jwk["kty"] = cryptoutilSharedMagic.KeyTypeRSA
 		jwk["n"] = base64URLEncode(k.N.Bytes())
 		jwk["e"] = base64URLEncode(big.NewInt(int64(k.E)).Bytes())
 	case *ecdsa.PrivateKey:
-		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeEC
+		jwk["kty"] = cryptoutilSharedMagic.KeyTypeEC
 		jwk["crv"] = ecdsaCurveName(k.Curve)
 		jwk["x"] = base64URLEncode(k.X.Bytes())
 		jwk["y"] = base64URLEncode(k.Y.Bytes())
 	case *ecdsa.PublicKey:
-		jwk["kty"] = cryptoutilIdentityMagic.KeyTypeEC
+		jwk["kty"] = cryptoutilSharedMagic.KeyTypeEC
 		jwk["crv"] = ecdsaCurveName(k.Curve)
 		jwk["x"] = base64URLEncode(k.X.Bytes())
 		jwk["y"] = base64URLEncode(k.Y.Bytes())

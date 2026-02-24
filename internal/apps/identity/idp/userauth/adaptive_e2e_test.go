@@ -16,7 +16,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityAuth "cryptoutil/internal/apps/identity/idp/auth"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilIdentityMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestAdaptiveAuth_E2E_LowRiskNoStepUp tests low-risk scenario requiring no step-up.

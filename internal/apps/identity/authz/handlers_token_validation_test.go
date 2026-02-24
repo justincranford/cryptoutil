@@ -20,8 +20,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
@@ -53,7 +53,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 		{
 			name: "missing code",
 			formData: map[string]string{
-				"grant_type":    cryptoutilIdentityMagic.GrantTypeAuthorizationCode,
+				"grant_type":    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
 				"redirect_uri":  "https://client.example.com/callback",
 				"client_id":     "test-client",
 				"code_verifier": "test-verifier",
@@ -64,7 +64,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 		{
 			name: "missing redirect_uri",
 			formData: map[string]string{
-				"grant_type":    cryptoutilIdentityMagic.GrantTypeAuthorizationCode,
+				"grant_type":    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
 				"code":          "test-code",
 				"client_id":     "test-client",
 				"code_verifier": "test-verifier",
@@ -75,7 +75,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 		{
 			name: "missing client_id",
 			formData: map[string]string{
-				"grant_type":    cryptoutilIdentityMagic.GrantTypeAuthorizationCode,
+				"grant_type":    cryptoutilSharedMagic.GrantTypeAuthorizationCode,
 				"code":          "test-code",
 				"redirect_uri":  "https://client.example.com/callback",
 				"code_verifier": "test-verifier",
@@ -86,7 +86,7 @@ func TestHandleTokenAuthorizationCodeGrant_MissingParameters(t *testing.T) {
 		{
 			name: "missing code_verifier (PKCE required)",
 			formData: map[string]string{
-				"grant_type":   cryptoutilIdentityMagic.GrantTypeAuthorizationCode,
+				"grant_type":   cryptoutilSharedMagic.GrantTypeAuthorizationCode,
 				"code":         "test-code",
 				"redirect_uri": "https://client.example.com/callback",
 				"client_id":    "test-client",
@@ -136,7 +136,7 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 		ClientID:                "test-client-credentials",
 		Name:                    "Test Client Credentials",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           []string{"read", "write"},
 		AccessTokenLifetime:     3600,
 		RefreshTokenLifetime:    86400,
@@ -161,7 +161,7 @@ func TestHandleTokenClientCredentialsGrant(t *testing.T) {
 
 	// Build form data.
 	formData := url.Values{}
-	formData.Set("grant_type", cryptoutilIdentityMagic.GrantTypeClientCredentials)
+	formData.Set("grant_type", cryptoutilSharedMagic.GrantTypeClientCredentials)
 	formData.Set("client_id", "test-client-credentials")
 	formData.Set("scope", "read write")
 
@@ -209,10 +209,10 @@ func setupAuthzTestDependencies(ctx context.Context, t *testing.T) (*cryptoutilI
 	// Create token service.
 	tokenConfig := &cryptoutilIdentityConfig.TokenConfig{
 		Issuer:               "https://issuer.example.com",
-		AccessTokenFormat:    cryptoutilIdentityMagic.TokenFormatJWS,
-		AccessTokenLifetime:  cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-		RefreshTokenLifetime: cryptoutilIdentityMagic.DefaultRefreshTokenLifetime,
-		IDTokenLifetime:      cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+		AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
+		AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+		RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
+		IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
 		SigningAlgorithm:     "RS256",
 	}
 

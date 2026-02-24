@@ -6,6 +6,8 @@ package config
 
 import (
 	"fmt"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Validate validates the configuration.
@@ -141,15 +143,15 @@ func (tc *TokenConfig) Validate() error {
 		return fmt.Errorf("ID token lifetime must be positive")
 	}
 
-	if tc.AccessTokenFormat != tokenFormatJWS && tc.AccessTokenFormat != tokenFormatJWE && tc.AccessTokenFormat != tokenFormatUUID {
+	if tc.AccessTokenFormat != cryptoutilSharedMagic.IdentityTokenFormatJWS && tc.AccessTokenFormat != cryptoutilSharedMagic.IdentityTokenFormatJWE && tc.AccessTokenFormat != cryptoutilSharedMagic.IdentityTokenFormatUUID {
 		return fmt.Errorf("access token format must be 'jws', 'jwe', or 'uuid'")
 	}
 
-	if tc.RefreshTokenFormat != tokenFormatUUID {
+	if tc.RefreshTokenFormat != cryptoutilSharedMagic.IdentityTokenFormatUUID {
 		return fmt.Errorf("refresh token format must be 'uuid'")
 	}
 
-	if tc.IDTokenFormat != tokenFormatJWS {
+	if tc.IDTokenFormat != cryptoutilSharedMagic.IdentityTokenFormatJWS {
 		return fmt.Errorf("ID token format must be 'jws'")
 	}
 

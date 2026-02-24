@@ -10,7 +10,7 @@ import (
 	"math"
 	"time"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // RiskLevel represents the assessed risk level.
@@ -281,24 +281,24 @@ func (e *BehavioralRiskEngine) assessLocationRisk(location *GeoLocation, baselin
 	// Check if location is in user's known locations.
 	for _, knownLoc := range baseline.KnownLocations {
 		if knownLoc.Country == location.Country && knownLoc.City == location.City {
-			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for known location.
+			return cryptoutilSharedMagic.RiskScoreLow // Low risk for known location.
 		}
 	}
 
 	// Unknown location - higher risk.
-	return cryptoutilIdentityMagic.RiskScoreCritical
+	return cryptoutilSharedMagic.RiskScoreCritical
 }
 
 func (e *BehavioralRiskEngine) assessDeviceRisk(device *DeviceFingerprint, baseline *UserBaseline) float64 {
 	// Check if device is recognized.
 	for _, knownDevice := range baseline.KnownDevices {
 		if knownDevice == device.ID {
-			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for known device.
+			return cryptoutilSharedMagic.RiskScoreLow // Low risk for known device.
 		}
 	}
 
 	// Unknown device - higher risk.
-	return cryptoutilIdentityMagic.RiskScoreHigh
+	return cryptoutilSharedMagic.RiskScoreHigh
 }
 
 func (e *BehavioralRiskEngine) assessTimeRisk(authTime time.Time, baseline *UserBaseline) float64 {
@@ -307,49 +307,49 @@ func (e *BehavioralRiskEngine) assessTimeRisk(authTime time.Time, baseline *User
 	// Check if time matches user's typical authentication hours.
 	for _, typicalHour := range baseline.TypicalHours {
 		if hour == typicalHour {
-			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for typical time.
+			return cryptoutilSharedMagic.RiskScoreLow // Low risk for typical time.
 		}
 	}
 
 	// Unusual time - moderate risk.
-	return cryptoutilIdentityMagic.RiskScoreMedium
+	return cryptoutilSharedMagic.RiskScoreMedium
 }
 
 func (e *BehavioralRiskEngine) assessBehaviorRisk(_ *UserBehavior, baseline *UserBaseline) float64 {
 	// Compare behavior patterns with baseline.
 	// This is simplified - real implementation would use ML/statistical analysis.
 	if baseline.BehaviorProfile == nil {
-		return cryptoutilIdentityMagic.RiskScoreMedium + cryptoutilIdentityMagic.RiskScoreLow // No baseline, moderate risk.
+		return cryptoutilSharedMagic.RiskScoreMedium + cryptoutilSharedMagic.RiskScoreLow // No baseline, moderate risk.
 	}
 
 	// Simple similarity check (real implementation would be more sophisticated).
-	return cryptoutilIdentityMagic.RiskScoreLow
+	return cryptoutilSharedMagic.RiskScoreLow
 }
 
 func (e *BehavioralRiskEngine) assessNetworkRisk(network *NetworkInfo, baseline *UserBaseline) float64 {
 	// Check if network is recognized.
 	for _, knownNet := range baseline.KnownNetworks {
 		if knownNet == network.IPAddress {
-			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for known network.
+			return cryptoutilSharedMagic.RiskScoreLow // Low risk for known network.
 		}
 	}
 
 	// Check if using VPN/Proxy.
 	if network.IsVPN {
-		return cryptoutilIdentityMagic.VPNRiskScore
+		return cryptoutilSharedMagic.VPNRiskScore
 	}
 
 	if network.IsProxy {
-		return cryptoutilIdentityMagic.ProxyRiskScore
+		return cryptoutilSharedMagic.ProxyRiskScore
 	}
 
 	// Unknown network - moderate risk.
-	return cryptoutilIdentityMagic.RiskScoreMedium
+	return cryptoutilSharedMagic.RiskScoreMedium
 }
 
 func (e *BehavioralRiskEngine) assessVelocityRisk(authContext *AuthContext, baseline *UserBaseline) float64 {
 	if baseline.LastAuthTime.IsZero() {
-		return cryptoutilIdentityMagic.RiskScoreLow // No previous authentication, low risk.
+		return cryptoutilSharedMagic.RiskScoreLow // No previous authentication, low risk.
 	}
 
 	// Calculate time since last authentication.
@@ -361,11 +361,11 @@ func (e *BehavioralRiskEngine) assessVelocityRisk(authContext *AuthContext, base
 	)
 
 	if timeSinceLastAuth < veryFastThreshold {
-		return cryptoutilIdentityMagic.RiskScoreExtreme
+		return cryptoutilSharedMagic.RiskScoreExtreme
 	}
 
 	if timeSinceLastAuth < fastThreshold {
-		return cryptoutilIdentityMagic.RiskScoreHigh
+		return cryptoutilSharedMagic.RiskScoreHigh
 	}
 
 	const velocityRiskNormal = 0.2
@@ -399,24 +399,24 @@ func (e *BehavioralRiskEngine) calculateConfidence(baseline *UserBaseline, facto
 	// Factor count contribution (max 50%).
 	const maxFactors = 6.0
 
-	factorContribution := math.Min(float64(factorCount)/maxFactors, 1.0) * cryptoutilIdentityMagic.ConfidenceWeightFactors
+	factorContribution := math.Min(float64(factorCount)/maxFactors, 1.0) * cryptoutilSharedMagic.ConfidenceWeightFactors
 
 	// Baseline quality contribution (max 50%).
-	baselineContribution := cryptoutilIdentityMagic.BaselineContributionZero
+	baselineContribution := cryptoutilSharedMagic.BaselineContributionZero
 	if len(baseline.KnownLocations) > 0 {
-		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBaseline
+		baselineContribution += cryptoutilSharedMagic.ConfidenceWeightBaseline
 	}
 
 	if len(baseline.KnownDevices) > 0 {
-		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBaseline
+		baselineContribution += cryptoutilSharedMagic.ConfidenceWeightBaseline
 	}
 
 	if len(baseline.TypicalHours) > 0 {
-		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBehavior
+		baselineContribution += cryptoutilSharedMagic.ConfidenceWeightBehavior
 	}
 
 	if baseline.BehaviorProfile != nil {
-		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBehavior
+		baselineContribution += cryptoutilSharedMagic.ConfidenceWeightBehavior
 	}
 
 	return factorContribution + baselineContribution

@@ -19,8 +19,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleIntrospect_InvalidTokenFormat validates error for malformed token parameter.
@@ -61,7 +61,7 @@ func TestHandleIntrospect_InvalidTokenFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{""},
+		cryptoutilSharedMagic.ParamToken: []string{""},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -113,7 +113,7 @@ func TestHandleRevoke_InvalidTokenFormat(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{""},
+		cryptoutilSharedMagic.ParamToken: []string{""},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
@@ -167,7 +167,7 @@ func TestHandleIntrospect_UnknownToken(t *testing.T) {
 	unknownToken := googleUuid.Must(googleUuid.NewV7()).String()
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{unknownToken},
+		cryptoutilSharedMagic.ParamToken: []string{unknownToken},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -238,7 +238,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 		ClientID:             fmt.Sprintf("test-client-%s", clientUUID),
 		ClientType:           cryptoutilIdentityDomain.ClientTypeConfidential,
 		Name:                 "Test Client",
-		AllowedGrantTypes:    []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
+		AllowedGrantTypes:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 		AllowedScopes:        []string{"test-scope"},
 		RedirectURIs:         []string{"https://example.com/callback"},
 		RequirePKCE:          boolPtr(false),
@@ -286,7 +286,7 @@ func TestHandleRevoke_AlreadyRevokedToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{tokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{tokenValue},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))

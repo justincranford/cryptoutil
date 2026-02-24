@@ -12,8 +12,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PhoneCallOTPAuthenticator authenticates users via voice call OTP.
@@ -47,9 +47,9 @@ func NewPhoneCallOTPAuthenticator(
 		challengeStore: challengeStore,
 		rateLimiter:    rateLimiter,
 		userRepo:       userRepo,
-		otpLength:      cryptoutilIdentityMagic.DefaultOTPLength,
-		otpExpiration:  cryptoutilIdentityMagic.DefaultPhoneCallOTPTimeout,
-		maxRetries:     cryptoutilIdentityMagic.DefaultPhoneCallOTPRetries,
+		otpLength:      cryptoutilSharedMagic.DefaultOTPLength,
+		otpExpiration:  cryptoutilSharedMagic.DefaultPhoneCallOTPTimeout,
+		maxRetries:     cryptoutilSharedMagic.DefaultPhoneCallOTPRetries,
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	crand "crypto/rand"
 	"fmt"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // GenerateRecoveryCode generates a cryptographically random recovery code.
@@ -25,7 +25,7 @@ func GenerateRecoveryCode() (string, error) {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 
-	charset := cryptoutilIdentityMagic.RecoveryCodeCharset
+	charset := cryptoutilSharedMagic.RecoveryCodeCharset
 	code := make([]byte, totalChars)
 
 	for i := range totalChars {

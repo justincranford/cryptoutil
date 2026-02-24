@@ -8,19 +8,19 @@ import (
 	sha256 "crypto/sha256"
 	"encoding/base64"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ValidateCodeVerifier validates a PKCE code verifier against a stored code challenge.
 func ValidateCodeVerifier(codeVerifier, codeChallenge, method string) bool {
 	if method == "" {
-		method = cryptoutilIdentityMagic.PKCEMethodS256
+		method = cryptoutilSharedMagic.PKCEMethodS256
 	}
 
 	switch method {
-	case cryptoutilIdentityMagic.PKCEMethodPlain:
+	case cryptoutilSharedMagic.PKCEMethodPlain:
 		return codeVerifier == codeChallenge
-	case cryptoutilIdentityMagic.PKCEMethodS256:
+	case cryptoutilSharedMagic.PKCEMethodS256:
 		return ValidateS256(codeVerifier, codeChallenge)
 	default:
 		return false

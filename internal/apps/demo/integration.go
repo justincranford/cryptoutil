@@ -68,8 +68,8 @@ const (
 	integrationTokenTruncateLen = 50
 
 	// Demo client credentials.
-	integrationDemoClientID     = "demo-client"
-	integrationDemoClientSecret = "demo-secret"
+	integrationDemoClientID     = cryptoutilSharedMagic.DemoClientID
+	integrationDemoClientSecret = cryptoutilSharedMagic.DemoClientSecret
 )
 
 // integrationServers holds running server instances for integration demo.

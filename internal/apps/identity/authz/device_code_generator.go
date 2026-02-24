@@ -10,14 +10,14 @@ import (
 	"fmt"
 	"math/big"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // GenerateDeviceCode generates a cryptographically secure device code (RFC 8628 Section 3.2).
 // Returns a base64url-encoded random value suitable for use as a device_code parameter.
 // The device code should have sufficient entropy to prevent brute-force attacks.
 func GenerateDeviceCode() (string, error) {
-	bytes := make([]byte, cryptoutilIdentityMagic.DefaultDeviceCodeLength)
+	bytes := make([]byte, cryptoutilSharedMagic.DefaultDeviceCodeLength)
 
 	if _, err := crand.Read(bytes); err != nil {
 		return "", fmt.Errorf("failed to generate device code: %w", err)

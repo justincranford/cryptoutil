@@ -16,8 +16,8 @@ import (
 
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestHandleIntrospect_MissingToken(t *testing.T) {
@@ -58,7 +58,7 @@ func TestHandleIntrospect_MissingClient(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{"test-token"},
+		cryptoutilSharedMagic.ParamToken: []string{"test-token"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(reqBody.Encode()))
@@ -110,7 +110,7 @@ func TestHandleRevoke_MissingClient(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	reqBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{"test-token"},
+		cryptoutilSharedMagic.ParamToken: []string{"test-token"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(reqBody.Encode()))

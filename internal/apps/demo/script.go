@@ -51,8 +51,8 @@ type DemoCredentials struct {
 // DefaultDemoCredentials returns the default demo credentials.
 func DefaultDemoCredentials() *DemoCredentials {
 	return &DemoCredentials{
-		ClientID:     "demo-client",
-		ClientSecret: "demo-secret",
+		ClientID:     cryptoutilSharedMagic.DemoClientID,
+		ClientSecret: cryptoutilSharedMagic.DemoClientSecret,
 		Scopes:       []string{"kms:read", "kms:write", "kms:encrypt", "kms:decrypt"},
 	}
 }

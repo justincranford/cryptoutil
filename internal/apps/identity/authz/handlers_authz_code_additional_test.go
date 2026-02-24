@@ -20,8 +20,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleAuthorizationCodeGrant_AdditionalErrorPaths tests remaining error paths
@@ -58,7 +58,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				codeVerifier, err := cryptoutilIdentityAuthzPkce.GenerateCodeVerifier()
 				require.NoError(t, err)
 
-				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilIdentityMagic.PKCEMethodS256)
+				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilSharedMagic.PKCEMethodS256)
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            client.ClientID,
 					RedirectURI:         "https://example.com/callback",
@@ -86,7 +86,7 @@ func TestHandleAuthorizationCodeGrant_AdditionalErrorPaths(t *testing.T) {
 				codeVerifier, err := cryptoutilIdentityAuthzPkce.GenerateCodeVerifier()
 				require.NoError(t, err)
 
-				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilIdentityMagic.PKCEMethodS256)
+				codeChallenge := cryptoutilIdentityAuthzPkce.GenerateCodeChallenge(codeVerifier, cryptoutilSharedMagic.PKCEMethodS256)
 				nonExistentClientID := "non-existent-client-" + googleUuid.NewString()
 				authRequest := &cryptoutilIdentityDomain.AuthorizationRequest{
 					ClientID:            nonExistentClientID,

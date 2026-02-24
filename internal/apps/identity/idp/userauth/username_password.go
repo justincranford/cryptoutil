@@ -11,9 +11,9 @@ import (
 	"time"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -69,14 +69,14 @@ func NewUsernamePasswordAuthenticator(
 		userStore:        userStore,
 		hsm:              hsm,
 		requireHardware:  requireHardware,
-		lockoutThreshold: cryptoutilIdentityMagic.MaxOTPAttempts,
-		lockoutDuration:  cryptoutilIdentityMagic.DefaultOTPLockout,
+		lockoutThreshold: cryptoutilSharedMagic.MaxOTPAttempts,
+		lockoutDuration:  cryptoutilSharedMagic.DefaultOTPLockout,
 	}
 }
 
 // Method returns the authentication method identifier.
 func (u *UsernamePasswordAuthenticator) Method() string {
-	return cryptoutilIdentityMagic.AuthMethodUsernamePassword
+	return cryptoutilSharedMagic.AuthMethodUsernamePassword
 }
 
 // InitiateAuth initiates username/password authentication.
@@ -103,13 +103,13 @@ func (u *UsernamePasswordAuthenticator) InitiateAuth(ctx context.Context, userID
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultOTPLifetime)
 
 	// Create challenge with hardware requirement if enabled.
 	challenge := &AuthChallenge{
 		ID:        challengeID,
 		UserID:    userID,
-		Method:    cryptoutilIdentityMagic.AuthMethodUsernamePassword,
+		Method:    cryptoutilSharedMagic.AuthMethodUsernamePassword,
 		ExpiresAt: expiresAt,
 		Metadata: map[string]any{
 			"require_hardware": u.requireHardware,
@@ -193,12 +193,12 @@ func (u *UsernamePasswordAuthenticator) VerifyAuth(ctx context.Context, challeng
 
 // HashPassword hashes a password using PBKDF2-HMAC-SHA256 (FIPS-compliant).
 func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, error) {
-	if len(password) < cryptoutilIdentityMagic.MinPasswordLength {
-		return nil, fmt.Errorf("password too short (minimum %d characters)", cryptoutilIdentityMagic.MinPasswordLength)
+	if len(password) < cryptoutilSharedMagic.MinPasswordLength {
+		return nil, fmt.Errorf("password too short (minimum %d characters)", cryptoutilSharedMagic.MinPasswordLength)
 	}
 
-	if len(password) > cryptoutilIdentityMagic.MaxPasswordLength {
-		return nil, fmt.Errorf("password too long (maximum %d characters)", cryptoutilIdentityMagic.MaxPasswordLength)
+	if len(password) > cryptoutilSharedMagic.MaxPasswordLength {
+		return nil, fmt.Errorf("password too long (maximum %d characters)", cryptoutilSharedMagic.MaxPasswordLength)
 	}
 
 	hash, err := cryptoutilSharedCryptoHash.HashLowEntropyNonDeterministic(password)
@@ -211,12 +211,12 @@ func (u *UsernamePasswordAuthenticator) HashPassword(password string) ([]byte, e
 
 // ValidatePassword validates a password against security requirements.
 func (u *UsernamePasswordAuthenticator) ValidatePassword(password string) error {
-	if len(password) < cryptoutilIdentityMagic.MinPasswordLength {
-		return fmt.Errorf("password too short (minimum %d characters)", cryptoutilIdentityMagic.MinPasswordLength)
+	if len(password) < cryptoutilSharedMagic.MinPasswordLength {
+		return fmt.Errorf("password too short (minimum %d characters)", cryptoutilSharedMagic.MinPasswordLength)
 	}
 
-	if len(password) > cryptoutilIdentityMagic.MaxPasswordLength {
-		return fmt.Errorf("password too long (maximum %d characters)", cryptoutilIdentityMagic.MaxPasswordLength)
+	if len(password) > cryptoutilSharedMagic.MaxPasswordLength {
+		return fmt.Errorf("password too long (maximum %d characters)", cryptoutilSharedMagic.MaxPasswordLength)
 	}
 
 	// Additional password complexity checks could be added here.

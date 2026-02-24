@@ -10,9 +10,9 @@ import (
 	"log/slog"
 	http "net/http"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedApperr "cryptoutil/internal/shared/apperr"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
@@ -84,7 +84,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // getPublicSigningKeys retrieves all active public signing keys.
 func (h *Handler) getPublicSigningKeys(ctx context.Context) (joseJwk.Set, error) {
 	// Get all active public signing keys.
-	keys, err := h.keyRepo.FindByUsage(ctx, cryptoutilIdentityMagic.KeyUsageSigning, true)
+	keys, err := h.keyRepo.FindByUsage(ctx, cryptoutilSharedMagic.KeyUsageSigning, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find active signing keys: %w", err)
 	}

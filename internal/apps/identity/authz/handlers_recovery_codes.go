@@ -11,8 +11,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // GenerateRecoveryCodesRequest represents request to generate recovery codes.
@@ -90,7 +90,7 @@ func (s *Service) handleGenerateRecoveryCodes(c *fiber.Ctx) error {
 	// Generate recovery codes.
 	service := cryptoutilIdentityMfa.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 
-	codes, err := service.GenerateForUser(c.Context(), userID, cryptoutilIdentityMagic.DefaultRecoveryCodeCount)
+	codes, err := service.GenerateForUser(c.Context(), userID, cryptoutilSharedMagic.DefaultRecoveryCodeCount)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             "server_error",
@@ -99,7 +99,7 @@ func (s *Service) handleGenerateRecoveryCodes(c *fiber.Ctx) error {
 	}
 
 	// Calculate expiration timestamp.
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRecoveryCodeLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultRecoveryCodeLifetime)
 
 	return c.Status(fiber.StatusCreated).JSON(GenerateRecoveryCodesResponse{
 		Codes:     codes,
@@ -139,7 +139,7 @@ func (s *Service) handleGetRecoveryCodeCount(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(RecoveryCodeCountResponse{
 		Remaining: remaining,
-		Total:     int64(cryptoutilIdentityMagic.DefaultRecoveryCodeCount),
+		Total:     int64(cryptoutilSharedMagic.DefaultRecoveryCodeCount),
 	})
 }
 
@@ -190,7 +190,7 @@ func (s *Service) handleRegenerateRecoveryCodes(c *fiber.Ctx) error {
 	// Regenerate recovery codes.
 	service := cryptoutilIdentityMfa.NewRecoveryCodeService(s.repoFactory.RecoveryCodeRepository())
 
-	codes, err := service.RegenerateForUser(c.Context(), userID, cryptoutilIdentityMagic.DefaultRecoveryCodeCount)
+	codes, err := service.RegenerateForUser(c.Context(), userID, cryptoutilSharedMagic.DefaultRecoveryCodeCount)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":             "server_error",
@@ -199,7 +199,7 @@ func (s *Service) handleRegenerateRecoveryCodes(c *fiber.Ctx) error {
 	}
 
 	// Calculate expiration timestamp.
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRecoveryCodeLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultRecoveryCodeLifetime)
 
 	return c.Status(fiber.StatusCreated).JSON(GenerateRecoveryCodesResponse{
 		Codes:     codes,

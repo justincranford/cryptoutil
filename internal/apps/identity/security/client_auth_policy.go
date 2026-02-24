@@ -10,7 +10,7 @@ import (
 	"fmt"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ClientAuthPolicy defines policies for client authentication methods.
@@ -52,7 +52,7 @@ func DefaultClientAuthPolicy() *ClientAuthPolicy {
 		AllowedJWTAlgorithms:         []string{"RS256", "RS384", "RS512", "ES256", "ES384", "ES512"},
 		RequireCertificateValidation: true,
 		AllowSelfSignedCertificates:  false,
-		MaxCertificateAge:            cryptoutilIdentityMagic.DefaultCertificateMaxAgeDays,
+		MaxCertificateAge:            cryptoutilSharedMagic.DefaultCertificateMaxAgeDays,
 	}
 }
 
@@ -68,7 +68,7 @@ func StrictClientAuthPolicy() *ClientAuthPolicy {
 		AllowedJWTAlgorithms:         []string{"RS256", "ES256"},
 		RequireCertificateValidation: true,
 		AllowSelfSignedCertificates:  false,
-		MaxCertificateAge:            cryptoutilIdentityMagic.StrictCertificateMaxAgeDays,
+		MaxCertificateAge:            cryptoutilSharedMagic.StrictCertificateMaxAgeDays,
 	}
 }
 

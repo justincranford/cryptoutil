@@ -10,8 +10,8 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/apps/identity/email"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -76,7 +76,7 @@ func TestEmailOTPService_SendOTP(t *testing.T) {
 	// Extract OTP from email.
 	otpCode, found := mockEmail.ContainsOTP(lastEmail)
 	require.True(t, found, "Email should contain OTP")
-	require.Len(t, otpCode, cryptoutilIdentityMagic.DefaultEmailOTPLength)
+	require.Len(t, otpCode, cryptoutilSharedMagic.DefaultEmailOTPLength)
 
 	// Verify OTP record was created in database.
 	otp, err := repo.GetByUserID(ctx, userID)
@@ -214,7 +214,7 @@ func TestEmailOTPService_RateLimit(t *testing.T) {
 	email := testUserEmail
 
 	// Send OTP 5 times (rate limit).
-	for i := 0; i < cryptoutilIdentityMagic.DefaultEmailOTPRateLimit; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultEmailOTPRateLimit; i++ {
 		err := service.SendOTP(ctx, userID, email)
 		require.NoError(t, err, "Request %d should succeed", i+1)
 	}

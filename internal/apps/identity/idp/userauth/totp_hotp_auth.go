@@ -18,8 +18,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TOTPAuthenticator implements TOTP-based authentication.
@@ -39,8 +39,8 @@ func NewTOTPAuthenticator(
 ) *TOTPAuthenticator {
 	return &TOTPAuthenticator{
 		issuer:         issuer,
-		digits:         cryptoutilIdentityMagic.DefaultTOTPDigits,
-		period:         cryptoutilIdentityMagic.DefaultTOTPPeriod,
+		digits:         cryptoutilSharedMagic.DefaultTOTPDigits,
+		period:         cryptoutilSharedMagic.DefaultTOTPPeriod,
 		challengeStore: challengeStore,
 		userRepo:       userRepo,
 	}
@@ -106,7 +106,7 @@ func (t *TOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (*A
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,
@@ -246,7 +246,7 @@ func NewHOTPAuthenticator(
 ) *HOTPAuthenticator {
 	return &HOTPAuthenticator{
 		issuer:         issuer,
-		digits:         cryptoutilIdentityMagic.DefaultHOTPDigits,
+		digits:         cryptoutilSharedMagic.DefaultHOTPDigits,
 		challengeStore: challengeStore,
 		userRepo:       userRepo,
 		counterStore:   counterStore,
@@ -355,7 +355,7 @@ func (h *HOTPAuthenticator) InitiateAuth(ctx context.Context, userID string) (*A
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,

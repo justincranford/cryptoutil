@@ -11,9 +11,9 @@ import (
 	"testing"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -98,14 +98,14 @@ func TestHandler_ServeHTTP(t *testing.T) {
 
 				key := &cryptoutilIdentityDomain.Key{
 					ID:         kid,
-					Usage:      cryptoutilIdentityMagic.KeyUsageSigning,
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
 					Algorithm:  joseJwa.RS256().String(),
 					PrivateKey: privateKey,
 					PublicKey:  publicKey,
 					Active:     true,
 				}
 
-				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+				repo.On("FindByUsage", mock.Anything, cryptoutilSharedMagic.KeyUsageSigning, true).
 					Return([]*cryptoutilIdentityDomain.Key{key}, nil)
 			},
 			expectedStatus: http.StatusOK,
@@ -137,7 +137,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			name:   "repository error",
 			method: http.MethodGet,
 			setupMock: func(repo *MockKeyRepository) {
-				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+				repo.On("FindByUsage", mock.Anything, cryptoutilSharedMagic.KeyUsageSigning, true).
 					Return(nil, errors.New("repository error"))
 			},
 			expectedStatus: http.StatusInternalServerError,
@@ -150,7 +150,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			name:   "no active signing keys",
 			method: http.MethodGet,
 			setupMock: func(repo *MockKeyRepository) {
-				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+				repo.On("FindByUsage", mock.Anything, cryptoutilSharedMagic.KeyUsageSigning, true).
 					Return([]*cryptoutilIdentityDomain.Key{}, nil)
 			},
 			expectedStatus: http.StatusOK,
@@ -174,14 +174,14 @@ func TestHandler_ServeHTTP(t *testing.T) {
 				kid := googleUuid.Must(googleUuid.NewV7())
 				key := &cryptoutilIdentityDomain.Key{
 					ID:         kid,
-					Usage:      cryptoutilIdentityMagic.KeyUsageSigning,
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
 					Algorithm:  joseJwa.RS256().String(),
 					PrivateKey: `{"kty":"RSA"}`, // Valid private key.
 					PublicKey:  `invalid-json-not-a-jwk`,
 					Active:     true,
 				}
 
-				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+				repo.On("FindByUsage", mock.Anything, cryptoutilSharedMagic.KeyUsageSigning, true).
 					Return([]*cryptoutilIdentityDomain.Key{key}, nil)
 			},
 			expectedStatus: http.StatusOK,
@@ -206,14 +206,14 @@ func TestHandler_ServeHTTP(t *testing.T) {
 				kid := googleUuid.Must(googleUuid.NewV7())
 				key := &cryptoutilIdentityDomain.Key{
 					ID:         kid,
-					Usage:      cryptoutilIdentityMagic.KeyUsageSigning,
+					Usage:      cryptoutilSharedMagic.KeyUsageSigning,
 					Algorithm:  joseJwa.HS256().String(),
 					PrivateKey: `{"kty":"oct","k":"secret"}`,
 					PublicKey:  "", // No public key for symmetric algorithm.
 					Active:     true,
 				}
 
-				repo.On("FindByUsage", mock.Anything, cryptoutilIdentityMagic.KeyUsageSigning, true).
+				repo.On("FindByUsage", mock.Anything, cryptoutilSharedMagic.KeyUsageSigning, true).
 					Return([]*cryptoutilIdentityDomain.Key{key}, nil)
 			},
 			expectedStatus: http.StatusOK,
@@ -243,7 +243,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 			handler, err := NewHandler(logger, keyRepo)
 			require.NoError(t, err)
 
-			req := httptest.NewRequest(tc.method, cryptoutilIdentityMagic.PathJWKS, nil)
+			req := httptest.NewRequest(tc.method, cryptoutilSharedMagic.PathJWKS, nil)
 			w := httptest.NewRecorder()
 
 			handler.ServeHTTP(w, req)

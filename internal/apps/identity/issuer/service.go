@@ -14,7 +14,7 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TokenService manages token issuance, validation, and introspection.
@@ -43,16 +43,16 @@ func NewTokenService(
 // IssueAccessToken issues an access token with the configured format.
 func (s *TokenService) IssueAccessToken(ctx context.Context, claims map[string]any) (string, error) {
 	switch s.config.AccessTokenFormat {
-	case cryptoutilIdentityMagic.TokenFormatJWS:
+	case cryptoutilSharedMagic.TokenFormatJWS:
 		return s.jwsIssuer.IssueAccessToken(ctx, claims)
-	case cryptoutilIdentityMagic.TokenFormatJWE:
+	case cryptoutilSharedMagic.TokenFormatJWE:
 		jws, err := s.jwsIssuer.IssueAccessToken(ctx, claims)
 		if err != nil {
 			return "", err
 		}
 
 		return s.jweIssuer.EncryptToken(ctx, jws)
-	case cryptoutilIdentityMagic.TokenFormatUUID:
+	case cryptoutilSharedMagic.TokenFormatUUID:
 		return s.uuidIssuer.IssueToken(ctx)
 	default:
 		return "", cryptoutilIdentityAppErr.WrapError(
@@ -75,16 +75,16 @@ func (s *TokenService) IssueRefreshToken(ctx context.Context) (string, error) {
 // ValidateAccessToken validates an access token and returns its claims.
 func (s *TokenService) ValidateAccessToken(ctx context.Context, token string) (map[string]any, error) {
 	switch s.config.AccessTokenFormat {
-	case cryptoutilIdentityMagic.TokenFormatJWS:
+	case cryptoutilSharedMagic.TokenFormatJWS:
 		return s.jwsIssuer.ValidateToken(ctx, token)
-	case cryptoutilIdentityMagic.TokenFormatJWE:
+	case cryptoutilSharedMagic.TokenFormatJWE:
 		jws, err := s.jweIssuer.DecryptToken(ctx, token)
 		if err != nil {
 			return nil, err
 		}
 
 		return s.jwsIssuer.ValidateToken(ctx, jws)
-	case cryptoutilIdentityMagic.TokenFormatUUID:
+	case cryptoutilSharedMagic.TokenFormatUUID:
 		if err := s.uuidIssuer.ValidateToken(ctx, token); err != nil {
 			return nil, err
 		}
@@ -108,14 +108,14 @@ func (s *TokenService) IsTokenActive(claims map[string]any) bool {
 	now := time.Now().UTC().Unix()
 
 	// Check expiration time (exp claim).
-	if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
+	if exp, ok := claims[cryptoutilSharedMagic.ClaimExp].(float64); ok {
 		if int64(exp) < now {
 			return false
 		}
 	}
 
 	// Check not before time (nbf claim).
-	if nbf, ok := claims[cryptoutilIdentityMagic.ClaimNbf].(float64); ok {
+	if nbf, ok := claims[cryptoutilSharedMagic.ClaimNbf].(float64); ok {
 		if int64(nbf) > now {
 			return false
 		}
@@ -164,15 +164,15 @@ type TokenMetadata struct {
 // The JWT includes iss, aud, iat, and the userinfo claims (sub, profile, email, etc.).
 func (s *TokenService) IssueUserInfoJWT(ctx context.Context, clientID string, claims map[string]any) (string, error) {
 	// Ensure required claims are present.
-	if _, ok := claims[cryptoutilIdentityMagic.ClaimSub].(string); !ok {
+	if _, ok := claims[cryptoutilSharedMagic.ClaimSub].(string); !ok {
 		return "", cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
-			fmt.Errorf("missing required claim: %s", cryptoutilIdentityMagic.ClaimSub),
+			fmt.Errorf("missing required claim: %s", cryptoutilSharedMagic.ClaimSub),
 		)
 	}
 
 	// Add audience claim (client_id that requested the userinfo).
-	claims[cryptoutilIdentityMagic.ClaimAud] = clientID
+	claims[cryptoutilSharedMagic.ClaimAud] = clientID
 
 	// Issue as ID token (same signing mechanism).
 	return s.jwsIssuer.IssueIDToken(ctx, claims)

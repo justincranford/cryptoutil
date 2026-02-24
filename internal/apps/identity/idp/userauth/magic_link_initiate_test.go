@@ -15,7 +15,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestMagicLinkAuthenticator_InitiateAuth(t *testing.T) {
@@ -263,7 +263,7 @@ func TestMagicLinkAuthenticator_VerifyAuthExpired(t *testing.T) {
 	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	// Create expired challenge manually.
-	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
+	token, err := generator.GenerateSecureToken(cryptoutilSharedMagic.DefaultMagicLinkLength)
 	require.NoError(t, err)
 
 	hashedToken, err := cryptoutilIdentityIdpUserauth.HashToken(token)
@@ -310,7 +310,7 @@ func TestMagicLinkAuthenticator_VerifyAuthSuccess(t *testing.T) {
 	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, delivery, challengeStore, rateLimiter, userRepo, "https://example.com")
 
 	// Generate token before initiating auth so we can capture it.
-	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
+	token, err := generator.GenerateSecureToken(cryptoutilSharedMagic.DefaultMagicLinkLength)
 	require.NoError(t, err)
 
 	hashedToken, err := cryptoutilIdentityIdpUserauth.HashToken(token)

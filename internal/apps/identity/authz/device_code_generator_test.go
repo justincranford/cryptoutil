@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ func TestGenerateDeviceCode(t *testing.T) {
 		// Check base64url encoding validity.
 		decoded, err := base64.RawURLEncoding.DecodeString(code)
 		require.NoError(t, err, "Device code should be valid base64url: %s", code)
-		require.Len(t, decoded, cryptoutilIdentityMagic.DefaultDeviceCodeLength, "Decoded device code should be 32 bytes")
+		require.Len(t, decoded, cryptoutilSharedMagic.DefaultDeviceCodeLength, "Decoded device code should be 32 bytes")
 
 		// Check length (base64url encoding produces ~43 characters for 32 bytes).
 		require.GreaterOrEqual(t, len(code), 40, "Device code should be at least 40 characters")

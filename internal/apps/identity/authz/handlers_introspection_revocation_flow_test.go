@@ -21,8 +21,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestIntrospectionRevocationFlow validates the complete flow:
@@ -66,7 +66,7 @@ func TestIntrospectionRevocationFlow(t *testing.T) {
 	t.Log("Step 2: Revoking token...")
 
 	revokeFormBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{testToken.TokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
 	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
@@ -133,8 +133,8 @@ func TestIntrospectionRefreshTokenRevocation(t *testing.T) {
 
 	// Step 2: Revoke with token_type_hint=refresh_token.
 	revokeFormBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken:         []string{refreshToken.TokenValue},
-		cryptoutilIdentityMagic.ParamTokenTypeHint: []string{cryptoutilIdentityMagic.TokenTypeRefreshToken},
+		cryptoutilSharedMagic.ParamToken:         []string{refreshToken.TokenValue},
+		cryptoutilSharedMagic.ParamTokenTypeHint: []string{cryptoutilSharedMagic.TokenTypeRefreshToken},
 	}
 
 	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
@@ -172,8 +172,8 @@ func TestIntrospectionTokenTypeHintMismatch(t *testing.T) {
 
 	// Try to revoke access token with refresh_token hint - should fail.
 	revokeFormBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken:         []string{accessToken.TokenValue},
-		cryptoutilIdentityMagic.ParamTokenTypeHint: []string{cryptoutilIdentityMagic.TokenTypeRefreshToken},
+		cryptoutilSharedMagic.ParamToken:         []string{accessToken.TokenValue},
+		cryptoutilSharedMagic.ParamTokenTypeHint: []string{cryptoutilSharedMagic.TokenTypeRefreshToken},
 	}
 
 	revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
@@ -207,7 +207,7 @@ func TestIntrospectionMultipleRevocationsIdempotent(t *testing.T) {
 	// Revoke the token multiple times - all should succeed (idempotent per RFC 7009).
 	for i := 0; i < 3; i++ {
 		revokeFormBody := url.Values{
-			cryptoutilIdentityMagic.ParamToken: []string{testToken.TokenValue},
+			cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 		}
 
 		revokeReq := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(revokeFormBody.Encode()))
@@ -253,7 +253,7 @@ func introspectTokenForRevocationFlow(t *testing.T, app *fiber.App, tokenValue s
 	t.Helper()
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{tokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{tokenValue},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -331,7 +331,7 @@ func createRevocationFlowTestClient(t *testing.T, repoFactory *cryptoutilIdentit
 		ClientID:                fmt.Sprintf("revoke-test-client-%s", clientUUID.String()),
 		Name:                    "Revocation Flow Test Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           []string{"openid", "profile", "email", "offline_access"},
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,

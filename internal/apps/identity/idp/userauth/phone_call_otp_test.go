@@ -15,7 +15,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockPhoneCallService implements PhoneCallService for testing.
@@ -148,7 +148,7 @@ func TestPhoneCallOTPAuthenticator_InitiateAuth(t *testing.T) {
 	require.NotNil(t, challenge)
 	require.Equal(t, userID, challenge.UserID)
 	require.Equal(t, "phone_call_otp", challenge.Method)
-	require.WithinDuration(t, beforeInitiate.Add(cryptoutilIdentityMagic.DefaultPhoneCallOTPTimeout), challenge.ExpiresAt, 5*time.Second)
+	require.WithinDuration(t, beforeInitiate.Add(cryptoutilSharedMagic.DefaultPhoneCallOTPTimeout), challenge.ExpiresAt, 5*time.Second)
 
 	// Verify voice call was made.
 	require.Len(t, mockPhone.madeCalls, 1)

@@ -14,8 +14,8 @@ import (
 	joseJwt "github.com/lestrrat-go/jwx/v3/jwt"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ClientClaims represents the JWT claims for client authentication.
@@ -138,8 +138,8 @@ func (v *PrivateKeyJWTValidator) validateClaims(ctx context.Context, token joseJ
 
 	// Validate assertion lifetime (RFC 7523 Section 3).
 	assertionLifetime := exp.Sub(iat)
-	if assertionLifetime > cryptoutilIdentityMagic.JWTAssertionMaxLifetime {
-		return fmt.Errorf("JWT assertion lifetime %v exceeds maximum %v", assertionLifetime, cryptoutilIdentityMagic.JWTAssertionMaxLifetime)
+	if assertionLifetime > cryptoutilSharedMagic.JWTAssertionMaxLifetime {
+		return fmt.Errorf("JWT assertion lifetime %v exceeds maximum %v", assertionLifetime, cryptoutilSharedMagic.JWTAssertionMaxLifetime)
 	}
 
 	// Validate JTI (JWT ID) claim for replay protection.
@@ -294,8 +294,8 @@ func (v *ClientSecretJWTValidator) validateClaims(ctx context.Context, token jos
 
 	// Validate assertion lifetime (RFC 7523 Section 3): exp - iat should not exceed maximum.
 	assertionLifetime := exp.Sub(iat)
-	if assertionLifetime > cryptoutilIdentityMagic.JWTAssertionMaxLifetime {
-		return fmt.Errorf("JWT assertion lifetime %v exceeds maximum %v", assertionLifetime, cryptoutilIdentityMagic.JWTAssertionMaxLifetime)
+	if assertionLifetime > cryptoutilSharedMagic.JWTAssertionMaxLifetime {
+		return fmt.Errorf("JWT assertion lifetime %v exceeds maximum %v", assertionLifetime, cryptoutilSharedMagic.JWTAssertionMaxLifetime)
 	}
 
 	// Extract and validate jti (JWT ID) for replay protection.

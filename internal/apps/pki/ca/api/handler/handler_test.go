@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilApiCaServer "cryptoutil/api/ca/server"
-	cryptoutilCAMagic "cryptoutil/internal/apps/pki/ca/magic"
 	cryptoutilCAStorage "cryptoutil/internal/apps/pki/ca/storage"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestNewHandler(t *testing.T) {
@@ -149,8 +149,8 @@ func TestGetKeyInfo(t *testing.T) {
 				return &x509.Certificate{PublicKey: pub}
 			},
 			expectedAlgo:    "EdDSA",
-			expectedMinSize: ed25519.PublicKeySize * cryptoutilCAMagic.BitsPerByte,
-			expectedMaxSize: ed25519.PublicKeySize * cryptoutilCAMagic.BitsPerByte,
+			expectedMinSize: ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte,
+			expectedMaxSize: ed25519.PublicKeySize * cryptoutilSharedMagic.BitsPerByte,
 		},
 		{
 			name: "unknown_public_key",

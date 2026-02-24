@@ -15,7 +15,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // --- fixedOTPGenerator returns deterministic OTP for testing ---
@@ -31,7 +31,6 @@ func newFixedOTPGenerator(otp, token string) *fixedOTPGenerator {
 
 func (g *fixedOTPGenerator) GenerateOTP(_ int) (string, error)         { return g.otp, nil }
 func (g *fixedOTPGenerator) GenerateSecureToken(_ int) (string, error) { return g.token, nil }
-
 
 // --- coverageUserRepo for shared use ---
 
@@ -349,7 +348,7 @@ func TestMagicLinkAuthenticator_VerifyAuth_UserNotFound(t *testing.T) {
 	challengeStore := cryptoutilIdentityIdpUserauth.NewInMemoryChallengeStore()
 	rateLimiter := cryptoutilIdentityIdpUserauth.NewInMemoryRateLimiter()
 	auth := cryptoutilIdentityIdpUserauth.NewMagicLinkAuthenticator(generator, cryptoutilIdentityIdpUserauth.NewMockDeliveryService(), challengeStore, rateLimiter, userRepo, "https://example.com")
-	token, err := generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultMagicLinkLength)
+	token, err := generator.GenerateSecureToken(cryptoutilSharedMagic.DefaultMagicLinkLength)
 	require.NoError(t, err)
 	hashedToken, err := cryptoutilIdentityIdpUserauth.HashToken(token)
 	require.NoError(t, err)

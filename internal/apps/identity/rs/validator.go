@@ -12,7 +12,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TokenService defines the interface for token validation operations.
@@ -89,7 +89,7 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 		if !v.tokenSvc.IsTokenActive(claims) {
 			v.logger.Warn("Token expired or not yet valid",
 				"path", c.Path(),
-				"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
+				"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error":             "invalid_token",
@@ -98,8 +98,8 @@ func (v *TokenValidator) ValidateToken() fiber.Handler {
 		}
 
 		v.logger.Debug("Token validated successfully",
-			"client_id", claims[cryptoutilIdentityMagic.ClaimClientID],
-			"scope", claims[cryptoutilIdentityMagic.ClaimScope],
+			"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
+			"scope", claims[cryptoutilSharedMagic.ClaimScope],
 			"path", c.Path())
 
 		// Store claims in context for downstream handlers.

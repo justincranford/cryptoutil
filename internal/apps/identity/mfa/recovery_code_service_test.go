@@ -17,9 +17,9 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityMfa "cryptoutil/internal/apps/identity/mfa"
 	cryptoutilIdentityORM "cryptoutil/internal/apps/identity/repository/orm"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // createTestDB creates an in-memory SQLite database for testing.
@@ -172,7 +172,7 @@ func TestRecoveryCodeService_Verify_Expired(t *testing.T) {
 		CodeHash:  string(hash),
 		Used:      false,
 		UsedAt:    nil,
-		CreatedAt: time.Now().UTC().Add(-cryptoutilIdentityMagic.DefaultRecoveryCodeLifetime - 1*time.Hour),
+		CreatedAt: time.Now().UTC().Add(-cryptoutilSharedMagic.DefaultRecoveryCodeLifetime - 1*time.Hour),
 		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 	}
 

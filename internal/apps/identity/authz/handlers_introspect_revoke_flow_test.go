@@ -18,8 +18,8 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleIntrospect_ActiveToken validates introspection of active access tokens.
@@ -39,7 +39,7 @@ func TestHandleIntrospect_ActiveToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{testToken.TokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -70,7 +70,7 @@ func TestHandleIntrospect_RevokedToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{testToken.TokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -119,7 +119,7 @@ func TestHandleIntrospect_ExpiredToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{expiredToken.TokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{expiredToken.TokenValue},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/introspect", strings.NewReader(formBody.Encode()))
@@ -150,7 +150,7 @@ func TestHandleRevoke_ValidToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{testToken.TokenValue},
+		cryptoutilSharedMagic.ParamToken: []string{testToken.TokenValue},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
@@ -178,7 +178,7 @@ func TestHandleRevoke_NonExistentToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamToken: []string{"non-existent-token-12345"},
+		cryptoutilSharedMagic.ParamToken: []string{"non-existent-token-12345"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/revoke", strings.NewReader(formBody.Encode()))
@@ -247,7 +247,7 @@ func createIntrospectRevokeTestClient(t *testing.T, repoFactory *cryptoutilIdent
 		ClientID:                fmt.Sprintf("test-client-%s", clientUUID.String()),
 		Name:                    "Test Client",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
 		AllowedScopes:           []string{"openid", "profile", "email"},
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,

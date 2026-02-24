@@ -20,8 +20,8 @@ import (
 	_ "modernc.org/sqlite"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // setupTestDB creates an in-memory SQLite database for testing.
@@ -128,7 +128,7 @@ func TestClientSecretJWTValidator_AssertionLifetimeValidation(t *testing.T) {
 		},
 		{
 			name:     "valid lifetime (maximum 10 minutes)",
-			lifetime: cryptoutilIdentityMagic.JWTAssertionMaxLifetime,
+			lifetime: cryptoutilSharedMagic.JWTAssertionMaxLifetime,
 			wantErr:  false,
 		},
 		{

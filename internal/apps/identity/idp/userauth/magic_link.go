@@ -12,8 +12,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // MagicLinkAuthenticator authenticates users via email magic links.
@@ -44,8 +44,8 @@ func NewMagicLinkAuthenticator(
 		rateLimiter:    rateLimiter,
 		userRepo:       userRepo,
 		baseURL:        baseURL,
-		tokenLength:    cryptoutilIdentityMagic.DefaultMagicLinkLength,
-		linkExpiration: cryptoutilIdentityMagic.DefaultMagicLinkLifetime,
+		tokenLength:    cryptoutilSharedMagic.DefaultMagicLinkLength,
+		linkExpiration: cryptoutilSharedMagic.DefaultMagicLinkLifetime,
 	}
 }
 

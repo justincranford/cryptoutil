@@ -16,7 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ProductionKeyGenerator implements KeyGenerator for production use.
@@ -30,11 +30,11 @@ func NewProductionKeyGenerator() *ProductionKeyGenerator {
 // GenerateSigningKey generates a signing key for the specified algorithm.
 func (g *ProductionKeyGenerator) GenerateSigningKey(ctx context.Context, algorithm string) (*SigningKey, error) {
 	switch algorithm {
-	case cryptoutilIdentityMagic.AlgorithmRS256, cryptoutilIdentityMagic.AlgorithmRS384, cryptoutilIdentityMagic.AlgorithmRS512:
+	case cryptoutilSharedMagic.AlgorithmRS256, cryptoutilSharedMagic.AlgorithmRS384, cryptoutilSharedMagic.AlgorithmRS512:
 		return g.generateRSASigningKey(ctx, algorithm)
-	case cryptoutilIdentityMagic.AlgorithmES256, cryptoutilIdentityMagic.AlgorithmES384, cryptoutilIdentityMagic.AlgorithmES512:
+	case cryptoutilSharedMagic.AlgorithmES256, cryptoutilSharedMagic.AlgorithmES384, cryptoutilSharedMagic.AlgorithmES512:
 		return g.generateECDSASigningKey(ctx, algorithm)
-	case cryptoutilIdentityMagic.AlgorithmHS256, cryptoutilIdentityMagic.AlgorithmHS384, cryptoutilIdentityMagic.AlgorithmHS512:
+	case cryptoutilSharedMagic.AlgorithmHS256, cryptoutilSharedMagic.AlgorithmHS384, cryptoutilSharedMagic.AlgorithmHS512:
 		return g.generateHMACSigningKey(ctx, algorithm)
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
@@ -46,7 +46,7 @@ func (g *ProductionKeyGenerator) GenerateSigningKey(ctx context.Context, algorit
 
 // GenerateEncryptionKey generates an AES-256 encryption key.
 func (g *ProductionKeyGenerator) GenerateEncryptionKey(_ context.Context) (*EncryptionKey, error) {
-	keyBytes := make([]byte, cryptoutilIdentityMagic.AES256KeySize)
+	keyBytes := make([]byte, cryptoutilSharedMagic.AES256KeySize)
 
 	if _, err := crand.Read(keyBytes); err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
@@ -61,7 +61,7 @@ func (g *ProductionKeyGenerator) GenerateEncryptionKey(_ context.Context) (*Encr
 		KeyID:        googleUuid.NewString(),
 		Key:          keyBytes,
 		CreatedAt:    now,
-		ExpiresAt:    now.Add(cryptoutilIdentityMagic.DefaultKeyRotationInterval + cryptoutilIdentityMagic.DefaultKeyGracePeriod),
+		ExpiresAt:    now.Add(cryptoutilSharedMagic.DefaultKeyRotationInterval + cryptoutilSharedMagic.DefaultKeyGracePeriod),
 		Active:       false,
 		ValidForDecr: false,
 	}, nil
@@ -73,11 +73,11 @@ func (g *ProductionKeyGenerator) generateRSASigningKey(_ context.Context, algori
 
 	switch algorithm {
 	case "RS256":
-		keySize = cryptoutilIdentityMagic.RSA2048KeySize
+		keySize = cryptoutilSharedMagic.RSA2048KeySize
 	case "RS384":
-		keySize = cryptoutilIdentityMagic.RSA3072KeySize
+		keySize = cryptoutilSharedMagic.RSA3072KeySize
 	case "RS512":
-		keySize = cryptoutilIdentityMagic.RSA4096KeySize
+		keySize = cryptoutilSharedMagic.RSA4096KeySize
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
@@ -100,7 +100,7 @@ func (g *ProductionKeyGenerator) generateRSASigningKey(_ context.Context, algori
 		Key:           privateKey,
 		Algorithm:     algorithm,
 		CreatedAt:     now,
-		ExpiresAt:     now.Add(cryptoutilIdentityMagic.DefaultKeyRotationInterval + cryptoutilIdentityMagic.DefaultKeyGracePeriod),
+		ExpiresAt:     now.Add(cryptoutilSharedMagic.DefaultKeyRotationInterval + cryptoutilSharedMagic.DefaultKeyGracePeriod),
 		Active:        false,
 		ValidForVerif: false,
 	}, nil
@@ -139,7 +139,7 @@ func (g *ProductionKeyGenerator) generateECDSASigningKey(_ context.Context, algo
 		Key:           privateKey,
 		Algorithm:     algorithm,
 		CreatedAt:     now,
-		ExpiresAt:     now.Add(cryptoutilIdentityMagic.DefaultKeyRotationInterval + cryptoutilIdentityMagic.DefaultKeyGracePeriod),
+		ExpiresAt:     now.Add(cryptoutilSharedMagic.DefaultKeyRotationInterval + cryptoutilSharedMagic.DefaultKeyGracePeriod),
 		Active:        false,
 		ValidForVerif: false,
 	}, nil
@@ -151,11 +151,11 @@ func (g *ProductionKeyGenerator) generateHMACSigningKey(_ context.Context, algor
 
 	switch algorithm {
 	case "HS256":
-		keySize = cryptoutilIdentityMagic.HMACSHA256KeySize
+		keySize = cryptoutilSharedMagic.HMACSHA256KeySize
 	case "HS384":
-		keySize = cryptoutilIdentityMagic.HMACSHA384KeySize
+		keySize = cryptoutilSharedMagic.HMACSHA384KeySize
 	case "HS512":
-		keySize = cryptoutilIdentityMagic.HMACSHA512KeySize
+		keySize = cryptoutilSharedMagic.HMACSHA512KeySize
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
@@ -179,7 +179,7 @@ func (g *ProductionKeyGenerator) generateHMACSigningKey(_ context.Context, algor
 		Key:           keyBytes,
 		Algorithm:     algorithm,
 		CreatedAt:     now,
-		ExpiresAt:     now.Add(cryptoutilIdentityMagic.DefaultKeyRotationInterval + cryptoutilIdentityMagic.DefaultKeyGracePeriod),
+		ExpiresAt:     now.Add(cryptoutilSharedMagic.DefaultKeyRotationInterval + cryptoutilSharedMagic.DefaultKeyGracePeriod),
 		Active:        false,
 		ValidForVerif: false,
 	}, nil

@@ -20,18 +20,18 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	demoIssuer           = "http://127.0.0.1:8080"
-	demoPort             = ":8080"
-	demoClientID         = "demo-client"
-	demoClientName       = "Demo Client"
-	demoRedirectURI      = "https://example.com/callback"
-	sampleAccessTokenFmt = "sample-access-token"
+	demoIssuer           = cryptoutilSharedMagic.DemoIssuer
+	demoPort             = cryptoutilSharedMagic.DemoPort
+	demoClientID         = cryptoutilSharedMagic.DemoClientID
+	demoClientName       = cryptoutilSharedMagic.DemoClientName
+	demoRedirectURI      = cryptoutilSharedMagic.DemoRedirectURI
+	sampleAccessTokenFmt = cryptoutilSharedMagic.DemoSampleAccessToken
 )
 
 var demoClientSecret = "demo-secret-" + googleUuid.New().String()[:8]
@@ -64,7 +64,7 @@ func demo(args []string, stdout, stderr io.Writer) int {
 	_, _ = fmt.Fprintln(outWriter, "================================================================")
 	_, _ = fmt.Fprintln(stdout)
 
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilIdentityMagic.DemoTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.DemoTimeout)
 	defer cancel()
 
 	// Run the demo.
@@ -99,7 +99,7 @@ func runDemo(ctx context.Context) error {
 	}()
 
 	// Give server time to start.
-	time.Sleep(cryptoutilIdentityMagic.DemoStartupDelay)
+	time.Sleep(cryptoutilSharedMagic.DemoStartupDelay)
 
 	_, _ = fmt.Fprintln(outWriter, "✅ Authorization server started on http://127.0.0.1:8080")
 	_, _ = fmt.Fprintln(outWriter)
@@ -193,29 +193,29 @@ func startAuthZServer(ctx context.Context) (*fiber.App, *cryptoutilIdentityRepos
 		AuthZ: &cryptoutilIdentityConfig.ServerConfig{
 			Name:         "identity-authz-demo",
 			BindAddress:  "127.0.0.1",
-			Port:         cryptoutilIdentityMagic.DemoServerPort,
+			Port:         cryptoutilSharedMagic.DemoServerPort,
 			TLSEnabled:   false,
-			ReadTimeout:  cryptoutilIdentityMagic.DefaultReadTimeout,
-			WriteTimeout: cryptoutilIdentityMagic.DefaultWriteTimeout,
-			IdleTimeout:  cryptoutilIdentityMagic.DefaultIdleServerTimeout,
+			ReadTimeout:  cryptoutilSharedMagic.DefaultReadTimeout,
+			WriteTimeout: cryptoutilSharedMagic.DefaultWriteTimeout,
+			IdleTimeout:  cryptoutilSharedMagic.DefaultIdleServerTimeout,
 			AdminEnabled: true,
-			AdminPort:    cryptoutilIdentityMagic.DemoAdminPort,
+			AdminPort:    cryptoutilSharedMagic.DemoAdminPort,
 		},
 		Database: &cryptoutilIdentityConfig.DatabaseConfig{
 			Type:            "sqlite",
 			DSN:             "file::memory:?cache=shared",
-			MaxOpenConns:    cryptoutilIdentityMagic.DefaultMaxOpenConns,
-			MaxIdleConns:    cryptoutilIdentityMagic.DefaultMaxIdleConns,
-			ConnMaxLifetime: cryptoutilIdentityMagic.DefaultConnMaxLifetime,
+			MaxOpenConns:    cryptoutilSharedMagic.DefaultMaxOpenConns,
+			MaxIdleConns:    cryptoutilSharedMagic.DefaultMaxIdleConns,
+			ConnMaxLifetime: cryptoutilSharedMagic.DefaultConnMaxLifetime,
 			AutoMigrate:     true,
 		},
 		Tokens: &cryptoutilIdentityConfig.TokenConfig{
 			Issuer:               demoIssuer,
-			AccessTokenLifetime:  cryptoutilIdentityMagic.DefaultAccessTokenLifetime,
-			RefreshTokenLifetime: cryptoutilIdentityMagic.DefaultRefreshTokenLifetime,
-			IDTokenLifetime:      cryptoutilIdentityMagic.DefaultIDTokenLifetime,
+			AccessTokenLifetime:  cryptoutilSharedMagic.DefaultAccessTokenLifetime,
+			RefreshTokenLifetime: cryptoutilSharedMagic.DefaultRefreshTokenLifetime,
+			IDTokenLifetime:      cryptoutilSharedMagic.DefaultIDTokenLifetime,
 			SigningAlgorithm:     "RS256",
-			AccessTokenFormat:    cryptoutilIdentityMagic.TokenFormatJWS,
+			AccessTokenFormat:    cryptoutilSharedMagic.TokenFormatJWS,
 		},
 	}
 
@@ -313,9 +313,9 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
 		RequirePKCE:             &trueVal,
 		PKCEChallengeMethod:     "S256",
-		AccessTokenLifetime:     cryptoutilIdentityMagic.AccessTokenExpirySeconds,
-		RefreshTokenLifetime:    cryptoutilIdentityMagic.RefreshTokenExpirySeconds,
-		IDTokenLifetime:         cryptoutilIdentityMagic.IDTokenExpirySeconds,
+		AccessTokenLifetime:     cryptoutilSharedMagic.AccessTokenExpirySeconds,
+		RefreshTokenLifetime:    cryptoutilSharedMagic.RefreshTokenExpirySeconds,
+		IDTokenLifetime:         cryptoutilSharedMagic.IDTokenExpirySeconds,
 		Enabled:                 &trueVal,
 	}
 
@@ -329,7 +329,7 @@ func registerDemoClient(ctx context.Context, repoFactory *cryptoutilIdentityRepo
 
 func createHTTPClient() *http.Client {
 	return &http.Client{
-		Timeout: cryptoutilIdentityMagic.DemoRequestDelay,
+		Timeout: cryptoutilSharedMagic.DemoRequestDelay,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, //nolint:gosec // Demo only

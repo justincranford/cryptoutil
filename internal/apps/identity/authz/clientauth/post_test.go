@@ -13,8 +13,8 @@ import (
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func TestPostAuthenticator_MethodName(t *testing.T) {
@@ -22,7 +22,7 @@ func TestPostAuthenticator_MethodName(t *testing.T) {
 
 	repo := &mockClientRepo{}
 	auth := NewPostAuthenticator(repo)
-	require.Equal(t, cryptoutilIdentityMagic.ClientAuthMethodSecretPost, auth.Method())
+	require.Equal(t, cryptoutilSharedMagic.ClientAuthMethodSecretPost, auth.Method())
 }
 
 func TestPostAuthenticator_Authenticate(t *testing.T) {

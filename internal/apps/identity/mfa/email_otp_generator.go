@@ -8,16 +8,16 @@ import (
 	"fmt"
 	"math/big"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // GenerateEmailOTP generates a 6-digit numeric OTP for email delivery.
 func GenerateEmailOTP() (string, error) {
 	otp := ""
-	charset := cryptoutilIdentityMagic.EmailOTPCharset
+	charset := cryptoutilSharedMagic.EmailOTPCharset
 	charsetLen := big.NewInt(int64(len(charset)))
 
-	for i := 0; i < cryptoutilIdentityMagic.DefaultEmailOTPLength; i++ {
+	for i := 0; i < cryptoutilSharedMagic.DefaultEmailOTPLength; i++ {
 		randomIndex, err := crand.Int(crand.Reader, charsetLen)
 		if err != nil {
 			return "", fmt.Errorf("failed to generate random number: %w", err)

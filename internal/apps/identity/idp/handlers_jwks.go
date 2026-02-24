@@ -6,7 +6,7 @@ import (
 	json "encoding/json"
 	"fmt"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	fiber "github.com/gofiber/fiber/v2"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -25,7 +25,7 @@ func (s *Service) handleJWKS(c *fiber.Ctx) error {
 
 	// Get all active public signing keys.
 	// Note: If no keys exist yet, we return an empty JWKS (valid per spec).
-	keys, err := keyRepo.FindByUsage(ctx, cryptoutilIdentityMagic.KeyUsageSigning, true)
+	keys, err := keyRepo.FindByUsage(ctx, cryptoutilSharedMagic.KeyUsageSigning, true)
 	if err != nil {
 		// For errors like "no keys found" or no Key table, return empty JWKS.
 		// This is valid behavior before keys are created.

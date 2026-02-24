@@ -12,7 +12,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // InMemoryChallengeStore implements ChallengeStore using in-memory storage.
@@ -133,9 +133,9 @@ type attemptRecord struct {
 func NewInMemoryRateLimiter() *InMemoryRateLimiter {
 	return &InMemoryRateLimiter{
 		attempts:    make(map[string]*attemptRecord),
-		maxAttempts: cryptoutilIdentityMagic.MaxOTPAttempts,
-		window:      cryptoutilIdentityMagic.DefaultRateLimitWindow,
-		lockoutTime: cryptoutilIdentityMagic.DefaultOTPLockout,
+		maxAttempts: cryptoutilSharedMagic.MaxOTPAttempts,
+		window:      cryptoutilSharedMagic.DefaultRateLimitWindow,
+		lockoutTime: cryptoutilSharedMagic.DefaultOTPLockout,
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // GenerateRequestURI generates a cryptographically random request_uri per RFC 9126.
@@ -18,7 +18,7 @@ import (
 // providing request integrity and confidentiality by keeping authorization parameters
 // server-side rather than exposing them in browser URLs.
 func GenerateRequestURI() (string, error) {
-	randomBytes := make([]byte, cryptoutilIdentityMagic.DefaultRequestURILength)
+	randomBytes := make([]byte, cryptoutilSharedMagic.DefaultRequestURILength)
 	if _, err := crand.Read(randomBytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes for request_uri: %w", err)
 	}
@@ -26,5 +26,5 @@ func GenerateRequestURI() (string, error) {
 	// Base64url encode without padding (RFC 4648 Section 5).
 	encoded := base64.RawURLEncoding.EncodeToString(randomBytes)
 
-	return cryptoutilIdentityMagic.RequestURIPrefix + encoded, nil
+	return cryptoutilSharedMagic.RequestURIPrefix + encoded, nil
 }

@@ -12,8 +12,8 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // PushNotificationAuthenticator authenticates users via mobile push notifications.
@@ -45,7 +45,7 @@ func NewPushNotificationAuthenticator(
 		challengeStore: challengeStore,
 		rateLimiter:    rateLimiter,
 		userRepo:       userRepo,
-		pushTimeout:    cryptoutilIdentityMagic.DefaultPushNotificationTimeout,
+		pushTimeout:    cryptoutilSharedMagic.DefaultPushNotificationTimeout,
 	}
 }
 
@@ -81,7 +81,7 @@ func (a *PushNotificationAuthenticator) InitiateAuth(ctx context.Context, userID
 	}
 
 	// Generate approval token.
-	approvalToken, err := a.generator.GenerateSecureToken(cryptoutilIdentityMagic.DefaultPushNotificationTokenLength)
+	approvalToken, err := a.generator.GenerateSecureToken(cryptoutilSharedMagic.DefaultPushNotificationTokenLength)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate approval token: %w", err)
 	}

@@ -11,9 +11,9 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityEmail "cryptoutil/internal/apps/identity/email"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRatelimit "cryptoutil/internal/apps/identity/ratelimit"
 	cryptoutilSharedCryptoPassword "cryptoutil/internal/shared/crypto/password"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -41,8 +41,8 @@ func NewEmailOTPService(
 		emailOTPRepo: emailOTPRepo,
 		emailService: emailService,
 		rateLimiter: cryptoutilIdentityRatelimit.NewRateLimiter(
-			cryptoutilIdentityMagic.DefaultEmailOTPRateLimit,
-			cryptoutilIdentityMagic.DefaultEmailOTPRateLimitWindow,
+			cryptoutilSharedMagic.DefaultEmailOTPRateLimit,
+			cryptoutilSharedMagic.DefaultEmailOTPRateLimitWindow,
 		),
 	}
 }
@@ -73,7 +73,7 @@ func (s *EmailOTPService) SendOTP(ctx context.Context, userID googleUuid.UUID, e
 		CodeHash:  hashedOTP,
 		Used:      false,
 		CreatedAt: time.Now().UTC(),
-		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultEmailOTPLifetime),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultEmailOTPLifetime),
 	}
 
 	if err := s.emailOTPRepo.Create(ctx, otp); err != nil {

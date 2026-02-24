@@ -6,6 +6,8 @@ package config
 
 import (
 	"time"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // DefaultConfig returns default configuration values.
@@ -26,16 +28,16 @@ func defaultAuthZConfig() *ServerConfig {
 	return &ServerConfig{
 		Name:             "authz",
 		BindAddress:      "127.0.0.1",
-		Port:             defaultAuthZPort,
+		Port:             cryptoutilSharedMagic.IdentityDefaultAuthZPort,
 		TLSEnabled:       false,
 		TLSCertFile:      "",
 		TLSKeyFile:       "",
-		ReadTimeout:      defaultReadTimeoutSeconds * time.Second,
-		WriteTimeout:     defaultWriteTimeoutSeconds * time.Second,
-		IdleTimeout:      defaultIdleTimeoutSeconds * time.Second,
+		ReadTimeout:      cryptoutilSharedMagic.IdentityDefaultReadTimeoutSeconds * time.Second,
+		WriteTimeout:     cryptoutilSharedMagic.IdentityDefaultWriteTimeoutSeconds * time.Second,
+		IdleTimeout:      cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 		AdminEnabled:     true,
 		AdminBindAddress: "127.0.0.1",
-		AdminPort:        defaultAuthZAdminPort,
+		AdminPort:        cryptoutilSharedMagic.IdentityDefaultAuthZAdminPort,
 	}
 }
 
@@ -43,16 +45,16 @@ func defaultIDPConfig() *ServerConfig {
 	return &ServerConfig{
 		Name:             "idp",
 		BindAddress:      "127.0.0.1",
-		Port:             defaultIDPPort,
+		Port:             cryptoutilSharedMagic.IdentityDefaultIDPPort,
 		TLSEnabled:       false,
 		TLSCertFile:      "",
 		TLSKeyFile:       "",
-		ReadTimeout:      defaultReadTimeoutSeconds * time.Second,
-		WriteTimeout:     defaultWriteTimeoutSeconds * time.Second,
-		IdleTimeout:      defaultIdleTimeoutSeconds * time.Second,
+		ReadTimeout:      cryptoutilSharedMagic.IdentityDefaultReadTimeoutSeconds * time.Second,
+		WriteTimeout:     cryptoutilSharedMagic.IdentityDefaultWriteTimeoutSeconds * time.Second,
+		IdleTimeout:      cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 		AdminEnabled:     true,
 		AdminBindAddress: "127.0.0.1",
-		AdminPort:        defaultIDPAdminPort,
+		AdminPort:        cryptoutilSharedMagic.IdentityDefaultIDPAdminPort,
 	}
 }
 
@@ -60,16 +62,16 @@ func defaultRSConfig() *ServerConfig {
 	return &ServerConfig{
 		Name:             "rs",
 		BindAddress:      "127.0.0.1",
-		Port:             defaultRSPort,
+		Port:             cryptoutilSharedMagic.IdentityDefaultRSPort,
 		TLSEnabled:       false,
 		TLSCertFile:      "",
 		TLSKeyFile:       "",
-		ReadTimeout:      defaultReadTimeoutSeconds * time.Second,
-		WriteTimeout:     defaultWriteTimeoutSeconds * time.Second,
-		IdleTimeout:      defaultIdleTimeoutSeconds * time.Second,
+		ReadTimeout:      cryptoutilSharedMagic.IdentityDefaultReadTimeoutSeconds * time.Second,
+		WriteTimeout:     cryptoutilSharedMagic.IdentityDefaultWriteTimeoutSeconds * time.Second,
+		IdleTimeout:      cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSeconds * time.Second,
 		AdminEnabled:     false,
 		AdminBindAddress: "127.0.0.1",
-		AdminPort:        defaultRSAdminPort,
+		AdminPort:        cryptoutilSharedMagic.IdentityDefaultRSAdminPort,
 	}
 }
 
@@ -77,22 +79,22 @@ func defaultDatabaseConfig() *DatabaseConfig {
 	return &DatabaseConfig{
 		Type:            "sqlite",
 		DSN:             ":memory:",
-		MaxOpenConns:    defaultMaxOpenConns,
-		MaxIdleConns:    defaultMaxIdleConns,
-		ConnMaxLifetime: defaultConnMaxLifetimeMin * time.Minute,
-		ConnMaxIdleTime: defaultConnMaxIdleTimeMin * time.Minute,
+		MaxOpenConns:    cryptoutilSharedMagic.IdentityDefaultMaxOpenConns,
+		MaxIdleConns:    cryptoutilSharedMagic.IdentityDefaultMaxIdleConns,
+		ConnMaxLifetime: cryptoutilSharedMagic.IdentityDefaultConnMaxLifetimeMin * time.Minute,
+		ConnMaxIdleTime: cryptoutilSharedMagic.IdentityDefaultConnMaxIdleTimeMin * time.Minute,
 		AutoMigrate:     true,
 	}
 }
 
 func defaultTokenConfig() *TokenConfig {
 	return &TokenConfig{
-		AccessTokenLifetime:  defaultAccessTokenLifetimeSeconds * time.Second,
-		RefreshTokenLifetime: defaultRefreshTokenLifetimeSeconds * time.Second,
-		IDTokenLifetime:      defaultIDTokenLifetimeSeconds * time.Second,
-		AccessTokenFormat:    tokenFormatJWS,
-		RefreshTokenFormat:   tokenFormatUUID,
-		IDTokenFormat:        tokenFormatJWS,
+		AccessTokenLifetime:  cryptoutilSharedMagic.IdentityDefaultAccessTokenLifetimeSeconds * time.Second,
+		RefreshTokenLifetime: cryptoutilSharedMagic.IdentityDefaultRefreshTokenLifetimeSeconds * time.Second,
+		IDTokenLifetime:      cryptoutilSharedMagic.IdentityDefaultIDTokenLifetimeSeconds * time.Second,
+		AccessTokenFormat:    cryptoutilSharedMagic.IdentityTokenFormatJWS,
+		RefreshTokenFormat:   cryptoutilSharedMagic.IdentityTokenFormatUUID,
+		IDTokenFormat:        cryptoutilSharedMagic.IdentityTokenFormatJWS,
 		Issuer:               "https://identity.example.com",
 		SigningAlgorithm:     "RS256",
 		SigningKeyID:         "",
@@ -102,8 +104,8 @@ func defaultTokenConfig() *TokenConfig {
 
 func defaultSessionConfig() *SessionConfig {
 	return &SessionConfig{
-		SessionLifetime: defaultSessionLifetimeSeconds * time.Second,
-		IdleTimeout:     defaultIdleTimeoutSecondsSession * time.Second,
+		SessionLifetime: cryptoutilSharedMagic.IdentityDefaultSessionLifetimeSeconds * time.Second,
+		IdleTimeout:     cryptoutilSharedMagic.IdentityDefaultIdleTimeoutSecondsSession * time.Second,
 		CookieName:      "identity_session",
 		CookieDomain:    "",
 		CookiePath:      "/",
@@ -119,8 +121,8 @@ func defaultSecurityConfig() *SecurityConfig {
 		PKCEChallengeMethod: "S256",
 		RequireState:        true,
 		RateLimitEnabled:    true,
-		RateLimitRequests:   defaultRateLimitRequests,
-		RateLimitWindow:     defaultRateLimitWindowSeconds * time.Second,
+		RateLimitRequests:   cryptoutilSharedMagic.IdentityDefaultRateLimitRequests,
+		RateLimitWindow:     cryptoutilSharedMagic.IdentityDefaultRateLimitWindowSeconds * time.Second,
 		CORSEnabled:         true,
 		CORSAllowedOrigins:  []string{"https://localhost:3000"},
 		CSRFEnabled:         true,

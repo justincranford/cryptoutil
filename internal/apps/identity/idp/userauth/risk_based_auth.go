@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthRequirements specifies authentication requirements based on risk level.
@@ -133,7 +133,7 @@ func (r *RiskBasedAuthenticator) InitiateAuth(ctx context.Context, userID string
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,
@@ -201,28 +201,28 @@ func DefaultRiskThresholds() map[RiskLevel]*AuthRequirements {
 			AllowedMethods:    []string{"password", "magic_link"},
 			RequiresBiometric: false,
 			RequiresHardware:  false,
-			MaxAge:            cryptoutilIdentityMagic.LowRiskAuthMaxAge,
+			MaxAge:            cryptoutilSharedMagic.LowRiskAuthMaxAge,
 		},
 		RiskLevelMedium: {
 			MinFactors:        factorsTwo,
 			AllowedMethods:    []string{"password", "totp", "sms_otp"},
 			RequiresBiometric: false,
 			RequiresHardware:  false,
-			MaxAge:            cryptoutilIdentityMagic.MediumRiskAuthMaxAge,
+			MaxAge:            cryptoutilSharedMagic.MediumRiskAuthMaxAge,
 		},
 		RiskLevelHigh: {
 			MinFactors:        factorsTwo,
 			AllowedMethods:    []string{"totp", "hardware_key", "biometric"},
 			RequiresBiometric: false,
 			RequiresHardware:  true,
-			MaxAge:            cryptoutilIdentityMagic.HighRiskAuthMaxAge,
+			MaxAge:            cryptoutilSharedMagic.HighRiskAuthMaxAge,
 		},
 		RiskLevelCritical: {
 			MinFactors:        factorsThree,
 			AllowedMethods:    []string{"hardware_key", "biometric"},
 			RequiresBiometric: true,
 			RequiresHardware:  true,
-			MaxAge:            cryptoutilIdentityMagic.CriticalRiskAuthMaxAge,
+			MaxAge:            cryptoutilSharedMagic.CriticalRiskAuthMaxAge,
 		},
 	}
 }

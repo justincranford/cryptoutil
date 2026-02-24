@@ -13,7 +13,6 @@ import (
 	cryptoutilIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
@@ -58,7 +57,7 @@ func TestMigrateClientSecrets_Success(t *testing.T) {
 		ClientID:                fmt.Sprintf("test-client-%s", clientUUID.String()),
 		Name:                    "Test Client Migration",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,

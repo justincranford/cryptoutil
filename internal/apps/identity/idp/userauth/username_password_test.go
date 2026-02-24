@@ -15,7 +15,7 @@ import (
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -117,7 +117,7 @@ func TestUsernamePasswordAuthenticator_Method(t *testing.T) {
 	userStore := newMockUserStore()
 
 	auth := cryptoutilIdentityIdpUserauth.NewUsernamePasswordAuthenticator(credStore, challengeStore, userStore, nil, false)
-	require.Equal(t, cryptoutilIdentityMagic.AuthMethodUsernamePassword, auth.Method(), "Method should return correct identifier")
+	require.Equal(t, cryptoutilSharedMagic.AuthMethodUsernamePassword, auth.Method(), "Method should return correct identifier")
 }
 
 // TestUsernamePasswordAuthenticator_HashPassword tests HashPassword with various inputs.
@@ -138,7 +138,7 @@ func TestUsernamePasswordAuthenticator_HashPassword(t *testing.T) {
 		},
 		{
 			name:      "minimum length password",
-			password:  strings.Repeat("a", cryptoutilIdentityMagic.MinPasswordLength),
+			password:  strings.Repeat("a", cryptoutilSharedMagic.MinPasswordLength),
 			wantErr:   false,
 			errSubstr: "",
 		},
@@ -150,7 +150,7 @@ func TestUsernamePasswordAuthenticator_HashPassword(t *testing.T) {
 		},
 		{
 			name:      "password too long",
-			password:  strings.Repeat("a", cryptoutilIdentityMagic.MaxPasswordLength+1),
+			password:  strings.Repeat("a", cryptoutilSharedMagic.MaxPasswordLength+1),
 			wantErr:   true,
 			errSubstr: "password too long",
 		},
@@ -208,7 +208,7 @@ func TestUsernamePasswordAuthenticator_ValidatePassword(t *testing.T) {
 		},
 		{
 			name:      "password too long",
-			password:  strings.Repeat("a", cryptoutilIdentityMagic.MaxPasswordLength+1),
+			password:  strings.Repeat("a", cryptoutilSharedMagic.MaxPasswordLength+1),
 			wantErr:   true,
 			errSubstr: "password too long",
 		},
@@ -260,7 +260,7 @@ func TestUsernamePasswordAuthenticator_InitiateAuth(t *testing.T) {
 	require.NoError(t, err, "InitiateAuth should succeed")
 	require.NotNil(t, challenge, "Challenge should not be nil")
 	require.Equal(t, userID.String(), challenge.UserID, "Challenge UserID should match")
-	require.Equal(t, cryptoutilIdentityMagic.AuthMethodUsernamePassword, challenge.Method, "Challenge Method should match")
+	require.Equal(t, cryptoutilSharedMagic.AuthMethodUsernamePassword, challenge.Method, "Challenge Method should match")
 }
 
 // TestUsernamePasswordAuthenticator_InitiateAuthUserNotFound tests InitiateAuth with non-existent user.

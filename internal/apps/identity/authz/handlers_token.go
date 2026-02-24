@@ -16,26 +16,26 @@ import (
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
 	cryptoutilIdentityAuthzPkce "cryptoutil/internal/apps/identity/authz/pkce"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // handleToken handles POST /token - OAuth 2.1 token endpoint.
 func (s *Service) handleToken(c *fiber.Ctx) error {
 	// Extract grant type.
-	grantType := c.FormValue(cryptoutilIdentityMagic.ParamGrantType)
+	grantType := c.FormValue(cryptoutilSharedMagic.ParamGrantType)
 
 	switch grantType {
-	case cryptoutilIdentityMagic.GrantTypeAuthorizationCode:
+	case cryptoutilSharedMagic.GrantTypeAuthorizationCode:
 		return s.handleAuthorizationCodeGrant(c)
-	case cryptoutilIdentityMagic.GrantTypeClientCredentials:
+	case cryptoutilSharedMagic.GrantTypeClientCredentials:
 		return s.handleClientCredentialsGrant(c)
-	case cryptoutilIdentityMagic.GrantTypeRefreshToken:
+	case cryptoutilSharedMagic.GrantTypeRefreshToken:
 		return s.handleRefreshTokenGrant(c)
-	case cryptoutilIdentityMagic.GrantTypeDeviceCode:
+	case cryptoutilSharedMagic.GrantTypeDeviceCode:
 		return s.handleDeviceCodeGrant(c)
 	default:
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorUnsupportedGrantType,
+			"error":             cryptoutilSharedMagic.ErrorUnsupportedGrantType,
 			"error_description": "Unsupported grant type",
 		})
 	}
@@ -44,36 +44,36 @@ func (s *Service) handleToken(c *fiber.Ctx) error {
 // handleAuthorizationCodeGrant handles authorization_code grant.
 func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 	// Extract parameters.
-	code := c.FormValue(cryptoutilIdentityMagic.ParamCode)
-	redirectURI := c.FormValue(cryptoutilIdentityMagic.ParamRedirectURI)
-	clientID := c.FormValue(cryptoutilIdentityMagic.ParamClientID)
-	codeVerifier := c.FormValue(cryptoutilIdentityMagic.ParamCodeVerifier)
+	code := c.FormValue(cryptoutilSharedMagic.ParamCode)
+	redirectURI := c.FormValue(cryptoutilSharedMagic.ParamRedirectURI)
+	clientID := c.FormValue(cryptoutilSharedMagic.ParamClientID)
+	codeVerifier := c.FormValue(cryptoutilSharedMagic.ParamCodeVerifier)
 
 	// Validate required parameters.
 	if code == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "code is required",
 		})
 	}
 
 	if redirectURI == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "redirect_uri is required",
 		})
 	}
 
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "client_id is required",
 		})
 	}
 
 	if codeVerifier == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "code_verifier is required (OAuth 2.1 requires PKCE)",
 		})
 	}
@@ -88,7 +88,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Authorization code not found or expired", "error", err, "code", code)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Invalid or expired authorization code",
 		})
 	}
@@ -98,7 +98,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Authorization code expired", "request_id", authRequest.ID, "expires_at", authRequest.ExpiresAt)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Authorization code has expired",
 		})
 	}
@@ -108,7 +108,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Authorization code already used", "request_id", authRequest.ID, "used_at", authRequest.UsedAt)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Authorization code has already been used",
 		})
 	}
@@ -118,7 +118,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Client ID mismatch", "expected", authRequest.ClientID, "provided", clientID)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Client ID does not match authorization code",
 		})
 	}
@@ -128,7 +128,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Redirect URI mismatch", "expected", authRequest.RedirectURI, "provided", redirectURI)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Redirect URI does not match authorization request",
 		})
 	}
@@ -138,7 +138,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "PKCE validation failed", "code_challenge", authRequest.CodeChallenge, "method", authRequest.CodeChallengeMethod)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "PKCE validation failed",
 		})
 	}
@@ -163,7 +163,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Client not found", "error", err, "client_id", clientID)
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
+			"error":             cryptoutilSharedMagic.ErrorInvalidClient,
 			"error_description": appErr.Message,
 		})
 	}
@@ -174,7 +174,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "User ID missing from authorization request", "auth_request_id", authRequest.ID)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Authorization request missing user ID (login/consent not completed)",
 		})
 	}
@@ -184,7 +184,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Token service not configured")
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Token service not configured",
 		})
 	}
@@ -204,7 +204,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Access token issuance failed", "error", err)
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": appErr.Message,
 		})
 	}
@@ -217,7 +217,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 		slog.ErrorContext(ctx, "Refresh token issuance failed", "error", err)
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": appErr.Message,
 		})
 	}
@@ -245,17 +245,17 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 	if err != nil {
 		slog.ErrorContext(c.Context(), "Client authentication failed in client_credentials grant",
 			"error", err,
-			"client_id", c.FormValue(cryptoutilIdentityMagic.ParamClientID),
+			"client_id", c.FormValue(cryptoutilSharedMagic.ParamClientID),
 		)
 
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
+			"error":             cryptoutilSharedMagic.ErrorInvalidClient,
 			"error_description": "Client authentication failed",
 		})
 	}
 
 	// Extract scope.
-	scope := c.FormValue(cryptoutilIdentityMagic.ParamScope)
+	scope := c.FormValue(cryptoutilSharedMagic.ParamScope)
 
 	ctx := c.Context()
 
@@ -266,14 +266,14 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 		)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Token service not configured",
 		})
 	}
 
 	// Generate access token.
 	now := time.Now().UTC()
-	expiresAt := now.Add(time.Duration(cryptoutilIdentityMagic.AccessTokenExpirySeconds) * time.Second)
+	expiresAt := now.Add(time.Duration(cryptoutilSharedMagic.AccessTokenExpirySeconds) * time.Second)
 
 	accessTokenClaims := map[string]any{
 		"client_id": client.ClientID,
@@ -293,7 +293,7 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 		)
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": appErr.Message,
 		})
 	}
@@ -326,7 +326,7 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"access_token": accessToken,
 		"token_type":   "Bearer",
-		"expires_in":   cryptoutilIdentityMagic.AccessTokenExpirySeconds,
+		"expires_in":   cryptoutilSharedMagic.AccessTokenExpirySeconds,
 		"scope":        scope,
 	})
 }
@@ -334,21 +334,21 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 // handleRefreshTokenGrant handles refresh_token grant.
 func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	// Extract parameters.
-	refreshToken := c.FormValue(cryptoutilIdentityMagic.ParamRefreshToken)
-	clientID := c.FormValue(cryptoutilIdentityMagic.ParamClientID)
-	scope := c.FormValue(cryptoutilIdentityMagic.ParamScope)
+	refreshToken := c.FormValue(cryptoutilSharedMagic.ParamRefreshToken)
+	clientID := c.FormValue(cryptoutilSharedMagic.ParamClientID)
+	scope := c.FormValue(cryptoutilSharedMagic.ParamScope)
 
 	// Validate required parameters.
 	if refreshToken == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "refresh_token is required",
 		})
 	}
 
 	if clientID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "client_id is required",
 		})
 	}
@@ -362,7 +362,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 		appErr := cryptoutilIdentityAppErr.ErrTokenNotFound
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Invalid refresh token",
 		})
 	}
@@ -370,7 +370,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	// Validate token type.
 	if token.TokenType != cryptoutilIdentityDomain.TokenTypeRefresh {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Token is not a refresh token",
 		})
 	}
@@ -378,7 +378,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	// Validate token not revoked.
 	if token.RevokedAt != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Refresh token has been revoked",
 		})
 	}
@@ -386,7 +386,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	// Validate token not expired.
 	if token.ExpiresAt.Before(time.Now().UTC()) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
+			"error":             cryptoutilSharedMagic.ErrorInvalidGrant,
 			"error_description": "Refresh token has expired",
 		})
 	}
@@ -398,7 +398,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 		)
 
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Token service not configured",
 		})
 	}
@@ -417,7 +417,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 		appErr := cryptoutilIdentityAppErr.ErrTokenIssuanceFailed
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": appErr.Message,
 		})
 	}
@@ -425,7 +425,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"access_token": accessToken,
 		"token_type":   "Bearer",
-		"expires_in":   cryptoutilIdentityMagic.AccessTokenExpirySeconds,
+		"expires_in":   cryptoutilSharedMagic.AccessTokenExpirySeconds,
 		"scope":        scope,
 	})
 }

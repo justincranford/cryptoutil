@@ -12,7 +12,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // AuthenticationLevel represents the strength/level of authentication.
@@ -205,10 +205,10 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultOTPLifetime)
 
 	// Select step-up method (first allowed method for simplicity).
-	challengeMethod := cryptoutilIdentityMagic.AuthMethodTOTP
+	challengeMethod := cryptoutilSharedMagic.AuthMethodTOTP
 	if len(policy.AllowedMethods) > 0 {
 		challengeMethod = policy.AllowedMethods[0]
 	}
@@ -320,7 +320,7 @@ func (s *StepUpAuthenticator) InitiateAuth(ctx context.Context, userID string) (
 		return nil, fmt.Errorf("failed to generate challenge ID: %w", err)
 	}
 
-	expiresAt := time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
+	expiresAt := time.Now().UTC().Add(cryptoutilSharedMagic.DefaultOTPLifetime)
 
 	challenge := &AuthChallenge{
 		ID:        challengeID,
@@ -360,32 +360,32 @@ func DefaultStepUpPolicies() map[string]*StepUpPolicy {
 		policyTransferFunds: {
 			OperationPattern: policyTransferFunds,
 			RequiredLevel:    AuthLevelMFA,
-			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP, cryptoutilIdentityMagic.AuthMethodHardwareKey},
-			MaxAge:           cryptoutilIdentityMagic.StepUpTransferFundsMaxAge,
+			AllowedMethods:   []string{cryptoutilSharedMagic.AuthMethodTOTP, cryptoutilSharedMagic.AuthMethodSMSOTP, cryptoutilSharedMagic.AuthMethodHardwareKey},
+			MaxAge:           cryptoutilSharedMagic.StepUpTransferFundsMaxAge,
 		},
 		policyChangePassword: {
 			OperationPattern: policyChangePassword,
 			RequiredLevel:    AuthLevelStepUp,
-			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP},
-			MaxAge:           cryptoutilIdentityMagic.StepUpChangePasswordMaxAge,
+			AllowedMethods:   []string{cryptoutilSharedMagic.AuthMethodTOTP, cryptoutilSharedMagic.AuthMethodSMSOTP},
+			MaxAge:           cryptoutilSharedMagic.StepUpChangePasswordMaxAge,
 		},
 		policyAddPayee: {
 			OperationPattern: policyAddPayee,
 			RequiredLevel:    AuthLevelMFA,
-			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP, cryptoutilIdentityMagic.AuthMethodHardwareKey},
-			MaxAge:           cryptoutilIdentityMagic.StepUpAddPayeeMaxAge,
+			AllowedMethods:   []string{cryptoutilSharedMagic.AuthMethodTOTP, cryptoutilSharedMagic.AuthMethodSMSOTP, cryptoutilSharedMagic.AuthMethodHardwareKey},
+			MaxAge:           cryptoutilSharedMagic.StepUpAddPayeeMaxAge,
 		},
 		policyDeleteAccount: {
 			OperationPattern: policyDeleteAccount,
 			RequiredLevel:    AuthLevelStrongMFA,
-			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodHardwareKey, cryptoutilIdentityMagic.AuthMethodBiometric},
-			MaxAge:           cryptoutilIdentityMagic.StepUpDeleteAccountMaxAge,
+			AllowedMethods:   []string{cryptoutilSharedMagic.AuthMethodHardwareKey, cryptoutilSharedMagic.AuthMethodBiometric},
+			MaxAge:           cryptoutilSharedMagic.StepUpDeleteAccountMaxAge,
 		},
 		policyViewPII: {
 			OperationPattern: policyViewPII,
 			RequiredLevel:    AuthLevelMFA,
-			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP},
-			MaxAge:           cryptoutilIdentityMagic.StepUpViewPIIMaxAge,
+			AllowedMethods:   []string{cryptoutilSharedMagic.AuthMethodTOTP, cryptoutilSharedMagic.AuthMethodSMSOTP},
+			MaxAge:           cryptoutilSharedMagic.StepUpViewPIIMaxAge,
 		},
 	}
 }

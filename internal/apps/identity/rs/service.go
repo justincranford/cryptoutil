@@ -14,7 +14,7 @@ import (
 	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // Service represents the resource server.
@@ -116,20 +116,20 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 				"method", c.Method())
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error":             cryptoutilIdentityMagic.ErrorInvalidToken,
+				"error":             cryptoutilSharedMagic.ErrorInvalidToken,
 				"error_description": "Token validation required",
 			})
 		}
 
 		// Extract scopes from claims.
-		scopeStr, ok := claims[cryptoutilIdentityMagic.ClaimScope].(string)
+		scopeStr, ok := claims[cryptoutilSharedMagic.ClaimScope].(string)
 		if !ok {
 			s.logger.Warn("Missing scope claim in token",
-				"client_id", claims[cryptoutilIdentityMagic.ClaimClientID],
+				"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
 				"path", c.Path())
 
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error":             cryptoutilIdentityMagic.ErrorInsufficientScope,
+				"error":             cryptoutilSharedMagic.ErrorInsufficientScope,
 				"error_description": "Token missing scope claim",
 			})
 		}
@@ -146,20 +146,20 @@ func (s *Service) RequireScopes(requiredScopes ...string) fiber.Handler {
 		for _, required := range requiredScopes {
 			if !scopeSet[required] {
 				s.logger.Warn("Insufficient scope for resource access",
-					"client_id", claims[cryptoutilIdentityMagic.ClaimClientID],
+					"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
 					"required_scopes", requiredScopes,
 					"granted_scopes", grantedScopes,
 					"path", c.Path())
 
 				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-					"error":             cryptoutilIdentityMagic.ErrorInsufficientScope,
+					"error":             cryptoutilSharedMagic.ErrorInsufficientScope,
 					"error_description": fmt.Sprintf("Required scope missing: %s", required),
 				})
 			}
 		}
 
 		s.logger.Debug("Scope validation successful",
-			"client_id", claims[cryptoutilIdentityMagic.ClaimClientID],
+			"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
 			"required_scopes", requiredScopes,
 			"path", c.Path())
 
@@ -187,13 +187,13 @@ func (s *Service) handleProtectedResource(c *fiber.Ctx) error {
 	}
 
 	s.logger.Info("Protected resource accessed",
-		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID],
-		"scope", claims[cryptoutilIdentityMagic.ClaimScope])
+		"client_id", claims[cryptoutilSharedMagic.ClaimClientID],
+		"scope", claims[cryptoutilSharedMagic.ClaimScope])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":   "Protected resource accessed successfully",
-		"client_id": claims[cryptoutilIdentityMagic.ClaimClientID],
-		"scope":     claims[cryptoutilIdentityMagic.ClaimScope],
+		"client_id": claims[cryptoutilSharedMagic.ClaimClientID],
+		"scope":     claims[cryptoutilSharedMagic.ClaimScope],
 		"data": fiber.Map{
 			"id":   "resource-123",
 			"name": "Sample Protected Resource",
@@ -213,7 +213,7 @@ func (s *Service) handleCreateResource(c *fiber.Ctx) error {
 	}
 
 	s.logger.Info("Resource created",
-		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
+		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message":     "Resource created successfully",
@@ -232,7 +232,7 @@ func (s *Service) handleDeleteResource(c *fiber.Ctx) error {
 	}
 
 	s.logger.Info("Resource deleted",
-		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
+		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Resource deleted successfully",
@@ -250,7 +250,7 @@ func (s *Service) handleAdminUsers(c *fiber.Ctx) error {
 	}
 
 	s.logger.Info("Admin users accessed",
-		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
+		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Admin user list",
@@ -272,14 +272,14 @@ func (s *Service) handleAdminMetrics(c *fiber.Ctx) error {
 	}
 
 	s.logger.Info("Admin metrics accessed",
-		"client_id", claims[cryptoutilIdentityMagic.ClaimClientID])
+		"client_id", claims[cryptoutilSharedMagic.ClaimClientID])
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "System metrics",
 		"metrics": fiber.Map{
-			"requests_total":   cryptoutilIdentityMagic.ExampleMetricRequestsTotal,
-			"requests_success": cryptoutilIdentityMagic.ExampleMetricRequestsSuccess,
-			"requests_failed":  cryptoutilIdentityMagic.ExampleMetricRequestsFailed,
+			"requests_total":   cryptoutilSharedMagic.ExampleMetricRequestsTotal,
+			"requests_success": cryptoutilSharedMagic.ExampleMetricRequestsSuccess,
+			"requests_failed":  cryptoutilSharedMagic.ExampleMetricRequestsFailed,
 		},
 	})
 }

@@ -15,14 +15,14 @@ import (
 
 	testify "github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestValidateToken_MalformedInputs tests ValidateToken with various malformed JWT inputs.
 func TestValidateToken_MalformedInputs(t *testing.T) {
 	t.Parallel()
 
-	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilIdentityMagic.RSA2048KeySize)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
 	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
@@ -85,7 +85,7 @@ func mustMarshalJSON(t *testing.T, v any) []byte {
 func TestVerifySignature_LegacyRSA(t *testing.T) {
 	t.Parallel()
 
-	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilIdentityMagic.RSA2048KeySize)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
 	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
@@ -94,8 +94,8 @@ func TestVerifySignature_LegacyRSA(t *testing.T) {
 	ctx := context.Background()
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, map[string]any{
-		cryptoutilIdentityMagic.ClaimSub: "test-subject",
-		cryptoutilIdentityMagic.ClaimAud: "test-audience",
+		cryptoutilSharedMagic.ClaimSub: "test-subject",
+		cryptoutilSharedMagic.ClaimAud: "test-audience",
 	})
 	testify.NoError(t, err)
 	testify.NotEmpty(t, token)
@@ -118,8 +118,8 @@ func TestVerifySignature_LegacyECDSA(t *testing.T) {
 	ctx := context.Background()
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, map[string]any{
-		cryptoutilIdentityMagic.ClaimSub: "test-subject",
-		cryptoutilIdentityMagic.ClaimAud: "test-audience",
+		cryptoutilSharedMagic.ClaimSub: "test-subject",
+		cryptoutilSharedMagic.ClaimAud: "test-audience",
 	})
 	testify.NoError(t, err)
 	testify.NotEmpty(t, token)
@@ -181,7 +181,7 @@ func TestBuildJWS_NoSigningKey(t *testing.T) {
 func TestSignJWT_UnsupportedAlgorithm(t *testing.T) {
 	t.Parallel()
 
-	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilIdentityMagic.RSA2048KeySize)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
 	sig, err := signJWT("test-signing-input", "UNSUPPORTED", rsaKey)
@@ -202,13 +202,13 @@ func TestSignJWT_WrongKeyType(t *testing.T) {
 	}{
 		{
 			name:      "RSA algorithm with ECDSA key",
-			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			key:       "not-an-rsa-key",
 			wantErr:   "expected RSA private key",
 		},
 		{
 			name:      "ECDSA algorithm with RSA key",
-			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+			algorithm: cryptoutilSharedMagic.AlgorithmES256,
 			key:       "not-an-ecdsa-key",
 			wantErr:   "expected ECDSA private key",
 		},
@@ -240,7 +240,7 @@ func TestIssueAccessToken_NoSigningKey(t *testing.T) {
 	ctx := context.Background()
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, map[string]any{
-		cryptoutilIdentityMagic.ClaimSub: "test-subject",
+		cryptoutilSharedMagic.ClaimSub: "test-subject",
 	})
 	testify.Error(t, err)
 	testify.Empty(t, token)
@@ -250,7 +250,7 @@ func TestIssueAccessToken_NoSigningKey(t *testing.T) {
 func TestIssueIDToken_MissingRequiredClaims(t *testing.T) {
 	t.Parallel()
 
-	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilIdentityMagic.RSA2048KeySize)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
 	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
@@ -265,13 +265,13 @@ func TestIssueIDToken_MissingRequiredClaims(t *testing.T) {
 	}{
 		{
 			name:    "missing subject",
-			claims:  map[string]any{cryptoutilIdentityMagic.ClaimAud: "test-audience"},
-			wantErr: cryptoutilIdentityMagic.ClaimSub,
+			claims:  map[string]any{cryptoutilSharedMagic.ClaimAud: "test-audience"},
+			wantErr: cryptoutilSharedMagic.ClaimSub,
 		},
 		{
 			name:    "missing audience",
-			claims:  map[string]any{cryptoutilIdentityMagic.ClaimSub: "test-subject"},
-			wantErr: cryptoutilIdentityMagic.ClaimAud,
+			claims:  map[string]any{cryptoutilSharedMagic.ClaimSub: "test-subject"},
+			wantErr: cryptoutilSharedMagic.ClaimAud,
 		},
 	}
 
@@ -332,13 +332,13 @@ func TestVerifySignature_RotationManagerWithValidKey(t *testing.T) {
 	mgr, err := NewKeyRotationManager(DefaultKeyRotationPolicy(), gen, nil)
 	testify.NoError(t, err)
 
-	err = mgr.RotateSigningKey(context.Background(), cryptoutilIdentityMagic.AlgorithmRS256)
+	err = mgr.RotateSigningKey(context.Background(), cryptoutilSharedMagic.AlgorithmRS256)
 	testify.NoError(t, err)
 
 	jwsIssuer := &JWSIssuer{
 		issuer:           "test-issuer",
 		keyRotationMgr:   mgr,
-		defaultAlgorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+		defaultAlgorithm: cryptoutilSharedMagic.AlgorithmRS256,
 		accessTokenTTL:   time.Hour,
 		idTokenTTL:       time.Hour,
 	}
@@ -346,7 +346,7 @@ func TestVerifySignature_RotationManagerWithValidKey(t *testing.T) {
 	ctx := context.Background()
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, map[string]any{
-		cryptoutilIdentityMagic.ClaimSub: "test-subject",
+		cryptoutilSharedMagic.ClaimSub: "test-subject",
 	})
 	testify.NoError(t, err)
 	testify.NotEmpty(t, token)
@@ -365,13 +365,13 @@ func TestVerifySignature_RotationManagerECDSA(t *testing.T) {
 	mgr, err := NewKeyRotationManager(DefaultKeyRotationPolicy(), gen, nil)
 	testify.NoError(t, err)
 
-	err = mgr.RotateSigningKey(context.Background(), cryptoutilIdentityMagic.AlgorithmES256)
+	err = mgr.RotateSigningKey(context.Background(), cryptoutilSharedMagic.AlgorithmES256)
 	testify.NoError(t, err)
 
 	jwsIssuer := &JWSIssuer{
 		issuer:           "test-issuer",
 		keyRotationMgr:   mgr,
-		defaultAlgorithm: cryptoutilIdentityMagic.AlgorithmES256,
+		defaultAlgorithm: cryptoutilSharedMagic.AlgorithmES256,
 		accessTokenTTL:   time.Hour,
 		idTokenTTL:       time.Hour,
 	}
@@ -379,7 +379,7 @@ func TestVerifySignature_RotationManagerECDSA(t *testing.T) {
 	ctx := context.Background()
 
 	token, err := jwsIssuer.IssueAccessToken(ctx, map[string]any{
-		cryptoutilIdentityMagic.ClaimSub: "test-subject",
+		cryptoutilSharedMagic.ClaimSub: "test-subject",
 	})
 	testify.NoError(t, err)
 	testify.NotEmpty(t, token)
@@ -401,13 +401,13 @@ func TestVerifyJWTSignature_WrongKeyType(t *testing.T) {
 	}{
 		{
 			name:      "RS256 with non-RSA key",
-			algorithm: cryptoutilIdentityMagic.AlgorithmRS256,
+			algorithm: cryptoutilSharedMagic.AlgorithmRS256,
 			key:       "not-an-rsa-key",
 			wantErr:   "expected RSA public key",
 		},
 		{
 			name:      "ES256 with non-ECDSA key",
-			algorithm: cryptoutilIdentityMagic.AlgorithmES256,
+			algorithm: cryptoutilSharedMagic.AlgorithmES256,
 			key:       "not-an-ecdsa-key",
 			wantErr:   "expected ECDSA public key",
 		},
@@ -437,7 +437,7 @@ func TestVerifyJWTSignature_InvalidECDSASignatureLength(t *testing.T) {
 	ecKey, err := ecdsa.GenerateKey(elliptic.P256(), crand.Reader)
 	testify.NoError(t, err)
 
-	err = verifyJWTSignature("test-input", []byte("short"), cryptoutilIdentityMagic.AlgorithmES256, &ecKey.PublicKey)
+	err = verifyJWTSignature("test-input", []byte("short"), cryptoutilSharedMagic.AlgorithmES256, &ecKey.PublicKey)
 	testify.Error(t, err)
 	testify.Contains(t, err.Error(), "invalid ECDSA signature length")
 }
@@ -446,7 +446,7 @@ func TestVerifyJWTSignature_InvalidECDSASignatureLength(t *testing.T) {
 func TestValidateToken_ExpiredToken(t *testing.T) {
 	t.Parallel()
 
-	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilIdentityMagic.RSA2048KeySize)
+	rsaKey, err := rsa.GenerateKey(crand.Reader, cryptoutilSharedMagic.RSA2048KeySize)
 	testify.NoError(t, err)
 
 	jwsIssuer, err := NewJWSIssuerLegacy("test-issuer", rsaKey, "RS256", time.Hour, time.Hour)
@@ -455,10 +455,10 @@ func TestValidateToken_ExpiredToken(t *testing.T) {
 	ctx := context.Background()
 
 	expiredClaims := map[string]any{
-		cryptoutilIdentityMagic.ClaimIss: "test-issuer",
-		cryptoutilIdentityMagic.ClaimSub: "test-subject",
-		cryptoutilIdentityMagic.ClaimExp: float64(time.Now().UTC().Add(-1 * time.Hour).Unix()),
-		cryptoutilIdentityMagic.ClaimIat: float64(time.Now().UTC().Add(-2 * time.Hour).Unix()),
+		cryptoutilSharedMagic.ClaimIss: "test-issuer",
+		cryptoutilSharedMagic.ClaimSub: "test-subject",
+		cryptoutilSharedMagic.ClaimExp: float64(time.Now().UTC().Add(-1 * time.Hour).Unix()),
+		cryptoutilSharedMagic.ClaimIat: float64(time.Now().UTC().Add(-2 * time.Hour).Unix()),
 	}
 
 	token, err := jwsIssuer.buildJWS(expiredClaims)

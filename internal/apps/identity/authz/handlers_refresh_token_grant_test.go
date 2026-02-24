@@ -20,8 +20,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleRefreshTokenGrant_Success validates successful refresh token exchange.
@@ -86,7 +86,7 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 		ClientID:                fmt.Sprintf("test-client-%s", clientUUID.String()),
 		Name:                    "Test Client Refresh",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -146,10 +146,10 @@ func TestHandleRefreshTokenGrant_Success(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
-		cryptoutilIdentityMagic.ParamRefreshToken: []string{tokenValue},
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamScope:        []string{"openid"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
+		cryptoutilSharedMagic.ParamRefreshToken: []string{tokenValue},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamScope:        []string{"openid"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
@@ -219,8 +219,8 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType: []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
-		cryptoutilIdentityMagic.ParamClientID:  []string{"test-client"},
+		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
+		cryptoutilSharedMagic.ParamClientID:  []string{"test-client"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
@@ -241,7 +241,7 @@ func TestHandleRefreshTokenGrant_MissingRefreshTokenParam(t *testing.T) {
 
 	errorCode, ok := body["error"].(string)
 	require.True(t, ok, "Response should contain error field")
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidRequest, errorCode, "Error should be invalid_request")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidRequest, errorCode, "Error should be invalid_request")
 }
 
 // TestHandleRefreshTokenGrant_InvalidRefreshToken validates error for non-existent refresh token.
@@ -287,9 +287,9 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
-		cryptoutilIdentityMagic.ParamRefreshToken: []string{"invalid-refresh-token"},
-		cryptoutilIdentityMagic.ParamClientID:     []string{"test-client"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
+		cryptoutilSharedMagic.ParamRefreshToken: []string{"invalid-refresh-token"},
+		cryptoutilSharedMagic.ParamClientID:     []string{"test-client"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
@@ -310,7 +310,7 @@ func TestHandleRefreshTokenGrant_InvalidRefreshToken(t *testing.T) {
 
 	errorCode, ok := body["error"].(string)
 	require.True(t, ok, "Response should contain error field")
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidGrant, errorCode, "Error should be invalid_grant")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidGrant, errorCode, "Error should be invalid_grant")
 }
 
 // TestHandleRefreshTokenGrant_RevokedToken validates error for revoked refresh token.
@@ -347,7 +347,7 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 		ClientID:                fmt.Sprintf("test-client-%s", clientUUID.String()),
 		Name:                    "Test Client Revoked",
 		ClientType:              cryptoutilIdentityDomain.ClientTypeConfidential,
-		AllowedGrantTypes:       []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
+		AllowedGrantTypes:       []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
 		AllowedScopes:           []string{"openid"},
 		RedirectURIs:            []string{"https://example.com/callback"},
 		TokenEndpointAuthMethod: cryptoutilIdentityDomain.ClientAuthMethodSecretPost,
@@ -409,9 +409,9 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formBody := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeRefreshToken},
-		cryptoutilIdentityMagic.ParamRefreshToken: []string{tokenValue},
-		cryptoutilIdentityMagic.ParamClientID:     []string{"test-client"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeRefreshToken},
+		cryptoutilSharedMagic.ParamRefreshToken: []string{tokenValue},
+		cryptoutilSharedMagic.ParamClientID:     []string{"test-client"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formBody.Encode()))
@@ -431,5 +431,5 @@ func TestHandleRefreshTokenGrant_RevokedToken(t *testing.T) {
 
 	errorCode, ok := body["error"].(string)
 	require.True(t, ok, "Response should contain error field")
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidGrant, errorCode, "Error should be invalid_grant")
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidGrant, errorCode, "Error should be invalid_grant")
 }

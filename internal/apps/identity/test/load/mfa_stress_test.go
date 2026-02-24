@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // MFAStressTestSuite manages load/stress testing infrastructure.
@@ -285,7 +285,7 @@ func (s *MFAStressTestSuite) executeMFAChain(ctx context.Context, userID string,
 		SessionID: googleUuid.Must(googleUuid.NewV7()).String(),
 		UserID:    googleUuid.MustParse(userID),
 		IssuedAt:  time.Now().UTC(),
-		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultSessionLifetime),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultSessionLifetime),
 		Active:    boolPtr(true),
 	}
 

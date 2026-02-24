@@ -15,7 +15,7 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIdpUserauth "cryptoutil/internal/apps/identity/idp/userauth"
 	cryptoutilIdentityIdpUserauthMocks "cryptoutil/internal/apps/identity/idp/userauth/mocks"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestSMSOTPCompleteFlow tests the complete SMS OTP flow: generate → send → validate.
@@ -75,7 +75,7 @@ func TestSMSOTPCompleteFlow(t *testing.T) {
 
 	_, err = fmt.Sscanf(messages[0].Message, "Your verification code is: %s", &otp)
 	require.NoError(t, err, "OTP should be extractable from SMS")
-	require.Len(t, otp, cryptoutilIdentityMagic.DefaultOTPLength, "OTP should be 6 digits")
+	require.Len(t, otp, cryptoutilSharedMagic.DefaultOTPLength, "OTP should be 6 digits")
 
 	// Step 2: Verify authentication with correct OTP.
 	user, err := authenticator.VerifyAuth(ctx, challenge.ID.String(), otp)

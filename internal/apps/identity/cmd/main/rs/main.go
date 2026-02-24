@@ -18,8 +18,8 @@ import (
 
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 func main() {
@@ -72,7 +72,7 @@ func main() {
 	log.Println("shutting down RS server...")
 
 	// Create a context with timeout for graceful shutdown.
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Duration(cryptoutilSharedMagic.ShutdownTimeoutSeconds)*time.Second)
 	defer cancel()
 
 	if err := rsServer.Stop(shutdownCtx); err != nil {

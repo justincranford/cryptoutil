@@ -21,8 +21,8 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestHandleToken_AuthorizationCodeGrant_HappyPath tests successful token exchange.
@@ -42,11 +42,11 @@ func TestHandleToken_AuthorizationCodeGrant_HappyPath(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
-		cryptoutilIdentityMagic.ParamCode:         []string{testAuthCode.Code},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{testAuthCode.RedirectURI},
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		cryptoutilSharedMagic.ParamCode:         []string{testAuthCode.Code},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{testAuthCode.RedirectURI},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
@@ -76,9 +76,9 @@ func TestHandleToken_ClientCredentialsGrant_HappyPath(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType: []string{cryptoutilIdentityMagic.GrantTypeClientCredentials},
-		cryptoutilIdentityMagic.ParamClientID:  []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamScope:     []string{"api:read api:write"},
+		cryptoutilSharedMagic.ParamGrantType: []string{cryptoutilSharedMagic.GrantTypeClientCredentials},
+		cryptoutilSharedMagic.ParamClientID:  []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamScope:     []string{"api:read api:write"},
 	}
 
 	// Add client authentication via Authorization header.
@@ -112,12 +112,12 @@ func TestHandleToken_InvalidGrant_ExpiredCode(t *testing.T) {
 		ID:                  googleUuid.New(),
 		ClientID:            testClient.ClientID,
 		RedirectURI:         testClient.RedirectURIs[0],
-		ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile",
 		State:               "test-state",
 		Code:                googleUuid.Must(googleUuid.NewV7()).String(),
 		CodeChallenge:       "test-challenge",
-		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC().Add(-2 * time.Hour),
 		ExpiresAt:           time.Now().UTC().Add(-1 * time.Hour), // Expired 1 hour ago.
 		ConsentGranted:      true,
@@ -135,11 +135,11 @@ func TestHandleToken_InvalidGrant_ExpiredCode(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
-		cryptoutilIdentityMagic.ParamCode:         []string{expiredCode.Code},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{expiredCode.RedirectURI},
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		cryptoutilSharedMagic.ParamCode:         []string{expiredCode.Code},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{expiredCode.RedirectURI},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
@@ -168,12 +168,12 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 		ID:                  googleUuid.New(),
 		ClientID:            testClient.ClientID,
 		RedirectURI:         testClient.RedirectURIs[0],
-		ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile",
 		State:               "test-state",
 		Code:                googleUuid.Must(googleUuid.NewV7()).String(),
 		CodeChallenge:       "test-challenge",
-		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC().Add(-30 * time.Minute),
 		ExpiresAt:           time.Now().UTC().Add(5 * time.Minute),
 		ConsentGranted:      true,
@@ -192,11 +192,11 @@ func TestHandleToken_InvalidGrant_AlreadyUsedCode(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
-		cryptoutilIdentityMagic.ParamCode:         []string{usedCode.Code},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{usedCode.RedirectURI},
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		cryptoutilSharedMagic.ParamCode:         []string{usedCode.Code},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{usedCode.RedirectURI},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
@@ -227,11 +227,11 @@ func TestHandleToken_InvalidGrant_ClientIDMismatch(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
-		cryptoutilIdentityMagic.ParamCode:         []string{testAuthCode.Code},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{testAuthCode.RedirectURI},
-		cryptoutilIdentityMagic.ParamClientID:     []string{"different-client-id"},
-		cryptoutilIdentityMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		cryptoutilSharedMagic.ParamCode:         []string{testAuthCode.Code},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{testAuthCode.RedirectURI},
+		cryptoutilSharedMagic.ParamClientID:     []string{"different-client-id"},
+		cryptoutilSharedMagic.ParamCodeVerifier: []string{"test-verifier-12345678901234567890123456789012"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
@@ -262,11 +262,11 @@ func TestHandleToken_InvalidGrant_PKCEValidationFailed(t *testing.T) {
 	svc.RegisterRoutes(app)
 
 	formData := url.Values{
-		cryptoutilIdentityMagic.ParamGrantType:    []string{cryptoutilIdentityMagic.GrantTypeAuthorizationCode},
-		cryptoutilIdentityMagic.ParamCode:         []string{testAuthCode.Code},
-		cryptoutilIdentityMagic.ParamRedirectURI:  []string{testAuthCode.RedirectURI},
-		cryptoutilIdentityMagic.ParamClientID:     []string{testClient.ClientID},
-		cryptoutilIdentityMagic.ParamCodeVerifier: []string{"wrong-verifier-12345678901234567890123456789012"},
+		cryptoutilSharedMagic.ParamGrantType:    []string{cryptoutilSharedMagic.GrantTypeAuthorizationCode},
+		cryptoutilSharedMagic.ParamCode:         []string{testAuthCode.Code},
+		cryptoutilSharedMagic.ParamRedirectURI:  []string{testAuthCode.RedirectURI},
+		cryptoutilSharedMagic.ParamClientID:     []string{testClient.ClientID},
+		cryptoutilSharedMagic.ParamCodeVerifier: []string{"wrong-verifier-12345678901234567890123456789012"},
 	}
 
 	req := httptest.NewRequest("POST", "/oauth2/v1/token", strings.NewReader(formData.Encode()))
@@ -389,12 +389,12 @@ func createTestAuthorizationCode(ctx context.Context, t *testing.T, repoFactory 
 		ID:                  googleUuid.New(),
 		ClientID:            clientID,
 		RedirectURI:         "https://example.com/callback",
-		ResponseType:        cryptoutilIdentityMagic.ResponseTypeCode,
+		ResponseType:        cryptoutilSharedMagic.ResponseTypeCode,
 		Scope:               "openid profile email",
 		State:               "test-state",
 		Code:                googleUuid.Must(googleUuid.NewV7()).String(),
 		CodeChallenge:       "UjvqC9mj0YVcV_IU0g-ZN4N3PCwI_ls67w8ToZVLJMA", // SHA256 of "test-verifier-12345678901234567890123456789012".
-		CodeChallengeMethod: cryptoutilIdentityMagic.PKCEMethodS256,
+		CodeChallengeMethod: cryptoutilSharedMagic.PKCEMethodS256,
 		CreatedAt:           time.Now().UTC(),
 		ExpiresAt:           time.Now().UTC().Add(10 * time.Minute),
 		ConsentGranted:      true,

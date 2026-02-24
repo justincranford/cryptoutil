@@ -13,7 +13,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // mockKeyGenerator implements KeyGenerator for testing.
@@ -56,9 +56,9 @@ func TestDefaultKeyRotationPolicy(t *testing.T) {
 	policy := DefaultKeyRotationPolicy()
 
 	require.NotNil(t, policy)
-	require.Equal(t, cryptoutilIdentityMagic.DefaultKeyRotationInterval, policy.RotationInterval)
-	require.Equal(t, cryptoutilIdentityMagic.DefaultKeyGracePeriod, policy.GracePeriod)
-	require.Equal(t, cryptoutilIdentityMagic.DefaultMaxActiveKeys, policy.MaxActiveKeys)
+	require.Equal(t, cryptoutilSharedMagic.DefaultKeyRotationInterval, policy.RotationInterval)
+	require.Equal(t, cryptoutilSharedMagic.DefaultKeyGracePeriod, policy.GracePeriod)
+	require.Equal(t, cryptoutilSharedMagic.DefaultMaxActiveKeys, policy.MaxActiveKeys)
 	require.False(t, policy.AutoRotationEnabled)
 }
 
@@ -68,9 +68,9 @@ func TestStrictKeyRotationPolicy(t *testing.T) {
 	policy := StrictKeyRotationPolicy()
 
 	require.NotNil(t, policy)
-	require.Equal(t, cryptoutilIdentityMagic.StrictKeyRotationInterval, policy.RotationInterval)
-	require.Equal(t, cryptoutilIdentityMagic.StrictKeyGracePeriod, policy.GracePeriod)
-	require.Equal(t, cryptoutilIdentityMagic.StrictMaxActiveKeys, policy.MaxActiveKeys)
+	require.Equal(t, cryptoutilSharedMagic.StrictKeyRotationInterval, policy.RotationInterval)
+	require.Equal(t, cryptoutilSharedMagic.StrictKeyGracePeriod, policy.GracePeriod)
+	require.Equal(t, cryptoutilSharedMagic.StrictMaxActiveKeys, policy.MaxActiveKeys)
 	require.True(t, policy.AutoRotationEnabled)
 }
 
@@ -80,9 +80,9 @@ func TestDevelopmentKeyRotationPolicy(t *testing.T) {
 	policy := DevelopmentKeyRotationPolicy()
 
 	require.NotNil(t, policy)
-	require.Equal(t, cryptoutilIdentityMagic.DevelopmentKeyRotationInterval, policy.RotationInterval)
-	require.Equal(t, cryptoutilIdentityMagic.DevelopmentKeyGracePeriod, policy.GracePeriod)
-	require.Equal(t, cryptoutilIdentityMagic.DevelopmentMaxActiveKeys, policy.MaxActiveKeys)
+	require.Equal(t, cryptoutilSharedMagic.DevelopmentKeyRotationInterval, policy.RotationInterval)
+	require.Equal(t, cryptoutilSharedMagic.DevelopmentKeyGracePeriod, policy.GracePeriod)
+	require.Equal(t, cryptoutilSharedMagic.DevelopmentMaxActiveKeys, policy.MaxActiveKeys)
 	require.False(t, policy.AutoRotationEnabled)
 }
 

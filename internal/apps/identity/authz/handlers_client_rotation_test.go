@@ -20,9 +20,9 @@ import (
 	cryptoutilIdentityConfig "cryptoutil/internal/apps/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/apps/identity/issuer"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilSharedCryptoHash "cryptoutil/internal/shared/crypto/hash"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // TestClientSecretRotation_EndToEnd validates complete rotation flow.
@@ -113,7 +113,7 @@ func TestClientSecretRotation_EndToEnd(t *testing.T) {
 	require.NotEmpty(t, newSecret)
 
 	// Wait briefly for database update to propagate.
-	time.Sleep(cryptoutilIdentityMagic.DatabasePropagationDelay)
+	time.Sleep(cryptoutilSharedMagic.DatabasePropagationDelay)
 
 	// Retrieve updated client from database.
 	updatedClient, err := repoFactory.ClientRepository().GetByID(ctx, client.ID)
@@ -181,7 +181,7 @@ func TestClientSecretRotation_InvalidClientID(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, cryptoutilIdentityMagic.ErrorInvalidClient, result["error"])
+	require.Equal(t, cryptoutilSharedMagic.ErrorInvalidClient, result["error"])
 	require.Contains(t, result["error_description"], "Client authentication failed")
 }
 
@@ -255,5 +255,5 @@ func TestClientSecretRotation_ClientNotFound(t *testing.T) {
 
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
-	require.Equal(t, cryptoutilIdentityMagic.ErrorAccessDenied, result["error"])
+	require.Equal(t, cryptoutilSharedMagic.ErrorAccessDenied, result["error"])
 }

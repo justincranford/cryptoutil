@@ -14,7 +14,7 @@ import (
 	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/apps/identity/domain"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // ScopeDescription describes a single OAuth scope for UI rendering.
@@ -67,7 +67,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 
 	if requestIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "request_id is required",
 		})
 	}
@@ -78,7 +78,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	requestID, err := googleUuid.Parse(requestIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid request_id format",
 		})
 	}
@@ -89,7 +89,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	authRequest, err := authzReqRepo.GetByID(ctx, requestID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Authorization request not found or expired",
 		})
 	}
@@ -97,7 +97,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	// Validate request not expired.
 	if authRequest.IsExpired() {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Authorization request has expired",
 		})
 	}
@@ -105,7 +105,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	// Validate user ID was set during login.
 	if !authRequest.UserID.Valid {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "User not authenticated",
 		})
 	}
@@ -116,7 +116,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	client, err := clientRepo.GetByClientID(ctx, authRequest.ClientID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Client not found",
 		})
 	}
@@ -127,7 +127,7 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	user, err := userRepo.GetByID(ctx, authRequest.UserID.UUID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "User not found",
 		})
 	}
@@ -138,14 +138,14 @@ func (s *Service) handleConsent(c *fiber.Ctx) error {
 	existingConsent, err := consentRepo.GetByUserClientScope(ctx, authRequest.UserID.UUID, authRequest.ClientID, authRequest.Scope)
 	if err == nil && existingConsent != nil && !existingConsent.IsRevoked() && !existingConsent.IsExpired() {
 		// Consent exists and is valid - skip consent page, generate code immediately.
-		authCode := generateRandomString(cryptoutilIdentityMagic.DefaultAuthCodeLength)
+		authCode := generateRandomString(cryptoutilSharedMagic.DefaultAuthCodeLength)
 		authRequest.Code = authCode
-		authRequest.ExpiresAt = time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime)
+		authRequest.ExpiresAt = time.Now().UTC().Add(cryptoutilSharedMagic.DefaultCodeLifetime)
 		authRequest.ConsentGranted = true
 
 		if err := authzReqRepo.Update(ctx, authRequest); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error":             cryptoutilIdentityMagic.ErrorServerError,
+				"error":             cryptoutilSharedMagic.ErrorServerError,
 				"error_description": "Failed to update authorization request with code",
 			})
 		}
@@ -179,7 +179,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	// Validate required parameters.
 	if requestIDStr == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "request_id is required",
 		})
 	}
@@ -187,7 +187,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	// Validate decision parameter.
 	if decision == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "decision is required",
 		})
 	}
@@ -196,7 +196,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	if decision == "deny" {
 		// User denied consent - redirect back to client with error.
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorAccessDenied,
+			"error":             cryptoutilSharedMagic.ErrorAccessDenied,
 			"error_description": "User denied consent",
 		})
 	}
@@ -207,7 +207,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	requestID, err := googleUuid.Parse(requestIDStr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Invalid request_id format",
 		})
 	}
@@ -218,7 +218,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	authRequest, err := authzReqRepo.GetByID(ctx, requestID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Authorization request not found or expired",
 		})
 	}
@@ -226,7 +226,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	// Validate request not expired.
 	if authRequest.IsExpired() {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "Authorization request has expired",
 		})
 	}
@@ -234,7 +234,7 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 	// Validate user ID was set during login.
 	if !authRequest.UserID.Valid {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
+			"error":             cryptoutilSharedMagic.ErrorInvalidRequest,
 			"error_description": "User not authenticated",
 		})
 	}
@@ -247,25 +247,25 @@ func (s *Service) handleConsentSubmit(c *fiber.Ctx) error {
 		ClientID:  authRequest.ClientID,
 		Scope:     authRequest.Scope,
 		GrantedAt: time.Now().UTC(),
-		ExpiresAt: time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultRefreshTokenLifetime), // Consent lasts as long as refresh token.
+		ExpiresAt: time.Now().UTC().Add(cryptoutilSharedMagic.DefaultRefreshTokenLifetime), // Consent lasts as long as refresh token.
 	}
 
 	if err := consentRepo.Create(ctx, consentDecision); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to store consent decision",
 		})
 	}
 
 	// Generate authorization code.
-	authCode := generateRandomString(cryptoutilIdentityMagic.DefaultAuthCodeLength)
+	authCode := generateRandomString(cryptoutilSharedMagic.DefaultAuthCodeLength)
 	authRequest.Code = authCode
-	authRequest.ExpiresAt = time.Now().UTC().Add(cryptoutilIdentityMagic.DefaultCodeLifetime)
+	authRequest.ExpiresAt = time.Now().UTC().Add(cryptoutilSharedMagic.DefaultCodeLifetime)
 	authRequest.ConsentGranted = true
 
 	if err := authzReqRepo.Update(ctx, authRequest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error":             cryptoutilSharedMagic.ErrorServerError,
 			"error_description": "Failed to update authorization request with code",
 		})
 	}

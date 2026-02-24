@@ -19,7 +19,7 @@ import (
 	"syscall"
 	"time"
 
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 //go:embed static/*
@@ -27,7 +27,7 @@ var staticFiles embed.FS
 
 func main() {
 	// Parse command-line flags.
-	port := flag.Int("port", cryptoutilIdentityMagic.DefaultSPARPPort, "port for SPA RP server")
+	port := flag.Int("port", cryptoutilSharedMagic.DefaultSPARPPort, "port for SPA RP server")
 	bindAddress := flag.String("bind", "127.0.0.1", "bind address for SPA RP server")
 
 	flag.Parse()
@@ -69,9 +69,9 @@ func main() {
 	server := &http.Server{
 		Addr:         addr,
 		Handler:      mux,
-		ReadTimeout:  time.Duration(cryptoutilIdentityMagic.FiberReadTimeoutSeconds) * time.Second,
-		WriteTimeout: time.Duration(cryptoutilIdentityMagic.FiberWriteTimeoutSeconds) * time.Second,
-		IdleTimeout:  time.Duration(cryptoutilIdentityMagic.FiberIdleTimeoutSeconds) * time.Second,
+		ReadTimeout:  time.Duration(cryptoutilSharedMagic.FiberReadTimeoutSeconds) * time.Second,
+		WriteTimeout: time.Duration(cryptoutilSharedMagic.FiberWriteTimeoutSeconds) * time.Second,
+		IdleTimeout:  time.Duration(cryptoutilSharedMagic.FiberIdleTimeoutSeconds) * time.Second,
 	}
 
 	// Start server in goroutine.
@@ -94,7 +94,7 @@ func main() {
 	// Graceful shutdown with timeout.
 	shutdownCtx, cancel := context.WithTimeout(
 		context.Background(),
-		time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second,
+		time.Duration(cryptoutilSharedMagic.ShutdownTimeoutSeconds)*time.Second,
 	)
 	defer cancel()
 

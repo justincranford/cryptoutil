@@ -14,7 +14,7 @@ import (
 	"fmt"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/apps/identity/apperr"
-	cryptoutilIdentityMagic "cryptoutil/internal/apps/identity/magic"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // JWEIssuer issues JWE (encrypted) tokens using versioned encryption keys.
@@ -40,10 +40,10 @@ func NewJWEIssuer(keyRotationMgr *KeyRotationManager) (*JWEIssuer, error) {
 
 // NewJWEIssuerLegacy creates a new JWE issuer with a single encryption key (deprecated).
 func NewJWEIssuerLegacy(encryptionKey []byte) (*JWEIssuer, error) {
-	if len(encryptionKey) != cryptoutilIdentityMagic.AES256KeySize {
+	if len(encryptionKey) != cryptoutilSharedMagic.AES256KeySize {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
-			fmt.Errorf("encryption key must be %d bytes (AES-256), got %d bytes", cryptoutilIdentityMagic.AES256KeySize, len(encryptionKey)),
+			fmt.Errorf("encryption key must be %d bytes (AES-256), got %d bytes", cryptoutilSharedMagic.AES256KeySize, len(encryptionKey)),
 		)
 	}
 
@@ -111,7 +111,7 @@ func (i *JWEIssuer) EncryptToken(_ context.Context, plaintext string) (string, e
 		keyIDBytes := []byte(keyID)
 		keyIDLen := len(keyIDBytes)
 		result := make([]byte, 2+keyIDLen+len(ciphertext))
-		result[0] = byte(keyIDLen >> cryptoutilIdentityMagic.ByteShift)
+		result[0] = byte(keyIDLen >> cryptoutilSharedMagic.ByteShift)
 		result[1] = byte(keyIDLen)
 		copy(result[2:], keyIDBytes)
 		copy(result[2+keyIDLen:], ciphertext)
@@ -139,7 +139,7 @@ func (i *JWEIssuer) DecryptToken(_ context.Context, encryptedToken string) (stri
 
 	// Extract key ID if present (format: keyID||ciphertext).
 	if i.keyRotationMgr != nil && len(ciphertext) > 2 {
-		keyIDLen := int(ciphertext[0])<<cryptoutilIdentityMagic.ByteShift | int(ciphertext[1])
+		keyIDLen := int(ciphertext[0])<<cryptoutilSharedMagic.ByteShift | int(ciphertext[1])
 		if keyIDLen > 0 && len(ciphertext) > 2+keyIDLen {
 			keyID := string(ciphertext[2 : 2+keyIDLen])
 			actualCiphertext = ciphertext[2+keyIDLen:]
