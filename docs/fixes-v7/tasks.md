@@ -1,6 +1,6 @@
 # Tasks - Consolidated Quality Fixes v7
 
-**Status**: 0 of 48 tasks complete (0%)
+**Status**: 0 of 53 tasks complete (0%)
 **Last Updated**: 2026-02-23 (updated per quizme-v1 answers Q1=E, Q2=E, Q3=E)
 **Created**: 2026-02-23
 
@@ -596,6 +596,83 @@
 
 ---
 
+### Phase 8: Move cipher-im to SM Product
+
+**Phase Objective**: Rename cipher-im → sm-im, move under SM product. Detailed breakdown in [research/tasks-PKI-CA-MERGE0a.md](research/tasks-PKI-CA-MERGE0a.md). PKI-CA-MERGE0b (merge into sm-kms) will NOT be implemented.
+
+#### Task 8.1: Code rename — move cipher-im to sm-im
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1.5h
+- **Dependencies**: None (can be done at any time)
+- **Source**: Architecture Direction — Option D; PKI-CA-MERGE0a Phase 1
+- **Description**: Move `internal/apps/cipher/im/` → `internal/apps/sm/im/`. Update `cmd/cipher-im/main.go` → `cmd/sm-im/main.go`. Update `cmd/cipher/main.go` to remove im (or convert to `cmd/sm/main.go` product-level entry). Update ALL Go import paths from `cipher/im` to `sm/im`.
+- **Acceptance Criteria**:
+  - [ ] All cipher/im source files moved to sm/im
+  - [ ] All import paths updated
+  - [ ] `go build ./...` passes
+  - [ ] `go test ./... -shuffle=on` passes
+- **Files**: `internal/apps/cipher/im/` → `internal/apps/sm/im/`, `cmd/cipher-im/` → `cmd/sm-im/`, all files with `cipher/im` imports
+
+#### Task 8.2: Deployment and config updates
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Dependencies**: Task 8.1
+- **Source**: PKI-CA-MERGE0a Phase 2
+- **Description**: Move `deployments/cipher-im/` → `deployments/sm-im/`. Move `deployments/cipher/` → update SM product compose. Move `configs/cipher/im/` → `configs/sm/im/`. Update port range comments (keep 8700-8799 or reassign to SM range).
+- **Acceptance Criteria**:
+  - [ ] Deployment files moved and updated
+  - [ ] Config files moved and updated
+  - [ ] `go run ./cmd/cicd lint-deployments validate-all` passes (65/65)
+  - [ ] Docker Compose health checks pass
+- **Files**: `deployments/cipher-im/`, `deployments/cipher/`, `configs/cipher/im/`
+
+#### Task 8.3: Documentation and CI updates
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 1h
+- **Dependencies**: Task 8.1
+- **Source**: PKI-CA-MERGE0a Phase 3
+- **Description**: Update ARCHITECTURE.md service catalog (remove Cipher product, add sm-im to SM product). Update ci-e2e.yml paths. Update README.md. Update copilot instruction files referencing cipher-im.
+- **Acceptance Criteria**:
+  - [ ] ARCHITECTURE.md service catalog updated
+  - [ ] ci-e2e.yml compose paths updated
+  - [ ] No references to "cipher-im" in docs (except historical notes)
+- **Files**: `docs/ARCHITECTURE.md`, `.github/workflows/ci-e2e.yml`, `README.md`, `.github/instructions/02-01.architecture.instructions.md`
+
+#### Task 8.4: Validation — build, test, lint
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 30min
+- **Dependencies**: Tasks 8.1-8.3
+- **Source**: PKI-CA-MERGE0a Phase 5
+- **Description**: Full validation after rename: build, test, lint, deployment validators.
+- **Acceptance Criteria**:
+  - [ ] `go build ./...` clean
+  - [ ] `go build -tags e2e,integration ./...` clean
+  - [ ] `go test ./... -shuffle=on` passes
+  - [ ] `golangci-lint run` clean
+  - [ ] `golangci-lint run --build-tags e2e,integration` clean
+  - [ ] 65/65 deployment validators pass
+- **Files**: All
+
+#### Task 8.5: Git commit and Cipher product cleanup
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 15min
+- **Dependencies**: Task 8.4
+- **Source**: PKI-CA-MERGE0a Phase 5
+- **Description**: Commit rename. Verify no remaining Cipher product artifacts. Clean up empty `internal/apps/cipher/` directory if any.
+- **Acceptance Criteria**:
+  - [ ] Committed with `refactor(sm): rename cipher-im to sm-im`
+  - [ ] No `internal/apps/cipher/` directory remaining
+  - [ ] No `cmd/cipher*/` directories remaining
+  - [ ] No `deployments/cipher*/` directories remaining
+- **Files**: Git operations
+
+---
+
 ## Cross-Cutting Tasks
 
 ### Testing
@@ -614,6 +691,8 @@
 - [ ] 65/65 deployment validators pass
 - [ ] cipher-im E2E passes; jose-ja and sm-kms E2E startup unblocked
 - [ ] Template has generic service startup helper (`template/service/testing/server_start_helpers.go`)
+- [ ] cipher-im renamed to sm-im under SM product
+- [ ] No Cipher product remaining
 
 ### Coverage
 - [ ] crypto/jose ≥91% structural ceiling reached via new tests
@@ -668,6 +747,11 @@ This table maps each task back to its original plan/finding:
 | 7.1 | fixes-v4 + Q2=E | QG-3 + quizme-v1 Q2 |
 | 7.2 | fixes-v4 | QG-4 |
 | 7.3 | fixes-v4 | QG-6 |
+| 8.1 | Architecture Direction | PKI-CA-MERGE0a Phase 1 |
+| 8.2 | Architecture Direction | PKI-CA-MERGE0a Phase 2 |
+| 8.3 | Architecture Direction | PKI-CA-MERGE0a Phase 3 |
+| 8.4 | Architecture Direction | PKI-CA-MERGE0a Phase 5 |
+| 8.5 | Architecture Direction | PKI-CA-MERGE0a Phase 5 |
 
 ## Items Verified Complete (NOT carried forward)
 

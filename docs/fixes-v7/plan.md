@@ -46,6 +46,96 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 5. Production coverage: crypto/jose at 89.9% (structural ceiling ~91%)
 6. File size: 4 files exceed 500-line hard limit
 
+## Critical Cross-Cutting Findings
+
+These findings affect multiple phases and must be tracked separately:
+
+### 1. sm-kms Migration Debt (~19h)
+- `server/application/application_core.go` + `application_basic.go`: Old pre-builder wrappers
+- `server/middleware/`: 15 non-test files of custom JWT/claims/session middleware (template has 1)
+- `server.go:35,49`: TODOs for SQLRepository→GORM and GORM+barrier integration
+- No integration tests, no E2E tests
+- **Note**: sm-kms is LAST per ARCHITECTURE.md migration order, but debt blocks MERGE0b and MERGE2/3 options
+- **Tracked in**: research/plan-PKI-CA-MIGRATE.md Phase A, research/plan-PKI-CA-MERGE0b.md Phase Pre
+
+### 2. Template Testing Infrastructure Gap
+- No generic `StartServiceFromConfig()` helper in template
+- cipher-im uses raw 50×100ms polling loop (`testing/testmain_helper.go`)
+- jose-ja uses same raw polling pattern
+- **Tracked in**: Task 6.0
+
+### 3. ci-e2e.yml Path Bug
+- References `deployments/jose/compose.yml` (should be `deployments/jose-ja/compose.yml`)
+- All non-cipher-im E2E tests have `SERVICE_TEMPLATE_TODO` comments (disabled)
+- **Tracked in**: Task 6.4
+
+### 4. wsl Violations (22 total)
+- 2 legacy `//nolint:wsl` at `template/service/telemetry/telemetry_service_helpers.go:134,158` — MUST remove
+- 20 `//nolint:wsl_v5` in 5 identity unified files × 4 instances — make genuine effort to fix
+- **Tracked in**: Task 2.3
+
+## Architecture Direction
+
+### Product Taxonomy Decision: Option D (3 Products)
+
+User selected **Option D** from [DEEP-RESEARCH.md](research/DEEP-RESEARCH.md): 3 products where SM absorbs kms + im + ja:
+
+| Product | Services |
+|---------|----------|
+| **SM** (Secret Management) | sm-kms, sm-im (renamed cipher-im), sm-ja (renamed jose-ja), sm-secrets (future) |
+| **PKI** | pki-ca, pki-ocsp (future), pki-crldp (future) |
+| **Identity** | identity-authz, identity-idp, identity-rs, identity-rp, identity-spa |
+
+### Circular Dependency Concern — RESOLVED
+
+**Concern**: If sm-ja (jose-ja) is inside SM product, and Identity needs JWT issuance (OIDC ID Tokens, OAuth Access Tokens), but SM services may federate authn to Identity → potential circular dependency.
+
+**Resolution: Library vs Service Layer Separation**
+
+The circular dependency does not exist because of the two-layer architecture already in the codebase:
+
+**Layer 1 — Go Libraries (compile-time imports, no runtime dependency)**:
+- `internal/shared/crypto/jose/` — JWK/JWS/JWE/JWT operations (already used by identity services)
+- `internal/shared/barrier/` — encryption-at-rest (already built into service template for ALL services)
+- **Identity services already import `shared/crypto/jose` directly** — verified in identity-idp, identity-rs, identity-spa, identity-authz, identity-rp `server.go` files
+- Identity does NOT call sm-ja as an HTTP service
+
+**Layer 2 — HTTP Services (runtime calls)**:
+- sm-ja (jose-ja) — HTTP API wrapping the jose library for EXTERNAL consumers
+- identity-authz/idp — HTTP APIs for authn/authz
+
+**Dependency flow (no cycles)**:
+```
+Compile-time (library imports):
+  identity-* ──import──→ shared/crypto/jose (library)
+  identity-* ──import──→ template/barrier (built-in)
+  sm-ja      ──import──→ shared/crypto/jose (library)
+  sm-kms     ──import──→ shared/crypto/jose (library)
+  pki-ca     ──import──→ shared/crypto/jose (library)
+
+Runtime (HTTP calls, all optional federation):
+  sm-kms  ──HTTP──→ identity-authz (optional authn federation)
+  sm-im   ──HTTP──→ identity-authz (optional authn federation)
+  sm-ja   ──HTTP──→ identity-authz (optional authn federation)
+  pki-ca  ──HTTP──→ identity-authz (optional authn federation)
+
+  external ──HTTP──→ sm-ja (JOSE operations API)
+  external ──HTTP──→ sm-kms (key management API)
+```
+
+**Why no cycle**: Identity imports the jose LIBRARY at compile time. It never calls sm-ja at runtime. SM/PKI services optionally federate to Identity at runtime. Identity never calls back to SM/PKI. All arrows point one direction.
+
+### cipher-im Placement Decision
+
+**Decision**: Move cipher-im under SM PRODUCT as sm-im (standalone service rename).
+- SM PRODUCT will contain: kms and im services (and likely more in future: secrets, ja, ssh, etc.)
+- **Plan and tasks**: See [research/plan-PKI-CA-MERGE0a.md](research/plan-PKI-CA-MERGE0a.md) and [research/tasks-PKI-CA-MERGE0a.md](research/tasks-PKI-CA-MERGE0a.md)
+- **PKI-CA-MERGE0b will NOT be implemented** (merge into sm-kms rejected: 8× effort for same outcome)
+
+### pki-ca Strategy: Under Reconsideration
+
+quizme-v2.md Answer changed to "???" — user is reconsidering pki-ca strategy in light of Option D product taxonomy. The pki-ca migration approach (MIGRATE vs MERGE1) remains open.
+
 ## Technical Context
 
 - **Language**: Go 1.25.5
@@ -142,6 +232,15 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 - Run gremlins on all packages meeting ≥95% coverage
 - **Success**: crypto/jose reaches ~91% via new tests; JWX-COV-CEILING.md documents remaining ceiling; go:cover-ignore added for genuinely unreachable paths; all production packages ≥95%
 
+### Phase 8: Move cipher-im to SM Product (~4.5h) [Status: ☐ TODO]
+**Objective**: Rename cipher-im → sm-im, move under SM product
+- Pure mechanical rename — no business logic changes
+- Move: `internal/apps/cipher/im/` → `internal/apps/sm/im/`
+- Update: cmd/, deployments/, configs/, ARCHITECTURE.md, ci-e2e.yml
+- Update all Go import paths referencing cipher/im
+- **Detailed plan and tasks**: See [research/plan-PKI-CA-MERGE0a.md](research/plan-PKI-CA-MERGE0a.md) and [research/tasks-PKI-CA-MERGE0a.md](research/tasks-PKI-CA-MERGE0a.md)
+- **Success**: cipher-im fully renamed to sm-im, all tests pass, deployments updated, no Cipher product remaining
+
 ## Risk Assessment
 
 | Risk | Probability | Impact | Mitigation |
@@ -170,7 +269,7 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 
 ## Success Criteria
 
-- [ ] All 7 phases complete with evidence
+- [ ] All 8 phases complete with evidence
 - [ ] All quality gates passing
 - [ ] Zero `//nolint:wsl` (legacy v1) violations
 - [ ] All `//nolint:wsl_v5` either fixed by code restructure or documented as structurally required
@@ -181,3 +280,5 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 - [ ] Template has generic service startup helper for test reuse
 - [ ] crypto/jose ≥91%; JWX-COV-CEILING.md documents ceiling; go:cover-ignore for remaining unreachable paths
 - [ ] Coverage and mutation targets met
+- [ ] cipher-im renamed to sm-im under SM product
+- [ ] No Cipher product remaining (SM has kms + im services)
