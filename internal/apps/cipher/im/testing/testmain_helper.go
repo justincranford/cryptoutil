@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"fmt"
 	http "net/http"
-	"time"
 
 	"gorm.io/gorm"
 
@@ -19,10 +18,10 @@ import (
 	cryptoutilAppsCipherImServer "cryptoutil/internal/apps/cipher/im/server"
 	cryptoutilAppsCipherImServerConfig "cryptoutil/internal/apps/cipher/im/server/config"
 	cryptoutilAppsTemplateServiceConfigTlsGenerator "cryptoutil/internal/apps/template/service/config/tls_generator"
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 	cryptoutilSharedCryptoJose "cryptoutil/internal/shared/crypto/jose"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 )
 
 // TestServerResources holds shared resources created by SetupTestServer.
@@ -97,66 +96,21 @@ func SetupTestServer(ctx context.Context, _ bool) (*TestServerResources, error) 
 	resources.JWKGenService = resources.CipherIMServer.JWKGen()
 	resources.TelemetryService = resources.CipherIMServer.Telemetry()
 
-	// Start server in background.
-	errChan := make(chan error, 1)
+	// Start server in background and wait for both ports to bind.
+	errChan := cryptoutilAppsTemplateServiceTestingE2eHelpers.StartDualPortServerAsync(func() error {
+		return resources.CipherIMServer.Start(ctx)
+	})
 
-	go func() {
-		if startErr := resources.CipherIMServer.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	// Wait for both servers to bind to ports.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	var (
-		publicPort int
-		adminPort  int
-	)
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		publicPort = resources.CipherIMServer.PublicPort()
-
-		adminPort = resources.CipherIMServer.AdminPort()
-
-		if publicPort > 0 && adminPort > 0 {
-			break
-		}
-
-		select {
-		case err := <-errChan:
-			resources.JWKGenService.Shutdown()
-			resources.TelemetryService.Shutdown()
-			_ = resources.SQLDB.Close()
-
-			return nil, fmt.Errorf("server start error: %w", err)
-		case <-time.After(waitInterval):
-		}
-	}
-
-	if publicPort == 0 {
+	if err = cryptoutilAppsTemplateServiceTestingE2eHelpers.WaitForDualServerPorts(resources.CipherIMServer, errChan); err != nil {
 		_ = resources.CipherIMServer.Shutdown(ctx)
 		resources.JWKGenService.Shutdown()
 		resources.TelemetryService.Shutdown()
 		_ = resources.SQLDB.Close()
 
-		return nil, fmt.Errorf("public server did not bind to port")
+		return nil, err
 	}
 
-	if adminPort == 0 {
-		_ = resources.CipherIMServer.Shutdown(ctx)
-		resources.JWKGenService.Shutdown()
-		resources.TelemetryService.Shutdown()
-		_ = resources.SQLDB.Close()
-
-		return nil, fmt.Errorf("admin server did not bind to port")
-	}
-
-	resources.BaseURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, publicPort)
-	resources.AdminURL = fmt.Sprintf("https://%s:%d", cryptoutilSharedMagic.IPv4Loopback, adminPort)
+	resources.BaseURL, resources.AdminURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(resources.CipherIMServer)
 
 	// Create HTTP client with test TLS config.
 	resources.HTTPClient = &http.Client{
@@ -198,49 +152,10 @@ func StartCipherIMService(CipherImServerSettings *cryptoutilAppsCipherImServerCo
 		panic(fmt.Sprintf("failed to create server: %v", err))
 	}
 
-	// Start server in background (Start() blocks until shutdown).
-	errChan := make(chan error, 1)
-
-	go func() {
-		if startErr := cipherImServer.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	// Wait for both servers to bind to ports.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	var (
-		publicPort int
-		adminPort  int
-	)
-
-	for i := 0; i < maxWaitAttempts; i++ {
-		publicPort = cipherImServer.PublicPort()
-
-		adminPort = cipherImServer.AdminPort()
-
-		if publicPort > 0 && adminPort > 0 {
-			break
-		}
-
-		select {
-		case err := <-errChan:
-			panic(fmt.Sprintf("server start error: %v", err))
-		case <-time.After(waitInterval):
-		}
-	}
-
-	if publicPort == 0 {
-		panic("public server did not bind to port")
-	}
-
-	if adminPort == 0 {
-		panic("admin server did not bind to port")
-	}
+	// Use generic template helper for goroutine start + dual port polling + panic-on-failure.
+	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(cipherImServer, func() error {
+		return cipherImServer.Start(ctx)
+	})
 
 	return cipherImServer
 }
