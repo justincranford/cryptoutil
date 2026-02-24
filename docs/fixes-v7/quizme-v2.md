@@ -23,6 +23,6 @@
 **D)** PKI-CA-MERGE3 — Strongly not recommended: Full monolith into sm-kms
 **E)**
 
-**Answer**:
+**Answer**: B
 
 **Rationale**: This is a strategic architecture decision that affects team structure, deployment topology, and long-term maintenance. The recommended option (A) follows the defined ARCHITECTURE.md migration order and maintains all product boundaries. Option B is viable if the current pki-ca codebase is deemed too inconsistent for incremental migration. Options C and D violate product boundaries.
