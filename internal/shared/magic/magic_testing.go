@@ -21,6 +21,8 @@ const (
 	DefaultServerStartupDelay = 500 * time.Millisecond
 	// DefaultHealthCheckInterval - Interval between health check polls.
 	DefaultHealthCheckInterval = 1 * time.Second
+	// DefaultHealthCheckTimeout - Timeout for health check polling.
+	DefaultHealthCheckTimeout = 30 * time.Second
 	// DefaultSpinnerInterval - Interval for spinner animation frames.
 	DefaultSpinnerInterval = 100 * time.Millisecond
 )

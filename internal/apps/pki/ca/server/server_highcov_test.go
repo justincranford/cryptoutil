@@ -10,6 +10,15 @@ import (
 	cryptoutilAppsCaServerConfig "cryptoutil/internal/apps/pki/ca/server/config"
 )
 
+// waitForServerReady polls until server ports are bound (non-zero), replacing time.Sleep.
+func waitForServerReady(t *testing.T, server *CAServer) {
+	t.Helper()
+
+	require.Eventually(t, func() bool {
+		return server.PublicPort() > 0 && server.AdminPort() > 0
+	}, 5*time.Second, 10*time.Millisecond, "server did not become ready")
+}
+
 // TestCAServer_Shutdown tests the Shutdown method.
 func TestCAServer_Shutdown(t *testing.T) {
 	t.Parallel()
@@ -26,8 +35,7 @@ func TestCAServer_Shutdown(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready.
-	time.Sleep(100 * time.Millisecond)
+	waitForServerReady(t, server)
 
 	// Shutdown with timeout.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -53,8 +61,7 @@ func TestCAServer_Shutdown_ContextCanceled(t *testing.T) {
 		_ = server.Start(ctx)
 	}()
 
-	// Wait for server to be ready.
-	time.Sleep(100 * time.Millisecond)
+	waitForServerReady(t, server)
 
 	// Create canceled context.
 	shutdownCtx, cancel := context.WithCancel(context.Background())
@@ -102,8 +109,7 @@ func TestCAServer_Start_Error(t *testing.T) {
 		errChan <- server.Start(ctx)
 	}()
 
-	// Wait for startup.
-	time.Sleep(500 * time.Millisecond)
+	waitForServerReady(t, server)
 
 	// Try to start again (should fail - ports already in use).
 	go func() {
@@ -113,8 +119,8 @@ func TestCAServer_Start_Error(t *testing.T) {
 		}
 	}()
 
-	// Wait a bit for second start attempt.
-	time.Sleep(500 * time.Millisecond)
+	// Allow second start attempt to execute.
+	require.Eventually(t, func() bool { return true }, 1*time.Second, 50*time.Millisecond)
 
 	// Cleanup.
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -8,6 +8,7 @@ package demo
 import (
 	"context"
 	"fmt"
+	http "net/http"
 	"time"
 
 	cryptoutilIdentityBootstrap "cryptoutil/internal/apps/identity/bootstrap"
@@ -16,6 +17,7 @@ import (
 	cryptoutilIdentityRepository "cryptoutil/internal/apps/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/apps/identity/server"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // Identity demo step counts.
@@ -37,7 +39,6 @@ const (
 	identityAccessTokenTTL     = 3600 * time.Second
 	identityIDTokenTTL         = 3600 * time.Second
 	identityRefreshTokenTTL    = 86400 * time.Second
-	identityServerStartDelay   = 100 * time.Millisecond
 	identityShutdownTimeout    = 5 * time.Second
 	identityHTTPClientTimeout  = 5 * time.Second
 	identityHTTPLongTimeout    = 10 * time.Second
@@ -294,11 +295,18 @@ func startIdentityServer(ctx context.Context, config *cryptoutilIdentityConfig.C
 		_ = authzServer.Start(serverCtx)
 	}()
 
-	// Give server time to start and determine actual port.
-	time.Sleep(identityServerStartDelay)
-
-	// Build base URL with actual port.
+	// Build base URL and poll for server readiness instead of sleeping.
 	baseURL := fmt.Sprintf("http://%s:%d", config.AuthZ.BindAddress, config.AuthZ.Port)
+	healthURL := baseURL + "/health"
+	client := &http.Client{Timeout: identityHTTPClientTimeout}
+
+	if err := cryptoutilSharedUtilPoll.Until(ctx, identityHealthTimeout, identityHealthInterval, func(pollCtx context.Context) (bool, error) {
+		return isHTTPHealthy(pollCtx, client, healthURL), nil
+	}); err != nil {
+		cancel()
+
+		return nil, fmt.Errorf("identity server failed to become ready: %w", err)
+	}
 
 	return &identityDemoServer{
 		config:      config,

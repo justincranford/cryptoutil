@@ -146,7 +146,7 @@ func parseKMSConfig() (*cryptoutilAppsTemplateServiceConfig.ServiceTemplateServe
 }
 
 // startKMSServer starts the KMS server.
-func startKMSServer(_ context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilServerApplication.ServerApplicationListener, error) {
+func startKMSServer(ctx context.Context, settings *cryptoutilAppsTemplateServiceConfig.ServiceTemplateServerSettings) (*cryptoutilServerApplication.ServerApplicationListener, error) {
 	server, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start server: %w", err)
@@ -155,8 +155,12 @@ func startKMSServer(_ context.Context, settings *cryptoutilAppsTemplateServiceCo
 	// Start server in background.
 	go server.StartFunction()
 
-	// Give server time to start.
-	time.Sleep(cryptoutilSharedMagic.DefaultServerStartupDelay)
+	// Poll for KMS server readiness instead of sleeping.
+	if err := cryptoutilSharedUtilPoll.Until(ctx, cryptoutilSharedMagic.DefaultHealthCheckTimeout, cryptoutilSharedMagic.DefaultHealthCheckInterval, func(_ context.Context) (bool, error) {
+		return isKMSHealthy(settings), nil
+	}); err != nil {
+		return nil, fmt.Errorf("KMS server failed to become ready: %w", err)
+	}
 
 	return server, nil
 }

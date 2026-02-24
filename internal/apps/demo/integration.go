@@ -10,6 +10,7 @@ package demo
 import (
 	"context"
 	"fmt"
+	http "net/http"
 	"time"
 
 	cryptoutilIdentityBootstrap "cryptoutil/internal/apps/identity/bootstrap"
@@ -20,6 +21,7 @@ import (
 	cryptoutilServerApplication "cryptoutil/internal/apps/sm/kms/server/application"
 	cryptoutilAppsTemplateServiceConfig "cryptoutil/internal/apps/template/service/config"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedUtilPoll "cryptoutil/internal/shared/util/poll"
 )
 
 // Integration demo step counts.
@@ -47,7 +49,6 @@ const (
 	integrationHealthTimeout  = 30 * time.Second
 	integrationHTTPTimeout    = 10 * time.Second
 	integrationShutdownTime   = 5 * time.Second
-	integrationServerStartup  = 100 * time.Millisecond
 	integrationHealthInterval = 500 * time.Millisecond
 
 	// Identity server configuration.
@@ -351,11 +352,18 @@ func startIntegrationIdentityServer(ctx context.Context, servers *integrationSer
 		_ = authzServer.Start(serverCtx)
 	}()
 
-	// Give server time to start.
-	time.Sleep(integrationServerStartup)
-
-	// Build base URL.
+	// Poll for server readiness instead of sleeping.
 	baseURL := fmt.Sprintf("http://%s:%d", identityConfig.AuthZ.BindAddress, identityConfig.AuthZ.Port)
+	healthURL := baseURL + "/health"
+	client := &http.Client{Timeout: integrationHealthInterval}
+
+	if err := cryptoutilSharedUtilPoll.Until(ctx, integrationHealthTimeout, integrationHealthInterval, func(pollCtx context.Context) (bool, error) {
+		return isHTTPHealthy(pollCtx, client, healthURL), nil
+	}); err != nil {
+		cancel()
+
+		return fmt.Errorf("identity server failed to become ready: %w", err)
+	}
 
 	// Store server references.
 	servers.identityConfig = identityConfig
@@ -368,7 +376,7 @@ func startIntegrationIdentityServer(ctx context.Context, servers *integrationSer
 }
 
 // startIntegrationKMSServer starts the KMS server for integration demo.
-func startIntegrationKMSServer(_ context.Context, servers *integrationServers) error {
+func startIntegrationKMSServer(ctx context.Context, servers *integrationServers) error {
 	// Parse KMS configuration with dev and demo mode.
 	args := []string{
 		"start",
@@ -393,8 +401,12 @@ func startIntegrationKMSServer(_ context.Context, servers *integrationServers) e
 	// Start server in background.
 	go server.StartFunction()
 
-	// Give server time to start.
-	time.Sleep(cryptoutilSharedMagic.DefaultServerStartupDelay)
+	// Poll for KMS server readiness instead of sleeping.
+	if err := cryptoutilSharedUtilPoll.Until(ctx, integrationHealthTimeout, integrationHealthInterval, func(_ context.Context) (bool, error) {
+		return isKMSHealthy(settings), nil
+	}); err != nil {
+		return fmt.Errorf("KMS server failed to become ready: %w", err)
+	}
 
 	// Update settings with actual ports.
 	settings.BindPublicPort = server.ActualPublicPort
