@@ -348,3 +348,70 @@ func TestShardStrategyString(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateSchemaName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{name: "valid alphanumeric", input: "tenant_abc123", wantErr: false},
+		{name: "valid with hyphens", input: "tenant-550e8400-e29b-41d4-a716-446655440000", wantErr: false},
+		{name: "valid underscores", input: "schema_prefix_test", wantErr: false},
+		{name: "invalid dollar sign", input: "tenant$bad", wantErr: true},
+		{name: "invalid space", input: "tenant bad", wantErr: true},
+		{name: "invalid semicolon", input: "tenant;drop", wantErr: true},
+		{name: "invalid quotes", input: `tenant"inject`, wantErr: true},
+		{name: "empty string", input: "", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := validateSchemaName(tt.input)
+			if tt.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), "invalid schema name")
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestShardManager_GetDB_InvalidSchemaPrefix(t *testing.T) {
+	t.Parallel()
+
+	sm := &ShardManager{
+		config: &ShardConfig{
+			Strategy:     StrategySchemaLevel,
+			SchemaPrefix: "invalid$prefix_",
+		},
+	}
+
+	tenantID := googleUuid.New()
+	ctx := WithTenantContext(context.Background(), &TenantContext{TenantID: tenantID})
+
+	_, err := sm.GetDB(ctx)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid schema name")
+}
+
+func TestShardManager_DropTenantSchema_InvalidSchemaPrefix(t *testing.T) {
+	t.Parallel()
+
+	sm := &ShardManager{
+		config: &ShardConfig{
+			Strategy:     StrategySchemaLevel,
+			SchemaPrefix: "invalid$prefix_",
+		},
+	}
+
+	tenantID := googleUuid.New()
+	err := sm.DropTenantSchema(tenantID)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid schema name")
+}
