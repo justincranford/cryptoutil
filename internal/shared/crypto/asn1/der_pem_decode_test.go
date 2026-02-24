@@ -1,6 +1,5 @@
 // Copyright (c) 2025 Justin Cranford
 
-//nolint:wrapcheck,thelper,errcheck // Test code doesn't need to wrap crypto errors or use t.Helper()
 package asn1
 
 import (

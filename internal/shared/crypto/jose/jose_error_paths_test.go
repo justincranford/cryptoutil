@@ -2,7 +2,6 @@
 //
 //
 
-//nolint:wrapcheck,thelper // Test code doesn't need to wrap errors or use t.Helper()
 package crypto
 
 import (

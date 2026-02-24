@@ -1,6 +1,5 @@
 // Copyright (c) 2025 Justin Cranford
 
-//nolint:wrapcheck,thelper,errcheck // Test code doesn't need to wrap crypto errors or use t.Helper()
 package asn1
 
 import (
@@ -193,7 +192,9 @@ func TestRoundTrip_PEMFileOperations(t *testing.T) {
 
 	// Verify key type.
 	require.IsType(t, &rsa.PrivateKey{}, readKey)
-	readKeyTyped := readKey.(*rsa.PrivateKey)
+
+	readKeyTyped, ok := readKey.(*rsa.PrivateKey)
+	require.True(t, ok, "expected *rsa.PrivateKey type assertion to succeed")
 
 	// Compare key material (not struct pointers).
 	// Note: Cannot use require.Equal() because fips field is a pointer
