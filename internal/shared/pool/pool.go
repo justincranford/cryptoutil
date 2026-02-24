@@ -432,29 +432,30 @@ func (pool *ValueGenPool[T]) closePermissionAndGenerateChannels(waitForWorkers *
 }
 
 func validateConfig[T any](config *ValueGenPoolConfig[T]) error {
-	if config == nil {
+	switch {
+	case config == nil:
 		return fmt.Errorf("config can't be nil")
-	} else if config.ctx == nil {
+	case config.ctx == nil:
 		return fmt.Errorf("context can't be nil")
-	} else if config.telemetryService == nil {
+	case config.telemetryService == nil:
 		return fmt.Errorf("telemetry service can't be nil")
-	} else if len(config.poolName) == 0 {
+	case len(config.poolName) == 0:
 		return fmt.Errorf("name can't be empty")
-	} else if config.numWorkers == 0 {
+	case config.numWorkers == 0:
 		return fmt.Errorf("number of workers can't be 0")
-	} else if config.poolSize == 0 {
+	case config.poolSize == 0:
 		return fmt.Errorf("pool size can't be 0")
-	} else if config.maxLifetimeValues == 0 && config.maxLifetimeDuration > 0 {
+	case config.maxLifetimeValues == 0 && config.maxLifetimeDuration > 0:
 		return fmt.Errorf("max lifetime values can't be 0 when max lifetime duration is set")
-	} else if config.maxLifetimeDuration <= 0 && config.maxLifetimeValues > 0 {
+	case config.maxLifetimeDuration <= 0 && config.maxLifetimeValues > 0:
 		return fmt.Errorf("max lifetime duration must be positive and non-zero when max lifetime values is set")
-	} else if config.numWorkers > config.poolSize {
+	case config.numWorkers > config.poolSize:
 		return fmt.Errorf("number of workers can't be greater than pool size")
-	} else if config.maxLifetimeValues > 0 && uint64(config.poolSize) > config.maxLifetimeValues {
+	case config.maxLifetimeValues > 0 && uint64(config.poolSize) > config.maxLifetimeValues:
 		return fmt.Errorf("pool size can't be greater than max lifetime values")
-	} else if config.generateFunction == nil {
+	case config.generateFunction == nil:
 		return fmt.Errorf("generate function can't be nil")
+	default:
+		return nil
 	}
-
-	return nil
 }

@@ -13,13 +13,13 @@ const (
 	// DefaultUnsealModeSysInfo - Sysinfo unseal mode.
 	DefaultUnsealModeSysInfo = "sysinfo"
 	// DefaultSysInfoAllTimeout - 10 seconds duration, rate limit maximum.
-	DefaultSysInfoAllTimeout = 10 * time.Second //nolint:stylecheck // established API name
+	DefaultSysInfoAllTimeout = 10 * time.Second
 	// DefaultSysInfoCPUTimeout - Default system timeout duration.
-	DefaultSysInfoCPUTimeout = 10 * time.Second //nolint:stylecheck // established API name
+	DefaultSysInfoCPUTimeout = 10 * time.Second
 	// DefaultSysInfoMemoryTimeout is the default system memory timeout duration.
-	DefaultSysInfoMemoryTimeout = 5 * time.Second //nolint:stylecheck // established API name
+	DefaultSysInfoMemoryTimeout = 5 * time.Second
 	// DefaultSysInfoHostTimeout is the default system host timeout duration.
-	DefaultSysInfoHostTimeout = 5 * time.Second //nolint:stylecheck // established API namev
+	DefaultSysInfoHostTimeout = 5 * time.Second
 
 	// DefaultMaxUnsealFiles - Maximum number of files allowed.
 	DefaultMaxUnsealFiles = 10

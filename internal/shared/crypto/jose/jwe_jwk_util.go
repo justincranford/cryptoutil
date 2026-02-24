@@ -142,7 +142,7 @@ func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 }
 
 func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilSharedCryptoKeygen.Key, isNilRawKeyOk bool) (cryptoutilSharedCryptoKeygen.Key, error) {
-	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, &ErrInvalidJWEJWKKidUUID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, ErrInvalidJWEJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWE JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWE JWK alg must be non-nil")

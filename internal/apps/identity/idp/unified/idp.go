@@ -3,7 +3,7 @@
 //
 
 // Package idp provides the unified command interface for Identity Provider service.
-package idp //nolint:wsl_v5
+package idp
 
 import (
 	"context"
@@ -101,7 +101,7 @@ func startService(parameters []string) {
 }
 
 // stopService sends shutdown request to IDP admin endpoint.
-func stopService(parameters []string) { //nolint:wsl_v5
+func stopService(parameters []string) {
 	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Fprintf(os.Stderr, "Sending shutdown request to admin endpoint (port %d)...\n", adminPort)
@@ -139,7 +139,7 @@ func stopService(parameters []string) { //nolint:wsl_v5
 }
 
 // statusService checks IDP service readiness.
-func statusService(parameters []string) { //nolint:wsl_v5
+func statusService(parameters []string) {
 	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Fprintf(os.Stderr, "Checking service status (port %d)...\n", adminPort)
@@ -175,7 +175,7 @@ func statusService(parameters []string) { //nolint:wsl_v5
 }
 
 // healthService checks IDP service health.
-func healthService(parameters []string) { //nolint:wsl_v5
+func healthService(parameters []string) {
 	adminPort := parseAdminPort(parameters, defaultAdminPort)
 
 	fmt.Fprintf(os.Stderr, "Checking service health (port %d)...\n", adminPort)

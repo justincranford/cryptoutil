@@ -177,7 +177,7 @@ func (*OamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.
 		return nil, nil
 	}
 
-	if err := cryptoutilSharedUtilRandom.ValidateUUIDs(*uuids, &ErrInvalidUUID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUIDs(*uuids, ErrInvalidUUID); err != nil {
 		return nil, fmt.Errorf("failed to validate UUIDs: %w", err)
 	}
 

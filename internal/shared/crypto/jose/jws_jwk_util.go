@@ -152,7 +152,7 @@ func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 }
 
 func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilSharedCryptoKeygen.Key, isNilRawKeyOk bool) (cryptoutilSharedCryptoKeygen.Key, error) {
-	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, &ErrInvalidJWSJWKKidUUID); err != nil {
+	if err := cryptoutilSharedUtilRandom.ValidateUUID(kid, ErrInvalidJWSJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWS JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWS JWK alg must be non-nil")

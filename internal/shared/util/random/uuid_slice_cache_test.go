@@ -103,7 +103,7 @@ func TestValidateUUID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := ValidateUUID(tt.uuid, &msg)
+err := ValidateUUID(tt.uuid, msg)
 
 			if tt.expectError {
 				require.Error(t, err, "Expected validation error")
@@ -164,7 +164,7 @@ func TestValidateUUIDs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := ValidateUUIDs(tt.uuids, &msg)
+err := ValidateUUIDs(tt.uuids, msg)
 
 			if tt.expectError {
 				require.Error(t, err, "Expected validation error")

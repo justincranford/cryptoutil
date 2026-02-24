@@ -46,6 +46,7 @@ const (
 	testEndEntityCertValidity1Year   = cryptoutilSharedMagic.TLSTestEndEntityCertValidity1Year * cryptoutilSharedMagic.Days1
 
 	// Test constants.
+	testNegativeInt      = cryptoutilSharedMagic.TestNegativeInt
 	testNegativeDuration = cryptoutilSharedMagic.TestNegativeDuration
 	testHourDuration     = cryptoutilSharedMagic.TestHourDuration
 )
@@ -364,7 +365,7 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 			IssuerName:  "Test Issuer",
 			Duration:    testHourDuration,
 			IsCA:        true,
-			MaxPathLen:  testNegativeDuration, // Invalid negative MaxPathLen
+			MaxPathLen:  testNegativeInt, // Invalid negative MaxPathLen
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)

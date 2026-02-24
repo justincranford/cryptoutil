@@ -28,29 +28,29 @@ func GenerateUUIDv7() (*googleUuid.UUID, error) {
 }
 
 // ValidateUUID validates that a UUID is not nil, zero, or max.
-func ValidateUUID(uuid *googleUuid.UUID, msg *string) error {
+func ValidateUUID(uuid *googleUuid.UUID, msg string) error {
 	if uuid == nil {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDCantBeNil)
+		return fmt.Errorf("%s: %w", msg, cryptoutilSharedApperr.ErrUUIDCantBeNil)
 	} else if *uuid == googleUuid.Nil {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDCantBeZero)
+		return fmt.Errorf("%s: %w", msg, cryptoutilSharedApperr.ErrUUIDCantBeZero)
 	} else if *uuid == googleUuid.Max {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDCantBeMax)
+		return fmt.Errorf("%s: %w", msg, cryptoutilSharedApperr.ErrUUIDCantBeMax)
 	}
 
 	return nil
 }
 
 // ValidateUUIDs validates a slice of UUIDs.
-func ValidateUUIDs(uuids []googleUuid.UUID, msg *string) error {
+func ValidateUUIDs(uuids []googleUuid.UUID, msg string) error {
 	if uuids == nil {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDsCantBeNil)
+		return fmt.Errorf("%s: %w", msg, cryptoutilSharedApperr.ErrUUIDsCantBeNil)
 	} else if len(uuids) == 0 {
-		return fmt.Errorf("%s: %w", *msg, cryptoutilSharedApperr.ErrUUIDsCantBeEmpty)
+		return fmt.Errorf("%s: %w", msg, cryptoutilSharedApperr.ErrUUIDsCantBeEmpty)
 	}
 
 	for i, uuid := range uuids {
 		if err := ValidateUUID(&uuid, msg); err != nil {
-			return fmt.Errorf("%s, offset %d: %w", *msg, i, err)
+			return fmt.Errorf("%s, offset %d: %w", msg, i, err)
 		}
 	}
 

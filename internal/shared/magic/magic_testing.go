@@ -71,15 +71,15 @@ const (
 	// - otel healthcheck sidecar: 10s sleep + (15 retries * 2s) = up to 40s
 	// - GitHub Actions runner overhead: shared CPU, network latency, cold starts
 	// Total: 5 minutes allows margin for GitHub Actions environment (was 3 min, insufficient).
-	TestTimeoutDockerHealth = 300 * time.Second //nolint:stylecheck // established API name
+	TestTimeoutDockerHealth = 300 * time.Second
 	// TestTimeoutCryptoutilReady - Timeout for Cryptoutil readiness checks. Cryptoutil needs time to unseal.
-	TestTimeoutCryptoutilReady = 30 * time.Second //nolint:stylecheck // Cryptoutil needs time to unseal
+	TestTimeoutCryptoutilReady = 30 * time.Second
 	// TestTimeoutTestExecution - Overall test execution timeout.
-	TestTimeoutTestExecution = 5 * time.Minute //nolint:stylecheck // Overall test timeout
+	TestTimeoutTestExecution = 5 * time.Minute
 	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize after startup.
-	TestTimeoutDockerComposeInit = 10 * time.Second //nolint:stylecheck // Time to wait for Docker Compose services to initialize after startup
+	TestTimeoutDockerComposeInit = 10 * time.Second
 	// TestTimeoutServiceRetry - Timeout for service retry intervals. Check frequently.
-	TestTimeoutServiceRetry = 2 * time.Second //nolint:stylecheck // Check every 2 seconds
+	TestTimeoutServiceRetry = 2 * time.Second
 
 	// TimeoutTestServerReady - Test server ready timeout.
 	TimeoutTestServerReady = 30 * time.Second
@@ -87,12 +87,12 @@ const (
 	TimeoutTestServerReadyRetryDelay = 500 * time.Millisecond
 
 	// TestDefaultServerShutdownTimeout - Default server shutdown timeout duration.
-	TestDefaultServerShutdownTimeout = 1 * time.Minute //nolint:stylecheck // established API name
+	TestDefaultServerShutdownTimeout = 1 * time.Minute
 
 	// TestTimeoutHTTPRetryInterval - Default HTTP retry interval duration.
-	TestTimeoutHTTPRetryInterval = 1 * time.Second //nolint:stylecheck // established API name
+	TestTimeoutHTTPRetryInterval = 1 * time.Second
 	// TestTimeoutHTTPClient - Default HTTP client timeout duration.
-	TestTimeoutHTTPClient = 10 * time.Second //nolint:stylecheck // established API name
+	TestTimeoutHTTPClient = 10 * time.Second
 
 	// TimeoutHTTPHealthRequest - HTTP health request timeout.
 	TimeoutHTTPHealthRequest = 5 * time.Second
@@ -110,10 +110,10 @@ const (
 	GitHubRateLimitExtraDelay = 2 * time.Second
 
 	// TestSleepCancelChanContext - 5 milliseconds duration for test delays.
-	TestSleepCancelChanContext = 5 * time.Millisecond //nolint:stylecheck // established API name
+	TestSleepCancelChanContext = 5 * time.Millisecond
 
 	// TestTLSClientRetryWait - 100 milliseconds duration for brief backoff operations.
-	TestTLSClientRetryWait = 100 * time.Millisecond //nolint:stylecheck // established API name
+	TestTLSClientRetryWait = 100 * time.Millisecond
 )
 
 // Test server timeout constants.
@@ -143,8 +143,10 @@ const (
 
 // Test duration constants.
 const (
+	// TestNegativeInt - Negative integer for testing invalid inputs (e.g., MaxPathLen).
+	TestNegativeInt = -1
 	// TestNegativeDuration - Negative duration for testing invalid inputs.
-	TestNegativeDuration = -1
+	TestNegativeDuration = -1 * time.Nanosecond
 	// TestHourDuration - One hour duration for testing.
 	TestHourDuration = time.Hour
 )
