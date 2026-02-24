@@ -2,7 +2,7 @@
 #
 # SM Product Docker Compose Configuration
 #
-# PRODUCT-level deployment for SM product (1 service: kms).
+# PRODUCT-level deployment for SM product (2 services: kms, im).
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
 # Port allocation:

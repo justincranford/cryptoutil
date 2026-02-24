@@ -386,7 +386,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### 3. Secrets Manager (SM)
 
-- **Services**: Key Management Service (KMS), Instant Messenger (IM; renamed from cipher-im — code rename in progress)
+- **Services**: Key Management Service (KMS), Instant Messenger (IM; renamed from cipher-im)
 - **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest, end-to-end encrypted messaging
 - **Use Cases**: Application secrets, database encryption keys, API key management, secure communications
 - **Key Features**: Unseal-based bootstrapping, automatic key rotation, message-level JWKs
@@ -409,7 +409,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 Resource Server |
 | **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OAuth 2.1 Relying Party |
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
-| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** (renaming from cipher-im) | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
+| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** (renamed from cipher-im) | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
 | **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
 
 **Implementation Status**:
@@ -419,7 +419,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
 | **pki-ca** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
 | **jose-ja** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
-| **sm-im** (cipher-im rename, in progress) | ❌ Rename Pending | 0% | Phase 8: code rename cipher-im → sm-im |
+| **sm-im** | ✅ Complete | 100% | Phase 8: renamed from cipher-im |
 | **identity-authz** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-idp** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-rs** | ✅ Complete | 100% | Dual servers, Docker Compose working |
@@ -450,7 +450,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 ##### 3.2.2.1 Instant Messenger (IM) Service
 
-- Product-Service (Unique Identifier): sm-im (renaming from cipher-im; code rename in Phase 8 of fixes-v7) JSON Object Signing & Encryption (JOSE) Product
+- Product-Service (Unique Identifier): sm-im (renamed from cipher-im) JSON Object Signing & Encryption (JOSE) Product
 
 ##### 3.2.3.1 JWK Authority (JA) Service
 
@@ -625,7 +625,7 @@ Three deployment scenarios each use distinct host port ranges to enable concurre
 |---------|-----------|----------------|----------|----------------|
 | **pki-ca** | 127.0.0.1 | 54320 | 0.0.0.0 | 5432 |
 | **jose-ja** | 127.0.0.1 | 54321 | 0.0.0.0 | 5432 |
-| **cipher-im** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
+| **sm-im** | 127.0.0.1 | 54322 | 0.0.0.0 | 5432 |
 | **sm-kms** | 127.0.0.1 | 54323 | 0.0.0.0 | 5432 |
 | **identity-authz** | 127.0.0.1 | 54324 | 0.0.0.0 | 5432 |
 | **identity-idp** | 127.0.0.1 | 54325 | 0.0.0.0 | 5432 |
@@ -716,12 +716,12 @@ Based on golang-standards/project-layout:
 ```
 cmd/
 ├── cryptoutil/main.go         # Suite-level CLI (all products): Thin main() call to `internal/apps/cryptoutil.go`
-├── cipher/main.go             # Product-level Cipher CLI: Thin main() call to `internal/apps/cipher/cipher.go`
+# cipher product removed - im moved to sm product
 ├── jose/main.go               # Product-level JOSE CLI: Thin main() call to `internal/apps/jose/jose.go`
 ├── pki/main.go                # Product-level PKI CLI: Thin main() call to `internal/apps/pki/pki.go`
 ├── identity/main.go           # Product-level Identity CLI: Thin main() call to `internal/apps/identity/identity.go`
 ├── sm/main.go                 # Product-level SM CLI: Thin main() call to `internal/apps/sm/sm.go`
-├── cipher-im/main.go          # Service-level Cipher-IM CLI: Thin main() call to `internal/apps/cipher/im/im.go`
+├── sm-im/main.go            # Service-level SM-IM CLI: Thin main() call to `internal/apps/sm/im/im.go`
 ├── jose-ja/main.go            # Service-level JOSE-JA CLI: Thin main() call to `internal/apps/jose/ja/ja.go`
 ├── pki-ca/main.go             # Service-level PKI-CA CLI: Thin main() call to `internal/apps/pki/ca/ca.go`
 ├── identity-authz/main.go     # Service-level Identity-Authz CLI: Thin main() call to `internal/apps/identity/authz/authz.go`
@@ -771,7 +771,7 @@ internal/apps/
 │   │   └── testutil/          # Test helpers (NewTestSettings)
 │   └── testing/
 │       └── e2e/               # ComposeManager for E2E orchestration
-├── cipher/
+
 │   └── im/                    # Cipher-IM service
 │       ├── domain/            # Domain models (Message, Recipient)
 │       ├── repository/        # Domain repos + migrations (2001+)
@@ -843,7 +843,7 @@ deployments/
 │   └── ... (same structure)
 ├── identity/
 │   └── ... (same structure)
-└── cipher/
+
     └── ... (same structure)
 ```
 
@@ -853,16 +853,16 @@ deployments/
 
 ```
 # Product-Service pattern (preferred)
-cipher-im server --config=/etc/cipher/im.yml
+sm-im server --config=/etc/sm/im.yml
 
 # Service pattern
-im server --config=/etc/cipher/im.yml
+im server --config=/etc/sm/im.yml
 
 # Product pattern (routes to service)
-cipher im server --config=/etc/cipher/im.yml
+sm im server --config=/etc/sm/im.yml
 
 # Suite pattern (routes to product, then service)
-cryptoutil cipher im server --config=/etc/cipher/im.yml
+cryptoutil sm im server --config=/etc/sm/im.yml
 ```
 
 ```
@@ -935,7 +935,7 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 - ALL new services MUST use `internal/apps/template/service/` (consistency, reduced duplication)
 - ALL existing services MUST be refactored to use `internal/apps/template/service/` (iterative migration)
-- Migration priority: sm-im (cipher-im) → jose-ja → sm-kms → pki-ca → identity services
+- Migration priority: sm-im → jose-ja → sm-kms → pki-ca → identity services
   - sm-im/jose-ja/sm-kms migrate first (SM product); pki-ca second; identity last
 
 ### 5.2 Service Builder Pattern
@@ -1487,7 +1487,7 @@ Caveat: End-to-End Docker Compose tests use both PostgreSQL and SQLite, for isol
 | Range | Owner | Examples |
 |-------|-------|----------|
 | 1001-1999 | Service Template | Sessions (1001), Barrier (1002), Realms (1003), Tenants (1004), PendingUsers (1005) |
-| 2001+ | Domain | cipher-im messages (2001), jose JWKs (2001) |
+| 2001+ | Domain | sm-im messages (2001), jose JWKs (2001) |
 
 - mergedMigrations type: Implements fs.FS interface, unifies both for golang-migrate validation
 - Prevention: Solves "no migration found for version X" validation errors
@@ -2118,19 +2118,19 @@ func TestE2E_SendMessage(t *testing.T) {
     ctx := context.Background()
 
     // Start Docker Compose stack
-    manager := e2e.NewComposeManager(t, "../../../deployments/cipher-im")
+    manager := e2e.NewComposeManager(t, "../../../deployments/sm-im")
     manager.Up(ctx)
     defer manager.Down(ctx)
 
     // Wait for service healthy
-    manager.WaitForHealthy(ctx, "cipher-im", 60*time.Second)
+    manager.WaitForHealthy(ctx, "sm-im", 60*time.Second)
 
     // Get TLS-enabled HTTP client
     client := manager.HTTPClient()
 
     // Test API
     resp, err := client.Post(
-        manager.ServiceURL("cipher-im") + "/browser/api/v1/messages",
+        manager.ServiceURL("sm-im") + "/browser/api/v1/messages",
         "application/json",
         strings.NewReader(`{"content":"hello","recipients":["user-id"]}`),
     )
@@ -2758,7 +2758,7 @@ healthcheck-otel-collector:
 
 **Rationale**: Unified hash pepper allows username@domain lookups across identity services while maintaining per-service encryption boundaries.
 
-##### PRODUCT-Level Deployment (identity, cipher, jose, pki, sm)
+##### PRODUCT-Level Deployment (identity, jose, pki, sm)
 
 **Location**: `deployments/PRODUCT/secrets/` (multiple services per product)
 
@@ -2895,9 +2895,8 @@ healthcheck-secrets:
 
 ```yaml
 include:
-  - path: ../sm/compose.yml          # sm-kms service
+  - path: ../sm/compose.yml          # sm-kms, sm-im services
   - path: ../pki/compose.yml         # pki-ca service
-  - path: ../cipher/compose.yml      # cipher-im service
   - path: ../jose/compose.yml        # jose-ja service
   - path: ../identity/compose.yml    # identity-authz, -idp, -rp, -rs, -spa
 
@@ -2940,7 +2939,7 @@ secrets:
 **Other Products**:
 - `deployments/sm/compose.yml` → includes `../sm-kms/` (currently single service)
 - `deployments/pki/compose.yml` → includes `../pki-ca/` (currently single service)
-- `deployments/cipher/compose.yml` → includes `../cipher-im/` (currently single service)
+- `deployments/sm/compose.yml` → includes sm-kms and sm-im services
 - `deployments/jose/compose.yml` → includes `../jose-ja/` (currently single service)
 
 ##### SERVICE-Level Deployment (Individual Services)
@@ -3057,7 +3056,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
   - Rationale: Unseal keys MUST be unique per service (security isolation)
 - Validation function: `validateSuiteSecrets()` in lint_deployments.go
 
-**PRODUCT** (e.g., identity, sm, pki, cipher, jose):
+**PRODUCT** (e.g., identity, sm, pki, jose):
 - Required directories: `secrets/`
 - Required files: `compose.yml`
 - Optional files: `README.md`
@@ -3068,7 +3067,7 @@ HASH_PEPPER_FILE: /run/secrets/cryptoutil-hash_pepper.secret
   - Rationale: Unseal keys MUST be unique per service (security isolation)
 - Validation function: `validateProductSecrets()` in lint_deployments.go
 
-**PRODUCT-SERVICE** (e.g., cipher-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa):
+**PRODUCT-SERVICE** (e.g., sm-im, jose-ja, pki-ca, sm-kms, identity-authz/idp/rp/rs/spa):
 - Required directories: `secrets/`, `config/`
 - Required files: `compose.yml`, `Dockerfile`
 - Optional files: `compose.demo.yml`, `otel-collector-config.yaml`, `README.md`
@@ -3280,7 +3279,7 @@ if file == "demo-seed.yml" || file == "integration.yml" {
 **Mapping Rules**:
 
 - `PRODUCT-SERVICE` (e.g., `jose-ja`) → product name (e.g., `jose`)
-- `PRODUCT` (e.g., `cipher`) → same name
+- `PRODUCT` (e.g., `sm`) → same name
 - Explicit overrides: `pki`/`pki-ca` → `ca`, `sm`/`sm-kms` → `sm`
 
 **Exclusions**: Infrastructure deployments (`shared-postgres`, `shared-citus`, `shared-telemetry`, `compose`, `template`)
@@ -3339,9 +3338,13 @@ configs/
 │   └── profiles/                # X.509 certificate profiles
 │       ├── tls-server.yaml
 │       └── root-ca.yaml
-├── cipher/
-│   ├── cipher.yml               # Product-level config
-│   └── im/                      # Service-level configs
+
+├── sm/
+│   ├── kms/                     # SM KMS service configs
+│   │   ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
+│   │   ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
+│   │   └── config-sqlite.yml    # SQLite development (flat kebab-case)
+│   └── im/                      # SM IM service configs (renamed from cipher-im)
 │       ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
 │       ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
 │       └── config-sqlite.yml    # SQLite development (flat kebab-case)
@@ -3634,7 +3637,7 @@ See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that
 
 **See Section 3.2 Product-Service Port Assignments** for complete table
 
-**Summary**: pki-ca (8050-8059), jose-ja (8060-8069), cipher-im (8070-8079), sm-kms (8080-8089), identity-authz (8100-8109), identity-idp (8110-8119), identity-rs (8120-8129), identity-rp (8130-8139), identity-spa (8140-8149)
+**Summary**: pki-ca (8050-8059), jose-ja (8060-8069), sm-im (8070-8079), sm-kms (8080-8089), identity-authz (8100-8109), identity-idp (8110-8119), identity-rs (8120-8129), identity-rp (8130-8139), identity-spa (8140-8149)
 
 ### B.2 Database Port Assignments
 
