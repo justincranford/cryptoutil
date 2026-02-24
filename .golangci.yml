@@ -128,8 +128,8 @@ linters:
       # Exclude wrapcheck from jose server builder (template app Start/Shutdown delegation).
       - path: "internal/jose/server/server_builder\\.go$"
         linters: [wrapcheck]
-      # Exclude wrapcheck from cipher-im session manager wrapper (internal package).
-      - path: "internal/apps/cipher/im/server/businesslogic/session_manager_service\\.go$"
+      # Exclude wrapcheck from sm-im session manager wrapper (internal package).
+      - path: "internal/apps/sm/im/server/businesslogic/session_manager_service\\.go$"
         linters: [wrapcheck]
       # Exclude wrapcheck from template session manager barrier wrappers (internal package delegation).
       - path: "internal/apps/template/service/server/businesslogic/session_manager\\.go$"
@@ -271,7 +271,7 @@ linters:
           alias: cryptoutilCmdCicdLintText
         - pkg: "cryptoutil/internal/cmd/cicd/lint_workflow"
           alias: cryptoutilCmdCicdLintWorkflow
-        - pkg: "cryptoutil/internal/cmd/cipher"
+        - pkg: "cryptoutil/internal/cmd/sm"
           alias: cryptoutilCmdCipher
         - pkg: "cryptoutil/internal/cmd/demo"
           alias: cryptoutilCmdDemo
@@ -420,36 +420,36 @@ linters:
         # Cryptoutil template
         - pkg: "cryptoutil/internal/template/server"
           alias: cryptoutilTemplateServer
-        # Cryptoutil cipher
-        - pkg: "cryptoutil/internal/cipher/crypto"
-          alias: cryptoutilCipherCrypto
-        - pkg: "cryptoutil/internal/cipher/domain"
-          alias: cryptoutilCipherDomain
-        - pkg: "cryptoutil/internal/cipher/e2e"
-          alias: cryptoutilCipherE2E
-        - pkg: "cryptoutil/internal/cipher/integration"
-          alias: cryptoutilCipherIntegration
-        - pkg: "cryptoutil/internal/cipher/repository"
-          alias: cryptoutilCipherRepository
-        - pkg: "cryptoutil/internal/cipher/server"
-          alias: cryptoutilCipherServer
+        # Cryptoutil sm-im
+        - pkg: "cryptoutil/internal/sm/crypto"
+          alias: cryptoutilSmCrypto
+        - pkg: "cryptoutil/internal/sm/domain"
+          alias: cryptoutilSmDomain
+        - pkg: "cryptoutil/internal/sm/e2e"
+          alias: cryptoutilSmE2E
+        - pkg: "cryptoutil/internal/sm/integration"
+          alias: cryptoutilSmIntegration
+        - pkg: "cryptoutil/internal/sm/repository"
+          alias: cryptoutilSmRepository
+        - pkg: "cryptoutil/internal/sm/server"
+          alias: cryptoutilSmServer
         # Cryptoutil apps
         - pkg: "cryptoutil/internal/apps/pki/ca/server/config"
           alias: cryptoutilAppsCaServerConfig
-        - pkg: "cryptoutil/internal/apps/cipher"
-          alias: cryptoutilAppsCipher
-        - pkg: "cryptoutil/internal/apps/cipher/im"
-          alias: cryptoutilAppsCipherIm
-        - pkg: "cryptoutil/internal/apps/cipher/im/domain"
-          alias: cryptoutilAppsCipherImDomain
-        - pkg: "cryptoutil/internal/apps/cipher/im/repository"
-          alias: cryptoutilAppsCipherImRepository
-        - pkg: "cryptoutil/internal/apps/cipher/im/server"
-          alias: cryptoutilAppsCipherImServer
-        - pkg: "cryptoutil/internal/apps/cipher/im/server/apis"
-          alias: cryptoutilAppsCipherImServerApis
-        - pkg: "cryptoutil/internal/apps/cipher/im/server/config"
-          alias: cryptoutilAppsCipherImServerConfig
+        - pkg: "cryptoutil/internal/apps/sm"
+          alias: cryptoutilAppsSm
+        - pkg: "cryptoutil/internal/apps/sm/im"
+          alias: cryptoutilAppsSmIm
+        - pkg: "cryptoutil/internal/apps/sm/im/domain"
+          alias: cryptoutilAppsSmImDomain
+        - pkg: "cryptoutil/internal/apps/sm/im/repository"
+          alias: cryptoutilAppsSmImRepository
+        - pkg: "cryptoutil/internal/apps/sm/im/server"
+          alias: cryptoutilAppsSmImServer
+        - pkg: "cryptoutil/internal/apps/sm/im/server/apis"
+          alias: cryptoutilAppsSmImServerApis
+        - pkg: "cryptoutil/internal/apps/sm/im/server/config"
+          alias: cryptoutilAppsSmImServerConfig
         - pkg: "cryptoutil/internal/apps/identity/authz/server/config"
           alias: cryptoutilAppsIdentityAuthzServerConfig
         - pkg: "cryptoutil/internal/apps/identity/idp/server/config"
@@ -472,10 +472,10 @@ linters:
           alias: cryptoutilAppsTemplateServiceServerRepository
         - pkg: "cryptoutil/internal/apps/pki/ca/server"
           alias: cryptoutilAppsCaServer
-        - pkg: "cryptoutil/internal/apps/cipher/im/client"
-          alias: cryptoutilAppsCipherImClient
-        - pkg: "cryptoutil/internal/apps/cipher/im/testing"
-          alias: cryptoutilAppsCipherImTesting
+        - pkg: "cryptoutil/internal/apps/sm/im/client"
+          alias: cryptoutilAppsSmImClient
+        - pkg: "cryptoutil/internal/apps/sm/im/testing"
+          alias: cryptoutilAppsSmImTesting
         - pkg: "cryptoutil/internal/apps/identity/authz/server"
           alias: cryptoutilAppsIdentityAuthzServer
         - pkg: "cryptoutil/internal/apps/identity/idp/server"

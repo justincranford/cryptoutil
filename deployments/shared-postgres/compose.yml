@@ -11,7 +11,7 @@
 #   Suite-level (9 databases):
 #     - suitedeployment-pki-ca
 #     - suitedeployment-jose-ja
-#     - suitedeployment-cipher-im
+#     - suitedeployment-sm-im
 #     - suitedeployment-sm-kms
 #     - suitedeployment-identity-authz
 #     - suitedeployment-identity-idp
@@ -22,7 +22,7 @@
 #   Product-level (9 databases):
 #     - productdeployment-pki-ca
 #     - productdeployment-jose-ja
-#     - productdeployment-cipher-im
+#     - productdeployment-sm-im
 #     - productdeployment-sm-kms
 #     - productdeployment-identity-authz
 #     - productdeployment-identity-idp
@@ -33,7 +33,7 @@
 #   Service-level (9 databases):
 #     - servicedeployment-pki-ca
 #     - servicedeployment-jose-ja
-#     - servicedeployment-cipher-im
+#     - servicedeployment-sm-im
 #     - servicedeployment-sm-kms
 #     - servicedeployment-identity-authz
 #     - servicedeployment-identity-idp
@@ -43,19 +43,19 @@
 #
 # Logical Database Architecture (Follower - OLAP):
 #   Suite-level (1 database with 9 schemas):
-#     - cryptoutil (schemas: pki_ca, jose_ja, cipher_im, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa)
+#     - cryptoutil (schemas: pki_ca, jose_ja, sm_im, sm_kms, identity_authz, identity_idp, identity_rs, identity_rp, identity_spa)
 #
 #   Product-level (5 databases with schemas):
 #     - pki (schemas: ca)
 #     - jose (schemas: ja)
-#     - cipher (schemas: im)
+#     - sm (schemas: kms, im)
 #     - sm (schemas: kms)
 #     - identity (schemas: authz, idp, rs, rp, spa)
 #
 #   Service-level (9 databases with 1 schema each):
 #     - pki-ca (schema: ca)
 #     - jose-ja (schema: ja)
-#     - cipher-im (schema: im)
+#     - sm-im (schema: im)
 #     - sm-kms (schema: kms)
 #     - identity-authz (schema: authz)
 #     - identity-idp (schema: idp)

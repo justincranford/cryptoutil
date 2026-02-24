@@ -2,7 +2,7 @@
 #
 #
 
-# Multi-stage Dockerfile for cipher-im encrypted instant messaging service
+# Multi-stage Dockerfile for sm-im encrypted instant messaging service
 
 # Build arguments
 ARG GO_VERSION=1.25.5
@@ -29,8 +29,8 @@ COPY . ./
 # Build the application with static linking
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     -ldflags="-w -s -extldflags '-static'" \
-    -o /build/cipher-im \
-    ./cmd/cipher-im
+    -o /build/sm-im \
+    ./cmd/sm-im
 
 # Stage 2: Runtime - Minimal runtime image
 FROM alpine:${ALPINE_VERSION} AS runtime
@@ -43,14 +43,14 @@ RUN apk add --no-cache \
         ca-certificates \
         wget \
         tzdata && \
-    addgroup -S cipher -g 1000 && \
-    adduser -S cipher -u 1000 -G cipher
+    addgroup -S smim -g 1000 && \
+    adduser -S smim -u 1000 -G smim
 
 # Copy binary from builder
-COPY --from=builder --chown=cipher:cipher /build/cipher-im /app/cipher-im
+COPY --from=builder --chown=smim:smim /build/sm-im /app/sm-im
 
 # Switch to non-root user
-USER cipher:cipher
+USER smim:smim
 
 # Expose ports
 EXPOSE 8888 9090
@@ -60,5 +60,5 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
     CMD wget --no-check-certificate --quiet --tries=1 --spider https://127.0.0.1:9090/admin/api/v1/livez || exit 1
 
 # Run the application
-ENTRYPOINT ["/app/cipher-im"]
+ENTRYPOINT ["/app/sm-im"]
 CMD []

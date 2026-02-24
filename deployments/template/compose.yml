@@ -12,7 +12,7 @@
 #   - Session management, multi-tenancy, barrier encryption
 #
 # Example substitutions:
-#   - PRODUCT: cipher, jose, pki, sm, identity
+#   - PRODUCT: jose, pki, sm, identity
 #   - SERVICE: im, ja, ca, kms, authz, idp, rs, rp, spa
 #   - XXXX: Service base port (8000, 8100, 8200, 8300, 8400, 8500, 8600, 8700, 8800)
 #
@@ -22,7 +22,7 @@
 #   docker compose -f ../PRODUCT/compose.yml up -d
 #   go test -tags=e2e ./internal/apps/PRODUCT/SERVICE/e2e/...
 #
-# Recommended reference implementation: cipher-im (migration priority FIRST)
+# Recommended reference implementation: sm-im (migration priority FIRST)
 #
 # Services:
 #   - PRODUCT-SERVICE-sqlite: https://localhost:XXXX (public) - Standalone SQLite
@@ -49,7 +49,7 @@ include:
 
 services:
   # PRODUCT-SERVICE - SQLite Standalone Instance
-  # Replace PRODUCT-SERVICE with actual service name (e.g., cipher-im, jose-ja)
+  # Replace PRODUCT-SERVICE with actual service name (e.g., sm-im, jose-ja)
   # Replace XXXX with service base port (e.g., 8700, 8800)
   PRODUCT-SERVICE-sqlite:
     image: PRODUCT-SERVICE:local

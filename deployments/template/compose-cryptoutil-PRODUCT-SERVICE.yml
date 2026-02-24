@@ -6,8 +6,8 @@
 # Replace all PRODUCT-SERVICE, PRODUCT, SERVICE placeholders with actual values.
 #
 # Example substitutions:
-#   - PRODUCT-SERVICE: sm-kms, pki-ca, jose-ja, cipher-im, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa.
-#   - PRODUCT: sm, pki, jose, cipher, identity
+#   - PRODUCT-SERVICE: sm-kms, pki-ca, jose-ja, sm-im, identity-authz, identity-idp, identity-rs, identity-rp, identity-spa.
+#   - PRODUCT: sm, pki, jose, identity
 #   - SERVICE: kms, ca, ja, im, authz, idp, rp, rs, spa
 #   - XXXX: Service-specific base port (see docs\ARCHITECTURE.md)
 #

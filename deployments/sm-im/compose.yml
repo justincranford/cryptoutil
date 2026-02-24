@@ -1,14 +1,15 @@
 # $schema: https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json
 #
-# Cipher Product Docker Compose Configuration
+# Cipher-IM Docker Compose Configuration
 #
-# PRODUCT-level deployment for Cipher product (1 service: im).
+# SERVICE-level deployment for Cipher Instant Messenger.
 # Supports 3 instances: 1 SQLite + 2 PostgreSQL.
 #
-# Port allocation:
-#   - cipher-im-app-sqlite-1:    18700 (SQLite, dev/demo/ci)
-#   - cipher-im-app-postgres-1:  18701 (PostgreSQL instance 1)
-#   - cipher-im-app-postgres-2:  18702 (PostgreSQL instance 2)
+# Port allocation (SERVICE level: 8700-8799):
+#   - sm-im-app-sqlite-1:    8700 (SQLite, dev/demo/ci)
+#   - sm-im-app-postgres-1:  8701 (PostgreSQL instance 1) [--profile postgres]
+#   - sm-im-app-postgres-2:  8702 (PostgreSQL instance 2) [--profile postgres]
+#   - sm-im-db-postgres-1:   5432 (PostgreSQL database) [--profile postgres]
 #
 # Usage:
 #   docker compose -f compose.yml up -d                        # SQLite (default: dev profile)
@@ -19,10 +20,9 @@
 #   docker compose -f compose.yml down -v                      # Stop and clean up
 #
 # Health Checks:
-#   - Public:  https://localhost:18700/browser/api/v1/health
-#   - Admin:   https://127.0.0.1:9090/admin/api/v1/livez (container-internal only)
+#   - Public health endpoint: https://localhost:8700/browser/api/v1/health
+#   - Admin livez endpoint: https://127.0.0.1:9090/admin/api/v1/livez (internal only)
 #
-
 include:
   - path: ../shared-telemetry/compose.yml
 
@@ -43,30 +43,30 @@ services:
       - postgres-database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
     networks:
-      - cipher-network
+      - sm-im-network
 
-  # Build cryptoutil image from source.
-  builder-cipher:
+  # Build sm-im image from source.
+  builder-sm-im:
     image: cryptoutil:dev
     build:
       context: ../..
-      dockerfile: deployments/cryptoutil-suite/Dockerfile
+      dockerfile: deployments/sm-im/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
-        BUILD_DATE: "2026-02-14T00:00:00Z"
+        BUILD_DATE: "2026-02-17T00:00:00Z"
     entrypoint: ["sh", "-c"]
     command: ["echo 'Build completed successfully'"]
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
 
-  # PostgreSQL database for Cipher persistence (shared by all services and instances).
-  cipher-db-postgres-1:
+  # PostgreSQL database for sm-im persistence.
+  sm-im-db-postgres-1:
     profiles: ["postgres"]
     image: postgres:18
-    container_name: cipher-postgres
-    hostname: cipher-postgres
+    container_name: sm-im-postgres
+    hostname: sm-im-postgres
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres-username.secret
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password.secret
@@ -75,7 +75,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql
     secrets:
       - postgres-username.secret
       - postgres-password.secret
@@ -90,7 +90,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - cipher-network
+      - sm-im-network
     deploy:
       resources:
         limits:
@@ -98,17 +98,17 @@ services:
         reservations:
           memory: 256M
 
-  # IM server with SQLite backend (dev/demo/ci mode).
-  cipher-im-app-sqlite-1:
+  # sm-im server with SQLite backend (dev/demo/ci mode).
+  sm-im-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-app-sqlite-1.yml", "--config=/app/config/cipher-im-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
-      - "18700:8080"
+      - "8700:8080"  # HTTPS public
     volumes:
-      - ../cipher-im/config/cipher-im-app-sqlite-1.yml:/app/config/cipher-im-app-sqlite-1.yml:ro
-      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/cipher-im-app-common.yml:ro
+      - ./config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
+      - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -119,10 +119,12 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      builder-cipher:
+      builder-sm-im:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
@@ -130,7 +132,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - cipher-network
+      - sm-im-network
       - telemetry-network
     deploy:
       resources:
@@ -139,17 +141,17 @@ services:
         reservations:
           memory: 128M
 
-  # IM server with PostgreSQL backend (instance 1).
-  cipher-im-app-postgres-1:
+  # sm-im server with PostgreSQL backend (instance 1).
+  sm-im-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-app-postgresql-1.yml", "--config=/app/config/cipher-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--config=/app/config/sm-im-app-postgresql-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18701:8080"
+      - "8701:8080"  # HTTPS public
     volumes:
-      - ../cipher-im/config/cipher-im-app-postgresql-1.yml:/app/config/cipher-im-app-postgresql-1.yml:ro
-      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/cipher-im-app-common.yml:ro
+      - ./config/sm-im-app-postgresql-1.yml:/app/config/sm-im-app-postgresql-1.yml:ro
+      - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -161,12 +163,14 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      builder-cipher:
+      builder-sm-im:
         condition: service_completed_successfully
-      cipher-db-postgres-1:
+      sm-im-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
       start_period: 60s
@@ -174,7 +178,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - cipher-network
+      - sm-im-network
       - telemetry-network
     deploy:
       resources:
@@ -183,17 +187,17 @@ services:
         reservations:
           memory: 128M
 
-  # IM server with PostgreSQL backend (instance 2 - shared DB with instance 1).
-  cipher-im-app-postgres-2:
+  # sm-im server with PostgreSQL backend (instance 2 - shared DB with instance 1).
+  sm-im-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-app-postgresql-2.yml", "--config=/app/config/cipher-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--config=/app/config/sm-im-app-postgresql-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
-      - "18702:8080"
+      - "8702:8080"  # HTTPS public
     volumes:
-      - ../cipher-im/config/cipher-im-app-postgresql-2.yml:/app/config/cipher-im-app-postgresql-2.yml:ro
-      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/cipher-im-app-common.yml:ro
+      - ./config/sm-im-app-postgresql-2.yml:/app/config/sm-im-app-postgresql-2.yml:ro
+      - ./config/sm-im-app-common.yml:/app/config/sm-im-app-common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -205,13 +209,15 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      builder-cipher:
+      builder-sm-im:
         condition: service_completed_successfully
-      cipher-db-postgres-1:
+      sm-im-db-postgres-1:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
-      cipher-im-app-postgres-1:
+      healthcheck-opentelemetry-collector-contrib:
+        condition: service_completed_successfully
+      sm-im-app-postgres-1:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/admin/api/v1/livez"]
@@ -220,7 +226,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - cipher-network
+      - sm-im-network
       - telemetry-network
     deploy:
       resources:
@@ -230,12 +236,12 @@ services:
           memory: 128M
 
 networks:
-  cipher-network:
+  sm-im-network:
     driver: bridge
 
 volumes:
-  postgres_data:
-    name: cipher-postgres-volume
+  postgres-data:
+    name: sm-im-postgres-volume
 
 secrets:
   postgres-username.secret:
@@ -246,9 +252,10 @@ secrets:
     file: ./secrets/postgres-database.secret
   postgres-url.secret:
     file: ./secrets/postgres-url.secret
-
+  hash-pepper-v3.secret:
+    file: ./secrets/hash-pepper-v3.secret
   unseal-1of5.secret:
-    file: ./secrets/unseal-1of5.secret
+    file: ./secrets/unseal-1of5.secret # pragma: allowlist secret
   unseal-2of5.secret:
     file: ./secrets/unseal-2of5.secret
   unseal-3of5.secret:
@@ -257,6 +264,3 @@ secrets:
     file: ./secrets/unseal-4of5.secret
   unseal-5of5.secret:
     file: ./secrets/unseal-5of5.secret
-
-  hash-pepper-v3.secret:
-    file: ./secrets/hash-pepper-v3.secret

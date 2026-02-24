@@ -1,5 +1,5 @@
-# Cipher IM (Instant Messenger) Service Configuration - SQLite Instance
-# This file contains instance-specific settings for cipher-im-sqlite
+# Cipher IM (Instant Messenger) Service Configuration - PostgreSQL Instance 1
+# This file contains instance-specific settings for sm-im-pg-1
 #
 # Config key format: flat kebab-case (e.g., bind-public-address)
 # NOT nested YAML (e.g., server.bind_address)
@@ -21,17 +21,17 @@ tls-private-mode: "auto"  # Auto-generate self-signed cert
 
 # OTLP Telemetry Configuration
 otlp: true
-otlp-service: "cipher-im-sqlite"
+otlp-service: "sm-im-pg-1"
 otlp-environment: "development"
-otlp-endpoint: "http://cipher-im-otel-collector:4317"
+otlp-endpoint: "http://sm-im-otel-collector:4317"
 
 # CORS Configuration
 cors-max-age: 3600
 cors-allowed-origins:
-  - "http://localhost:8070"
-  - "http://127.0.0.1:8070"
-  - "https://localhost:8070"
-  - "https://127.0.0.1:8070"
+  - "http://localhost:8071"
+  - "http://127.0.0.1:8071"
+  - "https://localhost:8071"
+  - "https://127.0.0.1:8071"
 
 # Session Configuration (flat keys, not nested)
 browser-session-algorithm: "JWS"

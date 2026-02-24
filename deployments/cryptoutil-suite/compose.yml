@@ -9,7 +9,7 @@
 # Services (9 total):
 #   1. pki-ca (PKI Certificate Authority) - 28100-28102
 #   2. jose-ja (JOSE JWK Authority) - 28800-28802
-#   3. cipher-im (Cipher Instant Messenger) - 28700-28702
+#   3. sm-im (SM Instant Messenger) - 28700-28702
 #   4. sm-kms (Secret Manager Key Management Service) - 28000-28002
 #   5. identity-authz (Identity Authorization Server) - 28200-28202
 #   6. identity-idp (Identity Provider) - 28300-28302
@@ -25,7 +25,7 @@
 #   - identity-rs:    28400 (SQLite), 28401-28402 (PostgreSQL)
 #   - identity-rp:    28500 (SQLite), 28501-28502 (PostgreSQL)
 #   - identity-spa:   28600 (SQLite), 28601-28602 (PostgreSQL)
-#   - cipher-im:      28700 (SQLite), 28701-28702 (PostgreSQL)
+#   - sm-im:      28700 (SQLite), 28701-28702 (PostgreSQL)
 #   - jose-ja:        28800 (SQLite), 28801-28802 (PostgreSQL)
 #
 # Database ports (PostgreSQL leader/follower):
@@ -374,16 +374,16 @@ services:
   # CIPHER-IM (Instant Messenger)
   # ========================================================================
 
-  cipher-im-app-sqlite-1:
+  sm-im-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "im", "start", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28700:8000"
     volumes:
-      - ../cipher-im/config/cipher-im-app-sqlite-1.yml:/app/config/cipher-im-app-sqlite-1.yml:ro
-      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
+      - ../sm-im/config/sm-im-app-sqlite-1.yml:/app/config/sm-im-app-sqlite-1.yml:ro
+      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -414,16 +414,16 @@ services:
         reservations:
           memory: 128M
 
-  cipher-im-app-postgres-1:
+  sm-im-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "im", "start", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28701:8000"
     volumes:
-      - ../cipher-im/config/cipher-im-postgres.yml:/app/config/cipher-im-postgres.yml:ro
-      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
+      - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
+      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret
@@ -461,16 +461,16 @@ services:
         reservations:
           memory: 128M
 
-  cipher-im-app-postgres-2:
+  sm-im-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["cipher", "im", "start", "--config=/app/config/cipher-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
+    command: ["sm", "im", "start", "--config=/app/config/sm-im-postgres.yml", "--config=/app/config/common.yml", "--config=/app/otel/otel.yml"]
     working_dir: /tmp
     ports:
       - "28702:8000"
     volumes:
-      - ../cipher-im/config/cipher-im-postgres.yml:/app/config/cipher-im-postgres.yml:ro
-      - ../cipher-im/config/cipher-im-app-common.yml:/app/config/common.yml:ro
+      - ../sm-im/config/sm-im-postgres.yml:/app/config/sm-im-postgres.yml:ro
+      - ../sm-im/config/sm-im-app-common.yml:/app/config/common.yml:ro
       - ../shared-telemetry/otel/cryptoutil-otel.yml:/app/otel/otel.yml:ro
     secrets:
       - unseal-1of5.secret

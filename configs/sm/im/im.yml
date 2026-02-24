@@ -1,17 +1,17 @@
 # Cipher IM (Instant Messenger) Service Configuration
-# This file contains service-specific settings for cipher-im
+# This file contains service-specific settings for sm-im
 
 # Service Information
 service:
-  name: "cipher-im"
+  name: "sm-im"
   description: >-
     Educational instant messaging service demonstrating service template
     patterns
   version: "1.0.0"
 
-# Observability (inherits from cipher product, can override)
+# Observability (inherits from sm product, can override)
 observability:
-  service_name: "cryptoutil-cipher-im"
+  service_name: "cryptoutil-sm-im"
   # Inherits: otlp_endpoint, otlp_protocol, metrics_enabled, traces_enabled
   # from parent configs
 
@@ -21,7 +21,7 @@ database:
   dsn: ":memory:"  # In-memory for development
   # For PostgreSQL, use:
   # type: "postgres"
-  # dsn: "postgres://user:pass@localhost:5432/cipher_im?sslmode=disable"
+  # dsn: "postgres://user:pass@localhost:5432/sm_im?sslmode=disable"
   max_open_conns: 5
   max_idle_conns: 2
   conn_max_lifetime: 60m

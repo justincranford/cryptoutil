@@ -10,7 +10,7 @@
 # Example PRODUCTS:
 #   - pki (1 service: ca)
 #   - jose (1 service: ja)
-#   - cipher (1 service: im)
+#   - # cipher removed - im now under sm (2 services: kms, im)
 #   - sm (1 service: kms)
 #   - identity (5 services: authz, idp, rs, rp, spa)
 #

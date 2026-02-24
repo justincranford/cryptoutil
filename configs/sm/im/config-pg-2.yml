@@ -1,5 +1,5 @@
 # Cipher IM (Instant Messenger) Service Configuration - PostgreSQL Instance 2
-# This file contains instance-specific settings for cipher-im-pg-2
+# This file contains instance-specific settings for sm-im-pg-2
 #
 # Config key format: flat kebab-case (e.g., bind-public-address)
 # NOT nested YAML (e.g., server.bind_address)
@@ -21,9 +21,9 @@ tls-private-mode: "auto"  # Auto-generate self-signed cert
 
 # OTLP Telemetry Configuration
 otlp: true
-otlp-service: "cipher-im-pg-2"
+otlp-service: "sm-im-pg-2"
 otlp-environment: "development"
-otlp-endpoint: "http://cipher-im-otel-collector:4317"
+otlp-endpoint: "http://sm-im-otel-collector:4317"
 
 # CORS Configuration
 cors-max-age: 3600
