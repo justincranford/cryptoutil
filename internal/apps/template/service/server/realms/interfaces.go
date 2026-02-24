@@ -3,10 +3,10 @@
 
 // Package realms provides generic authentication and authorization services.
 // This package is part of the service template infrastructure and is designed
-// to be reusable across all cryptoutil services (cipher-im, jose-ja, identity, ca).
+// to be reusable across all cryptoutil services (sm-im, jose-ja, identity, ca).
 //
 // Domain-Agnostic Design:
-// - UserModel interface abstracts different User entities (cipher.User, jose.User, identity.User)
+// - UserModel interface abstracts different User entities (sm.User, jose.User, identity.User)
 // - UserRepository interface abstracts different persistence layers (GORM, mock, etc.)
 // - Services implement these interfaces for their specific domain models
 //
@@ -16,7 +16,7 @@
 // - User login with credential validation
 // - JWT middleware for protecting authenticated routes
 //
-// Usage Pattern (Example for cipher-im):
+// Usage Pattern (Example for sm-im):
 //
 //	// 1. Domain model implements UserModel interface
 //	type User struct {

@@ -117,12 +117,12 @@ func validateRegistrationRequest(req *RegisterUserRequest) error {
 	req.TenantName = strings.TrimSpace(req.TenantName)
 
 	// Validate username length.
-	if len(req.Username) < cryptoutilSharedMagic.CipherMinUsernameLength {
-		return fmt.Errorf("username must be at least %d characters", cryptoutilSharedMagic.CipherMinUsernameLength)
+	if len(req.Username) < cryptoutilSharedMagic.IMMinUsernameLength {
+		return fmt.Errorf("username must be at least %d characters", cryptoutilSharedMagic.IMMinUsernameLength)
 	}
 
-	if len(req.Username) > cryptoutilSharedMagic.CipherMaxUsernameLength {
-		return fmt.Errorf("username must be at most %d characters", cryptoutilSharedMagic.CipherMaxUsernameLength)
+	if len(req.Username) > cryptoutilSharedMagic.IMMaxUsernameLength {
+		return fmt.Errorf("username must be at most %d characters", cryptoutilSharedMagic.IMMaxUsernameLength)
 	}
 
 	// Validate email format.
@@ -131,17 +131,17 @@ func validateRegistrationRequest(req *RegisterUserRequest) error {
 	}
 
 	// Validate password length.
-	if len(req.Password) < cryptoutilSharedMagic.CipherMinPasswordLength {
-		return fmt.Errorf("password must be at least %d characters", cryptoutilSharedMagic.CipherMinPasswordLength)
+	if len(req.Password) < cryptoutilSharedMagic.IMMinPasswordLength {
+		return fmt.Errorf("password must be at least %d characters", cryptoutilSharedMagic.IMMinPasswordLength)
 	}
 
 	// Validate tenant name length.
-	if len(req.TenantName) < cryptoutilSharedMagic.CipherMinUsernameLength {
-		return fmt.Errorf("tenant name must be at least %d characters", cryptoutilSharedMagic.CipherMinUsernameLength)
+	if len(req.TenantName) < cryptoutilSharedMagic.IMMinUsernameLength {
+		return fmt.Errorf("tenant name must be at least %d characters", cryptoutilSharedMagic.IMMinUsernameLength)
 	}
 
-	if len(req.TenantName) > cryptoutilSharedMagic.CipherMaxTenantNameLength {
-		return fmt.Errorf("tenant name must be at most %d characters", cryptoutilSharedMagic.CipherMaxTenantNameLength)
+	if len(req.TenantName) > cryptoutilSharedMagic.IMMaxTenantNameLength {
+		return fmt.Errorf("tenant name must be at most %d characters", cryptoutilSharedMagic.IMMaxTenantNameLength)
 	}
 
 	return nil

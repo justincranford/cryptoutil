@@ -128,10 +128,10 @@ const (
 	// DefaultPublicPortCAServer - Port for CA Server.
 	DefaultPublicPortCAServer uint16 = 8100
 
-	// DefaultPublicPortCipherIM - Port for Cipher Instant Messenger service.
-	DefaultPublicPortCipherIM uint16 = 8700
-	// DefaultPrivatePortCipherIM - Admin port for Cipher Instant Messenger service.
-	DefaultPrivatePortCipherIM uint16 = 9090
+	// DefaultPublicPortSmIM - Port for SM Instant Messenger service.
+	DefaultPublicPortSmIM uint16 = 8700
+	// DefaultPrivatePortSmIM - Admin port for SM Instant Messenger service.
+	DefaultPrivatePortSmIM uint16 = 9090
 
 	// DefaultPublicPortPostgres - Default PostgreSQL port.
 	DefaultPublicPortPostgres uint16 = 5432

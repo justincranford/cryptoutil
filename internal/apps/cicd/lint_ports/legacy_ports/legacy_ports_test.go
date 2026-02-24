@@ -21,9 +21,9 @@ func TestGetServiceForLegacyPort(t *testing.T) {
 		port uint16
 		want string
 	}{
-		{name: "cipher-im 8888", port: 8888, want: "cipher-im"},
-		{name: "cipher-im 8889", port: 8889, want: "cipher-im"},
-		{name: "cipher-im 8890", port: 8890, want: "cipher-im"},
+		{name: "sm-im 8888", port: 8888, want: "sm-im"},
+		{name: "sm-im 8889", port: 8889, want: "sm-im"},
+		{name: "sm-im 8890", port: 8890, want: "sm-im"},
 		{name: "jose-ja 9443", port: 9443, want: "jose-ja"},
 		{name: "jose-ja 8092", port: 8092, want: "jose-ja"},
 		{name: "pki-ca 8443", port: 8443, want: "pki-ca"},
@@ -56,7 +56,7 @@ func TestCheck_WithGoFileContainingLegacyPort(t *testing.T) {
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "server.go")
 
-	// Write a Go file that contains a legacy port number (8888 used by cipher-im).
+	// Write a Go file that contains a legacy port number (8888 used by sm-im).
 	content := "package main\nconst port = 8888\n"
 	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
 
@@ -183,7 +183,7 @@ func TestCheckFile_OtelPortInOtelContext(t *testing.T) {
 	require.NoError(t, os.WriteFile(otelFile, []byte(content), 0o600))
 
 	violations := CheckFile(otelFile, lintPortsCommon.AllLegacyPorts())
-	// 8888 is both an OTEL collector port AND a legacy cipher-im port.
+	// 8888 is both an OTEL collector port AND a legacy sm-im port.
 	// In an OTEL-related file, the OTEL continue fires and no violation is flagged.
 	require.Empty(t, violations, "8888 in OTEL context should be skipped")
 }

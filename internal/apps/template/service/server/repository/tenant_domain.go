@@ -41,7 +41,7 @@ func (t *Tenant) SetActive(active bool) {
 }
 
 // User represents a verified user associated with a tenant.
-// For single-tenant deployments (cipher-im), TenantID can be zero UUID.
+// For single-tenant deployments (sm-im), TenantID can be zero UUID.
 type User struct {
 	ID           googleUuid.UUID `gorm:"type:text;primaryKey"`
 	TenantID     googleUuid.UUID `gorm:"type:text;index"`

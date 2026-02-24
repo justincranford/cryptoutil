@@ -31,7 +31,7 @@ func TestValidatePasswordForRealm_BoundaryUniqueChars(t *testing.T) {
 		uniqueChars[r] = true
 	}
 
-	require.Equal(t, cryptoutilSharedMagic.CipherDefaultPasswordMinUniqueChars, len(uniqueChars),
+	require.Equal(t, cryptoutilSharedMagic.IMDefaultPasswordMinUniqueChars, len(uniqueChars),
 		"test password must have exactly MinUniqueChars unique characters")
 
 	err := ValidatePasswordForRealm(password, realm)
@@ -170,9 +170,9 @@ func TestValidateUsernameForRealm_BoundaryLengths(t *testing.T) {
 }
 
 // TestHandleRegisterUser_BoundaryValues kills CONDITIONALS_BOUNDARY mutants
-// at handlers.go:83 (len < CipherMinUsernameLength → <=),
-// handlers.go:84 (len > CipherMaxUsernameLength → >=),
-// and handlers.go:91 (len < CipherMinPasswordLength → <=).
+// at handlers.go:83 (len < IMMinUsernameLength → <=),
+// handlers.go:84 (len > IMMaxUsernameLength → >=),
+// and handlers.go:91 (len < IMMinPasswordLength → <=).
 func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 	t.Parallel()
 
@@ -191,20 +191,20 @@ func TestHandleRegisterUser_BoundaryValues(t *testing.T) {
 	}{
 		{
 			name:       "username exact min length passes",
-			username:   strings.Repeat("u", cryptoutilSharedMagic.CipherMinUsernameLength),
+			username:   strings.Repeat("u", cryptoutilSharedMagic.IMMinUsernameLength),
 			password:   "ValidPass123!", // pragma: allowlist secret
 			wantStatus: fiber.StatusCreated,
 		},
 		{
 			name:       "username exact max length passes",
-			username:   strings.Repeat("u", cryptoutilSharedMagic.CipherMaxUsernameLength),
+			username:   strings.Repeat("u", cryptoutilSharedMagic.IMMaxUsernameLength),
 			password:   "ValidPass123!", // pragma: allowlist secret
 			wantStatus: fiber.StatusCreated,
 		},
 		{
 			name:       "password exact min length passes",
 			username:   "validuser",
-			password:   strings.Repeat("p", cryptoutilSharedMagic.CipherMinPasswordLength),
+			password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
 			wantStatus: fiber.StatusCreated,
 		},
 	}

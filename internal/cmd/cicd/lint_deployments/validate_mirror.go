@@ -128,7 +128,7 @@ var deploymentToConfigMapping = map[string]string{
 // Rules:
 //   - Uses explicit mapping table for known naming differences.
 //   - PRODUCT-SERVICE (e.g., "jose-ja") -> product name (e.g., "jose").
-//   - PRODUCT (e.g., "cipher") -> same name (e.g., "cipher").
+//   - PRODUCT (e.g., "sm") -> same name (e.g., "sm").
 //   - SUITE (e.g., "cryptoutil-suite") -> "cryptoutil".
 func mapDeploymentToConfig(deployDir string) string {
 	// Check explicit mapping first.

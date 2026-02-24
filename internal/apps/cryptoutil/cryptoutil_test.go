@@ -60,7 +60,6 @@ func TestSuite_HelpCommand(t *testing.T) {
 			output := stderr.String()
 			require.Contains(t, output, "Usage: cryptoutil")
 			require.Contains(t, output, "Available products:")
-			require.Contains(t, output, "cipher")
 			require.Contains(t, output, "identity")
 			require.Contains(t, output, "jose")
 			require.Contains(t, output, "pki")
@@ -90,7 +89,6 @@ func TestSuite_ProductRouting(t *testing.T) {
 		product     string
 		expectedStr string
 	}{
-		{name: "cipher help", product: "cipher", expectedStr: "Usage: cipher"},
 		{name: "identity help", product: "identity", expectedStr: "Usage: identity"},
 		{name: "jose help", product: "jose", expectedStr: "Usage: jose"},
 		{name: "pki help", product: "pki", expectedStr: "Usage: pki"},
@@ -121,7 +119,6 @@ func TestSuite_ProductVersion(t *testing.T) {
 		product     string
 		expectedStr string
 	}{
-		{name: "cipher version", product: "cipher", expectedStr: "cipher product"},
 		{name: "identity version", product: "identity", expectedStr: "identity product"},
 		{name: "jose version", product: "jose", expectedStr: "jose product"},
 		{name: "pki version", product: "pki", expectedStr: "pki product"},

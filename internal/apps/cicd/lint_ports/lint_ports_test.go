@@ -23,7 +23,7 @@ func TestLint_NoLegacyPorts(t *testing.T) {
 	goFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(goFile, []byte(`package main
 
-const port = 8700 // cipher-im standardized port
+const port = 8700 // sm-im standardized port
 `), 0o600)
 	require.NoError(t, err)
 
@@ -46,7 +46,7 @@ func TestLint_DetectsLegacyPort(t *testing.T) {
 	goFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(goFile, []byte(`package main
 
-const port = 8888 // legacy cipher-im port
+const port = 8888 // legacy sm-im port
 `), 0o600)
 	require.NoError(t, err)
 
@@ -112,12 +112,12 @@ func TestLint_DetectsLegacyPortInRegularFile(t *testing.T) {
 
 	tempDir := t.TempDir()
 
-	// Create a regular file with a cipher-im legacy port.
+	// Create a regular file with a sm-im legacy port.
 	// Use 8890 which is NOT an OTEL collector port.
 	normalFile := filepath.Join(tempDir, "config.go")
 	err := os.WriteFile(normalFile, []byte(`package main
 
-const port = 8890 // legacy cipher-im port
+const port = 8890 // legacy sm-im port
 `), 0o600)
 	require.NoError(t, err)
 
@@ -127,7 +127,7 @@ const port = 8890 // legacy cipher-im port
 	}
 
 	err = Lint(logger, filesByExtension)
-	require.Error(t, err) // Should fail - 8890 is legacy cipher-im port
+	require.Error(t, err) // Should fail - 8890 is legacy sm-im port
 }
 
 func TestLint_Detects8888InRegularFile(t *testing.T) {
@@ -136,7 +136,7 @@ func TestLint_Detects8888InRegularFile(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create a regular file (not in telemetry/observability path) with port 8888.
-	// 8888 is both a cipher-im legacy port AND an OTEL collector port.
+	// 8888 is both a sm-im legacy port AND an OTEL collector port.
 	// It should be detected as legacy in non-observability files.
 	normalFile := filepath.Join(tempDir, "main.go")
 	err := os.WriteFile(normalFile, []byte(`package main
@@ -365,7 +365,7 @@ func TestLint_NonLegacyPortNumbers(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(`package main
 
 const port1 = 8000  // standard port (sm-kms)
-const port2 = 8700  // standard port (cipher-im)
+const port2 = 8700  // standard port (sm-im)
 const port3 = 9000  // random port
 const port4 = 12345 // 5-digit port
 `), 0o600)
@@ -431,7 +431,7 @@ const port = 8700
 	// Create a valid compose file.
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err = os.WriteFile(composeFile, []byte(`services:
-  cipher-im:
+  sm-im:
     ports:
       - "8700:8700"
     healthcheck:

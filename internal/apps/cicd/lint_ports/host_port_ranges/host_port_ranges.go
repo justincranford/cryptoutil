@@ -135,7 +135,7 @@ func GetServiceConfig(serviceName string) *lintPortsCommon.ServicePortConfig {
 		return &cfg
 	}
 
-	// Try partial match (e.g., "cipher-im-postgres" should match "cipher-im").
+	// Try partial match (e.g., "sm-im-postgres" should match "sm-im").
 	for key, cfg := range lintPortsCommon.ServicePorts {
 		if strings.HasPrefix(serviceName, key) {
 			return &cfg

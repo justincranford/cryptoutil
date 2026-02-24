@@ -11,9 +11,9 @@ import (
 // ServiceConfig holds configuration for a service CLI entrypoint.
 // All SERVICE CLI entrypoints (product-service combinations) use this.
 type ServiceConfig struct {
-	// ServiceID is the combined product-service identifier (e.g., "cipher-im").
+	// ServiceID is the combined product-service identifier (e.g., "sm-im").
 	ServiceID string
-	// ProductName is the product name (e.g., "cipher").
+	// ProductName is the product name (e.g., "sm").
 	ProductName string
 	// ServiceName is the service name within the product (e.g., "im").
 	ServiceName string

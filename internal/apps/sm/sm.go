@@ -7,12 +7,13 @@ package sm
 import (
 	"io"
 
+	cryptoutilAppsSmIm "cryptoutil/internal/apps/sm/im"
 	cryptoutilAppsSmKms "cryptoutil/internal/apps/sm/kms"
 	cryptoutilTemplateCli "cryptoutil/internal/apps/template/service/cli"
 )
 
 const (
-	usageText   = "Usage: sm <service> <subcommand> [options]\n\nAvailable services:\n  kms         Key Management Service\n\nUse \"sm <service> help\" for service-specific help.\nUse \"sm version\" for version information."
+	usageText   = "Usage: sm <service> <subcommand> [options]\n\nAvailable services:\n  im          Instant messaging service\n  kms         Key Management Service\n\nUse \"sm <service> help\" for service-specific help.\nUse \"sm version\" for version information."
 	versionText = "sm product (cryptoutil)"
 )
 
@@ -32,6 +33,7 @@ func Sm(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		},
 		args, stdin, stdout, stderr,
 		[]cryptoutilTemplateCli.ServiceEntry{
+			{Name: "im", Handler: cryptoutilAppsSmIm.Im},
 			{Name: "kms", Handler: cryptoutilAppsSmKms.Kms},
 		},
 	)

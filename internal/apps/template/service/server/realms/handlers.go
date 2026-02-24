@@ -80,15 +80,15 @@ func (s *UserServiceImpl) HandleRegisterUser() fiber.Handler {
 		}
 
 		// Validate username length (3-50 characters).
-		if len(req.Username) < cryptoutilSharedMagic.CipherMinUsernameLength ||
-			len(req.Username) > cryptoutilSharedMagic.CipherMaxUsernameLength {
+		if len(req.Username) < cryptoutilSharedMagic.IMMinUsernameLength ||
+			len(req.Username) > cryptoutilSharedMagic.IMMaxUsernameLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "username must be 3-50 characters",
 			})
 		}
 
 		// Validate password length (minimum 8 characters).
-		if len(req.Password) < cryptoutilSharedMagic.CipherMinPasswordLength {
+		if len(req.Password) < cryptoutilSharedMagic.IMMinPasswordLength {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "password must be at least 8 characters",
 			})
@@ -270,7 +270,7 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 		)
 
 		// Extract tenant ID from authenticated user model.
-		// For services using dynamic tenant creation (cipher-im), this is populated from user.TenantID.
+		// For services using dynamic tenant creation (sm-im), this is populated from user.TenantID.
 		// For multi-tenant deployments, the realm lookup would query tenant_realms table.
 		type tenantAware interface {
 			GetTenantID() googleUuid.UUID
@@ -347,18 +347,18 @@ func (s *UserServiceImpl) HandleLoginUserWithSession(sessionManager any, isBrows
 //
 // Security Notes:
 // - Algorithm: HMAC-SHA256 (HS256) - symmetric key signing
-// - Expiration: 15 minutes (configurable via cryptoutilMagic.CipherJWTExpiration)
-// - Issuer: "cipher-im" (configurable via cryptoutilMagic.CipherJWTIssuer)
+// - Expiration: 15 minutes (configurable via cryptoutilMagic.IMJWTExpiration)
+// - Issuer: "sm-im" (configurable via cryptoutilMagic.IMJWTIssuer)
 // - Claims: user_id (string), username (string), iat, exp, iss.
 func GenerateJWT(userID googleUuid.UUID, username, secret string) (string, time.Time, error) {
-	expirationTime := time.Now().UTC().Add(cryptoutilSharedMagic.CipherJWTExpiration)
+	expirationTime := time.Now().UTC().Add(cryptoutilSharedMagic.IMJWTExpiration)
 	claims := &Claims{
 		UserID:   userID.String(),
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-			Issuer:    cryptoutilSharedMagic.CipherJWTIssuer,
+			Issuer:    cryptoutilSharedMagic.IMJWTIssuer,
 		},
 	}
 

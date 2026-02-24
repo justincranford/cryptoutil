@@ -249,13 +249,13 @@ func discoverDeploymentDirs(deploymentsDir string) []deploymentEntry {
 // classifyDeployment determines the deployment type from the directory name.
 func classifyDeployment(name string) string {
 	serviceNames := map[string]bool{
-		"jose-ja": true, "cipher-im": true, "pki-ca": true, "sm-kms": true,
+		"jose-ja": true, "sm-im": true, "pki-ca": true, "sm-kms": true,
 		"identity-authz": true, "identity-idp": true, "identity-rp": true,
 		"identity-rs": true, "identity-spa": true,
 	}
 
 	productNames := map[string]bool{
-		"identity": true, "sm": true, "pki": true, "cipher": true, "jose": true,
+		"identity": true, "sm": true, "pki": true, "jose": true,
 	}
 
 	switch {

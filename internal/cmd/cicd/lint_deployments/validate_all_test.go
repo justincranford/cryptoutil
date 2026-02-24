@@ -19,7 +19,7 @@ func TestClassifyDeployment(t *testing.T) {
 		expected string
 	}{
 		{name: "service jose-ja", input: "jose-ja", expected: DeploymentTypeProductService},
-		{name: "service cipher-im", input: "cipher-im", expected: DeploymentTypeProductService},
+		{name: "service sm-im", input: "sm-im", expected: DeploymentTypeProductService},
 		{name: "service pki-ca", input: "pki-ca", expected: DeploymentTypeProductService},
 		{name: "service sm-kms", input: "sm-kms", expected: DeploymentTypeProductService},
 		{name: "service identity-authz", input: "identity-authz", expected: DeploymentTypeProductService},
@@ -30,7 +30,6 @@ func TestClassifyDeployment(t *testing.T) {
 		{name: "product identity", input: "identity", expected: DeploymentTypeProduct},
 		{name: "product sm", input: "sm", expected: DeploymentTypeProduct},
 		{name: "product pki", input: "pki", expected: DeploymentTypeProduct},
-		{name: "product cipher", input: "cipher", expected: DeploymentTypeProduct},
 		{name: "product jose", input: "jose", expected: DeploymentTypeProduct},
 		{name: "suite cryptoutil-suite", input: "cryptoutil-suite", expected: DeploymentTypeSuite},
 		{name: "template", input: "template", expected: DeploymentTypeTemplate},
@@ -220,7 +219,7 @@ func TestFormatAllValidationResult(t *testing.T) {
 			Results: []ValidatorResult{
 				{Name: "naming", Target: "deployments", Passed: true, Duration: 10 * time.Millisecond},
 				{Name: "ports", Target: "deployments/jose-ja", Passed: false, Duration: 20 * time.Millisecond},
-				{Name: "admin", Target: "deployments/cipher-im", Passed: false, Duration: 15 * time.Millisecond},
+				{Name: "admin", Target: "deployments/sm-im", Passed: false, Duration: 15 * time.Millisecond},
 			},
 			TotalDuration: 45 * time.Millisecond,
 		}
@@ -234,7 +233,7 @@ func TestFormatAllValidationResult(t *testing.T) {
 		assert.Contains(t, output, "VALIDATION FAILED")
 		assert.Contains(t, output, "Failed validators:")
 		assert.Contains(t, output, "- ports (deployments/jose-ja)")
-		assert.Contains(t, output, "- admin (deployments/cipher-im)")
+		assert.Contains(t, output, "- admin (deployments/sm-im)")
 		assert.NotContains(t, output, "ALL VALIDATORS PASSED")
 	})
 

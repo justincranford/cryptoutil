@@ -249,22 +249,22 @@ require.NoError(t, err)
 assert.True(t, result.Valid) // Non-numeric ports silently skipped.
 }
 
-func TestValidateAdmin_RealCipherIM(t *testing.T) {
+func TestValidateAdmin_RealSmIM(t *testing.T) {
 t.Parallel()
 
-deploymentDir := filepath.Join("testdata", "deployments", "cipher-im")
+deploymentDir := filepath.Join("testdata", "deployments", "sm-im")
 if _, err := os.Stat(deploymentDir); err != nil {
-deploymentDir = filepath.Join("..", "..", "..", "..", "deployments", "cipher-im")
+deploymentDir = filepath.Join("..", "..", "..", "..", "deployments", "sm-im")
 }
 
 if _, err := os.Stat(deploymentDir); err != nil {
-t.Skip("Real cipher-im deployment not found")
+t.Skip("Real sm-im deployment not found")
 }
 
 result, err := ValidateAdmin(deploymentDir)
 require.NoError(t, err)
 require.NotNil(t, result)
-assert.True(t, result.Valid, "Real cipher-im admin validation failed: %v", result.Errors)
+assert.True(t, result.Valid, "Real sm-im admin validation failed: %v", result.Errors)
 }
 
 func TestFormatAdminValidationResult(t *testing.T) {

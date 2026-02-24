@@ -19,10 +19,10 @@ import (
 func TestValidateRegistrationRequest_Table(t *testing.T) {
 	t.Parallel()
 
-	validUsername := strings.Repeat("a", cryptoutilSharedMagic.CipherMinUsernameLength)
+	validUsername := strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength)
 	validEmail := "user@example.com"
-	validPassword := strings.Repeat("p", cryptoutilSharedMagic.CipherMinPasswordLength)
-	validTenantName := strings.Repeat("t", cryptoutilSharedMagic.CipherMinUsernameLength)
+	validPassword := strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength)
+	validTenantName := strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength)
 
 	tests := []struct {
 		name       string
@@ -32,7 +32,7 @@ func TestValidateRegistrationRequest_Table(t *testing.T) {
 		{
 			name: "username too short",
 			body: RegisterUserRequest{
-				Username:   strings.Repeat("a", cryptoutilSharedMagic.CipherMinUsernameLength-1),
+				Username:   strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength-1),
 				Email:      validEmail,
 				Password:   validPassword,
 				TenantName: validTenantName,
@@ -42,7 +42,7 @@ func TestValidateRegistrationRequest_Table(t *testing.T) {
 		{
 			name: "username too long",
 			body: RegisterUserRequest{
-				Username:   strings.Repeat("a", cryptoutilSharedMagic.CipherMaxUsernameLength+1),
+				Username:   strings.Repeat("a", cryptoutilSharedMagic.IMMaxUsernameLength+1),
 				Email:      validEmail,
 				Password:   validPassword,
 				TenantName: validTenantName,
@@ -64,7 +64,7 @@ func TestValidateRegistrationRequest_Table(t *testing.T) {
 			body: RegisterUserRequest{
 				Username:   validUsername,
 				Email:      validEmail,
-				Password:   strings.Repeat("p", cryptoutilSharedMagic.CipherMinPasswordLength-1),
+				Password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength-1),
 				TenantName: validTenantName,
 			},
 			wantErrMsg: "password must be at least",
@@ -75,7 +75,7 @@ func TestValidateRegistrationRequest_Table(t *testing.T) {
 				Username:   validUsername,
 				Email:      validEmail,
 				Password:   validPassword,
-				TenantName: strings.Repeat("t", cryptoutilSharedMagic.CipherMinUsernameLength-1),
+				TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength-1),
 			},
 			wantErrMsg: "tenant name must be at least",
 		},
@@ -85,7 +85,7 @@ func TestValidateRegistrationRequest_Table(t *testing.T) {
 				Username:   validUsername,
 				Email:      validEmail,
 				Password:   validPassword,
-				TenantName: strings.Repeat("t", cryptoutilSharedMagic.CipherMaxTenantNameLength+1),
+				TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMaxTenantNameLength+1),
 			},
 			wantErrMsg: "tenant name must be at most",
 		},

@@ -31,7 +31,7 @@ type Service struct {
 // NewService creates a new barrier service using the provided repository.
 // The repository can be:
 // - OrmRepository (wraps KMS OrmRepository for backward compatibility)
-// - GormRepository (wraps gorm.DB for cipher-im and future services).
+// - GormRepository (wraps gorm.DB for sm-im and future services).
 func NewService(
 	ctx context.Context,
 	telemetryService *cryptoutilSharedTelemetry.TelemetryService,

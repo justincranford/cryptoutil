@@ -47,9 +47,9 @@ func TestValidateAllDeployments(t *testing.T) {
 				t.Helper()
 
 				// Create a valid PRODUCT-SERVICE deployment.
-				validDir := filepath.Join(rootDir, "cipher-im")
+				validDir := filepath.Join(rootDir, "sm-im")
 				require.NoError(t, os.MkdirAll(validDir, 0o755))
-				createValidProductServiceDeployment(t, validDir, "cipher-im")
+				createValidProductServiceDeployment(t, validDir, "sm-im")
 
 				// Create an invalid deployment (missing secrets and config files).
 				invalidDir := filepath.Join(rootDir, "sm-kms")
@@ -142,7 +142,7 @@ func TestFormatResults(t *testing.T) {
 			results: []ValidationResult{
 				{Path: "/deploy/jose-ja", Type: "PRODUCT-SERVICE", Valid: true},
 				{Path: "/deploy/sm-kms", Type: "PRODUCT-SERVICE", Valid: false, MissingDirs: []string{"secrets"}},
-				{Path: "/deploy/cipher-im", Type: "PRODUCT-SERVICE", Valid: true},
+				{Path: "/deploy/sm-im", Type: "PRODUCT-SERVICE", Valid: true},
 			},
 			contains: []string{"3 deployments", "2 valid", "1 with issues"},
 		},

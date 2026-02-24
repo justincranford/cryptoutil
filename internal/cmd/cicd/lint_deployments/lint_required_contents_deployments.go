@@ -19,16 +19,15 @@ func GetDeploymentDirectories() (suite []string, product []string, productServic
 
 	// PRODUCT-level deployments (aggregation of services within product)
 	product = []string{
-		"cipher",   // Multi-service product (1 cipher service at this time, more later)
 		"identity", // Multi-service product (5 identity services, more later)
 		"jose",     // Multi-service product (1 jose service at this time, more later)
 		"pki",      // Multi-service product (1 pki service at this time, more later)
-		"sm",       // Multi-service product (1 sm service at this time, more later)
+		"sm",       // Multi-service product (2 sm services: sm-kms, sm-im)
 	}
 
 	// PRODUCT-SERVICE level deployments (individual services)
 	productService = []string{
-		"cipher-im",
+		"sm-im",
 		"identity-authz",
 		"identity-idp",
 		"identity-rp",
@@ -83,19 +82,6 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["cryptoutil-suite/secrets/cryptoutil-postgres_database.secret.never"] = RequiredFileStatus
 	contents["cryptoutil-suite/secrets/cryptoutil-postgres_url.secret.never"] = RequiredFileStatus
 
-	// PRODUCT Level - cipher (currently single service: cipher-im)
-	contents["cipher/compose.yml"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-hash_pepper.secret"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-unseal_1of5.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-unseal_2of5.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-unseal_3of5.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-unseal_4of5.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-unseal_5of5.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-postgres_username.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-postgres_password.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-postgres_database.secret.never"] = RequiredFileStatus
-	contents["cipher/secrets/cipher-postgres_url.secret.never"] = RequiredFileStatus
-
 	// PRODUCT Level - identity (multi-service product: 5 identity services)
 	contents["identity/compose.yml"] = RequiredFileStatus
 	contents["identity/secrets/identity-hash_pepper.secret"] = RequiredFileStatus
@@ -135,7 +121,7 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["pki/secrets/pki-postgres_database.secret.never"] = RequiredFileStatus
 	contents["pki/secrets/pki-postgres_url.secret.never"] = RequiredFileStatus
 
-	// PRODUCT Level - sm (currently single service: sm-kms)
+	// PRODUCT Level - sm (services: sm-kms, sm-im)
 	contents["sm/compose.yml"] = RequiredFileStatus
 	contents["sm/secrets/sm-hash_pepper.secret"] = RequiredFileStatus
 	contents["sm/secrets/sm-unseal_1of5.secret.never"] = RequiredFileStatus
@@ -148,8 +134,8 @@ func GetExpectedDeploymentsContents() map[string]string {
 	contents["sm/secrets/sm-postgres_database.secret.never"] = RequiredFileStatus
 	contents["sm/secrets/sm-postgres_url.secret.never"] = RequiredFileStatus
 
-	// PRODUCT-SERVICE Level - cipher-im
-	addProductServiceFiles(&contents, "cipher-im")
+	// PRODUCT-SERVICE Level - sm-im
+	addProductServiceFiles(&contents, "sm-im")
 
 	// PRODUCT-SERVICE Level - identity services (5 services)
 	addProductServiceFiles(&contents, "identity-authz")

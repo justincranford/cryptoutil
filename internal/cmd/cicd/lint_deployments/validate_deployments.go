@@ -13,7 +13,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	var results []ValidationResult
 	// Service deployments (PRODUCT-SERVICE pattern)
 	serviceNames := []string{
-		"jose-ja", "cipher-im", "pki-ca", "sm-kms",
+		"jose-ja", "sm-im", "pki-ca", "sm-kms",
 		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
 	}
 
@@ -30,7 +30,7 @@ func ValidateAllDeployments(deploymentsRoot string) ([]ValidationResult, error) 
 	}
 
 	// PRODUCT-level deployments
-	productNames := []string{"identity", "sm", "pki", "cipher", "jose"}
+	productNames := []string{"identity", "sm", "pki", "jose"}
 	for _, product := range productNames {
 		productPath := filepath.Join(deploymentsRoot, product)
 		if _, err := os.Stat(productPath); err == nil {
@@ -175,14 +175,12 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 		invalidPatterns := []string{
 			"../sm-kms/compose.yml",
 			"../pki-ca/compose.yml",
-			"../cipher-im/compose.yml",
+			"../sm-im/compose.yml",
 			"../jose-ja/compose.yml",
 		}
 		validPatterns := []string{
 			"../sm/compose.yml",
-			"../pki/compose.yml",
-			"../cipher/compose.yml",
-			"../jose/compose.yml",
+			"../pki/compose.yml", "../jose/compose.yml",
 		}
 
 		for _, invalid := range invalidPatterns {
@@ -206,24 +204,25 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 
 		if foundProducts < productsWithOneServiceCount {
 			result.Warnings = append(result.Warnings,
-				"Suite should include all 4 products (sm, pki, cipher, jose) via PRODUCT-level compose")
+				"Suite should include all 3 products (sm, pki, jose) via PRODUCT-level compose")
 		}
 	}
 
 	if structType == DeploymentTypeProduct {
 		// Product MUST include service-level compose files
-		if deploymentName == "sm" && !strings.Contains(text, "../sm-kms/compose.yml") {
+		smProduct := "sm"
+		if deploymentName == smProduct && !strings.Contains(text, "../sm-kms/compose.yml") {
 			result.Errors = append(result.Errors, "Product sm/compose.yml MUST include ../sm-kms/compose.yml")
+			result.Valid = false
+		}
+
+		if deploymentName == smProduct && !strings.Contains(text, "../sm-im/compose.yml") {
+			result.Errors = append(result.Errors, "Product sm/compose.yml MUST include ../sm-im/compose.yml")
 			result.Valid = false
 		}
 
 		if deploymentName == "pki" && !strings.Contains(text, "../pki-ca/compose.yml") {
 			result.Errors = append(result.Errors, "Product pki/compose.yml MUST include ../pki-ca/compose.yml")
-			result.Valid = false
-		}
-
-		if deploymentName == "cipher" && !strings.Contains(text, "../cipher-im/compose.yml") {
-			result.Errors = append(result.Errors, "Product cipher/compose.yml MUST include ../cipher-im/compose.yml")
 			result.Valid = false
 		}
 
@@ -238,7 +237,7 @@ func checkDelegationPattern(basePath string, deploymentName string, structType s
 // CRITICAL: ALL services MUST have isolated database storage (unique db/username/password).
 func checkDatabaseIsolation(deploymentsList []string, deploymentsRoot string) []string {
 	serviceNames := []string{
-		"sm-kms", "pki-ca", "cipher-im", "jose-ja",
+		"sm-kms", "pki-ca", "sm-im", "jose-ja",
 		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
 	}
 

@@ -23,11 +23,10 @@ func TestGetExpectedConfigsContents(t *testing.T) {
 	// Verify expected config directories exist.
 	expectedDirs := []string{
 		"cryptoutil/",
-		"cipher/", "cipher/im/",
 		"identity/", "identity/authz", "identity/idp", "identity/rp", "identity/rs", "identity/spa", "identity/policies/", "identity/profiles/",
 		"jose/", "jose/ja/",
 		"pki/", "pki/ca/",
-		"sm/", "sm/kms/",
+		"sm/", "sm/im/", "sm/kms/",
 	}
 
 	for _, dir := range expectedDirs {
@@ -48,13 +47,13 @@ func TestGetDeploymentDirectories(t *testing.T) {
 	require.Len(t, suite, 1)
 	assert.Equal(t, "cryptoutil-suite", suite[0])
 
-	// Products should include all 5 products.
-	expectedProducts := []string{"identity", "sm", "pki", "cipher", "jose"}
+	// Products should include all 4 products.
+	expectedProducts := []string{"identity", "sm", "pki", "jose"}
 	assert.ElementsMatch(t, expectedProducts, product)
 
 	// Product-services should include all 9 services.
 	expectedServices := []string{
-		"jose-ja", "cipher-im", "pki-ca", "sm-kms",
+		"jose-ja", "sm-im", "pki-ca", "sm-kms",
 		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
 	}
 	assert.ElementsMatch(t, expectedServices, productService)
@@ -76,7 +75,7 @@ func TestGetExpectedDeploymentsContents(t *testing.T) {
 
 	// Verify product-service entries exist with compose.yml.
 	services := []string{
-		"jose-ja", "cipher-im", "pki-ca", "sm-kms",
+		"jose-ja", "sm-im", "pki-ca", "sm-kms",
 		"identity-authz", "identity-idp", "identity-rp", "identity-rs", "identity-spa",
 	}
 

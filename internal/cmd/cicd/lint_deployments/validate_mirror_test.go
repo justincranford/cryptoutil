@@ -19,8 +19,7 @@ func TestMapDeploymentToConfig(t *testing.T) {
 	}{
 		{name: "identity service", deployment: "identity-authz", want: "identity"},
 		{name: "identity product", deployment: "identity", want: "identity"},
-		{name: "cipher service", deployment: "cipher-im", want: "cipher"},
-		{name: "cipher product", deployment: "cipher", want: "cipher"},
+		{name: "sm-im service", deployment: "sm-im", want: "sm"},
 		{name: "jose service", deployment: "jose-ja", want: "jose"},
 		{name: "jose product", deployment: "jose", want: "jose"},
 		{name: "pki explicit mapping", deployment: "pki", want: "ca"},
@@ -189,7 +188,7 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "configs")
 
 		// Create deployment dir without matching config dir.
-		createTestDir(t, deploymentsDir, "cipher-im")
+		createTestDir(t, deploymentsDir, "sm-im")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		if err != nil {
@@ -204,8 +203,8 @@ func TestValidateStructuralMirror(t *testing.T) {
 			t.Fatalf("expected 1 missing, got %d", len(result.MissingMirrors))
 		}
 
-		if result.MissingMirrors[0] != "cipher-im" {
-			t.Errorf("expected missing mirror 'cipher-im', got %q", result.MissingMirrors[0])
+		if result.MissingMirrors[0] != "sm-im" {
+			t.Errorf("expected missing mirror 'sm-im', got %q", result.MissingMirrors[0])
 		}
 	})
 
@@ -219,8 +218,8 @@ func TestValidateStructuralMirror(t *testing.T) {
 		createTestDir(t, tmpDir, "configs")
 
 		// Create deployment and matching config.
-		createTestDir(t, deploymentsDir, "cipher-im")
-		createTestDir(t, configsDir, "cipher")
+		createTestDir(t, deploymentsDir, "sm-im")
+		createTestDir(t, configsDir, "sm")
 
 		result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 		if err != nil {
@@ -362,7 +361,7 @@ func TestFormatMirrorResult(t *testing.T) {
 
 		result := &MirrorResult{
 			Valid:          false,
-			MissingMirrors: []string{"cipher", "jose"},
+			MissingMirrors: []string{"sm", "jose"},
 			Orphans:        []string{"orphan1"},
 			Excluded:       []string{"template"},
 			Errors:         []string{"some error"},
@@ -436,9 +435,9 @@ func TestValidateStructuralMirror_MatchedAndOrphaned(t *testing.T) {
 	require.NoError(t, os.MkdirAll(deploymentsDir, 0o755))
 	require.NoError(t, os.MkdirAll(configsDir, 0o755))
 
-	// Create matched pair: cipher-im -> cipher.
-	require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "cipher-im"), 0o755))
-	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "cipher"), 0o755))
+	// Create matched pair: sm-im -> sm.
+	require.NoError(t, os.MkdirAll(filepath.Join(deploymentsDir, "sm-im"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "sm"), 0o755))
 
 	// Create orphaned config (no matching deployment).
 	require.NoError(t, os.MkdirAll(filepath.Join(configsDir, "orphan-svc"), 0o755))
@@ -446,8 +445,8 @@ func TestValidateStructuralMirror_MatchedAndOrphaned(t *testing.T) {
 	result, err := ValidateStructuralMirror(deploymentsDir, configsDir)
 	require.NoError(t, err)
 
-	// cipher should NOT be in orphans (it matches cipher-im).
-	assert.NotContains(t, result.Orphans, "cipher", "matched config should not be orphaned")
+	// sm should NOT be in orphans (it matches sm-im).
+	assert.NotContains(t, result.Orphans, "sm", "matched config should not be orphaned")
 	// orphan-svc should be in orphans.
 	assert.Contains(t, result.Orphans, "orphan-svc", "unmatched config should be orphaned")
 	assert.Len(t, result.Orphans, 1, "only unmatched config should be orphaned")

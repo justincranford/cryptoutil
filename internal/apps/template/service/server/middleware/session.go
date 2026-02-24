@@ -118,7 +118,7 @@ func SessionMiddleware(sessionValidator SessionValidator, isBrowser bool) fiber.
 			c.Locals(ContextKeySession, session)
 
 			if session.ClientID != nil {
-				// For cipher-im, ClientID actually contains the UserID
+				// For sm-im, ClientID actually contains the UserID
 				// because we're using service sessions for user authentication
 				c.Locals(ContextKeyClientID, *session.ClientID)
 

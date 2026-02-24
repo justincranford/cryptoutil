@@ -15,7 +15,7 @@ import (
 // HealthCommand implements the health subcommand.
 // Calls GET /service/api/v1/health on the public server.
 // usageText is shown when --help is passed.
-// defaultPublicPort is the service's default public port (e.g., 8700 for cipher-im).
+// defaultPublicPort is the service's default public port (e.g., 8700 for sm-im).
 func HealthCommand(args []string, stdout, stderr io.Writer, usageText string, defaultPublicPort uint16) int {
 	if len(args) > 0 && (args[0] == helpCommand || args[0] == helpFlag || args[0] == helpShortFlag) {
 		_, _ = fmt.Fprintln(stderr, usageText)

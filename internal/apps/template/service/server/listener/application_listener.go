@@ -5,7 +5,7 @@
 // Package listener provides high-level application lifecycle management.
 //
 // This package encapsulates the complete service startup pattern used across
-// all cryptoutil services (cipher-im, jose-ja, identity-*, sm-kms, pki-ca).
+// all cryptoutil services (sm-im, jose-ja, identity-*, sm-kms, pki-ca).
 //
 // The ApplicationListener provides a unified interface for:
 // - Starting full service with telemetry, database, barrier, public/admin servers
@@ -69,9 +69,9 @@ type TLSServerConfig struct {
 // HandlerRegistration is a function that registers routes on IPublicServer.
 // Allows product-specific business logic injection without hardcoding.
 //
-// Example cipher-im usage:
+// Example sm-im usage:
 //
-//	func RegisterCipherIMHandlers(server cryptoutilTemplateServer.IPublicServer, userRepo, messageRepo) error {
+//	func RegisterSmIMHandlers(server cryptoutilTemplateServer.IPublicServer, userRepo, messageRepo) error {
 //	    app := server.(*PublicServer).App() // Type assertion to access fiber.App
 //	    app.Post("/api/v1/messages", handleSendMessage)
 //	    return nil
@@ -80,14 +80,14 @@ type HandlerRegistration func(server cryptoutilAppsTemplateServiceServer.IPublic
 
 // PublicServerFactory creates a product-specific public server.
 //
-// Each service (cipher-im, jose-ja, identity-*, pki-ca) provides its own factory
+// Each service (sm-im, jose-ja, identity-*, pki-ca) provides its own factory
 // that knows how to construct the service's unique public server with appropriate:
 // - Repositories
 // - Business logic handlers
 // - OpenAPI specifications
 // - Authentication/authorization middleware.
 //
-// Example cipher-im factory:
+// Example sm-im factory:
 //
 //	func NewPublicServerFromConfig(
 //	    ctx context.Context,
@@ -141,7 +141,7 @@ type ApplicationConfig struct {
 
 // StartApplicationListener creates and starts a full service application.
 //
-// This is the primary entry point for all cryptoutil services (cipher-im, jose, identity, kms, ca).
+// This is the primary entry point for all cryptoutil services (sm-im, jose, identity, kms, ca).
 //
 // Initialization sequence:
 // 1. Create ServiceTemplate (telemetry, JWK gen, optional barrier)
@@ -159,14 +159,14 @@ type ApplicationConfig struct {
 // - *ApplicationListener: Running service ready for requests
 // - error: Non-nil if initialization or startup fails.
 //
-// Example cipher-im usage:
+// Example sm-im usage:
 //
 //	cfg := &ApplicationConfig{
 //	    ServiceTemplateServerSettings: cryptoutilConfig.NewTestConfig("127.0.0.1", 0, true),
 //	    DB: testDB,
 //	    DBType: cryptoutilTemplateServerRepository.DatabaseTypeSQLite,
 //	    PublicHandlers: func(srv cryptoutilTemplateServer.IPublicServer) error {
-//	        // Register cipher-im routes
+//	        // Register sm-im routes
 //	        return nil
 //	    },
 //	}
@@ -193,7 +193,7 @@ func StartApplicationListener(ctx context.Context, cfg *ApplicationConfig) (*App
 
 	// TODO: Create public server (product-specific implementation will inject handlers).
 	// For now, return error indicating implementation needed.
-	// Each product service (cipher-im, jose-ja, etc.) will need to provide:
+	// Each product service (sm-im, jose-ja, etc.) will need to provide:
 	// - Public server constructor (NewPublicServer)
 	// - Handler registration via cfg.PublicHandlers
 	//

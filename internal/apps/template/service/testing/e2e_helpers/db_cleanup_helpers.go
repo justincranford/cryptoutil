@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package e2e_helpers provides reusable end-to-end testing helpers for all cryptoutil services.
-// Extracted from cipher-im implementation to support 9-service migration.
+// Extracted from sm-im implementation to support 9-service migration.
 package e2e_helpers
 
 import (

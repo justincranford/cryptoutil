@@ -9,9 +9,9 @@ const (
 	DeploymentTypeTemplate       = "template"
 )
 
-// Product count for products that currently have one service (sm, pki, cipher, jose).
+// Product count for products that currently have one service (sm, pki, jose).
 // Note: These products may have multiple services in the future.
-const productsWithOneServiceCount = 4
+const productsWithOneServiceCount = 3
 
 // DeploymentStructure defines expected directory structure for each deployment type.
 type DeploymentStructure struct {
@@ -40,7 +40,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
 		},
 		DeploymentTypeProductService: {
-			Name:          "PRODUCT-SERVICE deployment (e.g., jose-ja, cipher-im)",
+			Name:          "PRODUCT-SERVICE deployment (e.g., jose-ja, sm-im)",
 			RequiredDirs:  []string{"secrets", "config"},
 			RequiredFiles: []string{"compose.yml", "Dockerfile"},
 			OptionalFiles: []string{}, // no optional files
@@ -53,7 +53,7 @@ func GetExpectedStructures() map[string]DeploymentStructure {
 			AllowedExtensions: []string{".yml", ".yaml", ".secret", ".md"},
 		},
 		DeploymentTypeProduct: {
-			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, cipher, jose)",
+			Name:              "PRODUCT-level deployment (e.g., identity, sm, pki, jose)",
 			RequiredDirs:      []string{"secrets"},
 			RequiredFiles:     []string{"compose.yml"},
 			OptionalFiles:     []string{}, // no optional files

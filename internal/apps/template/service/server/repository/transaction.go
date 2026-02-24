@@ -50,7 +50,7 @@ func WithTransaction(ctx context.Context, tx *gorm.DB) context.Context {
 // - Normal operation when ctx has no transaction
 // - Zero changes needed when adding/removing transactions in service layer
 //
-// Pattern Reference: See internal/cipher/repository/user_repository.go for example usage.
+// Pattern Reference: See internal/sm/im/repository/user_repository.go for example usage.
 func GetDB(ctx context.Context, baseDB *gorm.DB) *gorm.DB {
 	if tx, ok := ctx.Value(txKey{}).(*gorm.DB); ok && tx != nil {
 		return tx

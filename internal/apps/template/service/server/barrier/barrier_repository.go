@@ -13,7 +13,7 @@ import (
 
 // Repository defines the interface for barrier key storage operations.
 // This abstraction allows Service to work with different database implementations
-// (KMS OrmRepository, cipher-im gorm.DB, etc.) without coupling to specific repository types.
+// (KMS OrmRepository, sm-im gorm.DB, etc.) without coupling to specific repository types.
 type Repository interface {
 	// WithTransaction executes the provided function within a database transaction.
 	// The transaction will be automatically committed on success or rolled back on error.

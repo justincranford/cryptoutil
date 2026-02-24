@@ -156,8 +156,8 @@ func TestIsServiceTemplateConfig(t *testing.T) {
 		path     string
 		expected bool
 	}{
-		{name: "config-pg-1.yml", path: "configs/cipher/im/config-pg-1.yml", expected: true},
-		{name: "config-sqlite.yml", path: "configs/cipher/im/config-sqlite.yml", expected: true},
+		{name: "config-pg-1.yml", path: "configs/sm/im/config-pg-1.yml", expected: true},
+		{name: "config-sqlite.yml", path: "configs/sm/im/config-sqlite.yml", expected: true},
 		{name: "config-pg-2.yaml", path: "/tmp/config-pg-2.yaml", expected: true},
 		{name: "jose-server.yml", path: "configs/jose/jose-server.yml", expected: false},
 		{name: "ca-config-schema.yaml", path: "configs/ca/ca-config-schema.yaml", expected: false},

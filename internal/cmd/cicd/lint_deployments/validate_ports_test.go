@@ -27,7 +27,7 @@ func TestValidatePorts_ServiceLevelValid(t *testing.T) {
 	compose := "services:\n  my-service:\n    ports:\n      - \"8700:8080\"\n      - \"8701:8080\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -40,7 +40,7 @@ func TestValidatePorts_ServiceLevelOutOfRange(t *testing.T) {
 	compose := "services:\n  my-service:\n    ports:\n      - \"18700:8080\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.False(t, result.Valid)
@@ -50,10 +50,10 @@ func TestValidatePorts_ServiceLevelOutOfRange(t *testing.T) {
 func TestValidatePorts_ProductLevelValid(t *testing.T) {
 	t.Parallel()
 
-	compose := "services:\n  cipher-im-sqlite:\n    ports:\n      - \"18700:8080\"\n  cipher-im-pg-1:\n    ports:\n      - \"18701:8080\"\n"
+	compose := "services:\n  sm-im-sqlite:\n    ports:\n      - \"18700:8080\"\n  sm-im-pg-1:\n    ports:\n      - \"18701:8080\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cipher", DeploymentTypeProduct)
+	result, err := ValidatePorts(dir, "sm", DeploymentTypeProduct)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -65,7 +65,7 @@ func TestValidatePorts_ProductLevelOutOfRange(t *testing.T) {
 	compose := testComposeServicePort
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cipher", DeploymentTypeProduct)
+	result, err := ValidatePorts(dir, "sm", DeploymentTypeProduct)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.False(t, result.Valid)
@@ -103,7 +103,7 @@ func TestValidatePorts_InfrastructurePortsSkipped(t *testing.T) {
 	compose := "services:\n  postgres:\n    ports:\n      - \"5432:5432\"\n  grafana:\n    ports:\n      - \"3000:3000\"\n  otel:\n    ports:\n      - \"4317:4317\"\n      - \"4318:4318\"\n      - \"14317:4317\"\n      - \"14318:4318\"\n      - \"13133:13133\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -121,7 +121,7 @@ func TestValidatePorts_ConfigPortValidation(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
 		[]byte("bind-public-port: 8700\n"), 0o600))
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -138,7 +138,7 @@ func TestValidatePorts_ConfigPortOutOfRange(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config-sqlite.yml"),
 		[]byte("bind-public-port: 18700\n"), 0o600))
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.False(t, result.Valid)
@@ -172,7 +172,7 @@ func TestValidatePorts_NoComposeFile(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	// No compose.yml -> no port validation errors (compose existence checked by other validators).
@@ -184,7 +184,7 @@ func TestValidatePorts_InvalidComposeYAML(t *testing.T) {
 
 	dir := createDeploymentWithCompose(t, "invalid: [yaml: {broken")
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -197,7 +197,7 @@ func TestValidatePorts_NonNumericPortSkipped(t *testing.T) {
 	compose := "services:\n  my-service:\n    ports:\n      - \"abc:8080\"\n      - \"8700:8080\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -209,7 +209,7 @@ func TestValidatePorts_ContainerOnlyPortSkipped(t *testing.T) {
 	compose := "services:\n  my-service:\n    ports:\n      - \"8080\"\n      - \"8700:8080\"\n"
 	dir := createDeploymentWithCompose(t, compose)
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -226,7 +226,7 @@ func TestValidatePorts_ConfigDirWithNonYAML(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "README.md"),
 		[]byte("# readme\n"), 0o600))
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -243,7 +243,7 @@ func TestValidatePorts_ConfigInvalidYAML(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "broken.yml"),
 		[]byte("invalid: [yaml: {broken"), 0o600))
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid)
@@ -260,7 +260,7 @@ func TestValidatePorts_ConfigNonIntPort(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "config.yml"),
 		[]byte("bind-public-port: \"not-a-number\"\n"), 0o600))
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid) // String not parseable, skip validation.
@@ -278,7 +278,7 @@ func TestValidatePorts_ConfigUnreadableFile(t *testing.T) {
 	// Create a symlink to a non-existent target so ReadFile fails.
 	require.NoError(t, os.Symlink("/nonexistent/file.yml", filepath.Join(configDir, "broken.yml")))
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid) // Unreadable files are silently skipped.
@@ -295,7 +295,7 @@ func TestValidatePorts_ConfigDirWithSubdirectory(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(configDir, "valid.yml"),
 		[]byte("bind-public-port: 8700\n"), 0o600))
 
-	result, err := ValidatePorts(dir, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(dir, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Valid) // Subdirectory skipped, valid port accepted.
@@ -305,7 +305,7 @@ func TestValidateConfigPortRanges_UnreadableDir(t *testing.T) {
 	t.Parallel()
 
 	result := &PortValidationResult{Valid: true}
-	validateConfigPortRanges("/nonexistent/path", "cipher-im", DeploymentTypeProductService, result)
+	validateConfigPortRanges("/nonexistent/path", "sm-im", DeploymentTypeProductService, result)
 	assert.True(t, result.Valid) // ReadDir error is silently handled.
 }
 
@@ -399,18 +399,18 @@ func TestFormatPortValidationResult(t *testing.T) {
 	}
 }
 
-func TestValidatePorts_RealCipherIM(t *testing.T) {
+func TestValidatePorts_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	deplPath := filepath.Join(".", "..", "..", "..", "..", "deployments", "cipher-im")
+	deplPath := filepath.Join(".", "..", "..", "..", "..", "deployments", "sm-im")
 	info, err := os.Stat(deplPath)
 
 	if err != nil || !info.IsDir() {
-		t.Skip("Real cipher-im deployment not found - skipping integration test")
+		t.Skip("Real sm-im deployment not found - skipping integration test")
 	}
 
-	result, err := ValidatePorts(deplPath, "cipher-im", DeploymentTypeProductService)
+	result, err := ValidatePorts(deplPath, "sm-im", DeploymentTypeProductService)
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, result.Valid, "Real cipher-im should pass port validation. Errors: %v", result.Errors)
+	assert.True(t, result.Valid, "Real sm-im should pass port validation. Errors: %v", result.Errors)
 }

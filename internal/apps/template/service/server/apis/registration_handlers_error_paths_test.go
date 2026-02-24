@@ -40,10 +40,10 @@ func TestHandleRegisterUser_ValidationError(t *testing.T) {
 
 	// username too short — triggers validateRegistrationRequest error → 400
 	body := RegisterUserRequest{
-		Username:   strings.Repeat("a", cryptoutilSharedMagic.CipherMinUsernameLength-1),
+		Username:   strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength-1),
 		Email:      "user@example.com",
-		Password:   strings.Repeat("p", cryptoutilSharedMagic.CipherMinPasswordLength),
-		TenantName: strings.Repeat("t", cryptoutilSharedMagic.CipherMinUsernameLength),
+		Password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
+		TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 	}
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
@@ -82,10 +82,10 @@ func TestHandleRegisterUser_HashError(t *testing.T) {
 	app.Post("/register", handlers.HandleRegisterUser)
 
 	body := RegisterUserRequest{
-		Username:   strings.Repeat("a", cryptoutilSharedMagic.CipherMinUsernameLength),
+		Username:   strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength),
 		Email:      "user@example.com",
-		Password:   strings.Repeat("p", cryptoutilSharedMagic.CipherMinPasswordLength),
-		TenantName: strings.Repeat("t", cryptoutilSharedMagic.CipherMinUsernameLength),
+		Password:   strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
+		TenantName: strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 	}
 	bodyBytes, err := json.Marshal(body)
 	require.NoError(t, err)
@@ -163,10 +163,10 @@ func TestHandleRegisterUser_ServiceError(t *testing.T) {
 	app.Post("/register", handlers.HandleRegisterUser)
 
 	body := RegisterUserRequest{
-		Username:     strings.Repeat("a", cryptoutilSharedMagic.CipherMinUsernameLength),
+		Username:     strings.Repeat("a", cryptoutilSharedMagic.IMMinUsernameLength),
 		Email:        "user@example.com",
-		Password:     strings.Repeat("p", cryptoutilSharedMagic.CipherMinPasswordLength),
-		TenantName:   strings.Repeat("t", cryptoutilSharedMagic.CipherMinUsernameLength),
+		Password:     strings.Repeat("p", cryptoutilSharedMagic.IMMinPasswordLength),
+		TenantName:   strings.Repeat("t", cryptoutilSharedMagic.IMMinUsernameLength),
 		CreateTenant: true,
 	}
 

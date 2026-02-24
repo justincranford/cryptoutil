@@ -42,7 +42,7 @@ const (
 // SERVICE/PRODUCT/SUITE deployment level pattern.
 //
 // deploymentLevel MUST be one of: "PRODUCT-SERVICE", "PRODUCT", "SUITE".
-// deploymentName is the directory name (e.g., "cipher-im", "cipher", "cryptoutil-suite").
+// deploymentName is the directory name (e.g., "sm-im", "sm-im", "cryptoutil-suite").
 func ValidatePorts(deploymentPath, deploymentName, deploymentLevel string) (*PortValidationResult, error) {
 	result := &PortValidationResult{
 		Path:  deploymentPath,

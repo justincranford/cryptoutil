@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Justin Cranford
 
 // Package e2e_helpers provides reusable end-to-end testing helpers for all cryptoutil services.
-// Extracted from cipher-im implementation to support 9-service migration.
+// Extracted from sm-im implementation to support 9-service migration.
 package e2e_helpers
 
 import (
@@ -26,7 +26,7 @@ func CreateInsecureHTTPClient(t *testing.T) *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout, // Increased for concurrent test execution.
+		Timeout: cryptoutilSharedMagic.IMDefaultTimeout, // Increased for concurrent test execution.
 	}
 }
 
@@ -41,6 +41,6 @@ func CreateInsecureHTTPClientWithTimeout(t *testing.T, timeout int64) *http.Clie
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout * time.Duration(timeout),
+		Timeout: cryptoutilSharedMagic.IMDefaultTimeout * time.Duration(timeout),
 	}
 }

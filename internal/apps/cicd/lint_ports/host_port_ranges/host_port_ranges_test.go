@@ -27,7 +27,7 @@ func TestCheckHostPortRangesInFile_InvalidPorts(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  cipher-im:
+  sm-im:
     ports:
       - "8070:8700"
 `), 0o600)
@@ -46,7 +46,7 @@ func TestCheckHostPortRangesInFile_TopLevelReset(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  cipher-im:
+  sm-im:
     ports:
       - "8700:8700"
 networks:
@@ -84,7 +84,7 @@ func TestCheckHostPortRangesInFile_ValidPorts(t *testing.T) {
 
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  cipher-im:
+  sm-im:
     ports:
       - "8700:8700"
       - "9090:9090"
@@ -104,10 +104,10 @@ func TestGetServiceConfig(t *testing.T) {
 		wantNil     bool
 		wantName    string
 	}{
-		{name: "exact match cipher-im", serviceName: "cipher-im", wantNil: false, wantName: "cipher-im"},
+		{name: "exact match sm-im", serviceName: "sm-im", wantNil: false, wantName: "sm-im"},
 		{name: "exact match jose-ja", serviceName: "jose-ja", wantNil: false, wantName: "jose-ja"},
 		{name: "exact match sm-kms", serviceName: "sm-kms", wantNil: false, wantName: "sm-kms"},
-		{name: "prefix match cipher-im-postgres", serviceName: "cipher-im-postgres", wantNil: false, wantName: "cipher-im"},
+		{name: "prefix match sm-im-postgres", serviceName: "sm-im-postgres", wantNil: false, wantName: "sm-im"},
 		{name: "prefix match jose-ja-sqlite", serviceName: "jose-ja-sqlite", wantNil: false, wantName: "jose-ja"},
 		{name: "unknown service", serviceName: "unknown-service", wantNil: true, wantName: ""},
 		{name: "empty string", serviceName: "", wantNil: true, wantName: ""},
@@ -132,7 +132,7 @@ func TestIsPortInValidRange(t *testing.T) {
 	t.Parallel()
 
 	cipherConfig := &lintPortsCommon.ServicePortConfig{
-		Name:        "cipher-im",
+		Name:        "sm-im",
 		PublicPorts: []uint16{8700, 8701, 8702},
 		AdminPort:   9090,
 	}
@@ -238,7 +238,7 @@ func TestCheckHostPortRangesInFile_PortParseUintError(t *testing.T) {
 	// Port 99999 exceeds uint16 max (65535), so ParseUint with bitSize=16 will fail.
 	composeFile := filepath.Join(tempDir, "compose.yml")
 	err := os.WriteFile(composeFile, []byte(`services:
-  cipher-im:
+  sm-im:
     ports:
       - "99999:8700"
 `), 0o600)

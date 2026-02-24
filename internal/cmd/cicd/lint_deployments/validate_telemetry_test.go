@@ -406,16 +406,16 @@ assert.Contains(t, output, want)
 }
 }
 
-func TestValidateTelemetry_RealCipherIM(t *testing.T) {
+func TestValidateTelemetry_RealSmIM(t *testing.T) {
 t.Parallel()
 
-configDir := filepath.Join("testdata", "configs", "cipher", "im")
+configDir := filepath.Join("testdata", "configs", "sm", "im")
 if _, err := os.Stat(configDir); err != nil {
-configDir = filepath.Join("..", "..", "..", "..", "configs", "cipher", "im")
+configDir = filepath.Join("..", "..", "..", "..", "configs", "sm", "im")
 }
 
 if _, err := os.Stat(configDir); err != nil {
-t.Skip("Real cipher-im configs not found")
+t.Skip("Real sm-im configs not found")
 }
 
 result, err := ValidateTelemetry(configDir)
@@ -423,7 +423,7 @@ require.NoError(t, err)
 require.NotNil(t, result)
 
 // Real configs should be valid (may have warnings).
-assert.True(t, result.Valid, "Real cipher-im OTLP config validation failed: %v", result.Errors)
+assert.True(t, result.Valid, "Real sm-im OTLP config validation failed: %v", result.Errors)
 }
 
 // writeConfig creates a YAML config file from key-value pairs.

@@ -36,12 +36,12 @@ func TestValidateSecrets_NoComposeFile(t *testing.T) {
 	assert.True(t, result.Valid)
 }
 
-func TestValidateSecrets_RealCipherIM(t *testing.T) {
+func TestValidateSecrets_RealSmIM(t *testing.T) {
 	t.Parallel()
 
-	deploymentPath := findRealDeploymentPath("cipher-im")
+	deploymentPath := findRealDeploymentPath("sm-im")
 	if deploymentPath == "" {
-		t.Skip("cipher-im deployment not found")
+		t.Skip("sm-im deployment not found")
 	}
 
 	result, err := ValidateSecrets(deploymentPath)

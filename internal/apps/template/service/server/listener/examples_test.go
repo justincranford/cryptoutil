@@ -36,7 +36,7 @@ var (
 	testDB    *gorm.DB
 	testSQLDB *sql.DB
 
-	testCipherIMServer *server.CipherIMServer
+	testSmIMServer *server.SmIMServer
 	baseURL            string
 	adminURL           string
 
@@ -113,17 +113,17 @@ func TestMainBefore(m *testing.M) {
 		panic("TestMain: failed to generate TLS config: " + err.Error())
 	}
 
-	// Create shared CipherIMServer (includes barrier service, repositories, both public and admin servers).
-	testCipherIMServer, baseURL, adminURL, err = createTestCipherIMServer(testDB)
+	// Create shared SmIMServer (includes barrier service, repositories, both public and admin servers).
+	testSmIMServer, baseURL, adminURL, err = createTestSmIMServer(testDB)
 	if err != nil {
-		panic("TestMain: failed to create test cipher-im server: " + err.Error())
+		panic("TestMain: failed to create test sm-im server: " + err.Error())
 	}
 
 	// Defer database close and server shutdown (LIFO: executes AFTER m.Run() completes).
 	defer func() {
 		_ = testSQLDB.Close()
 	}()
-	defer testCipherIMServer.Shutdown(context.Background())
+	defer testSmIMServer.Shutdown(context.Background())
 
 	// Record start time for benchmark.
 	startTime := time.Now()
@@ -180,7 +180,7 @@ func _testMainAfter(m *testing.M) {
 		ServiceTemplateServerSettings: cryptoutilAppsTemplateServiceConfig.NewTestConfig(cryptoutilSharedMagic.IPv4Loopback, 0, true),
 		DB:                            db,
 		DBType:                        cryptoutilAppsTemplateServiceServerRepository.DatabaseTypeSQLite,
-		// PublicHandlers: registerCipherIMHandlers, // Inject product-specific routes
+		// PublicHandlers: registerSmIMHandlers, // Inject product-specific routes
 		// AdminHandlers:  registerBarrierRotation,  // Optional: barrier rotation endpoints
 	}
 
@@ -205,7 +205,7 @@ func _testMainAfter(m *testing.M) {
 // _createInMemoryDB creates an in-memory SQLite database configured for concurrent operations.
 // Returns GORM DB, sql.DB (for migrations), and error.
 //
-// This helper is REUSABLE across all services (cipher-im, jose-ja, identity-*, pki-ca).
+// This helper is REUSABLE across all services (sm-im, jose-ja, identity-*, pki-ca).
 // Extract to internal/template/testing/database/ for shared usage.
 //
 //nolint:unused // Example function for documentation

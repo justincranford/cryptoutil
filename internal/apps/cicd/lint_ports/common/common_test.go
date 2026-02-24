@@ -14,9 +14,9 @@ func TestAllLegacyPorts(t *testing.T) {
 	ports := AllLegacyPorts()
 
 	// Verify known legacy ports are included.
-	require.Contains(t, ports, uint16(8888)) // cipher-im legacy
-	require.Contains(t, ports, uint16(8889)) // cipher-im legacy
-	require.Contains(t, ports, uint16(8890)) // cipher-im legacy
+	require.Contains(t, ports, uint16(8888)) // sm-im legacy
+	require.Contains(t, ports, uint16(8889)) // sm-im legacy
+	require.Contains(t, ports, uint16(8890)) // sm-im legacy
 	require.Contains(t, ports, uint16(9443)) // jose-ja legacy
 	require.Contains(t, ports, uint16(8092)) // jose-ja legacy
 	require.Contains(t, ports, uint16(8443)) // pki-ca legacy
@@ -28,9 +28,9 @@ func TestAllValidPublicPorts(t *testing.T) {
 	ports := AllValidPublicPorts()
 
 	// Verify standardized ports are included.
-	require.Contains(t, ports, uint16(8700)) // cipher-im
-	require.Contains(t, ports, uint16(8701)) // cipher-im
-	require.Contains(t, ports, uint16(8702)) // cipher-im
+	require.Contains(t, ports, uint16(8700)) // sm-im
+	require.Contains(t, ports, uint16(8701)) // sm-im
+	require.Contains(t, ports, uint16(8702)) // sm-im
 	require.Contains(t, ports, uint16(8800)) // jose-ja
 	require.Contains(t, ports, uint16(8100)) // pki-ca
 	require.Contains(t, ports, uint16(8000)) // sm-kms
@@ -54,7 +54,7 @@ func TestIsOtelCollectorPort(t *testing.T) {
 	}{
 		{name: "OTEL internal metrics", port: 8888, want: true},
 		{name: "OTEL Prometheus", port: 8889, want: true},
-		{name: "cipher-im standardized", port: 8700, want: false}, // New standardized port
+		{name: "sm-im standardized", port: 8700, want: false}, // New standardized port
 		{name: "jose-ja standardized", port: 8800, want: false},   // New standardized port
 		{name: "random port", port: 12345, want: false},
 	}
@@ -98,7 +98,7 @@ func TestServicePorts_AllServicesPresent(t *testing.T) {
 	t.Parallel()
 
 	expectedServices := []string{
-		"cipher-im",
+		"sm-im",
 		"jose-ja",
 		"pki-ca",
 		"sm-kms",
@@ -135,7 +135,7 @@ func TestIsOtelRelatedContent(t *testing.T) {
 		{name: "opentelemetry in text", content: "// Use OpenTelemetry for observability", want: true},
 		{name: "OTEL uppercase", content: "const OTEL_PORT = 8888", want: true},
 		{name: "no otel terms", content: "const port = 8080", want: false},
-		{name: "cipher-im port", content: "const cipherPort = 8888", want: false},
+		{name: "sm-im port", content: "const cipherPort = 8888", want: false},
 		{name: "empty line", content: "", want: false},
 	}
 

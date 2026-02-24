@@ -12,7 +12,7 @@ import (
 
 // ServicePortConfig defines the expected port configuration for a service.
 type ServicePortConfig struct {
-	Name          string   // Service name (e.g., "cipher-im", "jose-ja").
+	Name          string   // Service name (e.g., "sm-im", "jose-ja").
 	PublicPorts   []uint16 // Expected public ports (can have multiple for SQLite/PG variants).
 	AdminPort     uint16   // Expected admin port (always 9090).
 	LegacyPorts   []uint16 // Old ports that should be flagged as violations.
@@ -97,12 +97,12 @@ var ServicePorts = map[string]ServicePortConfig{
 		LegacyPorts:   []uint16{8140, 8141, 8142, 18400},
 		MagicConstant: "IdentitySpaServicePort",
 	},
-	"cipher-im": {
-		Name:          "cipher-im",
+	"sm-im": {
+		Name:          "sm-im",
 		PublicPorts:   []uint16{8700, 8701, 8702},
 		AdminPort:     StandardAdminPort,
 		LegacyPorts:   []uint16{8070, 8071, 8072, 8888, 8889, 8890},
-		MagicConstant: "CipherServicePort",
+		MagicConstant: "IMServicePort",
 	},
 	"jose-ja": {
 		Name:          "jose-ja",

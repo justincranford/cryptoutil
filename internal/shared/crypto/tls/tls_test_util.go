@@ -21,6 +21,6 @@ func NewClientForTest() *http.Client {
 				InsecureSkipVerify: true, //nolint:gosec // Test environment only.
 			},
 		},
-		Timeout: cryptoutilSharedMagic.CipherDefaultTimeout,
+		Timeout: cryptoutilSharedMagic.IMDefaultTimeout,
 	}
 }

@@ -22,7 +22,7 @@ var (
 
 // GormRepository implements Repository using gorm.DB.
 // This adapter allows barrier encryption to work with any service using gorm.DB
-// (cipher-im, future services) without depending on KMS-specific OrmRepository.
+// (sm-im, future services) without depending on KMS-specific OrmRepository.
 type GormRepository struct {
 	db *gorm.DB
 }
