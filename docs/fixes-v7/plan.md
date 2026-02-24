@@ -2,7 +2,7 @@
 
 **Status**: Planning
 **Created**: 2026-02-23
-**Last Updated**: 2026-02-23
+**Last Updated**: 2026-02-23 (updated per quizme-v1 answers Q1=E, Q2=E, Q3=E)
 **Purpose**: Consolidate ALL incomplete work from fixes-v1 through fixes-v6 and implementation-plan-v1 into a single actionable plan. Prior plan directories will be deleted after this plan is created.
 
 ## Quality Mandate - MANDATORY
@@ -70,13 +70,13 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 **Objective**: Fix style/standards violations
 - F-6.9: File with space in name: `usernames_passwords_test util.go`
 - F-6.8: Error sentinels typed as string not error
-- F-6.15: 22 `//nolint:wsl` violations
+- F-6.15: `//nolint:wsl` violations — **Q3=E**: remove all 2 legacy `//nolint:wsl` (v1, must be gone); make genuine effort to fix all 20 `//nolint:wsl_v5` (modern golangci-lint v2); restructure code rather than suppress
 - F-3.2: TestNegativeDuration not a `time.Duration` type
 - F-3.4: `//nolint:stylecheck` without bug reference (5 instances)
 - F-1.4: poll.go timeout error not wrapped with sentinel
 - F-6.17: pool.go if/else chain → switch statement
 - F-6.44: ValidateUUID takes `*string` pointer unnecessarily
-- **Success**: All code quality issues resolved, linting clean
+- **Success**: Zero `//nolint:wsl` (legacy v1); all `//nolint:wsl_v5` either fixed by code restructure or documented as structurally required; linting clean
 
 ### Phase 3: Magic Constant Consolidation (2h) [Status: ☐ TODO]
 **Objective**: Move scattered magic constants to `internal/shared/magic/`
@@ -111,20 +111,36 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 - F-6.39: `fmt.Errorf` without `%w` audit
 - **Success**: No architectural violations, clean dependency graph
 
-### Phase 6: E2E Infrastructure (3h) [Status: ☐ TODO]
-**Objective**: Fix E2E test infrastructure 
-- E2E service startup blockers (KMS session JWK config, JOSE args routing, CA flag issue)
-- Task 6.4: Update CI E2E workflow (`ci-e2e.yml` compose paths)
-- Task 6.6: Fix identity E2E container names
-- fixes-v3 E2E config issues (authz-e2e.yml, idp-e2e.yml as real YAML files)
-- **Success**: E2E tests can start and run in Docker environment
+### Phase 6: E2E Infrastructure (4h) [Status: ☐ TODO]
+**Objective**: Fix E2E test infrastructure by standardizing service startup patterns **per Q1=E**:
+
+**Step B (do first): Fix cipher-im service startup reliability**
+- Make cipher-im service startup reliable in both main code and test code
+- Ensure all main/test startup code is reusable via service-template (currently lives in `cipher/im/testing/testmain_helper.go`; needs a generic version in `template/service/testing/`)
+- Extract `StartServiceFromConfig()` generic helper into template testing package
+- Verify cipher-im E2E tests pass end-to-end
+
+**Step A (do second): Propagate to jose-ja, sm-kms → unblock their E2E**
+- Make jose-ja and sm-kms reuse the same template startup code pattern as cipher-im
+- Ensure jose-ja and sm-kms TestMain files use template helper (not raw polling)
+- Fix KMS session JWK config blocker (empty algorithm string) using standardized config
+- Fix JOSE args routing blocker using standardized routing
+- After both services fixed: their E2E startup should unblock in one go
+- Update CI E2E workflow (`ci-e2e.yml`) service-specific compose paths
+
+**pki-ca (deferred to research options)**: After this phase, pki-ca will inherit all reliable startup/test code from service-template when it migrates. The CA flag issue is an architectural debt requiring template migration, tracked in research options.
+
+**Success**: cipher-im E2E passes; jose-ja and sm-kms E2E start and run successfully; template has generic startup helper; TestMains use template pattern
 
 ### Phase 7: Coverage & Mutation (4h) [Status: ☐ TODO]
-**Objective**: Improve coverage and mutation testing
-- crypto/jose at 89.9% → push toward structural ceiling (~91%)
+**Objective**: Improve coverage and mutation testing **per Q2=E**:
+- crypto/jose at 89.9% → push toward structural ceiling (~91%) without interface-wrapping jwx v3
+- Document structural ceiling in `docs/fixes-v7/JWX-COV-CEILING.md`: which specific stmts are unreachable and why
+- Add `//go:cover-ignore` comments for remaining unreachable error paths after max effort
+- Do NOT exempt crypto/jose from ≥98% gate — we are making genuine effort to raise coverage as high as possible without major refactor
 - Production packages below 95% (17 packages identified in fixes-v4)
 - Run gremlins on all packages meeting ≥95% coverage
-- **Success**: Coverage targets met, mutation testing baseline established
+- **Success**: crypto/jose reaches ~91% via new tests; JWX-COV-CEILING.md documents remaining ceiling; go:cover-ignore added for genuinely unreachable paths; all production packages ≥95%
 
 ## Risk Assessment
 
@@ -156,9 +172,12 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 
 - [ ] All 7 phases complete with evidence
 - [ ] All quality gates passing
-- [ ] Zero `//nolint:wsl` violations
+- [ ] Zero `//nolint:wsl` (legacy v1) violations
+- [ ] All `//nolint:wsl_v5` either fixed by code restructure or documented as structurally required
 - [ ] All magic constants in `internal/shared/magic/`
 - [ ] All test files have `t.Parallel()`
 - [ ] All files ≤500 lines
-- [ ] E2E infrastructure functional
+- [ ] cipher-im E2E passes; jose-ja and sm-kms E2E startup unblocked
+- [ ] Template has generic service startup helper for test reuse
+- [ ] crypto/jose ≥91%; JWX-COV-CEILING.md documents ceiling; go:cover-ignore for remaining unreachable paths
 - [ ] Coverage and mutation targets met

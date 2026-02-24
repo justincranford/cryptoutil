@@ -1,7 +1,7 @@
 # Tasks - Consolidated Quality Fixes v7
 
-**Status**: 0 of 47 tasks complete (0%)
-**Last Updated**: 2026-02-23
+**Status**: 0 of 48 tasks complete (0%)
+**Last Updated**: 2026-02-23 (updated per quizme-v1 answers Q1=E, Q2=E, Q3=E)
 **Created**: 2026-02-23
 
 ## Quality Mandate - MANDATORY
@@ -149,18 +149,21 @@
   - [ ] Tests pass
 - **Files**: TBD (investigate affected files)
 
-#### Task 2.3: Remove //nolint:wsl violations (22 instances)
+#### Task 2.3: Fix `//nolint:wsl` violations (Q3=E)
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 45min
+- **Estimated**: 1h
 - **Dependencies**: None
-- **Source**: fixes-v5 F-6.15, verified 22 instances
-- **Description**: Per coding instructions: "NEVER use `//nolint:wsl`". Restructure code to eliminate all 22 instances.
+- **Source**: fixes-v5 F-6.15; quiz answer Q3=E
+- **Description**: `//nolint:wsl` is legacy golangci-lint v1 — MUST be removed. `//nolint:wsl_v5` is modern v2 — make genuine effort to fix by code restructuring.
+  - **2 legacy `//nolint:wsl`** (in `template/service/telemetry/telemetry_service_helpers.go:134,158`): Remove by restructuring code to comply with wsl blank-line rules.
+  - **20 modern `//nolint:wsl_v5`** (in identity unified services: idp, rs, spa, authz, rp — 4 instances each): Fix by restructuring the identical pattern across 5 files. If structurally impossible to fix without breaking the unified pattern, document each as structurally required with specific explanation.
 - **Acceptance Criteria**:
-  - [ ] Zero `//nolint:wsl` or `//nolint:wsl_v5` in codebase
-  - [ ] Linting passes
-  - [ ] Code restructured (not suppressed)
-- **Files**: Multiple (22 files, see grep results)
+  - [ ] Zero `//nolint:wsl` (legacy v1) in codebase
+  - [ ] All `//nolint:wsl_v5` either removed via code restructure OR each one has a code comment explaining WHY it's structurally required (not just cosmetic preference)
+  - [ ] Linting passes after changes
+  - [ ] Code restructured rather than suppressed where possible
+- **Files**: `internal/apps/template/service/telemetry/telemetry_service_helpers.go`, `internal/apps/identity/idp/unified/idp.go`, `internal/apps/identity/rs/unified/rs.go`, `internal/apps/identity/spa/unified/spa.go`, `internal/apps/identity/authz/unified/authz.go`, `internal/apps/identity/rp/unified/rp.go`
 
 #### Task 2.4: TestNegativeDuration — change to time.Duration type
 - **Status**: ❌
@@ -457,67 +460,86 @@
 
 ### Phase 6: E2E Infrastructure
 
-**Phase Objective**: Fix E2E test infrastructure to enable service startup
+**Phase Objective**: Fix E2E test infrastructure via two-step approach (Q1=E: B-then-A)
 
-#### Task 6.1: Fix KMS session JWK algorithm configuration
+#### Task 6.0: Extract generic service startup helper into template (Step B)
+- **Status**: ❌
+- **Owner**: LLM Agent
+- **Estimated**: 45min
+- **Dependencies**: None (do first)
+- **Source**: Q1=E quiz answer — prerequisite for all other Phase 6 tasks
+- **Description**: `cipher/im/testing/testmain_helper.go` has `StartCipherIMService()` and `SetupTestServer()` that are cipher-im-specific. These patterns (port polling, goroutine start, panic on failure) should live generically in `template/service/testing/`. Create a generic `StartServiceFromConfig[T any]()` helper in the template testing package.
+- **Acceptance Criteria**:
+  - [ ] Generic startup helper created in `internal/apps/template/service/testing/server_start_helpers.go`
+  - [ ] Helper covers: goroutine start, port polling (public + admin), error channel, panic-on-failure
+  - [ ] cipher-im `StartCipherIMService()` refactored to call the generic template helper
+  - [ ] Tests pass with `go test ./internal/apps/template/service/testing/...`
+- **Files**: `internal/apps/template/service/testing/server_start_helpers.go` (new), `internal/apps/cipher/im/testing/testmain_helper.go` (refactor)
+
+#### Task 6.1: Fix KMS session JWK algorithm configuration (Step B)
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 30min
-- **Dependencies**: None
+- **Dependencies**: Task 6.0
 - **Source**: fixes-v1 blocker 02
-- **Description**: KMS services fail with "unsupported JWS algorithm:" — empty algorithm string in session manager config.
+- **Description**: KMS services fail with "unsupported JWS algorithm:" — empty algorithm string in session manager config. Verify cipher-im config pattern, apply same pattern to KMS config.
 - **Acceptance Criteria**:
-  - [ ] Session JWK algorithm configured correctly
-  - [ ] Service starts successfully
+  - [ ] Session JWK algorithm configured correctly (matches cipher-im pattern)
+  - [ ] KMS service starts successfully in Docker
 - **Files**: Config files, session manager config
 
-#### Task 6.2: Fix JOSE args routing
+#### Task 6.2: Fix JOSE args routing (Step B)
 - **Status**: ❌
 - **Owner**: LLM Agent
 - **Estimated**: 30min
-- **Dependencies**: None
+- **Dependencies**: Task 6.0
 - **Source**: fixes-v1 blocker 02
-- **Description**: JOSE service args routing incorrect — args not stripped properly through product → service → subcommand layers.
+- **Description**: JOSE service args routing incorrect — args not stripped properly through product → service → subcommand layers. Compare with cipher-im `im.go` routing pattern and apply same.
 - **Acceptance Criteria**:
   - [ ] Args routing matches cipher-im pattern
-  - [ ] Service starts successfully
+  - [ ] JOSE service starts successfully
 - **Files**: `internal/apps/jose/ja/*.go`
 
-#### Task 6.3: Fix CA service --config flag issue
+#### Task 6.3: Migrate jose-ja and sm-kms TestMains to template helper (Step A)
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 20min
-- **Dependencies**: None
-- **Source**: fixes-v1 blocker 02
-- **Description**: CA service reports "unknown flag: --config". May be entrypoint issue.
+- **Estimated**: 30min
+- **Dependencies**: Task 6.0, 6.1, 6.2
+- **Source**: Q1=E — "ensure jose-ja and sm-kms are reusing the same main and E2E test code"
+- **Description**: jose-ja `server/testmain_test.go` uses raw loop (50 × 100ms polls). sm-kms has no integration TestMain. Both should use the generic template helper created in Task 6.0. This standardizes startup pattern across all migrated services.
 - **Acceptance Criteria**:
-  - [ ] Root cause identified
-  - [ ] Fix applied or documented as non-issue
-- **Files**: `internal/apps/pki/ca/*.go`, compose entrypoint
+  - [ ] jose-ja `server/testmain_test.go` uses template `StartServiceFromConfig()` pattern
+  - [ ] sm-kms integration TestMain created using template helper pattern
+  - [ ] Tests pass: `go test -tags=integration ./internal/apps/jose/ja/...` and `./internal/apps/sm/kms/...`
+- **Files**: `internal/apps/jose/ja/server/testmain_test.go`, `internal/apps/sm/kms/server/testmain_integration_test.go` (new)
 
-#### Task 6.4: Update CI E2E workflow paths
+#### Task 6.4: Update CI E2E workflow paths and add jose-ja/sm-kms E2E tests
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 20min
-- **Dependencies**: None
-- **Source**: implementation-plan-v1 Task 6.4
-- **Description**: `ci-e2e.yml` references old compose paths (deployments/ca → pki-ca, etc.).
+- **Estimated**: 45min
+- **Dependencies**: 6.1, 6.2, 6.3
+- **Source**: implementation-plan-v1 Task 6.4; Q1=E
+- **Description**: (1) Fix service_TEMPLATE_TODO markers: `ci-e2e.yml` references old compose paths; (2) Add jose-ja and sm-kms E2E test execution to workflow (they should now start reliably after Tasks 6.0-6.3); (3) Create E2E test files for jose-ja and sm-kms matching cipher-im e2e structure.
 - **Acceptance Criteria**:
-  - [ ] All compose file paths corrected
-  - [ ] Workflow uses correct deployment directory names
-- **Files**: `.github/workflows/ci-e2e.yml`
+  - [ ] All compose file paths corrected in `ci-e2e.yml`
+  - [ ] jose-ja E2E test suite created (`internal/apps/jose/ja/e2e/`)
+  - [ ] sm-kms E2E test suite verified/created (`internal/apps/sm/kms/e2e/`)
+  - [ ] CI E2E workflow runs cipher-im, jose-ja, sm-kms E2E tests
+  - [ ] `SERVICE_TEMPLATE_TODO` markers removed for migrated services
+- **Files**: `.github/workflows/ci-e2e.yml`, `internal/apps/jose/ja/e2e/` (new), `internal/apps/sm/kms/e2e/` (verify)
 
-#### Task 6.5: Fix identity E2E container names
+#### Task 6.5: Verify cipher-im E2E passes end-to-end (Step B validation)
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 15min
-- **Dependencies**: None
-- **Source**: implementation-plan-v1 Task 6.6
-- **Description**: Identity E2E container names may not match PRODUCT compose service names.
+- **Estimated**: 30min
+- **Dependencies**: 6.0
+- **Source**: Q1=E — "make cipher-im service startup work reliably first"
+- **Description**: Run cipher-im E2E tests to confirm they pass. This is the validation step before propagating patterns to jose-ja and sm-kms. Identity E2E remains disabled until identity services migrate to service-template (future work in research options).
 - **Acceptance Criteria**:
-  - [ ] Container names verified and corrected
-  - [ ] Magic constants updated if needed
-- **Files**: E2E test files, magic constants
+  - [ ] `go test -tags=e2e -timeout=30m ./internal/apps/cipher/im/e2e/...` passes
+  - [ ] Docker Compose stack starts and all cipher-im containers healthy
+  - [ ] No Docker Desktop / firewall binding issues
+- **Files**: `internal/apps/cipher/im/e2e/`, `deployments/cipher-im/compose.yml`
 
 ---
 
@@ -525,18 +547,26 @@
 
 **Phase Objective**: Improve coverage and establish mutation testing baseline
 
-#### Task 7.1: Improve crypto/jose coverage (89.9% → ~91%)
+#### Task 7.1: Push crypto/jose coverage to ~91% structural ceiling (Q2=E)
 - **Status**: ❌
 - **Owner**: LLM Agent
-- **Estimated**: 1.5h
+- **Estimated**: 2h
 - **Dependencies**: None
-- **Source**: fixes-v4 QG-3
-- **Description**: crypto/jose at 89.9% with structural ceiling ~91%. ~111 uncovered stmts mainly from jwx v3 library error paths.
+- **Source**: fixes-v4 QG-3; quiz answer Q2=E
+- **Description**: crypto/jose at 89.9%. Per Q2=E: push to ~91% via new tests, then stop. Do NOT interface-wrap jwx v3.
+  - Target the ~111 uncovered stmts systematically: err paths on valid inputs (jwk.Set, jwk.Import, json.Marshal), type-switch defaults, jwe/jws errors with valid input
+  - For each group: try to trigger via test input or test data manipulation; if test cannot reach the path without interface-wrapping, mark as structural ceiling
+  - Add `//go:cover-ignore` comments on confirmed-unreachable lines (e.g. `_ = json.Marshal(validStruct)` where Marshal can't fail)
+  - Document all findings in `docs/fixes-v7/JWX-COV-CEILING.md`
+  - Do NOT exempt from ≥98% gate — this is genuine effort to maximize coverage
 - **Acceptance Criteria**:
-  - [ ] Coverage ≥91% (structural ceiling)
+  - [ ] Coverage increases from 89.9% toward ~91%
+  - [ ] `docs/fixes-v7/JWX-COV-CEILING.md` created with: uncovered stmt categories, why each is unreachable, test attempts made
+  - [ ] `//go:cover-ignore` added for confirmed-unreachable paths only
+  - [ ] No interface-wrapping of jwx library
   - [ ] New tests use table-driven pattern
-  - [ ] No interface wrapping the jwx library
-- **Files**: `internal/shared/crypto/jose/*_test.go`
+  - [ ] Tests pass: `go test -cover ./internal/shared/crypto/jose/...`
+- **Files**: `internal/shared/crypto/jose/*_test.go`, `docs/fixes-v7/JWX-COV-CEILING.md` (new)
 
 #### Task 7.2: Improve production package coverage to ≥95%
 - **Status**: ❌
@@ -575,13 +605,20 @@
 
 ### Code Quality
 - [ ] Linting passes: `golangci-lint run` and `golangci-lint run --build-tags e2e,integration`
-- [ ] Zero `//nolint:wsl` violations
+- [ ] Zero `//nolint:wsl` (legacy v1) violations
+- [ ] All `//nolint:wsl_v5` either removed or documented as structurally required
 - [ ] No files >500 lines
 - [ ] All magic constants in `internal/shared/magic/`
 
 ### Deployment
 - [ ] 65/65 deployment validators pass
-- [ ] E2E infrastructure functional
+- [ ] cipher-im E2E passes; jose-ja and sm-kms E2E startup unblocked
+- [ ] Template has generic service startup helper (`template/service/testing/server_start_helpers.go`)
+
+### Coverage
+- [ ] crypto/jose ≥91% structural ceiling reached via new tests
+- [ ] `docs/fixes-v7/JWX-COV-CEILING.md` documents remaining unreachable paths
+- [ ] `//go:cover-ignore` added for confirmed-unreachable paths only
 
 ---
 
@@ -622,12 +659,13 @@ This table maps each task back to its original plan/finding:
 | 5.3 | fixes-v6 | F-6.34 |
 | 5.4 | fixes-v6 | F-6.37 |
 | 5.5 | fixes-v6 | F-6.38 |
+| 6.0 | Q1=E quiz answer | quizme-v1 Q1 |
 | 6.1 | fixes-v1 | blocker 02 |
 | 6.2 | fixes-v1 | blocker 02 |
-| 6.3 | fixes-v1 | blocker 02 |
-| 6.4 | impl-plan-v1 | Task 6.4 |
-| 6.5 | impl-plan-v1 | Task 6.6 |
-| 7.1 | fixes-v4 | QG-3 |
+| 6.3 | Q1=E quiz answer | quizme-v1 Q1 |
+| 6.4 | impl-plan-v1 + Q1=E | Task 6.4 + quiz |
+| 6.5 | Q1=E quiz answer | quizme-v1 Q1 |
+| 7.1 | fixes-v4 + Q2=E | QG-3 + quizme-v1 Q2 |
 | 7.2 | fixes-v4 | QG-4 |
 | 7.3 | fixes-v4 | QG-6 |
 
