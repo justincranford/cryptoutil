@@ -13,6 +13,7 @@ import (
 	"time"
 
 	cryptoutilAppsJoseJaServerConfig "cryptoutil/internal/apps/jose/ja/server/config"
+	cryptoutilAppsTemplateServiceTestingE2eHelpers "cryptoutil/internal/apps/template/service/testing/e2e_helpers"
 )
 
 var (
@@ -36,47 +37,16 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("TestMain: failed to create server: %v", err))
 	}
 
-	// Start server in background.
-	errChan := make(chan error, 1)
-
-	go func() {
-		if startErr := testServer.Start(ctx); startErr != nil {
-			errChan <- startErr
-		}
-	}()
-
-	// Wait for server ports to be assigned.
-	const (
-		maxWaitAttempts = 50
-		waitInterval    = 100 * time.Millisecond
-	)
-
-	var publicPort, adminPort int
-	for i := 0; i < maxWaitAttempts; i++ {
-		publicPort = testServer.PublicPort()
-		adminPort = testServer.AdminPort()
-
-		if publicPort > 0 && adminPort > 0 {
-			break
-		}
-
-		select {
-		case err := <-errChan:
-			panic(fmt.Sprintf("TestMain: server failed to start: %v", err))
-		case <-time.After(waitInterval):
-		}
-	}
-
-	if publicPort == 0 || adminPort == 0 {
-		panic("TestMain: server did not bind to ports")
-	}
+	// Use generic template helper for goroutine start + dual port polling + panic-on-failure.
+	cryptoutilAppsTemplateServiceTestingE2eHelpers.MustStartAndWaitForDualPorts(testServer, func() error {
+		return testServer.Start(ctx)
+	})
 
 	// Mark server as ready.
 	testServer.SetReady(true)
 
 	// Store base URLs for tests.
-	testPublicBaseURL = testServer.PublicBaseURL()
-	testAdminBaseURL = testServer.AdminBaseURL()
+	testPublicBaseURL, testAdminBaseURL = cryptoutilAppsTemplateServiceTestingE2eHelpers.DualPortBaseURLs(testServer)
 
 	// Create HTTP client that accepts self-signed certificates.
 	testHTTPClient = &http.Client{
