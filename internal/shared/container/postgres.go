@@ -36,7 +36,7 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilSharedTeleme
 	if err != nil {
 		telemetryService.Slogger.Error("failed to start postgres container", "error", err)
 
-		return "", nil, fmt.Errorf("failed to start sqlite container: %w", err)
+		return "", nil, fmt.Errorf("failed to start postgres container: %w", err)
 	}
 
 	containerHost, containerMappedPort, err := GetContainerHostAndMappedPort(ctx, telemetryService, postgresContainer, "5432")

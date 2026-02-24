@@ -25,7 +25,8 @@ func TestUntil(t *testing.T) {
 		condFn      func() cryptoutilSharedUtilPoll.ConditionFunc
 		ctxFn       func() context.Context
 		wantErr     bool
-		errContains string
+		wantSentinel error
+		errContains  string
 	}{
 		{
 			name:     "immediate success",
@@ -64,9 +65,10 @@ func TestUntil(t *testing.T) {
 					return false, nil
 				}
 			},
-			ctxFn:       func() context.Context { return context.Background() },
-			wantErr:     true,
-			errContains: "poll timed out",
+			ctxFn:        func() context.Context { return context.Background() },
+			wantErr:      true,
+			wantSentinel: cryptoutilSharedUtilPoll.ErrTimeout,
+			errContains:  "poll timed out",
 		},
 		{
 			name:     "fatal error stops polling",
@@ -82,7 +84,7 @@ func TestUntil(t *testing.T) {
 			errContains: "poll condition failed",
 		},
 		{
-			name:     "context canceled",
+			name:     "context canceled before first call",
 			timeout:  5 * time.Second,
 			interval: 10 * time.Millisecond,
 			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
@@ -93,6 +95,85 @@ func TestUntil(t *testing.T) {
 			ctxFn: func() context.Context {
 				ctx, cancel := context.WithCancel(context.Background())
 				cancel()
+
+				return ctx
+			},
+			wantErr:     true,
+			errContains: "poll canceled",
+		},
+		{
+			name:     "nil conditionFn",
+			timeout:  1 * time.Second,
+			interval: 10 * time.Millisecond,
+			condFn:   func() cryptoutilSharedUtilPoll.ConditionFunc { return nil },
+			ctxFn:    func() context.Context { return context.Background() },
+			wantErr:  true,
+			errContains: "conditionFn must not be nil",
+		},
+		{
+			name:     "zero timeout",
+			timeout:  0,
+			interval: 10 * time.Millisecond,
+			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
+				return func(_ context.Context) (bool, error) {
+					return true, nil
+				}
+			},
+			ctxFn:       func() context.Context { return context.Background() },
+			wantErr:     true,
+			errContains: "poll timeout must be positive",
+		},
+		{
+			name:     "negative timeout",
+			timeout:  -1 * time.Second,
+			interval: 10 * time.Millisecond,
+			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
+				return func(_ context.Context) (bool, error) {
+					return true, nil
+				}
+			},
+			ctxFn:       func() context.Context { return context.Background() },
+			wantErr:     true,
+			errContains: "poll timeout must be positive",
+		},
+		{
+			name:     "zero interval",
+			timeout:  1 * time.Second,
+			interval: 0,
+			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
+				return func(_ context.Context) (bool, error) {
+					return true, nil
+				}
+			},
+			ctxFn:       func() context.Context { return context.Background() },
+			wantErr:     true,
+			errContains: "poll interval must be positive",
+		},
+		{
+			name:     "negative interval",
+			timeout:  1 * time.Second,
+			interval: -1 * time.Millisecond,
+			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
+				return func(_ context.Context) (bool, error) {
+					return true, nil
+				}
+			},
+			ctxFn:       func() context.Context { return context.Background() },
+			wantErr:     true,
+			errContains: "poll interval must be positive",
+		},
+		{
+			name:     "context canceled during polling",
+			timeout:  5 * time.Second,
+			interval: 10 * time.Millisecond,
+			condFn: func() cryptoutilSharedUtilPoll.ConditionFunc {
+				return func(_ context.Context) (bool, error) {
+					return false, nil
+				}
+			},
+			ctxFn: func() context.Context {
+				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Millisecond)
+				_ = cancel // let timeout handle cancellation.
 
 				return ctx
 			},
@@ -110,6 +191,10 @@ func TestUntil(t *testing.T) {
 			if tc.wantErr {
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tc.errContains)
+
+				if tc.wantSentinel != nil {
+					require.ErrorIs(t, err, tc.wantSentinel)
+				}
 			} else {
 				require.NoError(t, err)
 			}

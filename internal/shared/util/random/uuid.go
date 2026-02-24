@@ -50,7 +50,7 @@ func ValidateUUIDs(uuids []googleUuid.UUID, msg *string) error {
 
 	for i, uuid := range uuids {
 		if err := ValidateUUID(&uuid, msg); err != nil {
-			return fmt.Errorf("%s, offset %d: %w", *msg, i, cryptoutilSharedApperr.ErrUUIDsCantBeNil)
+			return fmt.Errorf("%s, offset %d: %w", *msg, i, err)
 		}
 	}
 
