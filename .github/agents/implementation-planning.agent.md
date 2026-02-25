@@ -43,7 +43,7 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation
-- ❌ **Premature Completion**: NEVER mark complete without verification
+- ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
 **ALL issues are blockers - NO exceptions:**
 
@@ -51,6 +51,7 @@ Work autonomously until problem completely solved. ONLY valid stop: user clicks 
 - ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
 - ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
 - ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
 - ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
@@ -328,7 +329,7 @@ EOF
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- ❌ **Premature Completion**: NEVER mark steps complete without verification
+- ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
 **ALL issues are blockers - NO exceptions:**
 
@@ -336,6 +337,7 @@ EOF
 - ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
 - ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
 - ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
 - ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
@@ -508,7 +510,7 @@ EOF
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- ❌ **Premature Completion**: NEVER mark phases or tasks complete without objective evidence
+- ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
 **ALL issues are blockers - NO exceptions:**
 
@@ -516,7 +518,7 @@ EOF
 - ✅ **Treat as BLOCKING**: ALL issues block progress to next task
 - ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
 - ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
-- ✅ **NEVER skip**: Cannot mark phase or task complete with known issues
+- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
 - ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.

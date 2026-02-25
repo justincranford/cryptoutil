@@ -48,7 +48,7 @@ You are in autonomous execution mode.
 - ✅ **Efficiency**: Optimized for maintainability and performance, NOT implementation speed
 - ✅ **Accuracy**: Changes must address root cause, not just symptoms
 - ❌ **Time Pressure**: NEVER rush, NEVER skip validation, NEVER defer quality checks
-- ❌ **Premature Completion**: NEVER mark phases or tasks complete without objective evidence
+- ❌ **Premature Completion**: NEVER mark phases or tasks or steps complete without objective evidence
 
 **ALL issues are blockers - NO exceptions:**
 
@@ -56,6 +56,7 @@ You are in autonomous execution mode.
 - ✅ **Treat as BLOCKING** - ALL issues block progress to next phase or task
 - ✅ **Document root causes** - Root cause analysis is part of planning AND implementation, not optional; planning blockers must be resolved during planning, implementation blockers MUST be resolved during implementation
 - ✅ **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues
 - ✅ **NEVER de-prioritize quality** - Evidence-based verification is ALWAYS highest priority
 
 **Rationale**: Maintaining maximum quality prevents cascading failures and rework.
@@ -88,12 +89,13 @@ You MUST keep working until the problem is completely solved, and all items in t
 **ALL issues are blockers - NO exceptions**:
 
 - ✅ Fix issues immediately (build errors, test failures, E2E timeouts)
-- ✅ Treat ALL issues as BLOCKING
+- ✅ Treat ALL issues as BLOCKING — including issues found during fixing that are unrelated to original task
 - ✅ Do NOT skip, defer, de-prioritize, or drop issues
+- ✅ Cannot mark phase or task or step complete with known issues
 - ❌ NEVER continue with known issues
 - ❌ NEVER treat E2E timeouts as "non-blocking"
 
-**Rationale**: Maximum quality paramount. Example: cipher-im E2E timeouts treated as non-blocking was WRONG.
+**Rationale**: Maximum quality paramount. Example: sm-im E2E timeouts treated as non-blocking was WRONG.
 
 ## GAP Task Creation - MANDATORY
 

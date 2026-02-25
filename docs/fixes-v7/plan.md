@@ -46,7 +46,7 @@ This plan consolidates 7 prior plan directories (fixes-v1 through fixes-v6, impl
 5. Production coverage: crypto/jose at 89.9% (structural ceiling ~91%)
 6. File size: 4 files exceed 500-line hard limit
 
-## Critical Cross-Cutting Findings
+## Critical Cross-Cutting Findingsdavid
 
 These findings affect multiple phases and must be tracked separately:
 
@@ -282,18 +282,51 @@ quizme-v2.md Answer changed to "???" — user is reconsidering pki-ca strategy i
 - ✅ Infrastructure/utility code: ≥98%
 - ✅ Production code: ≥95%
 
+## Phase 9: Agent Quality Enforcement Harmonization
+
+**Goal**: Harmonize quality enforcement language across ALL agent files. Beast-mode has `NEVER skip: Cannot mark phase or task complete with known issues` that is missing from other agents. All agents must treat ALL discovered issues as blockers — including issues found serendipitously during other work.
+
+**Changes**:
+1. Add missing `NEVER skip` line to implementation-execution.agent.md, implementation-planning.agent.md, fix-workflows.agent.md, doc-sync.agent.md
+2. Add "or steps" to completeness statements ("phases or tasks or steps")
+3. Harmonize continuous execution language
+
+## Phase 10: Cipher Product Reference Cleanup
+
+**Goal**: Eliminate ALL remaining cipher product references in documentation. Despite Phase 8 renaming cipher-im → sm-im in code, documentation still contains cipher PRODUCT references.
+
+**Files**:
+- `docs/DEAD_CODE_REVIEW.md` — Lines 941-953
+- `docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md` — Lines 169-740 (extensive)
+- `docs/ARCHITECTURE.md` — Lines 389, 412, 422, 453, 719, 3347
+- `docs/README.md` — Lines 727-728
+- `docs/fixes-v7/plan.md` — Line 78
+
+## Phase 11: JWX Coverage Ceiling Improvements
+
+**Goal**: Break through the 89.9% structural ceiling using three strategies:
+
+1. **Category 5 (UUID)**: Replace `googleUuid.NewV7()` + error check with `googleUuid.Must(googleUuid.NewV7())`. Eliminates 3 unreachable error paths.
+2. **Categories 1-4, 6-8 (function variable injection)**: Extract library calls to package-level function variables. Tests override these to inject errors. ~107 unreachable statements become testable.
+3. **Category 9 (selective)**: Ignore jwkgen_service.go pool creation; apply function variable pattern to LogJWSInfo, ExtractKty Get, validateOrGenerateJWSEcdsaJWK.
+
+**Target**: ≥95% coverage on crypto/jose package after all improvements.
+
 ## Success Criteria
 
-- [ ] All 8 phases complete with evidence
+- [x] All 8 original phases complete with evidence
+- [ ] All 11 phases complete with evidence
 - [ ] All quality gates passing
-- [ ] Zero `//nolint:wsl` (legacy v1) violations
-- [ ] All `//nolint:wsl_v5` either fixed by code restructure or documented as structurally required
-- [ ] All magic constants in `internal/shared/magic/`
-- [ ] All test files have `t.Parallel()`
-- [ ] All files ≤500 lines
-- [ ] cipher-im E2E passes; jose-ja and sm-kms E2E startup unblocked
-- [ ] Template has generic service startup helper for test reuse
-- [ ] crypto/jose ≥91%; JWX-COV-CEILING.md documents ceiling; go:cover-ignore for remaining unreachable paths
+- [x] Zero `//nolint:wsl` (legacy v1) violations
+- [x] All `//nolint:wsl_v5` either fixed by code restructure or documented as structurally required
+- [x] All magic constants in `internal/shared/magic/`
+- [x] All test files have `t.Parallel()`
+- [x] All files ≤500 lines
+- [ ] sm-im E2E passes; jose-ja and sm-kms E2E startup unblocked
+- [x] Template has generic service startup helper for test reuse
+- [ ] crypto/jose ≥95% coverage with function variable injection pattern
 - [ ] Coverage and mutation targets met
-- [ ] cipher-im renamed to sm-im under SM product
-- [ ] No Cipher product remaining (SM has kms + im services)
+- [x] cipher-im renamed to sm-im under SM product
+- [ ] No Cipher product remaining in code OR documentation
+- [ ] ALL agent files have NEVER skip quality enforcement
+- [ ] JWX-COV-CEILING.md updated with resolution status

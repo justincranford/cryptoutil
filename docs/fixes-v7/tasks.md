@@ -732,9 +732,104 @@
 - [x] No Cipher product remaining
 
 ### Coverage
-- [x] crypto/jose at ~90% structural ceiling (documented in JWX-COV-CEILING.md)
+- [ ] crypto/jose at ≥95% coverage via function variable injection pattern
 - [x] `docs/fixes-v7/JWX-COV-CEILING.md` documents remaining unreachable paths
-- [x] //go:cover-ignore not needed — unreachable paths are library-internal, documented in ceiling analysis
+- [ ] JWX-COV-CEILING.md updated with resolution status per category
+
+### Agent Quality
+- [ ] ALL agent files (except beast-mode) have NEVER skip enforcement line
+- [ ] ALL agent completeness statements include "or steps"
+
+### Documentation
+- [ ] No Cipher product references in ANY documentation files
+
+---
+
+## Phase 9: Agent Quality Enforcement Harmonization
+
+### Task 9.1: Add NEVER skip line to implementation-execution.agent.md
+- [ ] 9.1.1 Add `- ✅ **NEVER skip**: Cannot mark phase or task or step complete with known issues` after NEVER defer line
+- [ ] 9.1.2 Fix "phases or tasks" → "phases or tasks or steps" in completeness statement
+- [ ] 9.1.3 Verify build clean, commit
+
+### Task 9.2: Add NEVER skip line to implementation-planning.agent.md
+- [ ] 9.2.1 Add NEVER skip line to ALL quality strategy sections
+- [ ] 9.2.2 Verify "or steps" in ALL completeness statements
+- [ ] 9.2.3 Verify build clean, commit
+
+### Task 9.3: Add NEVER skip line to fix-workflows.agent.md
+- [ ] 9.3.1 Add quality strategy section with NEVER skip line
+- [ ] 9.3.2 Commit
+
+### Task 9.4: Add NEVER skip line to doc-sync.agent.md
+- [ ] 9.4.1 Add quality strategy section with NEVER skip line
+- [ ] 9.4.2 Commit
+
+---
+
+## Phase 10: Cipher Product Reference Cleanup
+
+### Task 10.1: Clean docs/DEAD_CODE_REVIEW.md
+- [ ] 10.1.1 Replace cipher/im references with sm/im on lines 941-953
+- [ ] 10.1.2 Commit
+
+### Task 10.2: Clean docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
+- [ ] 10.2.1 Replace ALL cipher-im references with sm-im
+- [ ] 10.2.2 Replace ALL cipher_ prefix references with sm_ prefix
+- [ ] 10.2.3 Replace ALL cipher product directory references with sm
+- [ ] 10.2.4 Commit
+
+### Task 10.3: Clean docs/ARCHITECTURE.md
+- [ ] 10.3.1 Review lines 389, 412, 422, 453, 719, 3347 — update or remove cipher references
+- [ ] 10.3.2 Keep "renamed from cipher-im" as historical notes where appropriate but use sm-im as canonical name
+- [ ] 10.3.3 Commit
+
+### Task 10.4: Clean docs/README.md
+- [ ] 10.4.1 Replace cipher/im path reference on lines 727-728 with sm/im
+- [ ] 10.4.2 Commit
+
+### Task 10.5: Clean docs/fixes-v7/plan.md
+- [ ] 10.5.1 Update cipher-im reference on line 78 to sm-im
+- [ ] 10.5.2 Verify no remaining cipher PRODUCT references across all docs
+- [ ] 10.5.3 Commit
+
+---
+
+## Phase 11: JWX Coverage Ceiling Improvements
+
+### Task 11.1: Category 5 - UUID Must() Pattern
+- [ ] 11.1.1 Replace `googleUuid.NewV7()` + error check with `googleUuid.Must(googleUuid.NewV7())` in jwe_jwk_util.go
+- [ ] 11.1.2 Same in jwk_util.go
+- [ ] 11.1.3 Same in jws_jwk_util.go
+- [ ] 11.1.4 Verify build + tests pass, commit
+
+### Task 11.2: Categories 1-4, 6-8 - Function Variable Injection Pattern
+- [ ] 11.2.1 Create `jose_test_seams.go` with package-level function variables for: jwkKeySet, jwkImport, jsonMarshal, jwkPublicKey, key generation, jweEncrypt, jwsSign, jweParse, jweDecrypt
+- [ ] 11.2.2 Replace direct library calls with function variable calls across all jose source files
+- [ ] 11.2.3 Write error injection tests for Category 1 (jwk.Set errors)
+- [ ] 11.2.4 Write error injection tests for Category 2 (joseJwk.Import errors)
+- [ ] 11.2.5 Write error injection tests for Category 3 (json.Marshal errors)
+- [ ] 11.2.6 Write error injection tests for Category 4 (PublicKey errors)
+- [ ] 11.2.7 Write error injection tests for Category 6 (key generation errors)
+- [ ] 11.2.8 Write error injection tests for Category 7 (type switch defaults)
+- [ ] 11.2.9 Write error injection tests for Category 8 (encrypt/sign/parse/decrypt errors)
+- [ ] 11.2.10 Verify all tests pass with `-shuffle=on -race`, commit
+
+### Task 11.3: Category 9 - Selective Items
+- [ ] 11.3.1 Ignore jwkgen_service.go:80 pool creation (requires all 20 pools fail simultaneously)
+- [ ] 11.3.2 Apply function variable pattern to LogJWSInfo publicHeaders iteration
+- [ ] 11.3.3 Apply function variable pattern to ExtractKty Get error
+- [ ] 11.3.4 Apply function variable pattern to validateOrGenerateJWSEcdsaJWK public key type assertion
+- [ ] 11.3.5 Write error injection tests for Cat 9 items
+- [ ] 11.3.6 Verify all tests pass, commit
+
+### Task 11.4: Coverage Verification
+- [ ] 11.4.1 Run coverage on crypto/jose: `go test -coverprofile=test-output/coverage-analysis/jose.cov ./internal/shared/crypto/jose/...`
+- [ ] 11.4.2 Verify ≥95% coverage achieved
+- [ ] 11.4.3 Update JWX-COV-CEILING.md with new coverage numbers and resolution status per category
+- [ ] 11.4.4 Run full test suite: `go test ./... -shuffle=on`
+- [ ] 11.4.5 Run linting: `golangci-lint run ./...`
+- [ ] 11.4.6 Final commit with coverage evidence
 
 ---
 

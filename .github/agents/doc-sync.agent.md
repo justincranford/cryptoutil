@@ -83,6 +83,11 @@ Systematically identify and synchronize related documentation across the cryptou
 
 **Anti-Pattern**: Creating new documentation without checking if existing docs need updates
 
+**Quality Enforcement**:
+- **ALL issues are blockers** — including issues found during synchronization that are unrelated to original task
+- **NEVER skip**: Cannot mark phase or task or step complete with known issues
+- **NEVER defer**: No "we'll fix later", no "non-critical", no "nice-to-have"
+
 ---
 
 ## Documentation Hierarchy and Ownership
