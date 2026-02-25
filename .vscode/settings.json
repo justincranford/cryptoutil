@@ -566,7 +566,7 @@
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
   "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv
-  "python.defaultInterpreterPath": "python3",
+  "python.defaultInterpreterPath": "/usr/bin/python3",
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.testing.pytestArgs": ["."],
   "python.testing.unittestEnabled": false,
