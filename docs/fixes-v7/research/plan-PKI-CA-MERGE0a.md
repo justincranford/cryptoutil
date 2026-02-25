@@ -1,6 +1,6 @@
 # Plan: PKI-CA-MERGE0a
 
-**Option**: Move cipher-im to SM product as sm-im (standalone service)
+**Option**: Move sm-im to SM product as sm-im (standalone service)
 **Recommendation**: ⭐⭐⭐⭐⭐ (Strongly recommended — minimal effort, maximum coherence)
 **Created**: 2026-02-23
 
@@ -8,7 +8,7 @@
 
 ## Concept
 
-cipher-im is re-homed from the "Cipher" product to the "SM" (Secure Materials/Secrets Manager) product as a new standalone service `sm-im`. The service code, API, and functionality are **unchanged** — only the product label and file paths change.
+sm-im is re-homed from the former "Cipher" product (now SM) to the "SM" (Secure Materials/Secrets Manager) product as a new standalone service `sm-im`. The service code, API, and functionality are **unchanged** — only the product label and file paths change.
 
 Simultaneously (optional but recommended): rename `jose-ja` → `sm-jwk` and move to SM product, giving SM three cohesive services: sm-kms (keys), sm-im (messages), sm-jwk (JWK authority).
 
@@ -16,12 +16,12 @@ Simultaneously (optional but recommended): rename `jose-ja` → `sm-jwk` and mov
 
 ## Rationale
 
-**Why cipher-im doesn't fit in "Cipher"**:
-- "Cipher" as a product name suggests a protocol, not a use case
-- Cipher product has only ONE service (cipher-im) — a 1-service product adds organizational overhead with no benefit
-- cipher-im is a MESSAGE store, not a cipher library
+**Why sm-im doesn't fit in former "Cipher" product**:
+- The former "Cipher" product name suggests a protocol, not a use case
+- Former Cipher product had only ONE service (sm-im) — a 1-service product adds organizational overhead with no benefit
+- sm-im is a MESSAGE store, not a cipher library
 
-**Why cipher-im fits in "SM"**:
+**Why sm-im fits in "SM"**:
 - SM = "Secure Materials" — manages anything that must remain confidential
 - sm-kms protects KEY MATERIAL; sm-im protects MESSAGE CONTENT — both are "secure materials"
 - Same tenant isolation patterns, same barrier encryption substrate
@@ -42,16 +42,16 @@ This is a **mechanical rename** — no business logic changes.
 
 | Change Type | Items |
 |------------|-------|
-| Directory move | `internal/apps/cipher/im/` → `internal/apps/sm/im/` |
-| Import path update | All `cryptoutil/internal/apps/cipher/im/...` → `cryptoutil/internal/apps/sm/im/...` |
-| CMD rename | `cmd/cipher-im/` → `cmd/sm-im/` |
-| CMD product | `cmd/cipher/main.go` → update to remove im; `cmd/sm/main.go` → add im |
-| Deployment | `deployments/cipher-im/` → `deployments/sm-im/` |
-| Deployment | `deployments/cipher/` → `deployments/sm/` (add im) |
-| Config | `configs/cipher/im/` → `configs/sm/im/` |
+| Directory move | `internal/apps/sm/im/` → `internal/apps/sm/im/` |
+| Import path update | All `cryptoutil/internal/apps/sm/im/...` → `cryptoutil/internal/apps/sm/im/...` |
+| CMD rename | `cmd/sm-im/` → `cmd/sm-im/` |
+| CMD product | `c../sm/main.go` → update to remove im; `cmd/sm/main.go` → add im |
+| Deployment | `deployments/sm-im/` → `deployments/sm-im/` |
+| Deployment | `deploymen../sm/` → `deployments/sm/` (add im) |
+| Config | `configs/sm/im/` → `configs/sm/im/` |
 | Port assignment | 8700-8799 stays with sm-im (no port change needed) |
-| ARCHITECTURE.md | Cipher product: remove im, mark empty or dissolve; SM: add sm-im |
-| ci-e2e.yml | Update path reference from cipher-im to sm-im |
+| ARCHITECTURE.md | SM product (formerly Cipher): remove im, mark empty or dissolve; SM: add sm-im |
+| ci-e2e.yml | Update path reference from sm-im to sm-im |
 | go.sum/go.mod | No changes needed (same module) |
 
 **Optional bundle**: Rename jose-ja → sm-jwk simultaneously (adds ~1h):
@@ -64,9 +64,9 @@ This is a **mechanical rename** — no business logic changes.
 
 ## Current State Dependencies
 
-No other service imports from `internal/apps/cipher/im/` (cipher-im is self-contained). Confirmed by:
+No other service imports from `internal/apps/sm/im/` (sm-im is self-contained). Confirmed by:
 ```bash
-grep -r "apps/cipher/im" internal/ --include="*.go" | grep -v "^internal/apps/cipher/im/"
+grep -r "apps/sm/im" internal/ --include="*.go" | grep -v "^internal/apps/sm/im/"
 # Expected: empty (no cross-service imports)
 ```
 
@@ -92,7 +92,7 @@ The rename is purely internal — no client contracts change (OpenAPI paths, TLS
 
 ## Advantages
 
-- Eliminates the 1-service "Cipher" product (reduces product sprawl)
+- Eliminates the 1-service former "Cipher" product (reduces product sprawl)
 - SM becomes a coherent family: sm-kms (keys) + sm-im (messages) [+ sm-jwk if done together]
 - Zero business logic change — no regression risk
 - Minimal testing required (rename-only, same tests pass)
@@ -101,10 +101,10 @@ The rename is purely internal — no client contracts change (OpenAPI paths, TLS
 
 ## Disadvantages
 
-- Breaking change for any external clients using `cipher-im` as a Docker DNS name — must update to `sm-im`
+- Breaking change for any external clients using `sm-im` as a Docker DNS name — must update to `sm-im`
 - ARCHITECTURE.md requires significant table updates (port catalog, product catalog, directory tree)
-- ci-e2e.yml currently references `cipher-im` service name
-- If cipher-im → sm-im AND jose-ja → sm-jwk done together: larger change but better product taxonomy
+- ci-e2e.yml currently references `sm-im` service name
+- If sm-im → sm-im AND jose-ja → sm-jwk done together: larger change but better product taxonomy
 
 ---
 
@@ -122,7 +122,7 @@ The rename is purely internal — no client contracts change (OpenAPI paths, TLS
 ## Recommendation: ⭐⭐⭐⭐⭐
 
 STRONGLY RECOMMENDED. This is the highest-value lowest-risk change in the entire research option set:
-- Fixes a genuine product taxonomy problem (1-service Cipher product)
+- Fixes a genuine product taxonomy problem (1-service former Cipher product)
 - Zero business logic change (pure rename)
 - Takes ~4.5h
 - Paves the way for sm-secrets, sm-ssh, sm-file extensions

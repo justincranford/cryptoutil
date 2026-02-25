@@ -101,8 +101,8 @@ Same as PKI-CA-MIGRATE — before using jose-ja as base, jose-ja must be complet
 3. ❌ No testing/ helper package
 4. ❌ No e2e/ directory
 
-### cipher-im Gaps (template improvements, needed for consistency)
-1. ❌ `StartCipherIMService()` should use template generic helper
+### sm-im Gaps (template improvements, needed for consistency)
+1. ❌ `StartSMIMService()` should use template generic helper
 2. ❌ Template lacks generic `StartServiceFromConfig()` helper
 
 ### sm-kms Gaps (separate concern, but important for ecosystem health)

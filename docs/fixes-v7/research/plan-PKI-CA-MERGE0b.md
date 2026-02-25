@@ -1,6 +1,6 @@
 # Plan: PKI-CA-MERGE0b
 
-**Option**: Merge cipher-im into sm-kms (combined KMS + messaging monolith)
+**Option**: Merge sm-im into sm-kms (combined KMS + messaging monolith)
 **Recommendation**: ⭐⭐ (Not recommended — domain collision, scale coupling)
 **Created**: 2026-02-23
 
@@ -8,7 +8,7 @@
 
 ## Concept
 
-cipher-im's messaging functionality is absorbed into sm-kms. sm-kms becomes a combined service handling both key management operations AND encrypted message storage. All cipher-im routes, domain models, and repositories are merged into sm-kms.
+sm-im's messaging functionality is absorbed into sm-kms. sm-kms becomes a combined service handling both key management operations AND encrypted message storage. All sm-im routes, domain models, and repositories are merged into sm-kms.
 
 ---
 
@@ -21,9 +21,9 @@ cipher-im's messaging functionality is absorbed into sm-kms. sm-kms becomes a co
 
 ---
 
-## Domain Analysis: sm-kms vs cipher-im
+## Domain Analysis: sm-kms vs sm-im
 
-| Dimension | sm-kms | cipher-im |
+| Dimension | sm-kms | sm-im |
 |-----------|--------|-----------|
 | Primary data | Elastic key rings + material keys | Messages + RecipientJWKs |
 | Data retention | Potentially forever (keys in use) | Messages may have TTL/expiry |
@@ -34,7 +34,7 @@ cipher-im's messaging functionality is absorbed into sm-kms. sm-kms becomes a co
 | Consumers | Backend services (machine-to-machine) | End users (human-facing) |
 | API surface | Keys: CRUD + crypto ops | Messages: send + receive + list |
 
-**Finding**: sm-kms and cipher-im serve fundamentally different consumers with fundamentally different data models and scaling requirements. Merging them couples two unrelated concerns.
+**Finding**: sm-kms and sm-im serve fundamentally different consumers with fundamentally different data models and scaling requirements. Merging them couples two unrelated concerns.
 
 ---
 
@@ -58,16 +58,16 @@ internal/apps/sm/kms/
 │   ├── businesslogic/
 │   │   ├── businesslogic.go       (existing)
 │   │   ├── businesslogic_crypto.go (existing)
-│   │   └── businesslogic_messages.go (NEW: cipher-im logic)
+│   │   └── businesslogic_messages.go (NEW: sm-im logic)
 │   ├── handler/ (existing)
 │   ├── middleware/ (existing — 15 files with existing debt)
 │   ├── repository/
 │   │   ├── orm/ (existing)
-│   │   ├── message_repository.go      (NEW from cipher-im)
-│   │   └── message_recipient_jwk_repository.go (NEW from cipher-im)
+│   │   ├── message_repository.go      (NEW from sm-im)
+│   │   └── message_recipient_jwk_repository.go (NEW from sm-im)
 │   └── apis/
-│       ├── messages.go   (NEW from cipher-im)
-│       └── sessions.go   (NEW from cipher-im)
+│       ├── messages.go   (NEW from sm-im)
+│       └── sessions.go   (NEW from sm-im)
 ```
 
 ---
@@ -101,7 +101,7 @@ The 15-file custom middleware debt in sm-kms is an EXISTING problem that must be
 
 - One fewer deployment unit (9 → 8 services)
 - Single GORM DB connection for both scenarios (marginally simpler ops)
-- No separate container for cipher-im (smaller Docker Compose file)
+- No separate container for sm-im (smaller Docker Compose file)
 
 ## Disadvantages
 
@@ -120,7 +120,7 @@ The 15-file custom middleware debt in sm-kms is an EXISTING problem that must be
 
 **NOT RECOMMENDED**. The effort (33h) is 7× that of MERGE0a (4.5h) for dubious benefit (one fewer service). The domain collision forces two fundamentally different concerns — key lifecycle management and encrypted messaging — into a single service with a single failure domain.
 
-**Choose MERGE0a instead**: Move cipher-im to SM as sm-im (standalone). Same product grouping benefit, 7× less work, maintains independent scaling and blast radius isolation.
+**Choose MERGE0a instead**: Move sm-im to SM as sm-im (standalone). Same product grouping benefit, 7× less work, maintains independent scaling and blast radius isolation.
 
 **If the real goal is "reduce service count"**: sm-kms and jose-ja are the natural merge candidates (both manage elastic key rings). See DEEP-RESEARCH.md Schema E for that analysis.
 

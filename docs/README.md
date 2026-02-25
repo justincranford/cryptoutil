@@ -724,8 +724,8 @@ docker compose -f ./deployments/pki-ca/compose.yml up -d
 docker compose -f ./deployments/jose-ja/compose.yml up -d
 
 # Run service-specific E2E tests (new pattern - uses service template)
-# Example: cipher-im service
-cd internal/apps/cipher/im
+# Example: sm-im service
+cd internal/apps/sm/im
 go test -tags=e2e -v -timeout=30m ./...
 
 # Legacy E2E tests archived (see internal/test/archived/ARCHIVE.md)

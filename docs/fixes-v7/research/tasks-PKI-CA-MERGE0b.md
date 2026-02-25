@@ -1,6 +1,6 @@
 # Tasks: PKI-CA-MERGE0b
 
-**Option**: Merge cipher-im into sm-kms (combined KMS + messaging service)
+**Option**: Merge sm-im into sm-kms (combined KMS + messaging service)
 **Status**: Research Only
 **Created**: 2026-02-23
 **Recommendation**: ⭐⭐ (Not recommended — see plan-PKI-CA-MERGE0b.md)
@@ -58,11 +58,11 @@
 
 ## Phase 2: Merge Repositories
 
-### Task 2.1: Port cipher-im repositories to sm-kms
+### Task 2.1: Port sm-im repositories to sm-kms
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: 1.2
-- **Description**: Port `message_repository.go`, `message_recipient_jwk_repository.go`, `user_repository.go`, `user_repository_adapter.go` from cipher-im into sm-kms `server/repository/`. Adapt to sm-kms ORM patterns.
+- **Description**: Port `message_repository.go`, `message_recipient_jwk_repository.go`, `user_repository.go`, `user_repository_adapter.go` from sm-im into sm-kms `server/repository/`. Adapt to sm-kms ORM patterns.
 - **Acceptance Criteria**:
   - [ ] All repository files ported with correct imports
   - [ ] `go test ./internal/apps/sm/kms/server/repository/...` passes
@@ -75,7 +75,7 @@
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: Pre.3
-- **Description**: Add message routes from cipher-im openapi spec into sm-kms openapi spec. Regenerate oapi-codegen stubs.
+- **Description**: Add message routes from sm-im openapi spec into sm-kms openapi spec. Regenerate oapi-codegen stubs.
 - **Acceptance Criteria**:
   - [ ] Merged spec validates with oapi-codegen
   - [ ] `go generate ./api/kms/...` produces updated server stubs
@@ -84,13 +84,13 @@
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: 3.1
-- **Description**: Port `server/apis/messages.go` and `server/apis/sessions.go` from cipher-im. Adapt to sm-kms handler patterns.
+- **Description**: Port `server/apis/messages.go` and `server/apis/sessions.go` from sm-im. Adapt to sm-kms handler patterns.
 
 ### Task 3.3: Port business logic (message service)
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: 3.2
-- **Description**: Move cipher-im message business logic into sm-kms `server/businesslogic/businesslogic_messages.go`.
+- **Description**: Move sm-im message business logic into sm-kms `server/businesslogic/businesslogic_messages.go`.
 
 ### Task 3.4: Wire new routes into sm-kms server
 - **Status**: ❌
@@ -109,10 +109,10 @@
 - **Status**: ❌
 - **Estimated**: 2h
 
-### Task 4.3: Archive cipher-im
+### Task 4.3: Archive sm-im
 - **Status**: ❌
 - **Estimated**: 30min
-- **Description**: Move `internal/apps/cipher/im/` to `internal/apps/archived/cipher-im/`. Update cmd/cipher-im/main.go to import from archived path or remove.
+- **Description**: Move `internal/apps/sm/im/` to `internal/apps/archived/sm-im/`. Update cmd/sm-im/main.go to import from archived path or remove.
 
 ### Task 4.4: Update ARCHITECTURE.md and CI
 - **Status**: ❌

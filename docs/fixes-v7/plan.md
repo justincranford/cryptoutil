@@ -75,13 +75,13 @@ These findings affect multiple phases and must be tracked separately:
 
 ### 2. Template Testing Infrastructure Gap
 - No generic `StartServiceFromConfig()` helper in template
-- cipher-im uses raw 50×100ms polling loop (`testing/testmain_helper.go`)
+- sm-im uses raw 50×100ms polling loop (`testing/testmain_helper.go`)
 - jose-ja uses same raw polling pattern
 - **Tracked in**: Task 6.0
 
 ### 3. ci-e2e.yml Path Bug
 - References `deployments/jose/compose.yml` (should be `deployments/jose-ja/compose.yml`)
-- All non-cipher-im E2E tests have `SERVICE_TEMPLATE_TODO` comments (disabled)
+- All non-sm-im E2E tests have `SERVICE_TEMPLATE_TODO` comments (disabled)
 - **Tracked in**: Task 6.4
 
 ### 4. wsl Violations (22 total)
@@ -97,7 +97,7 @@ User selected **Option D** from [DEEP-RESEARCH.md](research/DEEP-RESEARCH.md): 3
 
 | Product | Services |
 |---------|----------|
-| **SM** (Secret Management) | sm-kms, sm-im (renamed cipher-im), sm-ja (renamed jose-ja), sm-secrets (future) |
+| **SM** (Secret Management) | sm-kms, sm-im (renamed sm-im), sm-ja (renamed jose-ja), sm-secrets (future) |
 | **PKI** | pki-ca, pki-ocsp (future), pki-crldp (future) |
 | **Identity** | identity-authz, identity-idp, identity-rs, identity-rp, identity-spa |
 
@@ -140,9 +140,9 @@ Runtime (HTTP calls, all optional federation):
 
 **Why no cycle**: Identity imports the jose LIBRARY at compile time. It never calls sm-ja at runtime. SM/PKI services optionally federate to Identity at runtime. Identity never calls back to SM/PKI. All arrows point one direction.
 
-### cipher-im Placement Decision
+### sm-im Placement Decision
 
-**Decision**: Move cipher-im under SM PRODUCT as sm-im (standalone service rename).
+**Decision**: Move sm-im under SM PRODUCT as sm-im (standalone service rename).
 - SM PRODUCT will contain: kms and im services (and likely more in future: secrets, ja, ssh, etc.)
 - **Plan and tasks**: See [research/plan-PKI-CA-MERGE0a.md](research/plan-PKI-CA-MERGE0a.md) and [research/tasks-PKI-CA-MERGE0a.md](research/tasks-PKI-CA-MERGE0a.md)
 - **PKI-CA-MERGE0b will NOT be implemented** (merge into sm-kms rejected: 8× effort for same outcome)
@@ -219,14 +219,14 @@ quizme-v2.md Answer changed to "???" — user is reconsidering pki-ca strategy i
 ### Phase 6: E2E Infrastructure (4h) [Status: ☐ TODO]
 **Objective**: Fix E2E test infrastructure by standardizing service startup patterns **per Q1=E**:
 
-**Step B (do first): Fix cipher-im service startup reliability**
-- Make cipher-im service startup reliable in both main code and test code
-- Ensure all main/test startup code is reusable via service-template (currently lives in `cipher/im/testing/testmain_helper.go`; needs a generic version in `template/service/testing/`)
+**Step B (do first): Fix sm-im service startup reliability**
+- Make sm-im service startup reliable in both main code and test code
+- Ensure all main/test startup code is reusable via service-template (currently lives in `sm/im/testing/testmain_helper.go`; needs a generic version in `template/service/testing/`)
 - Extract `StartServiceFromConfig()` generic helper into template testing package
-- Verify cipher-im E2E tests pass end-to-end
+- Verify sm-im E2E tests pass end-to-end
 
 **Step A (do second): Propagate to jose-ja, sm-kms → unblock their E2E**
-- Make jose-ja and sm-kms reuse the same template startup code pattern as cipher-im
+- Make jose-ja and sm-kms reuse the same template startup code pattern as sm-im
 - Ensure jose-ja and sm-kms TestMain files use template helper (not raw polling)
 - Fix KMS session JWK config blocker (empty algorithm string) using standardized config
 - Fix JOSE args routing blocker using standardized routing
@@ -235,7 +235,7 @@ quizme-v2.md Answer changed to "???" — user is reconsidering pki-ca strategy i
 
 **pki-ca (deferred to research options)**: After this phase, pki-ca will inherit all reliable startup/test code from service-template when it migrates. The CA flag issue is an architectural debt requiring template migration, tracked in research options.
 
-**Success**: cipher-im E2E passes; jose-ja and sm-kms E2E start and run successfully; template has generic startup helper; TestMains use template pattern
+**Success**: sm-im E2E passes; jose-ja and sm-kms E2E start and run successfully; template has generic startup helper; TestMains use template pattern
 
 ### Phase 7: Coverage & Mutation (4h) [Status: ☐ TODO]
 **Objective**: Improve coverage and mutation testing **per Q2=E**:
@@ -247,14 +247,14 @@ quizme-v2.md Answer changed to "???" — user is reconsidering pki-ca strategy i
 - Run gremlins on all packages meeting ≥95% coverage
 - **Success**: crypto/jose reaches ~91% via new tests; JWX-COV-CEILING.md documents remaining ceiling; go:cover-ignore added for genuinely unreachable paths; all production packages ≥95%
 
-### Phase 8: Move cipher-im to SM Product (~4.5h) [Status: ☐ TODO]
-**Objective**: Rename cipher-im → sm-im, move under SM product
+### Phase 8: Move sm-im to SM Product (~4.5h) [Status: ☐ TODO]
+**Objective**: Rename sm-im → sm-im, move under SM product
 - Pure mechanical rename — no business logic changes
-- Move: `internal/apps/cipher/im/` → `internal/apps/sm/im/`
+- Move: `internal/apps/sm/im/` → `internal/apps/sm/im/`
 - Update: cmd/, deployments/, configs/, ARCHITECTURE.md, ci-e2e.yml
-- Update all Go import paths referencing cipher/im
+- Update all Go import paths referencing sm/im
 - **Detailed plan and tasks**: See [research/plan-PKI-CA-MERGE0a.md](research/plan-PKI-CA-MERGE0a.md) and [research/tasks-PKI-CA-MERGE0a.md](research/tasks-PKI-CA-MERGE0a.md)
-- **Success**: cipher-im fully renamed to sm-im, all tests pass, deployments updated, no Cipher product remaining
+- **Success**: sm-im fully renamed to sm-im, all tests pass, deployments updated, no former Cipher product references remaining
 
 ## Risk Assessment
 
@@ -291,9 +291,9 @@ quizme-v2.md Answer changed to "???" — user is reconsidering pki-ca strategy i
 2. Add "or steps" to completeness statements ("phases or tasks or steps")
 3. Harmonize continuous execution language
 
-## Phase 10: Cipher Product Reference Cleanup
+## Phase 10: Former Cipher Product Reference Cleanup
 
-**Goal**: Eliminate ALL remaining cipher product references in documentation. Despite Phase 8 renaming cipher-im → sm-im in code, documentation still contains cipher PRODUCT references.
+**Goal**: Eliminate ALL remaining SM product references in documentation. Despite Phase 8 renaming sm-im → sm-im in code, documentation still contains cipher PRODUCT references.
 
 **Files**:
 - `docs/DEAD_CODE_REVIEW.md` — Lines 941-953
@@ -326,7 +326,7 @@ quizme-v2.md Answer changed to "???" — user is reconsidering pki-ca strategy i
 - [x] Template has generic service startup helper for test reuse
 - [ ] crypto/jose ≥95% coverage with function variable injection pattern
 - [ ] Coverage and mutation targets met
-- [x] cipher-im renamed to sm-im under SM product
-- [ ] No Cipher product remaining in code OR documentation
+- [x] sm-im renamed to sm-im under SM product
+- [ ] No former Cipher product references remaining in code OR documentation
 - [ ] ALL agent files have NEVER skip quality enforcement
 - [ ] JWX-COV-CEILING.md updated with resolution status

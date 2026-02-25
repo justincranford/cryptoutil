@@ -165,19 +165,19 @@ deployments/
 │       ├── identity-postgres_password.secret.never
 │       └── identity-postgres_database.secret.never
 │
-├── cipher/                                        # PRODUCT-level (currently one service: im)
-│   ├── compose.yml → ../cipher-im/compose.yml
+├── sm/                                        # PRODUCT-level (currently one service: im)
+│   ├── compose.yml → ../sm-im/compose.yml
 │   └── secrets/
-│       ├── cipher-hash_pepper.secret              # PRODUCT pepper: shared by all Cipher services (currently just cipher-im)
-│       ├── cipher-unseal_1of5.secret.never        # Documents: unseal keys MUST NOT be shared
-│       ├── cipher-unseal_2of5.secret.never
-│       ├── cipher-unseal_3of5.secret.never
-│       ├── cipher-unseal_4of5.secret.never
-│       ├── cipher-unseal_5of5.secret.never
-│       ├── cipher-postgres_url.secret.never       # Documents: postgres secrets MUST NOT be shared
-│       ├── cipher-postgres_username.secret.never
-│       ├── cipher-postgres_password.secret.never
-│       └── cipher-postgres_database.secret.never
+│       ├── sm-hash_pepper.secret              # PRODUCT pepper: shared by all SM services (currently just sm-im)
+│       ├── sm-unseal_1of5.secret.never        # Documents: unseal keys MUST NOT be shared
+│       ├── sm-unseal_2of5.secret.never
+│       ├── sm-unseal_3of5.secret.never
+│       ├── sm-unseal_4of5.secret.never
+│       ├── sm-unseal_5of5.secret.never
+│       ├── sm-postgres_url.secret.never       # Documents: postgres secrets MUST NOT be shared
+│       ├── sm-postgres_username.secret.never
+│       ├── sm-postgres_password.secret.never
+│       └── sm-postgres_database.secret.never
 │
 ├── jose/                                          # PRODUCT-level (currently one service: ja)
 │   ├── compose.yml → ../jose-ja/compose.yml
@@ -291,19 +291,19 @@ deployments/
 │       ├── identity-spa-postgres_password.secret
 │       └── identity-spa-postgres_database.secret
 │
-├── cipher-im/                                     # SERVICE-level (cipher product, im service)
+├── sm-im/                                     # SERVICE-level (SM product, im service)
 │   ├── compose.yml
 │   └── secrets/
-│       ├── cipher-im-hash_pepper.secret           # SERVICE pepper: unique to cipher-im
-│       ├── cipher-im-unseal_1of5.secret
-│       ├── cipher-im-unseal_2of5.secret
-│       ├── cipher-im-unseal_3of5.secret
-│       ├── cipher-im-unseal_4of5.secret
-│       ├── cipher-im-unseal_5of5.secret
-│       ├── cipher-im-postgres_url.secret
-│       ├── cipher-im-postgres_username.secret
-│       ├── cipher-im-postgres_password.secret
-│       └── cipher-im-postgres_database.secret
+│       ├── sm-im-hash_pepper.secret           # SERVICE pepper: unique to sm-im
+│       ├── sm-im-unseal_1of5.secret
+│       ├── sm-im-unseal_2of5.secret
+│       ├── sm-im-unseal_3of5.secret
+│       ├── sm-im-unseal_4of5.secret
+│       ├── sm-im-unseal_5of5.secret
+│       ├── sm-im-postgres_url.secret
+│       ├── sm-im-postgres_username.secret
+│       ├── sm-im-postgres_password.secret
+│       └── sm-im-postgres_database.secret
 │
 └── jose-ja/                                       # SERVICE-level (jose product, ja service)
     ├── compose.yml
@@ -368,11 +368,11 @@ deployments/
 │   ├── pki-ca-app-postgresql-1.yml
 │   └── pki-ca-app-postgresql-2.yml
 │
-├── cipher-im/config/
-│   ├── cipher-im-app-common.yml
-│   ├── cipher-im-app-sqlite-1.yml
-│   ├── cipher-im-app-postgresql-1.yml
-│   └── cipher-im-app-postgresql-2.yml
+├── sm-im/config/
+│   ├── sm-im-app-common.yml
+│   ├── sm-im-app-sqlite-1.yml
+│   ├── sm-im-app-postgresql-1.yml
+│   └── sm-im-app-postgresql-2.yml
 │
 ├── jose-ja/config/
 │   ├── jose-ja-app-common.yml
@@ -449,7 +449,7 @@ configs/
 │   ├── ca-server.yml                          # PKI CA service config
 │   └── profiles/                              # CA profiles (future)
 │
-├── cipher/
+├── sm/
 │   ├── config.yml                             # Product-level config (future)
 │   └── im/
 │       ├── config.yml                         # Base config
@@ -508,7 +508,7 @@ configs/
 - Realm definitions and authentication methods
 - Complete application configuration (NOT minimal Docker overrides)
 
-**Example** (`configs/cipher/im/config-sqlite.yml` - partial):
+**Example** (`configs/sm/im/config-sqlite.yml` - partial):
 ```yaml
 bind-public-protocol: "https"
 bind-public-address: "0.0.0.0"
@@ -519,9 +519,9 @@ bind-private-port: 9090
 tls-public-mode: "auto"
 tls-private-mode: "auto"
 otlp: true
-otlp-service: "cipher-im-sqlite"
+otlp-service: "sm-im-sqlite"
 otlp-environment: "development"
-otlp-endpoint: "http://cipher-im-otel-collector:4317"
+otlp-endpoint: "http://sm-im-otel-collector:4317"
 cors-max-age: 3600
 cors-allowed-origins:
   - "https://localhost:8070"
@@ -647,7 +647,7 @@ deployments/
     ├── compose.yml                      # include: ../sm/compose.yml
     │                                    #          ../pki/compose.yml
     │                                    #          ../identity/compose.yml
-    │                                    #          ../cipher/compose.yml
+    │                                    #          ../sm/compose.yml
     │                                    #          ../jose/compose.yml
     └── secrets/
         └── cryptoutil-hash_pepper.secret # SUITE pepper: shared by ALL 9 services
@@ -716,7 +716,7 @@ include:
   - path: ../sm/compose.yml      # PRODUCT-level (currently includes sm-kms)
   - path: ../pki/compose.yml     # or ../pki-ca/compose.yml
   - path: ../identity/compose.yml
-  - path: ../cipher/compose.yml  # or ../cipher-im/compose.yml
+  - path: ../sm/compose.yml  # or ../sm-im/compose.yml
   - path: ../jose/compose.yml    # or ../jose-ja/compose.yml
 ```
 
@@ -736,8 +736,8 @@ To avoid secret name conflicts in multi-level composition:
 | PostgreSQL user | `{PRODUCT}-{SERVICE}-postgres_username.secret` | `jose-ja-postgres_username.secret` |
 | PostgreSQL pass | `{PRODUCT}-{SERVICE}-postgres_password.secret` | `identity-authz-postgres_password.secret` |
 | PostgreSQL DB | `{PRODUCT}-{SERVICE}-postgres_database.secret` | `pki-ca-postgres_database.secret` |
-| Browser username | `{PRODUCT}-{SERVICE}-browser_username.secret` | `cipher-im-browser_username.secret` |
-| Browser password | `{PRODUCT}-{SERVICE}-browser_password.secret` | `cipher-im-browser_password.secret` |
+| Browser username | `{PRODUCT}-{SERVICE}-browser_username.secret` | `sm-im-browser_username.secret` |
+| Browser password | `{PRODUCT}-{SERVICE}-browser_password.secret` | `sm-im-browser_password.secret` |
 | Service username | `{PRODUCT}-{SERVICE}-service_username.secret` | `jose-ja-service_username.secret` |
 | Service password | `{PRODUCT}-{SERVICE}-service_password.secret` | `pki-ca-service_password.secret` |
 

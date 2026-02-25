@@ -1,6 +1,6 @@
 # Tasks: PKI-CA-MERGE3
 
-**Option**: Archive cipher-im + jose-ja + pki-ca; absorb all into sm-kms as crypto monolith
+**Option**: Archive sm-im + jose-ja + pki-ca; absorb all into sm-kms as crypto monolith
 **Status**: Research Only
 **Created**: 2026-02-23
 **Recommendation**: ⭐ (Strongly not recommended)
@@ -14,13 +14,13 @@
 - **Description**: Everything in tasks-PKI-CA-MERGE2.md Phase Pre (jose-ja TODOs, sm-kms debt, template helper)
 - **Reference**: tasks-PKI-CA-MERGE2.md
 
-### Task Pre.1: Fix cipher-im E2E reliability
+### Task Pre.1: Fix sm-im E2E reliability
 - **Estimated**: 1.5h
-- **Description**: Eliminate intermittent timeouts in cipher-im E2E tests
+- **Description**: Eliminate intermittent timeouts in sm-im E2E tests
 
-### Task Pre.2: Migrate cipher-im TestMain to template WaitForServerPort
+### Task Pre.2: Migrate sm-im TestMain to template WaitForServerPort
 - **Estimated**: 1h
-- **Description**: Replace raw 50×100ms polling loop in cipher-im testmain
+- **Description**: Replace raw 50×100ms polling loop in sm-im testmain
 
 ---
 
@@ -31,26 +31,26 @@ Same as tasks-PKI-CA-MERGE2.md Phases 1-5.
 
 ---
 
-## Phase 6: Port cipher-im into sm-kms
+## Phase 6: Port sm-im into sm-kms
 
 ### Task 6.1: Design merged OpenAPI spec (add cipher section)
 - **Status**: ❌
 - **Estimated**: 2h
-- **Description**: Extend MERGE2 merged spec to include /service/api/v1/messages from cipher-im
+- **Description**: Extend MERGE2 merged spec to include /service/api/v1/messages from sm-im
 
-### Task 6.2: Port cipher-im api/handler/ → sm-kms/server/api/cipher/
+### Task 6.2: Port sm-im api/handler/ → sm-kms/server/a../sm/
 - **Status**: ❌
 - **Estimated**: 2h
 
-### Task 6.3: Port cipher-im server/service/ → sm-kms/server/service/cipher/
+### Task 6.3: Port sm-im server/service/ → sm-kms/server/servi../sm/
 - **Status**: ❌
 - **Estimated**: 2h
 
-### Task 6.4: Create message_repository.go in sm-kms from cipher-im repository
+### Task 6.4: Create message_repository.go in sm-kms from sm-im repository
 - **Status**: ❌
 - **Estimated**: 2h
 
-### Task 6.5: Wire cipher-im services into sm-kms server builder
+### Task 6.5: Wire sm-im services into sm-kms server builder
 - **Status**: ❌
 - **Estimated**: 1h
 
@@ -58,7 +58,7 @@ Same as tasks-PKI-CA-MERGE2.md Phases 1-5.
 - **Status**: ❌
 - **Estimated**: 4h
 
-### Task 6.7: Archive cipher-im
+### Task 6.7: Archive sm-im
 - **Status**: ❌
 - **Estimated**: 30min
 
@@ -70,7 +70,7 @@ Same as tasks-PKI-CA-MERGE2.md Phases 1-5.
 |-------|-------|-----------|
 | Pre: all prerequisites | 3 | ~34.5h |
 | MERGE2 phases 1-5 | (18 tasks) | ~39h |
-| 6: Port cipher-im | 7 | ~13.5h |
+| 6: Port sm-im | 7 | ~13.5h |
 | **Total** | **~28 tasks** | **~87h** |
 
 Highest effort, highest risk, worst architectural outcome of all 4 options.

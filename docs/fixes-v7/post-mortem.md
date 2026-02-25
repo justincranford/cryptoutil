@@ -45,10 +45,10 @@
 - **Work**: JWX coverage ceiling analysis (~90%, documented in JWX-COV-CEILING.md), database coverage improvement (93.8→98.5%), mutation testing baseline
 - **Impact**: Evidence-based understanding of coverage limits, improved database reliability
 
-### Phase 8: cipher-im → sm-im Rename (5 tasks)
+### Phase 8: sm-im → sm-im Rename (5 tasks)
 - **Commits**: 36c17996 (130 files), 0614cab3 (63 files), 58444101 (4 files)
 - **Work**: Complete product rename — Go code, deployments, configs, docs, CI/CD, Dockerfile
-- **Impact**: Cipher product eliminated, sm-im properly nested under SM product (3 products: sm, pki, jose)
+- **Impact**: Former Cipher product eliminated, sm-im properly nested under SM product (3 products: sm, pki, jose)
 
 ## Issues Discovered
 
@@ -62,8 +62,8 @@
 
 1. **goconst lint violation**: Adding sm-im service check to sm product created duplicate "sm" string literal. Fixed by introducing `smProduct` local variable.
 2. **Delegation test assertion**: Old test asserted `result.Errors[0]` but sm product now has two services, creating multiple error cases. Fixed with `strings.Contains` loop.
-3. **Orphaned .db files**: 405 SQLite database files left in `internal/apps/cipher/` after git mv. Removed with `rm -rf`.
-4. **Dockerfile user references**: Cipher user/group names in Dockerfile survived the rename. Fixed with targeted sed.
+3. **Orphaned .db files**: 405 SQLite database files left in `internal/ap../sm/` after git mv. Removed with `rm -rf`.
+4. **Dockerfile user references**: Former Cipher user/group names in Dockerfile survived the rename. Fixed with targeted sed.
 5. **tasks.md checkbox gap**: Tasks 6.0-6.2 marked as ❌ despite work being committed. Root cause: tasks.md wasn't updated when work was done (commit 49d30db0 says "mark Tasks 6.1-6.2 complete" but didn't touch tasks.md).
 
 ## Lessons Learned
@@ -72,7 +72,7 @@
 
 2. **Large renames benefit from phased commits**: The cipher→sm-im rename across 200+ files was cleanly split into code (130 files), deployment (63 files), and docs (4 files) commits. Each could be independently reviewed and bisected.
 
-3. **Deployment validator counts change with structural changes**: Removing the cipher product reduced validators from 65 to 62. Acceptance criteria should use dynamic counts or describe the expected change.
+3. **Deployment validator counts change with structural changes**: Removing the SM product reduced validators from 65 to 62. Acceptance criteria should use dynamic counts or describe the expected change.
 
 4. **Template standardization enables service migration**: Once JOSE-JA, sm-kms, and sm-im all use RouteService/RouteProduct/ParseWithFlagSet, adding new services or renaming existing ones is mechanical.
 
@@ -82,7 +82,7 @@
 
 | Metric | Before | After |
 |--------|--------|-------|
-| Products | 4 (SM, PKI, JOSE, Cipher) | 3 (SM, PKI, JOSE) |
+| Products | 4 (SM, PKI, JOSE) | 3 (SM, PKI, JOSE) |
 | SM services | 1 (kms) | 2 (kms, im) |
 | Deployment validators | 65 | 62 |
 | Test packages passing | 194 | 194 |

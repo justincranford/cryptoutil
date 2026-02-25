@@ -10,7 +10,7 @@
 | Service | Domain | Primary Data | External Consumers | LOC |
 |---------|--------|-------------|--------------------|----|
 | sm-kms | Key Material | Elastic key rings (AES/RSA), encrypted with barrier | Other services needing encrypt/sign | 9,536 |
-| cipher-im | Messaging | JWE-encrypted messages, per-recipient JWKs | End users (plaintext send/receive) | 2,309 |
+| sm-im | Messaging | JWE-encrypted messages, per-recipient JWKs | End users (plaintext send/receive) | 2,309 |
 | jose-ja | JOSE Protocol | Elastic JWK rings (RSA/EC), material rotation, audit logs | Services needing JWT/JWS/JWE via API | 4,406 |
 | pki-ca | Certificates | X.509 certs, CRLs, OCSP (in-memory) | TLS clients, cert requestors | 11,418 |
 | identity-* | Auth/Authz | Users, sessions, realms, tenants, MFA | End users, service-to-service auth | ~18K |
@@ -52,14 +52,14 @@ Both services implement the same "elastic key ring" concept:
 
 ```
 identity-* ──(JWT validation)──→ jose-ja (JWKS endpoint for token signing keys)
-cipher-im ────(JWE per-message)──→ barrier (internal; jose-ja not used)
+sm-im ────(JWE per-message)──→ barrier (internal; jose-ja not used)
 pki-ca ────────(cert signing)────→ pki-ca internal crypto (X.509/ASN.1; jose-ja not used)
 sm-kms ────────(encryption)──────→ barrier (internal; jose-ja not used)
 
 barrier ─────────────────────────→ independent per service (no cross-service calls)
 ```
 
-**Finding**: Currently, only identity-* depends on jose-ja externally. cipher-im, pki-ca, and sm-kms all handle crypto internally via barrier. This is intentional but means jose-ja is only serving 1 of 8 non-template services.
+**Finding**: Currently, only identity-* depends on jose-ja externally. sm-im, pki-ca, and sm-kms all handle crypto internally via barrier. This is intentional but means jose-ja is only serving 1 of 8 non-template services.
 
 ---
 
@@ -84,7 +84,7 @@ Product 2: Identity
   └── identity-spa
 ```
 
-*cipher-im moved to SM product as sm-im
+*sm-im moved to SM product as sm-im
 
 **Pros**: Maximum cohesion; all crypto lives in SM; similar to Vault architecture; easy to reason about ("if it's crypto, it's SM")
 **Cons**: SM becomes a very wide product (4 services spanning keys, messages, certs, JWKs); CA/BF compliance may require PKI isolation
@@ -110,7 +110,7 @@ Product 3: Identity
 
 **Pros**: PKI isolation respected (CA/BF compliance argument); consolidates remaining crypto
 **Cons**: "Crypto" product spans very different concerns (messaging vs key mgmt vs JWK authority)
-**Services**: 8 (jose-ja renamed, cipher-im moved)
+**Services**: 8 (jose-ja renamed, sm-im moved)
 **Rating**: ⭐⭐⭐
 
 ---
@@ -118,16 +118,16 @@ Product 3: Identity
 ### Schema C: "Four Products — SM, JOSE, PKI, Identity" (current + sm-im addition)
 
 ```
-SM:       sm-kms, sm-im (cipher-im moved here)
+SM:       sm-kms, sm-im (sm-im moved here)
 JOSE:     jose-ja
 PKI:      pki-ca
 Identity: identity-*
 ```
 
-**Comment on Cipher product**: If cipher-im moves to SM, the Cipher product disappears. JOSE and PKI remain separate. This is the minimal change from current state.
-**Pros**: Cipher product eliminated (never had more than 1 service); SM now has 2 cohesive services (key mgmt + encrypted messaging); other products unchanged
+**Comment on former Cipher product**: If sm-im moves to SM, the Cipher product disappears. JOSE and PKI remain separate. This is the minimal change from current state.
+**Pros**: Former Cipher product eliminated (never had more than 1 service); SM now has 2 cohesive services (key mgmt + encrypted messaging); other products unchanged
 **Cons**: JOSE and SM overlap (both manage elastic key rings); jose-ja purpose is unclear when sm-kms also provides sign/encrypt
-**Services**: 9 (same), products: 4 (from 5, Cipher eliminated)
+**Services**: 9 (same), products: 4 (from 5, former Cipher eliminated)
 **Rating**: ⭐⭐⭐⭐ (clean, minimal disruption)
 
 ---
@@ -138,7 +138,7 @@ Identity: identity-*
 SM (unified secret materials + JOSE operations):
   ├── sm-kms     (symmetric/AES key management + encrypt/decrypt)
   ├── sm-jwk     (jose-ja merged here: elastic JWK authority, JWT, JWKS, JWS, JWE)
-  └── sm-im      (cipher-im moved here: encrypted messaging)
+  └── sm-im      (sm-im moved here: encrypted messaging)
 
 PKI: pki-ca
 Identity: identity-*
@@ -166,13 +166,13 @@ jose-ja (absorbed sm-kms functionality, becomes "Key Authority"):
 Products: JA, PKI, SM-IM, Identity
   ├── ja (merged jose-ja + sm-kms)
   ├── pki-ca
-  ├── sm-im (cipher-im moved here, standalone product)
+  ├── sm-im (sm-im moved here, standalone product)
   └── identity-*
 ```
 
 **Pros**: Eliminates duplicate elastic key ring implementations; single API surface for all key operations; consumers query one service for all crypto needs
 **Cons**: jose-ja is already PARTIALLY migrated and has critical TODOs; merging sm-kms into it is high effort; sm-kms is the LAST in migration priority; creating a very large service
-**Services**: 8 (sm-kms absorbed into ja, cipher-im becomes sm-im standalone)
+**Services**: 8 (sm-kms absorbed into ja, sm-im becomes sm-im standalone)
 **Rating**: ⭐⭐⭐ (architecturally elegant but high execution risk)
 
 ---
@@ -223,7 +223,7 @@ Bounded Context 2: Certificate Lifecycle Management
   → Responsibilities: X.509 issuance, revocation, CRL, OCSP, TSP
 
 Bounded Context 3: Secure Communication
-  → cipher-im (current) + potential cipher-group, cipher-file
+  → sm-im (current) + potential sm-group, sm-file
   → Responsibilities: End-to-end encrypted data transfer
 
 Bounded Context 4: Identity & Access Management
@@ -247,7 +247,7 @@ Service-to-Service Crypto Layer:
   → pki-ca (all services need TLS certs)
 
 User-Facing Data Layer:
-  → cipher-im (end users send/receive messages)
+  → sm-im (end users send/receive messages)
   → identity-* (end users authenticate)
 ```
 
@@ -279,14 +279,14 @@ Jose-ja's functionality becomes part of a unified key authority service. No sepa
 
 ---
 
-## 4. cipher-im Product Placement Analysis
+## 4. sm-im Product Placement Analysis
 
-### Why cipher-im in "Cipher" product doesn't work well
-The "Cipher" product name suggests a protocol (encryption algorithm), not a use case. Having only one service (cipher-im = instant messenger) in a "Cipher" product is an odd match. 
+### Why sm-im in former "Cipher" product doesn't work well
+The "Cipher" product name suggests a protocol (encryption algorithm), not a use case. Having only one service (sm-im = instant messenger) in a "Cipher" product is an odd match. 
 
-### Why cipher-im fits better in "SM" (Secrets/Secure Materials)
+### Why sm-im fits better in "SM" (Secrets/Secure Materials)
 - SM = "Secure Materials" (keys + protected data)
-- cipher-im stores PROTECTED MESSAGES (JWE-encrypted data at rest)
+- sm-im stores PROTECTED MESSAGES (JWE-encrypted data at rest)
 - sm-kms stores PROTECTED KEYS
 - Both services serve the overarching goal of "keeping sensitive material secure"
 - Industry analogy: AWS has KMS (keys) + end-to-end encrypted services under the same security brand
@@ -351,13 +351,13 @@ The "Cipher" product name suggests a protocol (encryption algorithm), not a use 
 - **Depends on**: pki-ca
 
 ### 5.7 Encrypted Group Messaging — MISSING
-**cipher-group** (or sm-group if cipher-im moves to SM)
+**sm-group** (or sm-group if sm-im moves to SM)
 - **What**: Group encrypted channels (1:N persistent, not just per-message recipients)
-- **Why**: cipher-im is designed for 1:N per-message; persistent groups require group key management
-- **Extends**: cipher-im domain
+- **Why**: sm-im is designed for 1:N per-message; persistent groups require group key management
+- **Extends**: sm-im domain
 
 ### 5.8 Encrypted File Storage — MISSING
-**cipher-file** (or sm-file)
+**sm-file** (or sm-file)
 - **What**: Encrypted blob/file storage with per-tenant keys and access control
 - **Why**: Natural extension of the encryption platform — not just messages but files
 - **Precedent**: AWS S3 with KMS server-side encryption, but as a standalone service
@@ -425,7 +425,7 @@ The "Cipher" product name suggests a protocol (encryption algorithm), not a use 
 | Cognito (identity) | identity-* | ✅ partial |
 | STS (token service) | identity-authz | ✅ partial |
 | CloudHSM | **MISSING** | ❌ |
-| End-to-end encryption | cipher-im | ✅ |
+| End-to-end encryption | sm-im | ✅ |
 
 ### Google BeyondCorp / Zero Trust
 | BeyondCorp Component | cryptoutil Equivalent | Status |
@@ -447,7 +447,7 @@ Based on the analysis above, the following service grouping is recommended:
 SM (Secure Materials):
   ├── sm-kms     (AES/symmetric key management + encrypt/decrypt/sign/verify)
   ├── sm-jwk     (jose-ja renamed: elastic JWK authority, JWT, JWKS, material rotation)
-  ├── sm-im      (cipher-im moved: encrypted messaging)
+  ├── sm-im      (sm-im moved: encrypted messaging)
   └── sm-secrets (NEW: static secret KV store — HIGH PRIORITY)
 
 PKI (Public Key Infrastructure):
@@ -466,7 +466,7 @@ Audit (FUTURE, single service):
 ```
 
 **Key changes from current**:
-1. Cipher product → dissolved; cipher-im becomes sm-im under SM
+1. Former Cipher product → dissolved; sm-im becomes sm-im under SM
 2. JOSE product → jose-ja renamed sm-jwk, moved under SM
 3. SM now has coherent 3-service (or 4-service with sm-secrets) family
 4. PKI stands alone (CA/BF compliance justification)
@@ -482,15 +482,15 @@ Audit (FUTURE, single service):
 
 ---
 
-## 8. Decision Matrix: cipher-im Placement
+## 8. Decision Matrix: sm-im Placement
 
-| Criterion | Stay in Cipher | Move to SM-IM standalone | Merge into sm-kms |
+| Criterion | Stay in former Cipher | Move to SM-IM standalone | Merge into sm-kms |
 |-----------|---------------|--------------------------|-------------------|
 | Product coherence | ❌ (1-service product) | ✅ (SM = keys + messages + secrets) | ⚠️ (forces different domains together) |
 | Independent scaling | ✅ | ✅ | ❌ |
 | Blast radius isolation | ✅ | ✅ | ❌ |
 | Migration effort | n/a | ~2h (rename/move) | ~8h (merge domain + routes) |
-| Future extensibility | ❌ (Cipher = cipher-im only?) | ✅ (can add sm-group, sm-file) | ❌ |
+| Future extensibility | ❌ (Former Cipher = sm-im only?) | ✅ (can add sm-group, sm-file) | ❌ |
 | CA/BF compliance impact | none | none | none |
 | Port assignment change | none | yes (needs SM range) | no |
 | **Recommendation** | ❌ | ✅ ⭐⭐⭐⭐⭐ | ⚠️ ⭐⭐ |
@@ -506,14 +506,14 @@ Audit (FUTURE, single service):
 | Eliminates sm-kms overlap | ❌ | ❌ | ✅ |
 | Migration effort | n/a (just rename) | ~1h (rename/move) | ~20h (merge business logic) |
 | Risk | none | low | high |
-| Recommended timing | Now: rename sm-jwk? | With cipher-im move | Only after sm-kms fully migrated |
+| Recommended timing | Now: rename sm-jwk? | With sm-im move | Only after sm-kms fully migrated |
 
 ---
 
 ## 10. Summary Recommendations
 
 ### Immediate (low effort, high value):
-1. **Move cipher-im → sm-im** (standalone service under SM product) — 2h rename/move
+1. **Move sm-im → sm-im** (standalone service under SM product) — 2h rename/move
 2. **Rename jose-ja → sm-jwk** and move to SM product — 1h rename/move
 3. **Add sm-secrets** (new static secret KV service) — significant new feature but addresses the highest-priority gap
 
@@ -527,6 +527,6 @@ Audit (FUTURE, single service):
 8. **Add identity-directory** (SCIM/LDAP federation)
 
 ### NOT recommended:
-- Merging cipher-im directly into sm-kms (different domains, different scaling, blast radius concern)
+- Merging sm-im directly into sm-kms (different domains, different scaling, blast radius concern)
 - Schema F (too granular, operational explosion)
 - Schema A pure (PKI isolation concern for CA/BF compliance)

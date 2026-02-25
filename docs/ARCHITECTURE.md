@@ -386,7 +386,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### 3. Secrets Manager (SM)
 
-- **Services**: Key Management Service (KMS), Instant Messenger (IM; renamed from cipher-im)
+- **Services**: Key Management Service (KMS), Instant Messenger (IM; renamed from sm-im)
 - **Capabilities**: Elastic key management, hierarchical key barriers, encryption-at-rest, end-to-end encrypted messaging
 - **Use Cases**: Application secrets, database encryption keys, API key management, secure communications
 - **Key Features**: Unseal-based bootstrapping, automatic key rotation, message-level JWKs
@@ -409,7 +409,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **Identity** | **Resource Server (RS)** | **identity-rs** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8400-8499 | 18400-18499 | 28400-28499 | OAuth 2.1 Resource Server |
 | **Identity** | **Relying Party (RP)** | **identity-rp** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8500-8599 | 18500-18599 | 28500-28599 | OAuth 2.1 Relying Party |
 | **Identity** | **Single Page Application (SPA)** | **identity-spa** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8600-8699 | 18600-18699 | 28600-28699 | OAuth 2.1 Single Page Application |
-| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** (renamed from cipher-im) | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
+| **Secrets Manager (SM)** | **Instant Messenger (IM)** | **sm-im** (renamed from sm-im) | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8700-8799 | 18700-18799 | 28700-28799 | E2E encrypted messaging, encryption-at-rest |
 | **JSON Object Signing and Encryption (JOSE)** | **JWK Authority (JA)** | **jose-ja** | 127.0.0.1 | 0.0.0.0 | 127.0.0.1 | 9090 | 8080 | 8800-8899 | 18800-18899 | 28800-28899 | JWK/JWS/JWE/JWT operations |
 
 **Implementation Status**:
@@ -419,7 +419,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 | **sm-kms** | ✅ Complete | 100% | Reference implementation with dual servers, Docker Compose |
 | **pki-ca** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
 | **jose-ja** | ⚠️ Partial | ~85% | Missing admin server, Docker Compose needs update |
-| **sm-im** | ✅ Complete | 100% | Phase 8: renamed from cipher-im |
+| **sm-im** | ✅ Complete | 100% | Phase 8: renamed from sm-im |
 | **identity-authz** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-idp** | ✅ Complete | 100% | Dual servers, Docker Compose working |
 | **identity-rs** | ✅ Complete | 100% | Dual servers, Docker Compose working |
@@ -446,11 +446,11 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - Port Range (Host): Public Browser+Service APIs (Isolated Product Deployment): 18000-18099
 - Port Range (Host): Public Browser+Service APIs (Suite Deployment): 28000-28099
 
-#### 3.2.2 SM Instant Messenger (IM) Service (moved from Cipher product)
+#### 3.2.2 SM Instant Messenger (IM) Service (moved from former Cipher product (now SM))
 
 ##### 3.2.2.1 Instant Messenger (IM) Service
 
-- Product-Service (Unique Identifier): sm-im (renamed from cipher-im) JSON Object Signing & Encryption (JOSE) Product
+- Product-Service (Unique Identifier): sm-im (renamed from sm-im) JSON Object Signing & Encryption (JOSE) Product
 
 ##### 3.2.3.1 JWK Authority (JA) Service
 
@@ -716,7 +716,7 @@ Based on golang-standards/project-layout:
 ```
 cmd/
 ├── cryptoutil/main.go         # Suite-level CLI (all products): Thin main() call to `internal/apps/cryptoutil.go`
-# cipher product removed - im moved to sm product
+# SM product removed - im moved to sm product
 ├── jose/main.go               # Product-level JOSE CLI: Thin main() call to `internal/apps/jose/jose.go`
 ├── pki/main.go                # Product-level PKI CLI: Thin main() call to `internal/apps/pki/pki.go`
 ├── identity/main.go           # Product-level Identity CLI: Thin main() call to `internal/apps/identity/identity.go`
@@ -772,11 +772,11 @@ internal/apps/
 │   └── testing/
 │       └── e2e/               # ComposeManager for E2E orchestration
 
-│   └── im/                    # Cipher-IM service
+│   └── im/                    # SM-IM service
 │       ├── domain/            # Domain models (Message, Recipient)
 │       ├── repository/        # Domain repos + migrations (2001+)
-│       ├── server/            # CipherIMServer, PublicServer
-│       │   ├── config/        # CipherImServerSettings embeds template
+│       ├── server/            # SMIMServer, PublicServer
+│       │   ├── config/        # SMImServerSettings embeds template
 │       │   └── apis/          # HTTP handlers
 │       ├── client/            # API client
 │       ├── e2e/               # E2E tests (Docker Compose)
@@ -1161,7 +1161,7 @@ Unseal Key (Docker secrets, NEVER stored)
     └── Root Key (encrypted-at-rest with unseal key(s), rotated manually or automatically annually)
         └── Intermediate Key (encrypted-at-rest with root key, rotated manually or automatically quarterly)
             └── Content Key (encrypted-at-rest with intermediate key, rotated manually or automatically monthly)
-                └── Domain Data (encrypted-at-rest with content key) - Examples: Cipher-IM messages, SM-KMS JWKs, JOSE-JA JWKs, PKI-CA private keys, Identity user credentials
+                └── Domain Data (encrypted-at-rest with content key) - Examples: SM-IM messages, SM-KMS JWKs, JOSE-JA JWKs, PKI-CA private keys, Identity user credentials
 ```
 
 Design Intent: Unseal secret(s) or unseal key(s) are loaded by service instances at startup. To decrypt and reuse existing, sealed root keys in a database, each service instance MUST use unseal credentials to unseal the root keys. This is design intent for barrier service.
@@ -1694,8 +1694,8 @@ Every service config should have a test settings factory:
 
 ```go
 // NewTestSettings returns configuration suitable for testing
-func NewTestSettings() *CipherImServerSettings {
-    return &CipherImServerSettings{
+func NewTestSettings() *SMImServerSettings {
+    return &SMImServerSettings{
         ServiceTemplateServerSettings: cryptoutilTemplateTestutil.NewTestSettings(),
         MaxMessageSize:                65536,
     }
@@ -3344,7 +3344,7 @@ configs/
 │   │   ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
 │   │   ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
 │   │   └── config-sqlite.yml    # SQLite development (flat kebab-case)
-│   └── im/                      # SM IM service configs (renamed from cipher-im)
+│   └── im/                      # SM IM service configs (renamed from sm-im)
 │       ├── config-pg-1.yml      # PostgreSQL instance 1 (flat kebab-case)
 │       ├── config-pg-2.yml      # PostgreSQL instance 2 (flat kebab-case)
 │       └── config-sqlite.yml    # SQLite development (flat kebab-case)

@@ -106,33 +106,33 @@ Per-package gremlins analysis with `--timeout-coefficient=60`. All packages run 
 
 ---
 
-### 2. Cipher-IM (cipher-im package)
+### 2. SM-IM (sm-im package)
 
-**Command**: `gremlins unleash --tags='!integration,!e2e' ./internal/apps/cipher/im/`
+**Command**: `gremlins unleash --tags='!integration,!e2e' ./internal/apps/sm/im/`
 
 **Results**:
 - **Status**: ❌ **BLOCKED** - Infrastructure issues prevent testing
 
 **Blockers**:
-1. Docker container `cipher-im-sqlite` unhealthy
+1. Docker container `sm-im-sqlite` unhealthy
 2. OTel collector HTTP/gRPC protocol mismatch
    - Error: `"failed to upload metrics: malformed HTTP response \x00\x00\x06\x04..."`
-   - Root cause: cipher-im using HTTP endpoint to connect to gRPC collector (port 4317)
+   - Root cause: sm-im using HTTP endpoint to connect to gRPC collector (port 4317)
 3. E2E tests run despite `--tags='!integration,!e2e'` exclusion flag
 4. Repository-only tests all timeout (0% efficacy, 27 mutations timed out)
 
 **Repository-Only Attempt**:
-- **Command**: `gremlins unleash ./internal/apps/cipher/im/repository`
+- **Command**: `gremlins unleash ./internal/apps/sm/im/repository`
 - **Results**: Test Efficacy: 0.00% (0 killed, 0 lived, 27 timed out)
-- **Log**: `/tmp/gremlins_cipher_im_repo.log`
+- **Log**: `/tmp/gremlins_sm_im_repo.log`
 
 **Resolution Required**:
-- Fix Docker compose health checks for cipher-im-sqlite container
+- Fix Docker compose health checks for sm-im-sqlite container
 - Correct OTel collector endpoint configuration (HTTP vs gRPC)
 - Investigate why E2E tests bypass exclusion tags
 - Address repository test timeouts (may need test infrastructure optimization)
 
-**Log**: `/tmp/gremlins_cipher_im.log`
+**Log**: `/tmp/gremlins_sm_im.log`
 
 ---
 
@@ -208,7 +208,7 @@ Per-package gremlins analysis with `--timeout-coefficient=60`. All packages run 
 2. Add mutation efficacy checks to PR workflows
 3. Set up trend tracking for mutation scores
 
-### Blocked (Cipher-IM)
+### Blocked (SM-IM)
 
 1. Fix Docker compose infrastructure issues
 2. Correct OTel collector endpoint configuration
@@ -235,4 +235,4 @@ Per-package gremlins analysis with `--timeout-coefficient=60`. All packages run 
 
 **Infrastructure vs Business Logic**: Template service shows healthy separation - config/TLS generation code has lived mutations (non-critical infrastructure), while business logic (realm_service, registration_service) has minimal lived mutations.
 
-**Cipher-IM Blockers**: Require separate infrastructure fix track (Docker compose, OTel configuration, test exclusion tags).
+**SM-IM Blockers**: Require separate infrastructure fix track (Docker compose, OTel configuration, test exclusion tags).

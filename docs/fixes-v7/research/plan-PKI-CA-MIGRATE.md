@@ -1,6 +1,6 @@
 # Research Option: PKI-CA-MIGRATE
 
-**Option**: Migrate pki-ca to service-template (same pattern as cipher-im/jose-ja)
+**Option**: Migrate pki-ca to service-template (same pattern as sm-im/jose-ja)
 **Status**: Research Only (not yet selected)
 **Created**: 2026-02-23
 **Related**: docs/fixes-v7/research/tasks-PKI-CA-MIGRATE.md
@@ -10,8 +10,8 @@
 ## Overview
 
 Migrate `internal/apps/pki/ca/` to fully use the service-template builder pattern,
-matching how `cipher-im` and `jose-ja` are implemented, AFTER first completing all
-consistency fixes in the 3 already-migrated services (cipher-im, jose-ja, sm-kms).
+matching how `sm-im` and `jose-ja` are implemented, AFTER first completing all
+consistency fixes in the 3 already-migrated services (sm-im, jose-ja, sm-kms).
 
 This option preserves pki-ca as a standalone service with its own deployment and
 distinct identity in the product suite.
@@ -30,11 +30,11 @@ distinct identity in the product suite.
 
 **NOT yet using template / gaps**:
 - `storage/`: In-memory only (`MemoryStore`). No GORM repository. No SQLite/PostgreSQL persistence.
-- `server/server.go:285-290`: `SetReady(true)` called from `ca.go` caServerStart before `Start()` — UNIQUE pattern vs cipher-im/jose-ja which call it from TestMain.
+- `server/server.go:285-290`: `SetReady(true)` called from `ca.go` caServerStart before `Start()` — UNIQUE pattern vs sm-im/jose-ja which call it from TestMain.
 - `magic/`: Local magic package NOT consolidated to `internal/shared/magic/` (tracked in fixes-v7 Phase 3)
-- `server/middleware/`: 3 files (vs cipher-im: 0 custom middleware) — may duplicate template middleware
+- `server/middleware/`: 3 files (vs sm-im: 0 custom middleware) — may duplicate template middleware
 - `server/cmd/`: Has its own `cmd.go` (purpose unclear vs template routing)
-- Integration test: `server/server_integration_test.go` only (no `integration/` package like cipher-im)
+- Integration test: `server/server_integration_test.go` only (no `integration/` package like sm-im)
 - E2E: No `e2e/` directory
 - TestMain: Raw polling loop (50 × 100ms), not using template helpers
 - No `testing/` helper package (no `StartCAServer()` equivalent)
@@ -63,14 +63,14 @@ distinct identity in the product suite.
 
 ---
 
-## Service-Template Consistency Gaps Found in cipher-im, jose-ja, sm-kms
+## Service-Template Consistency Gaps Found in sm-im, jose-ja, sm-kms
 
-### cipher-im (reference implementation — closest to correct)
+### sm-im (reference implementation — closest to correct)
 | Gap | Impact | Effort |
 |-----|--------|--------|
 | `testing/testmain_helper.go` startup helper is service-specific, not in template | Medium | 1h |
-| `StartCipherIMService()` uses raw port polling (not template poll utility) | Low | 30min |
-| No `e2e/` test for jose-ja or sm-kms (only cipher-im has it) | High | 2h each |
+| `StartSMIMService()` uses raw port polling (not template poll utility) | Low | 30min |
+| No `e2e/` test for jose-ja or sm-kms (only sm-im has it) | High | 2h each |
 
 ### jose-ja (migrated, but gaps)
 | Gap | Impact | Effort |
@@ -100,7 +100,7 @@ distinct identity in the product suite.
 Per ARCHITECTURE.md line 958 and quiz answer Q1=E, the following MUST be complete
 before pki-ca migrates:
 
-1. **fixes-v7 Phase 6**: cipher-im E2E reliable; jose-ja/sm-kms E2E unblocked; template has generic startup helper
+1. **fixes-v7 Phase 6**: sm-im E2E reliable; jose-ja/sm-kms E2E unblocked; template has generic startup helper
 2. **jose-ja critical TODOs**: JWK generation stubs must be implemented (otherwise jose-ja is not actually migrated)
 3. **sm-kms migration debt**: Old application_core wrappers removed; middleware duplication resolved; ORM unified with template
 4. **Template testing extraction**: `StartServiceFromConfig()` generic helper must be in template for pki-ca to inherit
@@ -129,9 +129,9 @@ Remove old-pattern wrappers and custom middleware that should come from template
    - Convert `MemoryStore` to GORM model + repository implementing `Store` interface
    - Domain migrations 2001+ in `server/repository/migrations/`
 2. Add pki-ca `testing/` helper package (`StartCAServer()`)
-3. Fix `SetReady(true)` startup sequence (align with cipher-im/jose-ja pattern)
+3. Fix `SetReady(true)` startup sequence (align with sm-im/jose-ja pattern)
 4. Consolidate `magic/` package into `internal/shared/magic/`
-5. Add pki-ca integration test suite (port pattern from cipher-im)
+5. Add pki-ca integration test suite (port pattern from sm-im)
 6. Add pki-ca E2E test suite (uses template `e2e_infra` ComposeManager)
 7. Update CI E2E workflow to include pki-ca E2E tests
 8. Validate all pki-ca unique components still function correctly

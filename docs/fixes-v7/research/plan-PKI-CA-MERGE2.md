@@ -114,7 +114,7 @@ archived/
 ## Disadvantages
 
 - **VIOLATES PRODUCT BOUNDARIES**: SM (Secret Management) ≠ JOSE (JWK) ≠ PKI (CA)
-- Creates ~25K LOC service (3× cipher-im, 2.6× jose-ja)
+- Creates ~25K LOC service (3× sm-im, 2.6× jose-ja)
 - Single service becomes single point of failure for ALL crypto operations
 - Merged OpenAPI spec is complex and harder to maintain
 - Independent scaling impossible (KMS and CA have very different load profiles)

@@ -1,6 +1,6 @@
 # Tasks: PKI-CA-MIGRATE
 
-**Option**: Migrate pki-ca to service-template (same pattern as cipher-im/jose-ja)
+**Option**: Migrate pki-ca to service-template (same pattern as sm-im/jose-ja)
 **Status**: Research Only
 **Created**: 2026-02-23
 
@@ -35,7 +35,7 @@
 - **Status**: ❌
 - **Estimated**: 4h
 - **Dependencies**: A.2
-- **Description**: sm-kms has `server/repository/orm/` that uses GORM but server.go TODO says "Migrate SQLRepository to template's ORM pattern". Align the repository to follow cipher-im's pattern (domain-specific GORM models + repository using template DB from ServiceResources).
+- **Description**: sm-kms has `server/repository/orm/` that uses GORM but server.go TODO says "Migrate SQLRepository to template's ORM pattern". Align the repository to follow sm-im's pattern (domain-specific GORM models + repository using template DB from ServiceResources).
 - **Acceptance Criteria**:
   - [ ] sm-kms repository uses template's GORM DB from ServiceResources
   - [ ] TODO comments removed from server.go
@@ -46,7 +46,7 @@
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: A.2, A.3
-- **Description**: sm-kms has NO integration tests. Create a TestMain following the cipher-im integration pattern, using the template `StartServiceFromConfig()` helper (from fixes-v7 Task 6.0).
+- **Description**: sm-kms has NO integration tests. Create a TestMain following the sm-im integration pattern, using the template `StartServiceFromConfig()` helper (from fixes-v7 Task 6.0).
 - **Acceptance Criteria**:
   - [ ] `internal/apps/sm/kms/server/testmain_integration_test.go` created
   - [ ] TestMain uses template generic startup helper
@@ -58,7 +58,7 @@
 - **Status**: ❌
 - **Estimated**: 3h
 - **Dependencies**: A.4
-- **Description**: Create `internal/apps/sm/kms/e2e/` matching cipher-im E2E structure. Uses template `e2e_infra.ComposeManager` pointing to `deployments/sm-kms/compose.yml`.
+- **Description**: Create `internal/apps/sm/kms/e2e/` matching sm-im E2E structure. Uses template `e2e_infra.ComposeManager` pointing to `deployments/sm-kms/compose.yml`.
 - **Acceptance Criteria**:
   - [ ] `internal/apps/sm/kms/e2e/` created with testmain_e2e_test.go, e2e_test.go
   - [ ] Tests start Docker Compose stack, wait for health, run basic operations
@@ -99,7 +99,7 @@
 - **Status**: ❌
 - **Estimated**: 3h
 - **Dependencies**: B.1, B.2
-- **Description**: Create `internal/apps/jose/ja/e2e/` matching cipher-im E2E structure. Also add fuller integration tests covering all 4 crypto operations.
+- **Description**: Create `internal/apps/jose/ja/e2e/` matching sm-im E2E structure. Also add fuller integration tests covering all 4 crypto operations.
 - **Acceptance Criteria**:
   - [ ] jose-ja E2E test suite created
   - [ ] Sign/verify/encrypt/decrypt tested end-to-end via HTTP
@@ -110,7 +110,7 @@
 
 ## Phase C: pki-ca Migration to Service-Template
 
-**Phase Objective**: Migrate pki-ca to follow cipher-im/jose-ja builder pattern fully
+**Phase Objective**: Migrate pki-ca to follow sm-im/jose-ja builder pattern fully
 
 ### Task C.1: Add GORM certificate storage (replace MemoryStore)
 - **Status**: ❌
@@ -141,7 +141,7 @@
 - **Status**: ❌
 - **Estimated**: 30min
 - **Dependencies**: None
-- **Description**: pki-ca `ca.go`'s `caServerStart()` calls `srv.SetReady(true)` before `srv.Start()`. This is incorrect — SetReady(true) should be called by TestMain in tests, and by the server's own startup sequence after all components are initialized. Align with cipher-im/jose-ja pattern.
+- **Description**: pki-ca `ca.go`'s `caServerStart()` calls `srv.SetReady(true)` before `srv.Start()`. This is incorrect — SetReady(true) should be called by TestMain in tests, and by the server's own startup sequence after all components are initialized. Align with sm-im/jose-ja pattern.
 - **Acceptance Criteria**:
   - [ ] SetReady(true) called at correct point in startup sequence
   - [ ] Tests verify readyz endpoint returns 200 only after full initialization
@@ -151,7 +151,7 @@
 - **Status**: ❌
 - **Estimated**: 2h
 - **Dependencies**: C.1, C.3
-- **Description**: Create `internal/apps/pki/ca/testing/testmain_helper.go` with `StartCAServer()` and `SetupTestServer()` — matching cipher-im pattern, using template `StartServiceFromConfig()` helper.
+- **Description**: Create `internal/apps/pki/ca/testing/testmain_helper.go` with `StartCAServer()` and `SetupTestServer()` — matching sm-im pattern, using template `StartServiceFromConfig()` helper.
 - **Acceptance Criteria**:
   - [ ] `StartCAServer()` and `SetupTestServer()` created
   - [ ] TestServerResources struct includes CA-specific resources (Issuer, Storage, CRLService, OCSPService)
@@ -162,7 +162,7 @@
 - **Status**: ❌
 - **Estimated**: 3h
 - **Dependencies**: C.4
-- **Description**: Create `internal/apps/pki/ca/integration/` matching cipher-im integration pattern. Tests cover: certificate issuance (EST enroll), revocation, OCSP queries, CRL generation.
+- **Description**: Create `internal/apps/pki/ca/integration/` matching sm-im integration pattern. Tests cover: certificate issuance (EST enroll), revocation, OCSP queries, CRL generation.
 - **Acceptance Criteria**:
   - [ ] Integration tests cover main CA operations
   - [ ] Uses TestMain with `StartCAServer()`
@@ -173,7 +173,7 @@
 - **Status**: ❌
 - **Estimated**: 3h
 - **Dependencies**: C.5
-- **Description**: Create `internal/apps/pki/ca/e2e/` matching cipher-im E2E structure. Uses template `e2e_infra.ComposeManager` pointing to `deployments/pki-ca/compose.yml`.
+- **Description**: Create `internal/apps/pki/ca/e2e/` matching sm-im E2E structure. Uses template `e2e_infra.ComposeManager` pointing to `deployments/pki-ca/compose.yml`.
 - **Acceptance Criteria**:
   - [ ] pki-ca E2E test suite created
   - [ ] Docker Compose stack starts successfully

@@ -1,6 +1,6 @@
 # Plan: PKI-CA-MERGE3
 
-**Option**: Archive cipher-im + jose-ja + pki-ca; absorb all three into sm-kms as "Crypto Monolith"
+**Option**: Archive sm-im + jose-ja + pki-ca; absorb all three into sm-kms as "Crypto Monolith"
 **Recommendation**: ⭐ (Strongly not recommended — architectural anti-pattern)
 **Created**: 2026-02-23
 
@@ -9,7 +9,7 @@
 ## Concept
 
 sm-kms absorbs ALL other cryptoutil services:
-- cipher-im's messaging encryption (2,309 LOC)
+- sm-im's messaging encryption (2,309 LOC)
 - jose-ja's JWK operations (4,406 LOC)
 - pki-ca's CA operations (11,418 LOC)
 
@@ -21,7 +21,7 @@ Result: a single "Cryptoutil Monolith" at ~27K+ LOC, serving all cryptographic o
 
 Same prerequisites as MERGE2, PLUS:
 
-### cipher-im Migration Debt (minimal — reference impl)
+### sm-im Migration Debt (minimal — reference impl)
 | Gap | Current | Target | Effort |
 |-----|---------|--------|--------|
 | E2E timeout reliability | Occasional | Reliable | 1.5h |
@@ -37,22 +37,22 @@ internal/apps/sm/kms/
 ├── server/
 │   ├── api/
 │   │   ├── handler/     (existing KMS handlers)
-│   │   ├── cipher/      (from cipher-im: messaging)
+│   │   ├── sm/      (from sm-im: messaging)
 │   │   ├── jwk/         (from jose-ja: JWK)
 │   │   └── ca/          (from pki-ca: CA)
 │   ├── service/
 │   │   ├── kms/         (existing)
-│   │   ├── cipher/      (from cipher-im)
+│   │   ├── sm/      (from sm-im)
 │   │   ├── jwk/         (from jose-ja)
 │   │   └── ca/          (from pki-ca)
 │   └── repository/
 │       ├── key_repository.go     (existing)
-│       ├── message_repository.go (from cipher-im)
+│       ├── message_repository.go (from sm-im)
 │       ├── jwk_repository.go     (from jose-ja)
 │       └── cert_repository.go    (from pki-ca: GORM)
 
 archived/
-├── cipher-im/
+├── sm-im/
 ├── jose-ja/
 └── pki-ca/
 ```
@@ -65,7 +65,7 @@ ARCHITECTURE.md defines 5 distinct products:
 | Product | Service | Purpose |
 |---------|---------|---------|
 | SM | sm-kms | Secret/Key Management |
-| Cipher | cipher-im | Encrypted Messaging |
+| Cipher | sm-im | Encrypted Messaging |
 | JOSE | jose-ja | JWK Authority |
 | PKI | pki-ca | Certificate Authority |
 | Identity | (multiple) | AuthN/AuthZ |
@@ -78,7 +78,7 @@ This option **COLLAPSES 4 separate products into 1**, destroying the product bou
 
 Must merge 4 separate OpenAPI specs into one:
 - /service/api/v1/keys (KMS)
-- /service/api/v1/messages (cipher-im)
+- /service/api/v1/messages (sm-im)
 - /service/api/v1/jwks (jose-ja)
 - /service/api/v1/certs (pki-ca)
 
@@ -94,11 +94,11 @@ The merged spec would be extremely large and hard to maintain.
 
 ## Disadvantages
 
-- **DESTROYS ALL PRODUCT BOUNDARIES**: SM ≠ Cipher ≠ JOSE ≠ PKI
+- **DESTROYS ALL PRODUCT BOUNDARIES**: SM ≠ JOSE ≠ PKI
 - Creates a ~27K LOC monolith — impossible to partition, maintain, or reason about
 - Single point of failure for ALL non-identity crypto operations
 - Each domain has radically different scaling characteristics:
-  - cipher-im: messaging throughput (horizontally scalable)
+  - sm-im: messaging throughput (horizontally scalable)
   - jose-ja: JWK operations (read-heavy, low write)
   - pki-ca: cert issuance (write-heavy, compliance requirements)
   - sm-kms: key operations (security-critical, audit-heavy)
@@ -115,9 +115,9 @@ The merged spec would be extremely large and hard to maintain.
 | Component | Hours |
 |-----------|-------|
 | All MERGE2 prerequisites and work | ~71h |
-| Port cipher-im (additional) | 8h |
-| Merge cipher-im OpenAPI into combined spec | 2h |
-| cipher-im unit/integration/E2E tests | 4h |
+| Port sm-im (additional) | 8h |
+| Merge sm-im OpenAPI into combined spec | 2h |
+| sm-im unit/integration/E2E tests | 4h |
 | **Total** | **~85h** |
 
 Most expensive option. Highest risk. Worst architectural outcome.

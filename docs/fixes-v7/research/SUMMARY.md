@@ -1,18 +1,18 @@
 # Research Summary: pki-ca Strategic Options
 
 **Created**: 2026-02-23
-**Purpose**: Compare all strategic options for pki-ca migration and cipher-im placement
+**Purpose**: Compare all strategic options for pki-ca migration and sm-im placement
 
 ---
 
 ## Quick Reference Comparison
 
-**cipher-im placement options** (independent of pki-ca option):
+**sm-im placement options** (independent of pki-ca option):
 
 | Option | Description | Effort | Recommendation |
 |--------|-------------|--------|----------------|
-| PKI-CA-MERGE0a | Move cipher-im → sm-im (standalone rename) | ~4.5h | ⭐⭐⭐⭐⭐ |
-| PKI-CA-MERGE0b | Merge cipher-im into sm-kms monolith | ~35.5h | ⭐⭐ |
+| PKI-CA-MERGE0a | Move sm-im → sm-im (standalone rename) | ~4.5h | ⭐⭐⭐⭐⭐ |
+| PKI-CA-MERGE0b | Merge sm-im into sm-kms monolith | ~35.5h | ⭐⭐ |
 
 **pki-ca options** (choose one; all require same prerequisites):
 
@@ -21,7 +21,7 @@
 | PKI-CA-MIGRATE | Migrate pki-ca in-place to template | 42-66h | ⭐⭐⭐⭐ |
 | PKI-CA-MERGE1 | Archive pki-ca; rebuild from jose-ja base | ~45h | ⭐⭐⭐ |
 | PKI-CA-MERGE2 | Archive jose-ja + pki-ca; absorb into sm-kms | ~71h | ⭐⭐ |
-| PKI-CA-MERGE3 | Archive cipher-im + jose-ja + pki-ca; absorb all into sm-kms | ~87h | ⭐ |
+| PKI-CA-MERGE3 | Archive sm-im + jose-ja + pki-ca; absorb all into sm-kms | ~87h | ⭐ |
 
 ---
 
@@ -59,18 +59,18 @@ These issues exist **REGARDLESS** of which pki-ca option is chosen:
 
 ### 3. Template Testing Infrastructure Gap
 - No generic `StartServiceFromConfig()` helper exists in template
-- cipher-im uses raw 50×100ms polling loop (`testing/testmain_helper.go`)
+- sm-im uses raw 50×100ms polling loop (`testing/testmain_helper.go`)
 - jose-ja uses same raw polling pattern
 - Template has `WaitForServerPort()` in e2e_helpers but it's not wired generically
 - **Estimated fix**: 2h (Task 6.0 in main fixes-v7)
 
 ### 4. ci-e2e.yml Path Bug
 - References `deployments/jose/compose.yml` (should be `deployments/jose-ja/compose.yml`)
-- All non-cipher-im E2E tests have `SERVICE_TEMPLATE_TODO` comments (disabled)
+- All non-sm-im E2E tests have `SERVICE_TEMPLATE_TODO` comments (disabled)
 
-### 5. cipher-im Product Problem (cipher product has only 1 service)
-- 1-service product `Cipher` is organizational overhead
-- cipher-im is a MESSAGE STORE, not a cipher library — belongs in SM product
+### 5. sm-im Product Problem (SM product has only 1 service)
+- 1-service former product `Cipher` (now SM) is organizational overhead
+- sm-im is a MESSAGE STORE, not a cipher library — belongs in SM product
 - **Options**: MERGE0a (recommended, 4.5h pure rename) or MERGE0b (not recommended, ~35h merge)
 - **Independent of pki-ca option** — can be done at any time
 
@@ -84,12 +84,12 @@ These issues exist **REGARDLESS** of which pki-ca option is chosen:
 
 ### PKI-CA-MERGE0a ⭐⭐⭐⭐⭐ (STRONGLY RECOMMENDED — do first)
 
-**Approach**: Pure mechanical rename of cipher-im → sm-im. No business logic changes. Copy files, update imports, update deployments/configs/ARCHITECTURE.md.
-**Who it's for**: Anyone who wants to move cipher-im to the SM product with minimal risk and zero prerequisites.
+**Approach**: Pure mechanical rename of sm-im → sm-im. No business logic changes. Copy files, update imports, update deployments/configs/ARCHITECTURE.md.
+**Who it's for**: Anyone who wants to move sm-im to the SM product with minimal risk and zero prerequisites.
 **Why strongly recommended**:
 - Zero prerequisites (can be done before any other migration work)
 - ~4.5h total effort
-- Eliminates the 1-service Cipher product
+- Eliminates the 1-service former Cipher product
 - Paves way for future SM extensions (sm-secrets, sm-ssh, sm-file)
 - Pure rename — no logic changes possible means no logic bugs introduced
 
@@ -99,10 +99,10 @@ These issues exist **REGARDLESS** of which pki-ca option is chosen:
 
 ### PKI-CA-MERGE0b ⭐⭐ (NOT RECOMMENDED)
 
-**Approach**: Remove cipher-im as a separate service; absorb all message handling, repositories, and API routes directly into sm-kms.
+**Approach**: Remove sm-im as a separate service; absorb all message handling, repositories, and API routes directly into sm-kms.
 **Why not recommended**:
 - Requires sm-kms migration debt (19h) as prerequisite BEFORE any merge work
-- Different domain concerns: sm-kms is compute-bound machine-to-machine; cipher-im is storage-bound human-facing
+- Different domain concerns: sm-kms is compute-bound machine-to-machine; sm-im is storage-bound human-facing
 - ~8× the effort of MERGE0a for the same product grouping outcome
 - Degrades independent scalability
 
@@ -112,7 +112,7 @@ These issues exist **REGARDLESS** of which pki-ca option is chosen:
 
 ### PKI-CA-MIGRATE ⭐⭐⭐⭐ (RECOMMENDED)
 
-**Approach**: Fix pre-existing gaps in cipher-im/jose-ja/sm-kms first, then migrate pki-ca in-place following the established ARCHITECTURE.md migration order.
+**Approach**: Fix pre-existing gaps in sm-im/jose-ja/sm-kms first, then migrate pki-ca in-place following the established ARCHITECTURE.md migration order.
 
 **Who it's for**: Teams that want to follow the defined migration strategy, minimize architectural risk, and keep service boundaries clean.
 
@@ -128,7 +128,7 @@ These issues exist **REGARDLESS** of which pki-ca option is chosen:
 
 **Why recommended**:
 - Architecturally correct per ARCHITECTURE.md migration order
-- Maintains all product boundaries (SM, PKI, JOSE, Cipher, Identity remain separate)
+- Maintains all product boundaries (SM, PKI, JOSE, Identity remain separate)
 - Low risk: incremental changes on existing codebase
 - Same prerequisites as MERGE1 but less total effort
 
@@ -166,9 +166,9 @@ These issues exist **REGARDLESS** of which pki-ca option is chosen:
 
 ### PKI-CA-MERGE3 ⭐ (STRONGLY NOT RECOMMENDED)
 
-**Approach**: Archive cipher-im + jose-ja + pki-ca; absorb ALL into sm-kms as crypto monolith.
+**Approach**: Archive sm-im + jose-ja + pki-ca; absorb ALL into sm-kms as crypto monolith.
 
-**Why strongly not recommended**: Collapses 4 separate products (SM, Cipher, JOSE, PKI) into 1 service. Creates ~27K LOC monolith. Violates CA/Browser Forum requirements for CA isolation. Worst architectural outcome. Highest effort (~87h). Exists only for completeness of option space analysis.
+**Why strongly not recommended**: Collapses 4 separate products (SM, JOSE, PKI) into 1 service. Creates ~27K LOC monolith. Violates CA/Browser Forum requirements for CA isolation. Worst architectural outcome. Highest effort (~87h). Exists only for completeness of option space analysis.
 
 **See**: [plan-PKI-CA-MERGE3.md](plan-PKI-CA-MERGE3.md) + [tasks-PKI-CA-MERGE3.md](tasks-PKI-CA-MERGE3.md)
 
@@ -176,7 +176,7 @@ These issues exist **REGARDLESS** of which pki-ca option is chosen:
 
 ## Decision Guidance
 
-**For cipher-im placement — choose PKI-CA-MERGE0a** unless there is a specific operational reason to merge into sm-kms (almost none exist).
+**For sm-im placement — choose PKI-CA-MERGE0a** unless there is a specific operational reason to merge into sm-kms (almost none exist).
 
 **Choose PKI-CA-MIGRATE if**:
 - You want to follow ARCHITECTURE.md migration order
@@ -218,9 +218,9 @@ All pki-ca options share the same 30h of prerequisite work. MERGE0a is completel
 | File | Description |
 |------|-------------|
 | DEEP-RESEARCH.md | Deep research: 8 taxonomy schemas, 14 missing services, industry comparisons |
-| plan-PKI-CA-MERGE0a.md | STRONGLY RECOMMENDED: cipher-im → sm-im standalone rename |
+| plan-PKI-CA-MERGE0a.md | STRONGLY RECOMMENDED: sm-im → sm-im standalone rename |
 | tasks-PKI-CA-MERGE0a.md | STRONGLY RECOMMENDED: 17 tasks (~4.5h, no prereqs) |
-| plan-PKI-CA-MERGE0b.md | Not recommended: cipher-im merged into sm-kms |
+| plan-PKI-CA-MERGE0b.md | Not recommended: sm-im merged into sm-kms |
 | tasks-PKI-CA-MERGE0b.md | Not recommended: 16 tasks (~35.5h) |
 | plan-PKI-CA-MIGRATE.md | RECOMMENDED for pki-ca: In-place migration plan |
 | tasks-PKI-CA-MIGRATE.md | RECOMMENDED for pki-ca: 15 tasks (~42-66h) |

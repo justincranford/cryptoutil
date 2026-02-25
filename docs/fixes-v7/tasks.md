@@ -481,7 +481,7 @@
 - **Actual**: 30m
 - **Dependencies**: None (do first)
 - **Source**: Q1=E quiz answer — prerequisite for all other Phase 6 tasks
-- **Description**: `cipher/im/testing/testmain_helper.go` has `StartCipherIMService()` and `SetupTestServer()` that are cipher-im-specific. These patterns (port polling, goroutine start, panic on failure) should live generically in `template/service/testing/`. Create a generic `StartServiceFromConfig[T any]()` helper in the template testing package.
+- **Description**: `sm/im/testing/testmain_helper.go` has `StartSMIMService()` and `SetupTestServer()` that are sm-im-specific. These patterns (port polling, goroutine start, panic on failure) should live generically in `template/service/testing/`. Create a generic `StartServiceFromConfig[T any]()` helper in the template testing package.
 - **Acceptance Criteria**:
   - [x] Generic startup helper created in `internal/apps/template/service/testing/e2e_helpers/server_start_helpers.go`
   - [x] Helper covers: goroutine start, port polling (public + admin), error channel, panic-on-failure (via StartDualPortServerAsync)
@@ -497,9 +497,9 @@
 - **Actual**: 15m (fixed via commit 49d30db0 + template defaults)
 - **Dependencies**: Task 6.0
 - **Source**: fixes-v1 blocker 02
-- **Description**: KMS services fail with "unsupported JWS algorithm:" — empty algorithm string in session manager config. Verify cipher-im config pattern, apply same pattern to KMS config.
+- **Description**: KMS services fail with "unsupported JWS algorithm:" — empty algorithm string in session manager config. Verify sm-im config pattern, apply same pattern to KMS config.
 - **Acceptance Criteria**:
-  - [x] Session JWK algorithm configured correctly (matches cipher-im pattern) — configs/sm/kms/ has explicit values + template defaults non-empty
+  - [x] Session JWK algorithm configured correctly (matches sm-im pattern) — configs/sm/kms/ has explicit values + template defaults non-empty
   - [x] KMS service starts successfully in Docker — code verified, session algo flags registered in template (config_parse.go L154-161)
 - **Files**: configs/sm/kms/config-*.yml, internal/apps/template/service/config/config_parse.go
 - **Commit**: 49d30db0 (KMS configs created with session settings)
@@ -511,9 +511,9 @@
 - **Actual**: 10m (already fixed via template CLI standardization)
 - **Dependencies**: Task 6.0
 - **Source**: fixes-v1 blocker 02
-- **Description**: JOSE service args routing incorrect — args not stripped properly through product → service → subcommand layers. Compare with cipher-im `im.go` routing pattern and apply same.
+- **Description**: JOSE service args routing incorrect — args not stripped properly through product → service → subcommand layers. Compare with sm-im `im.go` routing pattern and apply same.
 - **Acceptance Criteria**:
-  - [x] Args routing matches cipher-im pattern — both use RouteService/RouteProduct template (ja.go + jose.go)
+  - [x] Args routing matches sm-im pattern — both use RouteService/RouteProduct template (ja.go + jose.go)
   - [x] JOSE service starts successfully — template CLI routing verified, all tests pass
 - **Files**: `internal/apps/jose/ja/ja.go`, `internal/apps/jose/jose.go`
 
@@ -538,23 +538,23 @@
 - **Actual**: 35min
 - **Dependencies**: 6.1, 6.2, 6.3
 - **Source**: implementation-plan-v1 Task 6.4; Q1=E
-- **Description**: (1) Fix service_TEMPLATE_TODO markers: `ci-e2e.yml` references old compose paths; (2) Add jose-ja and sm-kms E2E test execution to workflow (they should now start reliably after Tasks 6.0-6.3); (3) Create E2E test files for jose-ja and sm-kms matching cipher-im e2e structure.
+- **Description**: (1) Fix service_TEMPLATE_TODO markers: `ci-e2e.yml` references old compose paths; (2) Add jose-ja and sm-kms E2E test execution to workflow (they should now start reliably after Tasks 6.0-6.3); (3) Create E2E test files for jose-ja and sm-kms matching sm-im e2e structure.
 - **Acceptance Criteria**:
   - [x] All compose file paths verified correct in `ci-e2e.yml`
   - [x] jose-ja E2E test suite created (`internal/apps/jose/ja/e2e/`)
   - [x] sm-kms E2E test suite created (`internal/apps/sm/kms/e2e/`)
-  - [x] CI E2E workflow runs cipher-im, jose-ja, sm-kms E2E tests
+  - [x] CI E2E workflow runs sm-im, jose-ja, sm-kms E2E tests
   - [x] `SERVICE_TEMPLATE_TODO` markers removed for migrated services
 - **Files**: `.github/workflows/ci-e2e.yml`, `internal/apps/jose/ja/e2e/` (new), `internal/apps/sm/kms/e2e/` (new), `internal/shared/magic/magic_jose.go`, `internal/shared/magic/magic_sm.go`
 
-#### Task 6.5: Verify cipher-im E2E passes end-to-end (Step B validation)
+#### Task 6.5: Verify sm-im E2E passes end-to-end (Step B validation)
 - **Status**: ⚠️ BLOCKED (pre-existing infrastructure issue)
 - **Owner**: LLM Agent
 - **Estimated**: 30min
 - **Actual**: 15min (investigation)
 - **Dependencies**: 6.0
-- **Source**: Q1=E — "make cipher-im service startup work reliably first"
-- **Description**: Run cipher-im E2E tests to confirm they pass. This is the validation step before propagating patterns to jose-ja and sm-kms. Identity E2E remains disabled until identity services migrate to service-template (future work in research options).
+- **Source**: Q1=E — "make sm-im service startup work reliably first"
+- **Description**: Run sm-im E2E tests to confirm they pass. This is the validation step before propagating patterns to jose-ja and sm-kms. Identity E2E remains disabled until identity services migrate to service-template (future work in research options).
 - **Blocker**: OTel Collector `resourcedetection` processor fails: "Cannot connect to the Docker daemon at unix:///var/run/docker.sock" inside container. Pre-existing infrastructure issue — NOT caused by any changes in this plan. The E2E test framework (ComposeManager, health checks, cleanup) is fully functional.
 - **Acceptance Criteria**:
   - [ ] `go test -tags=e2e -timeout=30m ./internal/apps/sm/im/e2e/...` passes — BLOCKED by OTel collector config
@@ -625,25 +625,25 @@
 
 ---
 
-### Phase 8: Move cipher-im to SM Product
+### Phase 8: Move sm-im to SM Product
 
-**Phase Objective**: Rename cipher-im → sm-im, move under SM product. Detailed breakdown in [research/tasks-PKI-CA-MERGE0a.md](research/tasks-PKI-CA-MERGE0a.md). PKI-CA-MERGE0b (merge into sm-kms) will NOT be implemented.
+**Phase Objective**: Rename sm-im → sm-im, move under SM product. Detailed breakdown in [research/tasks-PKI-CA-MERGE0a.md](research/tasks-PKI-CA-MERGE0a.md). PKI-CA-MERGE0b (merge into sm-kms) will NOT be implemented.
 
-#### Task 8.1: Code rename — move cipher-im to sm-im
+#### Task 8.1: Code rename — move sm-im to sm-im
 - **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 1.5h
 - **Actual**: 2h
 - **Dependencies**: None (can be done at any time)
 - **Source**: Architecture Direction — Option D; PKI-CA-MERGE0a Phase 1
-- **Description**: Move `internal/apps/cipher/im/` → `internal/apps/sm/im/`. Update `cmd/cipher-im/main.go` → `cmd/sm-im/main.go`. Update `cmd/cipher/main.go` to remove im (or convert to `cmd/sm/main.go` product-level entry). Update ALL Go import paths from `cipher/im` to `sm/im`.
+- **Description**: Move `internal/apps/sm/im/` → `internal/apps/sm/im/`. Update `cmd/sm-im/main.go` → `cmd/sm-im/main.go`. Update `c../sm/main.go` to remove im (or convert to `cmd/sm/main.go` product-level entry). Update ALL Go import paths from `sm/im` to `sm/im`.
 - **Acceptance Criteria**:
-  - [x] All cipher/im source files moved to sm/im
+  - [x] All sm/im source files moved to sm/im
   - [x] All import paths updated
   - [x] `go build ./...` passes
   - [x] `go test ./... -shuffle=on` passes
 - **Commit**: 36c17996 (130 files changed)
-- **Files**: `internal/apps/cipher/im/` → `internal/apps/sm/im/`, `cmd/cipher-im/` → `cmd/sm-im/`, all files with `cipher/im` imports
+- **Files**: `internal/apps/sm/im/` → `internal/apps/sm/im/`, `cmd/sm-im/` → `cmd/sm-im/`, all files with `sm/im` imports
 
 #### Task 8.2: Deployment and config updates
 - **Status**: ✅
@@ -652,14 +652,14 @@
 - **Actual**: 45m
 - **Dependencies**: Task 8.1
 - **Source**: PKI-CA-MERGE0a Phase 2
-- **Description**: Move `deployments/cipher-im/` → `deployments/sm-im/`. Move `deployments/cipher/` → update SM product compose. Move `configs/cipher/im/` → `configs/sm/im/`. Update port range comments (keep 8700-8799 or reassign to SM range).
+- **Description**: Move `deployments/sm-im/` → `deployments/sm-im/`. Move `deploymen../sm/` → update SM product compose. Move `configs/sm/im/` → `configs/sm/im/`. Update port range comments (keep 8700-8799 or reassign to SM range).
 - **Acceptance Criteria**:
   - [x] Deployment files moved and updated
   - [x] Config files moved and updated
   - [x] `go run ./cmd/cicd lint-deployments validate-all` passes (62/62)
   - [x] Docker Compose health checks pass
 - **Commit**: 0614cab3 (63 files changed)
-- **Files**: `deployments/cipher-im/`, `deployments/cipher/`, `configs/cipher/im/`
+- **Files**: `deployments/sm-im/`, `deploymen../sm/`, `configs/sm/im/`
 
 #### Task 8.3: Documentation and CI updates
 - **Status**: ✅
@@ -668,11 +668,11 @@
 - **Actual**: 30m
 - **Dependencies**: Task 8.1
 - **Source**: PKI-CA-MERGE0a Phase 3
-- **Description**: Update ARCHITECTURE.md service catalog (remove Cipher product, add sm-im to SM product). Update ci-e2e.yml paths. Update README.md. Update copilot instruction files referencing cipher-im.
+- **Description**: Update ARCHITECTURE.md service catalog (remove former Cipher product, add sm-im to SM product). Update ci-e2e.yml paths. Update README.md. Update copilot instruction files referencing sm-im.
 - **Acceptance Criteria**:
   - [x] ARCHITECTURE.md service catalog updated
   - [x] ci-e2e.yml compose paths updated
-  - [x] No references to "cipher-im" in docs (except historical notes)
+  - [x] No references to "sm-im" in docs (except historical notes)
 - **Commit**: 58444101 (4 files changed)
 - **Files**: `docs/ARCHITECTURE.md`, `.github/workflows/ci-e2e.yml`, `README.md`, `.github/instructions/02-01.architecture.instructions.md`
 
@@ -690,20 +690,20 @@
   - [x] `go test ./... -shuffle=on` passes
   - [x] `golangci-lint run` clean
   - [x] `golangci-lint run --build-tags e2e,integration` clean
-  - [x] 62/62 deployment validators pass (cipher product removed = fewer validators)
+  - [x] 62/62 deployment validators pass (SM product removed = fewer validators)
 - **Files**: All
 
-#### Task 8.5: Git commit and Cipher product cleanup
+#### Task 8.5: Git commit and Former Cipher product reference cleanup
 - **Status**: ✅
 - **Owner**: LLM Agent
 - **Estimated**: 15min
 - **Actual**: 5m
 - **Dependencies**: Task 8.4
 - **Source**: PKI-CA-MERGE0a Phase 5
-- **Description**: Commit rename. Verify no remaining Cipher product artifacts. Clean up empty `internal/apps/cipher/` directory if any.
+- **Description**: Commit rename. Verify no remaining former Cipher product artifacts. Clean up empty `internal/ap../sm/` directory if any.
 - **Acceptance Criteria**:
   - [x] Committed with multiple atomic commits (8.1: 36c17996, 8.2: 0614cab3, 8.3: 58444101)
-  - [x] No `internal/apps/cipher/` directory remaining
+  - [x] No `internal/ap../sm/` directory remaining
   - [x] No `cmd/cipher*/` directories remaining
   - [x] No `deployments/cipher*/` directories remaining
 - **Files**: Git operations
@@ -725,11 +725,11 @@
 - [x] All magic constants in `internal/shared/magic/`
 
 ### Deployment
-- [x] 62/62 deployment validators pass (cipher product removed = fewer than original 65)
+- [x] 62/62 deployment validators pass (SM product removed = fewer than original 65)
 - [ ] sm-im E2E passes — BLOCKED by pre-existing OTel collector Docker socket issue
 - [x] Template has generic service startup helper (`template/service/testing/e2e_helpers/server_start_helpers.go`)
-- [x] sm-im renamed from cipher-im under SM product
-- [x] No Cipher product remaining
+- [x] sm-im renamed from sm-im under SM product
+- [x] No former Cipher product references remaining
 
 ### Coverage
 - [ ] crypto/jose at ≥95% coverage via function variable injection pattern
@@ -741,7 +741,7 @@
 - [ ] ALL agent completeness statements include "or steps"
 
 ### Documentation
-- [ ] No Cipher product references in ANY documentation files
+- [ ] No former Cipher product references in ANY documentation files
 
 ---
 
@@ -767,29 +767,29 @@
 
 ---
 
-## Phase 10: Cipher Product Reference Cleanup
+## Phase 10: Former Cipher Product Reference Cleanup
 
 ### Task 10.1: Clean docs/DEAD_CODE_REVIEW.md
-- [ ] 10.1.1 Replace cipher/im references with sm/im on lines 941-953
+- [ ] 10.1.1 Replace sm/im references with sm/im on lines 941-953
 - [ ] 10.1.2 Commit
 
 ### Task 10.2: Clean docs/ARCHITECTURE-COMPOSE-MULTIDEPLOY.md
-- [ ] 10.2.1 Replace ALL cipher-im references with sm-im
-- [ ] 10.2.2 Replace ALL cipher_ prefix references with sm_ prefix
-- [ ] 10.2.3 Replace ALL cipher product directory references with sm
+- [ ] 10.2.1 Replace ALL sm-im references with sm-im
+- [ ] 10.2.2 Replace ALL sm_ prefix (formerly cipher_) references with sm_ prefix
+- [ ] 10.2.3 Replace ALL SM product directory references with sm
 - [ ] 10.2.4 Commit
 
 ### Task 10.3: Clean docs/ARCHITECTURE.md
 - [ ] 10.3.1 Review lines 389, 412, 422, 453, 719, 3347 — update or remove cipher references
-- [ ] 10.3.2 Keep "renamed from cipher-im" as historical notes where appropriate but use sm-im as canonical name
+- [ ] 10.3.2 Keep "renamed from sm-im" as historical notes where appropriate but use sm-im as canonical name
 - [ ] 10.3.3 Commit
 
 ### Task 10.4: Clean docs/README.md
-- [ ] 10.4.1 Replace cipher/im path reference on lines 727-728 with sm/im
+- [ ] 10.4.1 Replace sm/im path reference on lines 727-728 with sm/im
 - [ ] 10.4.2 Commit
 
 ### Task 10.5: Clean docs/fixes-v7/plan.md
-- [ ] 10.5.1 Update cipher-im reference on line 78 to sm-im
+- [ ] 10.5.1 Update sm-im reference on line 78 to sm-im
 - [ ] 10.5.2 Verify no remaining cipher PRODUCT references across all docs
 - [ ] 10.5.3 Commit
 
