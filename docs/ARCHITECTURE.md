@@ -958,12 +958,14 @@ Consistency MUST be guaranteed by inheriting from service-template, which will r
 
 #### 5.1.1 Template Components
 
+<!-- @propagate to=".github/instructions/02-01.architecture.instructions.md" as="service-template-components" -->
 - Two HTTPS Listeners: Public (business APIs) + Admin (health checks)
 - Two Public Paths: `/browser/**` (sessions) vs `/service/**` (tokens)
 - Three Admin APIs: /admin/api/v1/livez, /admin/api/v1/readyz, /admin/api/v1/shutdown
 - Database: PostgreSQL || SQLite with GORM
 - Telemetry: OTLP → otel-collector-contrib → Grafana LGTM
 - Config Priority: Docker secrets > YAML > CLI parameters (NO environment variables)
+<!-- @/propagate -->
 
 #### 5.1.2 Template Benefits
 
@@ -2046,6 +2048,16 @@ COPY --from=validator /app/cryptoutil /app/cryptoutil
 
 ### 10.1 Testing Strategy Overview
 
+<!-- @propagate to=".github/instructions/03-02.testing.instructions.md" as="test-file-suffixes" -->
+| Type | Suffix |
+|------|--------|
+| Unit | `_test.go` |
+| Bench | `_bench_test.go` |
+| Fuzz | `_fuzz_test.go` |
+| Property | `_property_test.go` |
+| Integration | `_integration_test.go` |
+<!-- @/propagate -->
+
 **Testing Pyramid**:
 
 - **Unit Tests**: Fast (<15s per package), isolated, table-driven, t.Parallel()
@@ -2605,6 +2617,10 @@ func BenchmarkAESEncrypt(b *testing.B) {
 - Configuration: .golangci.yml importas section enforces consistency
 - Rationale: Avoids naming conflicts, improves readability
 
+<!-- @propagate to=".github/instructions/03-03.golang.instructions.md" as="crypto-acronyms-caps" -->
+**Crypto Acronyms**: ALWAYS ALL CAPS: RSA, EC, ECDSA, ECDH, HMAC, AES, JWA, JWK, JWS, JWE, ED25519, PKCS8, PEM, DER.
+<!-- @/propagate -->
+
 #### 11.1.4 Magic Values Organization
 
 - **ALL magic constants and variables MUST be consolidated in `internal/shared/magic/`**; domain-specific sub-files allowed (e.g., `magic_domain*.go`) but NEVER in scattered package-local files
@@ -2836,6 +2852,14 @@ Here are local convenience commands to run the workflows locally for Development
 **Secret Management**: Docker/Kubernetes secrets (MANDATORY), NEVER inline environment variables
 
 #### 12.3.1 Docker Compose Deployment
+
+<!-- @propagate to=".github/instructions/04-01.deployment.instructions.md" as="docker-compose-rules" -->
+- Use `docker compose` (NOT `docker-compose`)
+- ALWAYS relative paths in compose.yml (NEVER absolute)
+- ALWAYS `127.0.0.1` in containers (NOT `localhost` - Alpine resolves to IPv6)
+- Use `wget` for healthchecks (available in Alpine)
+- Healthcheck fields use hyphens: `start-period` (NOT `start_period`)
+<!-- @/propagate -->
 
 - Secret management via Docker secrets (MANDATORY)
 - Health check configuration (interval, timeout, retries, start-period)
@@ -3701,6 +3725,8 @@ Propagation markers are added incrementally:
 | emphasis-keywords | Document Conventions | 01-01.terminology |
 | abbreviations | Document Conventions | 01-01.terminology |
 | infrastructure-blocker-escalation | 13.7 | 01-02.beast-mode, 06-01.evidence-based |
+| service-template-components | 5.1.1 | 02-01.architecture |
+| minimum-versions | B.3 | 02-02.versions |
 | otel-collector-constraints | 9.4.1 | 02-03.observability |
 | http-status-codes | 8.4 | 02-04.openapi |
 | secrets-detection-strategy | 6.10 | 02-05.security |
@@ -3712,12 +3738,17 @@ Propagation markers are added incrementally:
 | authz-methods | 6.9.5 | 02-06.authn |
 | validator-error-aggregation | 12.8 | 03-01.coding |
 | format-go-protection | 11.2.8 | 03-01.coding |
+| test-file-suffixes | 10.1 | 03-02.testing |
+| crypto-acronyms-caps | 11.1.3 | 03-03.golang |
+| docker-compose-rules | 12.3.1 | 04-01.deployment |
 | docker-desktop-startup | 13.5.4 | 05-01.cross-platform |
 | docker-desktop-upgrade | 13.5.4 | 05-01.cross-platform |
 | conventional-commits | 13.2.1 | 05-02.git |
 | incremental-commits | 13.2.2 | 05-02.git |
 | restore-from-baseline | 13.2.3 | 05-02.git |
 | agent-self-containment | 2.1.1 | 06-02.agent-format |
+
+**Instruction file coverage**: All 18 instruction files analyzed. 15 files have 1+ propagation chunks (26 total chunk pairs). 3 files (03-04.data-infrastructure, 03-05.linting, copilot-instructions) are structural glue only — their content is condensed quick-reference summaries, code blocks in different formats from ARCHITECTURE.md, or instruction-file-specific formatting that cannot be byte-for-byte identical with ARCHITECTURE.md source sections.
 
 **Structural glue** (~20% of instruction file content) remains non-propagated: condensed quick-reference summaries, section headings, `See` cross-references, transitional text, tables in different formats, and code examples unique to instruction file context.
 
@@ -4033,6 +4064,20 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 **Summary**: Host ports 54320-54328 map to container port 5432 for 9 services
 
 ### B.3 Technology Stack
+
+<!-- @propagate to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" -->
+**CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
+
+- Go: 1.25.5+
+- Python: 3.14+
+- golangci-lint: v2.7.2+
+- Node: v24.11.1+ LTS
+- Java: 21 LTS (Gatling load tests)
+- Maven: 3.9+
+- pre-commit: 2.20.0+
+- Docker: 24+
+- Docker Compose: v2+
+<!-- @/propagate -->
 
 **Languages**: Go 1.25.5 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
