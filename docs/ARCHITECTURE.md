@@ -1429,7 +1429,9 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 ### 6.10 Secrets Detection Strategy
 
-**Purpose**: Detect inline secrets in deployment compose files to enforce Docker secrets usage.
+<!-- @propagate to=".github/instructions/02-05.security.instructions.md" as="secrets-detection-strategy" -->
+**Detection**: Length-based threshold (≥32 bytes / ≥43 base64 chars) for inline secrets in compose files. NO entropy calculation (too many false positives). Safe references (`/run/secrets/`, short dev defaults) excluded. Infrastructure deployments excluded.
+<!-- @/propagate -->
 
 **Detection Approach**: Length-based threshold (≥32 bytes raw, ≥43 characters base64-encoded) identifies high-entropy inline values in environment variables matching secret-pattern names (PASSWORD, SECRET, TOKEN, KEY, API_KEY). No entropy calculation is used - it produces too many false positives on non-secret configuration values.
 
@@ -1839,15 +1841,17 @@ log.Info("operation completed",
 
 #### 9.4.1 OTel Collector Processor Constraints
 
-**CRITICAL: OTel collector processor configuration can block entire E2E pipeline.**
+<!-- @propagate to=".github/instructions/02-03.observability.instructions.md" as="otel-collector-constraints" -->
+| Processor | Requirement | Dev/CI | Production |
+|-----------|------------|--------|------------|
+| resourcedetection/docker | Docker socket `/var/run/docker.sock` | NEVER use | Use when socket available |
+| resourcedetection/env | Environment variables | ALWAYS | ALWAYS |
+| resourcedetection/system | OS hostname, IP | ALWAYS | ALWAYS |
 
-| Processor | Requirement | Impact if Missing |
-|-----------|-------------|-------------------|
-| `resourcedetection` (docker) | `/var/run/docker.sock` mounted in collector container | Collector fails to start |
-| `resourcedetection` (env) | None | Environment variable enrichment |
-| `resourcedetection` (system) | None | Hostname/OS enrichment |
+**MANDATORY for dev/CI**: Use `detectors: [env, system]`. NEVER include `docker` detector without verified socket access.
 
-**MANDATORY**: Use `detectors: [env, system]` for dev/CI/E2E environments. Add `docker` detector ONLY in production compose files where Docker socket access is guaranteed.
+**CRITICAL**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers are ALWAYS MANDATORY BLOCKING.
+<!-- @/propagate -->
 
 **Anti-Pattern**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers that prevent E2E validation MUST be fixed immediately — they are BLOCKING, not "nice-to-have."
 
@@ -2675,7 +2679,14 @@ Here are local convenience commands to run the workflows locally for Development
 
 #### 11.2.8 format_go Self-Modification Protection - CRITICAL
 
-- Root Cause: LLM agents lose exclusion context during narrow-focus refactoring
+<!-- @propagate to=".github/instructions/03-01.coding.instructions.md" as="format-go-protection" -->
+**MANDATORY Prevention Rules**:
+- NEVER change ` +""+interface{}+""+ ` to ` +""+ny+""+ ` in format_go package
+- NEVER simplify CRITICAL/SELF-MODIFICATION comments
+- ALWAYS read complete package context (enforce_any.go, filter.go, magic_cicd.go, format_go_test.go, self_modification_test.go) before modifying
+<!-- @/propagate -->
+
+**Root Cause**: LLM agents lose exclusion context during narrow-focus refactoring
 - NEVER DO:
   - ❌ Modify comments in enforce_any.go without reading full package context
   - ❌ Change backticked `interface{}` to `any` in format_go package
@@ -3669,7 +3680,9 @@ Propagation markers are added incrementally:
 
 ### 12.8 Validator Error Aggregation Pattern
 
-**Purpose**: All validators run to completion (never short-circuit) and aggregate errors for a single unified report.
+<!-- @propagate to=".github/instructions/03-01.coding.instructions.md" as="validator-error-aggregation" -->
+All validators run to completion (never short-circuit) and aggregate errors for a single unified report. Sequential execution ensures deterministic output ordering. Aggregated errors (not fail-fast) show ALL problems in one run, reducing fix-test-fix cycles. `validate-all` returns exit code 0 if all pass, exit code 1 if any fail.
+<!-- @/propagate -->
 
 **Execution Model**: Sequential execution of all 8 validators. Each validator produces a `ValidationResult` containing: valid/invalid status, error list, and execution duration. The orchestrator (`ValidateAll`) collects all results and produces a summary with pass/fail counts and total duration.
 
