@@ -142,3 +142,12 @@ Based on fixes-v7 experience, the following ARCHITECTURE.md sections need update
 
 7. **Section 13 (Development Practices)**: No guidance on plan lifecycle management.
    fixes-v1 through v7 proliferation shows the need for a "single living plan" pattern.
+
+8. **Section 9.4 (Observability/Infrastructure)**: No documentation of Docker Desktop
+   upgrade risks. Version upgrades (e.g., .55→.62) can break testcontainers-go API
+   compatibility, causing E2E test socket errors and container startup failures.
+   Symptoms appear silently as flaky E2E tests, NOT as clear error messages.
+   After ANY Docker Desktop upgrade: run full E2E suite, check `go.mod` testcontainers
+   version for API compatibility.
+
+**Status**: All 8 gaps resolved — see ARCH-SUGGESTIONS.md (all marked ✅ APPLIED).

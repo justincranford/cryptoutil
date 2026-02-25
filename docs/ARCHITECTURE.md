@@ -3669,6 +3669,10 @@ systemctl --user start docker-desktop
 
 See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that require Docker.
 
+**Docker Desktop Upgrade Warning**: After ANY Docker Desktop upgrade, run the full E2E test suite before continuing development. Docker Desktop version changes can break testcontainers-go API compatibility — symptoms include socket errors and container startup failures.
+
+See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-docker-desktop-and-testcontainers-api-compatibility) for diagnosis checklist and resolution guidance.
+
 ### 13.6 Plan Lifecycle Management
 
 **Single Living Plan**: Each project MUST have exactly one active plan document (`plan.md`) and one active task list (`tasks.md`). Creating versioned successor plans (e.g., `plan-v2.md`, `fixes-v8/`) is an anti-pattern.

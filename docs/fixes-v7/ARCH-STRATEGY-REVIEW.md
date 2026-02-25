@@ -34,13 +34,13 @@ back to ARCHITECTURE.md.
 
 | Metric | Value | Assessment |
 |--------|-------|------------|
-| Total ARCHITECTURE.md sections (## + ###) | 133 | - |
-| Sections referenced by instructions/agents | 48 (36%) | LOW |
-| Sections with NO cross-references | 85 (64%) | HIGH |
-| Cross-references in instructions | 148 | Dense |
-| Cross-references in agents | 15 | Sparse |
+| Total ARCHITECTURE.md sections (## + ###) | 228 (+95 from new sections) | - |
+| Sections referenced by instructions/agents | 84 (37%) | IMPROVED (was 48/36%) |
+| Sections with NO cross-references | 144 (63%) | Most are subsections under referenced parents |
+| Cross-references in instructions | 148+ | Dense |
+| Cross-references in agents | 25+ | Improved (was 15) |
 | Go/YAML files referencing ARCHITECTURE.md | 10 | Minimal |
-| Agent with zero references | implementation-planning (0) | GAP |
+| Agent with zero references | (none — all agents now have refs) | RESOLVED |
 
 ### 2.2 Reference Distribution (Instruction Files)
 
@@ -246,7 +246,7 @@ A CICD subcommand that:
 
 **R5: Add Instruction File Coverage Targets**
 Track what percentage of ARCHITECTURE.md sections have downstream instruction file coverage.
-Current: 36%. Target: 60% (cover all "High impact" sections from table in Section 3.3).
+Current: 37% (84/228 sections). Target: 60% (cover all "High impact" sections from table in Section 3.3).
 Accept that Appendices and Executive Summary don't need instruction file coverage.
 
 ### 5.3 Long-Term (Higher Effort)
@@ -311,15 +311,15 @@ These propagations SHOULD exist but currently DON'T:
 
 | Source | Should Propagate To | Current Status | Impact |
 |--------|-------------------|----------------|--------|
-| ARCHITECTURE.md Section 6.6 (JOSE) | jose-specific instruction file | NO instruction file | JOSE patterns undocumented for agents |
-| ARCHITECTURE.md Section 8.3 (Versioning) | openapi instructions | NOT covered | API versioning not enforced |
-| ARCHITECTURE.md Section 8.5 (API Security) | security instructions | NOT covered | API security patterns not in agent context |
-| ARCHITECTURE.md Section 9.1 (CLI Patterns) | golang instructions | Partial | CLI patterns not fully propagated |
-| ARCHITECTURE.md Section 9.2 (Config) | data-infrastructure instructions | Partial | Config architecture gaps |
-| ARCHITECTURE.md Section 10.4 (E2E Strategy) | testing instructions | NOT covered | E2E strategy not in agent context |
+| ARCHITECTURE.md Section 6.6 (JOSE) | jose-specific instruction file | ✅ RESOLVED — ref added to 02-05.security | JOSE patterns now referenced |
+| ARCHITECTURE.md Section 8.3 (Versioning) | openapi instructions | ✅ RESOLVED — Cross-References added to 02-04.openapi | API versioning ref in agent context |
+| ARCHITECTURE.md Section 8.5 (API Security) | security instructions | ✅ RESOLVED — Cross-References added to 02-04.openapi | API security ref in agent context |
+| ARCHITECTURE.md Section 9.1 (CLI Patterns) | golang instructions | ✅ RESOLVED — ref added to 03-03.golang | CLI patterns propagated |
+| ARCHITECTURE.md Section 9.2 (Config) | data-infrastructure instructions | ✅ RESOLVED — ref added to 03-04.data-infrastructure | Config architecture covered |
+| ARCHITECTURE.md Section 10.4 (E2E Strategy) | testing instructions | ✅ RESOLVED — Cross-References updated in 03-02.testing | E2E strategy now in agent context |
 | ARCHITECTURE.md Section 14 (Ops) | (no instruction file) | MISSING | Ops patterns have zero agent awareness |
 | ARCHITECTURE-INDEX.md | ARCHITECTURE.md sync | Manual only | Index may be stale |
-| All instruction files | Agent awareness | Agents don't load instructions | 148 refs invisible to agents |
+| All instruction files | Agent awareness | Agents don't load instructions | refs invisible to agents |
 
 ### 6.4 The Fundamental Tension
 

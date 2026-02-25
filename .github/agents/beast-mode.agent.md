@@ -256,6 +256,10 @@ document. Continue other work meanwhile. User will provide input when available.
 **NO Waiting**: Never do idle waiting for external dependencies. Work on
 everything else meanwhile. Dependencies may resolve while you work.
 
+**Infrastructure Blockers ARE ALWAYS BLOCKING**: OTel config, Docker socket, testcontainers, CI/CD failures — NEVER tag as "pre-existing" to justify deferral. Three-encounter escalation rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix.
+
+See [ARCHITECTURE.md Section 13.7 Infrastructure Blocker Escalation](/docs/ARCHITECTURE.md#137-infrastructure-blocker-escalation) for escalation rule details.
+
 ### Example Blocker Scenario
 
 **WRONG Approach** (stops all work):
