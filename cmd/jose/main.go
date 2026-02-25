@@ -11,5 +11,5 @@ cryptoutilAppsJose "cryptoutil/internal/apps/jose"
 )
 
 func main() {
-os.Exit(cryptoutilAppsJose.Jose(os.Args, os.Stdin, os.Stdout, os.Stderr))
+os.Exit(cryptoutilAppsJose.Jose(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

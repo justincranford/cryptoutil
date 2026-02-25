@@ -297,30 +297,39 @@ func TestE2E_PostgreSQLSharedState(t *testing.T) {
 	require.NoError(t, err, "Ping PostgreSQL should succeed")
 
 	// Verify shared tables exist (created by both pg-1 and pg-2 instances).
-	tables := []string{
-		"barrier_root_keys",
-		"browser_session_jwks",
-		"service_session_jwks",
+	// barrier_root_keys and service_session_jwks MUST have >= 1 row (always initialized by service startup).
+	// browser_session_jwks MUST exist but may be empty (default browser session algorithm is OPAQUE,
+	// which uses hashed tokens instead of JWKs).
+	tableChecks := []struct {
+		name       string
+		requireRow bool
+	}{
+		{"barrier_root_keys", true},
+		{"service_session_jwks", true},
+		{"browser_session_jwks", false},
 	}
 
-	for _, table := range tables {
-		t.Run(table, func(t *testing.T) {
+	existsQuery := `SELECT EXISTS (
+		SELECT FROM information_schema.tables
+		WHERE table_schema = 'public' AND table_name = $1
+	)`
+
+	for _, tc := range tableChecks {
+		t.Run(tc.name, func(t *testing.T) {
 			var exists bool
 
-			query := `SELECT EXISTS (
-				SELECT FROM information_schema.tables
-				WHERE table_schema = 'public' AND table_name = $1
-			)`
-			err := db.QueryRowContext(ctx, query, table).Scan(&exists)
-			require.NoError(t, err, "Checking %s existence should succeed", table)
-			require.True(t, exists, "%s table should exist in shared database", table)
+			err := db.QueryRowContext(ctx, existsQuery, tc.name).Scan(&exists)
+			require.NoError(t, err, "Checking %s existence should succeed", tc.name)
+			require.True(t, exists, "%s table should exist in shared database", tc.name)
 
-			// Verify at least 1 row exists (either instance could have created it).
-			var count int
+			if tc.requireRow {
+				// Verify at least 1 row exists (either instance could have created it).
+				var count int
 
-			err = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+table).Scan(&count)
-			require.NoError(t, err, "Counting %s rows should succeed", table)
-			require.GreaterOrEqual(t, count, 1, "Should have at least 1 row in %s", table)
+				err = db.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+tc.name).Scan(&count)
+				require.NoError(t, err, "Counting %s rows should succeed", tc.name)
+				require.GreaterOrEqual(t, count, 1, "Should have at least 1 row in %s", tc.name)
+			}
 		})
 	}
 }

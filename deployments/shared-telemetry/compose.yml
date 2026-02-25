@@ -23,7 +23,7 @@ services:
             echo "OpenTelemetry Collector is ready"
             exit 0
           fi
-          echo "Waiting for OpenTelemetry Collector... ($i/30)"
+          echo "Waiting for OpenTelemetry Collector... ($$i/30)"
           sleep 2
         done
         echo "OpenTelemetry Collector failed to become ready"

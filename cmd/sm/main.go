@@ -11,5 +11,5 @@ cryptoutilAppsSm "cryptoutil/internal/apps/sm"
 )
 
 func main() {
-os.Exit(cryptoutilAppsSm.Sm(os.Args, os.Stdin, os.Stdout, os.Stderr))
+os.Exit(cryptoutilAppsSm.Sm(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

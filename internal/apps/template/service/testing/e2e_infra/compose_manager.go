@@ -19,13 +19,17 @@ import (
 // ComposeManager orchestrates docker compose lifecycle for E2E tests.
 type ComposeManager struct {
 	ComposeFile string
+	Profiles    []string
 	HTTPClient  *http.Client
 }
 
 // NewComposeManager creates a compose manager with TLS-enabled HTTP client.
-func NewComposeManager(composeFile string) *ComposeManager {
+// Profiles specifies Docker Compose profiles to activate (e.g., "dev", "postgres").
+// Services with profiles: [...] in compose.yml only start when their profile is active.
+func NewComposeManager(composeFile string, profiles ...string) *ComposeManager {
 	return &ComposeManager{
 		ComposeFile: composeFile,
+		Profiles:    profiles,
 		HTTPClient:  cryptoutilSharedCryptoTls.NewClientForTest(),
 	}
 }
@@ -48,7 +52,8 @@ func NewComposeManager(composeFile string) *ComposeManager {
 func (cm *ComposeManager) Start(ctx context.Context) error {
 	fmt.Println("Starting docker compose stack...")
 
-	startCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "up", "-d")
+	args := cm.buildComposeArgs("up", "-d")
+	startCmd := exec.CommandContext(ctx, "docker", args...)
 	startCmd.Stdout = os.Stdout
 	startCmd.Stderr = os.Stderr
 
@@ -63,7 +68,8 @@ func (cm *ComposeManager) Start(ctx context.Context) error {
 func (cm *ComposeManager) Stop(ctx context.Context) error {
 	fmt.Println("Stopping docker compose stack...")
 
-	downCmd := exec.CommandContext(ctx, "docker", "compose", "-f", cm.ComposeFile, "down", "-v")
+	args := cm.buildComposeArgs("down", "-v")
+	downCmd := exec.CommandContext(ctx, "docker", args...)
 	downCmd.Stdout = os.Stdout
 	downCmd.Stderr = os.Stderr
 
@@ -72,6 +78,19 @@ func (cm *ComposeManager) Stop(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// buildComposeArgs builds the docker compose command arguments including profiles.
+func (cm *ComposeManager) buildComposeArgs(subcommand ...string) []string {
+	args := []string{"compose", "-f", cm.ComposeFile}
+
+	for _, profile := range cm.Profiles {
+		args = append(args, "--profile", profile)
+	}
+
+	args = append(args, subcommand...)
+
+	return args
 }
 
 // WaitForHealth polls an health endpoint until healthy or timeout.

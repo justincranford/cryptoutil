@@ -11,5 +11,5 @@ import (
 )
 
 func main() {
-	os.Exit(cryptoutilAppsJoseJa.Ja(os.Args, os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsJoseJa.Ja(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

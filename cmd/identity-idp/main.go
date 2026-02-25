@@ -11,5 +11,5 @@ cryptoutilAppsIdentityIdp "cryptoutil/internal/apps/identity/idp"
 )
 
 func main() {
-os.Exit(cryptoutilAppsIdentityIdp.Idp(os.Args, os.Stdin, os.Stdout, os.Stderr))
+os.Exit(cryptoutilAppsIdentityIdp.Idp(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

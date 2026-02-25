@@ -102,7 +102,7 @@ services:
   sm-im-app-sqlite-1:
     profiles: ["dev", "demo", "ci"]
     image: cryptoutil:dev
-    command: ["server", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml"]
+    command: ["server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-sqlite-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "sqlite://file::memory:?cache=shared"]
     working_dir: /tmp
     ports:
       - "8700:8080"  # HTTPS public
@@ -145,7 +145,7 @@ services:
   sm-im-app-postgres-1:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "--config=/app/config/sm-im-app-postgresql-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-postgresql-1.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8701:8080"  # HTTPS public
@@ -191,7 +191,7 @@ services:
   sm-im-app-postgres-2:
     profiles: ["postgres"]
     image: cryptoutil:dev
-    command: ["server", "--config=/app/config/sm-im-app-postgresql-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
+    command: ["server", "--bind-public-port=8080", "--config=/app/config/sm-im-app-postgresql-2.yml", "--config=/app/config/sm-im-app-common.yml", "--config=/app/otel/otel.yml", "-u", "file:///run/secrets/postgres-url.secret"]
     working_dir: /tmp
     ports:
       - "8702:8080"  # HTTPS public

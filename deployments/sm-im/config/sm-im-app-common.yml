@@ -1,5 +1,5 @@
-server:
-  port: 8080
+bind-public-address: "0.0.0.0"
+bind-public-port: 8080
 
 # Authentication credentials (Docker secrets)
 # Browser credentials for web UI access
