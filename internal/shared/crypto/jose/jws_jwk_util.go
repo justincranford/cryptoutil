@@ -45,10 +45,7 @@ const (
 
 // GenerateJWSJWKForAlg generates a JWS JWK for the specified signature algorithm.
 func GenerateJWSJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-	kid, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create uuid v7: %w", err)
-	}
+	kid := googleUuid.Must(googleUuid.NewV7())
 
 	key, err := validateJWSJWKHeaders(&kid, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {

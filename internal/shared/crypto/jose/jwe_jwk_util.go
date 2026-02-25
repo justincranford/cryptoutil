@@ -31,10 +31,7 @@ var ErrInvalidJWEJWKKidUUID = "invalid JWE JWK kid UUID"
 
 // GenerateJWEJWKForEncAndAlg generates a new JWE JWK for the specified encryption and algorithm.
 func GenerateJWEJWKForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-	kid, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create uuid v7: %w", err)
-	}
+	kid := googleUuid.Must(googleUuid.NewV7())
 
 	key, err := validateJWEJWKHeaders(&kid, enc, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {

@@ -162,10 +162,7 @@ func ExtractKty(jwk joseJwk.Key) (*joseJwa.KeyType, error) {
 
 // GenerateJWKForAlg generates a JWK for the specified algorithm.
 func GenerateJWKForAlg(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-	kid, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create uuid v7: %w", err)
-	}
+	kid := googleUuid.Must(googleUuid.NewV7())
 
 	key, err := validateJWKHeaders2(&kid, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {
