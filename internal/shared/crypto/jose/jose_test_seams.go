@@ -13,13 +13,11 @@ json "encoding/json"
 
 cryptoutilSharedCryptoKeygen "cryptoutil/internal/shared/crypto/keygen"
 
-joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-joseJws "github.com/lestrrat-go/jwx/v3/jws"
 )
 
 // Category 1: jwk.Set() — wraps key.Set(name, value).
-var jwkKeySet = func(key joseJwk.Key, name string, value interface{}) error {
+var jwkKeySet = func(key joseJwk.Key, name string, value any) error {
 return key.Set(name, value)
 }
 
@@ -44,17 +42,3 @@ generateEDDSAKeyPair = cryptoutilSharedCryptoKeygen.GenerateEDDSAKeyPair
 generateHMACKey      = cryptoutilSharedCryptoKeygen.GenerateHMACKey
 generateAESKey       = cryptoutilSharedCryptoKeygen.GenerateAESKey
 )
-
-// Category 8: Encrypt/Sign/Parse/Decrypt — wraps JWE/JWS operations.
-var (
-jweEncryptFunc = joseJwe.Encrypt
-jweParseFunc   = joseJwe.Parse
-jweDecryptFunc = joseJwe.Decrypt
-jwsSignFunc    = joseJws.Sign
-jwsParseFunc   = joseJws.Parse
-)
-
-// Category 9: jwk set Add — wraps set.AddKey().
-var jwkSetAddKey = func(set joseJwk.Set, key joseJwk.Key) error {
-return set.AddKey(key)
-}

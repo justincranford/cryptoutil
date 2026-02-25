@@ -9,7 +9,6 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	rsa "crypto/rsa"
-	json "encoding/json"
 	"fmt"
 	"time"
 
@@ -68,29 +67,29 @@ func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 
 	switch typedKey := key.(type) {
 	case cryptoutilSharedCryptoKeygen.SecretKey: // HMAC // pragma: allowlist secret
-		if nonPublicJWK, err = joseJwk.Import([]byte(typedKey)); err != nil {
+		if nonPublicJWK, err = jwkImport([]byte(typedKey)); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key material into JWS JWK: %w", err)
 		}
 
-		if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyOCT); err != nil {
+		if err = jwkKeySet(nonPublicJWK, joseJwk.KeyTypeKey, KtyOCT); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'oct' in JWS JWK: %w", err)
 		}
 	case *cryptoutilSharedCryptoKeygen.KeyPair: // RSA, ECDSA, EdDSA
-		if nonPublicJWK, err = joseJwk.Import(typedKey.Private); err != nil {
+		if nonPublicJWK, err = jwkImport(typedKey.Private); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key pair into JWS JWK: %w", err)
 		}
 
 		switch typedKey.Private.(type) {
 		case *rsa.PrivateKey: // RSA
-			if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyRSA); err != nil {
+			if err = jwkKeySet(nonPublicJWK, joseJwk.KeyTypeKey, KtyRSA); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'rsa' in JWS JWK: %w", err)
 			}
 		case *ecdsa.PrivateKey: // ECDSA, ECDH
-			if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyEC); err != nil {
+			if err = jwkKeySet(nonPublicJWK, joseJwk.KeyTypeKey, KtyEC); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'ec' in JWS JWK: %w", err)
 			}
 		case ed25519.PrivateKey, ed448.PrivateKey: // ED25519, ED448
-			if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyOKP); err != nil {
+			if err = jwkKeySet(nonPublicJWK, joseJwk.KeyTypeKey, KtyOKP); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'okp' in JWS JWK: %w", err)
 			}
 		default:
@@ -100,27 +99,27 @@ func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported key type %T for JWS JWK", key)
 	}
 
-	if err = nonPublicJWK.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
+	if err = jwkKeySet(nonPublicJWK, joseJwk.KeyIDKey, kid.String()); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `kid` header in JWS JWK: %w", err)
 	}
 
-	if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, *alg); err != nil {
+	if err = jwkKeySet(nonPublicJWK, joseJwk.AlgorithmKey, *alg); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWS JWK: %w", err)
 	}
 
-	if err = nonPublicJWK.Set("iat", now); err != nil {
+	if err = jwkKeySet(nonPublicJWK, "iat", now); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWS JWK: %w", err)
 	}
 
-	if err = nonPublicJWK.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
+	if err = jwkKeySet(nonPublicJWK, joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `use` header in JWS JWK: %w", err)
 	}
 
-	if err = nonPublicJWK.Set(joseJwk.KeyOpsKey, OpsSigVer); err != nil {
+	if err = jwkKeySet(nonPublicJWK, joseJwk.KeyOpsKey, OpsSigVer); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWS JWK: %w", err)
 	}
 
-	clearNonPublicJWKBytes, err := json.Marshal(nonPublicJWK)
+	clearNonPublicJWKBytes, err := jsonMarshalFunc(nonPublicJWK)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to serialize JWS JWK: %w", err)
 	}
@@ -130,16 +129,16 @@ func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 	var clearPublicJWKBytes []byte
 
 	if _, ok := key.(*cryptoutilSharedCryptoKeygen.KeyPair); ok { // RSA, EC, ED
-		publicJWK, err = nonPublicJWK.PublicKey()
+		publicJWK, err = jwkPublicKey(nonPublicJWK)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to get public JWE JWK from private JWE JWK: %w", err)
 		}
 
-		if err = publicJWK.Set(joseJwk.KeyOpsKey, OpsVer); err != nil {
+		if err = jwkKeySet(publicJWK, joseJwk.KeyOpsKey, OpsVer); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWE JWK: %w", err)
 		}
 
-		clearPublicJWKBytes, err = json.Marshal(publicJWK)
+		clearPublicJWKBytes, err = jsonMarshalFunc(publicJWK)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to serialize public JWE JWK: %w", err)
 		}

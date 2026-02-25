@@ -32,8 +32,8 @@ type TestServerResources struct {
 
 	// Server resources
 	SmIMServer *cryptoutilAppsSmImServer.SmIMServer
-	BaseURL        string
-	AdminURL       string
+	BaseURL    string
+	AdminURL   string
 
 	// Shared services
 	JWKGenService    *cryptoutilSharedCryptoJose.JWKGenService

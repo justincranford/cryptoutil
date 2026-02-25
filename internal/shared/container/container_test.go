@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"testing"
 
-	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+	cryptoutilSharedTelemetry "cryptoutil/internal/shared/telemetry"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/require"

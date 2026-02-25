@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-
 	stdoutLogExporter "log/slog"
 
 	stdoutMetricExporter "go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"

@@ -19,12 +19,12 @@ func TestUntil(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		timeout     time.Duration
-		interval    time.Duration
-		condFn      func() cryptoutilSharedUtilPoll.ConditionFunc
-		ctxFn       func() context.Context
-		wantErr     bool
+		name         string
+		timeout      time.Duration
+		interval     time.Duration
+		condFn       func() cryptoutilSharedUtilPoll.ConditionFunc
+		ctxFn        func() context.Context
+		wantErr      bool
 		wantSentinel error
 		errContains  string
 	}{
@@ -102,12 +102,12 @@ func TestUntil(t *testing.T) {
 			errContains: "poll canceled",
 		},
 		{
-			name:     "nil conditionFn",
-			timeout:  1 * time.Second,
-			interval: 10 * time.Millisecond,
-			condFn:   func() cryptoutilSharedUtilPoll.ConditionFunc { return nil },
-			ctxFn:    func() context.Context { return context.Background() },
-			wantErr:  true,
+			name:        "nil conditionFn",
+			timeout:     1 * time.Second,
+			interval:    10 * time.Millisecond,
+			condFn:      func() cryptoutilSharedUtilPoll.ConditionFunc { return nil },
+			ctxFn:       func() context.Context { return context.Background() },
+			wantErr:     true,
 			errContains: "conditionFn must not be nil",
 		},
 		{

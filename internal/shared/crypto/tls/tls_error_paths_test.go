@@ -304,4 +304,3 @@ func TestStorePEM_WriteFileKeyError(t *testing.T) {
 
 	require.ErrorIs(t, err, injectedErr)
 }
-
