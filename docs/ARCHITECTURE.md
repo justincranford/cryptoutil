@@ -64,6 +64,36 @@ This document is structured to serve multiple audiences:
 - [Appendix B: Reference Tables](#appendix-b-reference-tables)
 - [Appendix C: Compliance Matrix](#appendix-c-compliance-matrix)
 
+### Document Conventions
+
+#### RFC 2119 Keywords
+
+<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="rfc-2119-keywords" -->
+- **MUST** = **REQUIRED** = **MANDATORY** = **SHALL** - Absolute requirement
+- **MUST NOT** = **SHALL NOT** - Absolute prohibition
+- **SHOULD** = **RECOMMENDED** - Highly desirable (may ignore with justification)
+- **SHOULD NOT** = **NOT RECOMMENDED** - Not advisable (may do with justification)
+- **MAY** = **OPTIONAL** - Truly optional (implementer decides)
+<!-- @/propagate -->
+
+#### Emphasis Keywords
+
+<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="emphasis-keywords" -->
+- **CRITICAL** - Historically regression-prone areas requiring extra attention
+- **ALWAYS** / **NEVER** - Emphatic MUST / MUST NOT (no exceptions)
+<!-- @/propagate -->
+
+#### Abbreviations
+
+<!-- @propagate to=".github/instructions/01-01.terminology.instructions.md" as="abbreviations" -->
+**CRITICAL: NEVER use ambiguous `auth` abbreviation to mean either authentication or authorization**
+
+- **authn** = Authentication
+- **authz** = Authorization
+
+**Rationale**: Prevents confusion filenames, variable names, and documentation.
+<!-- @/propagate -->
+
 ---
 
 ## 1. Executive Summary
@@ -3672,25 +3702,41 @@ Propagation markers are added incrementally:
 
 #### 13.2.1 Conventional Commits
 
-- Format: `<type>[scope]: <description>`
-- Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
-- Breaking changes: Use `!` or `BREAKING CHANGE:`
-- Examples: `feat(auth): add OAuth2 flow`, `fix(database): prevent pool exhaustion`
+<!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="conventional-commits" -->
+**Format**: `<type>[optional scope]: <description>`
+
+**Types**: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+
+**Examples**:
+
+```bash
+feat(auth): add OAuth2 client credentials flow
+fix(database): prevent connection pool exhaustion
+feat(api)!: remove deprecated v1 endpoints  # Breaking change
+```
+<!-- @/propagate -->
 
 #### 13.2.2 Incremental Commit Strategy
 
-- ALWAYS commit incrementally (NOT amend)
-- Preserve timeline for bisect and selective revert
-- Commit each logical unit independently
-- Avoid: Repeated amend, hiding fixes, amend after push
+<!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="incremental-commits" -->
+- ALWAYS commit incrementally (NOT amend) - preserves history for bisect, selective revert.
+- NEVER repeatedly amend - loses context, hard to bisect.
+- Amend ONLY for immediate typo fixes (<1 min, before push).
+<!-- @/propagate -->
 
 #### 13.2.3 Restore from Clean Baseline Pattern
 
-- Find last known-good commit
-- Restore entire package from clean commit
-- Verify baseline works
-- Apply targeted fix ONLY
-- Commit as NEW commit (not amend)
+<!-- @propagate to=".github/instructions/05-02.git.instructions.md" as="restore-from-baseline" -->
+**When fixing regressions, ALWAYS restore clean baseline FIRST**:
+
+1. Find last known-good commit (`git log --oneline --grep="baseline"`)
+2. Restore package (`git checkout <hash> -- path/to/package/`)
+3. Verify baseline works (`go test`)
+4. Apply ONLY the new fix (minimal change)
+5. Commit as NEW commit (NOT amend)
+
+**Why**: HEAD may be corrupted from previous failed attempts. Start from known-good state.
+<!-- @/propagate -->
 
 ### 13.3 Branching Strategy
 
@@ -3820,7 +3866,12 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 
 ### 13.7 Infrastructure Blocker Escalation
 
-**MANDATORY: Infrastructure issues are ALWAYS blocking. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
+<!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
+<!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="infrastructure-blocker-escalation" -->
+**MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
+
+Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
+<!-- @/propagate -->
 
 **Three-Encounter Escalation Rule**:
 
