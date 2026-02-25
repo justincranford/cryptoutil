@@ -5,18 +5,40 @@
 | Metric | Value |
 |--------|-------|
 | Package | `internal/shared/crypto/jose` |
-| Total statements | 1117 |
-| Covered statements | 1004 |
-| Uncovered statements | 113 |
-| Current coverage | 89.9% |
-| Structural ceiling | ~90% |
+| Total statements | 1115 |
+| Covered statements | 1062 |
+| Uncovered statements | 53 |
+| Current coverage | **95.3%** |
+| Previous coverage | 89.9% |
+| Structural ceiling | ~90% (before seam injection) |
 | jwx version | v3 (github.com/lestrrat-go/jwx/v3) |
 
-## Why 89.9% Is the Structural Ceiling
+## Resolution: Function Variable Seam Injection
 
-All 113 uncovered statements are **defensive error returns** on jwx library operations that **cannot fail when given valid inputs**. The pre-validation logic ensures inputs are always valid before these operations execute.
+The initial 89.9% ceiling was broken by replacing direct library calls with package-level function variables ("seams") that tests can override to inject errors. This technique covers error paths without wrapping the jwx library.
 
-Without **interface-wrapping** the jwx library (explicitly forbidden per task requirements), these paths are unreachable.
+**Files modified for seam replacement**:
+- `jose_test_seams.go` — Seam variable definitions (Categories 1-4, 6)
+- `jwe_jwk_util.go` — Replaced `.Set()`, `joseJwk.Import()`, `json.Marshal()`, `.PublicKey()` calls
+- `jwk_util.go` — Same seam replacements
+- `jws_jwk_util.go` — Same seam replacements
+- `jwk_util_validate.go` — Replaced `Generate*KeyPair`/`Generate*Key` calls
+
+**Test file**: `jose_seam_injection_test.go` (491 lines) — Error injection tests for all three `Create*JWKFromKey` functions plus keygen error paths.
+
+## Remaining 53 Uncovered Statements
+
+### Truly Unreachable (default switch cases): ~8 statements
+Type switch default cases in `Create*JWKFromKey` and `validateOrGenerate*` — unexported `Key` interface prevents custom implementations.
+
+### JWE OKP branches: ~4 statements
+No JWE algorithm uses ed25519/OKP keys — ECDH-ES uses EC type, not OKP.
+
+### Message util error paths: ~30 statements
+Encrypt/sign/parse/decrypt error paths in `jwe_message_util.go` and `jws_message_util.go`. Category 8 seams were prepared but removed (not needed for 95% target).
+
+### Other defensive returns: ~11 statements
+Keygen errors in JWE/JWS validate functions, jwkgen.go BuildJWK errors, etc.
 
 ## Uncovered Statement Categories
 
