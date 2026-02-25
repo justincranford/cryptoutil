@@ -3646,7 +3646,7 @@ content here (verbatim copy of source)
 
 #### 12.7.3 Propagation Rules
 
-**One-to-many**: One ARCHITECTURE.md chunk MAY propagate to multiple target files. Use multiple `@propagate` markers with different `to` attributes and the same `as` identifier.
+**One-to-many**: One ARCHITECTURE.md chunk MAY propagate to multiple target files. Use separate `@propagate`/`@/propagate` blocks with different `to` attributes and the same `as` identifier. Content MUST be duplicated identically in each block to enable simple regex extraction.
 
 **Chunk granularity**: Propagate the smallest self-contained unit. Prefer one chunk per logical concept (a table, a rule set, a code block with explanation). Do NOT wrap entire sections in a single marker.
 
@@ -3954,6 +3954,11 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 ### 13.7 Infrastructure Blocker Escalation
 
 <!-- @propagate to=".github/instructions/06-01.evidence-based.instructions.md" as="infrastructure-blocker-escalation" -->
+**MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
+
+Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATORY Phase 0 fix (block ALL other work). Infrastructure blockers (OTel, Docker, testcontainers, CI/CD) take priority over feature work.
+<!-- @/propagate -->
+
 <!-- @propagate to=".github/instructions/01-02.beast-mode.instructions.md" as="infrastructure-blocker-escalation" -->
 **MANDATORY: ALL infrastructure issues are BLOCKING. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
 
