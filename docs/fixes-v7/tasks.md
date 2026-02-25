@@ -1,38 +1,51 @@
-# Remaining Tasks - fixes-v7 Carryover
+# Remaining Tasks - fixes-v7 Followup
 
-**Source**: Archived fixes-v7 (220/220 complete)
-**Status**: All tasks complete
+**Source**: Distilled from archived fixes-v7 (archive2/)
+**Status**: Active
 
-## E2E OTel Collector Fix (COMPLETE)
+## Phase 1: E2E Verification (Blocked — Docker Desktop)
 
-- [x] Fix OTel collector config: remove `docker` from `resourcedetection` detectors
-  - File: `deployments/shared-telemetry/otel/otel-collector-config.yaml` line 79
-  - Change: `detectors: [env, docker, system]` → `detectors: [env, system]`
-- [x] Verify: deployment validators still pass after OTel config change
-- [ ] Verify E2E: `go test -tags=e2e -timeout=30m ./internal/apps/sm/im/e2e/...` passes
-- [ ] Verify E2E: sm-im E2E passes end-to-end
+- [ ] Run `go test -tags=e2e -timeout=30m ./internal/apps/sm/im/e2e/...`
+- [ ] Verify sm-im E2E passes end-to-end with fixed OTel config
+- [ ] If E2E fails: diagnose and fix (OTel config change: `detectors: [env, system]`)
 
-> **Note**: E2E verification requires Docker Desktop running. OTel config fix is committed.
-> E2E tests should be run when Docker Desktop is available.
+## Phase 2: Propagation Infrastructure
 
-## ARCH-SUGGESTIONS Applied (COMPLETE)
+### 2.1 Reference Validation Script
 
-- [x] Suggestion 1: Coverage ceiling analysis methodology (Section 10.2.3)
-- [x] Suggestion 2: Test seam injection pattern (Section 10.2.4)
-- [x] Suggestion 3: OTel processor constraints (Section 9.4.1)
-- [x] Suggestion 4: Expand propagation mapping (Section 12.7)
-- [x] Suggestion 5: Plan lifecycle management (Section 13.6)
-- [x] Suggestion 6: Docker Desktop compatibility (Section 9.4.2)
-- [x] Suggestion 7: Agent self-containment requirements (Section 2.1.1)
-- [x] Suggestion 8: Infrastructure blocker escalation (Section 13.7)
+- [ ] Create `cicd lint-docs validate-propagation` subcommand
+- [ ] Extract all `See [ARCHITECTURE.md Section X.Y]` refs from .github/instructions/*.md
+- [ ] Extract all `See [ARCHITECTURE.md Section X.Y]` refs from .github/agents/*.md
+- [ ] Resolve refs against actual ARCHITECTURE.md section headers
+- [ ] Report broken links (ref to non-existent section)
+- [ ] Report orphaned sections (high-impact sections with zero refs)
+- [ ] Add tests for the validator (>=95% coverage)
+- [ ] Add to pre-commit and CI/CD workflow
 
-## Propagation (COMPLETE)
+### 2.2 Section 14 Instruction Coverage
 
-- [x] 03-02.testing.instructions.md: Coverage ceiling + test seam refs
-- [x] 02-03.observability.instructions.md: OTel constraints + Docker Desktop refs
-- [x] 04-01.deployment.instructions.md: Docker Desktop + infrastructure blocker refs
-- [x] 06-01.evidence-based.instructions.md: Coverage ceiling + blocker escalation refs
-- [x] 01-02.beast-mode.instructions.md: Infrastructure blocker escalation ref
-- [x] 06-02.agent-format.instructions.md: Agent self-containment checklist
-- [x] implementation-planning.agent.md: ARCHITECTURE.md cross-reference table (18 refs)
-- [x] implementation-execution.agent.md: Test seam + quality gates + infrastructure refs
+- [ ] Review ARCHITECTURE.md Section 14 content scope
+- [ ] Add Operational Excellence content to existing instruction file OR create new file
+- [ ] Add `See [ARCHITECTURE.md Section 14]` cross-references
+
+### 2.3 ARCHITECTURE-INDEX.md Sync
+
+- [ ] Compare ARCHITECTURE-INDEX.md against current ARCHITECTURE.md section headers
+- [ ] Update if stale
+- [ ] Consider adding index validation to `cicd lint-docs`
+
+## Phase 3: Propagation Quality (Medium-Term)
+
+### 3.1 Lint Propagation Coverage
+
+- [ ] Extend `cicd lint-docs` to report section coverage percentage
+- [ ] Classify sections as high/medium/low impact
+- [ ] Set target: 60% of high-impact sections referenced
+- [ ] Track coverage in CI/CD
+
+### 3.2 Content Hash Staleness Detection
+
+- [ ] Design hash storage format (inline in markers or separate file)
+- [ ] Implement hash comparison in `cicd lint-docs`
+- [ ] Flag stale `@source` blocks where ARCHITECTURE.md content changed
+- [ ] Add to CI/CD workflow

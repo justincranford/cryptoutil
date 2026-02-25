@@ -1,28 +1,61 @@
-# Remaining Work Plan - fixes-v7 Carryover
+# Remaining Work Plan - fixes-v7 Followup
 
-**Status**: Complete
+**Status**: Active
 **Created**: 2026-02-25
-**Completed**: 2026-02-25
-**Source**: Archived from fixes-v7 (220/220 tasks complete)
+**Source**: Distilled from archived fixes-v7 (archive2/)
 
 ## Background
 
-The fixes-v7 plan completed all 220 tasks across 11 phases (8 original + 3 added).
+fixes-v7 completed 220/220 tasks across 11 phases. All 8 ARCHITECTURE.md gaps
+from lessons.md were applied (ARCH-SUGGESTIONS.md). The propagation marker system
+(`@source`/`@propagate`) was implemented across ARCHITECTURE.md and 18 instruction
+files.
 
-## Resolved: E2E OTel Collector (FIXED)
+This plan captures the remaining open items and followup work identified during
+the fixes-v7 strategy review.
 
-**Root Cause**: `deployments/shared-telemetry/otel/otel-collector-config.yaml` line 79
-used `resourcedetection` processor with `detectors: [env, docker, system]`. The `docker`
-detector requires `/var/run/docker.sock` mounted inside the OTel collector container.
-Without it, the collector fails to start, blocking the entire E2E service chain.
+## Phase 1: E2E Verification (Blocked — Docker Desktop)
 
-**Resolution**: Option 1 applied — removed `docker` detector. Changed to `detectors: [env, system]`.
-Docker metadata enrichment is low-value for this project; system and env detectors provide sufficient context.
+Verify the OTel collector config fix (`detectors: [env, system]`) actually
+unblocks E2E tests. Requires Docker Desktop running.
 
-**Lesson**: Infrastructure blockers are ALWAYS MANDATORY BLOCKING. NEVER defer as "pre-existing".
-See [ARCHITECTURE.md Section 13.7](../ARCHITECTURE.md#137-infrastructure-blocker-escalation).
+- Run `go test -tags=e2e -timeout=30m ./internal/apps/sm/im/e2e/...`
+- Verify sm-im E2E passes end-to-end
 
-## ARCH-SUGGESTIONS Applied
+## Phase 2: Propagation Infrastructure
 
-All 8 architecture suggestions from ARCH-SUGGESTIONS.md applied to ARCHITECTURE.md
-and propagated to instruction/agent files. See ARCH-SUGGESTIONS.md for details.
+Build tooling to validate and enforce the ARCHITECTURE.md propagation chain.
+
+### 2.1 Reference Validation Script (R3 from strategy review)
+
+Create a `cicd lint-docs validate-propagation` subcommand that:
+1. Extracts all `See [ARCHITECTURE.md Section X.Y]` references from instruction/agent files
+2. Resolves them against actual ARCHITECTURE.md section headers
+3. Reports broken links (references to non-existent sections)
+4. Reports stale references (section renumbered or removed)
+
+### 2.2 Section 14 Instruction Coverage
+
+ARCHITECTURE.md Section 14 (Operational Excellence) has zero instruction file
+coverage. Either:
+- Add Ops content to an existing instruction file (e.g., 04-01.deployment), or
+- Create a new instruction file if Section 14 is substantial enough
+
+### 2.3 ARCHITECTURE-INDEX.md Sync
+
+Verify ARCHITECTURE-INDEX.md is current with ARCHITECTURE.md. If stale, update
+or add a validator.
+
+## Phase 3: Propagation Quality (Medium-Term)
+
+### 3.1 Lint Propagation Coverage (R4/R5 from strategy review)
+
+Extend `cicd lint-docs` to report:
+- ARCHITECTURE.md sections with zero downstream references (currently ~63%)
+- Instruction file coverage percentage (currently ~37% of sections referenced)
+- Target: 60% coverage of high-impact sections
+
+### 3.2 Content Hash Staleness Detection (R6 from strategy review)
+
+For each `@source` marker, store SHA-256 hash of source content at sync time.
+CI/CD check flags when source has changed but downstream hasn't been updated.
