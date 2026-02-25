@@ -227,13 +227,14 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - `tasks.md` - Created/updated during implementation-planning.agent.md, implemented during implementation-execution.agent.md (phases and tasks as checkboxes, updated continuously)
 - `memory.md` - Ephemeral, only during implementation-execution.agent.md (NOT in .github/instructions/memory.instruction.md - copilot instruction files are not loaded by agents)
 
-**Agent Self-Containment Requirements** (MANDATORY):
-
-- Agents that generate implementation plans MUST reference relevant ARCHITECTURE.md sections (testing strategy Section 10, quality gates Section 11, coding standards Section 13)
-- Agents that modify code MUST reference coding standards (Sections 11, 13)
-- Agents that modify deployments MUST reference deployment architecture (Section 12)
+<!-- @propagate to=".github/instructions/06-02.agent-format.instructions.md" as="agent-self-containment" -->
+**Agent Self-Containment Checklist** (MANDATORY):
+- Agents generating implementation plans MUST reference ARCHITECTURE.md testing (Section 10), quality gates (Section 11), coding standards (Section 13)
+- Agents modifying code MUST reference coding standards (Sections 11, 13)
+- Agents modifying deployments MUST reference deployment architecture (Section 12)
 - ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
 - Agents with ZERO ARCHITECTURE.md references are NON-COMPLIANT and MUST be updated
+<!-- @/propagate -->
 
 #### 2.1.2 Agent Catalog
 
@@ -1659,6 +1660,22 @@ cryptoutil follows an OpenAPI-first design approach, ensuring all APIs are defin
 - Parallel operation of N and N-1 versions
 
 ### 8.4 Error Handling
+
+<!-- @propagate to=".github/instructions/02-04.openapi.instructions.md" as="http-status-codes" -->
+| Code | Usage |
+|------|-------|
+| 200 | GET, PUT, PATCH successful |
+| 201 | POST (resource created) |
+| 204 | DELETE successful |
+| 400 | Validation error |
+| 401 | Missing/invalid auth |
+| 403 | Insufficient permissions |
+| 404 | Resource not found |
+| 409 | Duplicate/conflict |
+| 422 | Semantic validation error |
+| 500 | Unhandled server error |
+| 503 | Temporary unavailability |
+<!-- @/propagate -->
 
 #### 8.4.1 Error Schema Format
 
@@ -3676,7 +3693,33 @@ Propagation markers are added incrementally:
 5. Run `validate-propagation` to confirm match
 6. Repeat for remaining sections
 
-**Priority order**: 02-06.authn → 05-01.cross-platform → 02-05.security → 02-01.architecture → remaining files
+**Completed propagation chunks**:
+
+| Chunk ID | ARCHITECTURE.md Section | Target File(s) |
+|----------|------------------------|----------------|
+| rfc-2119-keywords | Document Conventions | 01-01.terminology |
+| emphasis-keywords | Document Conventions | 01-01.terminology |
+| abbreviations | Document Conventions | 01-01.terminology |
+| infrastructure-blocker-escalation | 13.7 | 01-02.beast-mode, 06-01.evidence-based |
+| otel-collector-constraints | 9.4.1 | 02-03.observability |
+| http-status-codes | 8.4 | 02-04.openapi |
+| secrets-detection-strategy | 6.10 | 02-05.security |
+| key-principles | 6.9 | 02-06.authn |
+| session-token-formats | 6.9.1 | 02-06.authn |
+| headless-authn | 6.9.2 | 02-06.authn |
+| browser-authn | 6.9.3 | 02-06.authn |
+| mfa-combinations | 6.9.4 | 02-06.authn |
+| authz-methods | 6.9.5 | 02-06.authn |
+| validator-error-aggregation | 12.8 | 03-01.coding |
+| format-go-protection | 11.2.8 | 03-01.coding |
+| docker-desktop-startup | 13.5.4 | 05-01.cross-platform |
+| docker-desktop-upgrade | 13.5.4 | 05-01.cross-platform |
+| conventional-commits | 13.2.1 | 05-02.git |
+| incremental-commits | 13.2.2 | 05-02.git |
+| restore-from-baseline | 13.2.3 | 05-02.git |
+| agent-self-containment | 2.1.1 | 06-02.agent-format |
+
+**Structural glue** (~20% of instruction file content) remains non-propagated: condensed quick-reference summaries, section headings, `See` cross-references, transitional text, tables in different formats, and code examples unique to instruction file context.
 
 ### 12.8 Validator Error Aggregation Pattern
 
