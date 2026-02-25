@@ -1332,7 +1332,18 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 **Authentication Methods**: 41 total (13 headless + 28 browser)
 **Authorization**: Scope-based, RBAC, resource-level ACLs, zero-trust (no caching)
 
+<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="key-principles" -->
+- **Zero Trust**: NO caching of authorization decisions. Re-evaluate every request.
+- **MFA Step-Up**: Re-authentication MANDATORY every 30 minutes for high-sensitivity operations.
+- **Session Storage**: SQL databases ONLY (PostgreSQL or SQLite with ACID). NEVER Redis/Memcached.
+- **mTLS Revocation**: MUST check BOTH CRLDP and OCSP. Fail if BOTH unreachable.
+<!-- @/propagate -->
+
 #### 6.9.1 Authentication Realm Architecture
+
+<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="session-token-formats" -->
+**Opaque** (UUID), **JWE** (encrypted JWT), **JWS** (signed JWT). Storage: PostgreSQL (distributed) or SQLite (single-node). NO Redis/Memcached.
+<!-- @/propagate -->
 
 - Realm types and purposes
 - Credential validators (File, Database, Federated)
@@ -1341,23 +1352,45 @@ Non-Deterministic Example: {n2}nonce:aad#{R5}HKDF-HMAC-SHA256:abc123...:def456..
 
 #### 6.9.2 Headless Authentication Methods (13 Total)
 
-- Non-Federated: JWE/JWS/Opaque session tokens, Basic (client ID/secret), Bearer (API token), HTTPS client cert
-- Federated: OAuth 2.1 client credentials, Bearer (federated), mTLS, JWE/JWS/Opaque access tokens, Opaque refresh tokens
+<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="headless-authn" -->
+**Non-Federated (6)**: JWE Session Token, JWS Session Token, Opaque Session Token, Basic (Client ID/Secret), Bearer (API Token), HTTPS Client Certificate.
+
+**Federated (7)**: Basic/Bearer/ClientCert via OAuth 2.1, JWE/JWS/Opaque Access Token, Opaque Refresh Token.
+
+**Storage**: YAML + SQL (Config > DB priority) for all methods.
+<!-- @/propagate -->
 
 #### 6.9.3 Browser Authentication Methods (28 Total)
 
-- All headless methods PLUS: TOTP, HOTP, Recovery codes, WebAuthn (with/without passkeys), Push notification
-- Email/Phone factors: Password, OTP, Magic link (email/SMS/voice)
-- Social login: Google, Microsoft, GitHub, Facebook, Apple, LinkedIn, Twitter/X, Amazon, Okta
-- SAML 2.0 federation
+<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="browser-authn" -->
+**Non-Federated (6)**: JWE/JWS/Opaque Session Cookie, Basic (Username/Password), Bearer (API Token), HTTPS Client Certificate.
+
+**Federated (22)**: All non-federated methods PLUS:
+- **MFA Factors**: TOTP, HOTP, Recovery Codes, WebAuthn (with/without Passkeys), Push Notification
+- **Passwordless**: Email/Password, Magic Link (Email/SMS), Random OTP (Email/SMS/Phone)
+- **Social Login**: Google, Microsoft, GitHub, Facebook, Apple, LinkedIn, Twitter/X, Amazon, Okta
+- **Enterprise**: SAML 2.0
+
+**Storage**: YAML + SQL (Config > DB) for static credentials. SQL ONLY for dynamic user data (OTPs, enrollments, magic links).
+<!-- @/propagate -->
 
 #### 6.9.4 Multi-Factor Authentication (MFA)
+
+<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="mfa-combinations" -->
+**Browser**: Password + TOTP/WebAuthn/Push/OTP.
+**Headless**: Client ID/Secret + mTLS/Bearer.
+<!-- @/propagate -->
 
 - Step-up authentication (re-auth every 30min for high-sensitivity operations)
 - Factor enrollment workflows
 - MFA bypass policies and emergency access
 
 #### 6.9.5 Authorization Patterns
+
+<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="authz-methods" -->
+**Headless**: Scope-based, RBAC.
+**Browser**: Scope-based, RBAC, resource-level ACLs, consent tracking (scope+resource granularity).
+<!-- @/propagate -->
 
 - Zero trust: NO caching of authorization decisions
 - Scope-based authorization (headless)
@@ -3486,13 +3519,62 @@ configs/
 
 ### 12.7 Documentation Propagation Strategy
 
-**Purpose**: Keep instruction files (`.github/instructions/`) synchronized with ARCHITECTURE.md using chunk-based verbatim copying of semantic units.
+#### 12.7.1 Design Intent
 
-**Propagation Model**: ARCHITECTURE.md is the single source of truth. Instruction files contain compressed summaries with `See [ARCHITECTURE.md Section X.Y]` cross-references. When ARCHITECTURE.md sections change, corresponding instruction file sections MUST be updated.
+**Problem**: Different Copilot modes of operation (VS Code Chat, CLI agents, Cloud agents, custom agents) read different file sets. Custom agents do NOT read `.github/instructions/*.instructions.md`. CLI and Cloud agents may not read `.github/copilot-instructions.md`. Keeping all file sets synchronized is error-prone.
 
-**MANDATORY**: Changes to ARCHITECTURE.md sections MUST trigger updates in all downstream instruction files and agents that reference them. Infrastructure issues, OTel configuration, Docker compatibility, and other blocking concerns MUST be propagated immediately — NEVER deferred.
+**Solution**: ARCHITECTURE.md is the **absolute single source of truth**. Content is propagated to downstream files using **chunk-based verbatim copying** with HTML comment markers. A deterministic CI/CD validator verifies propagation integrity.
 
-**Section-Level Mapping** (MANDATORY — primary propagation targets):
+**MANDATORY**: Changes to ARCHITECTURE.md MUST be propagated to ALL downstream files in the SAME commit. Infrastructure changes (Docker, OTel, testcontainers, CI/CD) are ALWAYS BLOCKING — NEVER deferred.
+
+#### 12.7.2 Propagation Marker System
+
+**Marker Format in ARCHITECTURE.md** (source):
+
+```html
+<!-- @propagate to=".github/instructions/02-06.authn.instructions.md" as="key-principles" -->
+content here (verbatim body text)
+<!-- @/propagate -->
+```
+
+**Marker Format in Instruction Files** (target):
+
+```html
+<!-- @source from="docs/ARCHITECTURE.md" as="key-principles" -->
+content here (verbatim copy of source)
+<!-- @/source -->
+```
+
+**Attributes**:
+- `to`: Relative path from repository root to the target file (ARCHITECTURE.md markers only)
+- `from`: Relative path from repository root to the source file (target file markers only)
+- `as`: Unique chunk identifier within the source-target pair (kebab-case)
+
+**Content Between Markers**:
+- MUST be identical in source and target (byte-for-byte after whitespace normalization)
+- MUST NOT contain section headings (headings go OUTSIDE markers, allowing different heading levels)
+- MUST NOT contain `See [ARCHITECTURE.md ...]` cross-reference links (those go OUTSIDE markers as glue)
+- MUST be self-contained body text: paragraphs, bullet lists, tables, code blocks, bold/italic
+
+**Content Outside Markers** (non-propagated glue):
+- Section headings (## in instruction files, #### in ARCHITECTURE.md)
+- `See [ARCHITECTURE.md Section X.Y](...)` cross-reference links
+- Transitional paragraphs connecting propagated chunks
+- YAML frontmatter (instruction files only)
+
+#### 12.7.3 Propagation Rules
+
+**One-to-many**: One ARCHITECTURE.md chunk MAY propagate to multiple target files. Use multiple `@propagate` markers with different `to` attributes and the same `as` identifier.
+
+**Chunk granularity**: Propagate the smallest self-contained unit. Prefer one chunk per logical concept (a table, a rule set, a code block with explanation). Do NOT wrap entire sections in a single marker.
+
+**Heading-agnostic**: Headings are NEVER inside markers. This allows ARCHITECTURE.md to use `####` while instruction files use `##` for the same content.
+
+**Link transformation**: Content inside markers uses NO internal cross-references. All `See [Section X.Y](#anchor)` references go outside markers as instruction file glue.
+
+**Whitespace normalization**: CI/CD comparison ignores leading/trailing blank lines within markers and normalizes line endings (CRLF → LF). All other whitespace (indentation, inline spaces) MUST match exactly.
+
+#### 12.7.4 Section-Level Mapping
 
 | ARCHITECTURE.md Section | Primary Instruction File(s) | Agent File(s) |
 |------------------------|----------------------------|---------------|
@@ -3512,9 +3594,48 @@ configs/
 | 14. Operational Excellence | 02-03.observability | — |
 | Appendix A-C | (reference only) | — |
 
-**Semantic Units**: Propagation copies complete sections (not individual sentences). Each section is a self-contained semantic unit with purpose, rules, and cross-references.
+#### 12.7.5 CI/CD Validation
 
-**Infrastructure Blockers in Propagation**: Any ARCHITECTURE.md change related to infrastructure (Docker, OTel, testcontainers, CI/CD) MUST be treated as BLOCKING and propagated to ALL downstream files in the SAME commit. NEVER defer infrastructure propagations.
+**Command**: `cicd lint-docs validate-propagation`
+
+**Algorithm**:
+1. Parse all `@propagate` markers in ARCHITECTURE.md → extract (target_file, chunk_id, content)
+2. For each target, parse `@source` markers → extract (source_file, chunk_id, content)
+3. Normalize whitespace (trim leading/trailing blank lines, LF line endings)
+4. Compare source content with target content byte-for-byte
+5. Report mismatches with diff output showing exact divergence
+
+**Exit codes**: 0 = all chunks match, 1 = divergence detected
+
+**CI/CD integration**: Runs in `cicd-lint-docs` workflow on every push/PR. Blocks merge on divergence.
+
+#### 12.7.6 Feasibility Constraints
+
+**Verbatim propagation IS feasible** for ~80% of content with the following constraints:
+
+| Content Type | Verbatim? | Rationale |
+|-------------|-----------|-----------|
+| Rules, requirements, constraints | ✅ Yes | Self-contained, no context dependency |
+| Tables (algorithms, ports, methods) | ✅ Yes | Structured data, works in any context |
+| Code blocks with annotations | ✅ Yes | Self-contained examples |
+| Bullet lists of specifications | ✅ Yes | Enumerated facts |
+| Prose with internal cross-references | ❌ No | `See Section X.Y` links differ between source/target |
+| Section headings | ❌ No | Different heading levels per document |
+| Transitional paragraphs | ❌ No | Context-dependent narrative flow |
+
+**Non-propagated content** (~20%) is structural glue: headings, `See` references, transitions. This content exists in both documents but is NOT required to match verbatim.
+
+#### 12.7.7 Migration Strategy
+
+Propagation markers are added incrementally:
+1. Start with highest-value instruction files (most-referenced, most-divergent)
+2. For each section: reconcile content direction (ARCHITECTURE.md → instruction file)
+3. Add `@propagate` markers in ARCHITECTURE.md
+4. Add `@source` markers in instruction files with verbatim copy
+5. Run `validate-propagation` to confirm match
+6. Repeat for remaining sections
+
+**Priority order**: 02-06.authn → 05-01.cross-platform → 02-05.security → 02-01.architecture → remaining files
 
 ### 12.8 Validator Error Aggregation Pattern
 
@@ -3608,6 +3729,7 @@ configs/
 
 #### 13.5.4 Docker Desktop Startup - CRITICAL
 
+<!-- @propagate to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-startup" -->
 **MANDATORY**: Docker Desktop MUST be running before executing any Docker-dependent operations (E2E tests, Docker Compose, container builds).
 
 **Cross-Platform Verification**:
@@ -3666,10 +3788,13 @@ systemctl --user start docker-desktop
 - `docker compose up` fails with pipe/socket errors
 - E2E tests skip with environmental warnings
 - Integration test containers cannot start
+<!-- @/propagate -->
 
 See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that require Docker.
 
-**Docker Desktop Upgrade Warning**: After ANY Docker Desktop upgrade, run the full E2E test suite before continuing development. Docker Desktop version changes can break testcontainers-go API compatibility — symptoms include socket errors and container startup failures.
+<!-- @propagate to=".github/instructions/05-01.cross-platform.instructions.md" as="docker-desktop-upgrade" -->
+**Docker Desktop Upgrade Warning**: After ANY Docker Desktop or testcontainers upgrade, run the full E2E test suite. Upgrades MAY break API compatibility between testcontainers-go and Docker Desktop — symptoms may include socket errors, container startup failures, and general Docker API issues.
+<!-- @/propagate -->
 
 See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-docker-desktop-and-testcontainers-api-compatibility) for diagnosis checklist and resolution guidance.
 
@@ -3835,43 +3960,6 @@ See [Section 9.4.2 Docker Desktop and Testcontainers API Compatibility](#942-doc
 **See .github/copilot-instructions.md** for complete table of 18 instruction files
 
 **Summary**: 01-terminology/beast-mode, 02-architecture (5 files), 03-development (4 files), 04-deployment (1 file), 05-platform (2 files), 06-evidence (2 files)
-
-### B.7 Agent Catalog & Handoff Matrix
-
-**Agents Available**:
-
-- implementation-planning: Planning and task decomposition → hands off to implementation-execution
-- implementation-execution: Autonomous implementation execution
-- doc-sync: Documentation synchronization
-- fix-workflows: Workflow repair and validation
-- beast-mode: Continuous execution mode
-
-**See .github/agents/*.agent.md** for complete agent definitions
-
-### B.8 CI/CD Workflow Catalog
-
-**See Section 9.7.1 Workflow Catalog** for complete list
-
-**Summary**: ci-quality, ci-coverage, ci-mutation, ci-race, ci-benchmark, ci-sast, ci-dast, ci-e2e, ci-load, ci-gitleaks
-
-### B.9 Reusable Action Catalog
-
-**See Section 9.8.1 Action Catalog** for complete list
-
-**Summary**: docker-images-pull (parallel image pre-fetching), cache-go (Go module cache)
-
-### B.10 Linter Rule Reference
-
-**See .golangci.yml** for complete configuration
-
-**Summary**: 30+ linters enabled (errcheck, govet, staticcheck, wsl_v5, godot, gosec, etc.)
-
-| File | Description |
-|------|-------------|
-| 01-01.terminology | RFC 2119 keywords (MUST, SHOULD, MAY, CRITICAL) |
-| 01-02.beast-mode | Beast mode directive |
-| 02-01.architecture | Products and services architecture patterns |
-| ... | (25 total instruction files) |
 
 ### B.7 Agent Catalog & Handoff Matrix
 
