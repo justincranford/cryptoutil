@@ -197,6 +197,14 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - `tasks.md` - Created/updated during implementation-planning.agent.md, implemented during implementation-execution.agent.md (phases and tasks as checkboxes, updated continuously)
 - `memory.md` - Ephemeral, only during implementation-execution.agent.md (NOT in .github/instructions/memory.instruction.md - copilot instruction files are not loaded by agents)
 
+**Agent Self-Containment Requirements** (MANDATORY):
+
+- Agents that generate implementation plans MUST reference relevant ARCHITECTURE.md sections (testing strategy Section 10, quality gates Section 11, coding standards Section 13)
+- Agents that modify code MUST reference coding standards (Sections 11, 13)
+- Agents that modify deployments MUST reference deployment architecture (Section 12)
+- ALL agents MUST reference Section 2.5 (Quality Strategy) for coverage and mutation targets
+- Agents with ZERO ARCHITECTURE.md references are NON-COMPLIANT and MUST be updated
+
 #### 2.1.2 Agent Catalog
 
 - implementation-planning: Planning and task decomposition
@@ -340,6 +348,8 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 - **Infrastructure/Utility**: ≥98% minimum coverage
 - **main() Functions**: 0% (exempt if internalMain() ≥95%)
 - **Generated Code**: 0% (excluded - OpenAPI, GORM models, protobuf)
+
+**Package-Level Exceptions**: Packages MAY have targets below mandatory minimum IF a coverage ceiling analysis (see [Section 10.2.3](#1023-coverage-targets)) documents the structural ceiling with justification.
 
 #### Mutation Testing
 
@@ -1764,6 +1774,45 @@ log.Info("operation completed",
 - NEVER log: Passwords, API keys, tokens, private keys, PII
 - Safe to log: Key IDs, user IDs, resource IDs, operation types, durations, counts
 
+#### 9.4.1 OTel Collector Processor Constraints
+
+**CRITICAL: OTel collector processor configuration can block entire E2E pipeline.**
+
+| Processor | Requirement | Impact if Missing |
+|-----------|-------------|-------------------|
+| `resourcedetection` (docker) | `/var/run/docker.sock` mounted in collector container | Collector fails to start |
+| `resourcedetection` (env) | None | Environment variable enrichment |
+| `resourcedetection` (system) | None | Hostname/OS enrichment |
+
+**MANDATORY**: Use `detectors: [env, system]` for dev/CI/E2E environments. Add `docker` detector ONLY in production compose files where Docker socket access is guaranteed.
+
+**Anti-Pattern**: NEVER defer OTel or infrastructure configuration issues as "pre-existing." Infrastructure blockers that prevent E2E validation MUST be fixed immediately — they are BLOCKING, not "nice-to-have."
+
+#### 9.4.2 Docker Desktop and Testcontainers API Compatibility
+
+**CRITICAL: Docker Desktop upgrades can break testcontainers.**
+
+Docker Desktop version upgrades (e.g., .55 → .62) may introduce Docker API version mismatches with testcontainers libraries. Symptoms include:
+
+- Containers fail to start with API version errors
+- Health checks time out despite correct configuration
+- Test infrastructure works locally but fails in CI/CD (or vice versa)
+- Intermittent "connection refused" or "daemon not responding" errors
+
+**Diagnosis Checklist** (when Docker-related tests fail after an upgrade):
+
+1. Check Docker Desktop version: `docker version` (note both Client and Server API versions)
+2. Check testcontainers-go version in `go.mod` — verify compatibility with Docker API version
+3. Check Docker Compose version: `docker compose version`
+4. Verify Docker daemon health: `docker info` (check for warnings)
+5. Check for Docker Desktop settings changes (resource limits, WSL backend, etc.)
+6. Try `docker system prune -f` to clear stale state
+7. Verify network connectivity: `docker network ls`
+
+**Resolution**: Update testcontainers-go dependency to match Docker Desktop API version. If testcontainers-go hasn't released a compatible version yet, pin Docker Desktop to the last working version until alignment.
+
+**MANDATORY**: After any Docker Desktop upgrade, run the full E2E test suite before considering the upgrade complete. Docker API mismatches are BLOCKING issues.
+
 ### 9.5 Container Architecture
 
 **Multi-Stage Dockerfile Pattern**:
@@ -2029,6 +2078,49 @@ func TestListMessages_Handler(t *testing.T) {
 - 0% acceptable for main() if internalMain() ≥95%
 - Generated code excluded from coverage
 - **`internal/shared/magic/` excluded**: constants-only package, no executable logic
+
+**Coverage Ceiling Analysis** (MANDATORY before setting per-package targets):
+
+1. Generate `go tool cover -html=coverage.out`
+2. Categorize every uncovered line:
+   - **Structurally testable**: Error paths reachable via seam injection or input manipulation
+   - **Structurally unreachable**: Default switch cases for exhaustive type switches, dead code paths
+   - **Third-party boundary**: Library return errors that require internal library state manipulation
+3. Calculate ceiling: `ceiling = (total - unreachable) / total`
+4. Set target at ceiling - 2% (safety margin)
+5. Document exceptions in package README or coverage analysis file
+
+**Package-Level Exceptions**: Packages MAY have targets below the mandatory minimum IF a coverage ceiling analysis documents the structural ceiling. Exception format:
+
+| Package | Standard Target | Actual Target | Ceiling | Justification |
+|---------|----------------|---------------|---------|---------------|
+| internal/shared/crypto/jose | 95% | 95% | ~96% | JWE OKP branches unreachable |
+
+#### 10.2.4 Test Seam Injection Pattern
+
+**Purpose**: Enable error path testing in third-party library wrappers without interfaces or mocks.
+
+**Pattern**: Package-level function variables that default to real implementations but can be replaced in tests with error-returning versions.
+
+```go
+// Production code (seams file)
+var jwkKeySet = func(key any) (jwk.Set, error) { return jwk.Import(key) }
+
+// Test code
+func TestErrorPath(t *testing.T) {
+    t.Parallel()
+    original := jwkKeySet
+    t.Cleanup(func() { jwkKeySet = original })
+    jwkKeySet = func(any) (jwk.Set, error) { return nil, errors.New("injected") }
+    // ... test error handling path
+}
+```
+
+**When to Use**: Third-party library calls that may fail but rarely do in practice (Set, Import, Marshal, PublicKey, keygen). NOT for business logic (use interfaces).
+
+**Coverage Impact**: Typically adds 3-8% coverage by testing default/error switch branches that are structurally unreachable in normal operation.
+
+**Helper Pattern**: Use `saveRestoreSeams(t)` to automatically save and restore all seam variables via `t.Cleanup()`, preventing test pollution.
 
 ### 10.3 Integration Testing Strategy
 
@@ -3398,17 +3490,31 @@ configs/
 
 **Propagation Model**: ARCHITECTURE.md is the single source of truth. Instruction files contain compressed summaries with `See [ARCHITECTURE.md Section X.Y]` cross-references. When ARCHITECTURE.md sections change, corresponding instruction file sections MUST be updated.
 
-**Mapping**:
+**MANDATORY**: Changes to ARCHITECTURE.md sections MUST trigger updates in all downstream instruction files and agents that reference them. Infrastructure issues, OTel configuration, Docker compatibility, and other blocking concerns MUST be propagated immediately — NEVER deferred.
 
-| ARCHITECTURE.md Section | Instruction File |
-|------------------------|------------------|
-| 12.4 Deployment Structure Validation | 04-01.deployment.instructions.md |
-| 12.5 Config File Architecture | 04-01.deployment.instructions.md |
-| 12.6 Secrets Management | 02-05.security.instructions.md |
-| 6.X Secrets Detection | 02-05.security.instructions.md |
-| 9.7 CI/CD Workflow Architecture | 04-01.deployment.instructions.md |
+**Section-Level Mapping** (MANDATORY — primary propagation targets):
+
+| ARCHITECTURE.md Section | Primary Instruction File(s) | Agent File(s) |
+|------------------------|----------------------------|---------------|
+| 1. Executive Summary | (none — context only) | — |
+| 2. Strategic Vision | 01-01.terminology, 01-02.beast-mode, 02-02.versions | implementation-planning, implementation-execution, beast-mode |
+| 3. Product Suite | 02-01.architecture | — |
+| 4. System Architecture | 02-01.architecture, 03-03.golang | — |
+| 5. Service Architecture | 02-01.architecture, 03-04.data-infrastructure | — |
+| 6. Security Architecture | 02-05.security, 02-06.authn | — |
+| 7. Data Architecture | 03-04.data-infrastructure | — |
+| 8. API Architecture | 02-04.openapi | — |
+| 9. Infrastructure Architecture | 02-03.observability, 04-01.deployment, 03-05.linting | fix-workflows |
+| 10. Testing Architecture | 03-02.testing | implementation-execution |
+| 11. Quality Architecture | 03-05.linting, 03-01.coding, 06-01.evidence-based | implementation-planning, beast-mode |
+| 12. Deployment Architecture | 04-01.deployment, 02-05.security | fix-workflows, doc-sync |
+| 13. Development Practices | 05-02.git, 03-01.coding, 03-03.golang | implementation-planning, implementation-execution |
+| 14. Operational Excellence | 02-03.observability | — |
+| Appendix A-C | (reference only) | — |
 
 **Semantic Units**: Propagation copies complete sections (not individual sentences). Each section is a self-contained semantic unit with purpose, rules, and cross-references.
+
+**Infrastructure Blockers in Propagation**: Any ARCHITECTURE.md change related to infrastructure (Docker, OTel, testcontainers, CI/CD) MUST be treated as BLOCKING and propagated to ALL downstream files in the SAME commit. NEVER defer infrastructure propagations.
 
 ### 12.8 Validator Error Aggregation Pattern
 
@@ -3562,6 +3668,51 @@ systemctl --user start docker-desktop
 - Integration test containers cannot start
 
 See: [Section 11.2.5 CI/CD](#1125-cicd) for local workflow testing commands that require Docker.
+
+### 13.6 Plan Lifecycle Management
+
+**Single Living Plan**: Each project MUST have exactly one active plan document (`plan.md`) and one active task list (`tasks.md`). Creating versioned successor plans (e.g., `plan-v2.md`, `fixes-v8/`) is an anti-pattern.
+
+**Plan Lifecycle**:
+- **Active**: Currently executing. Single `plan.md` + `tasks.md` in project directory.
+- **Archived**: Completed or superseded. Move entire directory to `archive/` subdirectory.
+- **NEVER**: Create parallel/successor plans. Update the existing plan instead.
+
+**Anti-Patterns** (FORBIDDEN):
+- Creating `vN+1` plan directories when `vN` has remaining work
+- Mixing analysis prose with task checkboxes in the same file
+- Task lists exceeding 300 lines (split into phases with separate files)
+- Leaving archived plans in active directories without moving to `archive/`
+
+**Task Document Rules**:
+- `tasks.md`: Checkboxes ONLY (`- [ ]` / `- [x]`), grouped by phase
+- `plan.md`: Strategy, architecture decisions, phase descriptions (NO checkboxes)
+- Analysis results go in `research/` subdirectory, NOT in plan or task files
+
+### 13.7 Infrastructure Blocker Escalation
+
+**MANDATORY: Infrastructure issues are ALWAYS blocking. NEVER defer, deprioritize, skip, or tag as "pre-existing."**
+
+**Three-Encounter Escalation Rule**:
+
+| Encounter | Action | Example |
+|-----------|--------|---------|
+| 1st | Document in tracking doc with root cause hypothesis | "OTel collector fails: docker detector requires socket" |
+| 2nd | Create dedicated fix task, assign to current phase | "Task 11.3: Fix OTel docker detector configuration" |
+| 3rd | MANDATORY Phase 0 fix — block ALL other work until resolved | "Phase 0: OTel infrastructure fix (BLOCKING)" |
+
+**Anti-Pattern**: Tagging infrastructure blockers as "pre-existing" or "not caused by our changes" to justify deferral. If an infrastructure issue blocks E2E tests, it blocks the ENTIRE project regardless of origin.
+
+**Infrastructure Categories** (ALL are blocking):
+- OTel/telemetry configuration errors
+- Docker socket/daemon connectivity
+- Docker Desktop version incompatibility (see [Section 9.4.2](#942-docker-desktop-and-testcontainers-api-compatibility))
+- Testcontainers API version mismatch
+- CI/CD workflow failures
+- Database connectivity or migration errors
+- TLS certificate generation failures
+
+**Resolution Priority**: Infrastructure blockers take priority over feature work. A broken test infrastructure means ALL test results are unreliable.
 
 ---
 

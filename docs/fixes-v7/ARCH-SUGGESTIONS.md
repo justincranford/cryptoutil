@@ -2,8 +2,9 @@
 
 **Source**: Lessons learned from fixes-v7 (11 phases, 220 tasks, 28+ commits).
 **Purpose**: Identify gaps in docs/ARCHITECTURE.md that caused friction during execution.
+**Status**: ALL 8 SUGGESTIONS APPLIED to ARCHITECTURE.md and propagated to instruction/agent files.
 
-## Suggestion 1: Add Test Seam Injection Pattern (Section 10.2)
+## ✅ Suggestion 1: Add Test Seam Injection Pattern (Section 10.2)
 
 **Gap**: No documentation of the test seam injection pattern used to push jose
 coverage from 90% to 95.3%.
@@ -49,7 +50,7 @@ branches that are structurally unreachable in normal operation.
 
 ---
 
-## Suggestion 2: Add Coverage Ceiling Analysis Methodology (Section 10.2.3)
+## ✅ Suggestion 2: Add Coverage Ceiling Analysis Methodology (Section 10.2.3)
 
 **Gap**: Coverage targets are blanket percentages (≥95%/≥98%) without guidance on
 analyzing structural ceilings.
@@ -79,7 +80,7 @@ categorization of uncovered lines enables targeted improvements.
 
 ---
 
-## Suggestion 3: Document OTel Collector Configuration Requirements (Section 9.4)
+## ✅ Suggestion 3: Document OTel Collector Configuration Requirements (Section 9.4)
 
 **Gap**: No mention of OTel collector processor constraints (Docker socket for
 `resourcedetection`).
@@ -110,7 +111,7 @@ Add `docker` detector only in production compose files where socket access is gu
 
 ---
 
-## Suggestion 4: Expand Documentation Propagation Mapping (Section 12.7)
+## ✅ Suggestion 4: Expand Documentation Propagation Mapping (Section 12.7)
 
 **Gap**: Mapping table has only 5 entries but there are 148 cross-references
 across 18 instruction files and 15 across 5 agents. The mapping is severely
@@ -156,7 +157,7 @@ impractical, the mapping should either be:
 
 ---
 
-## Suggestion 5: Add Plan Lifecycle Management (Section 13)
+## ✅ Suggestion 5: Add Plan Lifecycle Management (Section 13)
 
 **Gap**: No guidance on documentation plan lifecycle. fixes-v1 through v7
 proliferation (7 iterations) shows the need for a disciplined approach.
@@ -194,7 +195,7 @@ remaining tasks are explicitly descoped with justification.
 
 ---
 
-## Suggestion 6: Per-Package Coverage Targets (Section 2.5 / 10.2.3)
+## ✅ Suggestion 6: Per-Package Coverage Targets (Section 2.5 / 10.2.3)
 
 **Gap**: Coverage targets are blanket percentages without per-package exceptions.
 
@@ -220,7 +221,7 @@ structural ceiling. Exception format:
 
 ---
 
-## Suggestion 7: Add Agent ARCHITECTURE.md Requirements (Section 2.1)
+## ✅ Suggestion 7: Add Agent ARCHITECTURE.md Requirements (Section 2.1)
 
 **Gap**: `implementation-planning.agent.md` has ZERO ARCHITECTURE.md references.
 The agent isolation principle means agents don't inherit instruction files, so
@@ -246,7 +247,7 @@ may conflict with ARCHITECTURE.md patterns.
 
 ---
 
-## Suggestion 8: Infrastructure Blocker Escalation (Section 13)
+## ✅ Suggestion 8: Infrastructure Blocker Escalation (Section 13)
 
 **Gap**: No guidance on handling pre-existing infrastructure blockers.
 

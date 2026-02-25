@@ -73,10 +73,14 @@ extensions:
 
 processors:
   ###################################################################
-  # Adds metadata about the running environment (Docker, env vars)
+  # Adds metadata about the running environment (env vars, system)
+  # NOTE: `docker` detector removed — requires /var/run/docker.sock
+  # mounted inside the container, which blocks E2E in CI/CD.
+  # Use `detectors: [env, docker, system]` only in production
+  # compose files where Docker socket access is guaranteed.
   ###################################################################
   resourcedetection:
-    detectors: [env, docker, system]
+    detectors: [env, system]
     timeout: 5s
     override: false
 

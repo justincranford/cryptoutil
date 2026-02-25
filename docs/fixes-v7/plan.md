@@ -1,36 +1,28 @@
 # Remaining Work Plan - fixes-v7 Carryover
 
-**Status**: Active
+**Status**: Complete
 **Created**: 2026-02-25
-**Source**: Archived from fixes-v7 (218/220 tasks complete, 2 blocked)
+**Completed**: 2026-02-25
+**Source**: Archived from fixes-v7 (220/220 tasks complete)
 
 ## Background
 
-The fixes-v7 plan completed 218 of 220 tasks across 11 phases (8 original + 3 added).
-Two tasks remain blocked by a pre-existing OTel collector Docker socket issue.
+The fixes-v7 plan completed all 220 tasks across 11 phases (8 original + 3 added).
 
-## Blocked Work: E2E OTel Collector
+## Resolved: E2E OTel Collector (FIXED)
 
 **Root Cause**: `deployments/shared-telemetry/otel/otel-collector-config.yaml` line 79
-uses `resourcedetection` processor with `detectors: [env, docker, system]`. The `docker`
+used `resourcedetection` processor with `detectors: [env, docker, system]`. The `docker`
 detector requires `/var/run/docker.sock` mounted inside the OTel collector container.
 Without it, the collector fails to start, blocking the entire E2E service chain.
 
-**Fix Options** (mutually exclusive, pick one):
+**Resolution**: Option 1 applied — removed `docker` detector. Changed to `detectors: [env, system]`.
+Docker metadata enrichment is low-value for this project; system and env detectors provide sufficient context.
 
-1. **Remove `docker` detector** — Change `detectors: [env, docker, system]` to
-   `detectors: [env, system]`. Loses Docker metadata enrichment but unblocks E2E.
-2. **Mount Docker socket** — Add `volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]`
-   to the OTel collector service in compose files. Preserves metadata but requires
-   socket access in CI/CD runners.
-3. **Conditional config** — Use separate OTel configs for dev (no docker) vs prod (docker).
+**Lesson**: Infrastructure blockers are ALWAYS MANDATORY BLOCKING. NEVER defer as "pre-existing".
+See [ARCHITECTURE.md Section 13.7](../ARCHITECTURE.md#137-infrastructure-blocker-escalation).
 
-**Recommendation**: Option 1 (remove `docker` detector). Docker metadata enrichment
-is low-value for this project; system and env detectors provide sufficient context.
+## ARCH-SUGGESTIONS Applied
 
-## Tasks
-
-1. Fix OTel collector config (remove `docker` detector or mount socket)
-2. Verify E2E tests pass: `go test -tags=e2e -timeout=30m ./internal/apps/sm/im/e2e/...`
-3. Verify sm-im E2E passes end-to-end
-4. Update archived tasks.md completion criteria
+All 8 architecture suggestions from ARCH-SUGGESTIONS.md applied to ARCHITECTURE.md
+and propagated to instruction/agent files. See ARCH-SUGGESTIONS.md for details.

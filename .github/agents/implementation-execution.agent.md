@@ -908,3 +908,9 @@ If a task cannot be completed due to architectural limitations, missing infrastr
 ## Cross-Reference
 
 - **Architecture Documentation**: See [ARCHITECTURE.md Section 2.1 Agent Orchestration Strategy](/docs/ARCHITECTURE.md#21-agent-orchestration-strategy) for agent architecture patterns and autonomous execution mode documentation.
+- **Testing Strategy**: See [ARCHITECTURE.md Section 10.2 Unit Testing Strategy](/docs/ARCHITECTURE.md#102-unit-testing-strategy) for table-driven tests, test seam injection, and coverage ceiling analysis.
+- **Test Seam Pattern**: See [ARCHITECTURE.md Section 10.2.4 Test Seam Injection Pattern](/docs/ARCHITECTURE.md#1024-test-seam-injection-pattern) for unreachable code path testing.
+- **Quality Gates**: See [ARCHITECTURE.md Section 11.2 Quality Gates](/docs/ARCHITECTURE.md#112-quality-gates) for mandatory quality gate enforcement.
+- **Infrastructure Blockers**: See [ARCHITECTURE.md Section 13.7 Infrastructure Blocker Escalation](/docs/ARCHITECTURE.md#137-infrastructure-blocker-escalation) for three-encounter escalation rule.
+- **Coding Standards**: See [ARCHITECTURE.md Section 13.1 Coding Standards](/docs/ARCHITECTURE.md#131-coding-standards) for Go coding patterns.
+- **Plan Lifecycle**: See [ARCHITECTURE.md Section 13.6 Plan Lifecycle Management](/docs/ARCHITECTURE.md#136-plan-lifecycle-management) for plan document rules.
