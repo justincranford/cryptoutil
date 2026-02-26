@@ -169,8 +169,17 @@ See [ARCHITECTURE.md Section 99.9](../../docs/ARCHITECTURE.md#99-nonexistent) br
 	require.Len(t, result.BrokenRefs, 1)
 	require.Equal(t, "99-nonexistent", result.BrokenRefs[0].Anchor)
 
-	// Orphaned sections: 1-executive-summary, 12-key-characteristics, 2-security--principles, main (4 ##/### level headers not referenced).
+	// Orphaned sections: 1-executive-summary, 12-key-characteristics, 2-security--principles (3 ##/### level headers not referenced).
 	require.True(t, len(result.OrphanedKeys) > 0)
+
+	// Coverage stats: 2 ## sections (1-executive-summary, 2-security--principles), 2 ### sections (11-vision-statement, 12-key-characteristics).
+	// Only 11-vision-statement is referenced.
+	require.Equal(t, 2, result.HighImpact.Total)
+	require.Equal(t, 0, result.HighImpact.Referenced)
+	require.Equal(t, 2, result.MediumImpact.Total)
+	require.Equal(t, 1, result.MediumImpact.Referenced)
+	require.Equal(t, 0, result.LowImpact.Total)
+	require.Equal(t, 0, result.LowImpact.Referenced)
 }
 
 func TestValidatePropagation_MissingArchFile(t *testing.T) {
@@ -194,12 +203,20 @@ func TestFormatPropagationResults_AllValid(t *testing.T) {
 		BrokenRefs:   nil,
 		OrphanedKeys: nil,
 		TotalAnchors: 10,
+		HighImpact:   LevelCoverage{Total: 3, Referenced: 3},
+		MediumImpact: LevelCoverage{Total: 7, Referenced: 5},
+		LowImpact:    LevelCoverage{Total: 10, Referenced: 2},
 	}
 
 	report := FormatPropagationResults(result)
 	require.Contains(t, report, "1 valid refs, 0 broken refs")
 	require.Contains(t, report, "All references resolve to valid ARCHITECTURE.md sections.")
 	require.NotContains(t, report, "BROKEN")
+	require.Contains(t, report, "SECTION COVERAGE:")
+	require.Contains(t, report, "High   (##  ): 3/3 (100%)")
+	require.Contains(t, report, "Medium (### ): 5/7 (71%)")
+	require.Contains(t, report, "Low    (####): 2/10 (20%)")
+	require.Contains(t, report, "Combined ##/###: 8/10 (80%)")
 }
 
 func TestFormatPropagationResults_WithBroken(t *testing.T) {
@@ -210,6 +227,8 @@ func TestFormatPropagationResults_WithBroken(t *testing.T) {
 		BrokenRefs:   []PropagationRef{{SourceFile: "test.md", LineNumber: 5, Anchor: "broken"}},
 		OrphanedKeys: []string{"orphan1"},
 		TotalAnchors: 10,
+		HighImpact:   LevelCoverage{Total: 2, Referenced: 1},
+		MediumImpact: LevelCoverage{Total: 5, Referenced: 2},
 	}
 
 	report := FormatPropagationResults(result)
@@ -217,6 +236,35 @@ func TestFormatPropagationResults_WithBroken(t *testing.T) {
 	require.Contains(t, report, "test.md:5 -> #broken")
 	require.Contains(t, report, "ORPHANED SECTIONS (1 of 10")
 	require.Contains(t, report, "FAILED")
+	require.Contains(t, report, "High   (##  ): 1/2 (50%)")
+	require.Contains(t, report, "Medium (### ): 2/5 (40%)")
+	require.Contains(t, report, "Combined ##/###: 3/7 (42%)")
+}
+
+func TestFormatLevelCoverage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		label    string
+		lc       LevelCoverage
+		expected string
+	}{
+		{name: "zero total", label: "Test", lc: LevelCoverage{Total: 0, Referenced: 0}, expected: "Test: 0/0 (N/A)\n"},
+		{name: "full coverage", label: "High", lc: LevelCoverage{Total: 5, Referenced: 5}, expected: "High: 5/5 (100%)\n"},
+		{name: "partial coverage", label: "Med", lc: LevelCoverage{Total: 10, Referenced: 3}, expected: "Med: 3/10 (30%)\n"},
+		{name: "no coverage", label: "Low", lc: LevelCoverage{Total: 8, Referenced: 0}, expected: "Low: 0/8 (0%)\n"},
+		{name: "integer truncation", label: "X", lc: LevelCoverage{Total: 3, Referenced: 1}, expected: "X: 1/3 (33%)\n"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := formatLevelCoverage(tc.label, tc.lc)
+			require.Equal(t, tc.expected, result)
+		})
+	}
 }
 
 func TestValidatePropagationCommand_Integration(t *testing.T) {
@@ -230,6 +278,9 @@ func TestValidatePropagationCommand_Integration(t *testing.T) {
 	require.Equal(t, 0, exitCode, "validate-propagation should pass on real project: stdout=%s stderr=%s", stdout.String(), stderr.String())
 	require.Contains(t, stdout.String(), "0 broken refs")
 	require.Contains(t, stdout.String(), "All references resolve to valid ARCHITECTURE.md sections.")
+	require.Contains(t, stdout.String(), "SECTION COVERAGE:")
+	require.Contains(t, stdout.String(), "High   (##  ):")
+	require.Contains(t, stdout.String(), "Combined ##/###:")
 }
 
 func TestValidatePropagationWithRoot_BadRoot(t *testing.T) {

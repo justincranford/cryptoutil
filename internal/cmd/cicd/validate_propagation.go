@@ -21,12 +21,21 @@ type PropagationRef struct {
 	RawRef     string // e.g., "See [ARCHITECTURE.md Section 9.4.1 ...](...)"
 }
 
+// LevelCoverage tracks section coverage at a specific heading level.
+type LevelCoverage struct {
+	Total      int // Total sections at this level in ARCHITECTURE.md.
+	Referenced int // Sections at this level referenced by instruction/agent files.
+}
+
 // PropagationResult holds validation results.
 type PropagationResult struct {
 	ValidRefs    []PropagationRef
 	BrokenRefs   []PropagationRef
 	OrphanedKeys []string // ARCHITECTURE.md anchors with zero references
 	TotalAnchors int
+	HighImpact   LevelCoverage // ## sections.
+	MediumImpact LevelCoverage // ### sections.
+	LowImpact    LevelCoverage // #### sections.
 }
 
 // anchorRegex matches ARCHITECTURE.md#anchor-fragment in markdown links.
@@ -198,15 +207,42 @@ func ValidatePropagation(rootDir string, readFile func(string) ([]byte, error)) 
 		}
 	}
 
-	// Find orphaned anchors (high-impact sections only = ## and ### level, not ####).
+	// Find orphaned anchors and compute per-level coverage statistics.
 	archLines := strings.Split(string(archContent), "\n")
 
 	for _, line := range archLines {
-		// Only track ## and ### headers for orphan detection.
-		if (strings.HasPrefix(line, "## ") || strings.HasPrefix(line, "### ")) && !strings.HasPrefix(line, "####") {
+		// Determine heading level.
+		switch {
+		case strings.HasPrefix(line, "#### "):
 			anchor := headerToAnchor(line)
-			if anchor != "" && !referencedAnchors[anchor] {
-				result.OrphanedKeys = append(result.OrphanedKeys, anchor)
+			if anchor != "" {
+				result.LowImpact.Total++
+
+				if referencedAnchors[anchor] {
+					result.LowImpact.Referenced++
+				}
+			}
+		case strings.HasPrefix(line, "### "):
+			anchor := headerToAnchor(line)
+			if anchor != "" {
+				result.MediumImpact.Total++
+
+				if referencedAnchors[anchor] {
+					result.MediumImpact.Referenced++
+				} else {
+					result.OrphanedKeys = append(result.OrphanedKeys, anchor)
+				}
+			}
+		case strings.HasPrefix(line, "## "):
+			anchor := headerToAnchor(line)
+			if anchor != "" {
+				result.HighImpact.Total++
+
+				if referencedAnchors[anchor] {
+					result.HighImpact.Referenced++
+				} else {
+					result.OrphanedKeys = append(result.OrphanedKeys, anchor)
+				}
 			}
 		}
 	}
@@ -214,6 +250,19 @@ func ValidatePropagation(rootDir string, readFile func(string) ([]byte, error)) 
 	sort.Strings(result.OrphanedKeys)
 
 	return result, nil
+}
+
+// formatLevelCoverage formats a single line of level coverage output.
+func formatLevelCoverage(label string, lc LevelCoverage) string {
+	if lc.Total == 0 {
+		return fmt.Sprintf("%s: 0/0 (N/A)\n", label)
+	}
+
+	const percentMultiplier = 100
+
+	pct := percentMultiplier * lc.Referenced / lc.Total
+
+	return fmt.Sprintf("%s: %d/%d (%d%%)\n", label, lc.Referenced, lc.Total, pct)
 }
 
 // FormatPropagationResults formats validation results for display.
@@ -248,6 +297,18 @@ func FormatPropagationResults(result *PropagationResult) string {
 	referencedCount := len(result.ValidRefs)
 	brokenCount := len(result.BrokenRefs)
 	orphanedCount := len(result.OrphanedKeys)
+
+	// Section coverage by impact level.
+	sb.WriteString("SECTION COVERAGE:\n")
+	sb.WriteString(formatLevelCoverage("  High   (##  )", result.HighImpact))
+	sb.WriteString(formatLevelCoverage("  Medium (### )", result.MediumImpact))
+	sb.WriteString(formatLevelCoverage("  Low    (####)", result.LowImpact))
+
+	combinedTotal := result.HighImpact.Total + result.MediumImpact.Total
+	combinedReferenced := result.HighImpact.Referenced + result.MediumImpact.Referenced
+
+	sb.WriteString(formatLevelCoverage("  Combined ##/###", LevelCoverage{Total: combinedTotal, Referenced: combinedReferenced}))
+	sb.WriteString("\n")
 
 	sb.WriteString(fmt.Sprintf("=== Summary: %d valid refs, %d broken refs, %d orphaned sections ===\n", referencedCount, brokenCount, orphanedCount))
 
