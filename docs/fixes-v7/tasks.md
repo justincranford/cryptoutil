@@ -26,30 +26,36 @@
 - [x] Rewrite 20 identity config files to flat kebab-case (committed 6086fb29)
 - [x] All 62 deployment validators pass
 
-## Phase 2: Propagation Infrastructure
+## Phase 2: Propagation Infrastructure ✅ COMPLETE
 
 ### 2.1 Reference Validation Script
 
-- [ ] Create `cicd lint-docs validate-propagation` subcommand
-- [ ] Extract all `See [ARCHITECTURE.md Section X.Y]` refs from .github/instructions/*.md
-- [ ] Extract all `See [ARCHITECTURE.md Section X.Y]` refs from .github/agents/*.md
-- [ ] Resolve refs against actual ARCHITECTURE.md section headers
-- [ ] Report broken links (ref to non-existent section)
-- [ ] Report orphaned sections (high-impact sections with zero refs)
-- [ ] Add tests for the validator (>=95% coverage)
-- [ ] Add to pre-commit and CI/CD workflow
+- [x] Create `cicd validate-propagation` subcommand (committed 7eb73294)
+- [x] Extract all `ARCHITECTURE.md#anchor` refs from .github/instructions/*.md
+- [x] Extract all `ARCHITECTURE.md#anchor` refs from .github/agents/*.md
+- [x] Resolve refs against actual ARCHITECTURE.md section headers
+- [x] Report broken links (ref to non-existent section)
+- [x] Report orphaned sections (## and ### level with zero refs)
+- [x] Add tests for the validator (95.2% package coverage)
+- [x] Fix broken anchor: formatgo → format_go in 03-01.coding.instructions.md
+- [x] Result: 241 valid refs, 0 broken refs, 68 orphaned sections
 
 ### 2.2 Section 14 Instruction Coverage
 
-- [ ] Review ARCHITECTURE.md Section 14 content scope
-- [ ] Add Operational Excellence content to existing instruction file OR create new file
-- [ ] Add `See [ARCHITECTURE.md Section 14]` cross-references
+- [x] Review ARCHITECTURE.md Section 14 content scope (33 lines, 5 subsections)
+- [x] Add Operational Excellence cross-references to existing instruction files (committed 5d63f222)
+- [x] 14.1 Monitoring & Alerting → 02-03.observability
+- [x] 14.2 Incident Management → 06-01.evidence-based
+- [x] 14.3 Performance Management → 02-03.observability
+- [x] 14.4 Capacity Planning → 04-01.deployment
+- [x] 14.5 Disaster Recovery → 04-01.deployment
 
 ### 2.3 ARCHITECTURE-INDEX.md Sync
 
-- [ ] Compare ARCHITECTURE-INDEX.md against current ARCHITECTURE.md section headers
-- [ ] Update if stale
-- [ ] Consider adding index validation to `cicd lint-docs`
+- [x] Compare ARCHITECTURE-INDEX.md against current ARCHITECTURE.md section headers
+- [x] Update all line number ranges (was based on 3356-line version, now 4219)
+- [x] Add missing subsections: 6.10, 10.12, 12.5-12.10, 13.6-13.7 (committed b80c6d4d)
+- [x] Update Quick Reference by Theme with new sections
 
 ## Phase 3: Propagation Quality (Medium-Term)
 

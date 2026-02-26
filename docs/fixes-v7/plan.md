@@ -49,29 +49,37 @@ and committed.
 - Rewrote 20 identity config files from nested YAML to flat kebab-case
 - Added jose-ja sqlite/postgresql config files with flat kebab-case format
 
-## Phase 2: Propagation Infrastructure
+## Phase 2: Propagation Infrastructure ✅ COMPLETE
 
 Build tooling to validate and enforce the ARCHITECTURE.md propagation chain.
 
-### 2.1 Reference Validation Script (R3 from strategy review)
+### 2.1 Reference Validation Script (R3 from strategy review) ✅
 
-Create a `cicd lint-docs validate-propagation` subcommand that:
-1. Extracts all `See [ARCHITECTURE.md Section X.Y]` references from instruction/agent files
-2. Resolves them against actual ARCHITECTURE.md section headers
-3. Reports broken links (references to non-existent sections)
-4. Reports stale references (section renumbered or removed)
+Created `cicd validate-propagation` subcommand (committed 7eb73294):
+- Extracts all `ARCHITECTURE.md#anchor` references from instruction/agent files
+- Validates against actual ARCHITECTURE.md section headers via GitHub-flavored anchor generation
+- Reports broken links and orphaned sections (## and ### level)
+- Result: 241 valid refs, 0 broken refs, 68 orphaned sections
+- Fixed 1 broken anchor: `formatgo` → `format_go` in 03-01.coding.instructions.md
+- 95.2% package coverage
 
-### 2.2 Section 14 Instruction Coverage
+### 2.2 Section 14 Instruction Coverage ✅
 
-ARCHITECTURE.md Section 14 (Operational Excellence) has zero instruction file
-coverage. Either:
-- Add Ops content to an existing instruction file (e.g., 04-01.deployment), or
-- Create a new instruction file if Section 14 is substantial enough
+ARCHITECTURE.md Section 14 (Operational Excellence) is 33 lines with 5 subsections.
+Added cross-references to existing instruction files (committed 5d63f222):
+- 14.1 Monitoring & Alerting → 02-03.observability.instructions.md
+- 14.2 Incident Management → 06-01.evidence-based.instructions.md
+- 14.3 Performance Management → 02-03.observability.instructions.md
+- 14.4 Capacity Planning → 04-01.deployment.instructions.md
+- 14.5 Disaster Recovery → 04-01.deployment.instructions.md
 
-### 2.3 ARCHITECTURE-INDEX.md Sync
+### 2.3 ARCHITECTURE-INDEX.md Sync ✅
 
-Verify ARCHITECTURE-INDEX.md is current with ARCHITECTURE.md. If stale, update
-or add a validator.
+ARCHITECTURE-INDEX.md was stale (based on 3356-line version, now 4219 lines).
+Regenerated with correct line numbers and new subsections (committed b80c6d4d):
+- Updated all 16 section line ranges
+- Added missing subsections: 6.10, 10.12, 12.5-12.10, 13.6-13.7
+- Updated Quick Reference by Theme
 
 ## Phase 3: Propagation Quality (Medium-Term)
 
