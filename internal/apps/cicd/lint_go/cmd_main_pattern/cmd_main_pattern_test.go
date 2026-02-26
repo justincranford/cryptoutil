@@ -34,6 +34,28 @@ func main() { os.Exit(cryptoutilAppsFoo.InternalMain(os.Args, os.Stdin, os.Stdou
 	require.NoError(t, err)
 }
 
+func TestCheckMainGoFile_ValidArgsSlice(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	mainFile := filepath.Join(tmpDir, "main.go")
+
+	content := `package main
+
+import (
+"os"
+cryptoutilAppsFoo "cryptoutil/internal/apps/foo"
+)
+
+func main() { os.Exit(cryptoutilAppsFoo.InternalMain(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)) }
+`
+	err := os.WriteFile(mainFile, []byte(content), 0o600)
+	require.NoError(t, err)
+
+	err = CheckMainGoFile(mainFile)
+	require.NoError(t, err)
+}
+
 func TestCheckMainGoFile_MissingPattern(t *testing.T) {
 	t.Parallel()
 
@@ -77,6 +99,15 @@ func TestCheckMainGoFile_PatternVariants(t *testing.T) {
 import "os"
 import cryptoutilAppsBar "cryptoutil/internal/apps/bar"
 func main() { os.Exit(cryptoutilAppsBar.Main(os.Args, os.Stdin, os.Stdout, os.Stderr)) }
+`,
+			wantErr: false,
+		},
+		{
+			name: "valid single-line pattern with args slice",
+			content: `package main
+import "os"
+import cryptoutilAppsBar "cryptoutil/internal/apps/bar"
+func main() { os.Exit(cryptoutilAppsBar.Main(os.Args[1:], os.Stdin, os.Stdout, os.Stderr)) }
 `,
 			wantErr: false,
 		},
