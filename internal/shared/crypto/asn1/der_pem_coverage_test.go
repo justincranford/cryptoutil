@@ -13,16 +13,18 @@ import (
 	crand "crypto/rand"
 	rsa "crypto/rsa"
 
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
-const osWindows = "windows"
 
 // TestPEMWrite_MkdirFailure covers PEMWrite's mkdir error path.
 func TestPEMWrite_MkdirFailure(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("file-as-dir trick not reliable on Windows")
 	}
 
@@ -44,7 +46,7 @@ func TestPEMWrite_MkdirFailure(t *testing.T) {
 func TestDERWrite_MkdirFailure(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("file-as-dir trick not reliable on Windows")
 	}
 
@@ -64,7 +66,7 @@ func TestDERWrite_MkdirFailure(t *testing.T) {
 func TestPEMWrite_WriteFileFailure(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("read-only dirs behave differently on Windows")
 	}
 
@@ -86,7 +88,7 @@ func TestPEMWrite_WriteFileFailure(t *testing.T) {
 func TestDERWrite_WriteFileFailure(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("read-only dirs behave differently on Windows")
 	}
 

@@ -17,13 +17,12 @@ import (
 
 	cryptoutilAppsIdentityAuthzServer "cryptoutil/internal/apps/identity/authz/server"
 	cryptoutilAppsIdentityAuthzServerConfig "cryptoutil/internal/apps/identity/authz/server/config"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	configFlag       = "--config"
 	configFlagShort  = "-c"
 	defaultAdminPort = 9090
-	fileURLPrefix    = "file://"
 	httpTimeout      = 5 * time.Second
 )
 
@@ -214,21 +213,21 @@ func healthService(parameters []string) {
 func parseConfigFlag(parameters []string, defaultValue string) string {
 	for i, param := range parameters {
 		// Handle --config=/path/to/file format (single element with =).
-		if strings.HasPrefix(param, configFlag+"=") {
-			value := strings.TrimPrefix(param, configFlag+"=")
+		if strings.HasPrefix(param, cryptoutilSharedMagic.IdentityCLIFlagConfig+"=") {
+			value := strings.TrimPrefix(param, cryptoutilSharedMagic.IdentityCLIFlagConfig+"=")
 
-			return strings.TrimPrefix(value, fileURLPrefix)
+			return strings.TrimPrefix(value, cryptoutilSharedMagic.FileURIScheme)
 		}
 
 		if strings.HasPrefix(param, configFlagShort+"=") {
 			value := strings.TrimPrefix(param, configFlagShort+"=")
 
-			return strings.TrimPrefix(value, fileURLPrefix)
+			return strings.TrimPrefix(value, cryptoutilSharedMagic.FileURIScheme)
 		}
 		// Handle --config /path/to/file format (two elements).
-		if (param == configFlag || param == configFlagShort) && i+1 < len(parameters) {
+		if (param == cryptoutilSharedMagic.IdentityCLIFlagConfig || param == configFlagShort) && i+1 < len(parameters) {
 			// Handle file:// prefix for Docker secrets.
-			return strings.TrimPrefix(parameters[i+1], fileURLPrefix)
+			return strings.TrimPrefix(parameters[i+1], cryptoutilSharedMagic.FileURIScheme)
 		}
 	}
 

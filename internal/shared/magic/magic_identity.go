@@ -209,3 +209,9 @@ const (
 	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).
 	IdentityE2EHealthEndpoint = "/service/api/v1/health"
 )
+
+// Identity CLI flag constants.
+const (
+	// IdentityCLIFlagConfig is the --config CLI flag used by all identity service executables.
+	IdentityCLIFlagConfig = "--config"
+)

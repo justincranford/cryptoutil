@@ -11,6 +11,9 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -236,7 +239,7 @@ func TestPrintNonFIPSViolations(t *testing.T) {
 
 // Test constants for repeated string literals.
 const (
-	osWindows          = "windows"
+
 	testPackageMainDef = "package main\n"
 )
 
@@ -325,7 +328,7 @@ func TestCheckNonFIPS_WithViolations(t *testing.T) {
 
 func TestFindGoFiles_ErrorPath(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
 

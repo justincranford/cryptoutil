@@ -10,16 +10,18 @@ import (
 
 	cryptoutilSharedUtilFiles "cryptoutil/internal/shared/util/files"
 
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
-const constGoosWindows = "windows"
 
 // TestWriteFile_OSError covers the os.WriteFile error path.
 func TestWriteFile_OSError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == constGoosWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("chmod not supported on Windows.")
 	}
 
@@ -51,7 +53,7 @@ func TestListAllFilesWithOptions_DotfileNoExtension(t *testing.T) {
 func TestReadFilesBytesLimit_InnerReadError(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == constGoosWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("chmod not supported on Windows.")
 	}
 
@@ -71,7 +73,7 @@ func TestReadFilesBytesLimit_InnerReadError(t *testing.T) {
 func TestReadFileBytesLimit_UnreadableFile(t *testing.T) {
 	t.Parallel()
 
-	if runtime.GOOS == constGoosWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("chmod not supported on Windows.")
 	}
 

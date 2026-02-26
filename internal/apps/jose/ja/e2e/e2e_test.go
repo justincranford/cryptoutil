@@ -8,16 +8,12 @@ import (
 "context"
 http "net/http"
 "testing"
-"time"
 
 cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 "github.com/stretchr/testify/require"
 )
 
-const (
-httpClientTimeout = 10 * time.Second
-)
 
 // TestE2E_HealthChecks validates /health endpoint for all jose-ja instances.
 func TestE2E_HealthChecks(t *testing.T) {
@@ -36,7 +32,7 @@ for _, tt := range tests {
 t.Run(tt.name, func(t *testing.T) {
 t.Parallel()
 
-ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 defer cancel()
 
 healthURL := tt.publicURL + cryptoutilSharedMagic.JoseJAE2EHealthEndpoint

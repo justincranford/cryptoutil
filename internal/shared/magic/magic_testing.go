@@ -250,6 +250,15 @@ const (
 	TestSPARPServerPort = 8083
 )
 
+// E2E test timeout and OS constants.
+const (
+	// E2EHTTPClientTimeout is the default HTTP client timeout for E2E tests.
+	E2EHTTPClientTimeout = 10 * time.Second
+
+	// OSNameWindows is the runtime.GOOS value for Windows.
+	OSNameWindows = "windows"
+)
+
 var (
 	// TestJwkJweAlgorithm - JWE algorithm for elastic key encryption in tests.
 	TestJwkJweAlgorithm = "A256GCM/A256KW"

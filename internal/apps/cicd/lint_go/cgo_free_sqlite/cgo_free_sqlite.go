@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
@@ -18,8 +19,6 @@ const (
 	bannedCGOMigrateModule   = "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	requiredCGOModule        = "modernc.org/sqlite"
 	requiredCGOMigrateModule = "github.com/golang-migrate/migrate/v4/database/sqlite"
-	excludeDirVendor         = "vendor"
-	excludeDirGit            = ".git"
 )
 
 // Check verifies the project uses CGO-free SQLite (modernc.org/sqlite).
@@ -123,7 +122,7 @@ func CheckGoFilesForCGO() ([]string, error) {
 		}
 
 		// Skip vendor directories and linting package itself.
-		if info.IsDir() && (info.Name() == excludeDirVendor || info.Name() == excludeDirGit) {
+		if info.IsDir() && (info.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || info.Name() == cryptoutilSharedMagic.CICDExcludeDirGit) {
 			return filepath.SkipDir
 		}
 

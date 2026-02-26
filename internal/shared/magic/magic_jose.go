@@ -138,6 +138,13 @@ const (
 	// JoseAlgEdDSA is EdDSA signature using Ed25519.
 	JoseAlgEdDSA = "EdDSA"
 
+	// JoseAlgHS256 is HMAC with SHA-256.
+	JoseAlgHS256 = "HS256"
+	// JoseAlgHS384 is HMAC with SHA-384.
+	JoseAlgHS384 = "HS384"
+	// JoseAlgHS512 is HMAC with SHA-512.
+	JoseAlgHS512 = "HS512"
+
 	// JoseKeyTypeRSA2048 is RSA with 2048-bit key.
 	JoseKeyTypeRSA2048 = "RSA/2048"
 	// JoseKeyTypeRSA3072 is RSA with 3072-bit key.

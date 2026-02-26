@@ -11,11 +11,10 @@ import (
 	"strings"
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	excludeDirVendor     = "vendor"
-	excludeDirGit        = ".git"
 	importBlockEndMarker = ")" // End of import block marker.
 )
 
@@ -49,7 +48,7 @@ func FindUnaliasedCryptoutilImports() ([]string, error) {
 		}
 
 		// Skip vendor directories.
-		if info.IsDir() && (info.Name() == excludeDirVendor || info.Name() == excludeDirGit) {
+		if info.IsDir() && (info.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || info.Name() == cryptoutilSharedMagic.CICDExcludeDirGit) {
 			return filepath.SkipDir
 		}
 

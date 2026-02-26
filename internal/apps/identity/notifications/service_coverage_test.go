@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -22,7 +24,7 @@ import (
 func setupCoverageTestDB(t *testing.T) (*gorm.DB, *sql.DB) {
 	t.Helper()
 
-	dsn := testDSNMemory
+	dsn := cryptoutilSharedMagic.SQLiteMemoryPlaceholder
 	sqlDB, err := sql.Open("sqlite", dsn)
 	require.NoError(t, err)
 

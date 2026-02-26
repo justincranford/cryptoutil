@@ -9,12 +9,15 @@ import (
 	"strings"
 	"testing"
 
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
 // Test constants for repeated string literals.
 const (
-	osWindows        = "windows"
+
 	testCleanGoFile  = "clean.go"
 	testCleanContent = "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"hello\") }\n"
 	testMainContent  = "package main\n\nfunc main() {}\n"
@@ -117,7 +120,7 @@ func TestCheckGoFilesForCGO_SkipsVendor(t *testing.T) {
 
 func TestCheckGoFilesForCGO_ErrorPath(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() - test changes working directory.
-	if runtime.GOOS == osWindows {
+	if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 		t.Skip("os.Chmod does not enforce POSIX permissions on Windows")
 	}
 

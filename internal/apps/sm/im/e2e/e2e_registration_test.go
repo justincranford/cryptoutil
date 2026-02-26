@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	_ "github.com/lib/pq" // PostgreSQL driver.
 	"github.com/stretchr/testify/require"
@@ -35,7 +36,7 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 			defer cancel()
 
 			// Generate unique user credentials.
@@ -46,13 +47,13 @@ func TestE2E_RegistrationFlowWithTenantCreation(t *testing.T) {
 			password := generateTestPassword(t)
 
 			// Determine API path prefix based on client type.
-			pathPrefix := pathPrefixService
+			pathPrefix := cryptoutilSharedMagic.PathPrefixService
 			if tt.useBrowser {
-				pathPrefix = pathPrefixBrowser
+				pathPrefix = cryptoutilSharedMagic.PathPrefixBrowser
 			}
 
 			// Register user with create_tenant=true (automatic tenant creation).
-			registerURL := tt.publicURL + pathPrefix + apiV1AuthRegister
+			registerURL := tt.publicURL + pathPrefix + cryptoutilSharedMagic.IMAPV1AuthRegister
 			registerBody := fmt.Sprintf(`{
 				"username": "%s",
 				"email": "%s",
@@ -102,13 +103,13 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 			defer cancel()
 
 			// Determine API path prefix.
-			pathPrefix := pathPrefixService
+			pathPrefix := cryptoutilSharedMagic.PathPrefixService
 			if tt.useBrowser {
-				pathPrefix = pathPrefixBrowser
+				pathPrefix = cryptoutilSharedMagic.PathPrefixBrowser
 			}
 
 			// Step 1: Create a tenant (first user).
@@ -118,7 +119,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 			tenantName := fmt.Sprintf("tenant_%d", uniqueSuffix)
 			ownerPassword := generateTestPassword(t)
 
-			ownerRegisterURL := tt.publicURL + pathPrefix + apiV1AuthRegister
+			ownerRegisterURL := tt.publicURL + pathPrefix + cryptoutilSharedMagic.IMAPV1AuthRegister
 			ownerRegisterBody := fmt.Sprintf(`{
 				"username": "%s",
 				"email": "%s",
@@ -148,7 +149,7 @@ func TestE2E_RegistrationFlowWithJoinRequest(t *testing.T) {
 			joinerPassword := generateTestPassword(t)
 			placeholderTenantID := "00000000-0000-0000-0000-000000000000" // Placeholder until we parse response.
 
-			joinerRegisterURL := tt.publicURL + pathPrefix + "/api/v1/auth/register"
+			joinerRegisterURL := tt.publicURL + pathPrefix + cryptoutilSharedMagic.IMAPV1AuthRegister
 			joinerRegisterBody := fmt.Sprintf(`{
 				"username": "%s",
 				"password": "%s",

@@ -191,3 +191,12 @@ const (
 	// Uses /service/api/v1/health for headless client health checks (per 02-03.https-ports.instructions.md).
 	IME2EHealthEndpoint = "/service/api/v1/health"
 )
+
+// SM-IM API path constants.
+const (
+	// IMAPIV1AuthRegister is the API v1 user registration path for sm-im.
+	IMAPV1AuthRegister = "/api/v1/auth/register"
+
+	// IMAPIV1Messages is the API v1 messages content path for sm-im.
+	IMAPV1Messages = "/api/v1/messages"
+)

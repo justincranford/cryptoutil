@@ -13,12 +13,9 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
-const (
-	excludeDirVendor = "vendor"
-	excludeDirGit    = ".git"
-)
 
 // Check verifies that code doesn't disable TLS certificate verification.
 func Check(logger *cryptoutilCmdCicdCommon.Logger) error {
@@ -59,7 +56,7 @@ func FindInsecureSkipVerifyViolationsInDir(rootDir string) ([]lintGoCommon.Crypt
 
 		// Skip excluded directories.
 		if d.IsDir() {
-			if d.Name() == excludeDirVendor || d.Name() == excludeDirGit {
+			if d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit {
 				return filepath.SkipDir
 			}
 

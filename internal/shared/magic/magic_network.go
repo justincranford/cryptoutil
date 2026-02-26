@@ -50,6 +50,20 @@ const (
 	HostnameLocalhost = "localhost"
 )
 
+// API path prefix constants.
+const (
+	// PathPrefixService - Headless service path prefix for token/API-key authenticated clients.
+	PathPrefixService = "/service"
+	// PathPrefixBrowser - Browser path prefix for session/cookie authenticated clients.
+	PathPrefixBrowser = "/browser"
+)
+
+// URI scheme constants.
+const (
+	// FileURIScheme - File URI scheme prefix for local file references.
+	FileURIScheme = "file://"
+)
+
 // DNS/FQDN limits per RFC 1035.
 const (
 	// FQDNMaxLength - Maximum length of a fully qualified domain name (253 characters).

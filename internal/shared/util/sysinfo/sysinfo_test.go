@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
 // Operating system constants for platform-specific test skipping.
-const (
-	osWindows = "windows"
-)
 
 var testSysInfoProviders = []SysInfoProvider{mockSysInfoProvider, defaultSysInfoProvider}
 
@@ -68,7 +68,7 @@ func TestSysInfo(t *testing.T) {
 				// which exceeds the 10-second timeout set in cpuInfoTimeout.
 				// The mock provider covers the code paths without the timeout risk.
 				if _, isMock := provider.(*MockSysInfoProvider); !isMock {
-					if runtime.GOOS == osWindows {
+					if runtime.GOOS == cryptoutilSharedMagic.OSNameWindows {
 						t.Skip("Skipping real CPU info test on Windows due to slow gopsutil collection")
 					}
 				}

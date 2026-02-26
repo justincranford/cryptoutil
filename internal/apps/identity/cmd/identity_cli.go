@@ -54,11 +54,9 @@ func ExecuteIdentity(parameters []string) {
 }
 
 const (
-	configFlag      = "--config"
 	configFlagShort = "-c"
 	dsnFlag         = "-u"
 	dsnFlagLong     = "--database-url"
-	fileURLPrefix   = "file://"
 )
 
 // parseConfigFlag extracts config file path from parameters.
@@ -66,15 +64,15 @@ const (
 func parseConfigFlag(parameters []string, defaultConfig string) string {
 	for i, param := range parameters {
 		// Support --config /path format.
-		if param == configFlag || param == configFlagShort {
+		if param == cryptoutilSharedMagic.IdentityCLIFlagConfig || param == configFlagShort {
 			if i+1 < len(parameters) {
 				return parameters[i+1]
 			}
 		}
 
 		// Support --config=/path format.
-		if len(param) > len(configFlag) && param[:len(configFlag)+1] == configFlag+"=" {
-			return param[len(configFlag)+1:]
+		if len(param) > len(cryptoutilSharedMagic.IdentityCLIFlagConfig) && param[:len(cryptoutilSharedMagic.IdentityCLIFlagConfig)+1] == cryptoutilSharedMagic.IdentityCLIFlagConfig+"=" {
+			return param[len(cryptoutilSharedMagic.IdentityCLIFlagConfig)+1:]
 		}
 
 		// Support -c=/path format.
@@ -114,8 +112,8 @@ func parseDSNFlag(parameters []string) string {
 
 // resolveDSNValue resolves a DSN value, reading from file if it's a file:// URL.
 func resolveDSNValue(value string) string {
-	if strings.HasPrefix(value, fileURLPrefix) {
-		filePath := strings.TrimPrefix(value, fileURLPrefix)
+	if strings.HasPrefix(value, cryptoutilSharedMagic.FileURIScheme) {
+		filePath := strings.TrimPrefix(value, cryptoutilSharedMagic.FileURIScheme)
 
 		data, err := os.ReadFile(filePath)
 		if err != nil {

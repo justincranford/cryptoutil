@@ -14,6 +14,12 @@ import (
 const (
 	// CurrentDirectory is fallback when project root not found.
 	CurrentDirectory = "."
+
+	// CICDExcludeDirGit is the name of the git metadata directory to exclude from scans.
+	CICDExcludeDirGit = ".git"
+
+	// CICDExcludeDirVendor is the name of the vendor directory to exclude from scans.
+	CICDExcludeDirVendor = "vendor"
 )
 
 // getProjectRoot finds the project root by walking up the directory tree to find .git directory.

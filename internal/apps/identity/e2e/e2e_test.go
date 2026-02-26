@@ -10,18 +10,12 @@ import (
 	http "net/http"
 	"strings"
 	"testing"
-	"time"
 
 	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	httpClientTimeout = 10 * time.Second
-	pathPrefixService = "/service"
-	pathPrefixBrowser = "/browser"
-)
 
 // TestE2E_HealthChecks validates /health endpoint for all instances.
 func TestE2E_HealthChecks(t *testing.T) {
@@ -42,7 +36,7 @@ func TestE2E_HealthChecks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 			defer cancel()
 
 			healthURL := tt.publicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint
@@ -62,7 +56,7 @@ func TestE2E_HealthChecks(t *testing.T) {
 func TestE2E_ServicePath_AuthZ(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test OIDC Discovery endpoint (/.well-known/openid-configuration).
@@ -86,7 +80,7 @@ func TestE2E_ServicePath_AuthZ(t *testing.T) {
 func TestE2E_ServicePath_JWKS(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test JWKS endpoint (/.well-known/jwks.json).
@@ -110,11 +104,11 @@ func TestE2E_ServicePath_JWKS(t *testing.T) {
 func TestE2E_BrowserPath_AuthZ(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test browser path for authorization endpoint.
-	browserURL := authzPublicURL + pathPrefixBrowser + "/api/v1/authorize"
+	browserURL := authzPublicURL + cryptoutilSharedMagic.PathPrefixBrowser + "/api/v1/authorize"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, browserURL, nil)
 	require.NoError(t, err, "Creating browser authorize request should succeed")
 
@@ -132,11 +126,11 @@ func TestE2E_BrowserPath_AuthZ(t *testing.T) {
 func TestE2E_CORS_Headers(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test preflight OPTIONS request.
-	corsURL := authzPublicURL + pathPrefixBrowser + "/api/v1/authorize"
+	corsURL := authzPublicURL + cryptoutilSharedMagic.PathPrefixBrowser + "/api/v1/authorize"
 	req, err := http.NewRequestWithContext(ctx, http.MethodOptions, corsURL, nil)
 	require.NoError(t, err, "Creating CORS preflight request should succeed")
 
@@ -163,7 +157,7 @@ func TestE2E_CORS_Headers(t *testing.T) {
 func TestE2E_CSP_Headers(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test browser health endpoint for CSP headers.
@@ -185,11 +179,11 @@ func TestE2E_CSP_Headers(t *testing.T) {
 func TestE2E_ServicePath_RS(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test protected resource endpoint (should require auth).
-	resourceURL := rsPublicURL + pathPrefixService + "/api/v1/resources"
+	resourceURL := rsPublicURL + cryptoutilSharedMagic.PathPrefixService + "/api/v1/resources"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, resourceURL, nil)
 	require.NoError(t, err, "Creating resource request should succeed")
 
@@ -207,7 +201,7 @@ func TestE2E_ServicePath_RS(t *testing.T) {
 func TestE2E_ServicePath_IDP(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test IDP health endpoint.
@@ -227,11 +221,11 @@ func TestE2E_ServicePath_IDP(t *testing.T) {
 func TestE2E_BrowserPath_IDP(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test browser login page.
-	loginURL := idpPublicURL + pathPrefixBrowser + "/login"
+	loginURL := idpPublicURL + cryptoutilSharedMagic.PathPrefixBrowser + "/login"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, loginURL, nil)
 	require.NoError(t, err, "Creating browser login request should succeed")
 
@@ -249,7 +243,7 @@ func TestE2E_BrowserPath_IDP(t *testing.T) {
 func TestE2E_ServicePath_RP(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test RP health endpoint.
@@ -269,7 +263,7 @@ func TestE2E_ServicePath_RP(t *testing.T) {
 func TestE2E_ServicePath_SPA(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 	defer cancel()
 
 	// Test SPA health endpoint.
@@ -304,7 +298,7 @@ func TestE2E_AllServicesIntegration(t *testing.T) {
 		t.Run(svc.name+"_health", func(t *testing.T) {
 			t.Parallel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 			defer cancel()
 
 			healthURL := svc.publicURL + cryptoutilSharedMagic.IdentityE2EHealthEndpoint

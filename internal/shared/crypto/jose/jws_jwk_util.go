@@ -26,21 +26,6 @@ import (
 // ErrInvalidJWSJWKKidUUID indicates the JWS JWK key ID is not a valid UUID.
 var ErrInvalidJWSJWKKidUUID = "invalid JWS JWK kid UUID"
 
-const (
-	algRS512 = "RS512"
-	algPS512 = "PS512"
-	algRS384 = "RS384"
-	algPS384 = "PS384"
-	algRS256 = "RS256"
-	algPS256 = "PS256"
-	algES512 = "ES512"
-	algES384 = "ES384"
-	algES256 = "ES256"
-	algEdDSA = "EdDSA"
-	algHS512 = "HS512"
-	algHS384 = "HS384"
-	algHS256 = "HS256"
-)
 
 // GenerateJWSJWKForAlg generates a JWS JWK for the specified signature algorithm.
 func GenerateJWSJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
@@ -157,25 +142,25 @@ func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	}
 
 	switch (*alg).String() {
-	case algRS512, algPS512:
+	case cryptoutilSharedMagic.JoseAlgRS512, cryptoutilSharedMagic.JoseAlgPS512:
 		return validateOrGenerateJWSRSAJWK(key, *alg, cryptoutilSharedMagic.RSAKeySize4096)
-	case algRS384, algPS384:
+	case cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgPS384:
 		return validateOrGenerateJWSRSAJWK(key, *alg, cryptoutilSharedMagic.RSAKeySize3072)
-	case algRS256, algPS256:
+	case cryptoutilSharedMagic.JoseAlgRS256, cryptoutilSharedMagic.JoseAlgPS256:
 		return validateOrGenerateJWSRSAJWK(key, *alg, cryptoutilSharedMagic.RSAKeySize2048)
-	case algES512:
+	case cryptoutilSharedMagic.JoseAlgES512:
 		return validateOrGenerateJWSEcdsaJWK(key, *alg, elliptic.P521())
-	case algES384:
+	case cryptoutilSharedMagic.JoseAlgES384:
 		return validateOrGenerateJWSEcdsaJWK(key, *alg, elliptic.P384())
-	case algES256:
+	case cryptoutilSharedMagic.JoseAlgES256:
 		return validateOrGenerateJWSEcdsaJWK(key, *alg, elliptic.P256())
-	case algEdDSA:
+	case cryptoutilSharedMagic.JoseAlgEdDSA:
 		return validateOrGenerateJWSEddsaJWK(key, *alg, "Ed25519")
-	case algHS512:
+	case cryptoutilSharedMagic.JoseAlgHS512:
 		return validateOrGenerateJWSHMACJWK(key, *alg, cryptoutilSharedMagic.HMACKeySize512)
-	case algHS384:
+	case cryptoutilSharedMagic.JoseAlgHS384:
 		return validateOrGenerateJWSHMACJWK(key, *alg, cryptoutilSharedMagic.HMACKeySize384)
-	case algHS256:
+	case cryptoutilSharedMagic.JoseAlgHS256:
 		return validateOrGenerateJWSHMACJWK(key, *alg, cryptoutilSharedMagic.HMACKeySize256)
 	default:
 		return nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)

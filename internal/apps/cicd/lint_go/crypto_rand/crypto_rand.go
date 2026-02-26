@@ -13,11 +13,10 @@ import (
 
 	cryptoutilCmdCicdCommon "cryptoutil/internal/apps/cicd/common"
 	lintGoCommon "cryptoutil/internal/apps/cicd/lint_go/common"
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 const (
-	excludeDirVendor     = "vendor"
-	excludeDirGit        = ".git"
 	importBlockEndMarker = ")"
 )
 
@@ -67,7 +66,7 @@ func FindMathRandViolationsInDir(rootDir string) ([]lintGoCommon.CryptoViolation
 
 		// Skip excluded directories.
 		if d.IsDir() {
-			if d.Name() == excludeDirVendor || d.Name() == excludeDirGit {
+			if d.Name() == cryptoutilSharedMagic.CICDExcludeDirVendor || d.Name() == cryptoutilSharedMagic.CICDExcludeDirGit {
 				return filepath.SkipDir
 			}
 

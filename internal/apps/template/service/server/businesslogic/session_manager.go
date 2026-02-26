@@ -44,16 +44,6 @@ const (
 	errMsgMissingInvalidJTIClaim = "Missing or invalid jti claim"
 	errMsgSessionRevokedNotFound = "Session revoked or not found"
 	errMsgInvalidSessionToken    = "Invalid session token"
-	algIdentifierHS256           = "HS256"
-	algIdentifierHS384           = "HS384"
-	algIdentifierHS512           = "HS512"
-	algIdentifierRS256           = "RS256"
-	algIdentifierRS384           = "RS384"
-	algIdentifierRS512           = "RS512"
-	algIdentifierES256           = "ES256"
-	algIdentifierES384           = "ES384"
-	algIdentifierES512           = "ES512"
-	algIdentifierEdDSA           = "EdDSA"
 )
 
 // Injectable function variables for testing error paths.
@@ -250,7 +240,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 	case cryptoutilSharedMagic.SessionAlgorithmJWS:
 		// Generate signing JWK based on algorithm
 		switch algIdentifier {
-		case algIdentifierHS256, algIdentifierHS384, algIdentifierHS512:
+		case cryptoutilSharedMagic.JoseAlgHS256, cryptoutilSharedMagic.JoseAlgHS384, cryptoutilSharedMagic.JoseAlgHS512:
 			// HMAC symmetric key algorithms
 			var (
 				hmacBits int
@@ -258,13 +248,13 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 			)
 
 			switch algIdentifier {
-			case algIdentifierHS256:
+			case cryptoutilSharedMagic.JoseAlgHS256:
 				hmacBits = cryptoutilSharedMagic.HMACKeySize256
 				algValue = joseJwa.HS256()
-			case algIdentifierHS384:
+			case cryptoutilSharedMagic.JoseAlgHS384:
 				hmacBits = cryptoutilSharedMagic.HMACKeySize384
 				algValue = joseJwa.HS384()
-			case algIdentifierHS512:
+			case cryptoutilSharedMagic.JoseAlgHS512:
 				hmacBits = cryptoutilSharedMagic.HMACKeySize512
 				algValue = joseJwa.HS512()
 			}
@@ -276,18 +266,18 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case algIdentifierRS256, algIdentifierRS384, algIdentifierRS512:
+		case cryptoutilSharedMagic.JoseAlgRS256, cryptoutilSharedMagic.JoseAlgRS384, cryptoutilSharedMagic.JoseAlgRS512:
 			jwk, genErr = generateRSAJWKFn(cryptoutilSharedMagic.RSAKeySize2048)
 			if genErr == nil {
 				// Set 'alg' attribute for signing
 				var algValue joseJwa.SignatureAlgorithm
 
 				switch algIdentifier {
-				case algIdentifierRS256:
+				case cryptoutilSharedMagic.JoseAlgRS256:
 					algValue = joseJwa.RS256()
-				case algIdentifierRS384:
+				case cryptoutilSharedMagic.JoseAlgRS384:
 					algValue = joseJwa.RS384()
-				case algIdentifierRS512:
+				case cryptoutilSharedMagic.JoseAlgRS512:
 					algValue = joseJwa.RS512()
 				}
 
@@ -296,7 +286,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case algIdentifierES256:
+		case cryptoutilSharedMagic.JoseAlgES256:
 			jwk, genErr = generateECDSAJWKFn(elliptic.P256())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES256())
@@ -304,7 +294,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case algIdentifierES384:
+		case cryptoutilSharedMagic.JoseAlgES384:
 			jwk, genErr = generateECDSAJWKFn(elliptic.P384())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES384())
@@ -312,7 +302,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case algIdentifierES512:
+		case cryptoutilSharedMagic.JoseAlgES512:
 			jwk, genErr = generateECDSAJWKFn(elliptic.P521())
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.ES512())
@@ -320,7 +310,7 @@ func (sm *SessionManager) initializeSessionJWK(ctx context.Context, isBrowser bo
 					genErr = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature)
 				}
 			}
-		case algIdentifierEdDSA:
+		case cryptoutilSharedMagic.JoseAlgEdDSA:
 			jwk, genErr = generateEdDSAJWKFn("Ed25519")
 			if genErr == nil {
 				genErr = jwk.Set(joseJwk.AlgorithmKey, joseJwa.EdDSA())

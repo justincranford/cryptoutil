@@ -20,13 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	httpClientTimeout    = 10 * time.Second
-	pathPrefixService    = "/service"
-	pathPrefixBrowser    = "/browser"
-	apiV1AuthRegister    = "/api/v1/auth/register"
-	apiV1MessagesContent = "/api/v1/messages"
-)
 
 // generateTestPassword creates a cryptographically secure random password for testing.
 // Uses shared utility to ensure consistency across all services.
@@ -57,7 +50,7 @@ func TestE2E_HealthChecks(t *testing.T) {
 			t.Parallel()
 
 			// Public health check (external clients MUST use this endpoint).
-			ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 			defer cancel()
 
 			healthURL := tt.publicURL + cryptoutilSharedMagic.IME2EHealthEndpoint
@@ -145,7 +138,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 		username := fmt.Sprintf("sqlite_user_%d", time.Now().UTC().UnixNano())
 		password := generateTestPassword(t)
 
-		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 		defer cancel()
 
 		// Register user in SQLite.
@@ -197,7 +190,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 		username := fmt.Sprintf("pg_shared_user_%d", time.Now().UTC().UnixNano())
 		password := generateTestPassword(t)
 
-		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 		defer cancel()
 
 		// Register user in pg-1.
@@ -249,7 +242,7 @@ func TestE2E_CrossInstanceIsolation(t *testing.T) {
 		username := fmt.Sprintf("pg_isolated_user_%d", time.Now().UTC().UnixNano())
 		password := generateTestPassword(t)
 
-		ctx, cancel := context.WithTimeout(context.Background(), httpClientTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), cryptoutilSharedMagic.E2EHTTPClientTimeout)
 		defer cancel()
 
 		// Register user in pg-1 (not pg-2 which has longer startup time).

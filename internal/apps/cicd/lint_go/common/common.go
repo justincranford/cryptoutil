@@ -12,6 +12,8 @@ import (
 "path/filepath"
 "sort"
 "strings"
+
+	cryptoutilSharedMagic "cryptoutil/internal/shared/magic"
 )
 
 // CryptoViolation represents a security violation in crypto usage.
@@ -42,7 +44,6 @@ const MagicDefaultDir = "internal/shared/magic"
 const MagicMinStringLen = 3
 
 const (
-magicExcludeDirVendor          = "vendor"
 magicExcludeDirTestOutput      = "test-output"
 magicExcludeDirWorkflowReports = "workflow-reports"
 )
@@ -195,7 +196,7 @@ parts := strings.Split(slashed, "/")
 
 for i, part := range parts {
 switch part {
-case magicExcludeDirVendor, magicExcludeDirTestOutput, magicExcludeDirWorkflowReports:
+case cryptoutilSharedMagic.CICDExcludeDirVendor, magicExcludeDirTestOutput, magicExcludeDirWorkflowReports:
 return true
 
 case "api":
