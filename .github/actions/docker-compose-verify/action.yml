@@ -62,12 +62,7 @@ runs:
         }
 
         # Parse endpoints JSON and check each one
-        # For now, use hardcoded endpoints to avoid JSON parsing issues
-        ENDPOINTS='[
-          {"url": "https://127.0.0.1:8080/ui/swagger/doc.json", "name": "cryptoutil-sqlite"},
-          {"url": "https://127.0.0.1:8081/ui/swagger/doc.json", "name": "cryptoutil-postgres-1"},
-          {"url": "https://127.0.0.1:8082/ui/swagger/doc.json", "name": "cryptoutil-postgres-2"}
-        ]'
+        ENDPOINTS='${{ inputs.endpoints }}'
 
         echo "$ENDPOINTS" | jq -c '.[]' | while read -r endpoint; do
           url=$(echo "$endpoint" | jq -r '.url')

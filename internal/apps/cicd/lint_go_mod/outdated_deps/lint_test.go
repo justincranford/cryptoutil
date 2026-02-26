@@ -92,7 +92,7 @@ func TestGetDirectDependencies(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 
 require (
 	github.com/pkg/errors v0.9.1
@@ -113,7 +113,7 @@ func TestGetDirectDependencies_SingleLineRequire(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 
 require github.com/pkg/errors v0.9.1
 `)
@@ -128,7 +128,7 @@ func TestGetDirectDependencies_Empty(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 `)
 
 	directDeps := getDirectDependencies(goModContent)
@@ -143,7 +143,7 @@ func TestCheckAndUseDepCache_CacheNotFound(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
@@ -244,7 +244,7 @@ func TestGetDirectDependencies_WithComments(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 
 require (
 	// This is a comment
@@ -264,7 +264,7 @@ func TestGetDirectDependencies_MixedRequireFormats(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 
 require github.com/pkg/errors v0.9.1
 
@@ -319,7 +319,7 @@ func TestCheckAndUseDepCache_ModeMismatch(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")

@@ -1,6 +1,6 @@
 module cryptoutil
 
-go 1.25.5
+go 1.25.7
 
 require (
 	github.com/cloudflare/circl v1.6.3

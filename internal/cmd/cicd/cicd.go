@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	cryptoutilAppsCicd "cryptoutil/internal/apps/cicd"
 	cryptoutilLintDeployments "cryptoutil/internal/cmd/cicd/lint_deployments"
 )
 
@@ -40,6 +41,9 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return ValidatePropagationCommand(stdout, stderr)
 	case "validate-chunks":
 		return ValidateChunksCommand(stdout, stderr)
+	case "lint-text", "lint-go", "lint-go-test", "lint-compose", "lint-ports",
+		"lint-workflow", "lint-go-mod", "lint-golangci", "format-go", "format-go-test":
+		return cryptoutilAppsCicd.Cicd(args, stdin, stdout, stderr)
 	case "help", "--help", "-h":
 		printUsage(stdout)
 
@@ -58,28 +62,37 @@ func printUsage(w io.Writer) {
 Usage:
   cicd <command> [args]
 
-Commands:
+Lint Commands:
+  lint-text                 Enforce UTF-8 file encoding (no BOM)
+  lint-go                   Go package linters (circular deps, CGO-free SQLite)
+  lint-go-test              Go test file linters (test patterns)
+  lint-go-mod               Go module linters (dependency updates)
+  lint-golangci             golangci-lint config validation (v2 compatibility)
+  lint-compose              Docker Compose file linters (admin port exposure)
+  lint-ports                Port assignment validation (standardized ports)
+  lint-workflow             Workflow file linters (GitHub Actions)
+
+Format Commands:
+  format-go                 Go file formatters (any, copyloopvar)
+  format-go-test            Go test file formatters (t.Helper)
+
+Deployment Commands:
   lint-deployments [dir]    Validate deployment directory structures
                             Default dir: deployments/
-
-  validate-all [deployments-dir configs-dir]
-                            Run all 8 deployment validators sequentially with aggregated reporting
+  validate-all [dirs...]    Run all 8 deployment validators sequentially
                             Defaults: deployments/ configs/
 
+Documentation Commands:
   check-chunk-verification  Verify ARCHITECTURE.md chunks propagated to instruction files
-
-  validate-propagation      Validate all ARCHITECTURE.md section references in instruction/agent files
-                            Reports broken links and orphaned sections
-
+  validate-propagation      Validate all ARCHITECTURE.md section references
   validate-chunks           Compare @propagate/@source marker content for staleness
-                            Byte-for-byte comparison of propagated chunks
 
   help, --help, -h          Show this help message
 
 Examples:
+  cicd lint-text
+  cicd lint-go lint-go-test format-go
   cicd lint-deployments
-  cicd lint-deployments /tmp/test-deployments
-  cicd validate-all
   cicd validate-all deployments configs
 
 See: docs/ARCHITECTURE-TODO.md for architectural documentation (pending).

@@ -46,6 +46,11 @@ func CheckInDir(logger *cryptoutilCmdCicdCommon.Logger, rootDir string) error {
 			return filepath.SkipDir
 		}
 
+		// Skip known output directories where coverage files are expected.
+		if info.IsDir() && (info.Name() == "workflow-reports" || info.Name() == "test-output") {
+			return filepath.SkipDir
+		}
+
 		// Skip directories.
 		if info.IsDir() {
 			return nil

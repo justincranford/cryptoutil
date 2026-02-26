@@ -75,7 +75,7 @@ You MUST keep working until the problem is completely solved, and all items in t
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors)
 2. **Module Cache**: `go list -m all` (dependencies resolved)
-3. **Go Version**: `go version` (verify 1.25.5+)
+3. **Go Version**: `go version` (verify 1.25.7+)
 4. **Docker**: `docker ps` (if tasks require Docker)
    - If Docker not running, see [ARCHITECTURE.md Section 13.5.4](../../docs/ARCHITECTURE.md#1354-docker-desktop-startup---critical) for cross-platform startup instructions
    - Windows: `Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"`

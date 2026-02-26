@@ -366,7 +366,7 @@ EOF
 
 ## Technical Context
 
-- **Language**: Go 1.25.5
+- **Language**: Go 1.25.7
 - **Framework**: [Framework if applicable]
 - **Database**: PostgreSQL OR SQLite with GORM
 - **Dependencies**: [Key dependencies]
@@ -671,7 +671,7 @@ EOF
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...` (NO errors, confirms project compiles)
 2. **Module Cache**: `go list -m all` (verify dependencies resolved)
-3. **Go Version**: `go version` (verify 1.25.5+)
+3. **Go Version**: `go version` (verify 1.25.7+)
 4. **Working Directory**: Confirm you're in project root (c:\Dev\Projects\cryptoutil)
 
 **If any check fails**: Report error, DO NOT proceed with action

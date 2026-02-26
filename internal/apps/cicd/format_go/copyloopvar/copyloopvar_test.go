@@ -28,7 +28,7 @@ func TestIsGoVersionSupported(t *testing.T) {
 	}{
 		{"go1.22", "go1.22", true},
 		{"go1.22.0", "go1.22.0", true},
-		{"go1.25.5", "go1.25.5", true},
+		{"go1.25.7", "go1.25.7", true},
 		{"go1.21", "go1.21", false},
 		{"go1.21.5", "go1.21.5", false},
 		{"go1.20", "go1.20", false},

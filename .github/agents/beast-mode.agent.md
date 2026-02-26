@@ -122,7 +122,7 @@ problem without needing to ask the user for further input.
 **Before starting work:**
 
 1. **Build Health**: `go build ./...` AND `go build -tags e2e,integration ./...`
-2. **Go Version**: `go version` (1.25.5+)
+2. **Go Version**: `go version` (1.25.7+)
 3. **Docker**: `docker ps` (if needed)
 
 **If fails**: Report, DO NOT proceed

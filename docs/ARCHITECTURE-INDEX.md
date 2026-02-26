@@ -202,7 +202,7 @@
 **Topics**: Coding standards, version control, branching strategy, code review, development workflow, plan lifecycle, infrastructure blocker escalation
 
 **Subsections**:
-- 13.1 Coding Standards (3783-3787): Go 1.25.5, CGO ban, import aliases, file size limits
+- 13.1 Coding Standards (3783-3787): Go 1.25.7, CGO ban, import aliases, file size limits
 - 13.2 Version Control (3788-3827): Conventional commits, incremental commits, baseline restore pattern
 - 13.3 Branching Strategy (3828-3833): Main branch, feature branches, release branches
 - 13.4 Code Review (3834-3839): PR descriptions, review checklist, evidence-based approval

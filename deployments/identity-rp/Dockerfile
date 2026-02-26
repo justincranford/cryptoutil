@@ -9,7 +9,7 @@ ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 #############################################################################################
-ARG GO_VERSION=1.25.5
+ARG GO_VERSION=1.25.7
 ARG ALPINE_VERSION=3.19
 ARG CGO_ENABLED=0
 ARG GOOS=linux

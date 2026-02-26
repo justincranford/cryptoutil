@@ -29,7 +29,7 @@ runs:
       id: set-outputs
       shell: bash
       run: |
-        echo "go-version=1.25.5" >> $GITHUB_OUTPUT
+        echo "go-version=1.25.7" >> $GITHUB_OUTPUT
         echo "java-version=21" >> $GITHUB_OUTPUT
 
     - name: Print workflow job begin summary

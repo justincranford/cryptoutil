@@ -45,7 +45,7 @@ func TestCheckOutdatedDeps_NoGoSum(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create go.mod only (no go.sum).
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	logger := cryptoutilCmdCicdCommon.NewLogger("test")
@@ -67,7 +67,7 @@ func TestCheckOutdatedDeps_CacheUsed(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create go.mod and go.sum.
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -107,7 +107,7 @@ func TestCheckOutdatedDeps_CacheWithError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create go.mod and go.sum.
-	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err = os.WriteFile("go.mod", []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -174,7 +174,7 @@ func TestCheckOutdatedDeps_NoOutdatedDeps(t *testing.T) {
 
 	// Create a valid go module that go list can process.
 	// Using "example.com/test" which won't have any real dependencies.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -247,7 +247,7 @@ func TestLint_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a valid go module setup.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
@@ -273,7 +273,7 @@ func TestCheckOutdatedDeps_WithOutdatedDeps(t *testing.T) {
 	// We need a real dependency that might have updates.
 	goModContent := `module example.com/test
 
-go 1.25.5
+go 1.25.7
 
 require github.com/pkg/errors v0.8.0
 `
@@ -302,7 +302,7 @@ func TestCheckOutdatedDeps_SaveCacheError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a valid go module.
-	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err = os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 	err = os.WriteFile("go.sum", []byte(""), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)

@@ -24,7 +24,7 @@ This guide covers setting up a complete development environment for the cryptout
 
 | Tool | Version | Purpose | Required For |
 |------|---------|---------|--------------|
-| **Go** | 1.25.5+ | Primary language | All development |
+| **Go** | 1.25.7+ | Primary language | All development |
 | **Docker** | 24+ | Containerization | PostgreSQL, E2E tests, deployments |
 | **Docker Compose** | v2+ | Container orchestration | Multi-service deployments |
 | **Python** | 3.14+ | Pre-commit hooks, utilities | Code quality automation |
@@ -72,15 +72,15 @@ This guide covers setting up a complete development environment for the cryptout
 
 ## Why Each Tool is Required
 
-### Core Development (Go 1.25.5+)
+### Core Development (Go 1.25.7+)
 
-**Why this version?** Go 1.25.5 is required for:
+**Why this version?** Go 1.25.7 is required for:
 
 - Generic type improvements used in internal packages
 - Performance optimizations in crypto packages
 - Bug fixes in `modernc.org/sqlite` CGO-free driver
 
-**Project dependencies requiring Go 1.25.5+:**
+**Project dependencies requiring Go 1.25.7+:**
 
 ```text
 github.com/gofiber/fiber/v2       # HTTP framework
@@ -158,7 +158,7 @@ github.com/testcontainers/testcontainers-go  # Integration testing
 
 #### 1. Install Core Prerequisites
 
-**Go 1.25.5+**
+**Go 1.25.7+**
 
 ```powershell
 # Download and install from https://golang.org/dl/
@@ -167,7 +167,7 @@ winget install --id Google.Go --source winget
 
 # Verify installation
 go version
-# Expected: go version go1.25.5 windows/amd64
+# Expected: go version go1.25.7 windows/amd64
 ```
 
 **Docker Desktop**
@@ -372,9 +372,9 @@ go env GOCACHE
 # Update package list
 sudo apt update
 
-# Install Go 1.25.5+
-wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz
+# Install Go 1.25.7+
+wget https://go.dev/dl/go1.25.7.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.7.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
@@ -434,8 +434,8 @@ sudo apt install -y maven
 
 ```bash
 # Install Go
-wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.25.7.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.7.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 
@@ -515,7 +515,7 @@ curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo ba
 # Install Homebrew if not already installed
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Go 1.25.5+
+# Install Go 1.25.7+
 brew install go
 
 # Install Docker Desktop

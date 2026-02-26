@@ -336,7 +336,7 @@ Implementation plans are composed of 4 files in `<work-dir>/`:
 
 #### Go Best Practices
 
-- **Go Version**: 1.25.5+ (same everywhere: dev, CI/CD, Docker)
+- **Go Version**: 1.25.7+ (same everywhere: dev, CI/CD, Docker)
 - **CGO Ban**: CGO_ENABLED=0 (except race detector) for maximum portability
 - **Import Aliases**: `cryptoutil<Package>` for internal, `<vendor><Package>` for external
 - **Magic Values**: `internal/shared/magic/magic_*.go` for shared, package-specific for domain
@@ -1905,7 +1905,7 @@ Docker Desktop version upgrades (e.g., .55 → .62) may introduce Docker API ver
 
 ```dockerfile
 # Global ARGs
-ARG GO_VERSION=1.25.5
+ARG GO_VERSION=1.25.7
 ARG VCS_REF
 ARG BUILD_DATE
 
@@ -2596,8 +2596,8 @@ func BenchmarkAESEncrypt(b *testing.B) {
 #### 11.1.1 Go Version Consistency
 
 - MANDATORY: Use same Go version everywhere (development, CI/CD, Docker, documentation)
-- Current Version: 1.25.5 (check go.mod)
-- Enforcement Locations: go.mod (go 1.25.5), .github/workflows/*.yml (GO_VERSION: '1.25.5'), Dockerfile (FROM golang:1.25.5-alpine), README.md (document Go 1.25.5+ requirement)
+- Current Version: 1.25.7 (check go.mod)
+- Enforcement Locations: go.mod (go 1.25.7), .github/workflows/*.yml (GO_VERSION: '1.25.7'), Dockerfile (FROM golang:1.25.7-alpine), README.md (document Go 1.25.7+ requirement)
 - Update Policy: Security patches (apply immediately), minor versions (update monthly), major versions (evaluate quarterly)
 
 #### 11.1.2 CGO Ban - CRITICAL
@@ -4039,7 +4039,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 
 ### A.2 Technology Selection Decisions
 
-**Go 1.25.5**: Static typing, fast compilation, excellent concurrency, CGO-free (portability)
+**Go 1.25.7**: Static typing, fast compilation, excellent concurrency, CGO-free (portability)
 **PostgreSQL + SQLite**: Production (ACID, scalability) + Dev/Test (zero-config, in-memory)
 **GORM**: Cross-DB compatibility, migrations, type-safe queries
 **Fiber**: Fast HTTP framework, Express-like API, low memory footprint
@@ -4073,7 +4073,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 <!-- @propagate to=".github/instructions/02-02.versions.instructions.md" as="minimum-versions" -->
 **CRITICAL: ALWAYS use the same version everywhere** (dev, CI/CD, Docker, workflows, docs)
 
-- Go: 1.25.5+
+- Go: 1.25.7+
 - Python: 3.14+
 - golangci-lint: v2.7.2+
 - Node: v24.11.1+ LTS
@@ -4084,7 +4084,7 @@ Three-encounter rule: 1st → document, 2nd → create fix task, 3rd → MANDATO
 - Docker Compose: v2+
 <!-- @/propagate -->
 
-**Languages**: Go 1.25.5 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
+**Languages**: Go 1.25.7 (services), Python 3.14+ (utilities), Node v24.11.1+ (CLI tools)
 **Databases**: PostgreSQL 18, SQLite (modernc.org/sqlite, CGO-free)
 **Frameworks**: Fiber (HTTP), GORM (ORM), oapi-codegen (OpenAPI)
 **Observability**: OpenTelemetry, Grafana LGTM (Loki, Tempo, Prometheus)

@@ -20,7 +20,7 @@ func TestCheckAndUseDepCache_Expired(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
@@ -57,7 +57,7 @@ func TestCheckAndUseDepCache_GoModChanged(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
@@ -96,7 +96,7 @@ func TestCheckAndUseDepCache_ValidCacheWithOutdated(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
@@ -134,7 +134,7 @@ func TestCheckAndUseDepCache_ValidCacheClean(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	goModFile := filepath.Join(tmpDir, "go.mod")
-	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.5\n"), cryptoutilSharedMagic.CacheFilePermissions)
+	err := os.WriteFile(goModFile, []byte("module test\ngo 1.25.7\n"), cryptoutilSharedMagic.CacheFilePermissions)
 	require.NoError(t, err)
 
 	goSumFile := filepath.Join(tmpDir, "go.sum")
@@ -213,7 +213,7 @@ func TestGetDirectDependencies_EmptyLines(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 
 require (
 
@@ -248,7 +248,7 @@ func TestGetDirectDependencies_MultipleSingleLineRequires(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 
 require github.com/pkg/errors v0.9.1
 require github.com/stretchr/testify v1.8.0
@@ -300,7 +300,7 @@ func TestGetDirectDependencies_NoRequireBlock(t *testing.T) {
 
 	goModContent := []byte(`module example.com/mymodule
 
-go 1.25.5
+go 1.25.7
 
 replace example.com/old => example.com/new v1.0.0
 `)
