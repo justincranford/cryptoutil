@@ -76,3 +76,12 @@
 - [x] Report match/mismatch/missing/file-not-found per chunk with line numbers
 - [x] Result: 27 chunks validated, 27 matched, 0 stale
 - [x] 94.6% package coverage, core functions at 100%
+
+## Phase 4: Quality Gate Fixes ✅
+
+### 4.1 cmd-main-pattern Linter
+
+- [x] Identified root cause: regex expected os.Args, 12 main.go files use os.Args[1:]
+- [x] Updated regex to accept both os.Args and os.Args[1:] patterns (committed 251b6e5a)
+- [x] Added test cases for os.Args[1:] variant
+- [x] TestLint_Integration passes, full test suite zero failures
