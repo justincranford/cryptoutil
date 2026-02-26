@@ -50,6 +50,14 @@ services:
     #   - "15679:55679" # zPages (container-only)
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    healthcheck:
+      # Use wget (available in Alpine-based image) against the health extension endpoint.
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures.
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
+      start_period: 10s
+      interval: 30s
+      timeout: 5s
+      retries: 3
     networks:
       - telemetry-network
     deploy:

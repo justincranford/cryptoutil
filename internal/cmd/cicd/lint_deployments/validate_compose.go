@@ -231,7 +231,13 @@ func validateHealthChecks(compose *composeFile, result *ComposeValidationResult)
 
 // isExemptFromHealthcheck returns true for ephemeral services.
 func isExemptFromHealthcheck(name string, svc *composeService) bool {
-	if strings.HasPrefix(name, "builder-") || strings.HasPrefix(name, "healthcheck-") {
+	if strings.HasPrefix(name, "builder-") || strings.HasPrefix(name, "healthcheck-") ||
+		strings.HasPrefix(name, "setup-") || strings.HasPrefix(name, "init-") {
+		return true
+	}
+
+	// Exact name matches for known init containers.
+	if strings.HasSuffix(name, "-setup") || strings.HasSuffix(name, "-init") {
 		return true
 	}
 
@@ -331,9 +337,21 @@ func extractSecretName(secretRef any) string {
 	return ""
 }
 
+// infrastructureServices are services excluded from credential checks per ARCHITECTURE.md Section 12.6.
+// "Infrastructure deployments excluded" from Docker secrets requirement.
+var infrastructureServices = map[string]bool{
+	"grafana-otel-lgtm":                             true,
+	"opentelemetry-collector-contrib":                true,
+	"healthcheck-opentelemetry-collector-contrib":    true,
+}
+
 // validateNoHardcodedCredentials checks for hardcoded credentials in env vars.
 func validateNoHardcodedCredentials(compose *composeFile, result *ComposeValidationResult) {
 	for _, name := range sortedServiceNames(compose) {
+		if infrastructureServices[name] {
+			continue
+		}
+
 		svc := compose.Services[name]
 
 		for key, value := range extractEnvironmentVars(&svc) {

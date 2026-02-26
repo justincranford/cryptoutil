@@ -47,7 +47,7 @@ jobs:
 
       - name: Validate compose files
         run: |
-          find deployments/ -name 'compose*.yml' -type f | sort | while read -r f; do
+          find deployments/ -name 'compose*.yml' -type f -not -path 'deployments/archived/*' -not -path 'deployments/template/*' | sort | while read -r f; do
             echo "=== Validating: $f ==="
             ./cicd lint-deployments validate-compose "$f"
           done
