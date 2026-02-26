@@ -38,6 +38,8 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return CheckChunkVerification(stdout, stderr)
 	case "validate-propagation":
 		return ValidatePropagationCommand(stdout, stderr)
+	case "validate-chunks":
+		return ValidateChunksCommand(stdout, stderr)
 	case "help", "--help", "-h":
 		printUsage(stdout)
 
@@ -68,6 +70,9 @@ Commands:
 
   validate-propagation      Validate all ARCHITECTURE.md section references in instruction/agent files
                             Reports broken links and orphaned sections
+
+  validate-chunks           Compare @propagate/@source marker content for staleness
+                            Byte-for-byte comparison of propagated chunks
 
   help, --help, -h          Show this help message
 

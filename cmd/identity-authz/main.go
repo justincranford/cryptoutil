@@ -5,11 +5,11 @@
 package main
 
 import (
-"os"
+	"os"
 
-cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity/authz"
+	cryptoutilAppsIdentityAuthz "cryptoutil/internal/apps/identity/authz"
 )
 
 func main() {
-os.Exit(cryptoutilAppsIdentityAuthz.Authz(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsIdentityAuthz.Authz(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

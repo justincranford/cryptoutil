@@ -5,11 +5,11 @@
 package main
 
 import (
-"os"
+	"os"
 
-cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
+	cryptoutilAppsIdentity "cryptoutil/internal/apps/identity"
 )
 
 func main() {
-os.Exit(cryptoutilAppsIdentity.Identity(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsIdentity.Identity(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

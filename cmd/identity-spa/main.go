@@ -5,11 +5,11 @@
 package main
 
 import (
-"os"
+	"os"
 
-cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity/spa"
+	cryptoutilAppsIdentitySpa "cryptoutil/internal/apps/identity/spa"
 )
 
 func main() {
-os.Exit(cryptoutilAppsIdentitySpa.Spa(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(cryptoutilAppsIdentitySpa.Spa(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }

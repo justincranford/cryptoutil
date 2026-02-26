@@ -78,6 +78,9 @@ const (
 	// MinActionMatchGroups is the minimum number of regex match groups for action parsing.
 	MinActionMatchGroups = 3
 
+	// PropagateMarkerMatchGroups is the expected submatch count for @propagate/@source regex (full match + 2 capture groups).
+	PropagateMarkerMatchGroups = 3
+
 	// CacheFilePermissions is the cache file permissions (owner read/write only).
 	CacheFilePermissions = 0o600
 
