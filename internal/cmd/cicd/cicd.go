@@ -36,6 +36,8 @@ func Cicd(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cryptoutilLintDeployments.Main(append([]string{"validate-all"}, args[2:]...))
 	case "check-chunk-verification":
 		return CheckChunkVerification(stdout, stderr)
+	case "validate-propagation":
+		return ValidatePropagationCommand(stdout, stderr)
 	case "help", "--help", "-h":
 		printUsage(stdout)
 
@@ -63,6 +65,9 @@ Commands:
                             Defaults: deployments/ configs/
 
   check-chunk-verification  Verify ARCHITECTURE.md chunks propagated to instruction files
+
+  validate-propagation      Validate all ARCHITECTURE.md section references in instruction/agent files
+                            Reports broken links and orphaned sections
 
   help, --help, -h          Show this help message
 
